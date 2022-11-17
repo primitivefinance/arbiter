@@ -10,3 +10,4 @@ bindings = { path = "../bindings" }
 ethers = "1.0.0"
 tokio = { version = "1.17.0", features = ["macros"] }
 eyre = "0.6.6"
+num-bigfloat = "1.6.0"
