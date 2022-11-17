@@ -9,12 +9,19 @@ use eyre::Result;
 use std::convert::TryFrom;
 use std::sync::Arc;
 mod tokens;
+mod utils;
+use num_bigfloat::BigFloat;
 
 fn print_type_of<T>(_: &T) {
     println!("{}", std::any::type_name::<T>())
 }
 #[tokio::main]
 async fn main() -> Result<()> {
+    // Define for pricing using big float (TODO: Implement fixed points Q64.96?)
+    let two: BigFloat = 2.0.into();
+    let ten: BigFloat = 10.0.into();
+
+    // Sync through Alchemy
     let provider = Provider::try_from(
         "https://eth-mainnet.g.alchemy.com/v2/I93POQk49QE9O-NuOz7nj7sbiluW76it",
     )?;
@@ -40,40 +47,40 @@ async fn main() -> Result<()> {
         .get_pool(
             tokens.get("ETH").unwrap().address,
             tokens.get("USDC").unwrap().address,
-            3000,
+            500,
         )
         .call()
         .await
         .unwrap();
     println!("Uniswap Pool Result: {:#?}", result_address);
+
+    // Pull our token's decimal places into BigFloats
+    let token0_decimals = tokens.get("USDC").unwrap().base_units;
+    let token1_decimals = tokens.get("ETH").unwrap().base_units;
+
     let uniswap_pool = IUniswapV3Pool::new(result_address, provider.clone());
     // let events = uniswap_pool.events();
     // let mut stream = events.stream().await?;
     let swap_events = uniswap_pool.swap_filter();
     let mut swap_stream = swap_events.stream().await?;
     while let Some(Ok(event)) = swap_stream.next().await {
-        // let burn_events = uniswap_pool.burn_filter();
-        // let swap_events = uniswap_pool.swap_filter();
-        // let mint_events = uniswap_pool.mint_filter();
-        // let flash_events = uniswap_pool.flash_filter();
-        // let collect_events = uniswap_pool.collect_filter();
+        println!("sender {:#?}", event.sender); // H160
+        println!("recipient {:#?}", event.recipient); // H160
+        println!("amount_0 {:#?}", event.amount_0); // I256
+        println!("amount_1 {:#?}", event.amount_1); // I256
+        println!("sqrt_price_x96 {:#?}", event.sqrt_price_x96); // U256
+        println!("liquidity {:#?}", event.liquidity); // u128
+        println!("tick {:#?}", event.tick); // i32
 
-        println!("sender {:#?}", event.sender);
-        println!("recipient {:#?}", event.recipient);
-        println!("amount_0 {:#?}", event.amount_0);
-        println!("amount_1 {:#?}", event.amount_1);
-        println!("sqrt_price_x96 {:#?}", event.sqrt_price_x96);
-        println!("liquidity {:#?}", event.liquidity);
-        println!("tick {:#?}", event.tick);
-
-        print_type_of(&event.sender);
-        print_type_of(&event.recipient);
-        print_type_of(&event.amount_0);
-        print_type_of(&event.amount_1);
-        print_type_of(&event.sqrt_price_x96);
-        print_type_of(&event.liquidity);
-        print_type_of(&event.tick);
         // https://docs.uniswap.org/sdk/guides/fetching-prices
+        let diff_decimals: BigFloat = (token1_decimals - token0_decimals).into();
+        println!(
+            "price {:#?}",
+            utils::convert(event.sqrt_price_x96)
+                .pow(&two)
+                .div(&ten.pow(&diff_decimals))
+                .to_string()
+        )
     }
     Ok(())
 }
