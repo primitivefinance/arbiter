@@ -573,40 +573,6 @@
       "versionRequirement": ">=0.5.0",
       "artifacts": {}
     },
-    "/Users/shufflebottomhogwood/Documents/GitHub/0xjepsen/arb_bot/src/IbalancerVault.sol": {
-      "lastModificationDate": 1668393924235,
-      "contentHash": "93df848adb3de80199639d7adb10959e",
-      "sourceName": "src/IbalancerVault.sol",
-      "solcConfig": {
-        "settings": {
-          "optimizer": {
-            "enabled": true,
-            "runs": 200
-          },
-          "outputSelection": {
-            "*": {
-              "": [
-                "ast"
-              ],
-              "*": [
-                "abi",
-                "evm.bytecode",
-                "evm.deployedBytecode",
-                "evm.methodIdentifiers"
-              ]
-            }
-          },
-          "evmVersion": "london"
-        }
-      },
-      "imports": [],
-      "versionRequirement": "^0.8.10",
-      "artifacts": {
-        "Vault": {
-          "0.8.13+commit.abaa5c0e.Darwin.appleclang": "IbalancerVault.sol/Vault.json"
-        }
-      }
-    },
     "/Users/shufflebottomhogwood/Documents/GitHub/0xjepsen/arb_bot/src/callback/IUniswapV3FlashCallback.sol": {
       "lastModificationDate": 1667617594032,
       "contentHash": "63dadbfc744a57bd4bd252579158335d",
@@ -876,6 +842,523 @@
       "imports": [],
       "versionRequirement": ">=0.5.0",
       "artifacts": {}
+    },
+    "/Users/shufflebottomhogwood/Documents/GitHub/0xjepsen/arbitrage-module/src/IBalancer.sol": {
+      "lastModificationDate": 1667625509189,
+      "contentHash": "accc962968bd260d61ab0b83d35381fe",
+      "sourceName": "src/IBalancer.sol",
+      "solcConfig": {
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "": [
+                "ast"
+              ],
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers"
+              ]
+            }
+          },
+          "evmVersion": "london"
+        }
+      },
+      "imports": [],
+      "versionRequirement": "^0.8.10",
+      "artifacts": {
+        "MetaStablePool": {
+          "0.8.13+commit.abaa5c0e.Darwin.appleclang": "IBalancer.sol/MetaStablePool.json"
+        }
+      }
+    },
+    "/Users/shufflebottomhogwood/Documents/GitHub/0xjepsen/arbitrage-module/src/IUniswapFactory.sol": {
+      "lastModificationDate": 1668698535910,
+      "contentHash": "ad1bdb688f72125b19a8e2c1eb568153",
+      "sourceName": "src/IUniswapFactory.sol",
+      "solcConfig": {
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "": [
+                "ast"
+              ],
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers"
+              ]
+            }
+          },
+          "evmVersion": "london"
+        }
+      },
+      "imports": [],
+      "versionRequirement": "^0.8.10",
+      "artifacts": {
+        "UniswapV3Factory": {
+          "0.8.13+commit.abaa5c0e.Darwin.appleclang": "IUniswapFactory.sol/UniswapV3Factory.json"
+        }
+      }
+    },
+    "/Users/shufflebottomhogwood/Documents/GitHub/0xjepsen/arbitrage-module/src/IUniswapV3Factory.sol": {
+      "lastModificationDate": 1667617594032,
+      "contentHash": "f0eeb76e5ae42bcbacc8efc10e091716",
+      "sourceName": "src/IUniswapV3Factory.sol",
+      "solcConfig": {
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "": [
+                "ast"
+              ],
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers"
+              ]
+            }
+          },
+          "evmVersion": "london"
+        }
+      },
+      "imports": [],
+      "versionRequirement": ">=0.5.0",
+      "artifacts": {
+        "IUniswapV3Factory": {
+          "0.8.13+commit.abaa5c0e.Darwin.appleclang": "IUniswapV3Factory.sol/IUniswapV3Factory.json"
+        }
+      }
+    },
+    "/Users/shufflebottomhogwood/Documents/GitHub/0xjepsen/arbitrage-module/src/IUniswapV3Pool.sol": {
+      "lastModificationDate": 1667617594032,
+      "contentHash": "e6badd8268772b99e7ca397aff11a965",
+      "sourceName": "src/IUniswapV3Pool.sol",
+      "solcConfig": {
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "": [
+                "ast"
+              ],
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers"
+              ]
+            }
+          },
+          "evmVersion": "london"
+        }
+      },
+      "imports": [
+        "src/pool/IUniswapV3PoolActions.sol",
+        "src/pool/IUniswapV3PoolDerivedState.sol",
+        "src/pool/IUniswapV3PoolEvents.sol",
+        "src/pool/IUniswapV3PoolImmutables.sol",
+        "src/pool/IUniswapV3PoolOwnerActions.sol",
+        "src/pool/IUniswapV3PoolState.sol"
+      ],
+      "versionRequirement": ">=0.5.0",
+      "artifacts": {
+        "IUniswapV3Pool": {
+          "0.8.13+commit.abaa5c0e.Darwin.appleclang": "IUniswapV3Pool.sol/IUniswapV3Pool.json"
+        }
+      }
+    },
+    "/Users/shufflebottomhogwood/Documents/GitHub/0xjepsen/arbitrage-module/src/IUniswapV3PoolDeployer.sol": {
+      "lastModificationDate": 1667617594032,
+      "contentHash": "582fe170f55329e8ed300238a52e1821",
+      "sourceName": "src/IUniswapV3PoolDeployer.sol",
+      "solcConfig": {
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "": [
+                "ast"
+              ],
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers"
+              ]
+            }
+          },
+          "evmVersion": "london"
+        }
+      },
+      "imports": [],
+      "versionRequirement": ">=0.5.0",
+      "artifacts": {
+        "IUniswapV3PoolDeployer": {
+          "0.8.13+commit.abaa5c0e.Darwin.appleclang": "IUniswapV3PoolDeployer.sol/IUniswapV3PoolDeployer.json"
+        }
+      }
+    },
+    "/Users/shufflebottomhogwood/Documents/GitHub/0xjepsen/arbitrage-module/src/IbalancerVault.sol": {
+      "lastModificationDate": 1668394072637,
+      "contentHash": "7709a36f413d370ee936266e591f8dad",
+      "sourceName": "src/IbalancerVault.sol",
+      "solcConfig": {
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "": [
+                "ast"
+              ],
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers"
+              ]
+            }
+          },
+          "evmVersion": "london"
+        }
+      },
+      "imports": [],
+      "versionRequirement": "^0.8.10",
+      "artifacts": {
+        "Vault": {
+          "0.8.13+commit.abaa5c0e.Darwin.appleclang": "IbalancerVault.sol/Vault.json"
+        }
+      }
+    },
+    "/Users/shufflebottomhogwood/Documents/GitHub/0xjepsen/arbitrage-module/src/callback/IUniswapV3FlashCallback.sol": {
+      "lastModificationDate": 1667617594032,
+      "contentHash": "63dadbfc744a57bd4bd252579158335d",
+      "sourceName": "src/callback/IUniswapV3FlashCallback.sol",
+      "solcConfig": {
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "": [
+                "ast"
+              ],
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers"
+              ]
+            }
+          },
+          "evmVersion": "london"
+        }
+      },
+      "imports": [],
+      "versionRequirement": ">=0.5.0",
+      "artifacts": {
+        "IUniswapV3FlashCallback": {
+          "0.8.13+commit.abaa5c0e.Darwin.appleclang": "IUniswapV3FlashCallback.sol/IUniswapV3FlashCallback.json"
+        }
+      }
+    },
+    "/Users/shufflebottomhogwood/Documents/GitHub/0xjepsen/arbitrage-module/src/callback/IUniswapV3MintCallback.sol": {
+      "lastModificationDate": 1667617594032,
+      "contentHash": "1b49846c9d15506134419bb3afa18bb7",
+      "sourceName": "src/callback/IUniswapV3MintCallback.sol",
+      "solcConfig": {
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "": [
+                "ast"
+              ],
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers"
+              ]
+            }
+          },
+          "evmVersion": "london"
+        }
+      },
+      "imports": [],
+      "versionRequirement": ">=0.5.0",
+      "artifacts": {
+        "IUniswapV3MintCallback": {
+          "0.8.13+commit.abaa5c0e.Darwin.appleclang": "IUniswapV3MintCallback.sol/IUniswapV3MintCallback.json"
+        }
+      }
+    },
+    "/Users/shufflebottomhogwood/Documents/GitHub/0xjepsen/arbitrage-module/src/callback/IUniswapV3SwapCallback.sol": {
+      "lastModificationDate": 1667617594032,
+      "contentHash": "a8ba2d37b0107911ae0e3b0e123cbd83",
+      "sourceName": "src/callback/IUniswapV3SwapCallback.sol",
+      "solcConfig": {
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "": [
+                "ast"
+              ],
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers"
+              ]
+            }
+          },
+          "evmVersion": "london"
+        }
+      },
+      "imports": [],
+      "versionRequirement": ">=0.5.0",
+      "artifacts": {
+        "IUniswapV3SwapCallback": {
+          "0.8.13+commit.abaa5c0e.Darwin.appleclang": "IUniswapV3SwapCallback.sol/IUniswapV3SwapCallback.json"
+        }
+      }
+    },
+    "/Users/shufflebottomhogwood/Documents/GitHub/0xjepsen/arbitrage-module/src/pool/IUniswapV3PoolActions.sol": {
+      "lastModificationDate": 1667617594032,
+      "contentHash": "83d338eb1394008c808a20ac7c5bab0c",
+      "sourceName": "src/pool/IUniswapV3PoolActions.sol",
+      "solcConfig": {
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "": [
+                "ast"
+              ],
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers"
+              ]
+            }
+          },
+          "evmVersion": "london"
+        }
+      },
+      "imports": [],
+      "versionRequirement": ">=0.5.0",
+      "artifacts": {
+        "IUniswapV3PoolActions": {
+          "0.8.13+commit.abaa5c0e.Darwin.appleclang": "IUniswapV3PoolActions.sol/IUniswapV3PoolActions.json"
+        }
+      }
+    },
+    "/Users/shufflebottomhogwood/Documents/GitHub/0xjepsen/arbitrage-module/src/pool/IUniswapV3PoolDerivedState.sol": {
+      "lastModificationDate": 1667617594033,
+      "contentHash": "25b71180ec9f5132a158334971ee2ace",
+      "sourceName": "src/pool/IUniswapV3PoolDerivedState.sol",
+      "solcConfig": {
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "": [
+                "ast"
+              ],
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers"
+              ]
+            }
+          },
+          "evmVersion": "london"
+        }
+      },
+      "imports": [],
+      "versionRequirement": ">=0.5.0",
+      "artifacts": {
+        "IUniswapV3PoolDerivedState": {
+          "0.8.13+commit.abaa5c0e.Darwin.appleclang": "IUniswapV3PoolDerivedState.sol/IUniswapV3PoolDerivedState.json"
+        }
+      }
+    },
+    "/Users/shufflebottomhogwood/Documents/GitHub/0xjepsen/arbitrage-module/src/pool/IUniswapV3PoolEvents.sol": {
+      "lastModificationDate": 1667617594033,
+      "contentHash": "05abb59ec113db1046f7dadc78bb297b",
+      "sourceName": "src/pool/IUniswapV3PoolEvents.sol",
+      "solcConfig": {
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "": [
+                "ast"
+              ],
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers"
+              ]
+            }
+          },
+          "evmVersion": "london"
+        }
+      },
+      "imports": [],
+      "versionRequirement": ">=0.5.0",
+      "artifacts": {
+        "IUniswapV3PoolEvents": {
+          "0.8.13+commit.abaa5c0e.Darwin.appleclang": "IUniswapV3PoolEvents.sol/IUniswapV3PoolEvents.json"
+        }
+      }
+    },
+    "/Users/shufflebottomhogwood/Documents/GitHub/0xjepsen/arbitrage-module/src/pool/IUniswapV3PoolImmutables.sol": {
+      "lastModificationDate": 1667617594033,
+      "contentHash": "e236e09a9d654fb2f20a6da5dba2bd2f",
+      "sourceName": "src/pool/IUniswapV3PoolImmutables.sol",
+      "solcConfig": {
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "": [
+                "ast"
+              ],
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers"
+              ]
+            }
+          },
+          "evmVersion": "london"
+        }
+      },
+      "imports": [],
+      "versionRequirement": ">=0.5.0",
+      "artifacts": {
+        "IUniswapV3PoolImmutables": {
+          "0.8.13+commit.abaa5c0e.Darwin.appleclang": "IUniswapV3PoolImmutables.sol/IUniswapV3PoolImmutables.json"
+        }
+      }
+    },
+    "/Users/shufflebottomhogwood/Documents/GitHub/0xjepsen/arbitrage-module/src/pool/IUniswapV3PoolOwnerActions.sol": {
+      "lastModificationDate": 1667617594033,
+      "contentHash": "1b06ecc79e75f836c446ccf286e671e4",
+      "sourceName": "src/pool/IUniswapV3PoolOwnerActions.sol",
+      "solcConfig": {
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "": [
+                "ast"
+              ],
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers"
+              ]
+            }
+          },
+          "evmVersion": "london"
+        }
+      },
+      "imports": [],
+      "versionRequirement": ">=0.5.0",
+      "artifacts": {
+        "IUniswapV3PoolOwnerActions": {
+          "0.8.13+commit.abaa5c0e.Darwin.appleclang": "IUniswapV3PoolOwnerActions.sol/IUniswapV3PoolOwnerActions.json"
+        }
+      }
+    },
+    "/Users/shufflebottomhogwood/Documents/GitHub/0xjepsen/arbitrage-module/src/pool/IUniswapV3PoolState.sol": {
+      "lastModificationDate": 1667617594033,
+      "contentHash": "0488495ef9087b4513d3b43634035ef9",
+      "sourceName": "src/pool/IUniswapV3PoolState.sol",
+      "solcConfig": {
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "": [
+                "ast"
+              ],
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers"
+              ]
+            }
+          },
+          "evmVersion": "london"
+        }
+      },
+      "imports": [],
+      "versionRequirement": ">=0.5.0",
+      "artifacts": {
+        "IUniswapV3PoolState": {
+          "0.8.13+commit.abaa5c0e.Darwin.appleclang": "IUniswapV3PoolState.sol/IUniswapV3PoolState.json"
+        }
+      }
     }
   }
 }

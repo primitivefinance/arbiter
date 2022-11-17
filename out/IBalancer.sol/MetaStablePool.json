@@ -1307,7 +1307,7 @@
     "linkReferences": {}
   },
   "ast": {
-    "absolutePath": "/Users/shufflebottomhogwood/Documents/GitHub/0xjepsen/arb_bot/src/IBalancer.sol",
+    "absolutePath": "/Users/shufflebottomhogwood/Documents/GitHub/0xjepsen/arbitrage-module/src/IBalancer.sol",
     "exportedSymbols": {
       "MetaStablePool": [
         486

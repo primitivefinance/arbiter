@@ -25,4 +25,5 @@ pub mod ierc721_enumerable;
 pub mod ierc721_metadata;
 pub mod ierc721_token_receiver;
 pub mod meta_stable_pool;
+pub mod uniswap_v3_factory;
 pub mod vault;
