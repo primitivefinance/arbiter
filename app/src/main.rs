@@ -10,6 +10,9 @@ use std::convert::TryFrom;
 use std::sync::Arc;
 mod tokens;
 
+fn print_type_of<T>(_: &T) {
+    println!("{}", std::any::type_name::<T>())
+}
 #[tokio::main]
 async fn main() -> Result<()> {
     let provider = Provider::try_from(
@@ -62,6 +65,15 @@ async fn main() -> Result<()> {
         println!("sqrt_price_x96 {:#?}", event.sqrt_price_x96);
         println!("liquidity {:#?}", event.liquidity);
         println!("tick {:#?}", event.tick);
+
+        print_type_of(&event.sender);
+        print_type_of(&event.recipient);
+        print_type_of(&event.amount_0);
+        print_type_of(&event.amount_1);
+        print_type_of(&event.sqrt_price_x96);
+        print_type_of(&event.liquidity);
+        print_type_of(&event.tick);
+        // https://docs.uniswap.org/sdk/guides/fetching-prices
     }
     Ok(())
 }
