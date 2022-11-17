@@ -11,16 +11,16 @@ We want to develop a Rust program that is capable of executing atomic arbitrage 
 ## Features (in development):
 
 #### TODOs: 
-[ ] Takes user input of token addresses and finds the corresponding PoolIDs for UniswapV3 and Balancer.
-[ ] Monitors the pool prices continuously and announces when an arbitrage trade with profit exceeding the no-arbitrage bounds + gas cost is found.
-[ ] Executes atomic transactions between pools to capture arbitrage.
+- [ ] Takes user input of token addresses and finds the corresponding PoolIDs for UniswapV3 and Balancer.
+- [ ] Monitors the pool prices continuously and announces when an arbitrage trade with profit exceeding the no-arbitrage bounds + gas cost is found.
+- [ ] Executes atomic transactions between pools to capture arbitrage.
 
 ## Set up (in development):
 
 #### TODOs:
 
-[ ] Create a release that takes in CLI user input and streams data to the user in the CLI.
-[ ] Integrate with RPC endpoints to allow for execution of atomic swaps to occur on the network.
+- [ ] Create a release that takes in CLI user input and streams data to the user in the CLI.
+- [ ] Integrate with RPC endpoints to allow for execution of atomic swaps to occur on the network.
 
 ## Authors:
 Created by [ColinPR](https://github.com/ColinPR) and  [0xJepsen](https://github.com/0xJepsen)
