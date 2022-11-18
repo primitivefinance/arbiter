@@ -1,0 +1,16 @@
+# Run `cargo run -- -h` for help.
+name: arbitrage-module
+version: "0.1"
+args:
+  - TOKEN0:
+      long: token0
+      value_name: TOKEN0
+      help: Specifies a token for a token pair. Default token0 is "ETH". 
+      takes_value: true
+      default_value: "ETH"
+  - token1:
+      long: token1
+      value_name: TOKEN1
+      help: Specifies a token for a token pair. Default token1 is "USDC". 
+      takes_value: true
+      default_value: "USDC"

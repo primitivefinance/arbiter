@@ -1,11 +1,16 @@
 use eyre::Result;
 mod tokens;
 mod utils;
+// use clap::Parser;
+mod cli;
 // fn print_type_of<T>(_: &T) {
 //     println!("{}", std::any::type_name::<T>())
 // }
 #[tokio::main]
 async fn main() -> Result<()> {
+    // Input CLI arguments from user
+    cli::get_cli();
+
     // Define for pricing using big float (TODO: Implement fixed points Q64.96?
     // Sync through Alchemy
     let provider = utils::get_provider().await;
