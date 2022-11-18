@@ -1,4 +1,5 @@
 use bindings::uniswap_v3_factory::UniswapV3Factory;
+use ethers::abi::Address;
 use ethers::prelude::*;
 use ethers::providers::Provider;
 use num_bigfloat::BigFloat;
@@ -33,10 +34,47 @@ pub async fn get_provider() -> Arc<Provider<Http>> {
 pub async fn get_uniswapv3_factory(
     provider: Arc<Provider<Http>>,
 ) -> UniswapV3Factory<Provider<Http>> {
-    let uniswapV3_Factory_address = "0x1F98431c8aD98523631AE4a59f267346ea31F984"
+    let uniswap_v3_factory_address = "0x1F98431c8aD98523631AE4a59f267346ea31F984"
         .parse::<Address>()
         .unwrap();
-
-    UniswapV3Factory::new(uniswapV3_Factory_address, provider.clone())
-    // let balancer_vault = Vault::new(balancer_vault_address, provider.clone());
+    UniswapV3Factory::new(uniswap_v3_factory_address, provider.clone())
+}
+pub async fn get_pool_from_uniswap(
+    token_0: Address,
+    token_1: Address,
+    factory: UniswapV3Factory<Provider<Http>>,
+) -> Vec<Address> {
+    // BP 10000, 3000, 500, 100
+    let pool_500 = factory
+        .get_pool(token_0, token_1, 500)
+        .call()
+        .await
+        .unwrap();
+    let pool_100 = factory
+        .get_pool(token_0, token_1, 100)
+        .call()
+        .await
+        .unwrap();
+    let pool_3000 = factory
+        .get_pool(token_0, token_1, 3000)
+        .call()
+        .await
+        .unwrap();
+    let pool_10000 = factory
+        .get_pool(token_0, token_1, 10000)
+        .call()
+        .await
+        .unwrap();
+    let mut pools = vec![pool_100, pool_500, pool_3000, pool_10000];
+    let length = pools.len();
+    for index in 0..length {
+        if pools[index]
+            != "0x0000000000000000000000000000000000000000"
+                .parse::<Address>()
+                .unwrap()
+        {
+            pools.remove(index);
+        }
+    }
+    pools
 }

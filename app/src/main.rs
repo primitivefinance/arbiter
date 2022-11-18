@@ -23,23 +23,22 @@ async fn main() -> Result<()> {
 
     println!("Contract Addresses");
     println!("UniswapV3 Factory Address: {:#?}", uniswap_factory);
-
-    let result_address = uniswap_factory
-        .get_pool(
-            tokens.get("ETH").unwrap().address,
-            tokens.get("USDC").unwrap().address,
-            500,
-        )
-        .call()
-        .await
-        .unwrap();
+    let eth = tokens.get("ETH").unwrap();
+    // BP 10000, 3000, 500, 100
+    let result_address = utils::get_pool_from_uniswap(
+        tokens.get("ETH").unwrap().address,
+        tokens.get("ETH").unwrap().address,
+        uniswap_factory,
+    )
+    .await;
     println!("Uniswap Pool Result: {:#?}", result_address);
 
     // Pull our token's decimal places into BigFloats
     let token0_decimals = tokens.get("USDC").unwrap().base_units;
     let token1_decimals = tokens.get("ETH").unwrap().base_units;
 
-    let uniswap_pool = IUniswapV3Pool::new(result_address, provider.clone());
+    // TODO Change the result address to not always take the first indice
+    let uniswap_pool = IUniswapV3Pool::new(result_address[0], provider.clone());
     // let events = uniswap_pool.events();
     // let mut stream = events.stream().await?;
     let swap_events = uniswap_pool.swap_filter();
