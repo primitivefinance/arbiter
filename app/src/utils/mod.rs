@@ -1,9 +1,13 @@
+use bindings::i_uniswap_v3_pool::IUniswapV3Pool;
 use bindings::uniswap_v3_factory::UniswapV3Factory;
 use ethers::abi::Address;
 use ethers::prelude::*;
 use ethers::providers::Provider;
 use num_bigfloat::BigFloat;
+use std::collections::HashMap;
 use std::sync::Arc;
+
+use crate::tokens::Token;
 
 // pub const two: BigFloat = 2.0.into();
 // pub const ten: BigFloat = 10.0.into();
@@ -65,16 +69,48 @@ pub async fn get_pool_from_uniswap(
         .call()
         .await
         .unwrap();
-    let mut pools = vec![pool_100, pool_500, pool_3000, pool_10000];
-    let length = pools.len();
-    for index in 0..length {
-        if pools[index]
-            != "0x0000000000000000000000000000000000000000"
-                .parse::<Address>()
-                .unwrap()
-        {
-            pools.remove(index);
-        }
+    vec![pool_100, pool_500, pool_3000, pool_10000]
+}
+pub async fn get_pool_objects(
+    addresses: Vec<Address>,
+    provider: Arc<Provider<Http>>,
+) -> Vec<IUniswapV3Pool<Provider<Http>>> {
+    let mut vec: Vec<IUniswapV3Pool<Provider<Http>>> = vec![];
+    for address in addresses {
+        let uniswap_pool = &mut vec![IUniswapV3Pool::new(address, provider.clone())];
+        vec.append(uniswap_pool);
     }
-    pools
+    vec
+}
+
+pub async fn monitor_pool(pool: &IUniswapV3Pool<Provider<Http>>, tokens: HashMap<String, Token>) {
+    let two: BigFloat = 2.0.into();
+    let ten: BigFloat = 10.0.into();
+    let swap_events = pool.swap_filter();
+    let mut swap_stream = swap_events.stream().await.unwrap();
+    while let Some(Ok(event)) = swap_stream.next().await {
+        println!("------------New Swap------------");
+        println!(
+            "Sender: {:#?}, Recipient: {:#?}",
+            event.sender, event.recipient
+        ); // H160s
+        println!("amount_0 {:#?}", event.amount_0); // I256
+        println!("amount_1 {:#?}", event.amount_1); // I256
+        println!("liquidity {:#?}", event.liquidity); // u128
+        println!("tick {:#?}", event.tick); // i32
+
+        // https://docs.uniswap.org/sdk/guides/fetching-prices
+        let diff_decimals: BigFloat =
+            (tokens.get("ETH").unwrap().base_units - tokens.get("USDC").unwrap().base_units).into();
+        let one: BigFloat = 1.into();
+        println!(
+            "price {:#?}",
+            one.div(
+                &convert(event.sqrt_price_x96)
+                    .pow(&two)
+                    .div(&ten.pow(&diff_decimals))
+            )
+            .to_string()
+        )
+    }
 }
