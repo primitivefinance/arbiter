@@ -1,16 +1,20 @@
 # Run `cargo run -- -h` for help.
 name: arbitrage-module
-version: "0.1"
+version: "0.0.1"
 args:
-  - TOKEN0:
+  - token0:
       long: token0
       value_name: TOKEN0
-      help: Specifies a token for a token pair. Default token0 is "ETH". 
+      help: Specifies the first token for a token pair.
       takes_value: true
       default_value: "ETH"
   - token1:
       long: token1
       value_name: TOKEN1
-      help: Specifies a token for a token pair. Default token1 is "USDC". 
+      help: Specifies the second token for a token pair.
       takes_value: true
       default_value: "USDC"
+  - api_key:
+      long: api_key
+      value_name: APIKEY
+      help: Provide an Etherscan API key if function calls require it (e.g., providing a token that is not in the database).
