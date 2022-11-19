@@ -1,7 +1,7 @@
 use ethers::types::{Address, H160};
 use std::collections::HashMap;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Token {
     pub address: H160, //ethers::core::types::Address,
     pub decimals: u16,

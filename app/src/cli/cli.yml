@@ -16,7 +16,7 @@ args:
       long: fee
       help: Specifies the basis points for the pool. [1, 5, 30, 100]
       takes_value: true
-      default_value: "USDC"
+      default_value: "5"
   - api_key:
       long: api_key
       help: Provide an Etherscan API key if function calls require it (e.g., providing a token that is not in the database).
