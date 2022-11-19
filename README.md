@@ -1,4 +1,4 @@
-# Arbitrage Module (In Progress)
+# Arbiter (In Progress)
 
 > A stand-alone Rust program to detect and execute arbitrage events between UniswapV3 and ...
 
