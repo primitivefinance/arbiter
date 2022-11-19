@@ -8,8 +8,6 @@ use std::sync::Arc;
 
 use crate::tokens::{self, get_tokens, Token};
 
-// pub const two: BigFloat = 2.0.into();
-// pub const ten: BigFloat = 10.0.into();
 pub fn convert(q64_96: U256) -> BigFloat {
     let least_sig = q64_96.0[0];
     let second_sig = q64_96.0[1];
@@ -91,9 +89,11 @@ pub async fn get_pool_objects(
 //     }
 // }
 
-pub async fn monitor_pool(pool: &IUniswapV3Pool<Provider<Http>>) {
-    let two: BigFloat = 2.0.into();
-    let ten: BigFloat = 10.0.into();
+pub async fn monitor_pool(
+    pool: &IUniswapV3Pool<Provider<Http>>,
+    token_0_string: String,
+    token_1_string: String,
+) {
     let swap_events = pool.swap_filter();
     let mut swap_stream = swap_events.stream().await.unwrap();
     while let Some(Ok(event)) = swap_stream.next().await {
@@ -107,20 +107,31 @@ pub async fn monitor_pool(pool: &IUniswapV3Pool<Provider<Http>>) {
         println!("amount_1 {:#?}", event.amount_1); // I256
         println!("liquidity {:#?}", event.liquidity); // u128
         println!("tick {:#?}", event.tick); // i32
-
-        // https://docs.uniswap.org/sdk/guides/fetching-prices
-        let tokens = get_tokens();
-        let diff_decimals: BigFloat =
-            (tokens.get("ETH").unwrap().base_units - tokens.get("USDC").unwrap().base_units).into();
-        let one: BigFloat = 1.into();
         println!(
             "price {:#?}",
-            one.div(
-                &convert(event.sqrt_price_x96)
-                    .pow(&two)
-                    .div(&ten.pow(&diff_decimals))
+            compute_price(
+                token_0_string.as_str(),
+                token_1_string.as_str(),
+                event.sqrt_price_x96
             )
             .to_string()
+        )
+    }
+
+    pub fn compute_price(token_0_str: &str, token_1_str: &str, sqrt_price_x96: U256) -> BigFloat {
+        // https://docs.uniswap.org/sdk/guides/fetching-prices
+        let tokens = get_tokens();
+        // Define for pricing using big float (TODO: Implement fixed points Q64.96?)
+        let two: BigFloat = 2.0.into();
+        let ten: BigFloat = 10.0.into();
+        let diff_decimals: BigFloat = (tokens.get(token_0_str).unwrap().base_units
+            - tokens.get(token_1_str).unwrap().base_units)
+            .into();
+        let one: BigFloat = 1.into();
+        one.div(
+            &convert(sqrt_price_x96)
+                .pow(&two)
+                .div(&ten.pow(&diff_decimals)),
         )
     }
 }

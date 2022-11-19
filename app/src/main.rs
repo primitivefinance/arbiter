@@ -1,14 +1,13 @@
 use eyre::Result;
+mod cli;
 mod tokens;
 mod utils;
-mod cli;
 
 #[tokio::main]
 async fn main() -> Result<()> {
     // Input CLI arguments from user
-    let (token_0, token_1, _api_key) = cli::get_cli();
+    let (token_0_string, token_1_string, _api_key) = cli::get_cli();
 
-    // Define for pricing using big float (TODO: Implement fixed points Q64.96?
     // Sync through Alchemy
     let provider = utils::get_provider().await;
     let uniswap_factory = utils::get_uniswapv3_factory(provider.clone()).await;
@@ -25,7 +24,7 @@ async fn main() -> Result<()> {
 
     // TODO Change the result address to not always take the first indicy but all pools
     let pool_objects = utils::get_pool_objects(result_address, provider).await;
-    utils::monitor_pool(&pool_objects[1]).await;
+    utils::monitor_pool(&pool_objects[1], token_0_string, token_1_string).await;
 
     Ok(())
 }
