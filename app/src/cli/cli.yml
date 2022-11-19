@@ -1,5 +1,5 @@
 # Run `cargo run -- -h` for help.
-name: arbitrage-module
+name: arbiter
 version: "0.0.1"
 args:
   - token0:

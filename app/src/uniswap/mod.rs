@@ -9,12 +9,15 @@ use std::sync::Arc;
 use crate::tokens::Token;
 use crate::utils;
 
+// get uniswap factory from bindings
 pub fn get_uniswapv3_factory(provider: Arc<Provider<Http>>) -> UniswapV3Factory<Provider<Http>> {
     let uniswap_v3_factory_address = "0x1F98431c8aD98523631AE4a59f267346ea31F984"
         .parse::<Address>()
         .unwrap();
     UniswapV3Factory::new(uniswap_v3_factory_address, provider)
 }
+
+// get pool address for specified tokens and fee
 pub async fn get_pool_from_uniswap(
     tokens: &(Token, Token),
     factory: UniswapV3Factory<Provider<Http>>,
@@ -46,13 +49,14 @@ pub async fn get_pool_from_uniswap(
     };
     pool
 }
+// Get pool obect bindings from address
 pub async fn get_pool_objects(
     address: Address,
     provider: Arc<Provider<Http>>,
 ) -> IUniswapV3Pool<Provider<Http>> {
-    // let mut vec: Vec<IUniswapV3Pool<Provider<Http>>> = vec![];
     IUniswapV3Pool::new(address, provider)
 }
+//monitor event stream from pool
 pub async fn monitor_pool(pool: &IUniswapV3Pool<Provider<Http>>, tokens: &(Token, Token)) {
     let swap_events = pool.swap_filter();
     let pool_token_0 = pool.token_0().call().await.unwrap();

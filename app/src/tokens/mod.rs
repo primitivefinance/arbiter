@@ -3,7 +3,7 @@ use std::collections::HashMap;
 
 #[derive(Debug, Clone)]
 pub struct Token {
-    pub address: H160, //ethers::core::types::Address,
+    pub address: H160,
     pub decimals: u16,
     pub name: String,
     pub is_stable: bool,

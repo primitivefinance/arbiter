@@ -11,6 +11,8 @@ pub async fn get_provider() -> Arc<Provider<Http>> {
             .unwrap();
     Arc::new(provider)
 }
+
+// Search through token list to get token objects from user input
 pub fn get_tokens_from_cli() -> ((Token, Token), String) {
     let (token_0_string, token_1_string, bp, _api_key) = get_cli();
     let tokens = tokens::get_tokens();
@@ -41,11 +43,3 @@ pub fn convert_q64_96(q64_96: U256) -> BigFloat {
         + BigFloat::from(least_sig))
         / bf2.pow(&bf96)
 }
-// pub async fn multi_thread_listener(pools: Vec<IUniswapV3Pool<Provider<Http>>>) {
-//     for pool in pools {
-//         // tokio::spawn(future)
-//         let thread = thread::spawn(move || {
-//             monitor_pool(&pool);
-//         });
-//     }
-// }
