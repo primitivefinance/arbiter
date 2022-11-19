@@ -90,4 +90,6 @@ price "8.274094178028810096953876094149600409854e+20"
 you may also build the executable with `cargo build` which will output a binary in `target/`
 
 ## Contributing
+
+If you want to see a specific feature feel free to open an issue!
 See our [Contributing Guidlines](https://github.com/primitivefinance/.github/pull/3/files#diff-eca12c0a30e25b4b46522ebf89465a03ba72a03f540796c979137931d8f92055)
