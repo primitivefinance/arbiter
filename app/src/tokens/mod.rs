@@ -1,6 +1,5 @@
 use ethers::types::{Address, H160};
-// use std::collections::hash_map;
-use std::collections::{linked_list, HashMap};
+use std::collections::HashMap;
 
 #[derive(Debug)]
 pub struct Token {

@@ -6,7 +6,7 @@ use ethers::providers::Provider;
 use num_bigfloat::BigFloat; // TODO: Best to work with fixed point q64_96 for UniswapV3
 use std::sync::Arc;
 
-use crate::tokens::{self, get_tokens, Token};
+use crate::tokens::Token;
 
 pub async fn get_provider() -> Arc<Provider<Http>> {
     let provider =
@@ -27,6 +27,7 @@ pub async fn get_pool_from_uniswap(
     token_1: Address,
     factory: UniswapV3Factory<Provider<Http>>,
 ) -> Vec<Address> {
+    // BP options = 100, 500, 3000, 10000 [1bb, 5bp, 30bp, 100bp]
     let pool_100 = factory
         .get_pool(token_0, token_1, 100)
         .call()
@@ -69,12 +70,9 @@ pub async fn get_pool_objects(
 //     }
 // }
 
-pub async fn monitor_pool(
-    pool: &IUniswapV3Pool<Provider<Http>>,
-    token_0_string: String,
-    token_1_string: String,
-) {
+pub async fn monitor_pool(pool: &IUniswapV3Pool<Provider<Http>>, token_0: &Token, token_1: &Token) {
     let swap_events = pool.swap_filter();
+    let pool_token_0 = pool.token_0().call().await.unwrap();
     let mut swap_stream = swap_events.stream().await.unwrap();
     while let Some(Ok(event)) = swap_stream.next().await {
         println!("------------New Swap------------");
@@ -89,33 +87,30 @@ pub async fn monitor_pool(
         println!("tick {:#?}", event.tick); // i32
         println!(
             "price {:#?}",
-            compute_price(
-                token_0_string.as_str(),
-                token_1_string.as_str(),
-                event.sqrt_price_x96
-            )
-            .to_string()
+            compute_price(&token_0, &token_1, event.sqrt_price_x96, pool_token_0,).to_string()
         )
     }
 
-    pub fn compute_price(token_0_str: &str, token_1_str: &str, sqrt_price_x96: U256) -> BigFloat {
+    pub fn compute_price(
+        token_0: &Token,
+        token_1: &Token,
+        sqrt_price_x96: U256,
+        pool_token_0: H160,
+    ) -> BigFloat {
         // Takes in UniswapV3's sqrt_price_x96 (a q64_96 fixed point number) and outputs the price in human readable form.
         // See Uniswap's documentation: https://docs.uniswap.org/sdk/guides/fetching-prices
-        let tokens = get_tokens();
-        let diff_decimals: BigFloat = ((tokens.get(token_0_str).unwrap().decimals as i16)
-            - (tokens.get(token_1_str).unwrap().decimals) as i16)
-            .into();
-        if tokens.get(token_0_str).unwrap().is_stable || tokens.get(token_0_str).unwrap().is_stable
-        {
+        let diff_decimals: BigFloat =
+            ((token_0.decimals as i16) - (token_1.decimals as i16)).into();
+        if pool_token_0 == token_0.address {
+            convert_q64_96(sqrt_price_x96)
+                .pow(&BigFloat::from_i16(2))
+                .div(&BigFloat::from_i16(10).pow(&diff_decimals))
+        } else {
             BigFloat::from_i16(1).div(
                 &&convert_q64_96(sqrt_price_x96)
                     .pow(&BigFloat::from_i16(2))
                     .div(&BigFloat::from_i16(10).pow(&diff_decimals)),
             )
-        } else {
-            convert_q64_96(sqrt_price_x96)
-                .pow(&BigFloat::from_i16(2))
-                .div(&BigFloat::from_i16(10).pow(&diff_decimals))
         }
     }
 

@@ -9,7 +9,12 @@ args:
       default_value: "ETH"
   - token1:
       long: token1
-      help: Specifies the second token for a token pair.
+      help: Specifies the second token for a token pair which we be the numerier.
+      takes_value: true
+      default_value: "USDC"
+  - fee:
+      long: fee
+      help: Specifies the basis points for the pool. [1, 5, 30, 100]
       takes_value: true
       default_value: "USDC"
   - api_key:
