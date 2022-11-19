@@ -1,12 +1,13 @@
 use eyre::Result;
 mod tokens;
 mod utils;
+mod cli;
 
-// fn print_type_of<T>(_: &T) {
-//     println!("{}", std::any::type_name::<T>())
-// }
 #[tokio::main]
 async fn main() -> Result<()> {
+    // Input CLI arguments from user
+    let (token_0, token_1, _api_key) = cli::get_cli();
+
     // Define for pricing using big float (TODO: Implement fixed points Q64.96?
     // Sync through Alchemy
     let provider = utils::get_provider().await;
@@ -15,8 +16,8 @@ async fn main() -> Result<()> {
 
     // BP 10000, 3000, 500, 100
     let result_address = utils::get_pool_from_uniswap(
-        tokens.get("ETH").unwrap().address,
-        tokens.get("USDC").unwrap().address,
+        tokens.get(token_0.as_str()).unwrap().address,
+        tokens.get(token_1.as_str()).unwrap().address,
         uniswap_factory,
     )
     .await;
