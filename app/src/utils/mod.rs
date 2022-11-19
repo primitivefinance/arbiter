@@ -102,14 +102,20 @@ pub async fn monitor_pool(
         // Takes in UniswapV3's sqrt_price_x96 (a q64_96 fixed point number) and outputs the price in human readable form.
         // See Uniswap's documentation: https://docs.uniswap.org/sdk/guides/fetching-prices
         let tokens = get_tokens();
-        let diff_decimals: BigFloat = ((tokens.get(token_0_str).unwrap().base_units as i16)
-            - (tokens.get(token_1_str).unwrap().base_units) as i16)
+        let diff_decimals: BigFloat = ((tokens.get(token_0_str).unwrap().decimals as i16)
+            - (tokens.get(token_1_str).unwrap().decimals) as i16)
             .into();
-        BigFloat::from_i16(1).div(
-            &&convert_q64_96(sqrt_price_x96)
+        if token_0_str == "USDC" || token_1_str == "ETH" {
+            BigFloat::from_i16(1).div(
+                &&convert_q64_96(sqrt_price_x96)
+                    .pow(&BigFloat::from_i16(2))
+                    .div(&BigFloat::from_i16(10).pow(&diff_decimals)),
+            )
+        } else {
+            convert_q64_96(sqrt_price_x96)
                 .pow(&BigFloat::from_i16(2))
-                .div(&BigFloat::from_i16(10).pow(&diff_decimals)),
-        )
+                .div(&BigFloat::from_i16(10).pow(&diff_decimals))
+        }
     }
 
     pub fn convert_q64_96(q64_96: U256) -> BigFloat {
