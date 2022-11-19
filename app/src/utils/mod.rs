@@ -3,35 +3,21 @@ use bindings::uniswap_v3_factory::UniswapV3Factory;
 use ethers::abi::Address;
 use ethers::prelude::*;
 use ethers::providers::Provider;
-use num_bigfloat::BigFloat;
+use num_bigfloat::BigFloat; // TODO: Best to work with fixed point q64_96 for UniswapV3
 use std::sync::Arc;
 
 use crate::tokens::{self, get_tokens, Token};
 
-pub fn convert(q64_96: U256) -> BigFloat {
-    let least_sig = q64_96.0[0];
-    let second_sig = q64_96.0[1];
-    let third_sig = q64_96.0[2];
-    let most_sig = q64_96.0[3];
+// Define constants necessary for pricing using BigFloat
+const two: BigFloat = 2.0.into();
+const ten: BigFloat = 10.0.into();
+const one: BigFloat = 1.into();
 
-    let bf2 = BigFloat::from(2);
-    let bf64 = BigFloat::from(64);
-    let bf128 = BigFloat::from(128);
-    let bf192 = BigFloat::from(192);
-    let bf96 = BigFloat::from(96);
-
-    ((BigFloat::from(most_sig) * bf2.pow(&bf192))
-        + (BigFloat::from(third_sig) * bf2.pow(&bf128))
-        + (BigFloat::from(second_sig) * bf2.pow(&bf64))
-        + BigFloat::from(least_sig))
-        / bf2.pow(&bf96)
-}
 pub async fn get_provider() -> Arc<Provider<Http>> {
     let provider =
         Provider::try_from("https://eth-mainnet.g.alchemy.com/v2/I93POQk49QE9O-NuOz7nj7sbiluW76it")
             .unwrap();
     Arc::new(provider)
-    //https://eth-mainnet.g.alchemy.com/v2/I93POQk49QE9O-NuOz7nj7sbiluW76it
 }
 pub async fn get_uniswapv3_factory(
     provider: Arc<Provider<Http>>,
@@ -46,27 +32,26 @@ pub async fn get_pool_from_uniswap(
     token_1: Address,
     factory: UniswapV3Factory<Provider<Http>>,
 ) -> Vec<Address> {
-    // BP 10000, 3000, 500, 100
     let pool_500 = factory
-        .get_pool(token_0, token_1, 500)
-        .call()
-        .await
-        .unwrap();
-    let pool_100 = factory
         .get_pool(token_0, token_1, 100)
         .call()
         .await
-        .unwrap();
+        .unwrap(); // The UniswapV3 1BP pool.
+    let pool_100 = factory
+        .get_pool(token_0, token_1, 500)
+        .call()
+        .await
+        .unwrap(); // The UniswapV3 5BP pool.
     let pool_3000 = factory
         .get_pool(token_0, token_1, 3000)
         .call()
         .await
-        .unwrap();
+        .unwrap(); // The UniswapV3 30BP pool.
     let pool_10000 = factory
         .get_pool(token_0, token_1, 10000)
         .call()
         .await
-        .unwrap();
+        .unwrap();  // The UniswapV3 100BP pool.
     vec![pool_100, pool_500, pool_3000, pool_10000]
 }
 pub async fn get_pool_objects(
@@ -119,19 +104,36 @@ pub async fn monitor_pool(
     }
 
     pub fn compute_price(token_0_str: &str, token_1_str: &str, sqrt_price_x96: U256) -> BigFloat {
-        // https://docs.uniswap.org/sdk/guides/fetching-prices
+        // Takes in UniswapV3's sqrt_price_x96 (a q64_96 fixed point number) and outputs the price in human readable form.
+        // See Uniswap's documentation: https://docs.uniswap.org/sdk/guides/fetching-prices
         let tokens = get_tokens();
-        // Define for pricing using big float (TODO: Implement fixed points Q64.96?)
-        let two: BigFloat = 2.0.into();
-        let ten: BigFloat = 10.0.into();
         let diff_decimals: BigFloat = (tokens.get(token_0_str).unwrap().base_units
             - tokens.get(token_1_str).unwrap().base_units)
             .into();
-        let one: BigFloat = 1.into();
         one.div(
-            &convert(sqrt_price_x96)
+            &&convert_q64_96(sqrt_price_x96)
                 .pow(&two)
                 .div(&ten.pow(&diff_decimals)),
         )
+    }
+
+    pub fn convert_q64_96(q64_96: U256) -> BigFloat {
+        // Take in a U256 structured as a q64_96 fixed point from UniswapV3 and converts this to a BigFloat.
+        let least_sig = q64_96.0[0];
+        let second_sig = q64_96.0[1];
+        let third_sig = q64_96.0[2];
+        let most_sig = q64_96.0[3];
+    
+        let bf2 = BigFloat::from(2);
+        let bf64 = BigFloat::from(64);
+        let bf128 = BigFloat::from(128);
+        let bf192 = BigFloat::from(192);
+        let bf96 = BigFloat::from(96);
+    
+        ((BigFloat::from(most_sig) * bf2.pow(&bf192))
+            + (BigFloat::from(third_sig) * bf2.pow(&bf128))
+            + (BigFloat::from(second_sig) * bf2.pow(&bf64))
+            + BigFloat::from(least_sig))
+            / bf2.pow(&bf96)
     }
 }
