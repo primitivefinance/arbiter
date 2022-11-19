@@ -4,17 +4,14 @@ version: "0.0.1"
 args:
   - token0:
       long: token0
-      value_name: TOKEN0
       help: Specifies the first token for a token pair.
       takes_value: true
       default_value: "ETH"
   - token1:
       long: token1
-      value_name: TOKEN1
       help: Specifies the second token for a token pair.
       takes_value: true
       default_value: "USDC"
   - api_key:
       long: api_key
-      value_name: APIKEY
       help: Provide an Etherscan API key if function calls require it (e.g., providing a token that is not in the database).
