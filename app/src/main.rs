@@ -1,36 +1,27 @@
 use eyre::Result;
-mod tokens;
-mod utils;
 mod cli;
+mod tokens;
+mod uniswap;
+mod utils;
 
 #[tokio::main]
 async fn main() -> Result<()> {
     // Input CLI arguments from user
-    let (token_0, token_1, _api_key) = cli::get_cli();
+    // let (token_0_string, token_1_string, bp, _api_key) = cli::get_cli();
+    // let tokens = tokens::get_tokens();
+    let (tokens, bp) = utils::get_tokens_from_cli();
 
-    // Define for pricing using big float (TODO: Implement fixed points Q64.96?
-    // Sync through Alchemy
+    // Sync to the chain through Alchemy
     let provider = utils::get_provider().await;
-    let uniswap_factory = utils::get_uniswapv3_factory(provider.clone()).await;
-    let tokens = tokens::get_tokens();
+    let uniswap_factory = uniswap::get_uniswapv3_factory(provider.clone());
 
-    // BP 10000, 3000, 500, 100
-    let result_address = utils::get_pool_from_uniswap(
-        tokens.get(token_0.as_str()).unwrap().address,
-        tokens.get(token_1.as_str()).unwrap().address,
-        uniswap_factory,
-    )
-    .await;
+    // Return addresses of UniswapV3 pools given a token pair
+    // If 0x00...00 returns, the pool does not exist!
+    let result_address = uniswap::get_pool_from_uniswap(&tokens, uniswap_factory, bp).await;
     println!("Uniswap Pool Result: {:#?}", result_address);
 
-    // TODO Change the result address to not always take the first indicy but all pools
-    let pool_objects = utils::get_pool_objects(result_address, provider).await;
-    utils::monitor_pool(&pool_objects[1]).await;
+    let pool_object = uniswap::get_pool_objects(result_address, provider).await;
+    uniswap::monitor_pool(&pool_object, &tokens).await;
 
     Ok(())
 }
-// pub async fn make_thread(pool: IUniswapV3Pool<Provider<Http>>) -> JoinHandle<()> {
-//     thread::spawn(move || {
-//         utils::monitor_pool(&pool);
-//     })
-// }
