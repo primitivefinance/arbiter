@@ -1,6 +1,6 @@
 # Arbiter (In Progress)
 
-> A stand-alone Rust program to detect and execute arbitrage events between UniswapV3 and ...
+> A stand-alone Rust program to events on UniswapV3 pools and ...
 
 ## Motivation:
 
@@ -11,22 +11,25 @@ We want to develop a Rust program that is capable of detecting and executing on 
 ## Features (in development):
  
 #### TODOs: 
-- [ ] Library of top 10 popular tokens which includes symbol, address, and decimals. 
-- [ ] Takes user input of token addresses and finds the corresponding PoolIDs for UniswapV3.
-- [ ] Monitors the UniswapV3 pool prices continuously.
-- [ ] Add additional exchanges and stream their prices continuously.
+- [x] Library of top 10 popular tokens which includes symbol, address, and decimals. 
+- [x] Takes user input of token addresses and finds the corresponding PoolIDs for UniswapV3.
+- [x] Monitors the UniswapV3 pool prices continuously.
+- [ ] Allow for users to input an Etherscan API key to pull token info from the chain.
+- [ ] Integrate with user selected RPC endpoint.
+- [ ] Cuncurrent pool monitoring for multiple pools.
+- [ ] Additional exchanges.
 - [ ] Announces when an arbitrage trade with profit exceeding the no-arbitrage bounds + gas cost is found between two exchanges.
 - [ ] Executes atomic transactions between pools to capture arbitrage.
 
-## Set up (in development):
+## Use: Binary:
 
-`arbitrage-module` takes in three command line arguments. To see the available arguments, run:
+`arbiter` takes in three command line arguments. To see the available arguments, run:
 ```console
-$ cargo run -- -h
+$  /arbiter -h
 ```
 This will display the `help` menu
 ```console
-arbitrage-module 0.0.1
+arbiter 0.0.1
 
 USAGE:
     app [FLAGS] [OPTIONS]
@@ -38,28 +41,30 @@ FLAGS:
     -V, --version    Prints version information
 
 OPTIONS:
+        --fee <fee>          Specifies the basis points for the pool. [1, 5, 30, 100] [default: 5]
         --token0 <token0>    Specifies the first token for a token pair. [default: ETH]
-        --token1 <token1>    Specifies the second token for a token pair. [default: USDC]
+        --token1 <token1>    Specifies the second token for a token pair which we be the numerier. [default: USDC]
 ```
 
 In the above, `token0` and `token1` will be the token pair used to find the corresponding UniswapV3 pools. Upon running
 ```console
 $ cargo run
 ```
-we default to `token0=ETH` and `token1=USDC`. `arbitrage-module` will return results
+we default to `token0=ETH`, `token1=USDC` and `fee=5`. `arbiter` will return results
 ```console
-Uniswap Pool Result: [
-    0xe0554a476a092703abdb3ef35c80e0d76d32939f,
-    0x88e6a0c2ddd26feeb64f039a2c41296fcb3f5640,
-    0x8ad599c3a0ff1de082011efddc58f1908eb6e6d8,
-    0x7bea39867e4169dbe237d55c8242a8f2fcdcc387,
-]
+Uniswap Pool Result: Uniswap Pool Result: 0x88e6a0c2ddd26feeb64f039a2c41296fcb3f5640
 ```
-which are the 1BP, 5BP, 30BP, and 100BP pools for the pair ETH/USDC. The program runs and streams transactions (swaps) that update the pool's price.
+which is the 5BP pools for the pair ETH/USDC on Uniswap. The program runs and streams transactions (swaps) that update the pool's price like so:
+```
+------------New Swap------------
+From pool 0x88e6a0c2ddd26feeb64f039a2c41296fcb3f5640
+Sender: 0x68b3465833fb72a70ecdf485e0e4c7bd8665fc45, Recipient: 0x1019bf2d607cc646a94a194f7a79e0b385065cff
+amount_0 -5235133099
+amount_1 4335000000000000000
+liquidity 23260193077241608585
+tick 205351
+price "1.208239460504000000000000000000000000000e+3"
+```
 
-#### TODOs:
-- [ ] Provide `make` installation instructions and a brief "how to get started". 
-- [ ] Create a release that takes in CLI user input and streams data to the user in the CLI.
-- [ ] Allow for users to input an Etherscan API key to pull token info from the chain.
-- [ ] Integrate with user selected RPC endpoint.
+
 
