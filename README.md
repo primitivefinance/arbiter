@@ -11,7 +11,7 @@ We want to develop a Rust program that is capable of detecting and executing on 
 ## Features (in development):
  
 #### TODOs: 
-- [x] Library of top 10 popular tokens which includes symbol, address, and decimals. 
+- [x] Library of popular tokens which includes symbol, address, and decimals. 
 - [x] Takes user input of token addresses and finds the corresponding PoolIDs for UniswapV3.
 - [x] Monitors the UniswapV3 pool prices continuously.
 - [ ] Allow for users to input an Etherscan API key to pull token info from the chain.
@@ -21,11 +21,17 @@ We want to develop a Rust program that is capable of detecting and executing on 
 - [ ] Announces when an arbitrage trade with profit exceeding the no-arbitrage bounds + gas cost is found between two exchanges.
 - [ ] Executes atomic transactions between pools to capture arbitrage.
 
-## Use: Binary:
+## Build From Source
+
+First, clone the repository to your local environment like so
+```console
+git clone https://github.com/primitivefinance/arbiter.git
+cd arbiter
+```
 
 `arbiter` takes in three command line arguments. To see the available arguments, run:
 ```console
-$  /arbiter -h
+cargo run -- -h
 ```
 This will display the `help` menu
 ```console
@@ -48,13 +54,13 @@ OPTIONS:
 
 In the above, `token0` and `token1` will be the token pair used to find the corresponding UniswapV3 pools. Upon running
 ```console
-$ cargo run
+cargo run
 ```
 we default to `token0=ETH`, `token1=USDC` and `fee=5`. `arbiter` will return results
 ```console
 Uniswap Pool Result: Uniswap Pool Result: 0x88e6a0c2ddd26feeb64f039a2c41296fcb3f5640
 ```
-which is the 5BP pools for the pair ETH/USDC on Uniswap. The program runs and streams transactions (swaps) that update the pool's price like so:
+which is the [5BP pool](https://info.uniswap.org/#/pools/0x88e6a0c2ddd26feeb64f039a2c41296fcb3f5640) for the pair ETH/USDC on Uniswap. The program runs and streams transactions (swaps) that update the pool's price like so:
 ```
 ------------New Swap------------
 From pool 0x88e6a0c2ddd26feeb64f039a2c41296fcb3f5640
@@ -65,6 +71,23 @@ liquidity 23260193077241608585
 tick 205351
 price "1.208239460504000000000000000000000000000e+3"
 ```
+If you would like the price to be in terms of ETH rather than USD for a 1 basis point pool you can run
+```console
+cargo run -- --token0 USDC --token1 ETH --fee 30
+```
+Which will return the pool address and then log swaps on this pool with the price now denominated in ETH
+``` console
+Uniswap Pool Result: 0xe0554a476a092703abdb3ef35c80e0d76d32939f
+------------New Swap------------
+From pool 0xe0554a476a092703abdb3ef35c80e0d76d32939f
+Sender: 0x1d64fb0ffa8362b2e1ee7ee03929159551eab26e, Recipient: 0x76f4eed9fe41262669d0250b2a97db79712ad855
+amount_0 -1087770096
+amount_1 900000000000000000
+liquidity 232281109704283752
+tick 205348
+price "8.274094178028810096953876094149600409854e+20"
+```
+you may also build the executable with `cargo build` which will output a binary in `target/`
 
-
-
+## Contributing
+See our [Contributing Guidlines](https://github.com/primitivefinance/.github/pull/3/files#diff-eca12c0a30e25b4b46522ebf89465a03ba72a03f540796c979137931d8f92055)
