@@ -1,6 +1,7 @@
 use eyre::Result;
 mod tokens;
 mod utils;
+
 // fn print_type_of<T>(_: &T) {
 //     println!("{}", std::any::type_name::<T>())
 // }
@@ -23,6 +24,12 @@ async fn main() -> Result<()> {
 
     // TODO Change the result address to not always take the first indicy but all pools
     let pool_objects = utils::get_pool_objects(result_address, provider).await;
-    utils::monitor_pool(&pool_objects[0], tokens).await;
+    utils::monitor_pool(&pool_objects[1]).await;
+
     Ok(())
 }
+// pub async fn make_thread(pool: IUniswapV3Pool<Provider<Http>>) -> JoinHandle<()> {
+//     thread::spawn(move || {
+//         utils::monitor_pool(&pool);
+//     })
+// }

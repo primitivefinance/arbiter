@@ -4,10 +4,9 @@ use ethers::abi::Address;
 use ethers::prelude::*;
 use ethers::providers::Provider;
 use num_bigfloat::BigFloat;
-use std::collections::HashMap;
 use std::sync::Arc;
 
-use crate::tokens::Token;
+use crate::tokens::{self, get_tokens, Token};
 
 // pub const two: BigFloat = 2.0.into();
 // pub const ten: BigFloat = 10.0.into();
@@ -34,6 +33,7 @@ pub async fn get_provider() -> Arc<Provider<Http>> {
         Provider::try_from("https://eth-mainnet.g.alchemy.com/v2/I93POQk49QE9O-NuOz7nj7sbiluW76it")
             .unwrap();
     Arc::new(provider)
+    //https://eth-mainnet.g.alchemy.com/v2/I93POQk49QE9O-NuOz7nj7sbiluW76it
 }
 pub async fn get_uniswapv3_factory(
     provider: Arc<Provider<Http>>,
@@ -82,14 +82,23 @@ pub async fn get_pool_objects(
     }
     vec
 }
+// pub async fn multi_thread_listener(pools: Vec<IUniswapV3Pool<Provider<Http>>>) {
+//     for pool in pools {
+//         // tokio::spawn(future)
+//         let thread = thread::spawn(move || {
+//             monitor_pool(&pool);
+//         });
+//     }
+// }
 
-pub async fn monitor_pool(pool: &IUniswapV3Pool<Provider<Http>>, tokens: HashMap<String, Token>) {
+pub async fn monitor_pool(pool: &IUniswapV3Pool<Provider<Http>>) {
     let two: BigFloat = 2.0.into();
     let ten: BigFloat = 10.0.into();
     let swap_events = pool.swap_filter();
     let mut swap_stream = swap_events.stream().await.unwrap();
     while let Some(Ok(event)) = swap_stream.next().await {
         println!("------------New Swap------------");
+        println!("From pool {:#?}", pool.address());
         println!(
             "Sender: {:#?}, Recipient: {:#?}",
             event.sender, event.recipient
@@ -100,6 +109,7 @@ pub async fn monitor_pool(pool: &IUniswapV3Pool<Provider<Http>>, tokens: HashMap
         println!("tick {:#?}", event.tick); // i32
 
         // https://docs.uniswap.org/sdk/guides/fetching-prices
+        let tokens = get_tokens();
         let diff_decimals: BigFloat =
             (tokens.get("ETH").unwrap().base_units - tokens.get("USDC").unwrap().base_units).into();
         let one: BigFloat = 1.into();
