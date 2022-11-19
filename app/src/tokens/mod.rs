@@ -1,6 +1,5 @@
-use std::collections::hash_map;
-
 use ethers::types::{Address, H160};
+// use std::collections::hash_map;
 use std::collections::HashMap;
 
 #[derive(Debug)]
