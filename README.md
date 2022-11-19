@@ -26,14 +26,14 @@ We want to develop a Rust program capable of detecting and executing arbitrage o
 ## Build From Source
 
 First, clone the repository to your local environment so
-```console
+```
 git clone https://github.com/primitivefinance/arbiter.git
 cd arbiter
 ```
 
 `arbiter` takes in three command line arguments. To see the available arguments, run the following:
-```console
-$ cargo run -- -h
+```
+cargo run -- -h
 ```
 This will display the `help` menu
 ```console
@@ -55,8 +55,8 @@ OPTIONS:
 ```
 
 In the above, `token0` and `token1` will be the token pair used to find the corresponding UniswapV3 pools. Upon running
-```console
-$ cargo run
+```
+cargo run
 ```
 we default to `token0=ETH`, `token1=USDC`, and `fee=5`. `arbiter` will return results
 ```console
@@ -74,8 +74,8 @@ tick 205351
 price "1.208239460504000000000000000000000000000e+3"
 ```
 If you would like the price to be in terms of ETH rather than USD for a one basis point pool, you can run
-```console
-$ cargo run -- --token0 USDC --token1 ETH --fee 30
+```
+cargo run -- --token0 USDC --token1 ETH --fee 30
 ```
 Which will return the pool address and then log swaps on this pool with the price now denominated in ETH
 ``` console
