@@ -105,7 +105,8 @@ pub async fn monitor_pool(
         let diff_decimals: BigFloat = ((tokens.get(token_0_str).unwrap().decimals as i16)
             - (tokens.get(token_1_str).unwrap().decimals) as i16)
             .into();
-        if token_0_str == "USDC" || token_1_str == "ETH" {
+        if tokens.get(token_0_str).unwrap().is_stable || tokens.get(token_0_str).unwrap().is_stable
+        {
             BigFloat::from_i16(1).div(
                 &&convert_q64_96(sqrt_price_x96)
                     .pow(&BigFloat::from_i16(2))
