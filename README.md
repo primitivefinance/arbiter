@@ -6,9 +6,11 @@
 
 ## Motivation:
 
-Arbitrage takes advantage of price discrepancies between two (or more) different exchanges. Right now, searchers can detect differences in reported prices from DEXs and execute pure profit trades, which we call *atomic arbitrage*. The environment for arbitrage is competitive, but for less popular token pairs, there is room for new searchers to bring prices into equilibrium amongst exchanges. 
+Arbitrage takes advantage of price discrepancies in the buy and sell prices of different markets for the same assets. Right now, searchers can detect differences in reported prices between markets and execute pure profit[^1] trades, which we call *atomic arbitrage*. The environment for arbitrage is competitive, but for less popular token pairs, there is room for new searchers to equilibrate the prices of different markets. 
 
-We want to develop a Rust program capable of detecting and executing arbitrage opportunities between exchanges. This will be provided to the community to lower the entry barrier into searching and thus level the playing field a bit more in the arbitrage scene.
+We want to develop a Rust program capable of detecting and executing arbitrage opportunities between exchanges. Our goal is to lower the barrier to entry for searching in hopes that it can help level the playing field for capturing arbitrage.
+
+[^1]: 'Pure profit' refers to the fact that atomic arbitrage does not require arbitrageurs to put any capital at risk other than an upfront cost on building the strategy and gas cost to get their transaction included. This contributes to the lucrative nature of atomic arbitrage when done effectively
 
 ## Features (in development):
  
