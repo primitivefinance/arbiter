@@ -55,7 +55,7 @@ FLAGS:
 OPTIONS:
         --fee <fee>          Specifies the basis points for the pool. [1, 5, 30, 100] [default: 5]
         --token0 <token0>    Specifies the first token for a token pair. [default: ETH]
-        --token1 <token1>    Specifies the second token for a token pair which will be the numerier. [default: USDC]
+        --token1 <token1>    Specifies the second token for a token pair which will be the numeraire. [default: USDC]
 ```
 
 In the above, `token0` and `token1` will be the token pair used to find the corresponding UniswapV3 pools. Upon running
