@@ -85,7 +85,7 @@ pub fn compute_price(tokens: (Token, Token), sqrt_price_x96: U256, pool_token_0:
     if pool_token_0 == tokens.0.address {
         utils::convert_q64_96(sqrt_price_x96)
             .pow(&BigFloat::from_i16(2))
-            .div(&BigFloat::from_i16(10).pow(&diff_decimals))
+            .div(&BigFloat::from_i16(10).pow(&-diff_decimals))
     } else {
         BigFloat::from_i16(1).div(
             &utils::convert_q64_96(sqrt_price_x96)
