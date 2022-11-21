@@ -83,13 +83,13 @@ Which will return the pool address and then log swaps on this pool with the pric
 ``` console
 Uniswap Pool Result: 0xe0554a476a092703abdb3ef35c80e0d76d32939f
 ------------New Swap------------
-From pool 0xe0554a476a092703abdb3ef35c80e0d76d32939f
-Sender: 0x1d64fb0ffa8362b2e1ee7ee03929159551eab26e, Recipient: 0x76f4eed9fe41262669d0250b2a97db79712ad855
-amount_0 -1087770096
-amount_1 900000000000000000
-liquidity 232281109704283752
-tick 205348
-price "8.274094178028810096953876094149600409854e+20"
+From pool 0x88e6a0c2ddd26feeb64f039a2c41296fcb3f5640
+Sender: 0x1111111254fb6c44bac0bed2854e76f90643097d, Recipient: 0x1111111254fb6c44bac0bed2854e76f90643097d
+amount_0 -101468592
+amount_1 89212500000000000
+liquidity 311910915919265257014
+tick 205950
+price "8.787733459338501273578338843507650768997e-4"
 ```
 You may also build the executable with `cargo build`, which will output a binary in `target/`
 
