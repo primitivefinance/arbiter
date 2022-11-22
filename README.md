@@ -96,5 +96,4 @@ You may also build the executable with `cargo build`, which will output a binary
 
 ## Contributing
 
-If you want to see a specific feature, open an issue!
-See our [Contributing Guidlines](https://github.com/primitivefinance/.github/pull/3/files#diff-eca12c0a30e25b4b46522ebf89465a03ba72a03f540796c979137931d8f92055)
+See our [Contributing Guidlines](https://github.com/primitivefinance/arbiter/blob/main/CONTRIBUTING.md)
