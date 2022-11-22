@@ -8,7 +8,7 @@
 
 ## Motivation:
 
-Arbitrage takes advantage of price discrepancies in the buy and sell prices of different markets for the same assets. Right now, searchers can detect differences in reported prices between markets and execute pure profit[^1] trades, which we call *atomic arbitrage*. The environment for arbitrage is competitive, but for less popular token pairs, there is room for new searchers to equilibrate the prices of different markets. 
+The current implementation abstracts away worrying about fetching and generating token bindings for any users. Arbitrage takes advantage of price discrepancies in the buy and sell prices of different markets for the same assets. Right now, searchers can detect differences in reported prices between markets and execute pure profit[^1] trades, which we call *atomic arbitrage*. The environment for arbitrage is competitive, but for less popular token pairs, there is room for new searchers to equilibrate the prices of different markets. 
 
 We want to develop a Rust program capable of detecting and executing arbitrage opportunities between exchanges. Our goal is to lower the barrier to entry for searching in hopes that it can help level the playing field for capturing arbitrage.
 
@@ -20,7 +20,6 @@ We want to develop a Rust program capable of detecting and executing arbitrage o
 - [x] Library of popular tokens includes symbols, addresses, and decimals. 
 - [x] Takes user input of token addresses and finds the corresponding PoolIDs for UniswapV3.
 - [x] Monitors the UniswapV3 pool prices continuously.
-- [ ] Allow users to input an Etherscan API key to pull token info from the chain.
 - [ ] Integrate with user-selected RPC endpoint.
 - [ ] Concurrent pool monitoring for multiple pools.
 - [ ] Additional exchanges.
