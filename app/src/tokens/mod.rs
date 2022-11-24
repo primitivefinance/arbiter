@@ -171,7 +171,7 @@ pub fn get_tokens() -> HashMap<String, Token> {
         name: "STETH".to_string(),
         is_stable: false,
     };
-    
+
     // Rocket Pool Ethereum
     // rETH https://rocketpool.net/#header
     // Etherscan: https://etherscan.io/token/0xae78736cd615f374d3085123a210448e74fc6393
@@ -200,7 +200,7 @@ pub fn get_tokens() -> HashMap<String, Token> {
     tokens.insert("BTT".to_string(), btt);
     tokens.insert("WSTETH".to_string(), wsteth);
     tokens.insert("STETH".to_string(), steth);
-    tokens.insert("RETH".to_string(), steth);
+    tokens.insert("RETH".to_string(), reth);
 
     tokens
 }
