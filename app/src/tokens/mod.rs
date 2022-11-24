@@ -21,6 +21,8 @@ pub fn get_tokens() -> HashMap<String, Token> {
         name: "ETH".to_string(),
         is_stable: false,
     };
+
+    // Wrapped Bitcoin
     //wBTC https://wbtc.network/
     let wbtc_address = "0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599"
         .parse::<Address>()
@@ -31,6 +33,7 @@ pub fn get_tokens() -> HashMap<String, Token> {
         name: "WBTC".to_string(),
         is_stable: false,
     };
+
     // DAI https://makerdao.com/en/
     let dai_address = "0x6B175474E89094C44Da98b954EedeAC495271d0F"
         .parse::<Address>()
@@ -41,6 +44,7 @@ pub fn get_tokens() -> HashMap<String, Token> {
         name: "DAI".to_string(),
         is_stable: true,
     };
+    
     // USDT https://tether.to/
     let tether_address = "0xdAC17F958D2ee523a2206206994597C13D831ec7"
         .parse::<Address>()
@@ -74,6 +78,7 @@ pub fn get_tokens() -> HashMap<String, Token> {
         is_stable: true,
     };
 
+    // Chainlink
     // LINK https://chain.link/
     let link_address = "0x853d955aCEf822Db058eb8505911ED77F175b99e"
         .parse::<Address>()
@@ -107,6 +112,7 @@ pub fn get_tokens() -> HashMap<String, Token> {
         is_stable: true,
     };
 
+    // Binance US Dollar
     // BUSD https://paxos.com/busd/
     let busd_address = "0x4Fabb145d64652a948d72533023f6E7A623C7C53"
         .parse::<Address>()
@@ -117,6 +123,8 @@ pub fn get_tokens() -> HashMap<String, Token> {
         name: "USDM".to_string(),
         is_stable: true,
     };
+
+    // Uniswap
     // UNI https://uniswap.org/
     let uni_address = "0x1f9840a85d5aF5bf1D1762F925BDADdC4201F984"
         .parse::<Address>()
@@ -127,6 +135,7 @@ pub fn get_tokens() -> HashMap<String, Token> {
         name: "UNI".to_string(),
         is_stable: false,
     };
+
     // BTT https://www.bittorrent.com/
     let btt_address = "0xC669928185DbCE49d2230CC9B0979BE6DC797957"
         .parse::<Address>()
@@ -137,6 +146,8 @@ pub fn get_tokens() -> HashMap<String, Token> {
         name: "BTT".to_string(),
         is_stable: false,
     };
+
+    // Wrapped Staked Ethereum
     // wsETH https://www.lido.fi/
     let wseth_address = "0x7f39C581F595B53c5cb19bD0b3f8dA6c935E2Ca0"
         .parse::<Address>()
@@ -147,6 +158,8 @@ pub fn get_tokens() -> HashMap<String, Token> {
         name: "WSTETH".to_string(),
         is_stable: false,
     };
+
+    // Staked Ethereum
     // stETH https://www.lido.fi/
     // Etherscan: https://etherscan.io/token/0xae7ab96520de3a18e5e111b5eaab095312d7fe84
     let steth_address = "0xae7ab96520DE3A18E5e111B5EaAb095312D7fE84"
@@ -156,6 +169,18 @@ pub fn get_tokens() -> HashMap<String, Token> {
         address: steth_address,
         decimals: 18,
         name: "STETH".to_string(),
+        is_stable: false,
+    };
+    // Rocket Pool Ethereum
+    // rETH https://rocketpool.net/#header
+    // Etherscan: https://etherscan.io/token/0xae78736cd615f374d3085123a210448e74fc6393
+    let reth_address = "0xae78736Cd615f374D3085123A210448E74Fc6393"
+        .parse::<Address>()
+        .unwrap();
+    let steth = Token {
+        address: reth_address,
+        decimals: 18,
+        name: "RETH".to_string(),
         is_stable: false,
     };
 
@@ -174,6 +199,7 @@ pub fn get_tokens() -> HashMap<String, Token> {
     tokens.insert("BTT".to_string(), btt);
     tokens.insert("WSTETH".to_string(), wsteth);
     tokens.insert("STETH".to_string(), steth);
+    tokens.insert("RETH".to_string(), steth);
 
     tokens
 }
