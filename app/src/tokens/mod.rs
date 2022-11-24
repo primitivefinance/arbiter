@@ -11,7 +11,7 @@ pub struct Token {
 
 // return hashmap, name = key, value = token object
 pub fn get_tokens() -> HashMap<String, Token> {
-    // Ether
+    // ETH
     let eth_address = "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2"
         .parse::<Address>()
         .unwrap();
@@ -31,7 +31,7 @@ pub fn get_tokens() -> HashMap<String, Token> {
         name: "WBTC".to_string(),
         is_stable: false,
     };
-    // Dai https://makerdao.com/en/
+    // DAI https://makerdao.com/en/
     let dai_address = "0x6B175474E89094C44Da98b954EedeAC495271d0F"
         .parse::<Address>()
         .unwrap();
@@ -63,7 +63,7 @@ pub fn get_tokens() -> HashMap<String, Token> {
         is_stable: true,
     };
 
-    // Frax https://frax.finance/
+    // FRAX https://frax.finance/
     let frax_address = "0x853d955aCEf822Db058eb8505911ED77F175b99e"
         .parse::<Address>()
         .unwrap();
@@ -74,7 +74,7 @@ pub fn get_tokens() -> HashMap<String, Token> {
         is_stable: true,
     };
 
-    // link https://chain.link/
+    // LINK https://chain.link/
     let link_address = "0x853d955aCEf822Db058eb8505911ED77F175b99e"
         .parse::<Address>()
         .unwrap();
@@ -96,7 +96,7 @@ pub fn get_tokens() -> HashMap<String, Token> {
         is_stable: false,
     };
 
-    // usdm https://www.mappedswap.io/
+    // USDM https://www.mappedswap.io/
     let usdm_address = "0xbbAec992fc2d637151dAF40451f160bF85f3C8C1"
         .parse::<Address>()
         .unwrap();
@@ -137,7 +137,7 @@ pub fn get_tokens() -> HashMap<String, Token> {
         name: "BTT".to_string(),
         is_stable: false,
     };
-    // wseth https://www.lido.fi/
+    // wsETH https://www.lido.fi/
     let wseth_address = "0x7f39C581F595B53c5cb19bD0b3f8dA6c935E2Ca0"
         .parse::<Address>()
         .unwrap();
