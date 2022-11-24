@@ -44,7 +44,7 @@ pub fn get_tokens() -> HashMap<String, Token> {
         name: "DAI".to_string(),
         is_stable: true,
     };
-    
+
     // USDT https://tether.to/
     let tether_address = "0xdAC17F958D2ee523a2206206994597C13D831ec7"
         .parse::<Address>()
@@ -177,7 +177,7 @@ pub fn get_tokens() -> HashMap<String, Token> {
     let reth_address = "0xae78736Cd615f374D3085123A210448E74Fc6393"
         .parse::<Address>()
         .unwrap();
-    let steth = Token {
+    let reth = Token {
         address: reth_address,
         decimals: 18,
         name: "RETH".to_string(),
