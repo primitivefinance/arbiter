@@ -147,6 +147,17 @@ pub fn get_tokens() -> HashMap<String, Token> {
         name: "WSTETH".to_string(),
         is_stable: false,
     };
+    // stETH https://www.lido.fi/
+    // Etherscan: https://etherscan.io/token/0xae7ab96520de3a18e5e111b5eaab095312d7fe84
+    let steth_address = "0xae7ab96520DE3A18E5e111B5EaAb095312D7fE84"
+        .parse::<Address>()
+        .unwrap();
+    let steth = Token {
+        address: steth_address,
+        decimals: 18,
+        name: "STETH".to_string(),
+        is_stable: false,
+    };
 
     let mut tokens = HashMap::new();
     tokens.insert("ETH".to_string(), eth);
@@ -162,6 +173,7 @@ pub fn get_tokens() -> HashMap<String, Token> {
     tokens.insert("UNI".to_string(), uni);
     tokens.insert("BTT".to_string(), btt);
     tokens.insert("WSTETH".to_string(), wsteth);
+    tokens.insert("STETH".to_string(), steth);
 
     tokens
 }
