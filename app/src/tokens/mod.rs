@@ -148,12 +148,12 @@ pub fn get_tokens() -> HashMap<String, Token> {
     };
 
     // Wrapped Staked Ethereum
-    // wsETH https://www.lido.fi/
-    let wseth_address = "0x7f39C581F595B53c5cb19bD0b3f8dA6c935E2Ca0"
+    // wstETH https://www.lido.fi/
+    let wsteth_address = "0x7f39C581F595B53c5cb19bD0b3f8dA6c935E2Ca0"
         .parse::<Address>()
         .unwrap();
     let wsteth = Token {
-        address: wseth_address,
+        address: wsteth_address,
         decimals: 18,
         name: "WSTETH".to_string(),
         is_stable: false,
