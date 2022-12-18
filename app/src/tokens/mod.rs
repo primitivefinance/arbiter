@@ -2,14 +2,20 @@ use ethers::types::{Address, H160};
 use std::collections::HashMap;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
+/// Represents an ERC20 token.
 pub struct Token {
+    /// Address of the token.
     pub address: H160,
+    /// Decimals of the token.
     pub decimals: u16,
+    /// Name of the token.
     pub name: String,
+    /// Whether the token is a stablecoin.
     pub is_stable: bool,
 }
 
 impl Token {
+    /// Public builder function that instantiates a `Token`.
     fn new(
         address: H160,
         decimals: u16,
