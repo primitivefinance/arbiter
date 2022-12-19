@@ -1,83 +1,87 @@
+use crate::utils;
+use crate::tokens::Token;
+
+use std::sync::Arc;
+use num_bigfloat::BigFloat;
+
+use ethers::prelude::*;
+use ethers::types::H160;
+use ethers::abi::Address;
+use ethers::providers::Provider;
+
 use bindings::i_uniswap_v3_pool::IUniswapV3Pool;
 use bindings::uniswap_v3_factory::UniswapV3Factory;
-use ethers::abi::Address;
-use ethers::prelude::*;
-use ethers::providers::Provider;
-use num_bigfloat::BigFloat;
-use std::sync::Arc;
 
-use crate::tokens::Token;
-use crate::utils;
-
-// get uniswap factory from bindings
-pub fn get_uniswapv3_factory(provider: Arc<Provider<Http>>) -> UniswapV3Factory<Provider<Http>> {
-    let uniswap_v3_factory_address = "0x1F98431c8aD98523631AE4a59f267346ea31F984"
-        .parse::<Address>()
-        .unwrap();
-    UniswapV3Factory::new(uniswap_v3_factory_address, provider)
+/// Representation of a pool.
+#[derive(Debug, PartialEq, Eq)]
+pub struct Pool {
+    /// Token 0.
+    pub token_0: Token,
+    /// Token 1.
+    pub token_1: Token,
+    /// Address of the pool.
+    pub address: H160,
+    /// Factory that created the pool. This could be generic in future.
+    pub factory: UniswapV3Factory<Provider<Http>>,
+    /// Pool contract object.
+    pub inner: IUniswapV3Pool<Provider<Http>>
 }
 
-// get pool address for specified tokens and fee
-pub async fn get_pool_from_uniswap(
-    tokens: &(Token, Token),
-    factory: UniswapV3Factory<Provider<Http>>,
-    bp: String,
-) -> Address {
-    // BP options = 100, 500, 3000, 10000 [1bb, 5bp, 30bp, 100bp]
-    let pool = match bp.as_str() {
-        "1" => factory
-            .get_pool(tokens.0.address, tokens.1.address, 100)
+impl Pool {
+    /// Public builder function that instantiates a `Pool`.
+    pub async fn new(
+        token_0: Token,
+        token_1: Token,
+        bp: u32,
+        provider: Arc<Provider<Http>>
+    ) -> Self {
+        let uniswap_v3_factory_address = "0x1F98431c8aD98523631AE4a59f267346ea31F984"
+            .parse::<Address>()
+            .unwrap();
+        let factory = UniswapV3Factory::new(uniswap_v3_factory_address, provider.clone());
+        let pool_address = factory
+            .get_pool(token_0.address, token_1.address, bp * 100)
             .call()
             .await
-            .unwrap(),
-        "5" => factory
-            .get_pool(tokens.0.address, tokens.1.address, 500)
-            .call()
-            .await
-            .unwrap(),
-        "30" => factory
-            .get_pool(tokens.0.address, tokens.1.address, 3000)
-            .call()
-            .await
-            .unwrap(),
-        "100" => factory
-            .get_pool(tokens.0.address, tokens.1.address, 10000)
-            .call()
-            .await
-            .unwrap(),
-        _ => panic!("No pools with specified basis points"),
-    };
-    pool
-}
-// Get pool obect bindings from address
-pub async fn get_pool_objects(
-    address: Address,
-    provider: Arc<Provider<Http>>,
-) -> IUniswapV3Pool<Provider<Http>> {
-    IUniswapV3Pool::new(address, provider)
-}
-//monitor event stream from pool
-pub async fn monitor_pool(pool: &IUniswapV3Pool<Provider<Http>>, tokens: &(Token, Token)) {
-    let swap_events = pool.swap_filter();
-    let pool_token_0 = pool.token_0().call().await.unwrap();
-    let mut swap_stream = swap_events.stream().await.unwrap();
-    while let Some(Ok(event)) = swap_stream.next().await {
-        println!("------------New Swap------------");
-        println!("From pool {:#?}", pool.address());
-        println!(
-            "Sender: {:#?}, Recipient: {:#?}",
-            event.sender, event.recipient
-        ); // H160s
-        println!("amount_0 {:#?}", event.amount_0); // I256
-        println!("amount_1 {:#?}", event.amount_1); // I256
-        println!("liquidity {:#?}", event.liquidity); // u128
-        println!("tick {:#?}", event.tick); // i32
-        println!(
-            "price {:#?}",
-            compute_price(tokens.clone(), event.sqrt_price_x96, pool_token_0,).to_string()
-        )
+            .unwrap();
+        Self {
+            token_0,
+            token_1,
+            address: pool_address,
+            factory,
+            inner: IUniswapV3Pool::new(pool_address, provider.clone())
+        }
+    }
+
+    /// Monitor a pool for swap events and print to standard output.
+    /// TODO: Make it print a `Swap` struct that implements fmt in a special way.
+    pub async fn monitor_pool(&self) {
+        let pool = &self.inner;
+        let tokens = (self.token_0.clone(), self.token_1.clone());
+
+        let swap_events = pool.swap_filter();
+        let pool_token_0 = pool.token_0().call().await.unwrap();
+        let mut swap_stream = swap_events.stream().await.unwrap();
+
+        while let Some(Ok(event)) = swap_stream.next().await {
+            println!("------------NEW SWAP------------");
+            println!("From pool {:#?}", pool.address());
+            println!(
+                "Sender: {:#?}, Recipient: {:#?}",
+                event.sender, event.recipient
+            ); // H160s
+            println!("amount_0 {:#?}", event.amount_0); // I256
+            println!("amount_1 {:#?}", event.amount_1); // I256
+            println!("liquidity {:#?}", event.liquidity); // u128
+            println!("tick {:#?}", event.tick); // i32
+            println!(
+                "price {:#?}",
+                compute_price(tokens.clone(), event.sqrt_price_x96, pool_token_0,).to_string()
+            )
+        }
     }
 }
+
 pub fn compute_price(tokens: (Token, Token), sqrt_price_x96: U256, pool_token_0: H160) -> BigFloat {
     // Takes in UniswapV3's sqrt_price_x96 (a q64_96 fixed point number) and outputs the price in human readable form.
     // See Uniswap's documentation: https://docs.uniswap.org/sdk/guides/fetching-prices
@@ -94,6 +98,7 @@ pub fn compute_price(tokens: (Token, Token), sqrt_price_x96: U256, pool_token_0:
         )
     }
 }
+
 #[cfg(test)]
 mod tests {
     use crate::{tokens, uniswap, utils};
