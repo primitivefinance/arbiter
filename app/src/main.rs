@@ -3,12 +3,12 @@ mod tokens;
 mod uniswap;
 mod utils;
 
-use std::env;
-use eyre::Result;
-use std::sync::Arc;
-use ethers::prelude::*;
 use crate::uniswap::Pool;
+use ethers::prelude::*;
 use ethers::providers::Provider;
+use eyre::Result;
+use std::env;
+use std::sync::Arc;
 
 #[tokio::main]
 async fn main() -> Result<()> {
@@ -21,16 +21,13 @@ async fn main() -> Result<()> {
         None => utils::get_provider().await,
     };
 
-    let pool = Pool::new(
-        tokens.0,
-        tokens.1,
-        bp.parse::<u32>().unwrap(),
-        provider
-    ).await.unwrap();
+    let pool = Pool::new(tokens.0, tokens.1, bp.parse::<u32>().unwrap(), provider)
+        .await
+        .unwrap();
 
     let result_address = &pool.address;
 
-    println!("Uniswap Pool Result: {:#?}", result_address);
+    println!("Uniswap Pool Result: {result_address:#?}");
 
     pool.monitor_pool().await;
 

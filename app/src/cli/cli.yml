@@ -9,7 +9,7 @@ args:
       default_value: "ETH"
   - token1:
       long: token1
-      help: Specifies the second token for a token pair which we be the numeraire.
+      help: Specifies the second token for a token pair which will be the numeraire.
       takes_value: true
       default_value: "USDC"
   - fee:

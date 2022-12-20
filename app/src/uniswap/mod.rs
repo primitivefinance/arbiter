@@ -1,13 +1,13 @@
-use crate::utils;
 use crate::tokens::Token;
+use crate::utils;
 
-use std::sync::Arc;
 use num_bigfloat::BigFloat;
+use std::sync::Arc;
 
-use ethers::prelude::*;
-use ethers::types::H160;
 use ethers::abi::Address;
+use ethers::prelude::*;
 use ethers::providers::Provider;
+use ethers::types::H160;
 
 use bindings::i_uniswap_v3_pool::IUniswapV3Pool;
 use bindings::uniswap_v3_factory::UniswapV3Factory;
@@ -24,7 +24,7 @@ pub struct Pool {
     /// Factory that created the pool. This could be generic in future.
     pub factory: UniswapV3Factory<Provider<Http>>,
     /// Pool contract object.
-    pub inner: IUniswapV3Pool<Provider<Http>>
+    pub inner: IUniswapV3Pool<Provider<Http>>,
 }
 
 impl Pool {
@@ -33,11 +33,11 @@ impl Pool {
         token_0: Token,
         token_1: Token,
         bp: u32,
-        provider: Arc<Provider<Http>>
+        provider: Arc<Provider<Http>>,
     ) -> Result<Self, ()> {
         match bp {
             1 | 5 | 30 | 100 => (),
-            _ => return Err(())
+            _ => return Err(()),
         }
 
         let uniswap_v3_factory_address = "0x1F98431c8aD98523631AE4a59f267346ea31F984"
@@ -57,7 +57,7 @@ impl Pool {
             token_1,
             address: pool_address,
             factory,
-            inner: IUniswapV3Pool::new(pool_address, provider.clone())
+            inner: IUniswapV3Pool::new(pool_address, provider.clone()),
         })
     }
 
@@ -80,7 +80,8 @@ impl Pool {
             println!("Amount_1:  {:#?}", event.amount_1); // I256
             println!("Liquidity: {:#?}", event.liquidity); // u128
             println!("Tick:      {:#?}", event.tick); // i32
-            println!("Price:     {:#?}",
+            println!(
+                "Price:     {:#?}",
                 compute_price(tokens.clone(), event.sqrt_price_x96, pool_token_0,).to_string()
             )
         }
@@ -128,32 +129,40 @@ mod tests {
         );
 
         let pool_1 = Pool::new(
-            tokens.0.clone(), 
-            tokens.1.clone(), 
+            tokens.0.clone(),
+            tokens.1.clone(),
             bp_1.parse::<u32>().unwrap(),
-            provider.clone()
-        ).await.unwrap();
+            provider.clone(),
+        )
+        .await
+        .unwrap();
 
         let pool_5 = Pool::new(
             tokens.0.clone(),
-            tokens.1.clone(), 
-            bp_5.parse::<u32>().unwrap(), 
-            provider.clone()
-        ).await.unwrap();
+            tokens.1.clone(),
+            bp_5.parse::<u32>().unwrap(),
+            provider.clone(),
+        )
+        .await
+        .unwrap();
 
         let pool_30 = Pool::new(
-            tokens.0.clone(), 
-            tokens.1.clone(), 
-            bp_30.parse::<u32>().unwrap(), 
-            provider.clone()
-        ).await.unwrap();
+            tokens.0.clone(),
+            tokens.1.clone(),
+            bp_30.parse::<u32>().unwrap(),
+            provider.clone(),
+        )
+        .await
+        .unwrap();
 
         let pool_100 = Pool::new(
-            tokens.0.clone(), 
-            tokens.1.clone(), 
-            bp_100.parse::<u32>().unwrap(), 
-            provider.clone()
-        ).await.unwrap();
+            tokens.0.clone(),
+            tokens.1.clone(),
+            bp_100.parse::<u32>().unwrap(),
+            provider.clone(),
+        )
+        .await
+        .unwrap();
 
         assert_eq!(
             pool_1.address,
@@ -201,7 +210,9 @@ mod tests {
             tokens.0.clone(),
             tokens.1.clone(),
             bp.parse::<u32>().unwrap(),
-            provider.clone()
-        ).await.unwrap();
+            provider.clone(),
+        )
+        .await
+        .unwrap();
     }
 }
