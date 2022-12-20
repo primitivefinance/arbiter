@@ -1,13 +1,14 @@
-use eyre::Result;
-use std::env;
-use ethers::providers::Provider;
-use ethers::prelude::*;
-use std::sync::Arc;
-use crate::uniswap::Pool;
 mod cli;
 mod tokens;
 mod uniswap;
 mod utils;
+
+use std::env;
+use eyre::Result;
+use std::sync::Arc;
+use ethers::prelude::*;
+use crate::uniswap::Pool;
+use ethers::providers::Provider;
 
 #[tokio::main]
 async fn main() -> Result<()> {

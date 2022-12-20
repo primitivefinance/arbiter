@@ -73,17 +73,14 @@ impl Pool {
 
         while let Some(Ok(event)) = swap_stream.next().await {
             println!("------------NEW SWAP------------");
-            println!("From pool {:#?}", pool.address());
-            println!(
-                "Sender: {:#?}, Recipient: {:#?}",
-                event.sender, event.recipient
-            ); // H160s
-            println!("amount_0 {:#?}", event.amount_0); // I256
-            println!("amount_1 {:#?}", event.amount_1); // I256
-            println!("liquidity {:#?}", event.liquidity); // u128
-            println!("tick {:#?}", event.tick); // i32
-            println!(
-                "price {:#?}",
+            println!("Pool:      {:#?}", pool.address());
+            println!("Sender:    {:#?}", event.sender);
+            println!("Recipient: {:#?}", event.recipient);
+            println!("Amount_0:  {:#?}", event.amount_0); // I256
+            println!("Amount_1:  {:#?}", event.amount_1); // I256
+            println!("Liquidity: {:#?}", event.liquidity); // u128
+            println!("Tick:      {:#?}", event.tick); // i32
+            println!("Price:     {:#?}",
                 compute_price(tokens.clone(), event.sqrt_price_x96, pool_token_0,).to_string()
             )
         }
