@@ -49,7 +49,6 @@ FLAGS:
         --api_key     Provide an Etherscan API key if function calls require it (e.g., providing a token that is not in
                       the database).
     -h, --help        Prints help information
-        --provider    Provide a URL if you wish to use a custom provider that isn't the default of Alchemy.
     -V, --version     Prints version information
 
 OPTIONS:
