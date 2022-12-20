@@ -33,7 +33,7 @@ First, clone the repository to your local environment so
 git clone https://github.com/primitivefinance/arbiter.git
 cd arbiter
 ```
-
+Set the PROVIDER environment variable to use a custom provider.
 `arbiter` takes in three command line arguments. To see the available arguments, run the following:
 ```
 cargo run -- -h
@@ -46,15 +46,16 @@ USAGE:
     arbiter [FLAGS] [OPTIONS]
 
 FLAGS:
-        --api_key    Provide an Etherscan API key if function calls require it (e.g., providing a token that is not in
-                     the database).
-    -h, --help       Prints help information
-    -V, --version    Prints version information
+        --api_key     Provide an Etherscan API key if function calls require it (e.g., providing a token that is not in
+                      the database).
+    -h, --help        Prints help information
+        --provider    Provide a URL if you wish to use a custom provider that isn't the default of Alchemy.
+    -V, --version     Prints version information
 
 OPTIONS:
         --fee <fee>          Specifies the basis points for the pool. [1, 5, 30, 100] [default: 5]
         --token0 <token0>    Specifies the first token for a token pair. [default: ETH]
-        --token1 <token1>    Specifies the second token for a token pair which will be the numeraire. [default: USDC]
+        --token1 <token1>    Specifies the second token for a token pair which we be the numeraire. [default: USDC]
 ```
 
 In the above, `token0` and `token1` will be the token pair used to find the corresponding UniswapV3 pools. Upon running
@@ -67,7 +68,7 @@ Uniswap Pool Result: Uniswap Pool Result: 0x88e6a0c2ddd26feeb64f039a2c41296fcb3f
 ```
 which is the [5BP pool](https://info.uniswap.org/#/pools/0x88e6a0c2ddd26feeb64f039a2c41296fcb3f5640) for the pair ETH/USDC on Uniswap. The program runs and streams transactions (swaps) that update the pool's price like so:
 ``` console
-------------New Swap------------
+------------NEW SWAP------------
 From pool 0x88e6a0c2ddd26feeb64f039a2c41296fcb3f5640
 Sender: 0x68b3465833fb72a70ecdf485e0e4c7bd8665fc45, Recipient: 0x1019bf2d607cc646a94a194f7a79e0b385065cff
 amount_0 -5235133099
@@ -83,7 +84,7 @@ cargo run -- --token0 USDC --token1 ETH --fee 30
 Which will return the pool address and then log swaps on this pool with the price now denominated in ETH
 ``` console
 Uniswap Pool Result: 0xe0554a476a092703abdb3ef35c80e0d76d32939f
-------------New Swap------------
+------------NEW SWAP------------
 From pool 0x88e6a0c2ddd26feeb64f039a2c41296fcb3f5640
 Sender: 0x1111111254fb6c44bac0bed2854e76f90643097d, Recipient: 0x1111111254fb6c44bac0bed2854e76f90643097d
 amount_0 -101468592

@@ -1,4 +1,8 @@
 use eyre::Result;
+use std::env;
+use ethers::providers::Provider;
+use ethers::prelude::*;
+use std::sync::Arc;
 use crate::uniswap::Pool;
 mod cli;
 mod tokens;
@@ -11,7 +15,10 @@ async fn main() -> Result<()> {
     let (tokens, bp) = utils::get_tokens_from_cli();
 
     // RPC endpoint [default: alchemy]
-    let provider = utils::get_provider().await;
+    let provider = match env::var_os("PROVIDER") {
+        Some(v) => Arc::new(Provider::<Http>::try_from(v.into_string().unwrap())?),
+        None => utils::get_provider().await,
+    };
 
     let pool = Pool::new(
         tokens.0,
