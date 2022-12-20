@@ -75,10 +75,10 @@ pub fn get_tokens() -> HashMap<String, Token> {
     let link = Token::new(link_address, 18, String::from("LINK"), false);
 
     // stETH2 https://app.stakewise.io/
-    let s_eth2_address = "0xFe2e637202056d30016725477c5da089Ab0A043A"
+    let steth2_address = "0xFe2e637202056d30016725477c5da089Ab0A043A"
         .parse::<Address>()
         .unwrap();
-    let s_eth2 = Token::new(s_eth2_address, 18, String::from("sETH2"), false);
+    let steth2 = Token::new(steth2_address, 18, String::from("sETH2"), false);
 
     // USDM https://www.mappedswap.io/
     let usdm_address = "0xbbAec992fc2d637151dAF40451f160bF85f3C8C1"
@@ -136,7 +136,7 @@ pub fn get_tokens() -> HashMap<String, Token> {
     tokens.insert("DAI".to_string(), dai);
     tokens.insert("FRAX".to_string(), frax);
     tokens.insert("LINK".to_string(), link);
-    tokens.insert("SETH2".to_string(), s_eth2);
+    tokens.insert("SETH2".to_string(), steth2);
     tokens.insert("USDM".to_string(), usdm);
     tokens.insert("BUSD".to_string(), busd);
     tokens.insert("UNI".to_string(), uni);
