@@ -18,7 +18,7 @@ async fn main() -> Result<()> {
         tokens.1,
         bp.parse::<u32>().unwrap(),
         provider
-    ).await;
+    ).await.unwrap();
 
     let result_address = &pool.address;
 

@@ -13,7 +13,7 @@ use bindings::i_uniswap_v3_pool::IUniswapV3Pool;
 use bindings::uniswap_v3_factory::UniswapV3Factory;
 
 /// Representation of a pool.
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Debug)]
 pub struct Pool {
     /// Token 0.
     pub token_0: Token,
@@ -34,23 +34,31 @@ impl Pool {
         token_1: Token,
         bp: u32,
         provider: Arc<Provider<Http>>
-    ) -> Self {
+    ) -> Result<Self, ()> {
+        match bp {
+            1 | 5 | 30 | 100 => (),
+            _ => return Err(())
+        }
+
         let uniswap_v3_factory_address = "0x1F98431c8aD98523631AE4a59f267346ea31F984"
             .parse::<Address>()
             .unwrap();
+
         let factory = UniswapV3Factory::new(uniswap_v3_factory_address, provider.clone());
+
         let pool_address = factory
             .get_pool(token_0.address, token_1.address, bp * 100)
             .call()
             .await
             .unwrap();
-        Self {
+
+        Ok(Self {
             token_0,
             token_1,
             address: pool_address,
             factory,
             inner: IUniswapV3Pool::new(pool_address, provider.clone())
-        }
+        })
     }
 
     /// Monitor a pool for swap events and print to standard output.
@@ -101,107 +109,102 @@ pub fn compute_price(tokens: (Token, Token), sqrt_price_x96: U256, pool_token_0:
 
 #[cfg(test)]
 mod tests {
-    use crate::{tokens, uniswap, utils};
+    use crate::{tokens, utils};
     use ethers::{abi::Address, providers::*};
     use std::sync::Arc;
 
-    use super::get_pool_from_uniswap;
+    use super::Pool;
+
     #[tokio::test]
-    async fn test_get_pool_from_uniswap_1() {
+    async fn test_get_pool_from_uniswap() {
         let provider: Arc<Provider<Http>> = utils::get_provider().await;
         let tokens = tokens::get_tokens();
-        let factory = uniswap::get_uniswapv3_factory(provider.clone());
 
-        let (test_tokens, bp) = (
-            (
-                tokens.get("ETH").unwrap().to_owned(),
-                tokens.get("USDC").unwrap().to_owned(),
-            ),
-            String::from("1"),
+        let bp_1 = String::from("1");
+        let bp_5 = String::from("5");
+        let bp_30 = String::from("30");
+        let bp_100 = String::from("100");
+
+        let tokens = (
+            tokens.get("ETH").unwrap().to_owned(),
+            tokens.get("USDC").unwrap().to_owned(),
         );
-        let pool = get_pool_from_uniswap(&test_tokens, factory.clone(), bp).await;
+
+        let pool_1 = Pool::new(
+            tokens.0.clone(), 
+            tokens.1.clone(), 
+            bp_1.parse::<u32>().unwrap(),
+            provider.clone()
+        ).await.unwrap();
+
+        let pool_5 = Pool::new(
+            tokens.0.clone(),
+            tokens.1.clone(), 
+            bp_5.parse::<u32>().unwrap(), 
+            provider.clone()
+        ).await.unwrap();
+
+        let pool_30 = Pool::new(
+            tokens.0.clone(), 
+            tokens.1.clone(), 
+            bp_30.parse::<u32>().unwrap(), 
+            provider.clone()
+        ).await.unwrap();
+
+        let pool_100 = Pool::new(
+            tokens.0.clone(), 
+            tokens.1.clone(), 
+            bp_100.parse::<u32>().unwrap(), 
+            provider.clone()
+        ).await.unwrap();
+
         assert_eq!(
-            pool,
+            pool_1.address,
             "0xe0554a476a092703abdb3ef35c80e0d76d32939f"
                 .parse::<Address>()
                 .unwrap()
         );
-    }
-    #[tokio::test]
-    async fn test_get_pool_from_uniswap_5() {
-        let provider: Arc<Provider<Http>> = utils::get_provider().await;
-        let tokens = tokens::get_tokens();
-        let factory = uniswap::get_uniswapv3_factory(provider.clone());
 
-        let (test_tokens, bp) = (
-            (
-                tokens.get("ETH").unwrap().to_owned(),
-                tokens.get("USDC").unwrap().to_owned(),
-            ),
-            String::from("5"),
-        );
-        let pool = get_pool_from_uniswap(&test_tokens, factory.clone(), bp).await;
         assert_eq!(
-            pool,
+            pool_5.address,
             "0x88e6a0c2ddd26feeb64f039a2c41296fcb3f5640"
                 .parse::<Address>()
                 .unwrap()
         );
-    }
-    #[tokio::test]
-    async fn test_get_pool_from_uniswap_30() {
-        let provider: Arc<Provider<Http>> = utils::get_provider().await;
-        let tokens = tokens::get_tokens();
-        let factory = uniswap::get_uniswapv3_factory(provider.clone());
 
-        let (test_tokens, bp) = (
-            (
-                tokens.get("ETH").unwrap().to_owned(),
-                tokens.get("USDC").unwrap().to_owned(),
-            ),
-            String::from("30"),
-        );
-        let pool = get_pool_from_uniswap(&test_tokens, factory.clone(), bp).await;
         assert_eq!(
-            pool,
+            pool_30.address,
             "0x8ad599c3a0ff1de082011efddc58f1908eb6e6d8"
                 .parse::<Address>()
                 .unwrap()
         );
-    }
-    #[tokio::test]
-    async fn test_get_pool_from_uniswap_100() {
-        let provider: Arc<Provider<Http>> = utils::get_provider().await;
-        let tokens = tokens::get_tokens();
-        let factory = uniswap::get_uniswapv3_factory(provider.clone());
-        let (test_tokens, bp) = (
-            (
-                tokens.get("ETH").unwrap().to_owned(),
-                tokens.get("USDC").unwrap().to_owned(),
-            ),
-            String::from("100"),
-        );
-        let pool = get_pool_from_uniswap(&test_tokens, factory.clone(), bp).await;
+
         assert_eq!(
-            pool,
+            pool_100.address,
             "0x7bea39867e4169dbe237d55c8242a8f2fcdcc387"
                 .parse::<Address>()
                 .unwrap()
         );
     }
+
     #[tokio::test]
     #[should_panic]
     async fn test_get_pool_from_uniswap_700() {
         let provider: Arc<Provider<Http>> = utils::get_provider().await;
         let tokens = tokens::get_tokens();
-        let factory = uniswap::get_uniswapv3_factory(provider.clone());
-        let (test_tokens, bp) = (
-            (
-                tokens.get("ETH").unwrap().to_owned(),
-                tokens.get("USDC").unwrap().to_owned(),
-            ),
-            String::from("700"),
+        let bp = String::from("700");
+
+        let tokens = (
+            tokens.get("ETH").unwrap().to_owned(),
+            tokens.get("USDC").unwrap().to_owned(),
         );
-        get_pool_from_uniswap(&test_tokens, factory.clone(), bp).await;
+
+        // Creation should return an Err(()) and unwrap() should therefore panic.
+        let _pool_700 = Pool::new(
+            tokens.0.clone(),
+            tokens.1.clone(),
+            bp.parse::<u32>().unwrap(),
+            provider.clone()
+        ).await.unwrap();
     }
 }
