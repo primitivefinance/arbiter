@@ -6,20 +6,20 @@ use num_bigfloat::BigFloat; // TODO: Best to work with fixed point q64_96 for Un
 use std::sync::Arc;
 
 pub async fn get_provider() -> Arc<Provider<Http>> {
-    let provider =
+    Arc::new(
         Provider::try_from("https://eth-mainnet.g.alchemy.com/v2/I93POQk49QE9O-NuOz7nj7sbiluW76it")
-            .unwrap();
-    Arc::new(provider)
+            .unwrap(),
+    )
 }
 
 // Search through token list to get token objects from user input
 pub fn get_tokens_from_cli() -> ((Token, Token), String) {
-    let (token_0_string, token_1_string, bp, _api_key) = get_cli();
+    let (token_0, token_1, bp, _api_key) = get_cli();
     let tokens = tokens::get_tokens();
     (
         (
-            tokens.get(token_0_string.as_str()).unwrap().to_owned(),
-            tokens.get(token_1_string.as_str()).unwrap().to_owned(),
+            tokens.get(&token_0).unwrap().to_owned(),
+            tokens.get(&token_1).unwrap().to_owned(),
         ),
         bp,
     )
