@@ -82,18 +82,19 @@ cargo run -- --token0 USDC --token1 ETH --fee 30
 ```
 Which will return the pool address and then log swaps on this pool with the price now denominated in ETH
 ``` console
-Uniswap Pool Result: 0xe0554a476a092703abdb3ef35c80e0d76d32939f
+Uniswap Pool Result: 0x88e6a0c2ddd26feeb64f039a2c41296fcb3f5640
 ------------NEW SWAP------------
-From pool 0x88e6a0c2ddd26feeb64f039a2c41296fcb3f5640
-Sender: 0x1111111254fb6c44bac0bed2854e76f90643097d, Recipient: 0x1111111254fb6c44bac0bed2854e76f90643097d
-amount_0 -101468592
-amount_1 89212500000000000
-liquidity 311910915919265257014
-tick 205950
-price "8.787733459338501273578338843507650768997e-4"
+Pool:      0x88e6a0c2ddd26feeb64f039a2c41296fcb3f5640
+Sender:    0x1111111254fb6c44bac0bed2854e76f90643097d
+Recipient: 0x134603117a253dd4550eb1fc508e289761be9c3e
+Amount_0:  -1949252708
+Amount_1:  1603051840877282447
+Liquidity: 21972098821216706277
+Tick:      205282
+Price:     "1.216568804789000000000000000000000000000e+3"
 ```
 You may also build the executable with `cargo build`, which will output a binary in `target/`
 
 ## Contributing
 
-See our [Contributing Guidlines](https://github.com/primitivefinance/arbiter/blob/main/CONTRIBUTING.md)
+See our [Contributing Guidlines](https://github.com/primitivefinance/arbiter/blob/main/.github/CONTRIBUTING.md)
