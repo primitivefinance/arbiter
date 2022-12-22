@@ -20,7 +20,7 @@ We want to develop a Rust program capable of detecting and executing arbitrage o
 - [x] Library of popular tokens includes symbols, addresses, and decimals. 
 - [x] Takes user input of token addresses and finds the corresponding PoolIDs for UniswapV3.
 - [x] Monitors the UniswapV3 pool prices continuously.
-- [ ] Integrate with user-selected RPC endpoint.
+- [x] Integrate with user-selected RPC endpoint.
 - [ ] Concurrent pool monitoring for multiple pools.
 - [ ] Additional exchanges.
 - [ ] Announces when an arbitrage trade with profit exceeding the no-arbitrage bounds + gas cost is found between two exchanges.
@@ -94,6 +94,24 @@ Tick:      205282
 Price:     "1.216568804789000000000000000000000000000e+3"
 ```
 You may also build the executable with `cargo build`, which will output a binary in `target/`
+
+## Setting Custom RPC
+If you would like to use your own RPC endpoint, then you can set the environment variable `PROVIDER`. By default, the provider we have set is via Alchemy. To set your own environment variable on a UNIX OS just perform:
+```
+export PROVIDER=https://url-to-your-RPC-endpoint.xyz
+```
+and replace your own URL as needed. Double check the environment variable is set by:
+```
+echo $PROVIDER
+```
+or just list all environment variables with:
+```
+env
+```
+If you need to unset the `PROVIDER` variable, do:
+```
+unset PROVIDER
+```
 
 ## Contributing
 
