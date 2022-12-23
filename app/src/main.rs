@@ -7,6 +7,7 @@ use crate::uniswap::Pool;
 use ethers::prelude::*;
 use ethers::providers::Provider;
 use eyre::Result;
+use tokio::join;
 use std::env;
 use std::sync::Arc;
 
@@ -21,15 +22,21 @@ async fn main() -> Result<()> {
         None => utils::get_provider().await,
     };
 
-    let pool = Pool::new(tokens.0, tokens.1, bp.parse::<u32>().unwrap(), provider)
+    let pool = Pool::new(tokens.0, tokens.1, bp.parse::<u32>().unwrap(), provider.clone())
         .await
         .unwrap();
 
+    let test_pool = utils::get_test_pool(bp, provider.clone()).await.unwrap();
     let result_address = &pool.address;
+
+
 
     println!("Uniswap Pool Result: {result_address:#?}");
 
-    pool.monitor_pool().await;
+    join!(
+        test_pool.monitor_pool(),
+        pool.monitor_pool()
+    );
 
     Ok(())
 }
