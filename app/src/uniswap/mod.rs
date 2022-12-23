@@ -13,7 +13,7 @@ use bindings::i_uniswap_v3_pool::IUniswapV3Pool;
 use bindings::uniswap_v3_factory::UniswapV3Factory;
 
 /// Representation of a pool.
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Pool {
     /// Token 0.
     pub token_0: Token,

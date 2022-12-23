@@ -25,10 +25,15 @@ pub fn get_tokens_from_cli() -> ((Token, Token), String) {
         bp,
     )
 }
-pub async fn get_test_pool(bp: String, provider: Arc<Provider<Http>>) -> Result<Pool, ()> {
+pub async fn _get_test_pool(bp: String, provider: Arc<Provider<Http>>) -> Result<Pool, ()> {
     let tokens = tokens::get_tokens();
-    Pool::new(tokens.get("ETH").unwrap().to_owned(), tokens.get("DAI").unwrap().to_owned(), bp.parse::<u32>().unwrap(), provider).await
-
+    Pool::new(
+        tokens.get("ETH").unwrap().to_owned(),
+        tokens.get("DAI").unwrap().to_owned(),
+        bp.parse::<u32>().unwrap(),
+        provider,
+    )
+    .await
 }
 pub fn convert_q64_96(q64_96: U256) -> BigFloat {
     // Take in a U256 structured as a q64_96 fixed point from UniswapV3 and converts this to a BigFloat.
