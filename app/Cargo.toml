@@ -13,3 +13,6 @@ eyre = "0.6.6"
 num-bigfloat = "1.6.0"
 clap = {version = "~2.27.0", features = ["yaml"]}
 yaml-rust = "0.4"
+time_series_generator = "0.3.0"
+plotters = "0.3.4"
+chrono = "0.4.23"
