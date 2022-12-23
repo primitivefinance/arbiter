@@ -16,7 +16,7 @@ pub struct Token {
 
 impl Token {
     /// Public builder function that instantiates a `Token`.
-    fn new(address: H160, decimals: u16, name: String, is_stable: bool) -> Self {
+    pub fn new(address: H160, decimals: u16, name: String, is_stable: bool) -> Self {
         Self {
             address,
             decimals,
