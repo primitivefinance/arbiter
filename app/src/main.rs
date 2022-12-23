@@ -9,6 +9,7 @@ use ethers::providers::Provider;
 use eyre::Result;
 use std::env;
 use std::sync::Arc;
+use tokio::join;
 
 #[tokio::main]
 async fn main() -> Result<()> {
@@ -21,15 +22,23 @@ async fn main() -> Result<()> {
         None => utils::get_provider().await,
     };
 
-    let pool = Pool::new(tokens.0, tokens.1, bp.parse::<u32>().unwrap(), provider)
-        .await
-        .unwrap();
+    let pool = Pool::new(
+        tokens.0,
+        tokens.1,
+        bp.parse::<u32>().unwrap(),
+        provider.clone(),
+    )
+    .await
+    .unwrap();
+    // append future pools to this
+    let pools = [pool];
 
-    let result_address = &pool.address;
+    // for concurent pool monitoring test
+    // let test_pool = utils::get_test_pool(bp, provider.clone()).await.unwrap();
 
-    println!("Uniswap Pool Result: {result_address:#?}");
-
-    pool.monitor_pool().await;
+    for pool in pools {
+        join!(pool.monitor_pool());
+    }
 
     Ok(())
 }
