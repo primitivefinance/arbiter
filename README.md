@@ -21,7 +21,7 @@ We want to develop a Rust program capable of detecting and executing arbitrage o
 - [x] Takes user input of token addresses and finds the corresponding PoolIDs for UniswapV3.
 - [x] Monitors the UniswapV3 pool prices continuously.
 - [x] Integrate with user-selected RPC endpoint.
-- [ ] Concurrent pool monitoring for multiple pools.
+- [x] Concurrent pool monitoring for multiple pools.
 - [ ] Additional exchanges.
 - [ ] Announces when an arbitrage trade with profit exceeding the no-arbitrage bounds + gas cost is found between two exchanges.
 - [ ] Executes atomic transactions between pools to capture arbitrage.
