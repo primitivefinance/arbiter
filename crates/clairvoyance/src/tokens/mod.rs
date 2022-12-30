@@ -3,10 +3,10 @@ use std::collections::HashMap;
 
 macro_rules! token_insert {
     (
-        $address:expr, 
-        $decimals:expr, 
-        $name:expr, 
-        $is_stable:expr, 
+        $address:expr,
+        $decimals:expr,
+        $name:expr,
+        $is_stable:expr,
         $tokens:expr
     ) => {
         let address = $address.parse::<Address>().unwrap();
