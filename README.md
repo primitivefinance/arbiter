@@ -22,7 +22,7 @@ We want to develop a Rust program capable of detecting and executing arbitrage o
 - [x] Monitors the UniswapV3 pool prices continuously.
 - [x] Integrate with user-selected RPC endpoint.
 - [x] Concurrent pool monitoring for multiple pools.
-- [ ] Additional exchanges.
+- [ ] Additional protocols.
     - [ ] Aave
     - [ ] Balancer
     - [ ] ...
