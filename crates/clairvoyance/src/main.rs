@@ -2,6 +2,7 @@ mod cli;
 mod tokens;
 mod uniswap;
 mod utils;
+mod config;
 
 use crate::uniswap::Pool;
 use ethers::prelude::*;
@@ -10,9 +11,15 @@ use eyre::Result;
 use std::env;
 use std::sync::Arc;
 use tokio::join;
+use config::Config;
 
 #[tokio::main]
 async fn main() -> Result<()> {
+    // config
+    let config: Config = Config::new();
+    
+    print!("{:#?}",config);
+
     // Search tokens from CLI inputs.
     let (tokens, bp) = utils::get_tokens_from_cli();
 
