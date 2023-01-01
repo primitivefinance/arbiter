@@ -63,6 +63,8 @@ async fn main() -> Result<()> {
             config,
         }) => {
             // Parse the config file here.
+            // The below is temporary to fix CI hell.
+            let _config = config;
 
             let tokens = get_tokens();
 
