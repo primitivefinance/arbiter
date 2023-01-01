@@ -35,40 +35,34 @@ First, clone the repository to your local environment so
 ```
 git clone https://github.com/primitivefinance/arbiter.git
 cd arbiter
+cargo install --path ./crates/cli
 ```
 Set the PROVIDER environment variable to use a custom provider.
-`arbiter` takes in three command line arguments. To see the available arguments, run the following:
+`arbiter` has many subcommands and therefore many arguments. To see the available arguments for pool monitoring, run the following:
 ```
-cargo run -- -h
+arbiter see --help
 ```
-This will display the `help` menu
+This will display the `help` menu for the `Claivoyance` crate
 ```console
-arbiter 0.0.1
+Access the `Clairvoyance` monitoring module via this subcommand
 
-USAGE:
-    arbiter [FLAGS] [OPTIONS]
+Usage: arbiter.exe see [TOKEN0] [TOKEN1] [BP] [FILE]
 
-FLAGS:
-        --api_key     Provide an Etherscan API key if function calls require it (e.g., providing a token that is not in
-                      the database).
-    -h, --help        Prints help information
-    -V, --version     Prints version information
+Arguments:
+  [TOKEN0]  Token 0 of the pool [default: ETH]
+  [TOKEN1]  Token 1 of the pool [default: USDC]
+  [BP]      Basis point fee of the pool [default: 5]
+  [FILE]    Sets a custom config file
 
-OPTIONS:
-        --fee <fee>          Specifies the basis points for the pool. [1, 5, 30, 100] [default: 5]
-        --token0 <token0>    Specifies the first token for a token pair. [default: ETH]
-        --token1 <token1>    Specifies the second token for a token pair which will be the numeraire. [default: USDC]
+Options:
+  -h, --help  Print help information
 ```
 
 In the above, `token0` and `token1` will be the token pair used to find the corresponding UniswapV3 pools. Upon running
 ```
-cargo run
+arbiter see
 ```
-we default to `token0=ETH`, `token1=USDC`, and `fee=5`. `arbiter` will return results
-```console
-Uniswap Pool Result: Uniswap Pool Result: 0x88e6a0c2ddd26feeb64f039a2c41296fcb3f5640
-```
-which is the [5BP pool](https://info.uniswap.org/#/pools/0x88e6a0c2ddd26feeb64f039a2c41296fcb3f5640) for the pair ETH/USDC on Uniswap. The program runs and streams transactions (swaps) that update the pool's price like so:
+we default to `token0=ETH`, `token1=USDC`, and `fee=5`. `arbiter` will return the [5BP pool](https://info.uniswap.org/#/pools/0x88e6a0c2ddd26feeb64f039a2c41296fcb3f5640) for the pair ETH/USDC on Uniswap. The program runs and streams transactions (swaps) that update the pool's price like so:
 ``` console
 ------------NEW SWAP------------
 From pool 0x88e6a0c2ddd26feeb64f039a2c41296fcb3f5640
@@ -81,7 +75,7 @@ price "1.208239460504000000000000000000000000000e+3"
 ```
 If you would like the price to be in terms of ETH rather than USD for a one basis point pool, you can run
 ```
-cargo run -- --token0 USDC --token1 ETH --fee 30
+arbiter see USDC ETH 30
 ```
 Which will return the pool address and then log swaps on this pool with the price now denominated in ETH
 ``` console
