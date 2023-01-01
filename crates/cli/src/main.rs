@@ -1,14 +1,14 @@
-use clairvoyance::uniswap::Pool;
 use clairvoyance::tokens::get_tokens;
+use clairvoyance::uniswap::Pool;
 use clairvoyance::utils::get_provider;
 
-use tokio::join;
+use clap::{Parser, Subcommand};
 use ethers::prelude::*;
 use ethers::providers::Provider;
 use eyre::Result;
 use std::env;
 use std::sync::Arc;
-use clap::{Parser, Subcommand};
+use tokio::join;
 
 use std::path::PathBuf;
 
@@ -56,9 +56,14 @@ async fn main() -> Result<()> {
     };
 
     match &cli.command {
-        Some(Commands::See { token0, token1, bp, _config }) => {
+        Some(Commands::See {
+            token0,
+            token1,
+            bp,
+            _config,
+        }) => {
             // Parse the config file here.
-            
+
             let tokens = get_tokens();
 
             let token0 = tokens.get(token0).unwrap();
@@ -77,7 +82,7 @@ async fn main() -> Result<()> {
 
             for pool in pools {
                 join!(pool.monitor_pool());
-            }        
+            }
         }
         None => {}
     }

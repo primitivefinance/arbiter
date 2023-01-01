@@ -91,7 +91,7 @@ impl Pool {
 /// Takes in UniswapV3's sqrt_price_x96 (a q64_96 fixed point number) and outputs the price in human readable form.
 /// See Uniswap's documentation: https://docs.uniswap.org/sdk/guides/fetching-prices
 pub fn compute_price(tokens: (Token, Token), sqrt_price_x96: U256, pool_token_0: H160) -> BigFloat {
-   let diff_decimals: BigFloat = ((tokens.0.decimals as i16) - (tokens.1.decimals as i16)).into();
+    let diff_decimals: BigFloat = ((tokens.0.decimals as i16) - (tokens.1.decimals as i16)).into();
     if pool_token_0 == tokens.0.address {
         utils::convert_q64_96(sqrt_price_x96)
             .pow(&BigFloat::from_i16(2))
