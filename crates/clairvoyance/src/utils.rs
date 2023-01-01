@@ -1,4 +1,4 @@
-use crate::tokens::{self, Token};
+use crate::tokens::get_tokens;
 use crate::uniswap::Pool;
 use ethers::prelude::*;
 use ethers::providers::Provider;
@@ -13,7 +13,7 @@ pub async fn get_provider() -> Arc<Provider<Http>> {
 }
 
 pub async fn _get_test_pool(bp: String, provider: Arc<Provider<Http>>) -> Result<Pool, ()> {
-    let tokens = tokens::get_tokens();
+    let tokens = get_tokens();
     Pool::new(
         tokens.get("ETH").unwrap().to_owned(),
         tokens.get("DAI").unwrap().to_owned(),

@@ -60,7 +60,7 @@ async fn main() -> Result<()> {
             token0,
             token1,
             bp,
-            _config,
+            config,
         }) => {
             // Parse the config file here.
 
