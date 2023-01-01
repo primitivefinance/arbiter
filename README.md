@@ -14,7 +14,7 @@ We want to develop a Rust program capable of detecting and executing arbitrage o
 
 [^1]: 'Pure profit' refers to the fact that atomic arbitrage does not require arbitrageurs to put any capital at risk other than an upfront cost on building the strategy and gas cost to get their transaction included. This contributes to the lucrative nature of atomic arbitrage when done effectively
 
-## Features (in development):
+## Features:
  
 #### TODOs: 
 - [x] Library of popular tokens includes symbols, addresses, and decimals. 
