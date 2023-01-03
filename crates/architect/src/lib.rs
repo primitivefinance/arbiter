@@ -59,11 +59,7 @@ impl<S: Signer> Architect<S> {
         };
 
         let client = SignerMiddleware::new(
-            FlashbotsMiddleware::new(
-                provider,
-                relay,
-                bundle_signer,
-            ),
+            FlashbotsMiddleware::new(provider, relay, bundle_signer),
             wallet,
         );
 
@@ -82,7 +78,10 @@ impl<S: Signer> Architect<S> {
     }
 
     /// Add and sign a transaction to the bundle to be executed.
-    pub async fn add_transactions(mut self, transactions: &Vec<TypedTransaction>) -> Result<Self, ArchitectError> {
+    pub async fn add_transactions(
+        mut self,
+        transactions: &Vec<TypedTransaction>,
+    ) -> Result<Self, ArchitectError> {
         for tx in transactions {
             let signature = match self.client.signer().sign_transaction(tx).await {
                 Err(_) => return Err(ArchitectError::SigningError),
