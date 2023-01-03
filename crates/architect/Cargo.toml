@@ -1,0 +1,13 @@
+[package]
+name = "architect"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+ethers-flashbots = { git = "https://github.com/onbjerg/ethers-flashbots" }
+tokio = { version = "1.17.0", features = ["macros"] }
+url = { version = "2.3.1", default-features = false }
+thiserror = "1.0.38"
+ethers = "1.0.0"
