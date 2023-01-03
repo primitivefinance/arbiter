@@ -1,5 +1,5 @@
 #![warn(missing_docs)]
-#![forbid(unsafe_code)]
+#![warn(unsafe_code)]
 
 //! ## Architect
 //!
@@ -55,15 +55,14 @@ impl<S: Signer> Architect<S> {
     }
 
     /// Add and sign a transaction to the bundle to be executed.
-    pub async fn add_transaction(self, transaction: TypedTransaction) {
-        let signature = self
-            .client
-            .signer()
-            .sign_transaction(&transaction)
-            .await
-            .unwrap();
-        self.bundle
-            .push_transaction(transaction.rlp_signed(&signature));
+    pub async fn add_transactions(mut self, transactions: &Vec<TypedTransaction>) -> Self {
+        for tx in transactions {
+            let signature = self.client.signer().sign_transaction(tx).await.unwrap();
+
+            self.bundle = self.bundle.push_transaction(tx.rlp_signed(&signature));
+        }
+
+        self
     }
 
     /// Simulate bundle execution.
@@ -89,13 +88,18 @@ mod tests {
     use crate::Architect;
     use ethers::core::rand::thread_rng;
     use ethers::prelude::*;
+    use ethers::types::transaction::eip2718::TypedTransaction;
 
     // We will need more tests in future but this just ensures basic functionality is working.
     #[tokio::test]
     async fn test_architect_creation() {
         let provider = Provider::<Http>::try_from("https://mainnet.eth.aragon.network").unwrap();
-        let wallet = LocalWallet::new(&mut thread_rng());
+        let tx = TypedTransaction::Legacy(TransactionRequest::pay("vitalik.eth", 100));
 
-        let _architect = Architect::new(provider, wallet).await;
+        let mut architect = Architect::new(provider, LocalWallet::new(&mut thread_rng()))
+            .await
+            .add_transactions(&vec![tx])
+            .await;
+        architect.simulate().await;
     }
 }
