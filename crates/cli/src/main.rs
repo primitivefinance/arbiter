@@ -1,12 +1,12 @@
 use clairvoyance::tokens::get_tokens;
 use clairvoyance::uniswap::Pool;
 use clairvoyance::utils::get_provider;
+use clairvoyance::monitor::get_pool;
 
 use clap::{Parser, Subcommand};
 use ethers::prelude::*;
 use ethers::providers::Provider;
 use eyre::Result;
-use std::borrow::BorrowMut;
 use std::env;
 use std::sync::Arc;
 use tokio::join;
@@ -64,26 +64,23 @@ async fn main() -> Result<()> {
             bp,
             config,
         }) => {
+            let mut pool: Pool;
             match config {
                 Some(config) => {
                     let config_obj = config::Config::new(config.clone());
                     println!("{:#?}", config);
+                    // get_pool(token0: &str, token1: &str, bp: String) -> Result<Pool, Box<dyn Error>>
+                    // pool = get_pool(token0, token1, bp).await.unwrap()
+                    // get_pool(token0, token1, bp).await.unwrap()
                 }
                 None => {
-                    let tokens = get_tokens();
-                    let token0 = tokens.get(token0).unwrap();
-                    let token1 = tokens.get(token1).unwrap();
-                    let bp = bp.parse::<u32>().unwrap();
+                    // let tokens = get_tokens();
+                    // let token0 = tokens.get(token0).unwrap();
+                    // let token1 = tokens.get(token1).unwrap();
+                    // let bp = bp.parse::<u32>().unwrap();
         
         
-                    let pool = Pool::new(
-                        token0.clone(),
-                        token1.clone(),
-                        bp,
-                        provider,
-                    )
-                    .await
-                    .unwrap();
+                    let pool = get_pool(token0, token1, bp).unwrap();
                     
         
                     let pools = [pool];
