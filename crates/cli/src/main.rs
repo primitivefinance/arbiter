@@ -65,7 +65,7 @@ async fn main() -> Result<()> {
                 }
                 None => {
                     // get pool with stuff from CLI/Defaults
-                    pool = get_pool(token0, token1, bp).unwrap();
+                    pool = get_pool(token0, token1, bp).await.unwrap();
             
                     let pools = [pool];
         

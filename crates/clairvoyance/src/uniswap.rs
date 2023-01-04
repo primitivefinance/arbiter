@@ -97,8 +97,7 @@ impl Pool {
 
 
 // Creates a pool from the cli/or config parameters
-#[tokio::main]
-pub async fn get_pool(token0: &str, token1: &str, bp: &str) -> Result<Pool, Box<dyn Error>> {
+pub async fn get_pool(token0: &String, token1: &String, bp: &str) -> Result<Pool, Box<dyn Error>> {
 
     let provider = match env::var_os("PROVIDER") {
         Some(v) => Arc::new(Provider::<Http>::try_from(v.into_string().unwrap())?),
