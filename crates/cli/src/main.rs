@@ -1,4 +1,3 @@
-use clairvoyance::tokens::get_tokens;
 use clairvoyance::uniswap::{Pool, get_pool};
 use clairvoyance::utils::get_provider;
 
@@ -11,8 +10,6 @@ use std::env;
 use std::sync::Arc;
 use tokio::join;
 mod config;
-
-use std::path::PathBuf;
 
 #[derive(Parser)]
 #[command(name = "Arbiter")]
@@ -41,9 +38,9 @@ enum Commands {
         #[arg(default_value = "5")]
         bp: String,
 
-        /// Sets a custom config file
-        #[arg(value_name = "FILE")]
-        config: Option<PathBuf>,
+        /// Set this flag to use the config.toml
+        #[arg(value_name = "Boolean")]
+        config: Option<bool>,
     },
 }
 
@@ -67,8 +64,8 @@ async fn main() -> Result<()> {
             let mut pool: Pool;
             match config {
                 Some(config) => {
-                    let config_obj = config::Config::new(config.clone());
-                    println!("{:#?}", config);
+                    let config_obj = config::Config::new();
+                    println!("{:#?}", config_obj);
                     // get pool with stuff from config
                     // pool = get_pool(token0, token1, bp);
                 }

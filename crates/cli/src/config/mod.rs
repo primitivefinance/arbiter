@@ -4,11 +4,19 @@ use serde::{Serialize, Deserialize};
 
 #[derive(Serialize, Deserialize, Debug)]
 struct ConfigToml {
-    network: Option<ConfigTomlNetwork>
+    network: Option<ConfigTomlNetwork>,
+    see: Option<ConfigTomlSee>
 }
 #[derive(Serialize, Deserialize, Debug)]
 struct ConfigTomlNetwork {
     rpc_url: Option<String>
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+struct ConfigTomlSee {
+    token0 : Option<String>,
+    token1 : Option<String>,
+    bp : Option<String>,
 }
 
 #[derive(Debug)]
@@ -17,11 +25,11 @@ pub struct Config {
 
 }
 impl Config {
-    pub fn new(path: PathBuf) -> Self {
+    pub fn new() -> Self {
 
         let config_filepaths: [&str; 2] = [
         "./config.toml",
-        "./Config.toml"
+        "./Config.toml",
         ];
 
         let mut content: String = "".to_owned();
@@ -38,7 +46,8 @@ impl Config {
         let config_toml: ConfigToml = toml::from_str(&content).unwrap_or_else(|_| {
             println!("Failed to create ConfigToml object from config file");
             ConfigToml{
-                network: None
+                network: None,
+                see: None
             }
         });
 
