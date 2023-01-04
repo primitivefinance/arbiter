@@ -9,6 +9,7 @@ use eyre::Result;
 use std::env;
 use std::sync::Arc;
 use tokio::join;
+mod config;
 
 use std::path::PathBuf;
 
@@ -64,7 +65,9 @@ async fn main() -> Result<()> {
         }) => {
             // Parse the config file here.
             // The below is temporary to fix CI hell.
-            let _config = config;
+            let config = config::Config::new();
+            println!("{:#?}", config);
+            // let _config = config;
 
             let tokens = get_tokens();
 
