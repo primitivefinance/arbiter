@@ -6,6 +6,7 @@ use clap::{Parser, Subcommand};
 use ethers::prelude::*;
 use ethers::providers::Provider;
 use eyre::Result;
+use std::borrow::BorrowMut;
 use std::env;
 use std::sync::Arc;
 use tokio::join;
@@ -63,31 +64,36 @@ async fn main() -> Result<()> {
             bp,
             config,
         }) => {
-            // Parse the config file here.
-            // The below is temporary to fix CI hell.
-            let config = config::Config::new();
-            println!("{:#?}", config);
-            // let _config = config;
-
-            let tokens = get_tokens();
-
-            let token0 = tokens.get(token0).unwrap();
-            let token1 = tokens.get(token1).unwrap();
-
-            let pool = Pool::new(
-                token0.clone(),
-                token1.clone(),
-                bp.parse::<u32>().unwrap(),
-                provider,
-            )
-            .await
-            .unwrap();
-
-            let pools = [pool];
-
-            for pool in pools {
-                join!(pool.monitor_pool());
+            match config {
+                Some(config) => {
+                    let config_obj = config::Config::new(config.clone());
+                    println!("{:#?}", config);
+                }
+                None => {
+                    let tokens = get_tokens();
+                    let token0 = tokens.get(token0).unwrap();
+                    let token1 = tokens.get(token1).unwrap();
+                    let bp = bp.parse::<u32>().unwrap();
+        
+        
+                    let pool = Pool::new(
+                        token0.clone(),
+                        token1.clone(),
+                        bp,
+                        provider,
+                    )
+                    .await
+                    .unwrap();
+                    
+        
+                    let pools = [pool];
+        
+                    for pool in pools {
+                        join!(pool.monitor_pool());
+                    }
+                },
             }
+
         }
         None => {}
     }

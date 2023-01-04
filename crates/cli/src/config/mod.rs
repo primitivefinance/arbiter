@@ -1,4 +1,4 @@
-use std::fs;
+use std::{fs, path::PathBuf};
 use toml;
 use serde::{Serialize, Deserialize};
 
@@ -17,7 +17,7 @@ pub struct Config {
 
 }
 impl Config {
-    pub fn new() -> Self {
+    pub fn new(path: PathBuf) -> Self {
 
         let config_filepaths: [&str; 2] = [
         "./config.toml",
