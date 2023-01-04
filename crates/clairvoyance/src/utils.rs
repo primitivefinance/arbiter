@@ -1,5 +1,4 @@
-use crate::cli::get_cli;
-use crate::tokens::{self, Token};
+use crate::tokens::get_tokens;
 use crate::uniswap::Pool;
 use ethers::prelude::*;
 use ethers::providers::Provider;
@@ -13,20 +12,8 @@ pub async fn get_provider() -> Arc<Provider<Http>> {
     )
 }
 
-// Search through token list to get token objects from user input
-pub fn get_tokens_from_cli() -> ((Token, Token), String) {
-    let (token_0, token_1, bp, _api_key) = get_cli();
-    let tokens = tokens::get_tokens();
-    (
-        (
-            tokens.get(&token_0).unwrap().to_owned(),
-            tokens.get(&token_1).unwrap().to_owned(),
-        ),
-        bp,
-    )
-}
 pub async fn _get_test_pool(bp: String, provider: Arc<Provider<Http>>) -> Result<Pool, ()> {
-    let tokens = tokens::get_tokens();
+    let tokens = get_tokens();
     Pool::new(
         tokens.get("ETH").unwrap().to_owned(),
         tokens.get("DAI").unwrap().to_owned(),
@@ -35,6 +22,7 @@ pub async fn _get_test_pool(bp: String, provider: Arc<Provider<Http>>) -> Result
     )
     .await
 }
+
 pub fn convert_q64_96(q64_96: U256) -> BigFloat {
     // Take in a U256 structured as a q64_96 fixed point from UniswapV3 and converts this to a BigFloat.
     let least_sig = q64_96.0[0];

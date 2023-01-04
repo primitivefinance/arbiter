@@ -1,15 +1,13 @@
 [package]
-name = "clairvoyance"
+name = "arbiter"
 version = "0.1.0"
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-serde = {version = "1.0.145", features= ["derive"]}
-toml = "0.5.10"
-bindings = { path = "../bindings" }
+clairvoyance = { path = "../clairvoyance" }
+eyre = "0.6.6"
 ethers = "1.0.0"
 tokio = { version = "1.17.0", features = ["macros"] }
-eyre = "0.6.6"
-num-bigfloat = "1.6.0"
+clap = { version = "4.0.32", features = ["derive"] }
