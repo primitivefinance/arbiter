@@ -9,6 +9,6 @@ token1 = "USDC"
 # Basis point fee of the pool.
 bp = "5"
 
-[depth]
-exchange = "Uniswapv3"
-price_impact = 2
+# [depth]
+# exchange = "Uniswapv3"
+# price_impact = 2

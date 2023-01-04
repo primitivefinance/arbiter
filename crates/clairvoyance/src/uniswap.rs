@@ -12,6 +12,13 @@ use ethers::types::H160;
 use bindings::i_uniswap_v3_pool::IUniswapV3Pool;
 use bindings::uniswap_v3_factory::UniswapV3Factory;
 
+use crate::tokens::get_tokens;
+use crate::utils::get_provider;
+
+use eyre::Result;
+use std::env;
+use std::error::Error;
+
 /// Representation of a pool.
 #[derive(Debug, Clone)]
 pub struct Pool {
@@ -87,6 +94,30 @@ impl Pool {
         }
     }
 }
+
+
+// Creates a pool from the cli/or config parameters
+#[tokio::main]
+pub async fn get_pool(token0: &str, token1: &str, bp: &str) -> Result<Pool, Box<dyn Error>> {
+
+    let provider = match env::var_os("PROVIDER") {
+        Some(v) => Arc::new(Provider::<Http>::try_from(v.into_string().unwrap())?),
+        None => get_provider().await,
+    };
+    let tokens = get_tokens();
+    let token0 = tokens.get(token0).unwrap();
+    let token1 = tokens.get(token1).unwrap();
+    let bp = bp.parse::<u32>().unwrap();
+    let pool = Pool::new(
+        token0.clone(),
+        token1.clone(),
+        bp,
+        provider,
+    )
+    .await;
+    Ok(pool.unwrap())
+}
+
 
 /// Takes in UniswapV3's sqrt_price_x96 (a q64_96 fixed point number) and outputs the price in human readable form.
 /// See Uniswap's documentation: https://docs.uniswap.org/sdk/guides/fetching-prices
