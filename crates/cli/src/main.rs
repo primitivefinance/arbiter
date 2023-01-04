@@ -56,7 +56,7 @@ async fn main() -> Result<()> {
         }) => {
             let mut pool: Pool;
             match config {
-                Some(config) => {
+                Some(_) => {
                     let config_obj = config::Config::new();
                     println!("{:#?}", config_obj);
                     // get pool with stuff from config
