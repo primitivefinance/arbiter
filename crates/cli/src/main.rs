@@ -1,13 +1,6 @@
 use clairvoyance::uniswap::{Pool, get_pool};
-use clairvoyance::utils::get_provider;
-
-
 use clap::{Parser, Subcommand};
-use ethers::prelude::*;
-use ethers::providers::Provider;
 use eyre::Result;
-use std::env;
-use std::sync::Arc;
 use tokio::join;
 mod config;
 
@@ -39,7 +32,7 @@ enum Commands {
         bp: String,
 
         /// Set this flag to use the config.toml
-        #[arg(value_name = "Boolean")]
+        #[arg(value_name = "Config")]
         config: Option<bool>,
     },
 }
@@ -49,10 +42,10 @@ async fn main() -> Result<()> {
     let cli = Cli::parse();
 
     // RPC endpoint [default: alchemy]
-    let provider = match env::var_os("PROVIDER") {
-        Some(v) => Arc::new(Provider::<Http>::try_from(v.into_string().unwrap())?),
-        None => get_provider().await,
-    };
+    // let provider = match env::var_os("PROVIDER") {
+    //     Some(v) => Arc::new(Provider::<Http>::try_from(v.into_string().unwrap())?),
+    //     None => get_provider().await,
+    // };
 
     match &cli.command {
         Some(Commands::See {
@@ -68,6 +61,7 @@ async fn main() -> Result<()> {
                     println!("{:#?}", config_obj);
                     // get pool with stuff from config
                     // pool = get_pool(token0, token1, bp);
+                    // pool = None;
                 }
                 None => {
                     // get pool with stuff from CLI/Defaults
