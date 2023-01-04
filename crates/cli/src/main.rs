@@ -60,8 +60,8 @@ async fn main() -> Result<()> {
                     let config_obj = config::Config::new();
                     println!("{:#?}", config_obj);
                     // get pool with stuff from config
-                    // pool = get_pool(token0, token1, bp);
-                    // pool = None;
+                    pool = get_pool(&config_obj.token0, &config_obj.token1, bp);
+
                 }
                 None => {
                     // get pool with stuff from CLI/Defaults

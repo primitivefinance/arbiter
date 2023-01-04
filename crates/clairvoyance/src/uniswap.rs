@@ -108,8 +108,8 @@ pub async fn get_pool(token0: &String, token1: &String, bp: &str) -> Result<Pool
     let token1 = tokens.get(token1).unwrap();
     let bp = bp.parse::<u32>().unwrap();
     let pool = Pool::new(
-        token0,
-        token1,
+        token0.clone(),
+        token1.clone(),
         bp,
         provider,
     )
