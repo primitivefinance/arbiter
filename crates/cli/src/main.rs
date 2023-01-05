@@ -46,7 +46,7 @@ async fn main() -> Result<()> {
     //     Some(v) => Arc::new(Provider::<Http>::try_from(v.into_string().unwrap())?),
     //     None => get_provider().await,
     // };
-
+    let mut pool;
     match &cli.command {
         Some(Commands::See {
             token0,
@@ -54,27 +54,22 @@ async fn main() -> Result<()> {
             bp,
             config,
         }) => {
-            match config {
-                Some(_) => {
-                    let config_obj = config::Config::new();
-                    // get pool with stuff from config
-                    let pool = get_pool(&config_obj.token0, &config_obj.token1, &config_obj.bp).await?;
-                }
-                None => {
-                    // get pool with stuff from CLI/Defaults
-                    let pool: Pool = get_pool(token0, token1, bp).await.unwrap();
-            
-                    let pools = [pool];
-        
-                    for pool in pools {
-                        join!(pool.monitor_pool());
-                    }
-                },
+            if config.unwrap() {
+                let config_obj = config::Config::new();
+                pool = get_pool(&config_obj.token0, &config_obj.token1, &config_obj.bp).await.unwrap();
+            } 
+            pool
             }
+        None => {
+            // Can we return a pool with default values here?
+            pool = get_pool(token0, token1, bp).await.unwrap();
+            pool
+        }};
 
+        let pools = [pool];
+        for pool in pools {
+            join!(pool.monitor_pool());
         }
-        None => {}
-    }
 
     Ok(())
 
