@@ -42,6 +42,8 @@ impl Config {
             if result.is_ok() {
                 content = result.unwrap();
                 break;
+            } else {
+                print!("Read unsuccessful");
             }
         }
 

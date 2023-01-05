@@ -2,13 +2,7 @@
 rpc_url = "https://eth-mainnet.g.alchemy.com/v2/I93POQk49QE9O-NuOz7nj7sbiluW76it"
 
 [see]
-# Token 0 of the pool.
 token0 = "ETH"
-# Token 1 of the pool.
 token1 = "USDC"
-# Basis point fee of the pool.
 bp = "5"
 
-# [depth]
-# exchange = "Uniswapv3"
-# price_impact = 2
