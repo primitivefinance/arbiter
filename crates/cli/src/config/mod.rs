@@ -26,12 +26,12 @@ pub struct Config {
     pub token1: String,
     pub bp: String
 }
+
 impl Config {
     pub fn new() -> Self {
-
         let config_filepaths: [&str; 2] = [
-        "./config.toml",
-        "./Config.toml",
+            "./src/config.toml",
+            "./src/Config.toml",
         ];
 
         let mut content: String = "".to_owned();
@@ -39,11 +39,9 @@ impl Config {
         for filepath in config_filepaths {
             let result = fs::read_to_string(filepath);
 
-            if result.is_ok() {
-                content = result.unwrap();
-                break;
-            } else {
-                print!("Read unsuccessful");
+            match result {
+                Ok(c) => { content = c },
+                Err(_) => break,
             }
         }
 
