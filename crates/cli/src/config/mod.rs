@@ -2,23 +2,26 @@ use std::{fs};
 use toml;
 use serde::{Serialize, Deserialize};
 
+
+// ! this is the struct that will be used to get the config.toml values
 #[derive(Serialize, Deserialize, Debug)]
 struct ConfigToml {
     network: Option<ConfigTomlNetwork>,
     see: Option<ConfigTomlSee>
 }
+// ! this is the struct that will be used to read the network config.toml values
 #[derive(Serialize, Deserialize, Debug)]
 struct ConfigTomlNetwork {
     rpc_url: Option<String>
 }
-
+// ! this is the struct that will be used to represent the see config.toml values
 #[derive(Serialize, Deserialize, Debug)]
 struct ConfigTomlSee {
     token0 : Option<String>,
     token1 : Option<String>,
     bp : Option<String>,
 }
-
+// ! this is the struct that will be used to represent the config.toml values and is returned 
 #[derive(Debug)]
 pub struct Config {
     pub rpc_url: String,
@@ -28,6 +31,7 @@ pub struct Config {
 }
 
 impl Config {
+    // ! when makin a new instance of the config object we need to read the config.toml file and then return the values
     pub fn new() -> Self {
         let config_filepaths: [&str; 2] = [
             "./src/config.toml",
@@ -35,7 +39,7 @@ impl Config {
         ];
 
         let mut content: String = "".to_owned();
-
+        // ! Read from list of filepaths until we find a file that exists
         for filepath in config_filepaths {
             let result = fs::read_to_string(filepath);
 
@@ -45,7 +49,7 @@ impl Config {
             }
         }
 
-        // outer struct init
+        // ! initialize the outer struct with values from the config.toml file
         let config_toml: ConfigToml = toml::from_str(&content).unwrap_or_else(|_| {
             println!("Failed to create ConfigToml object from config file");
             ConfigToml{
@@ -54,7 +58,7 @@ impl Config {
             }
         });
 
-
+        // ! check the rpc_url field in the network config.toml section
         let rpc = match config_toml.network {
             Some(network) => network.rpc_url.unwrap_or_else(|| {
                     println!("Missing Field rpc_url in network config");
@@ -63,7 +67,7 @@ impl Config {
             None => "unknown".to_owned(),
             
         };
-        println!("{:#?}", rpc);
+        // ! check the token0, token1, and bp fields in the see config.toml section
         let (token0, token1,bp) = match config_toml.see {
             Some(see) => {
                 let token0 = see.token0.unwrap_or_else(|| {
@@ -83,8 +87,7 @@ impl Config {
             None => ("unknown".to_owned(), "unknown".to_owned(), "unknown".to_owned())
         };
 
-        println!("{}", token0);
-
+        // return the config object
         Config { 
             rpc_url: rpc,
             token0: token0,
