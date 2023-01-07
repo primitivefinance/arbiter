@@ -3,7 +3,7 @@ use toml;
 use serde::{Serialize, Deserialize};
 
 
-// ! this is the struct that will be used to get the config.toml values
+// ! this is the struct that will be used to read the config.toml table
 #[derive(Serialize, Deserialize, Debug)]
 struct ConfigToml {
     network: Option<ConfigTomlNetwork>,
@@ -14,7 +14,7 @@ struct ConfigToml {
 struct ConfigTomlNetwork {
     rpc_url: Option<String>
 }
-// ! this is the struct that will be used to represent the see config.toml values
+// ! this is the struct that will be used to read the see config.toml values
 #[derive(Serialize, Deserialize, Debug)]
 struct ConfigTomlSee {
     token0 : Option<String>,
