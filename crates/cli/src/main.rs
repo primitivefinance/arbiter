@@ -32,8 +32,8 @@ enum Commands {
         bp: String,
 
         /// Set this flag to use the config.toml
-        #[arg(short = 'c', long = "config")]
-        config: Option<bool>,
+        #[arg(short = 'c', long = "config", action)]
+        config: bool,
     },
 }
 
@@ -56,7 +56,7 @@ async fn main() -> Result<()> {
         }) => {
             // println!("{token0:?}{token1:?}");
             match config {
-                Some(_) => {
+                true => {
                     let config_obj = config::Config::new();
                     // println!("{:#?}", config_obj.token0);
                     // get pool with stuff from config
@@ -70,7 +70,7 @@ async fn main() -> Result<()> {
                         join!(pool.monitor_pool());
                     }
                 }
-                None => {
+                false => {
                     // get pool with stuff from CLI/Defaults
                     let pool: Pool = get_pool(token0, token1, bp).await.unwrap();
             
