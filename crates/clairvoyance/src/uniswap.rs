@@ -103,6 +103,7 @@ pub async fn get_pool(token0: &String, token1: &String, bp: &str) -> Result<Pool
         None => get_provider().await,
     };
     let tokens = get_tokens();
+
     let token0 = tokens.get(token0).unwrap();
     let token1 = tokens.get(token1).unwrap();
     let bp = bp.parse::<u32>().unwrap();

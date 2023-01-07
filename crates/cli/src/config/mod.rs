@@ -30,14 +30,16 @@ pub struct Config {
 impl Config {
     pub fn new() -> Self {
         let config_filepaths: [&str; 2] = [
-            "./src/config.toml",
-            "./src/Config.toml",
+            "./crates/cli/src/config.toml",
+            "./crates/cli/src/Config.toml",
         ];
 
         let mut content: String = "".to_owned();
 
         for filepath in config_filepaths {
             let result = fs::read_to_string(filepath);
+
+            println!("{result:?}");
 
             match result {
                 Ok(c) => { content = c },
@@ -53,7 +55,6 @@ impl Config {
                 see: None
             }
         });
-
 
         let rpc = match config_toml.network {
             Some(network) => network.rpc_url.unwrap_or_else(|| {
