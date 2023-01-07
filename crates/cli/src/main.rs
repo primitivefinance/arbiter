@@ -1,16 +1,14 @@
-use clairvoyance::tokens::get_tokens;
-use clairvoyance::uniswap::Pool;
-use clairvoyance::utils::get_provider;
-
+use clairvoyance::{
+    uniswap::{get_pool, Pool},
+    utils::get_provider,
+};
 use clap::{Parser, Subcommand};
-use ethers::prelude::*;
-use ethers::providers::Provider;
+use ethers::providers::{Http, Provider};
 use eyre::Result;
-use std::env;
-use std::sync::Arc;
+use std::{env, sync::Arc};
 use tokio::join;
 
-use std::path::PathBuf;
+mod config;
 
 #[derive(Parser)]
 #[command(name = "Arbiter")]
@@ -39,9 +37,9 @@ enum Commands {
         #[arg(default_value = "5")]
         bp: String,
 
-        /// Sets a custom config file
-        #[arg(value_name = "FILE")]
-        config: Option<PathBuf>,
+        /// Set this flag to use the config.toml
+        #[arg(short = 'c', long = "config", action)]
+        config: bool,
     },
 }
 
@@ -62,31 +60,37 @@ async fn main() -> Result<()> {
             bp,
             config,
         }) => {
-            // Parse the config file here.
-            // The below is temporary to fix CI hell.
-            let _config = config;
-
-            let tokens = get_tokens();
-
-            let token0 = tokens.get(token0).unwrap();
-            let token1 = tokens.get(token1).unwrap();
-
-            let pool = Pool::new(
-                token0.clone(),
-                token1.clone(),
-                bp.parse::<u32>().unwrap(),
-                provider,
-            )
-            .await
-            .unwrap();
-
-            let pools = [pool];
-
-            for pool in pools {
-                join!(pool.monitor_pool());
+            match config {
+                true => {
+                    // If present, load config.toml and get pool from there
+                    println!("Loading config.toml...");
+                    let config_obj = config::Config::new();
+                    println!("Getting Pool...");
+                    let pool = get_pool(
+                        &config_obj.token0,
+                        &config_obj.token1,
+                        &config_obj.bp,
+                        provider,
+                    )
+                    .await
+                    .unwrap();
+                    let pools = [pool];
+                    for pool in pools {
+                        join!(pool.monitor_pool());
+                    }
+                }
+                false => {
+                    // get pool from CLI/Defaults
+                    let pool: Pool = get_pool(token0, token1, bp, provider).await.unwrap();
+                    let pools = [pool];
+                    for pool in pools {
+                        join!(pool.monitor_pool());
+                    }
+                }
             }
         }
         None => {}
     }
+
     Ok(())
 }

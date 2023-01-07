@@ -11,3 +11,5 @@ eyre = "0.6.6"
 ethers = "1.0.0"
 tokio = { version = "1.17.0", features = ["macros"] }
 clap = { version = "4.0.32", features = ["derive"] }
+toml = "0.5.10"
+serde = { version = "1.0.152", features =["derive"] }
