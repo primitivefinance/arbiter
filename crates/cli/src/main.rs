@@ -1,7 +1,13 @@
-use clairvoyance::uniswap::{Pool, get_pool};
+use clairvoyance::{
+    uniswap::{get_pool, Pool},
+    utils::get_provider,
+};
 use clap::{Parser, Subcommand};
+use ethers::providers::{Http, Provider};
 use eyre::Result;
+use std::{env, sync::Arc};
 use tokio::join;
+
 mod config;
 
 #[derive(Parser)]
@@ -42,10 +48,10 @@ async fn main() -> Result<()> {
     let cli = Cli::parse();
 
     // RPC endpoint [default: alchemy]
-    // let provider = match env::var_os("PROVIDER") {
-    //     Some(v) => Arc::new(Provider::<Http>::try_from(v.into_string().unwrap())?),
-    //     None => get_provider().await,
-    // };
+    let provider = match env::var_os("PROVIDER") {
+        Some(v) => Arc::new(Provider::<Http>::try_from(v.into_string().unwrap())?),
+        None => get_provider().await,
+    };
 
     match &cli.command {
         Some(Commands::See {
@@ -54,38 +60,37 @@ async fn main() -> Result<()> {
             bp,
             config,
         }) => {
-            // println!("{token0:?}{token1:?}");
             match config {
                 true => {
+                    // If present, load config.toml and get pool from there
+                    println!("Loading config.toml...");
                     let config_obj = config::Config::new();
-                    // println!("{:#?}", config_obj.token0);
-                    // get pool with stuff from config
-
-                    println!("before");
-                    let pool = get_pool(&config_obj.token0, &config_obj.token1, &config_obj.bp).await.unwrap();
-                    println!("after");
+                    println!("Config.toml loaded successfully! Getting Pool...");
+                    let pool = get_pool(
+                        &config_obj.token0,
+                        &config_obj.token1,
+                        &config_obj.bp,
+                        provider,
+                    )
+                    .await
+                    .unwrap();
                     let pools = [pool];
-
                     for pool in pools {
                         join!(pool.monitor_pool());
                     }
                 }
                 false => {
-                    // get pool with stuff from CLI/Defaults
-                    let pool: Pool = get_pool(token0, token1, bp).await.unwrap();
-            
+                    // get pool from CLI/Defaults
+                    let pool: Pool = get_pool(token0, token1, bp, provider).await.unwrap();
                     let pools = [pool];
-        
                     for pool in pools {
                         join!(pool.monitor_pool());
                     }
-                },
+                }
             }
-
         }
         None => {}
     }
 
     Ok(())
-
 }

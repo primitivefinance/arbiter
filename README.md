@@ -54,13 +54,13 @@ This will display the `help` menu for the `Claivoyance` crate
 ```console
 Access the `Clairvoyance` monitoring module via this subcommand
 
-Usage: arbiter.exe see [TOKEN0] [TOKEN1] [BP] [FILE]
+Usage: arbiter.exe see [TOKEN0] [TOKEN1] [BP] [CONFIG]
 
 Arguments:
   [TOKEN0]  Token 0 of the pool [default: ETH]
   [TOKEN1]  Token 1 of the pool [default: USDC]
   [BP]      Basis point fee of the pool [default: 5]
-  [FILE]    Sets a custom config file
+  [CONFIG]    Sets a custom config file
 
 Options:
   -h, --help  Print help information
@@ -107,6 +107,10 @@ Price:     "1.216568804789000000000000000000000000000e+3"
 ```
 
 You may also build the executable with `cargo build`, which will output a binary in `target/`
+
+## Configuration File
+
+To run arbiter with a configuration file, we can run the command `cargo run see --config true` or, if we have built the latest changes, `arbiter see --config true`. This will load in configuration settings from a `config.toml` file located in `./crates/cli/src/`. Feel free to make custom configuration files for your needs. The logic that finds the file is in `crates/cli/src/config/mod.rs`; remember to add the path of your new file to the list of file paths.
 
 ## Setting Custom RPC
 
