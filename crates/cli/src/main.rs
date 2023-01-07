@@ -65,7 +65,7 @@ async fn main() -> Result<()> {
                     // If present, load config.toml and get pool from there
                     println!("Loading config.toml...");
                     let config_obj = config::Config::new();
-                    println!("Config.toml loaded successfully! Getting Pool...");
+                    println!("Getting Pool...");
                     let pool = get_pool(
                         &config_obj.token0,
                         &config_obj.token1,
