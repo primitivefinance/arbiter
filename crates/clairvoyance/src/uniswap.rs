@@ -99,10 +99,6 @@ pub async fn get_pool(
     bp: &str,
     provider: Arc<Provider<Http>>,
 ) -> Result<Pool, Box<dyn Error>> {
-    // let provider = match env::var_os("PROVIDER") {
-    //     Some(v) => Arc::new(Provider::<Http>::try_from(v.into_string().unwrap())?),
-    //     None => get_provider().await,
-    // };
     let tokens = get_tokens();
 
     let token0 = tokens.get(token0).unwrap();

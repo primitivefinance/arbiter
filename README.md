@@ -110,7 +110,7 @@ You may also build the executable with `cargo build`, which will output a binary
 
 ## Configuration File
 
-To run arbiter with a configuration file, we can run the command `cargo run see --config true` or, if we have built the latest changes, `arbiter see --config true`. This will load in configuration settings from a `config.toml` file located in `./crates/cli/src/`. Feel free to make custom configuration files for your needs. The logic that finds the file is in `crates/cli/src/config/mod.rs`; remember to add the path of your new file to the list of file paths.
+To run arbiter with a configuration file, we can run the command `cargo run see --config` or, if we have built the latest changes, `arbiter see --config`. This will load in configuration settings from a `config.toml` file located in `./crates/cli/src/`. Feel free to make custom configuration files for your needs. The logic that finds the file is in `crates/cli/src/config/mod.rs`; remember to add the path of your new file to the list of file paths.
 
 ## Setting Custom RPC
 
