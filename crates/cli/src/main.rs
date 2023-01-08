@@ -70,12 +70,9 @@ async fn main() -> Result<()> {
 
                     println!("Getting Pool...");
 
-                    let pool = get_pool(
-                        &config.token0,
-                        &config.token1,
-                        &config.bp,
-                        provider,
-                    ).await.unwrap();
+                    let pool = get_pool(&config.token0, &config.token1, &config.bp, provider)
+                        .await
+                        .unwrap();
 
                     let pools = [pool];
 
