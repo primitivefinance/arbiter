@@ -1,5 +1,20 @@
+#![warn(missing_docs)]
+#![warn(unsafe_code)]
+
 use serde::{Deserialize, Serialize};
 use std::fs;
+
+/// Config error enumeration type.
+#[derive(Error, Debug)]
+pub struct ConfigError {
+    /// Error occured when attempting to read file from designated path.
+    #[error("config file path does not exist")]
+    FilepathError(#[from] std::io::Error),
+
+    /// Error occured when attempting to deserialize toml file.
+    #[error("toml deserialization failed")]
+    DeserializationError(#[from] toml::de::Error),
+}
 
 // ! this is the struct that will be used to read the config.toml table
 #[derive(Serialize, Deserialize, Debug)]
@@ -7,11 +22,13 @@ struct ConfigToml {
     network: Option<ConfigTomlNetwork>,
     see: Option<ConfigTomlSee>,
 }
+
 // ! this is the struct that will be used to read the network config.toml values
 #[derive(Serialize, Deserialize, Debug)]
 struct ConfigTomlNetwork {
     rpc_url: Option<String>,
 }
+
 // ! this is the struct that will be used to read the see config.toml values
 #[derive(Serialize, Deserialize, Debug)]
 struct ConfigTomlSee {
@@ -19,6 +36,7 @@ struct ConfigTomlSee {
     token1: Option<String>,
     bp: Option<String>,
 }
+
 // ! this is the struct that will be used to represent the config.toml values and is returned
 #[derive(Debug)]
 pub struct Config {
