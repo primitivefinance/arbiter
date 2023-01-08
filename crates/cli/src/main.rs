@@ -37,7 +37,7 @@ enum Commands {
         #[arg(default_value = "5")]
         bp: String,
 
-        /// Set this flag to use the config.toml
+        /// Set this flag to use the config.toml.
         #[arg(short = 'c', long = "config", action)]
         config: bool,
     },
@@ -62,25 +62,29 @@ async fn main() -> Result<()> {
         }) => {
             match config {
                 true => {
-                    // If present, load config.toml and get pool from there
+                    // If present, load config.toml and get pool from there.
                     println!("Loading config.toml...");
-                    let config_obj = config::Config::new();
+
+                    // We still need to handle the error properly here, but at least we have a custom type.
+                    let config = config::Config::new().unwrap();
+
                     println!("Getting Pool...");
+
                     let pool = get_pool(
-                        &config_obj.token0,
-                        &config_obj.token1,
-                        &config_obj.bp,
+                        &config.token0,
+                        &config.token1,
+                        &config.bp,
                         provider,
-                    )
-                    .await
-                    .unwrap();
+                    ).await.unwrap();
+
                     let pools = [pool];
+
                     for pool in pools {
                         join!(pool.monitor_pool());
                     }
                 }
                 false => {
-                    // get pool from CLI/Defaults
+                    // Get pool from CLI/defaults.
                     let pool: Pool = get_pool(token0, token1, bp, provider).await.unwrap();
                     let pools = [pool];
                     for pool in pools {

@@ -3,10 +3,11 @@
 
 use serde::{Deserialize, Serialize};
 use std::fs;
+use thiserror::Error;
 
 /// Config error enumeration type.
 #[derive(Error, Debug)]
-pub struct ConfigError {
+pub enum ConfigError {
     /// Error occured when attempting to read file from designated path.
     #[error("config file path does not exist")]
     FilepathError(#[from] std::io::Error),
@@ -16,100 +17,67 @@ pub struct ConfigError {
     DeserializationError(#[from] toml::de::Error),
 }
 
-// ! this is the struct that will be used to read the config.toml table
+/// Representation of the arbiter config file.
 #[derive(Serialize, Deserialize, Debug)]
 struct ConfigToml {
-    network: Option<ConfigTomlNetwork>,
-    see: Option<ConfigTomlSee>,
+    /// RPC url.
+    rpc_url: String,
+    /// Parameters for the `clairvoyance` module of arbiter.
+    see: ConfigTomlSee,
 }
 
-// ! this is the struct that will be used to read the network config.toml values
-#[derive(Serialize, Deserialize, Debug)]
-struct ConfigTomlNetwork {
-    rpc_url: Option<String>,
-}
-
-// ! this is the struct that will be used to read the see config.toml values
+/// Representation of the `see` section of the config file.
 #[derive(Serialize, Deserialize, Debug)]
 struct ConfigTomlSee {
-    token0: Option<String>,
-    token1: Option<String>,
-    bp: Option<String>,
+    /// Token 0 symbol.
+    token0: String,
+    /// Token 1 symbol.
+    token1: String,
+    /// Basis points of the pool.
+    bp: String,
 }
 
-// ! this is the struct that will be used to represent the config.toml values and is returned
+/// Representation of the config file that other modules have access to.
+/// This is in contrast to the internal deserialization types above.
 #[derive(Debug)]
 pub struct Config {
+    /// RPC provider URL.
     pub rpc_url: String,
+    /// Pool token 0.
     pub token0: String,
+    /// Pool token 1.
     pub token1: String,
+    /// Pool basis points.
     pub bp: String,
 }
 
 impl Config {
-    // ! when makin a new instance of the config object we need to read the config.toml file and then return the values
-    pub fn new() -> Self {
+    /// Public constructor function to instantiate a representation of a config file.
+    pub fn new() -> Result<Self, ConfigError> {
+        let mut content = String::new();
+
         let config_filepaths: [&str; 2] = [
             "./crates/cli/src/config.toml",
             "./crates/cli/src/Config.toml",
         ];
 
-        let mut content: String = "".to_owned();
-        // ! Read from list of filepaths until we find a file that exists
         for filepath in config_filepaths {
-            let result = fs::read_to_string(filepath);
-            match result {
-                Ok(c) => content = c,
-                Err(_) => break,
+            content = match fs::read_to_string(filepath) {
+                Ok(file) => file,
+                Err(err) => return Err(ConfigError::FilepathError(err)),
             }
         }
 
-        // ! initialize the outer struct with values from the config.toml file
-        let config_toml: ConfigToml = toml::from_str(&content).unwrap_or_else(|_| {
-            println!("Failed to create ConfigToml object from config file");
-            ConfigToml {
-                network: None,
-                see: None,
-            }
-        });
-        // ! check the rpc_url field in the network config.toml section
-        let rpc_url = match config_toml.network {
-            Some(network) => network.rpc_url.unwrap_or_else(|| {
-                println!("Missing Field rpc_url in network config");
-                "unknown".to_owned()
-            }),
-            None => "unknown".to_owned(),
-        };
-        // ! check the token0, token1, and bp fields in the see config.toml section
-        let (token0, token1, bp) = match config_toml.see {
-            Some(see) => {
-                let token0 = see.token0.unwrap_or_else(|| {
-                    println!("Missing Field token0 in see config");
-                    "unknown".to_owned()
-                });
-                let token1 = see.token1.unwrap_or_else(|| {
-                    println!("Missing Field token1 in see config");
-                    "unknown".to_owned()
-                });
-                let bp = see.bp.unwrap_or_else(|| {
-                    println!("Missing Field bp in see config");
-                    "unknown".to_owned()
-                });
-                (token0, token1, bp)
-            }
-            None => (
-                "unknown".to_owned(),
-                "unknown".to_owned(),
-                "unknown".to_owned(),
-            ),
+        let config_toml: ConfigToml = match toml::from_str(&content) {
+            Ok(toml) => toml,
+            Err(err) => return Err(ConfigError::DeserializationError(err)),
         };
 
-        // return the config object
-        Config {
-            rpc_url,
-            token0,
-            token1,
-            bp,
-        }
+        Ok(Config {
+            rpc_url: config_toml.rpc_url,
+            token0: config_toml.see.token0,
+            token1: config_toml.see.token1,
+            bp: config_toml.see.bp,
+        })
     }
 }
