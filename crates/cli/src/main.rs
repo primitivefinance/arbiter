@@ -60,7 +60,7 @@ async fn main() -> Result<()> {
             bp,
             config,
         }) => {
-            match config {
+            let pools: Vec<Pool> = match config {
                 true => {
                     // If present, load config.toml and get pool from there.
                     println!("Loading config.toml...");
@@ -74,20 +74,19 @@ async fn main() -> Result<()> {
                         .await
                         .unwrap();
 
-                    let pools = [pool];
-
-                    for pool in pools {
-                        join!(pool.monitor_pool());
-                    }
+                    vec![pool]
                 }
                 false => {
+                    println!("Getting Pool...");
+
                     // Get pool from CLI/defaults.
                     let pool: Pool = get_pool(token0, token1, bp, provider).await.unwrap();
-                    let pools = [pool];
-                    for pool in pools {
-                        join!(pool.monitor_pool());
-                    }
+
+                    vec![pool]
                 }
+            };
+            for pool in pools {
+                join!(pool.monitor_pool());
             }
         }
         None => {}
