@@ -8,7 +8,6 @@ use crate::uniswap::Pool;
 use ethers::prelude::*;
 use ethers::providers::Provider;
 use eyre::Result;
-use plotters::prelude::Linspace;
 use std::env;
 use std::sync::Arc;
 
@@ -21,11 +20,11 @@ fn main() {
     // Time in string interpretation.
     let timescale = String::from("day");
     // Number of steps.
-    let num_steps = 14 as usize;
+    let num_steps = 365 as usize;
     // Initial price of the simulation.
     let initial_price = 1196.15;
     // Price drift of the underlying asset.
-    let drift = 0.01;
+    let drift = 0.1 / 365.0;
     // Volatility of the underlying asset.
     let volatility = 0.05;
 
@@ -39,7 +38,6 @@ fn main() {
         volatility,
         1,
     );
-    println!("{:#?}", test_sim.price_data)
 
-    // test_sim.plot();
+    test_sim.plot();
 }
