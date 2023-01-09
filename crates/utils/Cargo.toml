@@ -6,6 +6,6 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+# clairvoyance = { path = "../clairvoyance" }
 ethers = "1.0.2"
-clairvoyance = { path = "../clairvoyance" }
 num-bigfloat = "1.6.0"

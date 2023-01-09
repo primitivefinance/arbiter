@@ -1,5 +1,3 @@
-use clairvoyance::tokens::get_tokens;
-use clairvoyance::uniswap::Pool;
 use ethers::prelude::*;
 use ethers::providers::Provider;
 use num_bigfloat::BigFloat; // TODO: Best to work with fixed point q64_96 for UniswapV3
@@ -10,17 +8,6 @@ pub async fn get_provider() -> Arc<Provider<Http>> {
         Provider::try_from("https://eth-mainnet.g.alchemy.com/v2/I93POQk49QE9O-NuOz7nj7sbiluW76it")
             .unwrap(),
     )
-}
-
-pub async fn _get_test_pool(bp: String, provider: Arc<Provider<Http>>) -> Result<Pool, ()> {
-    let tokens = get_tokens();
-    Pool::new(
-        tokens.get("ETH").unwrap().to_owned(),
-        tokens.get("DAI").unwrap().to_owned(),
-        bp.parse::<u32>().unwrap(),
-        provider,
-    )
-    .await
 }
 
 pub fn convert_q64_96(q64_96: U256) -> BigFloat {

@@ -1,7 +1,7 @@
 use clairvoyance::{
     uniswap::{get_pool, Pool},
-    utils::get_provider,
 };
+use utils::chain_tools::get_provider;
 use clap::{Parser, Subcommand};
 use ethers::providers::{Http, Provider};
 use eyre::Result;
