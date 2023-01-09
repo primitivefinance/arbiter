@@ -1,5 +1,8 @@
 [workspace]
 members = [
-    "bindings",
-    "app",
+    "crates/bindings",
+    "crates/clairvoyance",
+    "crates/architect",
+    "crates/cli",
+    "crates/utils",
 ]

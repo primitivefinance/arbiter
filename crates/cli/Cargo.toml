@@ -1,0 +1,17 @@
+[package]
+name = "arbiter"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+tokio = { version = "1.17.0", features = ["macros"] }
+clap = { version = "4.0.32", features = ["derive"] }
+serde = { version = "1.0.152", features =["derive"] }
+clairvoyance = { path = "../clairvoyance" }
+utils = { path = "../utils" }
+thiserror = "1.0.38"
+ethers = "1.0.0"
+eyre = "0.6.6"
+toml = "0.5.10"
