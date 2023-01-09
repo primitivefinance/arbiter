@@ -21,7 +21,7 @@ fn main() {
     // Time in string interpretation.
     let timescale = String::from("day");
     // Number of steps.
-    let num_steps = 10 as usize;
+    let num_steps = 14 as usize;
     // Initial price of the simulation.
     let initial_price = 1196.15;
     // Price drift of the underlying asset.
@@ -37,6 +37,9 @@ fn main() {
         initial_price,
         drift,
         volatility,
+        1,
     );
-    test_sim.plot();
+    println!("{:#?}", test_sim.price_data)
+
+    // test_sim.plot();
 }
