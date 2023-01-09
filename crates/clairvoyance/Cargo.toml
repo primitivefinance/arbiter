@@ -16,7 +16,6 @@ eyre = "0.6.6"
 num-bigfloat = "1.6.0"
 clap = {version = "~2.27.0", features = ["yaml"]}
 yaml-rust = "0.4"
-# plotters = "0.3.4"
 chrono = "0.4.23"
 rand = "0.8.5"
 rand_chacha = "0.3.1"

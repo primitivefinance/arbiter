@@ -12,11 +12,11 @@ use std::convert::TryInto;
 
 pub struct Simulation {
     // Name/identifier for the simulation (will set filenames)
-    pub identifier: String,
+    pub identifier: String, // E.g., "test"
     // Numerical timestep for the simulation (typically just 1).
     pub timestep: f64,
     // Time in string interpretation.
-    pub timescale: String,
+    pub timescale: String, // E.g., "day"
     // Number of steps.
     pub num_steps: usize,
     // Initial price of the simulation.
@@ -29,6 +29,8 @@ pub struct Simulation {
     pub time_data: Vec<f64>,
     // Price data for the simulation.
     pub price_data: Vec<f64>,
+    // Seed for testing.
+    pub seed: u64, 
 }
 
 impl Simulation {
@@ -60,7 +62,18 @@ impl Simulation {
             price_data,
         }
     }
-
+    pub fn generate_gbm(&self) -> Vec<f64> {
+        let mut price_path: Vec<f64> = Vec::new();
+        price_path.push(initial_price);
+        let mut rng = ChaCha8Rng::seed_from_u64(seed);
+        for index in 1..num_steps {
+            let mut normal_sample: f64 = StandardNormal.sample(&mut rng);
+            let mut geometric_sample =
+                f64::exp((drift - volatility.powi(2) / 2.) * timestep + volatility * normal_sample);
+            price_path.push(geometric_sample * price_path[index - 1]);
+        }
+        price_path
+    }
     pub fn plot(&self) {
         let mut plot = Plot::new();
         let trace = Scatter::new(self.time_data.clone(), self.price_data.clone());
@@ -68,24 +81,4 @@ impl Simulation {
 
         plot.write_html("out.html")
     }
-}
-
-pub fn generate_gbm(
-    initial_price: f64,
-    timestep: f64,
-    num_steps: usize,
-    drift: f64,
-    volatility: f64,
-    seed: u64,
-) -> Vec<f64> {
-    let mut price_path: Vec<f64> = Vec::new();
-    price_path.push(initial_price);
-    let mut rng = ChaCha8Rng::seed_from_u64(seed);
-    for index in 1..num_steps {
-        let mut normal_sample: f64 = StandardNormal.sample(&mut rng);
-        let mut geometric_sample =
-            f64::exp((drift - volatility.powi(2) / 2.) * timestep + volatility * normal_sample);
-        price_path.push(geometric_sample * price_path[index - 1]);
-    }
-    price_path
 }
