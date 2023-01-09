@@ -1,8 +1,5 @@
 use utils::tokens::Token;
-use utils::{
-    chain_tools::{convert_q64_96},
-    tokens::{get_tokens},
-};
+use utils::{chain_tools::convert_q64_96, tokens::get_tokens};
 
 use num_bigfloat::BigFloat;
 use std::sync::Arc;
@@ -139,9 +136,9 @@ pub fn compute_price(tokens: (Token, Token), sqrt_price_x96: U256, pool_token_0:
 
 #[cfg(test)]
 mod tests {
-    use utils::{chain_tools, tokens};
     use ethers::{abi::Address, providers::*};
     use std::sync::Arc;
+    use utils::{chain_tools, tokens};
 
     use super::Pool;
 
