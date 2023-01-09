@@ -4,4 +4,5 @@ members = [
     "crates/clairvoyance",
     "crates/architect",
     "crates/cli",
+    "crates/utils",
 ]
