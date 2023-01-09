@@ -26,7 +26,9 @@ fn main() {
     // Price drift of the underlying asset.
     let drift = 0.1 / 365.0;
     // Volatility of the underlying asset.
-    let volatility = 0.05;
+    let volatility = 2. / 365.0;
+    // Seed for testing
+    let seed = 2;
 
     let test_sim = simulation::Simulation::new(
         identifier,
@@ -36,7 +38,7 @@ fn main() {
         initial_price,
         drift,
         volatility,
-        1,
+        seed,
     );
 
     test_sim.plot();
