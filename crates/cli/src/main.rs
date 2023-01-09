@@ -1,12 +1,10 @@
-use clairvoyance::{
-    uniswap::{get_pool, Pool},
-    utils::get_provider,
-};
+use clairvoyance::uniswap::{get_pool, Pool};
 use clap::{Parser, Subcommand};
 use ethers::providers::{Http, Provider};
 use eyre::Result;
 use std::{env, sync::Arc};
 use tokio::join;
+use utils::chain_tools::get_provider;
 
 mod config;
 

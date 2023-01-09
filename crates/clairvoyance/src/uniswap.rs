@@ -1,5 +1,5 @@
-use crate::tokens::Token;
-use crate::utils;
+use utils::tokens::Token;
+use utils::{chain_tools::convert_q64_96, tokens::get_tokens};
 
 use num_bigfloat::BigFloat;
 use std::sync::Arc;
@@ -12,7 +12,6 @@ use ethers::types::H160;
 use bindings::i_uniswap_v3_pool::IUniswapV3Pool;
 use bindings::uniswap_v3_factory::UniswapV3Factory;
 
-use crate::tokens::get_tokens;
 use eyre::Result;
 use std::error::Error;
 
@@ -107,18 +106,28 @@ pub async fn get_pool(
     let pool = Pool::new(token0.clone(), token1.clone(), bp, provider).await;
     Ok(pool.unwrap())
 }
+pub async fn _get_test_pool(bp: String, provider: Arc<Provider<Http>>) -> Result<Pool, ()> {
+    let tokens = get_tokens();
+    Pool::new(
+        tokens.get("ETH").unwrap().to_owned(),
+        tokens.get("DAI").unwrap().to_owned(),
+        bp.parse::<u32>().unwrap(),
+        provider,
+    )
+    .await
+}
 
 /// Takes in UniswapV3's sqrt_price_x96 (a q64_96 fixed point number) and outputs the price in human readable form.
 /// See Uniswap's documentation: https://docs.uniswap.org/sdk/guides/fetching-prices
 pub fn compute_price(tokens: (Token, Token), sqrt_price_x96: U256, pool_token_0: H160) -> BigFloat {
     let diff_decimals: BigFloat = ((tokens.0.decimals as i16) - (tokens.1.decimals as i16)).into();
     if pool_token_0 == tokens.0.address {
-        utils::convert_q64_96(sqrt_price_x96)
+        convert_q64_96(sqrt_price_x96)
             .pow(&BigFloat::from_i16(2))
             .div(&BigFloat::from_i16(10).pow(&-diff_decimals))
     } else {
         BigFloat::from_i16(1).div(
-            &utils::convert_q64_96(sqrt_price_x96)
+            &convert_q64_96(sqrt_price_x96)
                 .pow(&BigFloat::from_i16(2))
                 .div(&BigFloat::from_i16(10).pow(&diff_decimals)),
         )
@@ -127,15 +136,15 @@ pub fn compute_price(tokens: (Token, Token), sqrt_price_x96: U256, pool_token_0:
 
 #[cfg(test)]
 mod tests {
-    use crate::{tokens, utils};
     use ethers::{abi::Address, providers::*};
     use std::sync::Arc;
+    use utils::{chain_tools, tokens};
 
     use super::Pool;
 
     #[tokio::test]
     async fn test_get_pool_from_uniswap() {
-        let provider: Arc<Provider<Http>> = utils::get_provider().await;
+        let provider: Arc<Provider<Http>> = chain_tools::get_provider().await;
         let tokens = tokens::get_tokens();
 
         let bp_1 = String::from("1");
@@ -216,7 +225,7 @@ mod tests {
     #[tokio::test]
     #[should_panic]
     async fn test_get_pool_from_uniswap_700() {
-        let provider: Arc<Provider<Http>> = utils::get_provider().await;
+        let provider: Arc<Provider<Http>> = chain_tools::get_provider().await;
         let tokens = tokens::get_tokens();
         let bp = String::from("700");
 

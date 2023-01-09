@@ -7,9 +7,10 @@ edition = "2021"
 
 [dependencies]
 serde = {version = "1.0.145", features= ["derive"]}
-toml = "0.5.10"
-bindings = { path = "../bindings" }
-ethers = "1.0.0"
 tokio = { version = "1.17.0", features = ["macros"] }
+bindings = { path = "../bindings" }
+utils = { path = "../utils" }
+toml = "0.5.10"
+ethers = "1.0.0"
 eyre = "0.6.6"
 num-bigfloat = "1.6.0"
