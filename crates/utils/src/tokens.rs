@@ -180,5 +180,14 @@ pub fn get_tokens() -> HashMap<String, Token> {
         tokens
     );
 
+    // RPL https://rocketpool.net/#header
+    token_insert!(
+        "0xD33526068D116cE69F19A9ee46F0bd304F21A51f",
+        18,
+        "RPL",
+        false,
+        tokens
+    );
+
     tokens
 }
