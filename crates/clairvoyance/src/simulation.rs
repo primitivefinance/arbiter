@@ -1,12 +1,10 @@
-use chrono::{TimeZone, Utc};
-use core::time;
+// use chrono::{TimeZone, Utc};
+// use core::time;
 use plotly::{Plot, Scatter};
-
 use rand::prelude::*;
 use rand_chacha::ChaCha8Rng;
 use rand_distr::{Distribution, StandardNormal};
-
-use std::convert::TryInto;
+// use std::convert::TryInto;
 
 #[derive(Debug)]
 
@@ -30,7 +28,7 @@ pub struct Simulation {
     // Price data for the simulation.
     pub price_data: Vec<f64>,
     // Seed for testing.
-    pub seed: u64, 
+    pub seed: u64,
 }
 
 impl Simulation {
@@ -60,25 +58,38 @@ impl Simulation {
             volatility,
             time_data,
             price_data,
+            seed,
         }
     }
-    pub fn generate_gbm(&self) -> Vec<f64> {
-        let mut price_path: Vec<f64> = Vec::new();
-        price_path.push(initial_price);
-        let mut rng = ChaCha8Rng::seed_from_u64(seed);
-        for index in 1..num_steps {
-            let mut normal_sample: f64 = StandardNormal.sample(&mut rng);
-            let mut geometric_sample =
-                f64::exp((drift - volatility.powi(2) / 2.) * timestep + volatility * normal_sample);
-            price_path.push(geometric_sample * price_path[index - 1]);
-        }
-        price_path
-    }
+
     pub fn plot(&self) {
+        let mut filename = self.identifier.to_owned();
+        filename.push_str(".html");
+
         let mut plot = Plot::new();
         let trace = Scatter::new(self.time_data.clone(), self.price_data.clone());
         plot.add_trace(trace);
 
-        plot.write_html("out.html")
+        plot.write_html(filename) // Produces .html using the identifier in arbiter root directory.
     }
+}
+
+fn generate_gbm(
+    initial_price: f64,
+    timestep: f64,
+    num_steps: usize,
+    drift: f64,
+    volatility: f64,
+    seed: u64,
+) -> Vec<f64> {
+    let mut price_path: Vec<f64> = Vec::new();
+    price_path.push(initial_price);
+    let mut rng = ChaCha8Rng::seed_from_u64(seed);
+    for index in 1..num_steps {
+        let mut normal_sample: f64 = StandardNormal.sample(&mut rng);
+        let mut geometric_sample =
+            f64::exp((drift - volatility.powi(2) / 2.) * timestep + volatility * normal_sample);
+        price_path.push(geometric_sample * price_path[index - 1]);
+    }
+    price_path
 }
