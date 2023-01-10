@@ -154,16 +154,9 @@ impl Pool {
             assert_eq!(event.sqrt_price_x96, self.get_sqrt_price_x96());
         }
     }
-    // Psudo Code for price impact work don't remove yet
-    // fn get_arb_size(&self, target_price: u32, current_price: u32) -> f64 {
-    //     let r_0 = self.reserves[0].as_u128() as f64;
-    //     let r_1 = self.reserves[1].as_u128() as f64;
-    //     if current_price < target_price {
-    //         r_1 - f64::sqrt((r_0 * r_1) / (target_price * self.bp))
-    //     } else {
-    //         r_0 - f64::sqrt((r_0 * r_1) / (target_price * self.bp))
-    //     }
-    // }
+    pub fn price_impact() {
+        todo!()
+    }
 }
 
 pub async fn get_pool(
