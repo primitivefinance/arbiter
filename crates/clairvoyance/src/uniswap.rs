@@ -41,47 +41,45 @@ pub struct Pool {
 
 impl Pool {
     /// Getters and setters for error checking and access controls.
-    pub fn get_pool_address(&self) -> H160 {
+    pub fn get_address(&self) -> H160 {
         self.address
     }
-    pub fn get_pool_tick(&self) -> i32 {
+    pub fn get_tick(&self) -> i32 {
         self.tick
     }
-    pub fn get_pool_liquidity(&self) -> u128 {
+    pub fn get_liquidity(&self) -> u128 {
         self.liquidity
     }
-    pub fn get_pool_tokens(&self) -> (Token, Token) {
+    pub fn get_tokens(&self) -> (Token, Token) {
         (self.token_0.clone(), self.token_1.clone())
     }
-    pub fn get_pool_bp(&self) -> u32 {
+    pub fn get_bp(&self) -> u32 {
         self.bp
     }
-    pub fn get_pool_factory(&self) -> UniswapV3Factory<Provider<Http>> {
+    pub fn get_factory(&self) -> UniswapV3Factory<Provider<Http>> {
         self.factory.clone()
     }
-    pub fn get_pool_contract(&self) -> IUniswapV3Pool<Provider<Http>> {
+    pub fn get_contract(&self) -> IUniswapV3Pool<Provider<Http>> {
         self.inner.clone()
     }
     pub fn get_sqrt_price_x96(&self) -> ethers::types::U256 {
         self.sqrt_price_x96
     }
-    fn set_pool_tick(&mut self, tick: i32) {
+    fn set_tick(&mut self, tick: i32) {
         self.tick = tick;
     }
-    fn set_pool_liquidity(&mut self, liquidity: u128) {
+    fn set_liquidity(&mut self, liquidity: u128) {
         self.liquidity = liquidity;
     }
-    fn set_pool_sqrt_price_x96(&mut self, sqrt_price_x96: ethers::types::U256) {
+    fn set_sqrt_price_x96(&mut self, sqrt_price_x96: ethers::types::U256) {
         self.sqrt_price_x96 = sqrt_price_x96;
     }
     /// Updates the pool tick and liquidity manually with a contract call.
-    pub async fn _update_pool_tick_and_price(&mut self) {
+    pub async fn _update_pool(&mut self) {
         let slot_0 = self.inner.slot_0().call().await.unwrap();
-        self.set_pool_tick(slot_0.1);
-        self.set_pool_sqrt_price_x96(slot_0.0)
-    }
-    pub async fn _update_pool_liquidity(&mut self) {
-        self.set_pool_liquidity(self.inner.liquidity().call().await.unwrap());
+        self.set_liquidity(self.inner.liquidity().call().await.unwrap());
+        self.set_tick(slot_0.1);
+        self.set_sqrt_price_x96(slot_0.0)
     }
     /// Public builder function that instantiates a `Pool`.
     pub async fn new(
@@ -122,20 +120,20 @@ impl Pool {
     /// Monitor a pool for swap events and print to standard output.
     /// TODO: Make it print a `Swap` struct that implements fmt in a special way.
     pub async fn monitor_pool(&mut self) {
-        let pool_contract = self.get_pool_contract();
+        let pool_contract = self.get_contract();
         println!(
             "Got Pool: {:#?}. Listening for events...",
             pool_contract.address()
         );
-        let pool_tokens = self.get_pool_tokens();
+        let pool_tokens = self.get_tokens();
         let swap_events = pool_contract.swap_filter();
         let pool_token_0 = pool_contract.token_0().call().await.unwrap();
         let mut swap_stream = swap_events.stream().await.unwrap();
         while let Some(Ok(event)) = swap_stream.next().await {
             let (tick, liq, sqrtprice) = (event.tick, event.liquidity, event.sqrt_price_x96);
-            self.set_pool_tick(tick);
-            self.set_pool_liquidity(liq);
-            self.set_pool_sqrt_price_x96(sqrtprice);
+            self.set_tick(tick);
+            self.set_liquidity(liq);
+            self.set_sqrt_price_x96(sqrtprice);
             println!("------------NEW SWAP------------");
             println!("Pool:      {:#?}", pool_contract.address());
             println!("Sender:    {:#?}", event.sender);
@@ -149,8 +147,8 @@ impl Pool {
                 compute_price(pool_tokens.clone(), event.sqrt_price_x96, pool_token_0,).to_string()
             );
             // Check tick, price, and liquidity where updated
-            assert_eq!(event.tick, self.get_pool_tick());
-            assert_eq!(event.liquidity, self.get_pool_liquidity());
+            assert_eq!(event.tick, self.get_tick());
+            assert_eq!(event.liquidity, self.get_liquidity());
             assert_eq!(event.sqrt_price_x96, self.get_sqrt_price_x96());
         }
     }
