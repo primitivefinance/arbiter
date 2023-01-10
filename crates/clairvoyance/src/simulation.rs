@@ -79,7 +79,7 @@ impl Simulation {
     }
 
     pub fn plot(&self) {
-        let mut filename = self.identifier.to_owned(); 
+        let mut filename = self.identifier.to_owned();
         filename.push_str(".html");
 
         let mut plot = Plot::new();
