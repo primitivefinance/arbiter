@@ -45,14 +45,12 @@ enum Commands {
 #[tokio::main]
 async fn main() -> Result<()> {
     // Parameters for GBM
-    // Name/identifier for the simulation (will set filenames)
-    let identifier = String::from("test");
     // Numerical timestep for the simulation (typically just 1).
     let timestep = 1.;
     // Time in string interpretation.
     let timescale = String::from("day");
     // Number of steps.
-    let num_steps = 365 as usize;
+    let num_steps = 365_usize;
     // Initial price of the simulation.
     let initial_price = 1196.15;
     // Price drift of the underlying asset.
@@ -63,7 +61,6 @@ async fn main() -> Result<()> {
     let seed = 2;
 
     let test_sim = simulation::Simulation::new(
-        identifier,
         timestep,
         timescale,
         num_steps,

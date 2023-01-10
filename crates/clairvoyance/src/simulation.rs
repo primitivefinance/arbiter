@@ -34,7 +34,6 @@ pub struct Simulation {
 impl Simulation {
     // Public builder function that instantiates a `Simulation`.
     pub fn new(
-        identifier: String,
         timestep: f64,
         timescale: String,
         num_steps: usize,
@@ -48,6 +47,23 @@ impl Simulation {
             time_data.push(t as f64 * timestep)
         }
         let price_data = generate_gbm(initial_price, timestep, num_steps, drift, volatility, seed);
+
+        // Build the identifier
+        let mut identifier = String::from("timestep=");
+        identifier.push_str(&timestep.to_string());
+        identifier.push_str("_timescale=");
+        identifier.push_str(&timescale);
+        identifier.push_str("_num_steps=");
+        identifier.push_str(&num_steps.to_string());
+        identifier.push_str("_initial_price=");
+        identifier.push_str(&initial_price.to_string());
+        identifier.push_str("_drift=");
+        identifier.push_str(&drift.to_string());
+        identifier.push_str("_volatility=");
+        identifier.push_str(&volatility.to_string());
+        identifier.push_str("_seed=");
+        identifier.push_str(&seed.to_string());
+
         Self {
             identifier,
             timestep,
@@ -63,7 +79,7 @@ impl Simulation {
     }
 
     pub fn plot(&self) {
-        let mut filename = self.identifier.to_owned();
+        let mut filename = self.identifier.to_owned(); 
         filename.push_str(".html");
 
         let mut plot = Plot::new();
@@ -86,8 +102,8 @@ fn generate_gbm(
     price_path.push(initial_price);
     let mut rng = ChaCha8Rng::seed_from_u64(seed);
     for index in 1..num_steps {
-        let mut normal_sample: f64 = StandardNormal.sample(&mut rng);
-        let mut geometric_sample =
+        let normal_sample: f64 = StandardNormal.sample(&mut rng);
+        let geometric_sample =
             f64::exp((drift - volatility.powi(2) / 2.) * timestep + volatility * normal_sample);
         price_path.push(geometric_sample * price_path[index - 1]);
     }
