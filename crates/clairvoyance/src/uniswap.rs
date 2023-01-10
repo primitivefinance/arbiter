@@ -95,9 +95,7 @@ impl Pool {
             _ => return Err(()),
         }
         // Factory Address.
-        let uniswap_v3_factory_address = FACTORY
-            .parse::<Address>()
-            .unwrap();
+        let uniswap_v3_factory_address = FACTORY.parse::<Address>().unwrap();
 
         // Factory contract object.
         let factory = UniswapV3Factory::new(uniswap_v3_factory_address, provider.clone());
@@ -124,9 +122,11 @@ impl Pool {
     /// Monitor a pool for swap events and print to standard output.
     /// TODO: Make it print a `Swap` struct that implements fmt in a special way.
     pub async fn monitor_pool(&mut self) {
-
         let pool_contract = self.get_pool_contract();
-        println!("Got Pool: {:#?}. Listening for events...", pool_contract.address());
+        println!(
+            "Got Pool: {:#?}. Listening for events...",
+            pool_contract.address()
+        );
         let pool_tokens = self.get_pool_tokens();
         let swap_events = pool_contract.swap_filter();
         let pool_token_0 = pool_contract.token_0().call().await.unwrap();
