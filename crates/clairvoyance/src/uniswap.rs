@@ -15,6 +15,7 @@ use bindings::uniswap_v3_factory::UniswapV3Factory;
 use eyre::Result;
 use std::error::Error;
 
+const FACTORY: &str = "0x1F98431c8aD98523631AE4a59f267346ea31F984";
 /// Representation of a pool.
 #[derive(Debug, Clone)]
 pub struct Pool {
@@ -84,17 +85,20 @@ impl Pool {
             1 | 5 | 30 | 100 => (),
             _ => return Err(()),
         }
-        let uniswap_v3_factory_address = "0x1F98431c8aD98523631AE4a59f267346ea31F984"
+        // Factory Address.
+        let uniswap_v3_factory_address = FACTORY
             .parse::<Address>()
             .unwrap();
 
+        // Factory contract object.
         let factory = UniswapV3Factory::new(uniswap_v3_factory_address, provider.clone());
+        // pool address from factory contract object
         let pool_address = factory
             .get_pool(token_0.address, token_1.address, bp * 100)
             .call()
             .await
             .unwrap();
-
+        // pool object
         Ok(Pool {
             token_0,
             token_1,
@@ -110,18 +114,19 @@ impl Pool {
     /// Monitor a pool for swap events and print to standard output.
     /// TODO: Make it print a `Swap` struct that implements fmt in a special way.
     pub async fn monitor_pool(&mut self) {
-        let pool = self.get_pool_contract();
-        println!("Got Pool: {:#?}. Listening for events...", pool.address());
-        let tokens = self.get_pool_tokens();
-        let swap_events = pool.swap_filter();
-        let pool_token_0 = pool.token_0().call().await.unwrap();
+
+        let pool_contract = self.get_pool_contract();
+        println!("Got Pool: {:#?}. Listening for events...", pool_contract.address());
+        let pool_tokens = self.get_pool_tokens();
+        let swap_events = pool_contract.swap_filter();
+        let pool_token_0 = pool_contract.token_0().call().await.unwrap();
         let mut swap_stream = swap_events.stream().await.unwrap();
         while let Some(Ok(event)) = swap_stream.next().await {
             let (tick, liq) = (event.tick, event.liquidity);
             self.set_pool_tick(tick);
             self.set_pool_liquidity(liq);
             println!("------------NEW SWAP------------");
-            println!("Pool:      {:#?}", pool.address());
+            println!("Pool:      {:#?}", pool_contract.address());
             println!("Sender:    {:#?}", event.sender);
             println!("Recipient: {:#?}", event.recipient);
             println!("Amount_0:  {:#?}", event.amount_0); // I256
@@ -130,13 +135,14 @@ impl Pool {
             println!("Tick:      {:#?}", event.tick); // i32
             println!(
                 "Price:     {:#?}",
-                compute_price(tokens.clone(), event.sqrt_price_x96, pool_token_0,).to_string()
+                compute_price(pool_tokens.clone(), event.sqrt_price_x96, pool_token_0,).to_string()
             );
+            // Check tick and liquidity where updated
             assert_eq!(event.tick, self.get_pool_tick());
             assert_eq!(event.liquidity, self.get_pool_liquidity());
-            println!("--------------------------------")
         }
     }
+    // Psudo Code for price impact work don't remove yet
     // fn get_arb_size(&self, target_price: u32, current_price: u32) -> f64 {
     //     let r_0 = self.reserves[0].as_u128() as f64;
     //     let r_1 = self.reserves[1].as_u128() as f64;
