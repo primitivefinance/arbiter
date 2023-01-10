@@ -15,68 +15,129 @@ use bindings::uniswap_v3_factory::UniswapV3Factory;
 use eyre::Result;
 use std::error::Error;
 
+const FACTORY: &str = "0x1F98431c8aD98523631AE4a59f267346ea31F984";
 /// Representation of a pool.
 #[derive(Debug, Clone)]
 pub struct Pool {
     /// Token 0.
-    pub token_0: Token,
+    token_0: Token,
     /// Token 1.
-    pub token_1: Token,
+    token_1: Token,
+    /// Basis point of pool.
+    bp: u32,
     /// Address of the pool.
-    pub address: H160,
+    address: H160,
     /// Factory that created the pool. This could be generic in future.
-    pub factory: UniswapV3Factory<Provider<Http>>,
+    factory: UniswapV3Factory<Provider<Http>>,
     /// Pool contract object.
-    pub inner: IUniswapV3Pool<Provider<Http>>,
+    inner: IUniswapV3Pool<Provider<Http>>,
+    /// Current Tick.
+    tick: i32,
+    /// Current liquidity.
+    liquidity: u128,
+    /// sqrt_price_x96
+    sqrt_price_x96: ethers::types::U256,
 }
 
 impl Pool {
+    /// Getters and setters for error checking and access controls.
+    pub fn get_pool_address(&self) -> H160 {
+        self.address
+    }
+    pub fn get_pool_tick(&self) -> i32 {
+        self.tick
+    }
+    pub fn get_pool_liquidity(&self) -> u128 {
+        self.liquidity
+    }
+    pub fn get_pool_tokens(&self) -> (Token, Token) {
+        (self.token_0.clone(), self.token_1.clone())
+    }
+    pub fn get_pool_bp(&self) -> u32 {
+        self.bp
+    }
+    pub fn get_pool_factory(&self) -> UniswapV3Factory<Provider<Http>> {
+        self.factory.clone()
+    }
+    pub fn get_pool_contract(&self) -> IUniswapV3Pool<Provider<Http>> {
+        self.inner.clone()
+    }
+    pub fn get_sqrt_price_x96(&self) -> ethers::types::U256 {
+        self.sqrt_price_x96
+    }
+    fn set_pool_tick(&mut self, tick: i32) {
+        self.tick = tick;
+    }
+    fn set_pool_liquidity(&mut self, liquidity: u128) {
+        self.liquidity = liquidity;
+    }
+    fn set_pool_sqrt_price_x96(&mut self, sqrt_price_x96: ethers::types::U256) {
+        self.sqrt_price_x96 = sqrt_price_x96;
+    }
+    /// Updates the pool tick and liquidity manually with a contract call.
+    pub async fn _update_pool_tick_and_price(&mut self) {
+        let slot_0 = self.inner.slot_0().call().await.unwrap();
+        self.set_pool_tick(slot_0.1);
+        self.set_pool_sqrt_price_x96(slot_0.0)
+    }
+    pub async fn _update_pool_liquidity(&mut self) {
+        self.set_pool_liquidity(self.inner.liquidity().call().await.unwrap());
+    }
     /// Public builder function that instantiates a `Pool`.
     pub async fn new(
         token_0: Token,
         token_1: Token,
         bp: u32,
         provider: Arc<Provider<Http>>,
-    ) -> Result<Self, ()> {
+    ) -> Result<Pool, ()> {
         match bp {
             1 | 5 | 30 | 100 => (),
             _ => return Err(()),
         }
+        // Factory Address.
+        let uniswap_v3_factory_address = FACTORY.parse::<Address>().unwrap();
 
-        let uniswap_v3_factory_address = "0x1F98431c8aD98523631AE4a59f267346ea31F984"
-            .parse::<Address>()
-            .unwrap();
-
+        // Factory contract object.
         let factory = UniswapV3Factory::new(uniswap_v3_factory_address, provider.clone());
-
+        // pool address from factory contract object
         let pool_address = factory
             .get_pool(token_0.address, token_1.address, bp * 100)
             .call()
             .await
             .unwrap();
-
-        Ok(Self {
+        // pool object
+        Ok(Pool {
             token_0,
             token_1,
+            bp,
             address: pool_address,
             factory,
             inner: IUniswapV3Pool::new(pool_address, provider.clone()),
+            tick: 0,
+            liquidity: 0,
+            sqrt_price_x96: ethers::types::U256::zero(),
         })
     }
 
     /// Monitor a pool for swap events and print to standard output.
     /// TODO: Make it print a `Swap` struct that implements fmt in a special way.
-    pub async fn monitor_pool(&self) {
-        let pool = &self.inner;
-        println!("Got Pool: {:#?}. Listening for events...", pool.address());
-        let tokens = (self.token_0.clone(), self.token_1.clone());
-        let swap_events = pool.swap_filter();
-        let pool_token_0 = pool.token_0().call().await.unwrap();
+    pub async fn monitor_pool(&mut self) {
+        let pool_contract = self.get_pool_contract();
+        println!(
+            "Got Pool: {:#?}. Listening for events...",
+            pool_contract.address()
+        );
+        let pool_tokens = self.get_pool_tokens();
+        let swap_events = pool_contract.swap_filter();
+        let pool_token_0 = pool_contract.token_0().call().await.unwrap();
         let mut swap_stream = swap_events.stream().await.unwrap();
-
         while let Some(Ok(event)) = swap_stream.next().await {
+            let (tick, liq, sqrtprice) = (event.tick, event.liquidity, event.sqrt_price_x96);
+            self.set_pool_tick(tick);
+            self.set_pool_liquidity(liq);
+            self.set_pool_sqrt_price_x96(sqrtprice);
             println!("------------NEW SWAP------------");
-            println!("Pool:      {:#?}", pool.address());
+            println!("Pool:      {:#?}", pool_contract.address());
             println!("Sender:    {:#?}", event.sender);
             println!("Recipient: {:#?}", event.recipient);
             println!("Amount_0:  {:#?}", event.amount_0); // I256
@@ -85,13 +146,19 @@ impl Pool {
             println!("Tick:      {:#?}", event.tick); // i32
             println!(
                 "Price:     {:#?}",
-                compute_price(tokens.clone(), event.sqrt_price_x96, pool_token_0,).to_string()
-            )
+                compute_price(pool_tokens.clone(), event.sqrt_price_x96, pool_token_0,).to_string()
+            );
+            // Check tick, price, and liquidity where updated
+            assert_eq!(event.tick, self.get_pool_tick());
+            assert_eq!(event.liquidity, self.get_pool_liquidity());
+            assert_eq!(event.sqrt_price_x96, self.get_sqrt_price_x96());
         }
+    }
+    pub fn price_impact() {
+        todo!()
     }
 }
 
-// Creates a pool from the cli/or config parameters
 pub async fn get_pool(
     token0: &String,
     token1: &String,
