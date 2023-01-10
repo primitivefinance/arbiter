@@ -19,17 +19,21 @@ use std::error::Error;
 #[derive(Debug, Clone)]
 pub struct Pool {
     /// Token 0.
-    pub token_0: Token,
+    token_0: Token,
     /// Token 1.
-    pub token_1: Token,
+    token_1: Token,
     /// Basis point of pool.
-    pub bp: u32,
+    bp: u32,
     /// Address of the pool.
-    pub address: H160,
+    address: H160,
     /// Factory that created the pool. This could be generic in future.
-    pub factory: UniswapV3Factory<Provider<Http>>,
+    factory: UniswapV3Factory<Provider<Http>>,
     /// Pool contract object.
-    pub inner: IUniswapV3Pool<Provider<Http>>,
+    inner: IUniswapV3Pool<Provider<Http>>,
+    /// Current Tick.
+    tick: i32,
+    /// Current liquidity.
+    liquidity: u128,
 }
 
 impl Pool {
@@ -39,7 +43,7 @@ impl Pool {
         token_1: Token,
         bp: u32,
         provider: Arc<Provider<Http>>,
-    ) -> Result<Self, ()> {
+    ) -> Result<Pool, ()> {
         match bp {
             1 | 5 | 30 | 100 => (),
             _ => return Err(()),
@@ -56,17 +60,51 @@ impl Pool {
             .call()
             .await
             .unwrap();
-
-        Ok(Self {
+        Ok(Pool {
             token_0,
             token_1,
             bp,
             address: pool_address,
             factory,
             inner: IUniswapV3Pool::new(pool_address, provider.clone()),
+            tick: 0,
+            liquidity: 0,
         })
     }
-
+    pub fn get_pool_address(&self) -> H160 {
+        self.address
+    }
+    pub fn get_pool_tick(&self) -> i32 {
+        self.tick
+    }
+    pub fn get_pool_liquidity(&self) -> u128 {
+        self.liquidity
+    }
+    pub fn get_pool_tokens(&self) -> (Token, Token) {
+        (self.token_0.clone(), self.token_1.clone())
+    }
+    pub fn get_pool_bp(&self) -> u32 {
+        self.bp
+    }
+    pub fn get_pool_factory(&self) -> UniswapV3Factory<Provider<Http>> {
+        self.factory.clone()
+    }
+    pub fn get_pool_contract(&self) -> IUniswapV3Pool<Provider<Http>> {
+        self.inner.clone()
+    }
+    fn set_pool_tick(&mut self, tick: i32) {
+        self.tick = tick;
+    }
+    fn set_pool_liquidity(&mut self, liquidity: u128) {
+        self.liquidity = liquidity;
+    }
+    async fn update_pool_tick(&mut self, tick: i32) {
+        let slot_0 = self.inner.slot_0().call().await.unwrap();
+        self.set_pool_tick(slot_0.1)
+    }
+    async fn update_pool_liquidity(&mut self, liquidity: u128) {
+        self.set_pool_liquidity(self.inner.liquidity().call().await.unwrap());
+    }
     /// Monitor a pool for swap events and print to standard output.
     /// TODO: Make it print a `Swap` struct that implements fmt in a special way.
     pub async fn monitor_pool(&self) {
@@ -78,6 +116,8 @@ impl Pool {
         let mut swap_stream = swap_events.stream().await.unwrap();
 
         while let Some(Ok(event)) = swap_stream.next().await {
+            // self.tick = event.tick;
+            // self.liquidity = event.liquidity;
             println!("------------NEW SWAP------------");
             println!("Pool:      {:#?}", pool.address());
             println!("Sender:    {:#?}", event.sender);
@@ -92,19 +132,18 @@ impl Pool {
             )
         }
     }
-    fn get_arb_size(&self, target_price: u32, current_price: u32) -> f64 {
-        let r_0 = self.reserves[0].as_u128() as f64;
-        let r_1 = self.reserves[1].as_u128() as f64;
-        if current_price < target_price {
-            r_1 - f64::sqrt((r_0 * r_1) / (target_price * self.bp))
-        } else {
-            r_0 - f64::sqrt((r_0 * r_1) / (target_price * self.bp))
-        }
-    }
+    // fn get_arb_size(&self, target_price: u32, current_price: u32) -> f64 {
+    //     let r_0 = self.reserves[0].as_u128() as f64;
+    //     let r_1 = self.reserves[1].as_u128() as f64;
+    //     if current_price < target_price {
+    //         r_1 - f64::sqrt((r_0 * r_1) / (target_price * self.bp))
+    //     } else {
+    //         r_0 - f64::sqrt((r_0 * r_1) / (target_price * self.bp))
+    //     }
+    // }
 }
 
 
-// Creates a pool from the cli/or config parameters
 pub async fn get_pool(
     token0: &String,
     token1: &String,
