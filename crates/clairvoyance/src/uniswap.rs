@@ -22,6 +22,8 @@ pub struct Pool {
     pub token_0: Token,
     /// Token 1.
     pub token_1: Token,
+    /// Basis point of pool.
+    pub bp: u32,
     /// Address of the pool.
     pub address: H160,
     /// Factory that created the pool. This could be generic in future.
@@ -58,6 +60,7 @@ impl Pool {
         Ok(Self {
             token_0,
             token_1,
+            bp,
             address: pool_address,
             factory,
             inner: IUniswapV3Pool::new(pool_address, provider.clone()),
@@ -89,7 +92,17 @@ impl Pool {
             )
         }
     }
+    fn get_arb_size(&self, target_price: u32, current_price: u32) -> f64 {
+        let r_0 = self.reserves[0].as_u128() as f64;
+        let r_1 = self.reserves[1].as_u128() as f64;
+        if current_price < target_price {
+            r_1 - f64::sqrt((r_0 * r_1) / (target_price * self.bp))
+        } else {
+            r_0 - f64::sqrt((r_0 * r_1) / (target_price * self.bp))
+        }
+    }
 }
+
 
 // Creates a pool from the cli/or config parameters
 pub async fn get_pool(
