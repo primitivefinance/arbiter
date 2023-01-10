@@ -1,3 +1,4 @@
+use clairvoyance::simulation;
 use clairvoyance::uniswap::{get_pool, Pool};
 use clap::{Parser, Subcommand};
 use ethers::providers::{Http, Provider};
@@ -43,6 +44,34 @@ enum Commands {
 
 #[tokio::main]
 async fn main() -> Result<()> {
+    // Parameters for GBM
+    // Numerical timestep for the simulation (typically just 1).
+    let timestep = 1.;
+    // Time in string interpretation.
+    let timescale = String::from("day");
+    // Number of steps.
+    let num_steps = 365_usize;
+    // Initial price of the simulation.
+    let initial_price = 1196.15;
+    // Price drift of the underlying asset.
+    let drift = 0.1 / 365.0;
+    // Volatility of the underlying asset.
+    let volatility = 2. / 365.0;
+    // Seed for testing
+    let seed = 2;
+
+    let test_sim = simulation::Simulation::new(
+        timestep,
+        timescale,
+        num_steps,
+        initial_price,
+        drift,
+        volatility,
+        seed,
+    );
+
+    test_sim.plot();
+
     let cli = Cli::parse();
 
     // RPC endpoint [default: alchemy]
