@@ -22,7 +22,7 @@ We want to develop a Rust program capable of detecting and executing arbitrage o
 - [x] Monitors the UniswapV3 pool prices continuously.
 - [x] Integrate with user-selected RPC endpoint.
 - [x] Concurrent pool monitoring for multiple pools.
-- [x] Data Monitoring Component: Clarivoyance.
+- [x] Data Monitoring Component: Clairvoyance.
 - [x] Execution Component: Architect.
 - [ ] Additional protocols.
   - [ ] Aave
@@ -49,7 +49,7 @@ Set the PROVIDER environment variable to use a custom provider.
 arbiter see --help
 ```
 
-This will display the `help` menu for the `Claivoyance` crate
+This will display the `help` menu for the `Clairvoyance` crate
 
 ```console
 Access the `Clairvoyance` monitoring module via this subcommand
@@ -140,4 +140,4 @@ unset PROVIDER
 
 ## Contributing
 
-See our [Contributing Guidlines](https://github.com/primitivefinance/arbiter/blob/main/.github/CONTRIBUTING.md)
+See our [Contributing Guidelines](https://github.com/primitivefinance/arbiter/blob/main/.github/CONTRIBUTING.md)
