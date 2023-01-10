@@ -35,6 +35,8 @@ pub struct Pool {
     tick: i32,
     /// Current liquidity.
     liquidity: u128,
+    /// sqrt_price_x96
+    sqrt_price_x96: ethers::types::U256,
 }
 
 impl Pool {
@@ -60,18 +62,25 @@ impl Pool {
     pub fn get_pool_contract(&self) -> IUniswapV3Pool<Provider<Http>> {
         self.inner.clone()
     }
+    pub fn get_sqrt_price_x96(&self) -> ethers::types::U256 {
+        self.sqrt_price_x96
+    }
     fn set_pool_tick(&mut self, tick: i32) {
         self.tick = tick;
     }
     fn set_pool_liquidity(&mut self, liquidity: u128) {
         self.liquidity = liquidity;
     }
-    /// Updates the pool tick and liquidity manually with a contract call.
-    async fn _update_pool_tick(&mut self) {
-        let slot_0 = self.inner.slot_0().call().await.unwrap();
-        self.set_pool_tick(slot_0.1)
+    fn set_pool_sqrt_price_x96(&mut self, sqrt_price_x96: ethers::types::U256) {
+        self.sqrt_price_x96 = sqrt_price_x96;
     }
-    async fn _update_pool_liquidity(&mut self) {
+    /// Updates the pool tick and liquidity manually with a contract call.
+    pub async fn _update_pool_tick_and_price(&mut self) {
+        let slot_0 = self.inner.slot_0().call().await.unwrap();
+        self.set_pool_tick(slot_0.1);
+        self.set_pool_sqrt_price_x96(slot_0.0)
+    }
+    pub async fn _update_pool_liquidity(&mut self) {
         self.set_pool_liquidity(self.inner.liquidity().call().await.unwrap());
     }
     /// Public builder function that instantiates a `Pool`.
@@ -108,6 +117,7 @@ impl Pool {
             inner: IUniswapV3Pool::new(pool_address, provider.clone()),
             tick: 0,
             liquidity: 0,
+            sqrt_price_x96: ethers::types::U256::zero(),
         })
     }
 
@@ -122,9 +132,10 @@ impl Pool {
         let pool_token_0 = pool_contract.token_0().call().await.unwrap();
         let mut swap_stream = swap_events.stream().await.unwrap();
         while let Some(Ok(event)) = swap_stream.next().await {
-            let (tick, liq) = (event.tick, event.liquidity);
+            let (tick, liq, sqrtprice) = (event.tick, event.liquidity, event.sqrt_price_x96);
             self.set_pool_tick(tick);
             self.set_pool_liquidity(liq);
+            self.set_pool_sqrt_price_x96(sqrtprice);
             println!("------------NEW SWAP------------");
             println!("Pool:      {:#?}", pool_contract.address());
             println!("Sender:    {:#?}", event.sender);
@@ -137,9 +148,10 @@ impl Pool {
                 "Price:     {:#?}",
                 compute_price(pool_tokens.clone(), event.sqrt_price_x96, pool_token_0,).to_string()
             );
-            // Check tick and liquidity where updated
+            // Check tick, price, and liquidity where updated
             assert_eq!(event.tick, self.get_pool_tick());
             assert_eq!(event.liquidity, self.get_pool_liquidity());
+            assert_eq!(event.sqrt_price_x96, self.get_sqrt_price_x96());
         }
     }
     // Psudo Code for price impact work don't remove yet
