@@ -84,7 +84,7 @@ impl Pool {
     fn set_sqrt_price_x96(&mut self, sqrt_price_x96: ethers::types::U256) {
         self.sqrt_price_x96 = sqrt_price_x96;
     }
-    
+
     /// Updates the pool tick and liquidity manually with a contract call.
     pub async fn _update_pool(&mut self) {
         let slot_0 = self.inner.slot_0().call().await.unwrap();
@@ -92,6 +92,7 @@ impl Pool {
         self.set_tick(slot_0.1);
         self.set_sqrt_price_x96(slot_0.0)
     }
+
     /// Public builder function that instantiates a `Pool`.
     pub async fn new(
         token_0: Token,
@@ -182,6 +183,7 @@ pub async fn get_pool(
     let pool = Pool::new(token0.clone(), token1.clone(), bp, provider).await;
     Ok(pool.unwrap())
 }
+
 pub async fn _get_test_pool(bp: String, provider: Arc<Provider<Http>>) -> Result<Pool, ()> {
     let tokens = get_tokens();
     Pool::new(
