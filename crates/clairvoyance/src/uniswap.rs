@@ -125,9 +125,9 @@ impl Pool {
             "Got Pool: {:#?}. Listening for events...",
             pool_contract.address()
         );
-        let pool_tokens = self.get_tokens();
+        // let pool_tokens = self.get_tokens().0;
         let swap_events = pool_contract.swap_filter();
-        let pool_token_0 = pool_contract.token_0().call().await.unwrap();
+        let pool_token_0 = pool_contract.token_0().call().await.unwrap(); // later we should not make a call and use get tokens
         let mut swap_stream = swap_events.stream().await.unwrap();
         while let Some(Ok(event)) = swap_stream.next().await {
             let (tick, liq, sqrtprice) = (event.tick, event.liquidity, event.sqrt_price_x96);
@@ -169,9 +169,28 @@ impl Pool {
             )
         }
     }
-    pub async fn price_impact(&self) {
-        let pool_token_0 = self.inner.token_0().call().await.unwrap();
-        let current_price = self.compute_price(pool_token_0);;
+    pub fn get_reserves(&self) -> (BigFloat, BigFloat) {
+        let reserve_0 = (self.get_liquidity())
+                .div(&convert_q64_96(self.get_sqrt_price_x96()))
+                .div(&BigFloat::from_i16(10).pow(&self.get_tokens().0.decimals))
+        let reserve_1 = (self.get_liquidity())
+                .mul(&convert_q64_96(self.get_sqrt_price_x96()))
+                .div(&BigFloat::from_i16(10).pow(&self.get_tokens().1.decimals))
+        (reserve_0, reserve_1)
+    }
+    pub async fn price_impact(&self, price_impact: BigFloat, pool_token: H160) -> BigFloat {
+        let current_price = self.compute_price(pool_token_0);
+        let price_impact = price_impact.div(&BigFloat::from_i16(100));
+        
+        let price_change = price_impact * current_price;
+        // could maybe do plus or minus here, although not sure it's needed if we take in a token
+        let target_price = current_price + price_change;
+        // might need to abs this
+        let diff = target_price - current_price;
+        let reserves = self.get_reserves()
+
+        // loop over ticks
+
         todo!()
     }
 }
