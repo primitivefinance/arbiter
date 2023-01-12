@@ -1,9 +1,12 @@
 use utils::tokens::Token;
 use utils::{chain_tools::convert_q64_96, tokens::get_tokens};
 
-use num_bigfloat::BigFloat;
+use num_bigfloat::{BigFloat, RoundingMode::*};
 use std::ops::Div;
 use std::sync::Arc;
+
+use rust_decimal::prelude::*;
+use rust_decimal_macros::dec;
 
 use ethers::abi::Address;
 use ethers::prelude::*;
@@ -16,6 +19,7 @@ use bindings::uniswap_v3_factory::UniswapV3Factory;
 use eyre::Result;
 use std::error::Error;
 
+const PRICE_GRID_FACTOR: Decimal = dec!(1.0001);
 const FACTORY: &str = "0x1F98431c8aD98523631AE4a59f267346ea31F984";
 /// Representation of a pool.
 #[derive(Debug, Clone)]
@@ -170,7 +174,7 @@ impl Pool {
             )
         }
     }
-    pub fn get_reserves(&self) -> (U256, U256) {
+    pub fn get_reserves(&self) -> (u128, u128) {
         // sqrt_price has 64 bits of number and 96 bits of precision
         let liquidity = BigFloat::from_u128(self.get_liquidity());
         let reserve_0 = liquidity
@@ -179,7 +183,7 @@ impl Pool {
                 * (&convert_q64_96(self.get_sqrt_price_x96()));
 
         // round away decimal part and return as u256's
-        (reserve_0.round(0).to_u256().unwrap(), reserve_1.round(0).to_u256().unwrap())
+        (reserve_0.round(0, ToZero).to_u128().unwrap(), reserve_1.round(0, ToZero).to_u128().unwrap())
         // (reserve_0, reserve_1)
 
     }
@@ -192,9 +196,18 @@ impl Pool {
         let target_price = current_price + price_change;
         // might need to abs this
         let diff = target_price - current_price;
-        let reserves = self.get_reserves();
 
-        // loop over ticks
+        // liquidity left in current tick?
+        // get next initialized tick
+        // get the next price at that tick
+        // swap through remaining liquidty to reach that tick
+
+        // loop over ticks until we reach the target tick
+        // swap through liq delta's
+        // swap through target tick enough to reach inner tick price
+
+        // for final tick (innner tick price)
+        let reserves = self.get_reserves();
 
         todo!()
     }
