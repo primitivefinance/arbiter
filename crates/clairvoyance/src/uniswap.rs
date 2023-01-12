@@ -247,7 +247,7 @@ mod tests {
             tokens::get_tokens().get("USDC").unwrap().to_owned(),
         );
 
-        create_pool!(tokens.0.clone(), tokens.1.clone(), 1, provider);
+        create_pool!(tokens, 1, provider);
         assert_eq!(
             pool.address,
             "0xe0554a476a092703abdb3ef35c80e0d76d32939f"
@@ -255,7 +255,7 @@ mod tests {
                 .unwrap()
         );
 
-        create_pool!(tokens.0.clone(), tokens.1.clone(), 5, provider);
+        create_pool!(tokens, 5, provider);
         assert_eq!(
             pool.address,
             "0x88e6a0c2ddd26feeb64f039a2c41296fcb3f5640"
@@ -263,7 +263,7 @@ mod tests {
                 .unwrap()
         );
 
-        create_pool!(tokens.0.clone(), tokens.1.clone(), 30, provider);
+        create_pool!(tokens, 30, provider);
         assert_eq!(
             pool.address,
             "0x8ad599c3a0ff1de082011efddc58f1908eb6e6d8"
@@ -271,7 +271,7 @@ mod tests {
                 .unwrap()
         );
 
-        create_pool!(tokens.0.clone(), tokens.1.clone(), 100, provider);
+        create_pool!(tokens, 100, provider);
         assert_eq!(
             pool.address,
             "0x7bea39867e4169dbe237d55c8242a8f2fcdcc387"
@@ -290,6 +290,6 @@ mod tests {
             tokens::get_tokens().get("USDC").unwrap().to_owned(),
         );
 
-        create_pool!(tokens.0.clone(), tokens.1.clone(), 700, provider);
+        create_pool!(tokens, 700, provider);
     }
 }
