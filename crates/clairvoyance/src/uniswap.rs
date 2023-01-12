@@ -225,7 +225,8 @@ mod tests {
             $provider:expr,
             $token1:expr,
             $token2:expr,
-            $bp:expr
+            $bp:expr,
+            $address:expr
         ) => {
             let pool = Pool::new(
                 $tokens.0.clone(),
@@ -235,6 +236,13 @@ mod tests {
             )
             .await
             .unwrap();
+
+            assert_eq!(
+                pool.address,
+                $address
+                    .parse::<Address>()
+                    .unwrap()
+            );
         };
     }
 
@@ -247,37 +255,10 @@ mod tests {
             tokens::get_tokens().get("USDC").unwrap().to_owned(),
         );
 
-        create_pool!(tokens, 1, provider);
-        assert_eq!(
-            pool.address,
-            "0xe0554a476a092703abdb3ef35c80e0d76d32939f"
-                .parse::<Address>()
-                .unwrap()
-        );
-
-        create_pool!(tokens, 5, provider);
-        assert_eq!(
-            pool.address,
-            "0x88e6a0c2ddd26feeb64f039a2c41296fcb3f5640"
-                .parse::<Address>()
-                .unwrap()
-        );
-
-        create_pool!(tokens, 30, provider);
-        assert_eq!(
-            pool.address,
-            "0x8ad599c3a0ff1de082011efddc58f1908eb6e6d8"
-                .parse::<Address>()
-                .unwrap()
-        );
-
-        create_pool!(tokens, 100, provider);
-        assert_eq!(
-            pool.address,
-            "0x7bea39867e4169dbe237d55c8242a8f2fcdcc387"
-                .parse::<Address>()
-                .unwrap()
-        );
+        create_pool!(tokens, 1, provider, "0xe0554a476a092703abdb3ef35c80e0d76d32939f");
+        create_pool!(tokens, 5, provider, "0x88e6a0c2ddd26feeb64f039a2c41296fcb3f5640");
+        create_pool!(tokens, 30, provider, "0x8ad599c3a0ff1de082011efddc58f1908eb6e6d8");
+        create_pool!(tokens, 100, provider, "0x7bea39867e4169dbe237d55c8242a8f2fcdcc387");
     }
 
     #[tokio::test]
@@ -290,6 +271,7 @@ mod tests {
             tokens::get_tokens().get("USDC").unwrap().to_owned(),
         );
 
-        create_pool!(tokens, 700, provider);
+        // This address is arbitrary as pool creation should anyways fail.
+        create_pool!(tokens, 700, provider, "0x7bea39867e4169dbe237d55c8242a8f2fcdcc387");
     }
 }
