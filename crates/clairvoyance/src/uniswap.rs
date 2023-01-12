@@ -2,6 +2,7 @@ use utils::tokens::Token;
 use utils::{chain_tools::convert_q64_96, tokens::get_tokens};
 
 use num_bigfloat::BigFloat;
+use std::ops::Div;
 use std::sync::Arc;
 
 use ethers::abi::Address;
@@ -169,17 +170,21 @@ impl Pool {
             )
         }
     }
-    pub fn get_reserves(&self) -> (BigFloat, BigFloat) {
-        let reserve_0 = (self.get_liquidity())
-                .div(&convert_q64_96(self.get_sqrt_price_x96()))
-                .div(&BigFloat::from_i16(10).pow(&self.get_tokens().0.decimals))
-        let reserve_1 = (self.get_liquidity())
-                .mul(&convert_q64_96(self.get_sqrt_price_x96()))
-                .div(&BigFloat::from_i16(10).pow(&self.get_tokens().1.decimals))
-        (reserve_0, reserve_1)
+    pub fn get_reserves(&self) -> (U256, U256) {
+        // sqrt_price has 64 bits of number and 96 bits of precision
+        let liquidity = BigFloat::from_u128(self.get_liquidity());
+        let reserve_0 = liquidity
+                / (&convert_q64_96(self.get_sqrt_price_x96()));
+        let reserve_1 = liquidity
+                * (&convert_q64_96(self.get_sqrt_price_x96()));
+
+        // round away decimal part and return as u256's
+        (reserve_0.round(0).to_u256().unwrap(), reserve_1.round(0).to_u256().unwrap())
+        // (reserve_0, reserve_1)
+
     }
     pub async fn price_impact(&self, price_impact: BigFloat, pool_token: H160) -> BigFloat {
-        let current_price = self.compute_price(pool_token_0);
+        let current_price = self.compute_price(pool_token);
         let price_impact = price_impact.div(&BigFloat::from_i16(100));
         
         let price_change = price_impact * current_price;
@@ -187,7 +192,7 @@ impl Pool {
         let target_price = current_price + price_change;
         // might need to abs this
         let diff = target_price - current_price;
-        let reserves = self.get_reserves()
+        let reserves = self.get_reserves();
 
         // loop over ticks
 
