@@ -44,36 +44,47 @@ impl Pool {
     pub fn get_address(&self) -> H160 {
         self.address
     }
+
     pub fn get_tick(&self) -> i32 {
         self.tick
     }
+
     pub fn get_liquidity(&self) -> u128 {
         self.liquidity
     }
+
     pub fn get_tokens(&self) -> (Token, Token) {
         (self.token_0.clone(), self.token_1.clone())
     }
+
     pub fn get_bp(&self) -> u32 {
         self.bp
     }
+
     pub fn get_factory(&self) -> UniswapV3Factory<Provider<Http>> {
         self.factory.clone()
     }
+
     pub fn get_contract(&self) -> IUniswapV3Pool<Provider<Http>> {
         self.inner.clone()
     }
+
     pub fn get_sqrt_price_x96(&self) -> ethers::types::U256 {
         self.sqrt_price_x96
     }
+
     fn set_tick(&mut self, tick: i32) {
         self.tick = tick;
     }
+
     fn set_liquidity(&mut self, liquidity: u128) {
         self.liquidity = liquidity;
     }
+
     fn set_sqrt_price_x96(&mut self, sqrt_price_x96: ethers::types::U256) {
         self.sqrt_price_x96 = sqrt_price_x96;
     }
+    
     /// Updates the pool tick and liquidity manually with a contract call.
     pub async fn _update_pool(&mut self) {
         let slot_0 = self.inner.slot_0().call().await.unwrap();
