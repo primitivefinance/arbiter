@@ -144,7 +144,7 @@ impl Pool {
             println!("Tick:      {:#?}", event.tick); // i32
             println!(
                 "Price:     {:#?}",
-                compute_price(pool_tokens.clone(), event.sqrt_price_x96, pool_token_0,).to_string()
+                self.compute_price(pool_token_0).to_string()
             );
             // Check tick, price, and liquidity where updated
             assert_eq!(event.tick, self.get_tick());
@@ -152,7 +152,26 @@ impl Pool {
             assert_eq!(event.sqrt_price_x96, self.get_sqrt_price_x96());
         }
     }
-    pub fn price_impact() {
+
+    /// Takes in UniswapV3's sqrt_price_x96 (a q64_96 fixed point number) and outputs the price in human readable form.
+    /// See Uniswap's documentation: https://docs.uniswap.org/sdk/guides/fetching-prices
+    pub fn compute_price(&self, pool_token_0: H160) -> BigFloat {
+        let diff_decimals: BigFloat = ((self.get_tokens().0.decimals as i16) - (self.get_tokens().1.decimals as i16)).into();
+        if self.get_tokens().0.address == pool_token_0 {
+            convert_q64_96(self.get_sqrt_price_x96())
+                .pow(&BigFloat::from_i16(2))
+                .div(&BigFloat::from_i16(10).pow(&-diff_decimals))
+        } else {
+            BigFloat::from_i16(1).div(
+                &convert_q64_96(self.get_sqrt_price_x96())
+                    .pow(&BigFloat::from_i16(2))
+                    .div(&BigFloat::from_i16(10).pow(&diff_decimals)),
+            )
+        }
+    }
+    pub async fn price_impact(&self) {
+        let pool_token_0 = self.inner.token_0().call().await.unwrap();
+        let current_price = self.compute_price(pool_token_0);;
         todo!()
     }
 }
@@ -184,20 +203,20 @@ pub async fn _get_test_pool(bp: String, provider: Arc<Provider<Http>>) -> Result
 
 /// Takes in UniswapV3's sqrt_price_x96 (a q64_96 fixed point number) and outputs the price in human readable form.
 /// See Uniswap's documentation: https://docs.uniswap.org/sdk/guides/fetching-prices
-pub fn compute_price(tokens: (Token, Token), sqrt_price_x96: U256, pool_token_0: H160) -> BigFloat {
-    let diff_decimals: BigFloat = ((tokens.0.decimals as i16) - (tokens.1.decimals as i16)).into();
-    if pool_token_0 == tokens.0.address {
-        convert_q64_96(sqrt_price_x96)
-            .pow(&BigFloat::from_i16(2))
-            .div(&BigFloat::from_i16(10).pow(&-diff_decimals))
-    } else {
-        BigFloat::from_i16(1).div(
-            &convert_q64_96(sqrt_price_x96)
-                .pow(&BigFloat::from_i16(2))
-                .div(&BigFloat::from_i16(10).pow(&diff_decimals)),
-        )
-    }
-}
+// pub fn compute_price(tokens: (Token, Token), sqrt_price_x96: U256, pool_token_0: H160) -> BigFloat {
+//     let diff_decimals: BigFloat = ((tokens.0.decimals as i16) - (tokens.1.decimals as i16)).into();
+//     if pool_token_0 == tokens.0.address {
+//         convert_q64_96(sqrt_price_x96)
+//             .pow(&BigFloat::from_i16(2))
+//             .div(&BigFloat::from_i16(10).pow(&-diff_decimals))
+//     } else {
+//         BigFloat::from_i16(1).div(
+//             &convert_q64_96(sqrt_price_x96)
+//                 .pow(&BigFloat::from_i16(2))
+//                 .div(&BigFloat::from_i16(10).pow(&diff_decimals)),
+//         )
+//     }
+// }
 
 #[cfg(test)]
 mod tests {
