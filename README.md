@@ -3,7 +3,7 @@
 ![](https://visitor-badge.laobi.icu/badge?page_id=arbiter)
 ![Github Actions](https://github.com/primitivefinance/arbiter/workflows/Rust/badge.svg)
 
-> A stand-alone Rust program to events on UniswapV3 pools and...
+> A stand-alone Rust analytic program for UniswapV3 pools and...
 
 ## Motivation:
 
