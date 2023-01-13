@@ -44,36 +44,47 @@ impl Pool {
     pub fn get_address(&self) -> H160 {
         self.address
     }
+
     pub fn get_tick(&self) -> i32 {
         self.tick
     }
+
     pub fn get_liquidity(&self) -> u128 {
         self.liquidity
     }
+
     pub fn get_tokens(&self) -> (Token, Token) {
         (self.token_0.clone(), self.token_1.clone())
     }
+
     pub fn get_bp(&self) -> u32 {
         self.bp
     }
+
     pub fn get_factory(&self) -> UniswapV3Factory<Provider<Http>> {
         self.factory.clone()
     }
+
     pub fn get_contract(&self) -> IUniswapV3Pool<Provider<Http>> {
         self.inner.clone()
     }
+
     pub fn get_sqrt_price_x96(&self) -> ethers::types::U256 {
         self.sqrt_price_x96
     }
+
     fn set_tick(&mut self, tick: i32) {
         self.tick = tick;
     }
+
     fn set_liquidity(&mut self, liquidity: u128) {
         self.liquidity = liquidity;
     }
+
     fn set_sqrt_price_x96(&mut self, sqrt_price_x96: ethers::types::U256) {
         self.sqrt_price_x96 = sqrt_price_x96;
     }
+
     /// Updates the pool tick and liquidity manually with a contract call.
     pub async fn _update_pool(&mut self) {
         let slot_0 = self.inner.slot_0().call().await.unwrap();
@@ -81,6 +92,7 @@ impl Pool {
         self.set_tick(slot_0.1);
         self.set_sqrt_price_x96(slot_0.0)
     }
+
     /// Public builder function that instantiates a `Pool`.
     pub async fn new(
         token_0: Token,
@@ -171,6 +183,7 @@ pub async fn get_pool(
     let pool = Pool::new(token0.clone(), token1.clone(), bp, provider).await;
     Ok(pool.unwrap())
 }
+
 pub async fn _get_test_pool(bp: String, provider: Arc<Provider<Http>>) -> Result<Pool, ()> {
     let tokens = get_tokens();
     Pool::new(
@@ -207,83 +220,53 @@ mod tests {
 
     use super::Pool;
 
+    macro_rules! create_pool {
+        (
+            $provider:expr,
+            $tokens:expr,
+            $bp:expr,
+            $address:expr
+        ) => {
+            let pool = Pool::new($tokens.0.clone(), $tokens.1.clone(), $bp, $provider.clone())
+                .await
+                .unwrap();
+
+            assert_eq!(pool.address, $address.parse::<Address>().unwrap());
+        };
+    }
+
     #[tokio::test]
     async fn test_get_pool_from_uniswap() {
         let provider: Arc<Provider<Http>> = chain_tools::get_provider().await;
-        let tokens = tokens::get_tokens();
-
-        let bp_1 = String::from("1");
-        let bp_5 = String::from("5");
-        let bp_30 = String::from("30");
-        let bp_100 = String::from("100");
 
         let tokens = (
-            tokens.get("ETH").unwrap().to_owned(),
-            tokens.get("USDC").unwrap().to_owned(),
+            tokens::get_tokens().get("ETH").unwrap().to_owned(),
+            tokens::get_tokens().get("USDC").unwrap().to_owned(),
         );
 
-        let pool_1 = Pool::new(
-            tokens.0.clone(),
-            tokens.1.clone(),
-            bp_1.parse::<u32>().unwrap(),
-            provider.clone(),
-        )
-        .await
-        .unwrap();
-
-        let pool_5 = Pool::new(
-            tokens.0.clone(),
-            tokens.1.clone(),
-            bp_5.parse::<u32>().unwrap(),
-            provider.clone(),
-        )
-        .await
-        .unwrap();
-
-        let pool_30 = Pool::new(
-            tokens.0.clone(),
-            tokens.1.clone(),
-            bp_30.parse::<u32>().unwrap(),
-            provider.clone(),
-        )
-        .await
-        .unwrap();
-
-        let pool_100 = Pool::new(
-            tokens.0.clone(),
-            tokens.1.clone(),
-            bp_100.parse::<u32>().unwrap(),
-            provider.clone(),
-        )
-        .await
-        .unwrap();
-
-        assert_eq!(
-            pool_1.address,
+        create_pool!(
+            provider,
+            tokens,
+            1,
             "0xe0554a476a092703abdb3ef35c80e0d76d32939f"
-                .parse::<Address>()
-                .unwrap()
         );
-
-        assert_eq!(
-            pool_5.address,
+        create_pool!(
+            provider,
+            tokens,
+            5,
             "0x88e6a0c2ddd26feeb64f039a2c41296fcb3f5640"
-                .parse::<Address>()
-                .unwrap()
         );
-
-        assert_eq!(
-            pool_30.address,
+        create_pool!(
+            provider,
+            tokens,
+            30,
             "0x8ad599c3a0ff1de082011efddc58f1908eb6e6d8"
-                .parse::<Address>()
-                .unwrap()
         );
-
-        assert_eq!(
-            pool_100.address,
+        create_pool!(
+            provider,
+            tokens,
+            100,
             "0x7bea39867e4169dbe237d55c8242a8f2fcdcc387"
-                .parse::<Address>()
-                .unwrap()
         );
     }
 
@@ -291,22 +274,18 @@ mod tests {
     #[should_panic]
     async fn test_get_pool_from_uniswap_700() {
         let provider: Arc<Provider<Http>> = chain_tools::get_provider().await;
-        let tokens = tokens::get_tokens();
-        let bp = String::from("700");
 
         let tokens = (
-            tokens.get("ETH").unwrap().to_owned(),
-            tokens.get("USDC").unwrap().to_owned(),
+            tokens::get_tokens().get("ETH").unwrap().to_owned(),
+            tokens::get_tokens().get("USDC").unwrap().to_owned(),
         );
 
-        // Creation should return an Err(()) and unwrap() should therefore panic.
-        let _pool_700 = Pool::new(
-            tokens.0.clone(),
-            tokens.1.clone(),
-            bp.parse::<u32>().unwrap(),
-            provider.clone(),
-        )
-        .await
-        .unwrap();
+        // This address is arbitrary as pool creation should anyways fail.
+        create_pool!(
+            provider,
+            tokens,
+            700,
+            "0x7bea39867e4169dbe237d55c8242a8f2fcdcc387"
+        );
     }
 }

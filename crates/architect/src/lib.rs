@@ -125,7 +125,7 @@ mod tests {
         let provider = Provider::<Http>::try_from("https://mainnet.eth.aragon.network").unwrap();
         let tx = TypedTransaction::Legacy(TransactionRequest::pay("vitalik.eth", 100));
 
-        let mut architect = Architect::new(provider, LocalWallet::new(&mut thread_rng()))
+        let _architect = Architect::new(provider, LocalWallet::new(&mut thread_rng()))
             .await
             .unwrap()
             .add_transactions(&vec![tx])
