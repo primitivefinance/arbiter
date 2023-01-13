@@ -227,21 +227,11 @@ mod tests {
             $bp:expr,
             $address:expr
         ) => {
-            let pool = Pool::new(
-                $tokens.0.clone(),
-                $tokens.1.clone(),
-                $bp,
-                $provider.clone(),
-            )
-            .await
-            .unwrap();
+            let pool = Pool::new($tokens.0.clone(), $tokens.1.clone(), $bp, $provider.clone())
+                .await
+                .unwrap();
 
-            assert_eq!(
-                pool.address,
-                $address
-                    .parse::<Address>()
-                    .unwrap()
-            );
+            assert_eq!(pool.address, $address.parse::<Address>().unwrap());
         };
     }
 
@@ -254,10 +244,30 @@ mod tests {
             tokens::get_tokens().get("USDC").unwrap().to_owned(),
         );
 
-        create_pool!(provider, tokens, 1, "0xe0554a476a092703abdb3ef35c80e0d76d32939f");
-        create_pool!(provider, tokens, 5, "0x88e6a0c2ddd26feeb64f039a2c41296fcb3f5640");
-        create_pool!(provider, tokens, 30, "0x8ad599c3a0ff1de082011efddc58f1908eb6e6d8");
-        create_pool!(provider, tokens, 100, "0x7bea39867e4169dbe237d55c8242a8f2fcdcc387");
+        create_pool!(
+            provider,
+            tokens,
+            1,
+            "0xe0554a476a092703abdb3ef35c80e0d76d32939f"
+        );
+        create_pool!(
+            provider,
+            tokens,
+            5,
+            "0x88e6a0c2ddd26feeb64f039a2c41296fcb3f5640"
+        );
+        create_pool!(
+            provider,
+            tokens,
+            30,
+            "0x8ad599c3a0ff1de082011efddc58f1908eb6e6d8"
+        );
+        create_pool!(
+            provider,
+            tokens,
+            100,
+            "0x7bea39867e4169dbe237d55c8242a8f2fcdcc387"
+        );
     }
 
     #[tokio::test]
@@ -271,6 +281,11 @@ mod tests {
         );
 
         // This address is arbitrary as pool creation should anyways fail.
-        create_pool!(provider, tokens, 700, "0x7bea39867e4169dbe237d55c8242a8f2fcdcc387");
+        create_pool!(
+            provider,
+            tokens,
+            700,
+            "0x7bea39867e4169dbe237d55c8242a8f2fcdcc387"
+        );
     }
 }
