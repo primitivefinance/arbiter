@@ -133,14 +133,23 @@ impl Pool {
     /// TODO: Make it print a `Swap` struct that implements fmt in a special way.
     pub async fn monitor_pool(&mut self) {
         let pool_contract = self.get_contract();
+        let pool_tokens = self.get_tokens();
+        let pool_bp = self.get_bp();
+
         println!(
-            "Got Pool: {:#?}. Listening for events...",
+            "...Got Pool (token0, token1, bps, address): {}, {}, {}, {:#?}\n",
+            pool_tokens.0.name,
+            pool_tokens.1.name,
+            pool_bp,
             pool_contract.address()
         );
-        let pool_tokens = self.get_tokens();
+
+        println!("Listening for events...");
+
         let swap_events = pool_contract.swap_filter();
         let pool_token_0 = pool_contract.token_0().call().await.unwrap();
         let mut swap_stream = swap_events.stream().await.unwrap();
+        
         while let Some(Ok(event)) = swap_stream.next().await {
             let (tick, liq, sqrtprice) = (event.tick, event.liquidity, event.sqrt_price_x96);
             self.set_tick(tick);
@@ -158,12 +167,15 @@ impl Pool {
                 "Price:     {:#?}",
                 compute_price(pool_tokens.clone(), event.sqrt_price_x96, pool_token_0,).to_string()
             );
+
             // Check tick, price, and liquidity where updated
             assert_eq!(event.tick, self.get_tick());
             assert_eq!(event.liquidity, self.get_liquidity());
             assert_eq!(event.sqrt_price_x96, self.get_sqrt_price_x96());
         }
     }
+
+
     pub fn price_impact() {
         todo!()
     }

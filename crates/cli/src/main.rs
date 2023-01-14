@@ -14,7 +14,7 @@ mod config;
 #[command(version = "1.0")]
 #[command(about = "Data monitoring and execution tool for decentralized exchanges.", long_about = None)]
 #[command(author)]
-struct Cli {
+struct Args {
     /// Pass a subcommand in.
     #[command(subcommand)]
     command: Option<Commands>,
@@ -36,9 +36,9 @@ enum Commands {
         #[arg(default_value = "5")]
         bp: String,
 
-        /// Set this flag to use the config.toml.
-        #[arg(short = 'c', long = "config", action)]
-        config: bool,
+        /// Set this flag to use a config.toml.
+        #[arg(short, long, action, default_value = "")]
+        config: String,
     },
 }
 
@@ -72,7 +72,7 @@ async fn main() -> Result<()> {
 
     test_sim.plot();
 
-    let cli = Cli::parse();
+    let args = Args::parse();
 
     // RPC endpoint [default: alchemy]
     let provider = match env::var_os("PROVIDER") {
@@ -80,20 +80,20 @@ async fn main() -> Result<()> {
         None => get_provider().await,
     };
 
-    match &cli.command {
+    match &args.command {
         Some(Commands::See {
             token0,
             token1,
             bp,
             config,
         }) => {
-            let pools: Vec<Pool> = match config {
-                true => {
+            let pools: Vec<Pool> = match config == "" {
+                false => {
                     // If present, load config.toml and get pool from there.
-                    println!("Loading config.toml...");
+                    println!("\nLoading config.toml...");
 
                     // We still need to handle the error properly here, but at least we have a custom type.
-                    let config = config::Config::new().unwrap();
+                    let config = config::Config::new(config).unwrap();
 
                     println!("Getting Pool...");
 
@@ -103,7 +103,7 @@ async fn main() -> Result<()> {
 
                     vec![pool]
                 }
-                false => {
+                true => {
                     println!("Getting Pool...");
 
                     // Get pool from CLI/defaults.
