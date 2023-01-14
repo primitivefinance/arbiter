@@ -15,7 +15,19 @@ Searchers detect differences in reported prices between markets and execute pure
 
 ## Architecture:
 
-There are two primary crates architect, which handles the construction and execution of transactions, and clairvoyance, which handles the monitoring of UniswapV3 pools. The program is designed to be modular and extensible.
+There are two primary crates
+
+```
+architect
+```
+
+which handles the construction and execution of transactions, and
+
+```
+clairvoyance
+```
+
+which handles the monitoring of UniswapV3 pools. The program is designed to be modular and extensible.
 
 ## Features:
 
