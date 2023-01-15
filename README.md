@@ -3,7 +3,7 @@
 ![](https://visitor-badge.laobi.icu/badge?page_id=arbiter)
 ![Github Actions](https://github.com/primitivefinance/arbiter/workflows/Rust/badge.svg)
 
-> A stand-alone analytic program for UniswapV3 pools wirtten in rust.
+> A stand-alone analytic program for UniswapV3 pools written in rust.
 
 ## Motivation:
 
@@ -15,19 +15,7 @@ Searchers detect differences in reported prices between markets and execute pure
 
 ## Architecture:
 
-There are two primary crates
-
-```
-architect
-```
-
-which handles the construction and execution of transactions, and
-
-```
-clairvoyance
-```
-
-which handles the monitoring of UniswapV3 pools. The program is designed to be modular and extensible.
+There are two primary crates: `architect` which handles the construction and execution of transactions, and `clairvoyance`, which handles the monitoring of UniswapV3 pools. The program is designed to be modular and extensible.
 
 ## Features:
 
