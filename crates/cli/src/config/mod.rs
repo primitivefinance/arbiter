@@ -54,31 +54,12 @@ pub struct Config {
 impl Config {
     /// Public constructor function to instantiate a representation of a config file.
     pub fn new(command_path: &String) -> Result<Self, ConfigError> {
-        let mut content = String::new();
-
-        match command_path == "" {
-            true => {
-                let config_filepaths: [&str; 2] = [
-                    "./crates/cli/src/config.toml",
-                    "./crates/cli/src/Config.toml",
-                ];
-
-                for filepath in config_filepaths {
-                    content = match fs::read_to_string(filepath) {
-                        Ok(file) => file,
-                        Err(err) => return Err(ConfigError::FilepathError(err)),
-                    };
-                    println!("...Loaded config path: {}\n", command_path);
-                }
-            }
-            false => {
-                content = match fs::read_to_string(command_path) {
-                    Ok(file) => file,
-                    Err(err) => return Err(ConfigError::FilepathError(err)),
-                };
-                println!("...Loaded config path: {}\n", command_path);
-            }
+        let content = match fs::read_to_string(command_path) {
+            Ok(file) => file,
+            Err(err) => return Err(ConfigError::FilepathError(err)),
         };
+        println!("...Loaded config path: {}\n", command_path);
+            
 
         let config_toml: ConfigToml = match toml::from_str(&content) {
             Ok(toml) => toml,

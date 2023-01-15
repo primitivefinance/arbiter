@@ -37,8 +37,8 @@ enum Commands {
         bp: String,
 
         /// Set this flag to use a config.toml.
-        #[arg(short, long, action, default_value = "")]
-        config: String,
+        #[arg(short, long, default_missing_value = "./crates/cli/src/config.toml", num_args = 0..=1)]
+        config: Option<String>,
     },
 }
 
@@ -87,8 +87,8 @@ async fn main() -> Result<()> {
             bp,
             config,
         }) => {
-            let pools: Vec<Pool> = match config == "" {
-                false => {
+            let pools: Vec<Pool> = match config {
+                Some(config) => {
                     // If present, load config.toml and get pool from there.
                     println!("\nLoading config.toml...");
 
@@ -103,7 +103,7 @@ async fn main() -> Result<()> {
 
                     vec![pool]
                 }
-                true => {
+                None => {
                     println!("Getting Pool...");
 
                     // Get pool from CLI/defaults.

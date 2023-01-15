@@ -184,7 +184,7 @@ impl Pool {
 pub async fn get_pool(
     token0: &String,
     token1: &String,
-    bp: &str,
+    bp: &String,
     provider: Arc<Provider<Http>>,
 ) -> Result<Pool, Box<dyn Error>> {
     let tokens = get_tokens();
