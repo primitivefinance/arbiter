@@ -143,7 +143,7 @@ impl Pool {
         let swap_events = pool_contract.swap_filter();
         let pool_token_0 = pool_contract.token_0().call().await.unwrap();
         let mut swap_stream = swap_events.stream().await.unwrap();
-        
+
         while let Some(Ok(event)) = swap_stream.next().await {
             let (tick, liq, sqrtprice) = (event.tick, event.liquidity, event.sqrt_price_x96);
             self.set_tick(tick);
@@ -168,7 +168,6 @@ impl Pool {
             assert_eq!(event.sqrt_price_x96, self.get_sqrt_price_x96());
         }
     }
-
 
     pub fn price_impact() {
         todo!()

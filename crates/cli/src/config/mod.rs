@@ -60,7 +60,6 @@ impl Config {
             Err(err) => return Err(ConfigError::FilepathError(err)),
         };
         println!("...Loaded config path: {}\n", command_path);
-            
 
         let config_toml: ConfigToml = match toml::from_str(&content) {
             Ok(toml) => toml,
