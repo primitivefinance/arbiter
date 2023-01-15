@@ -5,17 +5,20 @@ pub mod ierc721_token_receiver {
     #![allow(dead_code)]
     #![allow(clippy::type_complexity)]
     #![allow(unused_imports)]
-    use ethers::contract::{
-        builders::{ContractCall, Event},
-        Contract, Lazy,
-    };
-    use ethers::core::{
-        abi::{Abi, Detokenize, InvalidOutputType, Token, Tokenizable},
-        types::*,
-    };
-    use ethers::providers::Middleware;
     #[doc = "IERC721TokenReceiver was auto-generated with ethers-rs Abigen. More information at: https://github.com/gakonst/ethers-rs"]
     use std::sync::Arc;
+
+    use ethers::{
+        contract::{
+            builders::{ContractCall, Event},
+            Contract, Lazy,
+        },
+        core::{
+            abi::{Abi, Detokenize, InvalidOutputType, Token, Tokenizable},
+            types::*,
+        },
+        providers::Middleware,
+    };
     # [rustfmt :: skip] const __ABI : & str = "[{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_operator\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"address\",\"name\":\"_from\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"_tokenId\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"bytes\",\"name\":\"_data\",\"type\":\"bytes\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"function\",\"name\":\"onERC721Received\",\"outputs\":[{\"internalType\":\"bytes4\",\"name\":\"\",\"type\":\"bytes4\",\"components\":[]}]}]" ;
     #[doc = r" The parsed JSON-ABI of the contract."]
     pub static IERC721TOKENRECEIVER_ABI: ethers::contract::Lazy<ethers::core::abi::Abi> =

@@ -1,8 +1,9 @@
 #![warn(missing_docs)]
 #![warn(unsafe_code)]
 
-use serde::{Deserialize, Serialize};
 use std::fs;
+
+use serde::{Deserialize, Serialize};
 use thiserror::Error;
 
 /// Config error enumeration type.

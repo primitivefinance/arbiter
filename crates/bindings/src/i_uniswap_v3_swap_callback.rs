@@ -5,17 +5,20 @@ pub mod i_uniswap_v3_swap_callback {
     #![allow(dead_code)]
     #![allow(clippy::type_complexity)]
     #![allow(unused_imports)]
-    use ethers::contract::{
-        builders::{ContractCall, Event},
-        Contract, Lazy,
-    };
-    use ethers::core::{
-        abi::{Abi, Detokenize, InvalidOutputType, Token, Tokenizable},
-        types::*,
-    };
-    use ethers::providers::Middleware;
     #[doc = "IUniswapV3SwapCallback was auto-generated with ethers-rs Abigen. More information at: https://github.com/gakonst/ethers-rs"]
     use std::sync::Arc;
+
+    use ethers::{
+        contract::{
+            builders::{ContractCall, Event},
+            Contract, Lazy,
+        },
+        core::{
+            abi::{Abi, Detokenize, InvalidOutputType, Token, Tokenizable},
+            types::*,
+        },
+        providers::Middleware,
+    };
     # [rustfmt :: skip] const __ABI : & str = "[{\"inputs\":[{\"internalType\":\"int256\",\"name\":\"amount0Delta\",\"type\":\"int256\",\"components\":[]},{\"internalType\":\"int256\",\"name\":\"amount1Delta\",\"type\":\"int256\",\"components\":[]},{\"internalType\":\"bytes\",\"name\":\"data\",\"type\":\"bytes\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"function\",\"name\":\"uniswapV3SwapCallback\",\"outputs\":[]}]" ;
     #[doc = r" The parsed JSON-ABI of the contract."]
     pub static IUNISWAPV3SWAPCALLBACK_ABI: ethers::contract::Lazy<ethers::core::abi::Abi> =
