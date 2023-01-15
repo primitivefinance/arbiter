@@ -1,7 +1,7 @@
-use ethers::prelude::*;
-use ethers::providers::Provider;
-use num_bigfloat::BigFloat; // TODO: Best to work with fixed point q64_96 for UniswapV3
 use std::sync::Arc;
+
+use ethers::{prelude::*, providers::Provider};
+use num_bigfloat::BigFloat; // TODO: Best to work with fixed point q64_96 for UniswapV3
 
 pub async fn get_provider() -> Arc<Provider<Http>> {
     Arc::new(
