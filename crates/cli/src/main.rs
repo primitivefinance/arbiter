@@ -1,9 +1,12 @@
-use clairvoyance::simulation;
-use clairvoyance::uniswap::{get_pool, Pool};
+use std::{env, sync::Arc};
+
+use clairvoyance::{
+    simulation,
+    uniswap::{get_pool, Pool},
+};
 use clap::{Parser, Subcommand};
 use ethers::providers::{Http, Provider};
 use eyre::Result;
-use std::{env, sync::Arc};
 use tokio::join;
 use utils::chain_tools::get_provider;
 

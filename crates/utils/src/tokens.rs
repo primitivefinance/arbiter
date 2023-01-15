@@ -1,5 +1,6 @@
-use ethers::types::{Address, H160};
 use std::collections::HashMap;
+
+use ethers::types::{Address, H160};
 
 macro_rules! token_insert {
     (

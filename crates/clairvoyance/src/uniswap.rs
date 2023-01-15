@@ -1,19 +1,13 @@
-use utils::tokens::Token;
-use utils::{chain_tools::convert_q64_96, tokens::get_tokens};
+use std::{error::Error, sync::Arc};
 
-use num_bigfloat::BigFloat;
-use std::sync::Arc;
-
-use ethers::abi::Address;
-use ethers::prelude::*;
-use ethers::providers::Provider;
-use ethers::types::H160;
-
-use bindings::i_uniswap_v3_pool::IUniswapV3Pool;
-use bindings::uniswap_v3_factory::UniswapV3Factory;
-
+use bindings::{i_uniswap_v3_pool::IUniswapV3Pool, uniswap_v3_factory::UniswapV3Factory};
+use ethers::{abi::Address, prelude::*, providers::Provider, types::H160};
 use eyre::Result;
-use std::error::Error;
+use num_bigfloat::BigFloat;
+use utils::{
+    chain_tools::convert_q64_96,
+    tokens::{get_tokens, Token},
+};
 
 const FACTORY: &str = "0x1F98431c8aD98523631AE4a59f267346ea31F984";
 /// Representation of a pool.
@@ -214,8 +208,9 @@ pub fn compute_price(tokens: (Token, Token), sqrt_price_x96: U256, pool_token_0:
 
 #[cfg(test)]
 mod tests {
-    use ethers::{abi::Address, providers::*};
     use std::sync::Arc;
+
+    use ethers::{abi::Address, providers::*};
     use utils::{chain_tools, tokens};
 
     use super::Pool;
