@@ -199,8 +199,10 @@ pub async fn get_pool(
     bp: &str,
     provider: Arc<Provider<Http>>,
 ) -> Result<Pool, Box<dyn Error>> {
-    let token0 = get_tokens().get(token0).unwrap();
-    let token1 = get_tokens().get(token1).unwrap();
+    let tokens = get_tokens();
+
+    let token0 = tokens.get(token0).unwrap();
+    let token1 = tokens.get(token1).unwrap();
 
     let bp = bp.parse::<u32>().unwrap();
 
