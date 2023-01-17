@@ -2,6 +2,7 @@ use std::collections::HashMap;
 
 use ethers::types::{Address, H160};
 
+/// Insert a token to the HashMap.
 macro_rules! token_insert {
     (
         $address:expr,
