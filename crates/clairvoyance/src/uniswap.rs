@@ -1,3 +1,7 @@
+//! ## Clairvoyance
+//!
+//! Clairvoyance is the monitoring, modelling and simulation suite of Arbiter.
+
 use std::{error::Error, sync::Arc};
 
 use bindings::{i_uniswap_v3_pool::IUniswapV3Pool, uniswap_v3_factory::UniswapV3Factory};
@@ -9,7 +13,9 @@ use utils::{
     tokens::{get_tokens, Token},
 };
 
+/// Uniswap V3 factory address.
 const FACTORY: &str = "0x1F98431c8aD98523631AE4a59f267346ea31F984";
+
 /// Representation of a pool.
 #[derive(Debug, Clone)]
 pub struct Pool {
@@ -34,35 +40,81 @@ pub struct Pool {
 }
 
 impl Pool {
-    /// Getters and setters for error checking and access controls.
+    /// Public constructor function that instantiates a `Pool`.
+    pub async fn new(
+        token_0: Token,
+        token_1: Token,
+        bp: u32,
+        provider: Arc<Provider<Http>>,
+    ) -> Result<Pool, ()> {
+        match bp {
+            1 | 5 | 30 | 100 => (),
+            _ => return Err(()),
+        }
+
+        // Factory Address.
+        let uniswap_v3_factory_address = FACTORY.parse::<Address>().unwrap();
+
+        // Factory contract object.
+        let factory = UniswapV3Factory::new(uniswap_v3_factory_address, provider.clone());
+        let pool_address = factory
+            .get_pool(token_0.address, token_1.address, bp * 100)
+            .call()
+            .await
+            .unwrap();
+
+        Ok(Pool {
+            token_0,
+            token_1,
+            bp,
+            address: pool_address,
+            factory,
+            inner: IUniswapV3Pool::new(pool_address, provider.clone()),
+            tick: 0,
+            liquidity: 0,
+            sqrt_price_x96: ethers::types::U256::zero(),
+        })
+    }
+
+    /// Get the pool address.
+    /// We need getters and setters as the internal state cannot be corrupted.
     pub fn get_address(&self) -> H160 {
         self.address
     }
 
+    /// Get the tick of the pool.
     pub fn get_tick(&self) -> i32 {
         self.tick
     }
 
+    /// Get the liquidity of the pool.
     pub fn get_liquidity(&self) -> u128 {
         self.liquidity
     }
 
+    /// Get the two corresponding pool tokens.
     pub fn get_tokens(&self) -> (Token, Token) {
         (self.token_0.clone(), self.token_1.clone())
     }
 
+    /// Get the pool basis points.
+    /// The possible values are 5, 30 and 100.
     pub fn get_bp(&self) -> u32 {
         self.bp
     }
 
+    /// Get the pool factory.
     pub fn get_factory(&self) -> UniswapV3Factory<Provider<Http>> {
         self.factory.clone()
     }
 
+    /// Get the pool contract.
     pub fn get_contract(&self) -> IUniswapV3Pool<Provider<Http>> {
         self.inner.clone()
     }
 
+    /// Get the pool sqrt_price.
+    /// More information regarding how to derive pricing can be found in the whitepaper.
     pub fn get_sqrt_price_x96(&self) -> ethers::types::U256 {
         self.sqrt_price_x96
     }
@@ -85,42 +137,6 @@ impl Pool {
         self.set_liquidity(self.inner.liquidity().call().await.unwrap());
         self.set_tick(slot_0.1);
         self.set_sqrt_price_x96(slot_0.0)
-    }
-
-    /// Public builder function that instantiates a `Pool`.
-    pub async fn new(
-        token_0: Token,
-        token_1: Token,
-        bp: u32,
-        provider: Arc<Provider<Http>>,
-    ) -> Result<Pool, ()> {
-        match bp {
-            1 | 5 | 30 | 100 => (),
-            _ => return Err(()),
-        }
-        // Factory Address.
-        let uniswap_v3_factory_address = FACTORY.parse::<Address>().unwrap();
-
-        // Factory contract object.
-        let factory = UniswapV3Factory::new(uniswap_v3_factory_address, provider.clone());
-        // pool address from factory contract object
-        let pool_address = factory
-            .get_pool(token_0.address, token_1.address, bp * 100)
-            .call()
-            .await
-            .unwrap();
-        // pool object
-        Ok(Pool {
-            token_0,
-            token_1,
-            bp,
-            address: pool_address,
-            factory,
-            inner: IUniswapV3Pool::new(pool_address, provider.clone()),
-            tick: 0,
-            liquidity: 0,
-            sqrt_price_x96: ethers::types::U256::zero(),
-        })
     }
 
     /// Monitor a pool for swap events and print to standard output.
@@ -169,26 +185,31 @@ impl Pool {
         }
     }
 
+    /// Calculate the amount you would have to swap in order to have a swap that causes
+    /// a given price impact.
     pub fn price_impact() {
         todo!()
     }
 }
 
+/// Wrapper function to easily create a pool.
 pub async fn get_pool(
     token0: &String,
     token1: &String,
     bp: &str,
     provider: Arc<Provider<Http>>,
 ) -> Result<Pool, Box<dyn Error>> {
-    let tokens = get_tokens();
+    let token0 = get_tokens().get(token0).unwrap();
+    let token1 = get_tokens().get(token1).unwrap();
 
-    let token0 = tokens.get(token0).unwrap();
-    let token1 = tokens.get(token1).unwrap();
     let bp = bp.parse::<u32>().unwrap();
+
     let pool = Pool::new(token0.clone(), token1.clone(), bp, provider).await;
+
     Ok(pool.unwrap())
 }
 
+/// Get a sample test pool.
 pub async fn _get_test_pool(bp: String, provider: Arc<Provider<Http>>) -> Result<Pool, ()> {
     let tokens = get_tokens();
     Pool::new(
