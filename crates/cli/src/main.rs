@@ -51,17 +51,23 @@ async fn main() -> Result<()> {
     let encoded = abi.encode("getReserves", ())?;
 
     // initialize new db
-    let mut database = CacheDB::new(EmptyDB {});
-    let test_account = H160::from_str("0x0000000000000000000000000000000000000000")?;
+    let mut cache_db = CacheDB::new(EmptyDB {});
+    
+    // create a default account
+    let test_account_address = H160::from_str("0x0000000000000000000000000000000000000000")?;
     let test_account_info = revm::AccountInfo::default();
-    // let test_account_info = revm::AccountInfo {
-    //     balance: U256::from(0),
-    //     nonce: 0,
-    //     code_hash: KECCAK_EMPTY,
-    //     code: None,
-    // };
-    database.insert_account_info(test_account, test_account_info);
-    println!("{:?}", database.accounts);
+    cache_db.insert_account_info(test_account_address, test_account_info);
+    println!("Account created: {:?}", cache_db.accounts);
+
+    // retrieve account from address
+    let acc_info = cache_db.basic(test_account_address)?.unwrap();
+    println!("Account pulled: {:?}", acc_info);
+
+    // initialise an empty (default) EVM
+    let mut evm = EVM::new();
+
+    // insert pre-built database from above
+    evm.database(cache_db);
 
 
     // // query basic properties of an account incl bytecode
@@ -70,9 +76,6 @@ async fn main() -> Result<()> {
     // // query value of storage slot at account address
     // let value = ethersdb.storage(pool_address, slot).unwrap();
 
-    // // initialise empty in-memory-db
-    // let mut cache_db = CacheDB::new(EmptyDB::default());
-
     // // insert basic account info which was generated via Web3DB with the corresponding address
     // cache_db.insert_account_info(pool_address, acc_info);
 
@@ -80,12 +83,6 @@ async fn main() -> Result<()> {
     // cache_db
     //     .insert_account_storage(pool_address, slot, value)
     //     .unwrap();
-
-    // // initialise an empty (default) EVM
-    // let mut evm = EVM::new();
-
-    // // insert pre-built database from above
-    // evm.database(cache_db);
 
     // // fill in missing bits of env struc
     // // change that to whatever caller you want to be
