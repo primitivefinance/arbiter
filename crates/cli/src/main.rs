@@ -1,6 +1,6 @@
-use std::{str::FromStr, sync::Arc};
 use anyhow::{Ok, Result};
 use bytes::Bytes;
+use ethers::types::{H160, H256, U256};
 use ethers::{
     abi::parse_abi,
     prelude::BaseContract,
@@ -8,9 +8,9 @@ use ethers::{
 };
 use revm::{
     db::{CacheDB, EmptyDB},
-    Database, TransactOut, TransactTo, EVM, AccountInfo, KECCAK_EMPTY,
+    AccountInfo, Database, TransactOut, TransactTo, EVM, KECCAK_EMPTY,
 };
-use ethers::types::{H160, H256, U256};
+use std::{str::FromStr, sync::Arc};
 use utils::chain_tools::get_provider;
 
 #[tokio::main]
@@ -52,32 +52,25 @@ async fn main() -> Result<()> {
 
     // initialize new db
     let mut cache_db = CacheDB::new(EmptyDB {});
-    
+
     // create a default account
-    let test_account_address = H160::from_str("0x0000000000000000000000000000000000000000")?;
-    let test_account_info = revm::AccountInfo::default();
-    cache_db.insert_account_info(test_account_address, test_account_info);
+    let user_address = H160::from_str("0x0000000000000000000000000000000000000000")?;
+    let user_info = revm::AccountInfo::default();
+    cache_db.insert_account_info(user_address, user_info);
     println!("Account created: {:?}", cache_db.accounts);
 
-    // retrieve account from address
-    let acc_info = cache_db.basic(test_account_address)?.unwrap();
+    // retrieve account from address just to check
+    let acc_info = cache_db.basic(user_address)?.unwrap();
     println!("Account pulled: {:?}", acc_info);
+
+    // add pool account to db
+    cache_db.basic(pool_address);
 
     // initialise an empty (default) EVM
     let mut evm = EVM::new();
 
     // insert pre-built database from above
     evm.database(cache_db);
-
-
-    // // query basic properties of an account incl bytecode
-    // let acc_info = ethersdb.basic(pool_address).unwrap().unwrap();
-
-    // // query value of storage slot at account address
-    // let value = ethersdb.storage(pool_address, slot).unwrap();
-
-    // // insert basic account info which was generated via Web3DB with the corresponding address
-    // cache_db.insert_account_info(pool_address, acc_info);
 
     // // insert our pre-loaded storage slot to the corresponding contract key (address) in the DB
     // cache_db
