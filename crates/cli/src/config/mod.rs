@@ -25,6 +25,8 @@ struct ConfigToml {
     rpc_url: String,
     /// Parameters for the `clairvoyance` module of arbiter.
     see: ConfigTomlSee,
+    /// Parameters for the `sim` module of arbiter.
+    sim: ConfigTomlSim
 }
 
 /// Representation of the `see` section of the config file.
@@ -36,6 +38,24 @@ struct ConfigTomlSee {
     token1: String,
     /// Basis points of the pool.
     bp: String,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+struct ConfigTomlSim {
+    /// Numerical timestep for the simulation (typically `1`)
+    timestep: f64,
+    /// Time in string interpretation 
+    timescale: String,
+    /// Number of timesteps
+    num_steps: usize,
+    /// Initial asset price
+    initial_price: f64,
+    /// Asset price drift
+    drift: f64,
+    /// Asset volatility
+    volatility: f64,
+    /// Seed for varying price path
+    seed: u64,
 }
 
 /// Representation of the config file that other modules have access to.
@@ -50,6 +70,20 @@ pub struct Config {
     pub token1: String,
     /// Pool basis points.
     pub bp: String,
+    /// Numerical timestep for the simulation (typically `1`)
+    pub timestep: f64,
+    /// Time in string interpretation 
+    pub timescale: String,
+    /// Number of timesteps
+    pub num_steps: usize,
+    /// Initial asset price
+    pub initial_price: f64,
+    /// Asset price drift
+    pub drift: f64,
+    /// Asset volatility
+    pub volatility: f64,
+    /// Seed for varying price path
+    pub seed: u64,
 }
 
 impl Config {
@@ -71,6 +105,13 @@ impl Config {
             token0: config_toml.see.token0,
             token1: config_toml.see.token1,
             bp: config_toml.see.bp,
+            timestep: config_toml.sim.timestep,
+            timescale: config_toml.sim.timescale,
+            num_steps: config_toml.sim.num_steps,
+            initial_price: config_toml.sim.initial_price,
+            drift: config_toml.sim.drift,
+            volatility: config_toml.sim.volatility,
+            seed: config_toml.sim.seed,
         })
     }
 }
