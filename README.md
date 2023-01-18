@@ -138,6 +138,26 @@ If you need to unset the `PROVIDER` variable, do:
 unset PROVIDER
 ```
 
+## Test Network Simulations
+
+In order to run a test network and simulate transactions with DEXs or other objects, we need `Foundry`. This can be run on your local machine, or an external machine. To get the full `Foundry` suite, run:
+
+````
+cargo install --git https://github.com/foundry-rs/foundry --profile local --locked foundry-cli anvil
+```
+
+From here, you need a way to fork the blockchain network you want. For example, you can create an Alchemy account, get an Alchemy API key. With this key, export it to your `env` variables by
+
+```
+export ALCHEMY_KEY = your_key_here
+```
+
+You can check this by `echo $ALCHEMY_KEY`. If all is well, you can run your fork of the Ethereum main-net by:
+
+```
+anvil --fork-url https://eth-mainnet.g.alchemy.com/v2/
+```
+
 ## Contributing
 
 See our [Contributing Guidelines](https://github.com/primitivefinance/arbiter/blob/main/.github/CONTRIBUTING.md)

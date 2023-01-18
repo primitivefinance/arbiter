@@ -1,123 +1,111 @@
-use clairvoyance::simulation;
-use clairvoyance::uniswap::{get_pool, Pool};
-use clap::{Parser, Subcommand};
-use ethers::providers::{Http, Provider};
-use eyre::Result;
-use std::{env, sync::Arc};
-use tokio::join;
+use std::{str::FromStr, sync::Arc};
+use anyhow::{Ok, Result};
+use bytes::Bytes;
+use ethers::{
+    abi::parse_abi,
+    prelude::BaseContract,
+    providers::{Http, Provider},
+};
+use revm::{
+    db::{CacheDB, EmptyDB},
+    Database, TransactOut, TransactTo, EVM,
+};
+use revm::db::EthersDB;
+use ethers::types::{H160, U256};
 use utils::chain_tools::get_provider;
-
-mod config;
-
-#[derive(Parser)]
-#[command(name = "Arbiter")]
-#[command(version = "1.0")]
-#[command(about = "Data monitoring and execution tool for decentralized exchanges.", long_about = None)]
-#[command(author)]
-struct Cli {
-    /// Pass a subcommand in.
-    #[command(subcommand)]
-    command: Option<Commands>,
-}
-
-#[derive(Subcommand)]
-enum Commands {
-    /// Access the `Clairvoyance` monitoring module via this subcommand.
-    See {
-        /// Token 0 of the pool.
-        #[arg(default_value = "ETH")]
-        token0: String,
-
-        /// Token 1 of the pool.
-        #[arg(default_value = "USDC")]
-        token1: String,
-
-        /// Basis point fee of the pool.
-        #[arg(default_value = "5")]
-        bp: String,
-
-        /// Set this flag to use the config.toml.
-        #[arg(short = 'c', long = "config", action)]
-        config: bool,
-    },
-}
 
 #[tokio::main]
 async fn main() -> Result<()> {
-    // Parameters for GBM
-    // Numerical timestep for the simulation (typically just 1).
-    let timestep = 1.;
-    // Time in string interpretation.
-    let timescale = String::from("day");
-    // Number of steps.
-    let num_steps = 365_usize;
-    // Initial price of the simulation.
-    let initial_price = 1196.15;
-    // Price drift of the underlying asset.
-    let drift = 0.1 / 365.0;
-    // Volatility of the underlying asset.
-    let volatility = 2. / 365.0;
-    // Seed for testing
-    let seed = 2;
+    // create ethers client and wrap it in Arc<M>
+    // let client = Provider::<Http>::try_from(
+    //     "https://mainnet.infura.io/v3/c60b0bb42f8a4c6481ecd229eddaca27",
+    // )?;
+    // let client = Arc::new(client);
+    let client = get_provider().await;
 
-    let test_sim = simulation::Simulation::new(
-        timestep,
-        timescale,
-        num_steps,
-        initial_price,
-        drift,
-        volatility,
-        seed,
+    // ----------------------------------------------------------- //
+    //             Storage slots of UniV2Pair contract             //
+    // =========================================================== //
+    // storage[5] = factory: address                               //
+    // storage[6] = token0: address                                //
+    // storage[7] = token1: address                                //
+    // storage[8] = (res0, res1, ts): (uint112, uint112, uint32)   //
+    // storage[9] = price0CumulativeLast: uint256                  //
+    // storage[10] = price1CumulativeLast: uint256                 //
+    // storage[11] = kLast: uint256                                //
+    // =========================================================== //
+
+    // choose slot of storage that you would like to transact with
+    let slot = U256::from(8);
+
+    // ETH/USDT pair on Uniswap V2
+    let pool_address = H160::from_str("0x0d4a11d5EEaaC28EC3F61d100daF4d40471f1852")?;
+
+    // generate abi for the calldata from the human readable interface
+    let abi = BaseContract::from(
+        parse_abi(&[
+            "function getReserves() external view returns (uint112 reserve0, uint112 reserve1, uint32 blockTimestampLast)",
+        ])?
     );
 
-    test_sim.plot();
+    // encode abi into Bytes
+    let encoded = abi.encode("getReserves", ())?;
 
-    let cli = Cli::parse();
+    // initialize new EthersDB
+    let mut ethersdb = EthersDB::new(Arc::clone(&client), None).unwrap();
 
-    // RPC endpoint [default: alchemy]
-    let provider = match env::var_os("PROVIDER") {
-        Some(v) => Arc::new(Provider::<Http>::try_from(v.into_string().unwrap())?),
-        None => get_provider().await,
+    // query basic properties of an account incl bytecode
+    let acc_info = ethersdb.basic(pool_address).unwrap().unwrap();
+
+    // query value of storage slot at account address
+    let value = ethersdb.storage(pool_address, slot).unwrap();
+
+    // initialise empty in-memory-db
+    let mut cache_db = CacheDB::new(EmptyDB::default());
+
+    // insert basic account info which was generated via Web3DB with the corresponding address
+    cache_db.insert_account_info(pool_address, acc_info);
+
+    // insert our pre-loaded storage slot to the corresponding contract key (address) in the DB
+    cache_db
+        .insert_account_storage(pool_address, slot, value)
+        .unwrap();
+
+    // initialise an empty (default) EVM
+    let mut evm = EVM::new();
+
+    // insert pre-built database from above
+    evm.database(cache_db);
+
+    // fill in missing bits of env struc
+    // change that to whatever caller you want to be
+    evm.env.tx.caller = H160::from_str("0x0000000000000000000000000000000000000000")?;
+    // account you want to transact with
+    evm.env.tx.transact_to = TransactTo::Call(pool_address);
+    // calldata formed via abigen
+    evm.env.tx.data = Bytes::from(hex::decode(hex::encode(&encoded))?);
+    // transaction value in wei
+    evm.env.tx.value = U256::try_from(0)?;
+
+    // execute transaction without writing to the DB
+    let ref_tx = evm.transact_ref();
+    // select ExecutionResult struct
+    let result = ref_tx.0;
+
+    // unpack output call enum into raw bytes
+    let value = match result.out {
+        TransactOut::Call(value) => Some(value),
+        _ => None,
     };
 
-    match &cli.command {
-        Some(Commands::See {
-            token0,
-            token1,
-            bp,
-            config,
-        }) => {
-            let pools: Vec<Pool> = match config {
-                true => {
-                    // If present, load config.toml and get pool from there.
-                    println!("Loading config.toml...");
+    // decode bytes to reserves + ts via ethers-rs's abi decode
+    let (reserve0, reserve1, ts): (u128, u128, u32) =
+        abi.decode_output("getReserves", value.unwrap())?;
 
-                    // We still need to handle the error properly here, but at least we have a custom type.
-                    let config = config::Config::new().unwrap();
-
-                    println!("Getting Pool...");
-
-                    let pool = get_pool(&config.token0, &config.token1, &config.bp, provider)
-                        .await
-                        .unwrap();
-
-                    vec![pool]
-                }
-                false => {
-                    println!("Getting Pool...");
-
-                    // Get pool from CLI/defaults.
-                    let pool = get_pool(token0, token1, bp, provider).await.unwrap();
-
-                    vec![pool]
-                }
-            };
-            for mut pool in pools {
-                join!(pool.monitor_pool());
-            }
-        }
-        None => {}
-    }
+    // Print emualted getReserves() call output
+    println!("Reserve0: {:#?}", reserve0);
+    println!("Reserve1: {:#?}", reserve1);
+    println!("Timestamp: {:#?}", ts);
 
     Ok(())
 }
