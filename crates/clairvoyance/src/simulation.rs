@@ -1,13 +1,10 @@
-// use chrono::{TimeZone, Utc};
-// use core::time;
 use plotly::{Plot, Scatter};
 use rand::prelude::*;
 use rand_chacha::ChaCha8Rng;
 use rand_distr::{Distribution, StandardNormal};
-// use std::convert::TryInto;
 
+/// Representation of a GBM (Geometric Brownian Motion) simulation.
 #[derive(Debug)]
-
 pub struct Simulation {
     // Name/identifier for the simulation (will set filenames)
     pub identifier: String, // E.g., "test"
@@ -32,7 +29,7 @@ pub struct Simulation {
 }
 
 impl Simulation {
-    // Public builder function that instantiates a `Simulation`.
+    // Public constructor function that instantiates a `Simulation`.
     pub fn new(
         timestep: f64,
         timescale: String,
