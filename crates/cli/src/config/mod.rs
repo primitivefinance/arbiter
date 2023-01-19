@@ -26,7 +26,7 @@ struct ConfigToml {
     /// Parameters for the `clairvoyance` module of arbiter.
     see: ConfigTomlSee,
     /// Parameters for the `sim` module of arbiter.
-    sim: ConfigTomlSim
+    sim: ConfigTomlSim,
 }
 
 /// Representation of the `see` section of the config file.
@@ -44,7 +44,7 @@ struct ConfigTomlSee {
 struct ConfigTomlSim {
     /// Numerical timestep for the simulation (typically `1`)
     timestep: f64,
-    /// Time in string interpretation 
+    /// Time in string interpretation
     timescale: String,
     /// Number of timesteps
     num_steps: usize,
@@ -72,7 +72,7 @@ pub struct Config {
     pub bp: String,
     /// Numerical timestep for the simulation (typically `1`)
     pub timestep: f64,
-    /// Time in string interpretation 
+    /// Time in string interpretation
     pub timescale: String,
     /// Number of timesteps
     pub num_steps: usize,

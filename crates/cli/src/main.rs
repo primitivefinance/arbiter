@@ -45,10 +45,10 @@ enum Commands {
     },
 
     Sim {
-        /// Path to config.toml containing simulation parameterization (optional) 
+        /// Path to config.toml containing simulation parameterization (optional)
         #[arg(short, long, default_value = "./crates/cli/src/config.toml", num_args = 0..=1)]
         config: String,
-    }
+    },
 }
 
 #[tokio::main]
@@ -96,10 +96,17 @@ async fn main() -> Result<()> {
                 join!(pool.monitor_pool());
             }
         }
-        Some(Commands::Sim {
-            config,
-        }) => {
-            let config::Config { timestep, timescale, num_steps, initial_price, drift, volatility, seed, .. } = config::Config::new(config).unwrap();
+        Some(Commands::Sim { config }) => {
+            let config::Config {
+                timestep,
+                timescale,
+                num_steps,
+                initial_price,
+                drift,
+                volatility,
+                seed,
+                ..
+            } = config::Config::new(config).unwrap();
             let test_sim = simulation::Simulation::new(
                 timestep,
                 timescale,
