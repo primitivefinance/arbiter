@@ -1,5 +1,6 @@
 use anyhow::{Ok, Result};
 use bytes::Bytes;
+use revm::Bytecode;
 use ethers_core::k256::elliptic_curve::rand_core::block;
 use ethers_providers::Middleware;
 use ruint::aliases::{U256 as rU256, B160};
@@ -9,6 +10,7 @@ use ethers::{
     prelude::BaseContract,
     providers::{Http, Provider},
 };
+
 use revm::{
     db::{CacheDB, EmptyDB},
     AccountInfo, Database, TransactOut, TransactTo, EVM, KECCAK_EMPTY,
@@ -31,7 +33,7 @@ async fn main() -> Result<()> {
     let user_info = revm::AccountInfo::default();
     cache_db.insert_account_info(user_address, user_info);
     println!("------------CREATE USER ACCOUNT------------");
-    println!("Account created: {:?}", cache_db.accounts);
+    println!("Account created: {:#?}", cache_db.accounts);
 
 
     /////////////////////////////////////////////////////////////////
@@ -64,7 +66,7 @@ async fn main() -> Result<()> {
         parse_abi(&[
             "function getReserves() external view returns (uint112 reserve0, uint112 reserve1, uint32 blockTimestampLast)",
         ])?
-    );
+    ); // TODO: this is where we can probably just use contract bindings we already have
 
      // Choose block number
      let block_number: u64 = 16434802 as u64; //.try_into().unwrap();
@@ -74,6 +76,8 @@ async fn main() -> Result<()> {
     let runtime = Handle::try_current()
             .is_err()
             .then(|| Runtime::new().unwrap());
+
+    // ----- THIS COMES FROM ethersdb.storage()
     let index = H256::from(slot.to_be_bytes());
         let f = async {
             let storage = client
@@ -84,7 +88,7 @@ async fn main() -> Result<()> {
             eU256::from(storage.to_fixed_bytes())
         };
     let value = Ok(block_on(&runtime, f)).unwrap();
-    // ----
+    // ---- EXIT STUFF FROM THAT FUNCTION
     // println!("Value = {:?}", value);
     
     // encode abi into Bytes
@@ -94,17 +98,43 @@ async fn main() -> Result<()> {
 
 
     // insert our pre-loaded storage slot to the corresponding contract key (address) in the DB
-    cache_db.insert_account_info(pool_address, revm::AccountInfo::default());
+    let g = async {
+        let nonce = client.get_transaction_count(pool_address, block);
+        let balance = client.get_balance(pool_address, block);
+        let code = client.get_code(pool_address, block);
+        tokio::join!(nonce, balance, code)
+    };
+    let (nonce, balance, code) = block_on(&runtime, g);
+        // panic on not getting data?
+    let pool_acc_info = AccountInfo::new(
+            // rU256::from_limbs(
+            //     balance
+            //         .unwrap_or_else(|e| panic!("ethers get balance error: {e:?}"))
+            //         .0,
+            // ),
+            balance.unwrap(),
+            nonce
+                .unwrap_or_else(|e| panic!("ethers get nonce error: {e:?}"))
+                .as_u64(),
+            Bytecode::new_raw(
+                code.unwrap_or_else(|e| panic!("ethers get code error: {e:?}"))
+                    .0,
+            ),
+        );
+    cache_db.insert_account_info(pool_address, pool_acc_info);
     let slot = eU256::from(slot_use);
     cache_db
         .insert_account_storage(pool_address, slot, value)
         .unwrap();
+    // cache_db.insert_contract();
+        // ERROR HERE? The contract doesn't actually get any bytecode?
 
     // retrieve account from address just to check
     // let pool_acc_info = cache_db.basic(pool_address)?.unwrap();
     let pool_acc_info = cache_db.basic(pool_address).unwrap().unwrap();
+
     println!("------------CREATE POOL ACCOUNT------------");
-    println!("Pool address pulled: {:?}", pool_acc_info);
+    println!("Pool address pulled: {:#?}", pool_acc_info);
 
     /////////////////////////////////////////////////////////////////
     // Initialise an EVM and perform a transaction on the Uni pool
@@ -114,7 +144,7 @@ async fn main() -> Result<()> {
     // insert pre-built database from above
     evm.database(cache_db);
     println!("---------------PRINT EVM DB---------------");
-    println!("{:?}", evm.db().unwrap());
+    println!("{:#?}", evm.db().unwrap());
     // fill in missing bits of env struc
     // change that to whatever caller you want to be
     evm.env.tx.caller = eH160::from_str("0x0000000000000000000000000000000000000000")?;
@@ -136,6 +166,8 @@ async fn main() -> Result<()> {
         TransactOut::Call(value) => Some(value),
         _ => None,
     };
+
+    println!("Value after call: {:#?}", value.as_ref().unwrap());
 
     // decode bytes to reserves + ts via ethers-rs's abi decode
     let (reserve0, reserve1, ts): (u128, u128, u32) =
