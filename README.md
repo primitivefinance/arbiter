@@ -3,7 +3,7 @@
 ![](https://visitor-badge.laobi.icu/badge?page_id=arbiter)
 ![Github Actions](https://github.com/primitivefinance/arbiter/workflows/Rust/badge.svg)
 
-> A stand-alone analytic program for UniswapV3 pools written in rust.
+> Code that runs code that runs code to study how code runs code and behaves in any environment.
 
 ## Motivation:
 
