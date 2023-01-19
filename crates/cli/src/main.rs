@@ -30,11 +30,9 @@ async fn main() -> Result<()> {
     let user_address = eH160::from_str("0x0000000000000000000000000000000000000000")?;
     let user_info = revm::AccountInfo::default();
     cache_db.insert_account_info(user_address, user_info);
+    println!("------------CREATE USER ACCOUNT------------");
     println!("Account created: {:?}", cache_db.accounts);
 
-    // // retrieve account from address just to check
-    // let acc_info = cache_db.basic(user_address)?.unwrap();
-    // println!("Account pulled: {:?}", acc_info);
 
     /////////////////////////////////////////////////////////////////
     // Add a UniV2Pair contract account to our database and get the
@@ -87,16 +85,26 @@ async fn main() -> Result<()> {
         };
     let value = Ok(block_on(&runtime, f)).unwrap();
     // ----
+    // println!("Value = {:?}", value);
     
     // encode abi into Bytes
     let encoded = abi.encode("getReserves", ())?;
 
+    // println!("encoded: {:?}", encoded);
+
+
     // insert our pre-loaded storage slot to the corresponding contract key (address) in the DB
+    cache_db.insert_account_info(pool_address, revm::AccountInfo::default());
     let slot = eU256::from(slot_use);
-    // let value = 
     cache_db
         .insert_account_storage(pool_address, slot, value)
         .unwrap();
+
+    // retrieve account from address just to check
+    // let pool_acc_info = cache_db.basic(pool_address)?.unwrap();
+    let pool_acc_info = cache_db.basic(pool_address).unwrap().unwrap();
+    println!("------------CREATE POOL ACCOUNT------------");
+    println!("Pool address pulled: {:?}", pool_acc_info);
 
     /////////////////////////////////////////////////////////////////
     // Initialise an EVM and perform a transaction on the Uni pool
@@ -105,7 +113,8 @@ async fn main() -> Result<()> {
 
     // insert pre-built database from above
     evm.database(cache_db);
-
+    println!("---------------PRINT EVM DB---------------");
+    println!("{:?}", evm.db().unwrap());
     // fill in missing bits of env struc
     // change that to whatever caller you want to be
     evm.env.tx.caller = eH160::from_str("0x0000000000000000000000000000000000000000")?;
@@ -121,6 +130,7 @@ async fn main() -> Result<()> {
     // select ExecutionResult struct
     let result = ref_tx.0;
 
+
     // unpack output call enum into raw bytes
     let value = match result.out {
         TransactOut::Call(value) => Some(value),
@@ -130,6 +140,8 @@ async fn main() -> Result<()> {
     // decode bytes to reserves + ts via ethers-rs's abi decode
     let (reserve0, reserve1, ts): (u128, u128, u32) =
         abi.decode_output("getReserves", value.unwrap())?;
+    
+    println!("got here");
 
     // Print emualted getReserves() call output
     println!("Reserve0: {:#?}", reserve0);
