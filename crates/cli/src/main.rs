@@ -10,7 +10,7 @@ use ethers::{
     prelude::BaseContract,
     providers::{Http, Provider},
 };
-
+// use revm::db::EthersDB; // BROKEN IMPORT?
 use revm::{
     db::{CacheDB, EmptyDB},
     AccountInfo, Database, TransactOut, TransactTo, EVM, KECCAK_EMPTY,
@@ -167,13 +167,9 @@ async fn main() -> Result<()> {
         _ => None,
     };
 
-    println!("Value after call: {:#?}", value.as_ref().unwrap());
-
     // decode bytes to reserves + ts via ethers-rs's abi decode
     let (reserve0, reserve1, ts): (u128, u128, u32) =
         abi.decode_output("getReserves", value.unwrap())?;
-    
-    println!("got here");
 
     // Print emualted getReserves() call output
     println!("Reserve0: {:#?}", reserve0);
