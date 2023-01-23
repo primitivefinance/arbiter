@@ -1,5 +1,6 @@
 use anyhow::{Ok, Result};
 use bytes::Bytes;
+extern crate revm;
 use revm::Bytecode;
 use ethers_core::k256::elliptic_curve::rand_core::block;
 use ethers_providers::Middleware;
