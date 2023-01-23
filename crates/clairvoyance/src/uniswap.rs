@@ -2,7 +2,7 @@
 //!
 //! Clairvoyance is the monitoring, modelling and simulation suite of Arbiter.
 
-use std::{sync::Arc};
+use std::sync::Arc;
 
 use bindings::{i_uniswap_v3_pool::IUniswapV3Pool, uniswap_v3_factory::UniswapV3Factory};
 use ethers::{abi::Address, prelude::*, providers::Provider, types::H160};
@@ -12,7 +12,9 @@ use utils::{
     tokens::{get_tokens, Token},
 };
 
-use crate::clairerror::ClairvoyanceError::{ TokenDoesNotExist, PoolDoesNotExist, FeeTierDoesNotExist };
+use crate::clairerror::ClairvoyanceError::{
+    FeeTierDoesNotExist, PoolDoesNotExist, TokenDoesNotExist,
+};
 
 /// Uniswap V3 factory address.
 const FACTORY: &str = "0x1F98431c8aD98523631AE4a59f267346ea31F984";
@@ -53,8 +55,7 @@ impl Pool {
     ) -> Pool {
         match bp {
             1 | 5 | 30 | 100 => (),
-            _ =>
-                panic!("{}", FeeTierDoesNotExist{ bp }),
+            _ => panic!("{}", FeeTierDoesNotExist { bp }),
         }
 
         // Factory Address.
@@ -62,7 +63,7 @@ impl Pool {
 
         // Factory contract object.
         let factory = UniswapV3Factory::new(uniswap_v3_factory_address, provider.clone());
-  
+
         let pool_address = factory
             .get_pool(token_0.address, token_1.address, bp * 100)
             .call()
@@ -70,13 +71,22 @@ impl Pool {
             .unwrap();
 
         // get_pool() returns the zero address if the pool does not exist
-        let zero_address: Address = "0x0000000000000000000000000000000000000000".parse().unwrap();
+        let zero_address: Address = "0x0000000000000000000000000000000000000000"
+            .parse()
+            .unwrap();
         if pool_address == zero_address {
             let token_0_name = token_0.clone().name;
             let token_1_name = token_1.clone().name;
-            panic!("{}", PoolDoesNotExist{ token_0_name, token_1_name, bp });
+            panic!(
+                "{}",
+                PoolDoesNotExist {
+                    token_0_name,
+                    token_1_name,
+                    bp
+                }
+            );
         }
-        
+
         Pool {
             token_0,
             token_1,
@@ -206,7 +216,6 @@ impl Pool {
     }
 }
 
-
 /// Wrapper function to easily create a pool.
 pub async fn get_pool(
     token0: &String,
@@ -214,27 +223,23 @@ pub async fn get_pool(
     bp: &str,
     provider: Arc<Provider<Http>>,
 ) -> Pool {
-
     let tokens = get_tokens();
 
     let token_name = token0.clone();
 
     let token0 = match tokens.get(token0) {
         Some(token) => token,
-        None =>
-            panic!("{}", TokenDoesNotExist{ token_name }),
+        None => panic!("{}", TokenDoesNotExist { token_name }),
     };
 
     let token_name = token1.clone();
     let token1 = match tokens.get(token1) {
         Some(token) => token,
-        None =>
-            panic!("{}", TokenDoesNotExist{ token_name }),
+        None => panic!("{}", TokenDoesNotExist { token_name }),
     };
     let bp = bp.parse::<u32>().unwrap();
 
     Pool::new(token0.clone(), token1.clone(), bp, provider).await
-
 }
 
 /// Get a sample test pool.
@@ -245,7 +250,8 @@ pub async fn _get_test_pool(bp: String, provider: Arc<Provider<Http>>) -> Pool {
         tokens.get("DAI").unwrap().to_owned(),
         bp.parse::<u32>().unwrap(),
         provider,
-    ).await 
+    )
+    .await
 }
 
 /// Takes in UniswapV3's sqrt_price_x96 (a q64_96 fixed point number) and outputs the price in human readable form.
@@ -281,8 +287,9 @@ mod tests {
             $bp:expr,
             $address:expr
         ) => {
-            let pool = Pool::new($tokens.0.clone(), $tokens.1.clone(), $bp, $provider.clone()).await;
-        
+            let pool =
+                Pool::new($tokens.0.clone(), $tokens.1.clone(), $bp, $provider.clone()).await;
+
             assert_eq!(pool.address, $address.parse::<Address>().unwrap());
         };
     }
