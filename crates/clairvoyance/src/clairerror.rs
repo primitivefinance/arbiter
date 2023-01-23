@@ -19,7 +19,7 @@ pub enum ClairvoyanceError {
 
 impl Display for ClairvoyanceError {
     fn fmt(&self, f: &mut Formatter) -> Result {
-        match &*self {
+        match self {
             ClairvoyanceError::TokenDoesNotExist{ token_name } =>
                 write!(f, "\n\nErrorType : TokenDoesNotExist\nError Message : \"{token_name}\" is not a valid token that exists in arbiter!\n\n"),
             ClairvoyanceError::FeeTierDoesNotExist{ bp } =>
