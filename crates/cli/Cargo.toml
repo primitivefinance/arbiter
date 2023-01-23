@@ -8,6 +8,7 @@ edition = "2021"
 [dependencies]
 # Local
 clairvoyance = { path = "../clairvoyance" }
+simulate = { path = "../simulate" }
 
 # External
 tokio = { version = "1.23", features = [

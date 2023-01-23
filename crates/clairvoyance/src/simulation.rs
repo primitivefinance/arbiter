@@ -7,7 +7,6 @@ use rand_distr::{Distribution, StandardNormal};
 // use std::convert::TryInto;
 
 #[derive(Debug)]
-
 pub struct Simulation {
     // Name/identifier for the simulation (will set filenames)
     pub identifier: String, // E.g., "test"

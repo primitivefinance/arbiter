@@ -1,6 +1,6 @@
+use simulate::testbed::Testbed;
 use anyhow::{Ok, Result};
 use bytes::Bytes;
-extern crate revm;
 use revm::Bytecode;
 use ethers_core::k256::elliptic_curve::rand_core::block;
 use ethers_providers::Middleware;
@@ -22,44 +22,18 @@ use tokio::runtime::{Handle, Runtime};
 
 #[tokio::main]
 async fn main() -> Result<()> {
-    /////////////////////////////////////////////////////////////////
-    // Initialize a new database to store users and transactions.
-    /////////////////////////////////////////////////////////////////
-    let mut cache_db = CacheDB::new(EmptyDB {});
-
-    /////////////////////////////////////////////////////////////////
-    // Create a user account and fund the account. TODO: fund the account
-    /////////////////////////////////////////////////////////////////
+    let mut testbed = Testbed::new();
     let user_address = eH160::from_str("0x0000000000000000000000000000000000000000")?;
     let user_info = revm::AccountInfo::default();
-    cache_db.insert_account_info(user_address, user_info);
+    testbed.db.insert_account_info(user_address, user_info);
     println!("------------CREATE USER ACCOUNT------------");
-    println!("Account created: {:#?}", cache_db.accounts);
+    println!("Account created: {:#?}", testbed.db.accounts);
 
 
-    /////////////////////////////////////////////////////////////////
-    // Add a UniV2Pair contract account to our database and get the
-    // getReserves() function
-    /////////////////////////////////////////////////////////////////
     let client = get_provider().await;
+    let mut testbed = Testbed::new();
 
-    // ----------------------------------------------------------- //
-    //             Storage slots of UniV2Pair contract             //
-    // =========================================================== //
-    // storage[5] = factory: address                               //
-    // storage[6] = token0: address                                //
-    // storage[7] = token1: address                                //
-    // storage[8] = (res0, res1, ts): (uint112, uint112, uint32)   //
-    // storage[9] = price0CumulativeLast: uint256                  //
-    // storage[10] = price1CumulativeLast: uint256                 //
-    // storage[11] = kLast: uint256                                //
-    // =========================================================== //
-    // First call ethersdb.basic() which does...
-    // then call ethersdb.storage() calls client.get_storage_at() with curr block number to get stuff
-    // ETH/USDT pair on Uniswap V2
     let pool_address = eH160::from_str("0x0d4a11d5EEaaC28EC3F61d100daF4d40471f1852")?;
-     // Choose slot of storage that you would like to transact with
-// let slot = rU256::from(8);
     let slot_use = 8;
     let slot = rU256::from(slot_use);
     // Generate abi for the calldata from the human readable interface
@@ -72,11 +46,6 @@ async fn main() -> Result<()> {
      // Choose block number
      let block_number: u64 = 16434802 as u64; //.try_into().unwrap();
      let block = Some(BlockId::from(block_number));
-    // essentially COPIED FROM ethersdb for value in example
-    // let add = eH160::from(pool_address.0);
-    let runtime = Handle::try_current()
-            .is_err()
-            .then(|| Runtime::new().unwrap());
 
     // ----- THIS COMES FROM ethersdb.storage()
     let index = H256::from(slot.to_be_bytes());
@@ -88,15 +57,11 @@ async fn main() -> Result<()> {
             // rU256::from_be_bytes(storage.to_fixed_bytes())
             eU256::from(storage.to_fixed_bytes())
         };
-    let value = Ok(block_on(&runtime, f)).unwrap();
-    // ---- EXIT STUFF FROM THAT FUNCTION
-    // println!("Value = {:?}", value);
+
+    let value = testbed.block_on(f);
     
     // encode abi into Bytes
     let encoded = abi.encode("getReserves", ())?;
-
-    // println!("encoded: {:?}", encoded);
-
 
     // insert our pre-loaded storage slot to the corresponding contract key (address) in the DB
     let g = async {
@@ -105,14 +70,9 @@ async fn main() -> Result<()> {
         let code = client.get_code(pool_address, block);
         tokio::join!(nonce, balance, code)
     };
-    let (nonce, balance, code) = block_on(&runtime, g);
+    let (nonce, balance, code) = testbed.block_on(g); // EDITING RUNTIME
         // panic on not getting data?
     let pool_acc_info = AccountInfo::new(
-            // rU256::from_limbs(
-            //     balance
-            //         .unwrap_or_else(|e| panic!("ethers get balance error: {e:?}"))
-            //         .0,
-            // ),
             balance.unwrap(),
             nonce
                 .unwrap_or_else(|e| panic!("ethers get nonce error: {e:?}"))
@@ -122,9 +82,9 @@ async fn main() -> Result<()> {
                     .0,
             ),
         );
-    cache_db.insert_account_info(pool_address, pool_acc_info);
+    testbed.db.insert_account_info(pool_address, pool_acc_info);
     let slot = eU256::from(slot_use);
-    cache_db
+    testbed.db
         .insert_account_storage(pool_address, slot, value)
         .unwrap();
     // cache_db.insert_contract();
@@ -132,7 +92,7 @@ async fn main() -> Result<()> {
 
     // retrieve account from address just to check
     // let pool_acc_info = cache_db.basic(pool_address)?.unwrap();
-    let pool_acc_info = cache_db.basic(pool_address).unwrap().unwrap();
+    let pool_acc_info = testbed.db.basic(pool_address).unwrap().unwrap();
 
     println!("------------CREATE POOL ACCOUNT------------");
     println!("Pool address pulled: {:#?}", pool_acc_info);
@@ -143,7 +103,7 @@ async fn main() -> Result<()> {
     let mut evm = EVM::new();
 
     // insert pre-built database from above
-    evm.database(cache_db);
+    evm.database(testbed.db);
     println!("---------------PRINT EVM DB---------------");
     println!("{:#?}", evm.db().unwrap());
     // fill in missing bits of env struc
