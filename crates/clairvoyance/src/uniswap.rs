@@ -47,10 +47,10 @@ impl Pool {
         token_1: Token,
         bp: u32,
         provider: Arc<Provider<Http>>,
-    ) -> Pool {
+    ) -> Result<Pool, UniswapError> {
         match bp {
             1 | 5 | 30 | 100 => (),
-            _ => panic!("{}", FeeTierDoesNotExist { bp }),
+            _ => return Err(UniswapError::FeeTierError),
         }
 
         // Factory Address.
@@ -65,21 +65,8 @@ impl Pool {
             .await
             .unwrap();
 
-        // get_pool() returns the zero address if the pool does not exist
-        let zero_address: Address = "0x0000000000000000000000000000000000000000"
-            .parse()
-            .unwrap();
-        if pool_address == zero_address {
-            let token_0_name = token_0.clone().name;
-            let token_1_name = token_1.clone().name;
-            panic!(
-                "{}",
-                PoolDoesNotExist {
-                    token_0_name,
-                    token_1_name,
-                    bp
-                }
-            );
+        if pool_address == Address::zero() {
+            return Err(UniswapError::PoolError);
         }
 
         Pool {
