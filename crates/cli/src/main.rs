@@ -135,7 +135,7 @@ async fn main() -> Result<()> {
 
             // get contract info
             let client = get_provider().await;
-            let block_number: u64 = 16434802 as u64;
+            let block_number: u64 = 16434802_u64;
             let block = Some(BlockId::from(block_number));
             let pool_addr = eH160::from_str("0x0d4a11d5EEaaC28EC3F61d100daF4d40471f1852")?;
             let slot = 8;
@@ -206,9 +206,9 @@ async fn main() -> Result<()> {
                 abi.decode_output("getReserves", value.unwrap())?;
 
             // Print emualted getReserves() call output
-            println!("Reserve0: {:#?}", reserve0);
-            println!("Reserve1: {:#?}", reserve1);
-            println!("Timestamp: {:#?}", ts);
+            println!("Reserve0: {reserve0:#?}");
+            println!("Reserve1: {reserve1:#?}");
+            println!("Timestamp: {ts:#?}");
         }
         None => {}
     }

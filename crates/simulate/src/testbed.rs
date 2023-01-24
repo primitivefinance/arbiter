@@ -11,6 +11,12 @@ pub struct Testbed {
     pub evm: EVM<CacheDB<EmptyDB>>,
 }
 
+impl Default for Testbed {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl Testbed {
     pub fn new() -> Self {
         let db = CacheDB::new(EmptyDB {});
