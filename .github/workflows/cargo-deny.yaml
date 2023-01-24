@@ -1,4 +1,4 @@
-name: cargo-audit
+name: cargo-deny
 
 on:
   push:
@@ -8,8 +8,8 @@ on:
       - main
 
 jobs:
-  cargo-audit:
+  cargo-deny:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v1
-    - uses: actions-rs/audit-check@v1
+    - uses: actions/checkout@v3
+    - uses: EmbarkStudios/cargo-deny-action@v1
