@@ -77,17 +77,15 @@ async fn main() -> Result<()> {
 
                     println!("Getting Pool...");
 
-                    let pool = get_pool(&config.token0, &config.token1, &config.bp, provider)
-                        .await
-                        .unwrap();
+                    let pool = get_pool(&config.token0, &config.token1, &config.bp, provider).await;
 
                     vec![pool]
                 }
                 None => {
                     println!("Getting Pool...");
 
-                    // Get pool from CLI/defaults.
-                    let pool = get_pool(token0, token1, bp, provider).await.unwrap();
+                    // Get pool from command line inputs
+                    let pool = get_pool(token0, token1, bp, provider).await;
 
                     vec![pool]
                 }
