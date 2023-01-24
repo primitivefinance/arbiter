@@ -12,9 +12,7 @@ use utils::{
     tokens::{get_tokens, Token},
 };
 
-use crate::error::ClairvoyanceError::{
-    FeeTierDoesNotExist, PoolDoesNotExist, TokenDoesNotExist,
-};
+use crate::error::UniswapError;
 
 /// Uniswap V3 factory address.
 const FACTORY: &str = "0x1F98431c8aD98523631AE4a59f267346ea31F984";
@@ -42,9 +40,6 @@ pub struct Pool {
     sqrt_price_x96: ethers::types::U256,
 }
 
-// ----
-//TODO: HANDLE THE CASE WHERE THE POOL DOES NOT EXIST
-// ----
 impl Pool {
     /// Public constructor function that instantiates a `Pool`.
     pub async fn new(

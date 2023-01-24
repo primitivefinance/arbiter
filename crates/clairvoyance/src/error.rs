@@ -1,5 +1,7 @@
 //! Error handling for clairvoyance.
 
+use thiserror::Error;
+
 /// Error enumeration type for the `uniswap` module of `clairvoyance`.
 #[derive(Debug, Error)]
 pub enum UniswapError {
