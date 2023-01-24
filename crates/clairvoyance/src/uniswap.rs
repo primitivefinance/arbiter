@@ -59,11 +59,13 @@ impl Pool {
         // Factory contract object.
         let factory = UniswapV3Factory::new(uniswap_v3_factory_address, provider.clone());
 
-        let pool_address = factory
+        let pool_address = match factory
             .get_pool(token_0.address, token_1.address, bp * 100)
             .call()
-            .await
-            .unwrap();
+            .await {
+                Ok(val) => val,
+                Err(err) => return Err(UniswapError::ContractInteractionError(err)),
+            };
 
         if pool_address == Address::zero() {
             return Err(UniswapError::PoolError);
@@ -139,8 +141,15 @@ impl Pool {
 
     /// Updates the pool tick and liquidity manually with a contract call.
     pub async fn _update_pool(&mut self) {
-        let slot_0 = self.inner.slot_0().call().await.unwrap();
-        self.set_liquidity(self.inner.liquidity().call().await.unwrap());
+        let slot_0 = match self.inner.slot_0().call().await {
+            Ok(val) => val,
+            Err(err) => Err(UniswapError::ContractInteractionError(err)),
+        };
+        let liquidity = match self.inner.liquidity().call.await {
+            Ok(val) => val,
+            Err(err) => Err(UniswapError::ContractInteractionError(err)),
+        };
+        self.set_liquidity(liquidity);
         self.set_tick(slot_0.1);
         self.set_sqrt_price_x96(slot_0.0)
     }
