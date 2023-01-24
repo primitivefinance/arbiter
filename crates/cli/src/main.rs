@@ -143,7 +143,7 @@ async fn main() -> Result<()> {
         parse_abi(&[
             "function getReserves() external view returns (uint112 reserve0, uint112 reserve1, uint32 blockTimestampLast)",
         ])?
-    );
+    ); // TODO: USE BINDINGS INSTEAD OF USING A PROVIDER API
 
             // set up future and call block_on for ethers call
             let index = H256::from(rU256::from(slot).to_be_bytes());

@@ -6,7 +6,6 @@ use revm::{
 use tokio::runtime::{Handle, Runtime};
 
 pub struct Testbed {
-    // pub db: InMemoryDB,
     pub runtime: Option<Runtime>,
     pub evm: EVM<CacheDB<EmptyDB>>,
 }
@@ -29,6 +28,7 @@ impl Testbed {
             evm,
         }
     }
+    // Suspected to be mutex/semaphore for threading safety (not Ethereum blocks!)
     pub fn block_on<F: core::future::Future>(&self, f: F) -> F::Output {
         match &self.runtime {
             Some(runtime) => runtime.block_on(f),
@@ -40,4 +40,6 @@ impl Testbed {
         let info = revm::AccountInfo::default();
         self.evm.db().unwrap().insert_account_info(addr, info);
     }
+
+    // TODO: Implement a create_contract() fxn
 }
