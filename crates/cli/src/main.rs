@@ -20,24 +20,19 @@ async fn main() -> Result<()> {
     testbed.create_user(user_addr);
 
     // get contract info
+    let client = get_provider().await;
+    let block_number: u64 = 16434802 as u64;
+    let block = Some(BlockId::from(block_number));
     let pool_addr = eH160::from_str("0x0d4a11d5EEaaC28EC3F61d100daF4d40471f1852")?;
-    let slot_use = 8;
-    let slot = rU256::from(slot_use);
+    let slot = 8;
     let abi = BaseContract::from(
         parse_abi(&[
             "function getReserves() external view returns (uint112 reserve0, uint112 reserve1, uint32 blockTimestampLast)",
         ])?
     );
 
-    // get ethers provider
-    let client = get_provider().await;
-
-    // Choose block number to sample data from
-    let block_number: u64 = 16434802 as u64;
-    let block = Some(BlockId::from(block_number));
-
     // set up future and call block_on for ethers call
-    let index = H256::from(slot.to_be_bytes());
+    let index = H256::from(rU256::from(slot).to_be_bytes());
     let f = async {
         let storage = client
             .get_storage_at(pool_addr, index, block)
@@ -74,12 +69,11 @@ async fn main() -> Result<()> {
         .db()
         .unwrap()
         .insert_account_info(pool_addr, pool_acc_info);
-    let slot = eU256::from(slot_use);
     testbed
         .evm
         .db()
         .unwrap()
-        .insert_account_storage(pool_addr, slot, value)
+        .insert_account_storage(pool_addr, eU256::from(slot), value)
         .unwrap();
 
     // perform a transaction
