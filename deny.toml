@@ -1,0 +1,53 @@
+# cargo-deny is really only ever intended to run on the "normal" tier-1 targets
+targets = [
+    { triple = "x86_64-unknown-linux-gnu" },
+    { triple = "aarch64-unknown-linux-gnu" },
+    { triple = "x86_64-unknown-linux-musl" },
+    { triple = "aarch64-apple-darwin" },
+    { triple = "x86_64-apple-darwin" },
+    { triple = "x86_64-pc-windows-msvc" },
+]
+
+[advisories]
+vulnerability = "deny"
+unmaintained = "deny"
+notice = "deny"
+unsound = "deny"
+ignore = [
+    # potential unaligned pointer read on windows. Doesn't happen in practice, don't
+    # care
+    "RUSTSEC-2021-0145",
+]
+
+[bans]
+multiple-versions = "deny"
+deny = []
+skip = [
+    # cargo depends on two versions of these crates
+    { name = "hex", version = "=0.3.2" },
+    { name = "bstr", version = "=0.2.17" },
+]
+skip-tree = [
+    # windows-sys minor version bumps are still incredibly tedious
+    { name = "windows-sys", version = "=0.36.1" },
+]
+
+[sources]
+unknown-registry = "deny"
+unknown-git = "deny"
+
+[sources.allow-org]
+github = ["EmbarkStudios"]
+
+[licenses]
+unlicensed = "deny"
+allow-osi-fsf-free = "neither"
+copyleft = "deny"
+# We want really high confidence when inferring licenses from text
+confidence-threshold = 0.93
+allow = ["Apache-2.0", "Apache-2.0 WITH LLVM-exception", "MIT", "MPL-2.0", "AGPL-3.0-or-later"]
+
+exceptions = [
+    { allow = ["Zlib"], name = "tinyvec" },
+    { allow = ["Unicode-DFS-2016"], name = "unicode-ident" },
+]
