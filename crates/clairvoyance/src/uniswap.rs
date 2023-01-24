@@ -156,7 +156,7 @@ impl Pool {
 
     /// Monitor a pool for swap events and print to standard output.
     /// TODO: Make it print a `Swap` struct that implements fmt in a special way.
-    pub async fn monitor_pool(&mut self) {
+    pub async fn monitor_pool(&mut self) -> Result<(), UniswapError> {
         let pool_contract = self.get_contract();
         let pool_tokens = self.get_tokens();
         let pool_bp = self.get_bp();
@@ -201,6 +201,8 @@ impl Pool {
             assert_eq!(event.liquidity, self.get_liquidity());
             assert_eq!(event.sqrt_price_x96, self.get_sqrt_price_x96());
         }
+
+        Ok(())
     }
 
     /// Calculate the amount you would have to swap in order to have a swap that causes
@@ -228,10 +230,10 @@ pub async fn get_pool(
         Some(token) => token,
         None => return Err(UniswapError::TokenError),
     };
-    
+
     let bp = bp.parse::<u32>().unwrap();
 
-    Pool::new(token0.clone(), token1.clone(), bp, provider).await
+    Ok(Pool::new(token0.clone(), token1.clone(), bp, provider).await)
 }
 
 /// Get a sample test pool.

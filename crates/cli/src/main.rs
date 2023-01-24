@@ -77,7 +77,7 @@ async fn main() -> Result<()> {
 
                     println!("Getting Pool...");
 
-                    let pool = get_pool(&config.token0, &config.token1, &config.bp, provider).await;
+                    let pool = get_pool(&config.token0, &config.token1, &config.bp, provider).await.unwrap();
 
                     vec![pool]
                 }
@@ -85,13 +85,13 @@ async fn main() -> Result<()> {
                     println!("Getting Pool...");
 
                     // Get pool from command line inputs
-                    let pool = get_pool(token0, token1, bp, provider).await;
+                    let pool = get_pool(token0, token1, bp, provider).await.unwrap();
 
                     vec![pool]
                 }
             };
             for mut pool in pools {
-                join!(pool.monitor_pool());
+                join!(pool.monitor_pool().unwrap());
             }
         }
         Some(Commands::Sim { config }) => {
