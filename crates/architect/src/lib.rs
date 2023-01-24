@@ -5,10 +5,11 @@
 //!
 //! Architect is the bundling, simulation and execution module of Arbiter.
 
-use ethers::core::rand::thread_rng;
-use ethers::core::types::transaction::eip2718::TypedTransaction;
-use ethers::prelude::*;
-use ethers::signers::Signer;
+use ethers::{
+    core::{rand::thread_rng, types::transaction::eip2718::TypedTransaction},
+    prelude::*,
+    signers::Signer,
+};
 use ethers_flashbots::*;
 use thiserror::Error;
 use url::Url;
@@ -114,10 +115,11 @@ impl<S: Signer> Architect<S> {
 
 #[cfg(test)]
 mod tests {
+    use ethers::{
+        core::rand::thread_rng, prelude::*, types::transaction::eip2718::TypedTransaction,
+    };
+
     use crate::Architect;
-    use ethers::core::rand::thread_rng;
-    use ethers::prelude::*;
-    use ethers::types::transaction::eip2718::TypedTransaction;
 
     // We will need more tests in future but this just ensures basic functionality is working.
     #[tokio::test]
@@ -125,7 +127,7 @@ mod tests {
         let provider = Provider::<Http>::try_from("https://mainnet.eth.aragon.network").unwrap();
         let tx = TypedTransaction::Legacy(TransactionRequest::pay("vitalik.eth", 100));
 
-        let mut architect = Architect::new(provider, LocalWallet::new(&mut thread_rng()))
+        let _architect = Architect::new(provider, LocalWallet::new(&mut thread_rng()))
             .await
             .unwrap()
             .add_transactions(&vec![tx])

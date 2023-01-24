@@ -1,0 +1,8 @@
+# Rustfmt configuration
+
+imports_granularity = "Crate"
+group_imports = "StdExternalCrate"
+
+format_code_in_doc_comments = true
+
+use_field_init_shorthand = true

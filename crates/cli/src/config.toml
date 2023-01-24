@@ -3,4 +3,14 @@ rpc_url = "https://eth-mainnet.g.alchemy.com/v2/I93POQk49QE9O-NuOz7nj7sbiluW76it
 [see]
 token0 = "ETH"
 token1 = "USDC"
-bp = "5"
+bp = "30"
+
+[sim]
+timestep = 1.0
+timescale = "day"
+num_steps = 365
+initial_price = 1196.54
+drift = 0.1
+volatility = 2.0
+seed = 888
+

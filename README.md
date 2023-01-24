@@ -3,17 +3,23 @@
 ![](https://visitor-badge.laobi.icu/badge?page_id=arbiter)
 ![Github Actions](https://github.com/primitivefinance/arbiter/workflows/Rust/badge.svg)
 
-> A stand-alone Rust program to events on UniswapV3 pools and...
+> Code that runs code that runs code to study how code runs code and behaves in any environment.
 
 ## Motivation:
 
-The current implementation abstracts away worrying about fetching and generating token bindings for any users. Arbitrage takes advantage of price discrepancies in the buy and sell prices of different markets for the same assets. Right now, searchers can detect differences in reported prices between markets and execute pure profit[^1] trades, which we call _atomic arbitrage_. The environment for arbitrage is competitive, but for less popular token pairs, there is room for new searchers to equilibrate the prices of different markets.
+Arbiter is built to streamline insights, analysis and arbitrage simualtion for UniswapV3. The goal is to provide a tool that can be used to monitor activity on pools to measure PnL for liquidity providers and measure economic security of defi protocols. The program is designed to be used by anyone for whatever needs they desire. The current implementation abstracts away worrying about fetching and generating token bindings for any users.
 
-We want to develop a Rust program capable of detecting and executing arbitrage opportunities between exchanges. Our goal is to lower the barrier to entry for searching in hopes that it can help level the playing field for capturing arbitrage.
+Searchers detect differences in reported prices between markets and execute pure profit[^1] trades, which we call _atomic arbitrage_. The environment for arbitrage is competitive and it is time to streamline the simluation, and analysis of the implications of arbitrage.
 
 [^1]: 'Pure profit' refers to the fact that atomic arbitrage does not require arbitrageurs to put any capital at risk other than an upfront cost on building the strategy and gas cost to get their transaction included. This contributes to the lucrative nature of atomic arbitrage when done effectively
 
+## Architecture:
+
+There are two primary crates: `architect` which handles the construction and execution of transactions, and `clairvoyance`, which handles the monitoring of UniswapV3 pools. The program is designed to be modular and extensible.
+
 ## Features:
+
+For our next beta release, we will be focusing on the following features:
 
 #### TODOs:
 
@@ -24,13 +30,11 @@ We want to develop a Rust program capable of detecting and executing arbitrage o
 - [x] Concurrent pool monitoring for multiple pools.
 - [x] Data Monitoring Component: Clairvoyance.
 - [x] Execution Component: Architect.
-- [ ] Additional protocols.
-  - [ ] Aave
-  - [ ] Balancer
-  - [ ] ...
-- [ ] Announces when an arbitrage trade with profit exceeding the no-arbitrage bounds + gas cost is found between two exchanges.
-- [ ] Computes Optimal Routing Algorithm.
-- [ ] Executes atomic transactions between pools to...
+- [ ] Simulation component: Simulation.
+- [ ] Simulate and measure arbitrage behavoir against different price paths on local test networks.
+- [ ] Case study on results of simulations.
+- [ ] Documentation for the project.
+- [ ] Publish to crates.io.
 
 ## Build From Source
 
