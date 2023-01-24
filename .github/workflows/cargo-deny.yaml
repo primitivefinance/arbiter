@@ -1,11 +1,7 @@
+on: [push]
+
 name: cargo-deny
 
-on:
-  push:
-    branches:
-      - main
-  pull_request:
-      - main
 
 jobs:
   cargo-deny:

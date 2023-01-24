@@ -1,11 +1,6 @@
-name: cargo-audit
+on: [push]
 
-on:
-  push:
-    branches:
-      - main
-  pull_request:
-      - main
+name: cargo-audit
 
 jobs:
   cargo-audit:
