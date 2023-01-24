@@ -12,7 +12,7 @@ use utils::{
     tokens::{get_tokens, Token},
 };
 
-use crate::clairerror::ClairvoyanceError::{
+use crate::error::ClairvoyanceError::{
     FeeTierDoesNotExist, PoolDoesNotExist, TokenDoesNotExist,
 };
 
