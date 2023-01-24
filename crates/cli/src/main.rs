@@ -1,3 +1,6 @@
+use std::{env, str::FromStr, sync::Arc};
+
+use bytes::Bytes;
 use clairvoyance::uniswap::{get_pool, Pool};
 use clap::{Parser, Subcommand};
 use ethers::{
@@ -11,10 +14,8 @@ use eyre::Result;
 use revm::{AccountInfo, Bytecode, TransactOut, TransactTo};
 use ruint::aliases::U256 as rU256;
 use simulate::{price_simulation::PriceSimulation, testbed::Testbed};
-use std::{env, str::FromStr, sync::Arc};
 use tokio::join;
 use utils::chain_tools::get_provider;
-use bytes::Bytes;
 
 mod config;
 
@@ -208,7 +209,6 @@ async fn main() -> Result<()> {
             println!("Reserve0: {:#?}", reserve0);
             println!("Reserve1: {:#?}", reserve1);
             println!("Timestamp: {:#?}", ts);
-
         }
         None => {}
     }
