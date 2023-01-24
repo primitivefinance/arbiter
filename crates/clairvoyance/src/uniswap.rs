@@ -172,8 +172,11 @@ impl Pool {
         println!("Listening for events...");
 
         let swap_events = pool_contract.swap_filter();
-        let pool_token_0 = pool_contract.token_0().call().await.unwrap();
-        let mut swap_stream = swap_events.stream().await.unwrap();
+        let pool_token_0 = match pool_contract.token_0().call().await {
+            Ok(val) => val,
+            Err(err) => Err(UniswapError::ContractInteractionError(err)),
+        };
+        let mut swap_stream = swap_events.stream().await;
 
         while let Some(Ok(event)) = swap_stream.next().await {
             let (tick, liq, sqrtprice) = (event.tick, event.liquidity, event.sqrt_price_x96);
@@ -213,21 +216,19 @@ pub async fn get_pool(
     token1: &String,
     bp: &str,
     provider: Arc<Provider<Http>>,
-) -> Pool {
+) -> Result<Pool, UniswapError> {
     let tokens = get_tokens();
-
-    let token_name = token0.clone();
 
     let token0 = match tokens.get(token0) {
         Some(token) => token,
-        None => panic!("{}", TokenDoesNotExist { token_name }),
+        None => return Err(UniswapError::TokenError),
     };
 
-    let token_name = token1.clone();
     let token1 = match tokens.get(token1) {
         Some(token) => token,
-        None => panic!("{}", TokenDoesNotExist { token_name }),
+        None => return Err(UniswapError::TokenError),
     };
+    
     let bp = bp.parse::<u32>().unwrap();
 
     Pool::new(token0.clone(), token1.clone(), bp, provider).await

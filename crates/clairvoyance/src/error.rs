@@ -16,4 +16,8 @@ pub enum UniswapError {
     /// Error occured when attempting to fetch an invalid pool.
     #[error("a pool with the given parameters does not exist")]
     PoolError,    
+
+    /// Error occured when attempting to fetch an invalid token.
+    #[error("a token with the given parameters does not exist")]
+    TokenError,  
 }
