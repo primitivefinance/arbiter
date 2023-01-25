@@ -5,4 +5,6 @@ members = [
     "crates/architect",
     "crates/cli",
     "crates/utils",
+    "crates/simulate"
 ]
+
