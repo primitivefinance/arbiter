@@ -10,12 +10,16 @@ use ethers::{
     types::{BlockId, H160 as eH160, H256, U256 as eU256},
 };
 use ethers_providers::Middleware;
+// use ethers_contract::Call::ContractCall;
 use eyre::Result;
 use revm::{AccountInfo, Bytecode, TransactOut, TransactTo};
 use ruint::aliases::U256 as rU256;
 use simulate::{price_simulation::PriceSimulation, testbed::Testbed};
 use tokio::join;
 use utils::chain_tools::get_provider;
+
+use ethers_solc::Solc;
+use bindings::{i_uniswap_v3_pool::IUniswapV3Pool, uniswap_v3_factory::UniswapV3Factory};
 
 mod config;
 
@@ -144,71 +148,82 @@ async fn main() -> Result<()> {
             "function getReserves() external view returns (uint112 reserve0, uint112 reserve1, uint32 blockTimestampLast)",
         ])?
     ); // TODO: USE BINDINGS INSTEAD OF USING A PROVIDER API
+            
 
             // set up future and call block_on for ethers call
-            let index = H256::from(rU256::from(slot).to_be_bytes());
-            let f = async {
-                let storage = client
-                    .get_storage_at(pool_addr, index, block)
-                    .await
-                    .unwrap();
-                eU256::from(storage.to_fixed_bytes())
-            };
-            let value = testbed.block_on(f);
+            // let index = H256::from(rU256::from(slot).to_be_bytes());
+            // let f = async {
+            //     let storage = client
+            //         .get_storage_at(pool_addr, index, block)
+            //         .await
+            //         .unwrap();
+            //     eU256::from(storage.to_fixed_bytes())
+            // };
+            // let value = testbed.block_on(f);
 
             // encode abi into Bytes
-            let encoded = abi.encode("getReserves", ())?;
+            // let encoded = abi.encode("UniswapV3Factory", ())?;
+            // Bytes::from(value);
+            let newfactory = UniswapV3Factory::new(pool_addr, client);
+            let thing = newfactory.create_pool(eH160::from_str("0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2").unwrap(),eH160::from_str("0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2").unwrap(), 50);
+            let newthing = thing.calldata().unwrap();
+            let bytecode = Bytecode::new_raw(Bytes::from(hex::decode(hex::encode(&newthing))?));
+            println!("{:#?}", bytecode);
 
-            // insert our pre-loaded storage slot to the corresponding contract key (address) in the DB
-            let f = async {
-                let nonce = client.get_transaction_count(pool_addr, block);
-                let balance = client.get_balance(pool_addr, block);
-                let code = client.get_code(pool_addr, block);
-                tokio::join!(nonce, balance, code)
-            };
-            let (nonce, balance, code) = testbed.block_on(f);
-            let pool_acc_info = AccountInfo::new(
-                balance.unwrap(),
-                nonce
-                    .unwrap_or_else(|e| panic!("ethers get nonce error: {e:?}"))
-                    .as_u64(),
-                Bytecode::new_raw(
-                    code.unwrap_or_else(|e| panic!("ethers get code error: {e:?}"))
-                        .0,
-                ),
-            );
+            // // insert our pre-loaded storage slot to the corresponding contract key (address) in the DB
+            // let f = async {
+            //     let nonce = client.get_transaction_count(pool_addr, block);
+            //     let balance = client.get_balance(pool_addr, block);
+            //     let code = client.get_code(pool_addr, block);
+            //     tokio::join!(nonce, balance, code)
+            // };
+            // let (nonce, balance, code) = testbed.block_on(f);
+            // let pool_acc_info = AccountInfo::new(
+            //     balance.unwrap(),
+            //     nonce
+            //         .unwrap_or_else(|e| panic!("ethers get nonce error: {e:?}"))
+            //         .as_u64(),
+            //     Bytecode::new_raw(
+            //         code.unwrap_or_else(|e| panic!("ethers get code error: {e:?}"))
+            //             .0,
+            //     ),
+            // );
 
-            testbed
-                .evm
-                .db()
-                .unwrap()
-                .insert_account_info(pool_addr, pool_acc_info);
-            testbed
-                .evm
-                .db()
-                .unwrap()
-                .insert_account_storage(pool_addr, eU256::from(slot), value)
-                .unwrap();
+            // AccountInfo::new(
+            
+            // );
 
-            // perform a transaction
-            testbed.evm.env.tx.caller = user_addr;
-            testbed.evm.env.tx.transact_to = TransactTo::Call(pool_addr);
-            testbed.evm.env.tx.data = Bytes::from(hex::decode(hex::encode(&encoded))?);
-            testbed.evm.env.tx.value = eU256::from(0);
-            let result = testbed.evm.transact_commit();
+            // testbed
+            //     .evm
+            //     .db()
+            //     .unwrap()
+            //     .insert_account_info(pool_addr, pool_acc_info);
+            // testbed
+            //     .evm
+            //     .db()
+            //     .unwrap()
+            //     .insert_account_storage(pool_addr, eU256::from(slot), value)
+            //     .unwrap();
 
-            // unpack output
-            let value = match result.out {
-                TransactOut::Call(value) => Some(value),
-                _ => None,
-            };
-            let (reserve0, reserve1, ts): (u128, u128, u32) =
-                abi.decode_output("getReserves", value.unwrap())?;
+            // // perform a transaction
+            // testbed.evm.env.tx.caller = user_addr;
+            // testbed.evm.env.tx.transact_to = TransactTo::Call(pool_addr);
+            // testbed.evm.env.tx.data = Bytes::from(hex::decode(hex::encode(&encoded))?);
+            // testbed.evm.env.tx.value = eU256::from(0);
+            // let result = testbed.evm.transact_commit();
 
-            // Print emualted getReserves() call output
-            println!("Reserve0: {reserve0:#?}");
-            println!("Reserve1: {reserve1:#?}");
-            println!("Timestamp: {ts:#?}");
+            // // unpack output
+            // let value = match result.out {
+            //     TransactOut::Call(value) => Some(value),
+            //     _ => None,
+            // };
+            // let (reserve0, reserve1, ts): (u128, u128, u32) =
+            //     abi.decode_output("getReserves", value.unwrap())?;
+
+            // // Print emualted getReserves() call output
+            // println!("Reserve0: {reserve0:#?}");
+            // println!("Reserve1: {reserve1:#?}");
+            // println!("Timestamp: {ts:#?}");
         }
         None => {}
     }
