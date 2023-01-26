@@ -7,12 +7,12 @@
 
 Ethereum's execution environment, the Ethereum virtual machine (EVM), has given fruit to a rich collection of decentralized applications. The EVM resembles a simple stack machine and sequentially executes opcodes as decentralized applications are used, deployed, or exploited.
 
-With the rich new array of applications and builders, there becomes an increasing need for developer tools. The developer tooling for the Ethereum ecosystem has increased drastically over the past years. For example, Foundry's integration of REVM, a rust implementation of the EVM, allows them to fuzz smart contracts at high speeds. REVM allows for much more resilient testing and helps detect anomaly behavior. While we have come far, we still need critical testing infrastructure. Because the Ethereum production environment is open and available to anyone, it would be nice to see how a given smart contract would interact with existing smart contracts at scale. With the REVM, we can achieve this. If we want to study arbitrage in a production environment so we can account for things as granular as gas, and we don't want to lose any precision (EVM types are u256 which not all other languages support the same quantity of accuracy natively), this isn't easy with current tools. If we upload the opcodes of these contracts and algorithmic calls from an arbitrage script to the REVM, we can have thousands of data points in a matter of minutes. If we wanted to do this on a test network, we would be limited by the network's block times. For this case, many innovators and scientists have resulted in simulations with less granularity and precision. While this can help validate the theory, it tells us little about how these theories hold up in practice.
+With the rich new array of applications and builders, there becomes an increasing need for developer tools. The developer tooling for the Ethereum ecosystem has increased drastically over the past years. For example, [Foundry](https://github.com/foundry-rs/foundry)'s integration of [revm](https://github.com/bluealloy/revm), a rust implementation of the EVM, allows them to fuzz smart contracts at high speeds. Revm allows for much more resilient testing and helps detect anomaly behavior. While we have come far, we still need critical testing infrastructure. Because the Ethereum production environment is open and available to anyone, it would be nice to see how a given smart contract would interact with existing smart contracts at scale. With the revm, we can achieve this. If we want to study arbitrage in a production environment so we can account for things as granular as gas, and we don't want to lose any precision (EVM types are u256 which not all other languages support the same quantity of accuracy natively), this isn't easy with current tools. If we upload the opcodes of these contracts and algorithmic calls from an arbitrage script to the revm, we can have thousands of data points in a matter of minutes. If we wanted to do this on a test network, we would be limited by the network's block times. For this case, many innovators and scientists have resulted in simulations with less granularity and precision. While this can help validate the theory, it tells us little about how these theories hold up in practice.
 
 
-Arbiter implements REVM (in rust) to build highly configurable and efficient simulations. Since there is a 1-1 mapping of the REVM and EVM opcodes, to switch to an execution environment, all you have to do is change your endpoint.
+Arbiter implements revm (in Rust) to build highly configurable and efficient simulations. Since there is a 1-1 mapping of the revm and EVM opcodes, to switch to an execution environment, all you have to do is change your endpoint.
 
-Financial engineers have the motive to study complex portfolio management strategies in significant numbers against many market conditions, contract parameters, and arbitrageurs. To configure such a rich simulation environment on a test network would take months to get a sufficient quantity of data points to draw conclusions with confidence and isolate ket variables. If we modeled this problem with historical data but omitted gas or a certain level of precision, our results would also be insignificant. But with REVM, we would be about to generate hundreds of thousands of data points (spanning years of data) in a matter of (estimated)hours or days. In financial engineering, this is a critical tool in evaluating capital efficiency, loss vs. rebalancing, and game theoretic security.
+Financial engineers have the motive to study complex portfolio management strategies in significant numbers against many market conditions, contract parameters, and arbitrageurs. To configure such a rich simulation environment on a test network would take months to get a sufficient quantity of data points to draw conclusions with confidence and isolate ket variables. If we modeled this problem with historical data but omitted gas or a certain level of precision, our results would also be insignificant. But with REVM, we would be about to generate hundreds of thousands of data points (spanning years of data) in a matter of (estimated) hours or days. In financial engineering, this is a critical tool in evaluating capital efficiency, loss vs. rebalancing, and game theoretic security.
 
 Thus arbiter as a tool will bring value to individuals and teams.
 
@@ -25,12 +25,12 @@ With Arbiter, we aim to build a layer of abstraction to lower the required techn
 - Arbiter consists of three primary components:
     - **Architect:** A simple execution module to bundle and execute transactions (supports flashbot bundles).
     - **Clairvoyance:** A live monitoring tool supporting historical and real-time concurrent contract data monitoring.
-    - **Simulation** toolbox for testing strategies (REVM).
+    - **Simulate** toolbox for testing strategies.
 
 
 ## Architecture:
 
-There are three primary crates: `architect` which handles the construction and execution of transactions, and `clairvoyance`, which handles the live monitoring of contract events, and `sim`, which handles a large multi-agent simulations in REVM. The program is designed to be modular and extensible.
+There are three primary crates: `architect` which handles the construction and execution of transactions, and `clairvoyance`, which handles the live monitoring of contract events, and `simulate`, which handles a large multi-agent simulations in revm. The program is designed to be modular and extensible.
 
 ## Features:
 
@@ -45,7 +45,7 @@ For our next beta release, we will be focusing on the following features:
 - [x] Concurrent pool monitoring for multiple pools.
 - [x] Data Monitoring Component: Clairvoyance.
 - [x] Execution Component: Architect.
-- [ ] Simulation component: Simulation.
+- [ ] Simulation component: Simulate.
 - [ ] Simulate and measure arbitrage behavoir against different price paths on local test networks.
 - [ ] Case study on results of simulations.
 - [ ] Documentation for the project.
