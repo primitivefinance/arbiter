@@ -1,8 +1,4 @@
 use std::{env, str::FromStr, sync::Arc};
-use std::{
-    fs::File,
-    io::{BufReader, Read},
-};
 
 use bytes::Bytes;
 use clairvoyance::uniswap::{get_pool, Pool};
@@ -17,7 +13,6 @@ use ethers_providers::Middleware;
 // use ethers_contract::Call::ContractCall;
 use eyre::Result;
 use revm::{AccountInfo, Bytecode, TransactOut, TransactTo};
-use ruint::aliases::U256 as rU256;
 use simulate::{price_simulation::PriceSimulation, testbed::Testbed};
 use tokio::join;
 use utils::chain_tools::get_provider;
@@ -165,9 +160,11 @@ async fn main() -> Result<()> {
             .unwrap()
             .insert_account_info(pool_addr, pool_acc_info);
 
+            println!("Database after adding user and factory contract: {:#?}", testbed.evm.db());
+
             let newfactory = UniswapV3Factory::new(pool_addr, client.clone());
             let calldata = newfactory.create_pool(eH160::from_str("0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2").unwrap(),eH160::from_str("0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2").unwrap(), 500).calldata().unwrap();
-            println!("thing: {:#?}", calldata);
+            println!("Calldata sent to EVM: {:#?}", calldata);
 
             // perform a transaction
             testbed.evm.env.tx.caller = user_addr;
@@ -175,9 +172,9 @@ async fn main() -> Result<()> {
             testbed.evm.env.tx.data = Bytes::from(hex::decode(hex::encode(&calldata))?);
             testbed.evm.env.tx.value = eU256::from(0);
             testbed.evm.env.tx.gas_price = eU256::zero();
-            let result = testbed.evm.transact_commit();
+            let result = testbed.evm.transact();
 
-            println!("{:#?}", result);
+            println!("Transaction result: {:#?}", result);
         }
         None => {}
     }
