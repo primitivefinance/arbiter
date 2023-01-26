@@ -150,7 +150,7 @@ async fn main() -> Result<()> {
     ); // TODO: USE BINDINGS INSTEAD OF USING A PROVIDER API
             
 
-            // set up future and call block_on for ethers call
+            // // set up future and call block_on for ethers call
             // let index = H256::from(rU256::from(slot).to_be_bytes());
             // let f = async {
             //     let storage = client
@@ -161,14 +161,11 @@ async fn main() -> Result<()> {
             // };
             // let value = testbed.block_on(f);
 
-            // encode abi into Bytes
-            // let encoded = abi.encode("UniswapV3Factory", ())?;
-            // Bytes::from(value);
             let newfactory = UniswapV3Factory::new(pool_addr, client);
-            let thing = newfactory.create_pool(eH160::from_str("0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2").unwrap(),eH160::from_str("0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2").unwrap(), 50);
-            let newthing = thing.calldata().unwrap();
-            let bytecode = Bytecode::new_raw(Bytes::from(hex::decode(hex::encode(&newthing))?));
-            println!("{:#?}", bytecode);
+            let contract_call = newfactory.create_pool(eH160::from_str("0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2").unwrap(),eH160::from_str("0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2").unwrap(), 50);
+            let contract_calldata = contract_call.calldata().unwrap();
+            let bytecode = Bytecode::new_raw(Bytes::from(hex::decode(hex::encode(&contract_calldata))?));
+            // println!("{:#?}", bytecode);
 
             // // insert our pre-loaded storage slot to the corresponding contract key (address) in the DB
             // let f = async {
@@ -178,26 +175,17 @@ async fn main() -> Result<()> {
             //     tokio::join!(nonce, balance, code)
             // };
             // let (nonce, balance, code) = testbed.block_on(f);
-            // let pool_acc_info = AccountInfo::new(
-            //     balance.unwrap(),
-            //     nonce
-            //         .unwrap_or_else(|e| panic!("ethers get nonce error: {e:?}"))
-            //         .as_u64(),
-            //     Bytecode::new_raw(
-            //         code.unwrap_or_else(|e| panic!("ethers get code error: {e:?}"))
-            //             .0,
-            //     ),
-            // );
+            let pool_acc_info = AccountInfo::new(
+                eU256::from(0),
+                0,
+                bytecode,
+            );
 
-            // AccountInfo::new(
-            
-            // );
-
-            // testbed
-            //     .evm
-            //     .db()
-            //     .unwrap()
-            //     .insert_account_info(pool_addr, pool_acc_info);
+            testbed
+                .evm
+                .db()
+                .unwrap()
+                .insert_account_info(pool_addr, pool_acc_info);
             // testbed
             //     .evm
             //     .db()
@@ -205,13 +193,14 @@ async fn main() -> Result<()> {
             //     .insert_account_storage(pool_addr, eU256::from(slot), value)
             //     .unwrap();
 
-            // // perform a transaction
-            // testbed.evm.env.tx.caller = user_addr;
-            // testbed.evm.env.tx.transact_to = TransactTo::Call(pool_addr);
-            // testbed.evm.env.tx.data = Bytes::from(hex::decode(hex::encode(&encoded))?);
-            // testbed.evm.env.tx.value = eU256::from(0);
-            // let result = testbed.evm.transact_commit();
+            // perform a transaction
+            testbed.evm.env.tx.caller = user_addr;
+            testbed.evm.env.tx.transact_to = TransactTo::Call(pool_addr);
+            testbed.evm.env.tx.data = Bytes::from(hex::decode(hex::encode(&contract_calldata))?);
+            testbed.evm.env.tx.value = eU256::from(0);
+            let result = testbed.evm.transact_commit();
 
+            println!("{:#?}", result);
             // // unpack output
             // let value = match result.out {
             //     TransactOut::Call(value) => Some(value),
