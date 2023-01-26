@@ -140,19 +140,19 @@ async fn main() -> Result<()> {
             // spawn a client for now
             let client = get_provider().await;
             let pool_addr = eH160::from_str("0x0d4a11d5EEaaC28EC3F61d100daF4d40471f1852")?;
-
             let newfactory = UniswapV3Factory::new(pool_addr, client);
             let contract_call = newfactory.create_pool(eH160::from_str("0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2").unwrap(),eH160::from_str("0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2").unwrap(), 50);
             let contract_calldata = contract_call.calldata().unwrap();
             let bytecode = Bytecode::new_raw(Bytes::from(hex::decode(hex::encode(&contract_calldata))?));
             // println!("{:#?}", bytecode);
+            
 
-            let pool_acc_info = AccountInfo::new(
+            let mut pool_acc_info = AccountInfo::new(
                 eU256::from(0),
                 0,
                 bytecode,
             );
-
+            testbed.evm.db().unwrap().insert_contract(&mut pool_acc_info);
             testbed
                 .evm
                 .db()
