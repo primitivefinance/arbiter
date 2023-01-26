@@ -1,4 +1,8 @@
 use std::{env, str::FromStr, sync::Arc};
+use std::{
+    fs::File,
+    io::{BufReader, Read},
+};
 
 use bytes::Bytes;
 use clairvoyance::uniswap::{get_pool, Pool};
@@ -18,8 +22,12 @@ use simulate::{price_simulation::PriceSimulation, testbed::Testbed};
 use tokio::join;
 use utils::chain_tools::get_provider;
 
+use bindings::{
+    i_uniswap_v3_pool::IUniswapV3Pool,
+    uniswap_v3_factory::{UniswapV3Factory, UNISWAPV3FACTORY_ABI},
+};
 use ethers_solc::Solc;
-use bindings::{i_uniswap_v3_pool::IUniswapV3Pool, uniswap_v3_factory::UniswapV3Factory};
+use utils::tokens::{get_tokens, Token};
 
 mod config;
 
@@ -130,6 +138,9 @@ async fn main() -> Result<()> {
             test_sim.plot();
 
             // Do a transaction using revm
+            // CLIENT STUFF WE NEED TO GET RID OF
+            let client = get_provider().await;
+
             // create a testbed where we can run sims
             let mut testbed = Testbed::new();
 
@@ -137,54 +148,36 @@ async fn main() -> Result<()> {
             let user_addr = eH160::from_str("0x0000000000000000000000000000000000000000")?;
             testbed.create_user(user_addr);
 
-            // spawn a client for now
-            let client = get_provider().await;
-            let pool_addr = eH160::from_str("0x0d4a11d5EEaaC28EC3F61d100daF4d40471f1852")?;
-            let newfactory = UniswapV3Factory::new(pool_addr, client);
-            let contract_call = newfactory.create_pool(eH160::from_str("0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2").unwrap(),eH160::from_str("0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2").unwrap(), 50);
-            let contract_calldata = contract_call.calldata().unwrap();
-            let bytecode = Bytecode::new_raw(Bytes::from(hex::decode(hex::encode(&contract_calldata))?));
-            // println!("{:#?}", bytecode);
-            
+            // deploy a local uni pool
+            let pool_addr = eH160::from_str("0x1111111111111111111111111111111111111111")?;
+            // let factory_abi = bindings::uniswap_v3_factory::UNISWAPV3FACTORY_ABI.to_owned(); // TODO: we should be using something like this.
+            let factory_bytes = std::fs::read("./bin/UniswapV3Factory.bin").unwrap();
+            let factory_bytecode = Bytecode::new_raw(Bytes::from(factory_bytes));
 
-            let mut pool_acc_info = AccountInfo::new(
+            let pool_acc_info = AccountInfo::new(
                 eU256::from(0),
                 0,
-                bytecode,
+                factory_bytecode,
             );
-            testbed.evm.db().unwrap().insert_contract(&mut pool_acc_info);
             testbed
-                .evm
-                .db()
-                .unwrap()
-                .insert_account_info(pool_addr, pool_acc_info);
-            // testbed
-            //     .evm
-            //     .db()
-            //     .unwrap()
-            //     .insert_account_storage(pool_addr, eU256::from(slot), value)
-            //     .unwrap();
+            .evm
+            .db()
+            .unwrap()
+            .insert_account_info(pool_addr, pool_acc_info);
+
+            let newfactory = UniswapV3Factory::new(pool_addr, client.clone());
+            let calldata = newfactory.create_pool(eH160::from_str("0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2").unwrap(),eH160::from_str("0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2").unwrap(), 500).calldata().unwrap();
+            println!("thing: {:#?}", calldata);
 
             // perform a transaction
             testbed.evm.env.tx.caller = user_addr;
             testbed.evm.env.tx.transact_to = TransactTo::Call(pool_addr);
-            testbed.evm.env.tx.data = Bytes::from(hex::decode(hex::encode(&contract_calldata))?);
+            testbed.evm.env.tx.data = Bytes::from(hex::decode(hex::encode(&calldata))?);
             testbed.evm.env.tx.value = eU256::from(0);
+            testbed.evm.env.tx.gas_price = eU256::zero();
             let result = testbed.evm.transact_commit();
 
             println!("{:#?}", result);
-            // // unpack output
-            // let value = match result.out {
-            //     TransactOut::Call(value) => Some(value),
-            //     _ => None,
-            // };
-            // let (reserve0, reserve1, ts): (u128, u128, u32) =
-            //     abi.decode_output("getReserves", value.unwrap())?;
-
-            // // Print emualted getReserves() call output
-            // println!("Reserve0: {reserve0:#?}");
-            // println!("Reserve1: {reserve1:#?}");
-            // println!("Timestamp: {ts:#?}");
         }
         None => {}
     }
