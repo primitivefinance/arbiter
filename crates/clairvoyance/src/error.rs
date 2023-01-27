@@ -1,7 +1,7 @@
 //! Error handling for clairvoyance.
 
-use thiserror::Error;
 use ethers::{prelude::*, providers::Provider};
+use thiserror::Error;
 
 /// Error enumeration type for the `uniswap` module of `clairvoyance`.
 #[derive(Debug, Error)]
@@ -16,9 +16,9 @@ pub enum UniswapError {
 
     /// Error occured when attempting to fetch an invalid pool.
     #[error("a pool with the given parameters does not exist")]
-    PoolError,    
+    PoolError,
 
     /// Error occured when attempting to fetch an invalid token.
     #[error("a token with the given parameters does not exist")]
-    TokenError,  
+    TokenError,
 }

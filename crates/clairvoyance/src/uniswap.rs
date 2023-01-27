@@ -62,10 +62,11 @@ impl Pool {
         let pool_address = match factory
             .get_pool(token_0.address, token_1.address, bp * 100)
             .call()
-            .await {
-                Ok(val) => val,
-                Err(err) => return Err(UniswapError::ContractInteractionError(err)),
-            };
+            .await
+        {
+            Ok(val) => val,
+            Err(err) => return Err(UniswapError::ContractInteractionError(err)),
+        };
 
         if pool_address == Address::zero() {
             return Err(UniswapError::PoolError);
@@ -239,7 +240,9 @@ pub async fn get_pool(
 
     let bp = bp.parse::<u32>().unwrap();
 
-    Ok(Pool::new(token0.clone(), token1.clone(), bp, provider).await.unwrap())
+    Ok(Pool::new(token0.clone(), token1.clone(), bp, provider)
+        .await
+        .unwrap())
 }
 
 /// Get a sample test pool.
