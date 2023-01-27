@@ -160,7 +160,7 @@ impl Pool {
 
     /// Monitor a pool for swap events and print to standard output.
     /// TODO: Make it print a `Swap` struct that implements fmt in a special way.
-    pub async fn monitor_pool(&mut self) -> Result<(), UniswapError> {
+    pub async fn monitor_pool(&mut self) {
         let pool_contract = self.get_contract();
         let pool_tokens = self.get_tokens();
         let pool_bp = self.get_bp();
@@ -175,14 +175,14 @@ impl Pool {
 
         println!("Listening for events...");
 
+        // let pool_token_0 = match pool_contract.token_0().call().await {
+        //     Err(err) => return Err(UniswapError::ContractInteractionError(err)),
+        //     Ok(val) => val,
+        // };
+
         let swap_events = pool_contract.swap_filter();
-
-        let pool_token_0 = match pool_contract.token_0().call().await {
-            Err(err) => return Err(UniswapError::ContractInteractionError(err)),
-            Ok(val) => val,
-        };
-
-        let swap_stream = swap_events.stream().await;
+        let pool_token_0 = pool_contract.token_0().call().await.unwrap();
+        let mut swap_stream = swap_events.stream().await.unwrap();
 
         while let Some(Ok(event)) = swap_stream.next().await {
             let (tick, liq, sqrtprice) = (event.tick, event.liquidity, event.sqrt_price_x96);
@@ -208,7 +208,7 @@ impl Pool {
             assert_eq!(event.sqrt_price_x96, self.get_sqrt_price_x96());
         }
 
-        Ok(())
+        // Ok(())
     }
 
     /// Calculate the amount you would have to swap in order to have a swap that causes

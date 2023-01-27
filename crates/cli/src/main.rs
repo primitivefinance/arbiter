@@ -91,7 +91,7 @@ async fn main() -> Result<()> {
                 }
             };
             for mut pool in pools {
-                join!(pool.monitor_pool().unwrap());
+                join!(pool.monitor_pool());
             }
         }
         Some(Commands::Sim { config }) => {
