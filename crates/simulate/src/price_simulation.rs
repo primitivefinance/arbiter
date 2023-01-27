@@ -3,9 +3,8 @@ use rand::prelude::*;
 use rand_chacha::ChaCha8Rng;
 use rand_distr::{Distribution, StandardNormal};
 
-/// Representation of a GBM (Geometric Brownian Motion) simulation.
 #[derive(Debug)]
-pub struct Simulation {
+pub struct PriceSimulation {
     // Name/identifier for the simulation (will set filenames)
     pub identifier: String, // E.g., "test"
     // Numerical timestep for the simulation (typically just 1).
@@ -18,7 +17,7 @@ pub struct Simulation {
     pub initial_price: f64,
     // Price drift of the underlying asset.
     pub drift: f64,
-    // Volatility of the underlying asset.
+    // Volatility of the underlying asset.c
     pub volatility: f64,
     // Time data for the simulation.
     pub time_data: Vec<f64>,
@@ -28,8 +27,8 @@ pub struct Simulation {
     pub seed: u64,
 }
 
-impl Simulation {
-    // Public constructor function that instantiates a `Simulation`.
+impl PriceSimulation {
+    // Public builder function that instantiates a `Simulation`.
     pub fn new(
         timestep: f64,
         timescale: String,

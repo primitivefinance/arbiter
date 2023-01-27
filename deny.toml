@@ -1,0 +1,63 @@
+# cargo-deny is really only ever intended to run on the "normal" tier-1 targets
+targets = [
+    { triple = "x86_64-unknown-linux-gnu" },
+    { triple = "aarch64-unknown-linux-gnu" },
+    { triple = "x86_64-unknown-linux-musl" },
+    { triple = "aarch64-apple-darwin" },
+    { triple = "x86_64-apple-darwin" },
+    { triple = "x86_64-pc-windows-msvc" },
+]
+
+[advisories]
+vulnerability = "warn"
+unmaintained = "warn"
+unsound = "warn"
+yanked = "warn"
+notice = "warn"
+ignore = [
+    # potential unaligned pointer read on windows. Doesn't happen in practice, don't
+    # care
+    "RUSTSEC-2021-0145",
+]
+severity-threshold = "medium"
+
+[bans]
+multiple-versions = "allow"
+deny = []
+skip = [
+    # cargo depends on two versions of these crates
+    { name = "hex", version = "=0.3.2" },
+    { name = "bstr", version = "=0.2.17" },
+]
+skip-tree = [
+    # windows-sys minor version bumps are still incredibly tedious
+    { name = "windows-sys", version = "=0.36.1" },
+]
+
+[sources]
+unknown-registry = "deny"
+unknown-git = "deny"
+
+[sources.allow-org]
+github = ["onbjerg"]
+
+
+[licenses]
+unlicensed = "deny"
+allow-osi-fsf-free = "neither"
+copyleft = "deny"
+# We want really high confidence when inferring licenses from text
+confidence-threshold = 0.84
+allow = ["Apache-2.0", "Apache-2.0 WITH LLVM-exception", "MIT", "MPL-2.0", "ISC", "CC0-1.0", "BSD-3-Clause", "BSD-2-Clause", "LicenseRef-ring"]
+
+exceptions = [
+    { allow = ["Zlib"], name = "tinyvec" },
+    { allow = ["Unicode-DFS-2016"], name = "unicode-ident" },
+]
+[[licenses.clarify]]
+name = "ring"
+expression = "LicenseRef-ring"
+license-files = [
+    { path = "LICENSE", hash = 0xbd0eed23 },
+]
+
