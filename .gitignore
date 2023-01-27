@@ -13,3 +13,4 @@ Cargo.lock
 /out/
 *.html
 
+/src/
