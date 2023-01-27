@@ -71,7 +71,7 @@ impl Pool {
             return Err(UniswapError::PoolError);
         }
 
-        Pool {
+        Ok(Pool {
             token_0,
             token_1,
             bp,
@@ -81,7 +81,7 @@ impl Pool {
             tick: 0,
             liquidity: 0,
             sqrt_price_x96: ethers::types::U256::zero(),
-        }
+        })
     }
 
     /// Get the pool address.
@@ -141,13 +141,14 @@ impl Pool {
 
     /// Updates the pool tick and liquidity manually with a contract call.
     pub async fn _update_pool(&mut self) {
-        let slot_0 = match self.inner.slot_0().call().await {
-            Ok(val) => val,
-            Err(err) => Err(UniswapError::ContractInteractionError(err)),
+        let slot_0;
+        match self.inner.slot_0().call().await {
+            Err(err) => return Err(UniswapError::ContractInteractionError(err)),
+            Ok(val) => slot_0 = val,
         };
-        let liquidity = match self.inner.liquidity().call.await {
+        let liquidity = match self.inner.liquidity().call().await {
             Ok(val) => val,
-            Err(err) => Err(UniswapError::ContractInteractionError(err)),
+            Err(err) => return Err(UniswapError::ContractInteractionError(err)),
         };
         self.set_liquidity(liquidity);
         self.set_tick(slot_0.1);
@@ -178,7 +179,7 @@ impl Pool {
         };
         let mut swap_stream = swap_events.stream().await;
 
-        while let Some(Ok(event)) = swap_stream.next().await {
+        while let Some(Ok(event)) = swap_stream.unwrap().next().await {
             let (tick, liq, sqrtprice) = (event.tick, event.liquidity, event.sqrt_price_x96);
             self.set_tick(tick);
             self.set_liquidity(liq);
@@ -233,7 +234,7 @@ pub async fn get_pool(
 
     let bp = bp.parse::<u32>().unwrap();
 
-    Ok(Pool::new(token0.clone(), token1.clone(), bp, provider).await)
+    Ok(Pool::new(token0.clone(), token1.clone(), bp, provider).await.unwrap())
 }
 
 /// Get a sample test pool.
@@ -246,6 +247,7 @@ pub async fn _get_test_pool(bp: String, provider: Arc<Provider<Http>>) -> Pool {
         provider,
     )
     .await
+    .unwrap()
 }
 
 /// Takes in UniswapV3's sqrt_price_x96 (a q64_96 fixed point number) and outputs the price in human readable form.

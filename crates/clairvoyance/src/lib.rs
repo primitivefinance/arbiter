@@ -1,3 +1,3 @@
-pub mod clairerror;
+pub mod error;
 pub mod simulation;
 pub mod uniswap;
