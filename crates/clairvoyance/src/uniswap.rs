@@ -140,19 +140,22 @@ impl Pool {
     }
 
     /// Updates the pool tick and liquidity manually with a contract call.
-    pub async fn _update_pool(&mut self) {
-        let slot_0;
-        match self.inner.slot_0().call().await {
+    pub async fn _update_pool(&mut self) -> Result<(), UniswapError> {
+        let slot_0 = match self.inner.slot_0().call().await {
             Err(err) => return Err(UniswapError::ContractInteractionError(err)),
-            Ok(val) => slot_0 = val,
-        };
-        let liquidity = match self.inner.liquidity().call().await {
             Ok(val) => val,
-            Err(err) => return Err(UniswapError::ContractInteractionError(err)),
         };
+
+        let liquidity = match self.inner.liquidity().call().await {
+            Err(err) => return Err(UniswapError::ContractInteractionError(err)),
+            Ok(val) => val,
+        };
+
         self.set_liquidity(liquidity);
         self.set_tick(slot_0.1);
-        self.set_sqrt_price_x96(slot_0.0)
+        self.set_sqrt_price_x96(slot_0.0);
+
+        Ok(())
     }
 
     /// Monitor a pool for swap events and print to standard output.
@@ -173,13 +176,15 @@ impl Pool {
         println!("Listening for events...");
 
         let swap_events = pool_contract.swap_filter();
-        let pool_token_0 = match pool_contract.token_0().call().await {
-            Ok(val) => val,
-            Err(err) => Err(UniswapError::ContractInteractionError(err)),
-        };
-        let mut swap_stream = swap_events.stream().await;
 
-        while let Some(Ok(event)) = swap_stream.unwrap().next().await {
+        let pool_token_0 = match pool_contract.token_0().call().await {
+            Err(err) => return Err(UniswapError::ContractInteractionError(err)),
+            Ok(val) => val,
+        };
+
+        let swap_stream = swap_events.stream().await;
+
+        while let Some(Ok(event)) = swap_stream.next().await {
             let (tick, liq, sqrtprice) = (event.tick, event.liquidity, event.sqrt_price_x96);
             self.set_tick(tick);
             self.set_liquidity(liq);
