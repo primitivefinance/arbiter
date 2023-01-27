@@ -291,8 +291,9 @@ mod tests {
             $bp:expr,
             $address:expr
         ) => {
-            let pool =
-                Pool::new($tokens.0.clone(), $tokens.1.clone(), $bp, $provider.clone()).await.unwrap();
+            let pool = Pool::new($tokens.0.clone(), $tokens.1.clone(), $bp, $provider.clone())
+                .await
+                .unwrap();
 
             assert_eq!(pool.address, $address.parse::<Address>().unwrap());
         };
