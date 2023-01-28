@@ -12,9 +12,7 @@ use utils::{
     tokens::{get_tokens, Token},
 };
 
-use crate::clairerror::ClairvoyanceError::{
-    FeeTierDoesNotExist, PoolDoesNotExist, TokenDoesNotExist,
-};
+use crate::error::UniswapError;
 
 /// Uniswap V3 factory address.
 const FACTORY: &str = "0x1F98431c8aD98523631AE4a59f267346ea31F984";
@@ -42,9 +40,6 @@ pub struct Pool {
     sqrt_price_x96: ethers::types::U256,
 }
 
-// ----
-//TODO: HANDLE THE CASE WHERE THE POOL DOES NOT EXIST
-// ----
 impl Pool {
     /// Public constructor function that instantiates a `Pool`.
     pub async fn new(
@@ -52,10 +47,10 @@ impl Pool {
         token_1: Token,
         bp: u32,
         provider: Arc<Provider<Http>>,
-    ) -> Pool {
+    ) -> Result<Pool, UniswapError> {
         match bp {
             1 | 5 | 30 | 100 => (),
-            _ => panic!("{}", FeeTierDoesNotExist { bp }),
+            _ => return Err(UniswapError::FeeTierError),
         }
 
         // Factory Address.
@@ -64,30 +59,20 @@ impl Pool {
         // Factory contract object.
         let factory = UniswapV3Factory::new(uniswap_v3_factory_address, provider.clone());
 
-        let pool_address = factory
+        let pool_address = match factory
             .get_pool(token_0.address, token_1.address, bp * 100)
             .call()
             .await
-            .unwrap();
+        {
+            Ok(val) => val,
+            Err(err) => return Err(UniswapError::ContractInteractionError(err)),
+        };
 
-        // get_pool() returns the zero address if the pool does not exist
-        let zero_address: Address = "0x0000000000000000000000000000000000000000"
-            .parse()
-            .unwrap();
-        if pool_address == zero_address {
-            let token_0_name = token_0.clone().name;
-            let token_1_name = token_1.clone().name;
-            panic!(
-                "{}",
-                PoolDoesNotExist {
-                    token_0_name,
-                    token_1_name,
-                    bp
-                }
-            );
+        if pool_address == Address::zero() {
+            return Err(UniswapError::PoolError);
         }
 
-        Pool {
+        Ok(Pool {
             token_0,
             token_1,
             bp,
@@ -97,7 +82,7 @@ impl Pool {
             tick: 0,
             liquidity: 0,
             sqrt_price_x96: ethers::types::U256::zero(),
-        }
+        })
     }
 
     /// Get the pool address.
@@ -156,11 +141,22 @@ impl Pool {
     }
 
     /// Updates the pool tick and liquidity manually with a contract call.
-    pub async fn _update_pool(&mut self) {
-        let slot_0 = self.inner.slot_0().call().await.unwrap();
-        self.set_liquidity(self.inner.liquidity().call().await.unwrap());
+    pub async fn _update_pool(&mut self) -> Result<(), UniswapError> {
+        let slot_0 = match self.inner.slot_0().call().await {
+            Err(err) => return Err(UniswapError::ContractInteractionError(err)),
+            Ok(val) => val,
+        };
+
+        let liquidity = match self.inner.liquidity().call().await {
+            Err(err) => return Err(UniswapError::ContractInteractionError(err)),
+            Ok(val) => val,
+        };
+
+        self.set_liquidity(liquidity);
         self.set_tick(slot_0.1);
-        self.set_sqrt_price_x96(slot_0.0)
+        self.set_sqrt_price_x96(slot_0.0);
+
+        Ok(())
     }
 
     /// Monitor a pool for swap events and print to standard output.
@@ -179,6 +175,11 @@ impl Pool {
         );
 
         println!("Listening for events...");
+
+        // let pool_token_0 = match pool_contract.token_0().call().await {
+        //     Err(err) => return Err(UniswapError::ContractInteractionError(err)),
+        //     Ok(val) => val,
+        // };
 
         let swap_events = pool_contract.swap_filter();
         let pool_token_0 = pool_contract.token_0().call().await.unwrap();
@@ -207,6 +208,8 @@ impl Pool {
             assert_eq!(event.liquidity, self.get_liquidity());
             assert_eq!(event.sqrt_price_x96, self.get_sqrt_price_x96());
         }
+
+        // Ok(())
     }
 
     /// Calculate the amount you would have to swap in order to have a swap that causes
@@ -222,24 +225,24 @@ pub async fn get_pool(
     token1: &String,
     bp: &str,
     provider: Arc<Provider<Http>>,
-) -> Pool {
+) -> Result<Pool, UniswapError> {
     let tokens = get_tokens();
-
-    let token_name = token0.clone();
 
     let token0 = match tokens.get(token0) {
         Some(token) => token,
-        None => panic!("{}", TokenDoesNotExist { token_name }),
+        None => return Err(UniswapError::TokenError),
     };
 
-    let token_name = token1.clone();
     let token1 = match tokens.get(token1) {
         Some(token) => token,
-        None => panic!("{}", TokenDoesNotExist { token_name }),
+        None => return Err(UniswapError::TokenError),
     };
+
     let bp = bp.parse::<u32>().unwrap();
 
-    Pool::new(token0.clone(), token1.clone(), bp, provider).await
+    Ok(Pool::new(token0.clone(), token1.clone(), bp, provider)
+        .await
+        .unwrap())
 }
 
 /// Get a sample test pool.
@@ -252,6 +255,7 @@ pub async fn _get_test_pool(bp: String, provider: Arc<Provider<Http>>) -> Pool {
         provider,
     )
     .await
+    .unwrap()
 }
 
 /// Takes in UniswapV3's sqrt_price_x96 (a q64_96 fixed point number) and outputs the price in human readable form.
@@ -287,8 +291,9 @@ mod tests {
             $bp:expr,
             $address:expr
         ) => {
-            let pool =
-                Pool::new($tokens.0.clone(), $tokens.1.clone(), $bp, $provider.clone()).await;
+            let pool = Pool::new($tokens.0.clone(), $tokens.1.clone(), $bp, $provider.clone())
+                .await
+                .unwrap();
 
             assert_eq!(pool.address, $address.parse::<Address>().unwrap());
         };
