@@ -1,4 +1,4 @@
-use std::{env, str::FromStr, sync::Arc};
+use std::{env, str::FromStr, sync::Arc, io::Read};
 
 use bytes::Bytes;
 use clairvoyance::uniswap::{get_pool, Pool};
@@ -145,8 +145,8 @@ async fn main() -> Result<()> {
 
             // deploy a local uni pool
             let pool_addr = eH160::from_str("0x1111111111111111111111111111111111111111")?;
-            // let factory_abi = bindings::uniswap_v3_factory::UNISWAPV3FACTORY_ABI.to_owned(); // TODO: we should be using something like this.
-            let factory_bytes = std::fs::read("./bin/UniswapV3Factory.bin").unwrap();
+            
+            let factory_bytes = bindings::uniswap_v3_factory::UNISWAPV3FACTORY_BYTECODE.to_vec(); // TODO: we should be using something like this.
             let factory_bytecode = Bytecode::new_raw(Bytes::from(factory_bytes));
 
             let pool_acc_info = AccountInfo::new(
