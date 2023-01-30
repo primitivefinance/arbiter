@@ -8,7 +8,7 @@ use ethers::{
     abi::parse_abi,
     prelude::BaseContract,
     providers::{Http, Provider},
-    types::{BlockId, H160 as eH160, H256, U256 as eU256},
+    types::{BlockId, H160 as eH160, H256, U256 as eU256, Call},
 };
 use ethers_providers::Middleware;
 // use ethers_contract::Call::ContractCall;
@@ -36,7 +36,7 @@ async fn main() -> Result<()> {
     let mut testbed = Testbed::new();
 
     // insert a default user
-    let user_addr = eH160::from_str("0x0000000000000000000000000000000000000000")?;
+    let user_addr = eH160::from_str("0x0000000000000000000000000000000000000001")?;
     let user_acc_info = AccountInfo::new(
         eU256::from(1293874298374982736983074_u128),
         0,
@@ -70,7 +70,7 @@ async fn main() -> Result<()> {
             .evm
             .db()
             .unwrap()
-                .insert_account_storage(contract_addr, eU256::from(1), eU256::zero())
+                .insert_account_storage(contract_addr, eU256::zero(), eU256::zero())
                 .unwrap();
 
     println!(
@@ -85,25 +85,36 @@ async fn main() -> Result<()> {
     println!("Calldata sent to EVM: {:#?}", calldata);
     let contract_abi = hello_world::HELLOWORLD_ABI.to_owned();
     println!("{:#?}", contract_abi);
+    let abi = BaseContract::from(
+        parse_abi(&[
+            "function greet() public view returns (string memory greeting)",
+        ])?);
+    println!("Printing parse_abi: {:#?}", abi);
+    let encoded = abi.encode("greet", ())?;
+    let encoded = Bytes::from(hex::decode(hex::encode(encoded))?);
+    println!("Printing encoded: {:#?}", encoded);
 
     // perform a transaction
     testbed.evm.env.tx.caller = user_addr;
     testbed.evm.env.tx.transact_to = TransactTo::Call(contract_addr);
-    testbed.evm.env.tx.data = calldata;
+    // testbed.evm.env.tx.data = calldata; //Is this also correct?
+    testbed.evm.env.tx.data = encoded;
     testbed.evm.env.tx.value = eU256::zero();
     let result = testbed.evm.transact().0.out;
-    // let value = match result {
-    //     TransactOut::Call(value) => Some(value),
-    //     _ => None,
-    // };
-    // let value = value;
-    // let abi = BaseContract::from(
-    //     parse_abi(&[
-    //         "function greet() public view returns (string memory greeting)",
-    //     ])?);
-    // let output: String =
-    //     abi.decode_output("greet", value.unwrap())?;
-    // let result = ethabi::decode(&[ParamType::String], &value);
-    println!("Transaction result: {:#?}", result);
+    let value = match result {
+        TransactOut::Call(value) => Some(value),
+        _ => None,
+    };
+    let value = value.unwrap();
+
+    println!("Printing value from TransactOut: {:#?}", value);
+    
+    
+    // let result = abi.decode("greet", value)?;
+    // abi.decode_raw(name, bytes)
+    let output: String =
+        abi.decode_output("greet", value)?;
+    // let result = ethabi::decode_whole(&[ParamType::String], &value);
+    println!("Transaction result: {:#?}", output);
     Ok(())
 }
