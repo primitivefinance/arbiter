@@ -41,3 +41,4 @@ ruint = "1.7.0"
 ethers-solc = "1.0.2"
 bindings = {path = "../bindings"}
 ethers-contract = "1.0.2"
+ethabi = "18.0.0"

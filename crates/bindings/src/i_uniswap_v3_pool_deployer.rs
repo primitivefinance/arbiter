@@ -5,34 +5,33 @@ pub mod i_uniswap_v3_pool_deployer {
     #![allow(dead_code)]
     #![allow(clippy::type_complexity)]
     #![allow(unused_imports)]
-    #[doc = "IUniswapV3PoolDeployer was auto-generated with ethers-rs Abigen. More information at: https://github.com/gakonst/ethers-rs"]
+    ///IUniswapV3PoolDeployer was auto-generated with ethers-rs Abigen. More information at: https://github.com/gakonst/ethers-rs
     use std::sync::Arc;
-
-    use ethers::{
-        contract::{
-            builders::{ContractCall, Event},
-            Contract, Lazy,
-        },
-        core::{
-            abi::{Abi, Detokenize, InvalidOutputType, Token, Tokenizable},
-            types::*,
-        },
-        providers::Middleware,
+    use ::ethers::core::{
+        abi::{Abi, Token, Detokenize, InvalidOutputType, Tokenizable},
+        types::*,
     };
-    # [rustfmt :: skip] const __ABI : & str = "[{\"inputs\":[],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"parameters\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"factory\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"address\",\"name\":\"token0\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"address\",\"name\":\"token1\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint24\",\"name\":\"fee\",\"type\":\"uint24\",\"components\":[]},{\"internalType\":\"int24\",\"name\":\"tickSpacing\",\"type\":\"int24\",\"components\":[]}]}]" ;
-    #[doc = r" The parsed JSON-ABI of the contract."]
-    pub static IUNISWAPV3POOLDEPLOYER_ABI: ethers::contract::Lazy<ethers::core::abi::Abi> =
-        ethers::contract::Lazy::new(|| {
-            ethers::core::utils::__serde_json::from_str(__ABI).expect("invalid abi")
-        });
-    pub struct IUniswapV3PoolDeployer<M>(ethers::contract::Contract<M>);
+    use ::ethers::contract::{
+        Contract, builders::{ContractCall, Event},
+        Lazy,
+    };
+    use ::ethers::providers::Middleware;
+    #[rustfmt::skip]
+    const __ABI: &str = "[{\"inputs\":[],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"parameters\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"factory\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"address\",\"name\":\"token0\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"address\",\"name\":\"token1\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint24\",\"name\":\"fee\",\"type\":\"uint24\",\"components\":[]},{\"internalType\":\"int24\",\"name\":\"tickSpacing\",\"type\":\"int24\",\"components\":[]}]}]";
+    /// The parsed JSON-ABI of the contract.
+    pub static IUNISWAPV3POOLDEPLOYER_ABI: ::ethers::contract::Lazy<
+        ::ethers::core::abi::Abi,
+    > = ::ethers::contract::Lazy::new(|| {
+        ::ethers::core::utils::__serde_json::from_str(__ABI).expect("invalid abi")
+    });
+    pub struct IUniswapV3PoolDeployer<M>(::ethers::contract::Contract<M>);
     impl<M> Clone for IUniswapV3PoolDeployer<M> {
         fn clone(&self) -> Self {
             IUniswapV3PoolDeployer(self.0.clone())
         }
     }
     impl<M> std::ops::Deref for IUniswapV3PoolDeployer<M> {
-        type Target = ethers::contract::Contract<M>;
+        type Target = ::ethers::contract::Contract<M>;
         fn deref(&self) -> &Self::Target {
             &self.0
         }
@@ -44,30 +43,31 @@ pub mod i_uniswap_v3_pool_deployer {
                 .finish()
         }
     }
-    impl<M: ethers::providers::Middleware> IUniswapV3PoolDeployer<M> {
-        #[doc = r" Creates a new contract instance with the specified `ethers`"]
-        #[doc = r" client at the given `Address`. The contract derefs to a `ethers::Contract`"]
-        #[doc = r" object"]
-        pub fn new<T: Into<ethers::core::types::Address>>(
+    impl<M: ::ethers::providers::Middleware> IUniswapV3PoolDeployer<M> {
+        /// Creates a new contract instance with the specified `ethers`
+        /// client at the given `Address`. The contract derefs to a `ethers::Contract`
+        /// object
+        pub fn new<T: Into<::ethers::core::types::Address>>(
             address: T,
             client: ::std::sync::Arc<M>,
         ) -> Self {
-            ethers::contract::Contract::new(
-                address.into(),
-                IUNISWAPV3POOLDEPLOYER_ABI.clone(),
-                client,
+            Self(
+                ::ethers::contract::Contract::new(
+                    address.into(),
+                    IUNISWAPV3POOLDEPLOYER_ABI.clone(),
+                    client,
+                ),
             )
-            .into()
         }
-        #[doc = "Calls the contract's `parameters` (0x89035730) function"]
+        ///Calls the contract's `parameters` (0x89035730) function
         pub fn parameters(
             &self,
-        ) -> ethers::contract::builders::ContractCall<
+        ) -> ::ethers::contract::builders::ContractCall<
             M,
             (
-                ethers::core::types::Address,
-                ethers::core::types::Address,
-                ethers::core::types::Address,
+                ::ethers::core::types::Address,
+                ::ethers::core::types::Address,
+                ::ethers::core::types::Address,
                 u32,
                 i32,
             ),
@@ -77,39 +77,38 @@ pub mod i_uniswap_v3_pool_deployer {
                 .expect("method not found (this should never happen)")
         }
     }
-    impl<M: ethers::providers::Middleware> From<ethers::contract::Contract<M>>
-        for IUniswapV3PoolDeployer<M>
-    {
-        fn from(contract: ethers::contract::Contract<M>) -> Self {
-            Self(contract)
+    impl<M: ::ethers::providers::Middleware> From<::ethers::contract::Contract<M>>
+    for IUniswapV3PoolDeployer<M> {
+        fn from(contract: ::ethers::contract::Contract<M>) -> Self {
+            Self::new(contract.address(), contract.client())
         }
     }
-    #[doc = "Container type for all input parameters for the `parameters` function with signature `parameters()` and selector `[137, 3, 87, 48]`"]
+    ///Container type for all input parameters for the `parameters` function with signature `parameters()` and selector `0x89035730`
     #[derive(
         Clone,
         Debug,
         Eq,
         PartialEq,
-        ethers :: contract :: EthCall,
-        ethers :: contract :: EthDisplay,
-        Default,
+        ::ethers::contract::EthCall,
+        ::ethers::contract::EthDisplay,
     )]
+    #[derive(Default)]
     #[ethcall(name = "parameters", abi = "parameters()")]
     pub struct ParametersCall;
-    #[doc = "Container type for all return fields from the `parameters` function with signature `parameters()` and selector `[137, 3, 87, 48]`"]
+    ///Container type for all return fields from the `parameters` function with signature `parameters()` and selector `0x89035730`
     #[derive(
         Clone,
         Debug,
         Eq,
         PartialEq,
-        ethers :: contract :: EthAbiType,
-        ethers :: contract :: EthAbiCodec,
-        Default,
+        ::ethers::contract::EthAbiType,
+        ::ethers::contract::EthAbiCodec,
     )]
+    #[derive(Default)]
     pub struct ParametersReturn {
-        pub factory: ethers::core::types::Address,
-        pub token_0: ethers::core::types::Address,
-        pub token_1: ethers::core::types::Address,
+        pub factory: ::ethers::core::types::Address,
+        pub token_0: ::ethers::core::types::Address,
+        pub token_1: ::ethers::core::types::Address,
         pub fee: u32,
         pub tick_spacing: i32,
     }
