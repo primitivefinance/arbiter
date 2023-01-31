@@ -49,7 +49,7 @@ async fn main() -> Result<()> {
         .unwrap()
         .insert_account_info(user_addr, user_acc_info);
 
-    // deploy a local uni pool
+    // deploy a local Hellow World pool
     let contract_addr = eH160::from_str("0x1111111111111111111111111111111111111111")?;
 
     let contract_bytes = bindings::hello_world::HELLOWORLD_BYTECODE.to_owned();
@@ -60,12 +60,13 @@ async fn main() -> Result<()> {
     let contract_bytecode = Bytecode::new_raw(contract_bytes);
     println!("{:#?}", contract_bytecode);
 
-    let pool_acc_info = AccountInfo::new(eU256::zero(), 0_u64, contract_bytecode);
+    let contract_acc_info = AccountInfo::new(eU256::zero(), 0_u64, contract_bytecode);
     testbed
         .evm
         .db()
         .unwrap()
-        .insert_account_info(contract_addr, pool_acc_info);
+        .insert_account_info(contract_addr, contract_acc_info);
+
     testbed
             .evm
             .db()
@@ -78,7 +79,7 @@ async fn main() -> Result<()> {
         testbed.evm.db()
     );
 
-    let new_contract = HelloWorld::new(contract_addr, client);
+    let new_contract = HelloWorld::new(contract_addr, client); // want remove clients
     let calldata = new_contract.greeting().calldata().unwrap();
     let calldata = calldata.to_vec();
     let calldata = Bytes::from(calldata);
@@ -94,13 +95,16 @@ async fn main() -> Result<()> {
     let encoded = Bytes::from(hex::decode(hex::encode(encoded))?);
     println!("Printing encoded: {:#?}", encoded);
 
+    // Maybe add a fallback and send no data and see if we get the same thing
     // perform a transaction
     testbed.evm.env.tx.caller = user_addr;
     testbed.evm.env.tx.transact_to = TransactTo::Call(contract_addr);
     // testbed.evm.env.tx.data = calldata; //Is this also correct?
-    testbed.evm.env.tx.data = encoded;
+    testbed.evm.env.tx.data = encoded; // This field could be the problem
     testbed.evm.env.tx.value = eU256::zero();
     let result = testbed.evm.transact().0.out;
+
+
     let value = match result {
         TransactOut::Call(value) => Some(value),
         _ => None,
@@ -113,7 +117,7 @@ async fn main() -> Result<()> {
     // let result = abi.decode("greet", value)?;
     // abi.decode_raw(name, bytes)
     let output: String =
-        abi.decode_output("greet", value)?;
+        abi.decode_output("greet", value)?; // invalid data error comes from this line
     // let result = ethabi::decode_whole(&[ParamType::String], &value);
     println!("Transaction result: {:#?}", output);
     Ok(())
