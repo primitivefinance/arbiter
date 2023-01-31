@@ -53,19 +53,29 @@ async fn main() -> Result<()> {
     let contract_addr = eH160::from_str("0x1111111111111111111111111111111111111111")?;
 
     let contract_bytes = bindings::hello_world::HELLOWORLD_BYTECODE.to_owned();
+
+    let test = bindings::hello_world::HelloWorld::deploy(client, ()).bytes().unwrap();
+    let test1 =
     println!("{:#?}", contract_bytes);
     let contract_bytes = contract_bytes.to_vec();
     let contract_bytes = Bytes::from(contract_bytes);
 
     let contract_bytecode = Bytecode::new_raw(contract_bytes);
     println!("{:#?}", contract_bytecode);
-
+    
     let contract_acc_info = AccountInfo::new(eU256::zero(), 0_u64, contract_bytecode);
-    testbed
-        .evm
-        .db()
-        .unwrap()
-        .insert_account_info(contract_addr, contract_acc_info);
+    // testbed
+    //     .evm
+    //     .db()
+    //     .unwrap()
+    //     .insert_account_info(contract_addr, contract_acc_info);
+    testbed.evm.env.tx.caller = user_addr;
+    testbed.evm.env.tx.transact_to = TransactTo::Call(contract_addr);
+    // testbed.evm.env.tx.data = calldata; //Is this also correct?
+    testbed.evm.env.tx.data = encoded; // This field could be the problem
+    testbed.evm.env.tx.value = eU256::zero();
+    let result = testbed.evm.transact().0.out;
+
 
     testbed
             .evm
