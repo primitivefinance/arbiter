@@ -152,7 +152,7 @@ async fn main() -> Result<()> {
             testbed.evm.env.tx.value = eU256::zero();
             let result = testbed.evm.transact().0;
 
-            println!("Printing value from TransactOut: {:#?}", result);
+            println!("Printing value from TransactOut: {result:#?}");
         }
         None => {}
     }
