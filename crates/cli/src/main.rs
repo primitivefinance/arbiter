@@ -153,7 +153,6 @@ async fn main() -> Result<()> {
             let result = testbed.evm.transact().0;
 
             println!("Printing value from TransactOut: {:#?}", result);
-
         }
         None => {}
     }
