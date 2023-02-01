@@ -5,25 +5,24 @@ pub mod i_uniswap_v3_pool_actions {
     #![allow(dead_code)]
     #![allow(clippy::type_complexity)]
     #![allow(unused_imports)]
-    ///IUniswapV3PoolActions was auto-generated with ethers-rs Abigen. More information at: https://github.com/gakonst/ethers-rs
-    use std::sync::Arc;
+    use ::ethers::contract::{
+        builders::{ContractCall, Event},
+        Contract, Lazy,
+    };
     use ::ethers::core::{
-        abi::{Abi, Token, Detokenize, InvalidOutputType, Tokenizable},
+        abi::{Abi, Detokenize, InvalidOutputType, Token, Tokenizable},
         types::*,
     };
-    use ::ethers::contract::{
-        Contract, builders::{ContractCall, Event},
-        Lazy,
-    };
     use ::ethers::providers::Middleware;
+    ///IUniswapV3PoolActions was auto-generated with ethers-rs Abigen. More information at: https://github.com/gakonst/ethers-rs
+    use std::sync::Arc;
     #[rustfmt::skip]
     const __ABI: &str = "[{\"inputs\":[{\"internalType\":\"int24\",\"name\":\"tickLower\",\"type\":\"int24\",\"components\":[]},{\"internalType\":\"int24\",\"name\":\"tickUpper\",\"type\":\"int24\",\"components\":[]},{\"internalType\":\"uint128\",\"name\":\"amount\",\"type\":\"uint128\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"function\",\"name\":\"burn\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"amount0\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"amount1\",\"type\":\"uint256\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"recipient\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"int24\",\"name\":\"tickLower\",\"type\":\"int24\",\"components\":[]},{\"internalType\":\"int24\",\"name\":\"tickUpper\",\"type\":\"int24\",\"components\":[]},{\"internalType\":\"uint128\",\"name\":\"amount0Requested\",\"type\":\"uint128\",\"components\":[]},{\"internalType\":\"uint128\",\"name\":\"amount1Requested\",\"type\":\"uint128\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"function\",\"name\":\"collect\",\"outputs\":[{\"internalType\":\"uint128\",\"name\":\"amount0\",\"type\":\"uint128\",\"components\":[]},{\"internalType\":\"uint128\",\"name\":\"amount1\",\"type\":\"uint128\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"recipient\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"amount0\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"amount1\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"bytes\",\"name\":\"data\",\"type\":\"bytes\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"function\",\"name\":\"flash\",\"outputs\":[]},{\"inputs\":[{\"internalType\":\"uint16\",\"name\":\"observationCardinalityNext\",\"type\":\"uint16\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"function\",\"name\":\"increaseObservationCardinalityNext\",\"outputs\":[]},{\"inputs\":[{\"internalType\":\"uint160\",\"name\":\"sqrtPriceX96\",\"type\":\"uint160\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"function\",\"name\":\"initialize\",\"outputs\":[]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"recipient\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"int24\",\"name\":\"tickLower\",\"type\":\"int24\",\"components\":[]},{\"internalType\":\"int24\",\"name\":\"tickUpper\",\"type\":\"int24\",\"components\":[]},{\"internalType\":\"uint128\",\"name\":\"amount\",\"type\":\"uint128\",\"components\":[]},{\"internalType\":\"bytes\",\"name\":\"data\",\"type\":\"bytes\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"function\",\"name\":\"mint\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"amount0\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"amount1\",\"type\":\"uint256\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"recipient\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"bool\",\"name\":\"zeroForOne\",\"type\":\"bool\",\"components\":[]},{\"internalType\":\"int256\",\"name\":\"amountSpecified\",\"type\":\"int256\",\"components\":[]},{\"internalType\":\"uint160\",\"name\":\"sqrtPriceLimitX96\",\"type\":\"uint160\",\"components\":[]},{\"internalType\":\"bytes\",\"name\":\"data\",\"type\":\"bytes\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"function\",\"name\":\"swap\",\"outputs\":[{\"internalType\":\"int256\",\"name\":\"amount0\",\"type\":\"int256\",\"components\":[]},{\"internalType\":\"int256\",\"name\":\"amount1\",\"type\":\"int256\",\"components\":[]}]}]";
     /// The parsed JSON-ABI of the contract.
-    pub static IUNISWAPV3POOLACTIONS_ABI: ::ethers::contract::Lazy<
-        ::ethers::core::abi::Abi,
-    > = ::ethers::contract::Lazy::new(|| {
-        ::ethers::core::utils::__serde_json::from_str(__ABI).expect("invalid abi")
-    });
+    pub static IUNISWAPV3POOLACTIONS_ABI: ::ethers::contract::Lazy<::ethers::core::abi::Abi> =
+        ::ethers::contract::Lazy::new(|| {
+            ::ethers::core::utils::__serde_json::from_str(__ABI).expect("invalid abi")
+        });
     pub struct IUniswapV3PoolActions<M>(::ethers::contract::Contract<M>);
     impl<M> Clone for IUniswapV3PoolActions<M> {
         fn clone(&self) -> Self {
@@ -51,13 +50,11 @@ pub mod i_uniswap_v3_pool_actions {
             address: T,
             client: ::std::sync::Arc<M>,
         ) -> Self {
-            Self(
-                ::ethers::contract::Contract::new(
-                    address.into(),
-                    IUNISWAPV3POOLACTIONS_ABI.clone(),
-                    client,
-                ),
-            )
+            Self(::ethers::contract::Contract::new(
+                address.into(),
+                IUNISWAPV3POOLACTIONS_ABI.clone(),
+                client,
+            ))
         }
         ///Calls the contract's `burn` (0xa34123a7) function
         pub fn burn(
@@ -171,7 +168,8 @@ pub mod i_uniswap_v3_pool_actions {
         }
     }
     impl<M: ::ethers::providers::Middleware> From<::ethers::contract::Contract<M>>
-    for IUniswapV3PoolActions<M> {
+        for IUniswapV3PoolActions<M>
+    {
         fn from(contract: ::ethers::contract::Contract<M>) -> Self {
             Self::new(contract.address(), contract.client())
         }
@@ -184,8 +182,8 @@ pub mod i_uniswap_v3_pool_actions {
         PartialEq,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
+        Default,
     )]
-    #[derive(Default)]
     #[ethcall(name = "burn", abi = "burn(int24,int24,uint128)")]
     pub struct BurnCall {
         pub tick_lower: i32,
@@ -200,8 +198,8 @@ pub mod i_uniswap_v3_pool_actions {
         PartialEq,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
+        Default,
     )]
-    #[derive(Default)]
     #[ethcall(name = "collect", abi = "collect(address,int24,int24,uint128,uint128)")]
     pub struct CollectCall {
         pub recipient: ::ethers::core::types::Address,
@@ -218,8 +216,8 @@ pub mod i_uniswap_v3_pool_actions {
         PartialEq,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
+        Default,
     )]
-    #[derive(Default)]
     #[ethcall(name = "flash", abi = "flash(address,uint256,uint256,bytes)")]
     pub struct FlashCall {
         pub recipient: ::ethers::core::types::Address,
@@ -235,8 +233,8 @@ pub mod i_uniswap_v3_pool_actions {
         PartialEq,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
+        Default,
     )]
-    #[derive(Default)]
     #[ethcall(
         name = "increaseObservationCardinalityNext",
         abi = "increaseObservationCardinalityNext(uint16)"
@@ -252,8 +250,8 @@ pub mod i_uniswap_v3_pool_actions {
         PartialEq,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
+        Default,
     )]
-    #[derive(Default)]
     #[ethcall(name = "initialize", abi = "initialize(uint160)")]
     pub struct InitializeCall {
         pub sqrt_price_x96: ::ethers::core::types::U256,
@@ -266,8 +264,8 @@ pub mod i_uniswap_v3_pool_actions {
         PartialEq,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
+        Default,
     )]
-    #[derive(Default)]
     #[ethcall(name = "mint", abi = "mint(address,int24,int24,uint128,bytes)")]
     pub struct MintCall {
         pub recipient: ::ethers::core::types::Address,
@@ -284,8 +282,8 @@ pub mod i_uniswap_v3_pool_actions {
         PartialEq,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
+        Default,
     )]
-    #[derive(Default)]
     #[ethcall(name = "swap", abi = "swap(address,bool,int256,uint160,bytes)")]
     pub struct SwapCall {
         pub recipient: ::ethers::core::types::Address,
@@ -308,42 +306,38 @@ pub mod i_uniswap_v3_pool_actions {
         fn decode(
             data: impl AsRef<[u8]>,
         ) -> ::std::result::Result<Self, ::ethers::core::abi::AbiError> {
-            if let Ok(decoded)
-                = <BurnCall as ::ethers::core::abi::AbiDecode>::decode(data.as_ref()) {
+            if let Ok(decoded) = <BurnCall as ::ethers::core::abi::AbiDecode>::decode(data.as_ref())
+            {
                 return Ok(IUniswapV3PoolActionsCalls::Burn(decoded));
             }
-            if let Ok(decoded)
-                = <CollectCall as ::ethers::core::abi::AbiDecode>::decode(
-                    data.as_ref(),
-                ) {
+            if let Ok(decoded) =
+                <CollectCall as ::ethers::core::abi::AbiDecode>::decode(data.as_ref())
+            {
                 return Ok(IUniswapV3PoolActionsCalls::Collect(decoded));
             }
-            if let Ok(decoded)
-                = <FlashCall as ::ethers::core::abi::AbiDecode>::decode(data.as_ref()) {
+            if let Ok(decoded) =
+                <FlashCall as ::ethers::core::abi::AbiDecode>::decode(data.as_ref())
+            {
                 return Ok(IUniswapV3PoolActionsCalls::Flash(decoded));
             }
-            if let Ok(decoded)
-                = <IncreaseObservationCardinalityNextCall as ::ethers::core::abi::AbiDecode>::decode(
+            if let Ok(decoded) =
+                <IncreaseObservationCardinalityNextCall as ::ethers::core::abi::AbiDecode>::decode(
                     data.as_ref(),
-                ) {
-                return Ok(
-                    IUniswapV3PoolActionsCalls::IncreaseObservationCardinalityNext(
-                        decoded,
-                    ),
-                );
+                )
+            {
+                return Ok(IUniswapV3PoolActionsCalls::IncreaseObservationCardinalityNext(decoded));
             }
-            if let Ok(decoded)
-                = <InitializeCall as ::ethers::core::abi::AbiDecode>::decode(
-                    data.as_ref(),
-                ) {
+            if let Ok(decoded) =
+                <InitializeCall as ::ethers::core::abi::AbiDecode>::decode(data.as_ref())
+            {
                 return Ok(IUniswapV3PoolActionsCalls::Initialize(decoded));
             }
-            if let Ok(decoded)
-                = <MintCall as ::ethers::core::abi::AbiDecode>::decode(data.as_ref()) {
+            if let Ok(decoded) = <MintCall as ::ethers::core::abi::AbiDecode>::decode(data.as_ref())
+            {
                 return Ok(IUniswapV3PoolActionsCalls::Mint(decoded));
             }
-            if let Ok(decoded)
-                = <SwapCall as ::ethers::core::abi::AbiDecode>::decode(data.as_ref()) {
+            if let Ok(decoded) = <SwapCall as ::ethers::core::abi::AbiDecode>::decode(data.as_ref())
+            {
                 return Ok(IUniswapV3PoolActionsCalls::Swap(decoded));
             }
             Err(::ethers::core::abi::Error::InvalidData.into())
@@ -355,9 +349,9 @@ pub mod i_uniswap_v3_pool_actions {
                 IUniswapV3PoolActionsCalls::Burn(element) => element.encode(),
                 IUniswapV3PoolActionsCalls::Collect(element) => element.encode(),
                 IUniswapV3PoolActionsCalls::Flash(element) => element.encode(),
-                IUniswapV3PoolActionsCalls::IncreaseObservationCardinalityNext(
-                    element,
-                ) => element.encode(),
+                IUniswapV3PoolActionsCalls::IncreaseObservationCardinalityNext(element) => {
+                    element.encode()
+                }
                 IUniswapV3PoolActionsCalls::Initialize(element) => element.encode(),
                 IUniswapV3PoolActionsCalls::Mint(element) => element.encode(),
                 IUniswapV3PoolActionsCalls::Swap(element) => element.encode(),
@@ -370,9 +364,9 @@ pub mod i_uniswap_v3_pool_actions {
                 IUniswapV3PoolActionsCalls::Burn(element) => element.fmt(f),
                 IUniswapV3PoolActionsCalls::Collect(element) => element.fmt(f),
                 IUniswapV3PoolActionsCalls::Flash(element) => element.fmt(f),
-                IUniswapV3PoolActionsCalls::IncreaseObservationCardinalityNext(
-                    element,
-                ) => element.fmt(f),
+                IUniswapV3PoolActionsCalls::IncreaseObservationCardinalityNext(element) => {
+                    element.fmt(f)
+                }
                 IUniswapV3PoolActionsCalls::Initialize(element) => element.fmt(f),
                 IUniswapV3PoolActionsCalls::Mint(element) => element.fmt(f),
                 IUniswapV3PoolActionsCalls::Swap(element) => element.fmt(f),
@@ -394,8 +388,7 @@ pub mod i_uniswap_v3_pool_actions {
             IUniswapV3PoolActionsCalls::Flash(var)
         }
     }
-    impl ::std::convert::From<IncreaseObservationCardinalityNextCall>
-    for IUniswapV3PoolActionsCalls {
+    impl ::std::convert::From<IncreaseObservationCardinalityNextCall> for IUniswapV3PoolActionsCalls {
         fn from(var: IncreaseObservationCardinalityNextCall) -> Self {
             IUniswapV3PoolActionsCalls::IncreaseObservationCardinalityNext(var)
         }
@@ -423,8 +416,8 @@ pub mod i_uniswap_v3_pool_actions {
         PartialEq,
         ::ethers::contract::EthAbiType,
         ::ethers::contract::EthAbiCodec,
+        Default,
     )]
-    #[derive(Default)]
     pub struct BurnReturn {
         pub amount_0: ::ethers::core::types::U256,
         pub amount_1: ::ethers::core::types::U256,
@@ -437,8 +430,8 @@ pub mod i_uniswap_v3_pool_actions {
         PartialEq,
         ::ethers::contract::EthAbiType,
         ::ethers::contract::EthAbiCodec,
+        Default,
     )]
-    #[derive(Default)]
     pub struct CollectReturn {
         pub amount_0: u128,
         pub amount_1: u128,
@@ -451,8 +444,8 @@ pub mod i_uniswap_v3_pool_actions {
         PartialEq,
         ::ethers::contract::EthAbiType,
         ::ethers::contract::EthAbiCodec,
+        Default,
     )]
-    #[derive(Default)]
     pub struct MintReturn {
         pub amount_0: ::ethers::core::types::U256,
         pub amount_1: ::ethers::core::types::U256,
@@ -465,8 +458,8 @@ pub mod i_uniswap_v3_pool_actions {
         PartialEq,
         ::ethers::contract::EthAbiType,
         ::ethers::contract::EthAbiCodec,
+        Default,
     )]
-    #[derive(Default)]
     pub struct SwapReturn {
         pub amount_0: ::ethers::core::types::I256,
         pub amount_1: ::ethers::core::types::I256,

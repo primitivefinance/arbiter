@@ -5,25 +5,24 @@ pub mod i_uniswap_v3_pool_owner_actions {
     #![allow(dead_code)]
     #![allow(clippy::type_complexity)]
     #![allow(unused_imports)]
-    ///IUniswapV3PoolOwnerActions was auto-generated with ethers-rs Abigen. More information at: https://github.com/gakonst/ethers-rs
-    use std::sync::Arc;
+    use ::ethers::contract::{
+        builders::{ContractCall, Event},
+        Contract, Lazy,
+    };
     use ::ethers::core::{
-        abi::{Abi, Token, Detokenize, InvalidOutputType, Tokenizable},
+        abi::{Abi, Detokenize, InvalidOutputType, Token, Tokenizable},
         types::*,
     };
-    use ::ethers::contract::{
-        Contract, builders::{ContractCall, Event},
-        Lazy,
-    };
     use ::ethers::providers::Middleware;
+    ///IUniswapV3PoolOwnerActions was auto-generated with ethers-rs Abigen. More information at: https://github.com/gakonst/ethers-rs
+    use std::sync::Arc;
     #[rustfmt::skip]
     const __ABI: &str = "[{\"inputs\":[{\"internalType\":\"address\",\"name\":\"recipient\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint128\",\"name\":\"amount0Requested\",\"type\":\"uint128\",\"components\":[]},{\"internalType\":\"uint128\",\"name\":\"amount1Requested\",\"type\":\"uint128\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"function\",\"name\":\"collectProtocol\",\"outputs\":[{\"internalType\":\"uint128\",\"name\":\"amount0\",\"type\":\"uint128\",\"components\":[]},{\"internalType\":\"uint128\",\"name\":\"amount1\",\"type\":\"uint128\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"uint8\",\"name\":\"feeProtocol0\",\"type\":\"uint8\",\"components\":[]},{\"internalType\":\"uint8\",\"name\":\"feeProtocol1\",\"type\":\"uint8\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"function\",\"name\":\"setFeeProtocol\",\"outputs\":[]}]";
     /// The parsed JSON-ABI of the contract.
-    pub static IUNISWAPV3POOLOWNERACTIONS_ABI: ::ethers::contract::Lazy<
-        ::ethers::core::abi::Abi,
-    > = ::ethers::contract::Lazy::new(|| {
-        ::ethers::core::utils::__serde_json::from_str(__ABI).expect("invalid abi")
-    });
+    pub static IUNISWAPV3POOLOWNERACTIONS_ABI: ::ethers::contract::Lazy<::ethers::core::abi::Abi> =
+        ::ethers::contract::Lazy::new(|| {
+            ::ethers::core::utils::__serde_json::from_str(__ABI).expect("invalid abi")
+        });
     pub struct IUniswapV3PoolOwnerActions<M>(::ethers::contract::Contract<M>);
     impl<M> Clone for IUniswapV3PoolOwnerActions<M> {
         fn clone(&self) -> Self {
@@ -51,13 +50,11 @@ pub mod i_uniswap_v3_pool_owner_actions {
             address: T,
             client: ::std::sync::Arc<M>,
         ) -> Self {
-            Self(
-                ::ethers::contract::Contract::new(
-                    address.into(),
-                    IUNISWAPV3POOLOWNERACTIONS_ABI.clone(),
-                    client,
-                ),
-            )
+            Self(::ethers::contract::Contract::new(
+                address.into(),
+                IUNISWAPV3POOLOWNERACTIONS_ABI.clone(),
+                client,
+            ))
         }
         ///Calls the contract's `collectProtocol` (0x85b66729) function
         pub fn collect_protocol(
@@ -85,7 +82,8 @@ pub mod i_uniswap_v3_pool_owner_actions {
         }
     }
     impl<M: ::ethers::providers::Middleware> From<::ethers::contract::Contract<M>>
-    for IUniswapV3PoolOwnerActions<M> {
+        for IUniswapV3PoolOwnerActions<M>
+    {
         fn from(contract: ::ethers::contract::Contract<M>) -> Self {
             Self::new(contract.address(), contract.client())
         }
@@ -98,8 +96,8 @@ pub mod i_uniswap_v3_pool_owner_actions {
         PartialEq,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
+        Default,
     )]
-    #[derive(Default)]
     #[ethcall(
         name = "collectProtocol",
         abi = "collectProtocol(address,uint128,uint128)"
@@ -117,8 +115,8 @@ pub mod i_uniswap_v3_pool_owner_actions {
         PartialEq,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
+        Default,
     )]
-    #[derive(Default)]
     #[ethcall(name = "setFeeProtocol", abi = "setFeeProtocol(uint8,uint8)")]
     pub struct SetFeeProtocolCall {
         pub fee_protocol_0: u8,
@@ -133,16 +131,14 @@ pub mod i_uniswap_v3_pool_owner_actions {
         fn decode(
             data: impl AsRef<[u8]>,
         ) -> ::std::result::Result<Self, ::ethers::core::abi::AbiError> {
-            if let Ok(decoded)
-                = <CollectProtocolCall as ::ethers::core::abi::AbiDecode>::decode(
-                    data.as_ref(),
-                ) {
+            if let Ok(decoded) =
+                <CollectProtocolCall as ::ethers::core::abi::AbiDecode>::decode(data.as_ref())
+            {
                 return Ok(IUniswapV3PoolOwnerActionsCalls::CollectProtocol(decoded));
             }
-            if let Ok(decoded)
-                = <SetFeeProtocolCall as ::ethers::core::abi::AbiDecode>::decode(
-                    data.as_ref(),
-                ) {
+            if let Ok(decoded) =
+                <SetFeeProtocolCall as ::ethers::core::abi::AbiDecode>::decode(data.as_ref())
+            {
                 return Ok(IUniswapV3PoolOwnerActionsCalls::SetFeeProtocol(decoded));
             }
             Err(::ethers::core::abi::Error::InvalidData.into())
@@ -151,24 +147,16 @@ pub mod i_uniswap_v3_pool_owner_actions {
     impl ::ethers::core::abi::AbiEncode for IUniswapV3PoolOwnerActionsCalls {
         fn encode(self) -> Vec<u8> {
             match self {
-                IUniswapV3PoolOwnerActionsCalls::CollectProtocol(element) => {
-                    element.encode()
-                }
-                IUniswapV3PoolOwnerActionsCalls::SetFeeProtocol(element) => {
-                    element.encode()
-                }
+                IUniswapV3PoolOwnerActionsCalls::CollectProtocol(element) => element.encode(),
+                IUniswapV3PoolOwnerActionsCalls::SetFeeProtocol(element) => element.encode(),
             }
         }
     }
     impl ::std::fmt::Display for IUniswapV3PoolOwnerActionsCalls {
         fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
             match self {
-                IUniswapV3PoolOwnerActionsCalls::CollectProtocol(element) => {
-                    element.fmt(f)
-                }
-                IUniswapV3PoolOwnerActionsCalls::SetFeeProtocol(element) => {
-                    element.fmt(f)
-                }
+                IUniswapV3PoolOwnerActionsCalls::CollectProtocol(element) => element.fmt(f),
+                IUniswapV3PoolOwnerActionsCalls::SetFeeProtocol(element) => element.fmt(f),
             }
         }
     }
@@ -190,8 +178,8 @@ pub mod i_uniswap_v3_pool_owner_actions {
         PartialEq,
         ::ethers::contract::EthAbiType,
         ::ethers::contract::EthAbiCodec,
+        Default,
     )]
-    #[derive(Default)]
     pub struct CollectProtocolReturn {
         pub amount_0: u128,
         pub amount_1: u128,

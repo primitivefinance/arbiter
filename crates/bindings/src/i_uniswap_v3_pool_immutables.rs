@@ -5,25 +5,24 @@ pub mod i_uniswap_v3_pool_immutables {
     #![allow(dead_code)]
     #![allow(clippy::type_complexity)]
     #![allow(unused_imports)]
-    ///IUniswapV3PoolImmutables was auto-generated with ethers-rs Abigen. More information at: https://github.com/gakonst/ethers-rs
-    use std::sync::Arc;
+    use ::ethers::contract::{
+        builders::{ContractCall, Event},
+        Contract, Lazy,
+    };
     use ::ethers::core::{
-        abi::{Abi, Token, Detokenize, InvalidOutputType, Tokenizable},
+        abi::{Abi, Detokenize, InvalidOutputType, Token, Tokenizable},
         types::*,
     };
-    use ::ethers::contract::{
-        Contract, builders::{ContractCall, Event},
-        Lazy,
-    };
     use ::ethers::providers::Middleware;
+    ///IUniswapV3PoolImmutables was auto-generated with ethers-rs Abigen. More information at: https://github.com/gakonst/ethers-rs
+    use std::sync::Arc;
     #[rustfmt::skip]
     const __ABI: &str = "[{\"inputs\":[],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"factory\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\",\"components\":[]}]},{\"inputs\":[],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"fee\",\"outputs\":[{\"internalType\":\"uint24\",\"name\":\"\",\"type\":\"uint24\",\"components\":[]}]},{\"inputs\":[],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"maxLiquidityPerTick\",\"outputs\":[{\"internalType\":\"uint128\",\"name\":\"\",\"type\":\"uint128\",\"components\":[]}]},{\"inputs\":[],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"tickSpacing\",\"outputs\":[{\"internalType\":\"int24\",\"name\":\"\",\"type\":\"int24\",\"components\":[]}]},{\"inputs\":[],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"token0\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\",\"components\":[]}]},{\"inputs\":[],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"token1\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\",\"components\":[]}]}]";
     /// The parsed JSON-ABI of the contract.
-    pub static IUNISWAPV3POOLIMMUTABLES_ABI: ::ethers::contract::Lazy<
-        ::ethers::core::abi::Abi,
-    > = ::ethers::contract::Lazy::new(|| {
-        ::ethers::core::utils::__serde_json::from_str(__ABI).expect("invalid abi")
-    });
+    pub static IUNISWAPV3POOLIMMUTABLES_ABI: ::ethers::contract::Lazy<::ethers::core::abi::Abi> =
+        ::ethers::contract::Lazy::new(|| {
+            ::ethers::core::utils::__serde_json::from_str(__ABI).expect("invalid abi")
+        });
     pub struct IUniswapV3PoolImmutables<M>(::ethers::contract::Contract<M>);
     impl<M> Clone for IUniswapV3PoolImmutables<M> {
         fn clone(&self) -> Self {
@@ -51,21 +50,16 @@ pub mod i_uniswap_v3_pool_immutables {
             address: T,
             client: ::std::sync::Arc<M>,
         ) -> Self {
-            Self(
-                ::ethers::contract::Contract::new(
-                    address.into(),
-                    IUNISWAPV3POOLIMMUTABLES_ABI.clone(),
-                    client,
-                ),
-            )
+            Self(::ethers::contract::Contract::new(
+                address.into(),
+                IUNISWAPV3POOLIMMUTABLES_ABI.clone(),
+                client,
+            ))
         }
         ///Calls the contract's `factory` (0xc45a0155) function
         pub fn factory(
             &self,
-        ) -> ::ethers::contract::builders::ContractCall<
-            M,
-            ::ethers::core::types::Address,
-        > {
+        ) -> ::ethers::contract::builders::ContractCall<M, ::ethers::core::types::Address> {
             self.0
                 .method_hash([196, 90, 1, 85], ())
                 .expect("method not found (this should never happen)")
@@ -85,9 +79,7 @@ pub mod i_uniswap_v3_pool_immutables {
                 .expect("method not found (this should never happen)")
         }
         ///Calls the contract's `tickSpacing` (0xd0c93a7c) function
-        pub fn tick_spacing(
-            &self,
-        ) -> ::ethers::contract::builders::ContractCall<M, i32> {
+        pub fn tick_spacing(&self) -> ::ethers::contract::builders::ContractCall<M, i32> {
             self.0
                 .method_hash([208, 201, 58, 124], ())
                 .expect("method not found (this should never happen)")
@@ -95,10 +87,7 @@ pub mod i_uniswap_v3_pool_immutables {
         ///Calls the contract's `token0` (0x0dfe1681) function
         pub fn token_0(
             &self,
-        ) -> ::ethers::contract::builders::ContractCall<
-            M,
-            ::ethers::core::types::Address,
-        > {
+        ) -> ::ethers::contract::builders::ContractCall<M, ::ethers::core::types::Address> {
             self.0
                 .method_hash([13, 254, 22, 129], ())
                 .expect("method not found (this should never happen)")
@@ -106,17 +95,15 @@ pub mod i_uniswap_v3_pool_immutables {
         ///Calls the contract's `token1` (0xd21220a7) function
         pub fn token_1(
             &self,
-        ) -> ::ethers::contract::builders::ContractCall<
-            M,
-            ::ethers::core::types::Address,
-        > {
+        ) -> ::ethers::contract::builders::ContractCall<M, ::ethers::core::types::Address> {
             self.0
                 .method_hash([210, 18, 32, 167], ())
                 .expect("method not found (this should never happen)")
         }
     }
     impl<M: ::ethers::providers::Middleware> From<::ethers::contract::Contract<M>>
-    for IUniswapV3PoolImmutables<M> {
+        for IUniswapV3PoolImmutables<M>
+    {
         fn from(contract: ::ethers::contract::Contract<M>) -> Self {
             Self::new(contract.address(), contract.client())
         }
@@ -129,8 +116,8 @@ pub mod i_uniswap_v3_pool_immutables {
         PartialEq,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
+        Default,
     )]
-    #[derive(Default)]
     #[ethcall(name = "factory", abi = "factory()")]
     pub struct FactoryCall;
     ///Container type for all input parameters for the `fee` function with signature `fee()` and selector `0xddca3f43`
@@ -141,8 +128,8 @@ pub mod i_uniswap_v3_pool_immutables {
         PartialEq,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
+        Default,
     )]
-    #[derive(Default)]
     #[ethcall(name = "fee", abi = "fee()")]
     pub struct FeeCall;
     ///Container type for all input parameters for the `maxLiquidityPerTick` function with signature `maxLiquidityPerTick()` and selector `0x70cf754a`
@@ -153,8 +140,8 @@ pub mod i_uniswap_v3_pool_immutables {
         PartialEq,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
+        Default,
     )]
-    #[derive(Default)]
     #[ethcall(name = "maxLiquidityPerTick", abi = "maxLiquidityPerTick()")]
     pub struct MaxLiquidityPerTickCall;
     ///Container type for all input parameters for the `tickSpacing` function with signature `tickSpacing()` and selector `0xd0c93a7c`
@@ -165,8 +152,8 @@ pub mod i_uniswap_v3_pool_immutables {
         PartialEq,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
+        Default,
     )]
-    #[derive(Default)]
     #[ethcall(name = "tickSpacing", abi = "tickSpacing()")]
     pub struct TickSpacingCall;
     ///Container type for all input parameters for the `token0` function with signature `token0()` and selector `0x0dfe1681`
@@ -177,8 +164,8 @@ pub mod i_uniswap_v3_pool_immutables {
         PartialEq,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
+        Default,
     )]
-    #[derive(Default)]
     #[ethcall(name = "token0", abi = "token0()")]
     pub struct Token0Call;
     ///Container type for all input parameters for the `token1` function with signature `token1()` and selector `0xd21220a7`
@@ -189,8 +176,8 @@ pub mod i_uniswap_v3_pool_immutables {
         PartialEq,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
+        Default,
     )]
-    #[derive(Default)]
     #[ethcall(name = "token1", abi = "token1()")]
     pub struct Token1Call;
     #[derive(Debug, Clone, PartialEq, Eq, ::ethers::contract::EthAbiType)]
@@ -206,34 +193,33 @@ pub mod i_uniswap_v3_pool_immutables {
         fn decode(
             data: impl AsRef<[u8]>,
         ) -> ::std::result::Result<Self, ::ethers::core::abi::AbiError> {
-            if let Ok(decoded)
-                = <FactoryCall as ::ethers::core::abi::AbiDecode>::decode(
-                    data.as_ref(),
-                ) {
+            if let Ok(decoded) =
+                <FactoryCall as ::ethers::core::abi::AbiDecode>::decode(data.as_ref())
+            {
                 return Ok(IUniswapV3PoolImmutablesCalls::Factory(decoded));
             }
-            if let Ok(decoded)
-                = <FeeCall as ::ethers::core::abi::AbiDecode>::decode(data.as_ref()) {
+            if let Ok(decoded) = <FeeCall as ::ethers::core::abi::AbiDecode>::decode(data.as_ref())
+            {
                 return Ok(IUniswapV3PoolImmutablesCalls::Fee(decoded));
             }
-            if let Ok(decoded)
-                = <MaxLiquidityPerTickCall as ::ethers::core::abi::AbiDecode>::decode(
-                    data.as_ref(),
-                ) {
+            if let Ok(decoded) =
+                <MaxLiquidityPerTickCall as ::ethers::core::abi::AbiDecode>::decode(data.as_ref())
+            {
                 return Ok(IUniswapV3PoolImmutablesCalls::MaxLiquidityPerTick(decoded));
             }
-            if let Ok(decoded)
-                = <TickSpacingCall as ::ethers::core::abi::AbiDecode>::decode(
-                    data.as_ref(),
-                ) {
+            if let Ok(decoded) =
+                <TickSpacingCall as ::ethers::core::abi::AbiDecode>::decode(data.as_ref())
+            {
                 return Ok(IUniswapV3PoolImmutablesCalls::TickSpacing(decoded));
             }
-            if let Ok(decoded)
-                = <Token0Call as ::ethers::core::abi::AbiDecode>::decode(data.as_ref()) {
+            if let Ok(decoded) =
+                <Token0Call as ::ethers::core::abi::AbiDecode>::decode(data.as_ref())
+            {
                 return Ok(IUniswapV3PoolImmutablesCalls::Token0(decoded));
             }
-            if let Ok(decoded)
-                = <Token1Call as ::ethers::core::abi::AbiDecode>::decode(data.as_ref()) {
+            if let Ok(decoded) =
+                <Token1Call as ::ethers::core::abi::AbiDecode>::decode(data.as_ref())
+            {
                 return Ok(IUniswapV3PoolImmutablesCalls::Token1(decoded));
             }
             Err(::ethers::core::abi::Error::InvalidData.into())
@@ -244,9 +230,7 @@ pub mod i_uniswap_v3_pool_immutables {
             match self {
                 IUniswapV3PoolImmutablesCalls::Factory(element) => element.encode(),
                 IUniswapV3PoolImmutablesCalls::Fee(element) => element.encode(),
-                IUniswapV3PoolImmutablesCalls::MaxLiquidityPerTick(element) => {
-                    element.encode()
-                }
+                IUniswapV3PoolImmutablesCalls::MaxLiquidityPerTick(element) => element.encode(),
                 IUniswapV3PoolImmutablesCalls::TickSpacing(element) => element.encode(),
                 IUniswapV3PoolImmutablesCalls::Token0(element) => element.encode(),
                 IUniswapV3PoolImmutablesCalls::Token1(element) => element.encode(),
@@ -258,9 +242,7 @@ pub mod i_uniswap_v3_pool_immutables {
             match self {
                 IUniswapV3PoolImmutablesCalls::Factory(element) => element.fmt(f),
                 IUniswapV3PoolImmutablesCalls::Fee(element) => element.fmt(f),
-                IUniswapV3PoolImmutablesCalls::MaxLiquidityPerTick(element) => {
-                    element.fmt(f)
-                }
+                IUniswapV3PoolImmutablesCalls::MaxLiquidityPerTick(element) => element.fmt(f),
                 IUniswapV3PoolImmutablesCalls::TickSpacing(element) => element.fmt(f),
                 IUniswapV3PoolImmutablesCalls::Token0(element) => element.fmt(f),
                 IUniswapV3PoolImmutablesCalls::Token1(element) => element.fmt(f),
@@ -277,8 +259,7 @@ pub mod i_uniswap_v3_pool_immutables {
             IUniswapV3PoolImmutablesCalls::Fee(var)
         }
     }
-    impl ::std::convert::From<MaxLiquidityPerTickCall>
-    for IUniswapV3PoolImmutablesCalls {
+    impl ::std::convert::From<MaxLiquidityPerTickCall> for IUniswapV3PoolImmutablesCalls {
         fn from(var: MaxLiquidityPerTickCall) -> Self {
             IUniswapV3PoolImmutablesCalls::MaxLiquidityPerTick(var)
         }
@@ -306,8 +287,8 @@ pub mod i_uniswap_v3_pool_immutables {
         PartialEq,
         ::ethers::contract::EthAbiType,
         ::ethers::contract::EthAbiCodec,
+        Default,
     )]
-    #[derive(Default)]
     pub struct FactoryReturn(pub ::ethers::core::types::Address);
     ///Container type for all return fields from the `fee` function with signature `fee()` and selector `0xddca3f43`
     #[derive(
@@ -317,8 +298,8 @@ pub mod i_uniswap_v3_pool_immutables {
         PartialEq,
         ::ethers::contract::EthAbiType,
         ::ethers::contract::EthAbiCodec,
+        Default,
     )]
-    #[derive(Default)]
     pub struct FeeReturn(pub u32);
     ///Container type for all return fields from the `maxLiquidityPerTick` function with signature `maxLiquidityPerTick()` and selector `0x70cf754a`
     #[derive(
@@ -328,8 +309,8 @@ pub mod i_uniswap_v3_pool_immutables {
         PartialEq,
         ::ethers::contract::EthAbiType,
         ::ethers::contract::EthAbiCodec,
+        Default,
     )]
-    #[derive(Default)]
     pub struct MaxLiquidityPerTickReturn(pub u128);
     ///Container type for all return fields from the `tickSpacing` function with signature `tickSpacing()` and selector `0xd0c93a7c`
     #[derive(
@@ -339,8 +320,8 @@ pub mod i_uniswap_v3_pool_immutables {
         PartialEq,
         ::ethers::contract::EthAbiType,
         ::ethers::contract::EthAbiCodec,
+        Default,
     )]
-    #[derive(Default)]
     pub struct TickSpacingReturn(pub i32);
     ///Container type for all return fields from the `token0` function with signature `token0()` and selector `0x0dfe1681`
     #[derive(
@@ -350,8 +331,8 @@ pub mod i_uniswap_v3_pool_immutables {
         PartialEq,
         ::ethers::contract::EthAbiType,
         ::ethers::contract::EthAbiCodec,
+        Default,
     )]
-    #[derive(Default)]
     pub struct Token0Return(pub ::ethers::core::types::Address);
     ///Container type for all return fields from the `token1` function with signature `token1()` and selector `0xd21220a7`
     #[derive(
@@ -361,7 +342,7 @@ pub mod i_uniswap_v3_pool_immutables {
         PartialEq,
         ::ethers::contract::EthAbiType,
         ::ethers::contract::EthAbiCodec,
+        Default,
     )]
-    #[derive(Default)]
     pub struct Token1Return(pub ::ethers::core::types::Address);
 }

@@ -5,30 +5,31 @@ pub mod hello_world {
     #![allow(dead_code)]
     #![allow(clippy::type_complexity)]
     #![allow(unused_imports)]
-    ///HelloWorld was auto-generated with ethers-rs Abigen. More information at: https://github.com/gakonst/ethers-rs
-    use std::sync::Arc;
+    use ::ethers::contract::{
+        builders::{ContractCall, Event},
+        Contract, Lazy,
+    };
     use ::ethers::core::{
-        abi::{Abi, Token, Detokenize, InvalidOutputType, Tokenizable},
+        abi::{Abi, Detokenize, InvalidOutputType, Token, Tokenizable},
         types::*,
     };
-    use ::ethers::contract::{
-        Contract, builders::{ContractCall, Event},
-        Lazy,
-    };
     use ::ethers::providers::Middleware;
+    ///HelloWorld was auto-generated with ethers-rs Abigen. More information at: https://github.com/gakonst/ethers-rs
+    use std::sync::Arc;
     #[rustfmt::skip]
     const __ABI: &str = "[{\"inputs\":[],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"greet\",\"outputs\":[{\"internalType\":\"string\",\"name\":\"_greeting\",\"type\":\"string\",\"components\":[]}]},{\"inputs\":[],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"greeting\",\"outputs\":[{\"internalType\":\"string\",\"name\":\"\",\"type\":\"string\",\"components\":[]}]}]";
     /// The parsed JSON-ABI of the contract.
-    pub static HELLOWORLD_ABI: ::ethers::contract::Lazy<::ethers::core::abi::Abi> = ::ethers::contract::Lazy::new(||
-    ::ethers::core::utils::__serde_json::from_str(__ABI).expect("invalid abi"));
+    pub static HELLOWORLD_ABI: ::ethers::contract::Lazy<::ethers::core::abi::Abi> =
+        ::ethers::contract::Lazy::new(|| {
+            ::ethers::core::utils::__serde_json::from_str(__ABI).expect("invalid abi")
+        });
     /// Bytecode of the #name contract
-    pub static HELLOWORLD_BYTECODE: ::ethers::contract::Lazy<
-        ::ethers::core::types::Bytes,
-    > = ::ethers::contract::Lazy::new(|| {
-        "0x608060405234801561001057600080fd5b5061011b806100206000396000f3fe6080604052348015600f57600080fd5b506004361060325760003560e01c8063cfae3217146037578063ef690cc014606f575b600080fd5b60408051808201909152600c81526b48656c6c6f20576f726c642160a01b60208201525b604051606691906099565b60405180910390f35b605b6040518060400160405280600c81526020016b48656c6c6f20576f726c642160a01b81525081565b600060208083528351808285015260005b8181101560c45785810183015185820160400152820160aa565b506000604082860101526040601f19601f830116850101925050509291505056fea2646970667358221220bc825a97787473d67ec9151ab3bc989aece73443482cbbfb03d050686936127e64736f6c63430008110033"
+    pub static HELLOWORLD_BYTECODE: ::ethers::contract::Lazy<::ethers::core::types::Bytes> =
+        ::ethers::contract::Lazy::new(|| {
+            "0x608060405234801561001057600080fd5b5061011b806100206000396000f3fe6080604052348015600f57600080fd5b506004361060325760003560e01c8063cfae3217146037578063ef690cc014606f575b600080fd5b60408051808201909152600c81526b48656c6c6f20576f726c642160a01b60208201525b604051606691906099565b60405180910390f35b605b6040518060400160405280600c81526020016b48656c6c6f20576f726c642160a01b81525081565b600060208083528351808285015260005b8181101560c45785810183015185820160400152820160aa565b506000604082860101526040601f19601f830116850101925050509291505056fea2646970667358221220bc825a97787473d67ec9151ab3bc989aece73443482cbbfb03d050686936127e64736f6c63430008110033"
             .parse()
             .expect("invalid bytecode")
-    });
+        });
     pub struct HelloWorld<M>(::ethers::contract::Contract<M>);
     impl<M> Clone for HelloWorld<M> {
         fn clone(&self) -> Self {
@@ -43,7 +44,9 @@ pub mod hello_world {
     }
     impl<M> std::fmt::Debug for HelloWorld<M> {
         fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-            f.debug_tuple(stringify!(HelloWorld)).field(&self.address()).finish()
+            f.debug_tuple(stringify!(HelloWorld))
+                .field(&self.address())
+                .finish()
         }
     }
     impl<M: ::ethers::providers::Middleware> HelloWorld<M> {
@@ -54,13 +57,11 @@ pub mod hello_world {
             address: T,
             client: ::std::sync::Arc<M>,
         ) -> Self {
-            Self(
-                ::ethers::contract::Contract::new(
-                    address.into(),
-                    HELLOWORLD_ABI.clone(),
-                    client,
-                ),
-            )
+            Self(::ethers::contract::Contract::new(
+                address.into(),
+                HELLOWORLD_ABI.clone(),
+                client,
+            ))
         }
         /// Constructs the general purpose `Deployer` instance based on the provided constructor arguments and sends it.
         /// Returns a new instance of a deployer that returns an instance of this contract after sending the transaction
@@ -114,8 +115,7 @@ pub mod hello_world {
                 .expect("method not found (this should never happen)")
         }
     }
-    impl<M: ::ethers::providers::Middleware> From<::ethers::contract::Contract<M>>
-    for HelloWorld<M> {
+    impl<M: ::ethers::providers::Middleware> From<::ethers::contract::Contract<M>> for HelloWorld<M> {
         fn from(contract: ::ethers::contract::Contract<M>) -> Self {
             Self::new(contract.address(), contract.client())
         }
@@ -128,8 +128,8 @@ pub mod hello_world {
         PartialEq,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
+        Default,
     )]
-    #[derive(Default)]
     #[ethcall(name = "greet", abi = "greet()")]
     pub struct GreetCall;
     ///Container type for all input parameters for the `greeting` function with signature `greeting()` and selector `0xef690cc0`
@@ -140,8 +140,8 @@ pub mod hello_world {
         PartialEq,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
+        Default,
     )]
-    #[derive(Default)]
     #[ethcall(name = "greeting", abi = "greeting()")]
     pub struct GreetingCall;
     #[derive(Debug, Clone, PartialEq, Eq, ::ethers::contract::EthAbiType)]
@@ -153,14 +153,14 @@ pub mod hello_world {
         fn decode(
             data: impl AsRef<[u8]>,
         ) -> ::std::result::Result<Self, ::ethers::core::abi::AbiError> {
-            if let Ok(decoded)
-                = <GreetCall as ::ethers::core::abi::AbiDecode>::decode(data.as_ref()) {
+            if let Ok(decoded) =
+                <GreetCall as ::ethers::core::abi::AbiDecode>::decode(data.as_ref())
+            {
                 return Ok(HelloWorldCalls::Greet(decoded));
             }
-            if let Ok(decoded)
-                = <GreetingCall as ::ethers::core::abi::AbiDecode>::decode(
-                    data.as_ref(),
-                ) {
+            if let Ok(decoded) =
+                <GreetingCall as ::ethers::core::abi::AbiDecode>::decode(data.as_ref())
+            {
                 return Ok(HelloWorldCalls::Greeting(decoded));
             }
             Err(::ethers::core::abi::Error::InvalidData.into())
@@ -200,8 +200,8 @@ pub mod hello_world {
         PartialEq,
         ::ethers::contract::EthAbiType,
         ::ethers::contract::EthAbiCodec,
+        Default,
     )]
-    #[derive(Default)]
     pub struct GreetReturn {
         pub greeting: String,
     }
@@ -213,7 +213,7 @@ pub mod hello_world {
         PartialEq,
         ::ethers::contract::EthAbiType,
         ::ethers::contract::EthAbiCodec,
+        Default,
     )]
-    #[derive(Default)]
     pub struct GreetingReturn(pub String);
 }

@@ -5,22 +5,24 @@ pub mod vault {
     #![allow(dead_code)]
     #![allow(clippy::type_complexity)]
     #![allow(unused_imports)]
-    ///Vault was auto-generated with ethers-rs Abigen. More information at: https://github.com/gakonst/ethers-rs
-    use std::sync::Arc;
+    use ::ethers::contract::{
+        builders::{ContractCall, Event},
+        Contract, Lazy,
+    };
     use ::ethers::core::{
-        abi::{Abi, Token, Detokenize, InvalidOutputType, Tokenizable},
+        abi::{Abi, Detokenize, InvalidOutputType, Token, Tokenizable},
         types::*,
     };
-    use ::ethers::contract::{
-        Contract, builders::{ContractCall, Event},
-        Lazy,
-    };
     use ::ethers::providers::Middleware;
+    ///Vault was auto-generated with ethers-rs Abigen. More information at: https://github.com/gakonst/ethers-rs
+    use std::sync::Arc;
     #[rustfmt::skip]
     const __ABI: &str = "[{\"inputs\":[{\"internalType\":\"address\",\"name\":\"newAuthorizer\",\"type\":\"address\",\"components\":[],\"indexed\":true}],\"type\":\"event\",\"name\":\"AuthorizerChanged\",\"outputs\":[],\"anonymous\":false},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"token\",\"type\":\"address\",\"components\":[],\"indexed\":true},{\"internalType\":\"address\",\"name\":\"sender\",\"type\":\"address\",\"components\":[],\"indexed\":true},{\"internalType\":\"address\",\"name\":\"recipient\",\"type\":\"address\",\"components\":[],\"indexed\":false},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\",\"components\":[],\"indexed\":false}],\"type\":\"event\",\"name\":\"ExternalBalanceTransfer\",\"outputs\":[],\"anonymous\":false},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"recipient\",\"type\":\"address\",\"components\":[],\"indexed\":true},{\"internalType\":\"address\",\"name\":\"token\",\"type\":\"address\",\"components\":[],\"indexed\":true},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\",\"components\":[],\"indexed\":false},{\"internalType\":\"uint256\",\"name\":\"feeAmount\",\"type\":\"uint256\",\"components\":[],\"indexed\":false}],\"type\":\"event\",\"name\":\"FlashLoan\",\"outputs\":[],\"anonymous\":false},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"user\",\"type\":\"address\",\"components\":[],\"indexed\":true},{\"internalType\":\"address\",\"name\":\"token\",\"type\":\"address\",\"components\":[],\"indexed\":true},{\"internalType\":\"int256\",\"name\":\"delta\",\"type\":\"int256\",\"components\":[],\"indexed\":false}],\"type\":\"event\",\"name\":\"InternalBalanceChanged\",\"outputs\":[],\"anonymous\":false},{\"inputs\":[{\"internalType\":\"bool\",\"name\":\"paused\",\"type\":\"bool\",\"components\":[],\"indexed\":false}],\"type\":\"event\",\"name\":\"PausedStateChanged\",\"outputs\":[],\"anonymous\":false},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"poolId\",\"type\":\"bytes32\",\"components\":[],\"indexed\":true},{\"internalType\":\"address\",\"name\":\"liquidityProvider\",\"type\":\"address\",\"components\":[],\"indexed\":true},{\"internalType\":\"address[]\",\"name\":\"tokens\",\"type\":\"address[]\",\"components\":[],\"indexed\":false},{\"internalType\":\"int256[]\",\"name\":\"deltas\",\"type\":\"int256[]\",\"components\":[],\"indexed\":false},{\"internalType\":\"uint256[]\",\"name\":\"protocolFeeAmounts\",\"type\":\"uint256[]\",\"components\":[],\"indexed\":false}],\"type\":\"event\",\"name\":\"PoolBalanceChanged\",\"outputs\":[],\"anonymous\":false},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"poolId\",\"type\":\"bytes32\",\"components\":[],\"indexed\":true},{\"internalType\":\"address\",\"name\":\"assetManager\",\"type\":\"address\",\"components\":[],\"indexed\":true},{\"internalType\":\"address\",\"name\":\"token\",\"type\":\"address\",\"components\":[],\"indexed\":true},{\"internalType\":\"int256\",\"name\":\"cashDelta\",\"type\":\"int256\",\"components\":[],\"indexed\":false},{\"internalType\":\"int256\",\"name\":\"managedDelta\",\"type\":\"int256\",\"components\":[],\"indexed\":false}],\"type\":\"event\",\"name\":\"PoolBalanceManaged\",\"outputs\":[],\"anonymous\":false},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"poolId\",\"type\":\"bytes32\",\"components\":[],\"indexed\":true},{\"internalType\":\"address\",\"name\":\"poolAddress\",\"type\":\"address\",\"components\":[],\"indexed\":true},{\"internalType\":\"uint8\",\"name\":\"specialization\",\"type\":\"uint8\",\"components\":[],\"indexed\":false}],\"type\":\"event\",\"name\":\"PoolRegistered\",\"outputs\":[],\"anonymous\":false},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"relayer\",\"type\":\"address\",\"components\":[],\"indexed\":true},{\"internalType\":\"address\",\"name\":\"sender\",\"type\":\"address\",\"components\":[],\"indexed\":true},{\"internalType\":\"bool\",\"name\":\"approved\",\"type\":\"bool\",\"components\":[],\"indexed\":false}],\"type\":\"event\",\"name\":\"RelayerApprovalChanged\",\"outputs\":[],\"anonymous\":false},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"poolId\",\"type\":\"bytes32\",\"components\":[],\"indexed\":true},{\"internalType\":\"address\",\"name\":\"tokenIn\",\"type\":\"address\",\"components\":[],\"indexed\":true},{\"internalType\":\"address\",\"name\":\"tokenOut\",\"type\":\"address\",\"components\":[],\"indexed\":true},{\"internalType\":\"uint256\",\"name\":\"amountIn\",\"type\":\"uint256\",\"components\":[],\"indexed\":false},{\"internalType\":\"uint256\",\"name\":\"amountOut\",\"type\":\"uint256\",\"components\":[],\"indexed\":false}],\"type\":\"event\",\"name\":\"Swap\",\"outputs\":[],\"anonymous\":false},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"poolId\",\"type\":\"bytes32\",\"components\":[],\"indexed\":true},{\"internalType\":\"address[]\",\"name\":\"tokens\",\"type\":\"address[]\",\"components\":[],\"indexed\":false}],\"type\":\"event\",\"name\":\"TokensDeregistered\",\"outputs\":[],\"anonymous\":false},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"poolId\",\"type\":\"bytes32\",\"components\":[],\"indexed\":true},{\"internalType\":\"address[]\",\"name\":\"tokens\",\"type\":\"address[]\",\"components\":[],\"indexed\":false},{\"internalType\":\"address[]\",\"name\":\"assetManagers\",\"type\":\"address[]\",\"components\":[],\"indexed\":false}],\"type\":\"event\",\"name\":\"TokensRegistered\",\"outputs\":[],\"anonymous\":false},{\"inputs\":[],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"WETH\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"poolId\",\"type\":\"bytes32\",\"components\":[]},{\"internalType\":\"address[]\",\"name\":\"tokens\",\"type\":\"address[]\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"function\",\"name\":\"deregisterTokens\",\"outputs\":[]},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"poolId\",\"type\":\"bytes32\",\"components\":[]},{\"internalType\":\"address\",\"name\":\"sender\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"address\",\"name\":\"recipient\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"struct Vault.ExitPoolRequest\",\"name\":\"request\",\"type\":\"tuple\",\"components\":[{\"internalType\":\"address[]\",\"name\":\"a\",\"type\":\"address[]\",\"components\":[]},{\"internalType\":\"uint256[]\",\"name\":\"b\",\"type\":\"uint256[]\",\"components\":[]},{\"internalType\":\"bytes\",\"name\":\"c\",\"type\":\"bytes\",\"components\":[]},{\"internalType\":\"bool\",\"name\":\"d\",\"type\":\"bool\",\"components\":[]}]}],\"stateMutability\":\"nonpayable\",\"type\":\"function\",\"name\":\"exitPool\",\"outputs\":[]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"recipient\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"address[]\",\"name\":\"tokens\",\"type\":\"address[]\",\"components\":[]},{\"internalType\":\"uint256[]\",\"name\":\"amounts\",\"type\":\"uint256[]\",\"components\":[]},{\"internalType\":\"bytes\",\"name\":\"userData\",\"type\":\"bytes\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"function\",\"name\":\"flashLoan\",\"outputs\":[]},{\"inputs\":[{\"internalType\":\"bytes4\",\"name\":\"selector\",\"type\":\"bytes4\",\"components\":[]}],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"getActionId\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\",\"components\":[]}]},{\"inputs\":[],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"getAuthorizer\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\",\"components\":[]}]},{\"inputs\":[],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"getDomainSeparator\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"user\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"address[]\",\"name\":\"tokens\",\"type\":\"address[]\",\"components\":[]}],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"getInternalBalance\",\"outputs\":[{\"internalType\":\"uint256[]\",\"name\":\"balances\",\"type\":\"uint256[]\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"user\",\"type\":\"address\",\"components\":[]}],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"getNextNonce\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\",\"components\":[]}]},{\"inputs\":[],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"getPausedState\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"paused\",\"type\":\"bool\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"pauseWindowEndTime\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"bufferPeriodEndTime\",\"type\":\"uint256\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"poolId\",\"type\":\"bytes32\",\"components\":[]}],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"getPool\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint8\",\"name\":\"\",\"type\":\"uint8\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"poolId\",\"type\":\"bytes32\",\"components\":[]},{\"internalType\":\"address\",\"name\":\"token\",\"type\":\"address\",\"components\":[]}],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"getPoolTokenInfo\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"cash\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"managed\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"lastChangeBlock\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"address\",\"name\":\"assetManager\",\"type\":\"address\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"poolId\",\"type\":\"bytes32\",\"components\":[]}],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"getPoolTokens\",\"outputs\":[{\"internalType\":\"address[]\",\"name\":\"tokens\",\"type\":\"address[]\",\"components\":[]},{\"internalType\":\"uint256[]\",\"name\":\"balances\",\"type\":\"uint256[]\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"lastChangeBlock\",\"type\":\"uint256\",\"components\":[]}]},{\"inputs\":[],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"getProtocolFeesCollector\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"user\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"address\",\"name\":\"relayer\",\"type\":\"address\",\"components\":[]}],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"hasApprovedRelayer\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"poolId\",\"type\":\"bytes32\",\"components\":[]},{\"internalType\":\"address\",\"name\":\"sender\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"address\",\"name\":\"recipient\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"struct Vault.JoinPoolRequest\",\"name\":\"request\",\"type\":\"tuple\",\"components\":[{\"internalType\":\"address[]\",\"name\":\"a\",\"type\":\"address[]\",\"components\":[]},{\"internalType\":\"uint256[]\",\"name\":\"b\",\"type\":\"uint256[]\",\"components\":[]},{\"internalType\":\"bytes\",\"name\":\"c\",\"type\":\"bytes\",\"components\":[]},{\"internalType\":\"bool\",\"name\":\"d\",\"type\":\"bool\",\"components\":[]}]}],\"stateMutability\":\"payable\",\"type\":\"function\",\"name\":\"joinPool\",\"outputs\":[]},{\"inputs\":[{\"internalType\":\"uint8\",\"name\":\"specialization\",\"type\":\"uint8\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"function\",\"name\":\"registerPool\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"poolId\",\"type\":\"bytes32\",\"components\":[]},{\"internalType\":\"address[]\",\"name\":\"tokens\",\"type\":\"address[]\",\"components\":[]},{\"internalType\":\"address[]\",\"name\":\"assetManagers\",\"type\":\"address[]\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"function\",\"name\":\"registerTokens\",\"outputs\":[]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"newAuthorizer\",\"type\":\"address\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"function\",\"name\":\"setAuthorizer\",\"outputs\":[]},{\"inputs\":[{\"internalType\":\"bool\",\"name\":\"paused\",\"type\":\"bool\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"function\",\"name\":\"setPaused\",\"outputs\":[]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"sender\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"address\",\"name\":\"relayer\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"bool\",\"name\":\"approved\",\"type\":\"bool\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"function\",\"name\":\"setRelayerApproval\",\"outputs\":[]},{\"inputs\":[{\"internalType\":\"struct Vault.SingleSwap\",\"name\":\"singleSwap\",\"type\":\"tuple\",\"components\":[{\"internalType\":\"bytes32\",\"name\":\"a\",\"type\":\"bytes32\",\"components\":[]},{\"internalType\":\"uint8\",\"name\":\"b\",\"type\":\"uint8\",\"components\":[]},{\"internalType\":\"address\",\"name\":\"c\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"address\",\"name\":\"d\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"e\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"bytes\",\"name\":\"f\",\"type\":\"bytes\",\"components\":[]}]},{\"internalType\":\"struct Vault.FundManagement\",\"name\":\"funds\",\"type\":\"tuple\",\"components\":[{\"internalType\":\"address\",\"name\":\"a\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"bool\",\"name\":\"b\",\"type\":\"bool\",\"components\":[]},{\"internalType\":\"address\",\"name\":\"c\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"bool\",\"name\":\"d\",\"type\":\"bool\",\"components\":[]}]},{\"internalType\":\"uint256\",\"name\":\"limit\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"deadline\",\"type\":\"uint256\",\"components\":[]}],\"stateMutability\":\"payable\",\"type\":\"function\",\"name\":\"swap\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"amountCalculated\",\"type\":\"uint256\",\"components\":[]}]}]";
     /// The parsed JSON-ABI of the contract.
-    pub static VAULT_ABI: ::ethers::contract::Lazy<::ethers::core::abi::Abi> = ::ethers::contract::Lazy::new(||
-    ::ethers::core::utils::__serde_json::from_str(__ABI).expect("invalid abi"));
+    pub static VAULT_ABI: ::ethers::contract::Lazy<::ethers::core::abi::Abi> =
+        ::ethers::contract::Lazy::new(|| {
+            ::ethers::core::utils::__serde_json::from_str(__ABI).expect("invalid abi")
+        });
     pub struct Vault<M>(::ethers::contract::Contract<M>);
     impl<M> Clone for Vault<M> {
         fn clone(&self) -> Self {
@@ -35,7 +37,9 @@ pub mod vault {
     }
     impl<M> std::fmt::Debug for Vault<M> {
         fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-            f.debug_tuple(stringify!(Vault)).field(&self.address()).finish()
+            f.debug_tuple(stringify!(Vault))
+                .field(&self.address())
+                .finish()
         }
     }
     impl<M: ::ethers::providers::Middleware> Vault<M> {
@@ -46,21 +50,16 @@ pub mod vault {
             address: T,
             client: ::std::sync::Arc<M>,
         ) -> Self {
-            Self(
-                ::ethers::contract::Contract::new(
-                    address.into(),
-                    VAULT_ABI.clone(),
-                    client,
-                ),
-            )
+            Self(::ethers::contract::Contract::new(
+                address.into(),
+                VAULT_ABI.clone(),
+                client,
+            ))
         }
         ///Calls the contract's `WETH` (0xad5c4648) function
         pub fn weth(
             &self,
-        ) -> ::ethers::contract::builders::ContractCall<
-            M,
-            ::ethers::core::types::Address,
-        > {
+        ) -> ::ethers::contract::builders::ContractCall<M, ::ethers::core::types::Address> {
             self.0
                 .method_hash([173, 92, 70, 72], ())
                 .expect("method not found (this should never happen)")
@@ -111,10 +110,7 @@ pub mod vault {
         ///Calls the contract's `getAuthorizer` (0xaaabadc5) function
         pub fn get_authorizer(
             &self,
-        ) -> ::ethers::contract::builders::ContractCall<
-            M,
-            ::ethers::core::types::Address,
-        > {
+        ) -> ::ethers::contract::builders::ContractCall<M, ::ethers::core::types::Address> {
             self.0
                 .method_hash([170, 171, 173, 197], ())
                 .expect("method not found (this should never happen)")
@@ -154,7 +150,11 @@ pub mod vault {
             &self,
         ) -> ::ethers::contract::builders::ContractCall<
             M,
-            (bool, ::ethers::core::types::U256, ::ethers::core::types::U256),
+            (
+                bool,
+                ::ethers::core::types::U256,
+                ::ethers::core::types::U256,
+            ),
         > {
             self.0
                 .method_hash([28, 13, 224, 81], ())
@@ -164,10 +164,8 @@ pub mod vault {
         pub fn get_pool(
             &self,
             pool_id: [u8; 32],
-        ) -> ::ethers::contract::builders::ContractCall<
-            M,
-            (::ethers::core::types::Address, u8),
-        > {
+        ) -> ::ethers::contract::builders::ContractCall<M, (::ethers::core::types::Address, u8)>
+        {
             self.0
                 .method_hash([246, 192, 9, 39], pool_id)
                 .expect("method not found (this should never happen)")
@@ -209,10 +207,7 @@ pub mod vault {
         ///Calls the contract's `getProtocolFeesCollector` (0xd2946c2b) function
         pub fn get_protocol_fees_collector(
             &self,
-        ) -> ::ethers::contract::builders::ContractCall<
-            M,
-            ::ethers::core::types::Address,
-        > {
+        ) -> ::ethers::contract::builders::ContractCall<M, ::ethers::core::types::Address> {
             self.0
                 .method_hash([210, 148, 108, 43], ())
                 .expect("method not found (this should never happen)")
@@ -313,9 +308,7 @@ pub mod vault {
             self.0.event()
         }
         ///Gets the contract's `FlashLoan` event
-        pub fn flash_loan_filter(
-            &self,
-        ) -> ::ethers::contract::builders::Event<M, FlashLoanFilter> {
+        pub fn flash_loan_filter(&self) -> ::ethers::contract::builders::Event<M, FlashLoanFilter> {
             self.0.event()
         }
         ///Gets the contract's `InternalBalanceChanged` event
@@ -375,8 +368,7 @@ pub mod vault {
             self.0.event_with_filter(Default::default())
         }
     }
-    impl<M: ::ethers::providers::Middleware> From<::ethers::contract::Contract<M>>
-    for Vault<M> {
+    impl<M: ::ethers::providers::Middleware> From<::ethers::contract::Contract<M>> for Vault<M> {
         fn from(contract: ::ethers::contract::Contract<M>) -> Self {
             Self::new(contract.address(), contract.client())
         }
@@ -388,8 +380,8 @@ pub mod vault {
         PartialEq,
         ::ethers::contract::EthEvent,
         ::ethers::contract::EthDisplay,
+        Default,
     )]
-    #[derive(Default)]
     #[ethevent(name = "AuthorizerChanged", abi = "AuthorizerChanged(address)")]
     pub struct AuthorizerChangedFilter {
         #[ethevent(indexed)]
@@ -402,8 +394,8 @@ pub mod vault {
         PartialEq,
         ::ethers::contract::EthEvent,
         ::ethers::contract::EthDisplay,
+        Default,
     )]
-    #[derive(Default)]
     #[ethevent(
         name = "ExternalBalanceTransfer",
         abi = "ExternalBalanceTransfer(address,address,address,uint256)"
@@ -423,8 +415,8 @@ pub mod vault {
         PartialEq,
         ::ethers::contract::EthEvent,
         ::ethers::contract::EthDisplay,
+        Default,
     )]
-    #[derive(Default)]
     #[ethevent(name = "FlashLoan", abi = "FlashLoan(address,address,uint256,uint256)")]
     pub struct FlashLoanFilter {
         #[ethevent(indexed)]
@@ -441,8 +433,8 @@ pub mod vault {
         PartialEq,
         ::ethers::contract::EthEvent,
         ::ethers::contract::EthDisplay,
+        Default,
     )]
-    #[derive(Default)]
     #[ethevent(
         name = "InternalBalanceChanged",
         abi = "InternalBalanceChanged(address,address,int256)"
@@ -461,8 +453,8 @@ pub mod vault {
         PartialEq,
         ::ethers::contract::EthEvent,
         ::ethers::contract::EthDisplay,
+        Default,
     )]
-    #[derive(Default)]
     #[ethevent(name = "PausedStateChanged", abi = "PausedStateChanged(bool)")]
     pub struct PausedStateChangedFilter {
         pub paused: bool,
@@ -474,8 +466,8 @@ pub mod vault {
         PartialEq,
         ::ethers::contract::EthEvent,
         ::ethers::contract::EthDisplay,
+        Default,
     )]
-    #[derive(Default)]
     #[ethevent(
         name = "PoolBalanceChanged",
         abi = "PoolBalanceChanged(bytes32,address,address[],int256[],uint256[])"
@@ -496,8 +488,8 @@ pub mod vault {
         PartialEq,
         ::ethers::contract::EthEvent,
         ::ethers::contract::EthDisplay,
+        Default,
     )]
-    #[derive(Default)]
     #[ethevent(
         name = "PoolBalanceManaged",
         abi = "PoolBalanceManaged(bytes32,address,address,int256,int256)"
@@ -519,8 +511,8 @@ pub mod vault {
         PartialEq,
         ::ethers::contract::EthEvent,
         ::ethers::contract::EthDisplay,
+        Default,
     )]
-    #[derive(Default)]
     #[ethevent(name = "PoolRegistered", abi = "PoolRegistered(bytes32,address,uint8)")]
     pub struct PoolRegisteredFilter {
         #[ethevent(indexed)]
@@ -536,8 +528,8 @@ pub mod vault {
         PartialEq,
         ::ethers::contract::EthEvent,
         ::ethers::contract::EthDisplay,
+        Default,
     )]
-    #[derive(Default)]
     #[ethevent(
         name = "RelayerApprovalChanged",
         abi = "RelayerApprovalChanged(address,address,bool)"
@@ -556,8 +548,8 @@ pub mod vault {
         PartialEq,
         ::ethers::contract::EthEvent,
         ::ethers::contract::EthDisplay,
+        Default,
     )]
-    #[derive(Default)]
     #[ethevent(name = "Swap", abi = "Swap(bytes32,address,address,uint256,uint256)")]
     pub struct SwapFilter {
         #[ethevent(indexed)]
@@ -576,8 +568,8 @@ pub mod vault {
         PartialEq,
         ::ethers::contract::EthEvent,
         ::ethers::contract::EthDisplay,
+        Default,
     )]
-    #[derive(Default)]
     #[ethevent(
         name = "TokensDeregistered",
         abi = "TokensDeregistered(bytes32,address[])"
@@ -594,8 +586,8 @@ pub mod vault {
         PartialEq,
         ::ethers::contract::EthEvent,
         ::ethers::contract::EthDisplay,
+        Default,
     )]
-    #[derive(Default)]
     #[ethevent(
         name = "TokensRegistered",
         abi = "TokensRegistered(bytes32,address[],address[])"
@@ -693,8 +685,8 @@ pub mod vault {
         PartialEq,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
+        Default,
     )]
-    #[derive(Default)]
     #[ethcall(name = "WETH", abi = "WETH()")]
     pub struct WethCall;
     ///Container type for all input parameters for the `deregisterTokens` function with signature `deregisterTokens(bytes32,address[])` and selector `0x7d3aeb96`
@@ -705,8 +697,8 @@ pub mod vault {
         PartialEq,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
+        Default,
     )]
-    #[derive(Default)]
     #[ethcall(name = "deregisterTokens", abi = "deregisterTokens(bytes32,address[])")]
     pub struct DeregisterTokensCall {
         pub pool_id: [u8; 32],
@@ -720,8 +712,8 @@ pub mod vault {
         PartialEq,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
+        Default,
     )]
-    #[derive(Default)]
     #[ethcall(
         name = "exitPool",
         abi = "exitPool(bytes32,address,address,(address[],uint256[],bytes,bool))"
@@ -740,9 +732,12 @@ pub mod vault {
         PartialEq,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
+        Default,
     )]
-    #[derive(Default)]
-    #[ethcall(name = "flashLoan", abi = "flashLoan(address,address[],uint256[],bytes)")]
+    #[ethcall(
+        name = "flashLoan",
+        abi = "flashLoan(address,address[],uint256[],bytes)"
+    )]
     pub struct FlashLoanCall {
         pub recipient: ::ethers::core::types::Address,
         pub tokens: ::std::vec::Vec<::ethers::core::types::Address>,
@@ -757,8 +752,8 @@ pub mod vault {
         PartialEq,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
+        Default,
     )]
-    #[derive(Default)]
     #[ethcall(name = "getActionId", abi = "getActionId(bytes4)")]
     pub struct GetActionIdCall {
         pub selector: [u8; 4],
@@ -771,8 +766,8 @@ pub mod vault {
         PartialEq,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
+        Default,
     )]
-    #[derive(Default)]
     #[ethcall(name = "getAuthorizer", abi = "getAuthorizer()")]
     pub struct GetAuthorizerCall;
     ///Container type for all input parameters for the `getDomainSeparator` function with signature `getDomainSeparator()` and selector `0xed24911d`
@@ -783,8 +778,8 @@ pub mod vault {
         PartialEq,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
+        Default,
     )]
-    #[derive(Default)]
     #[ethcall(name = "getDomainSeparator", abi = "getDomainSeparator()")]
     pub struct GetDomainSeparatorCall;
     ///Container type for all input parameters for the `getInternalBalance` function with signature `getInternalBalance(address,address[])` and selector `0x0f5a6efa`
@@ -795,8 +790,8 @@ pub mod vault {
         PartialEq,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
+        Default,
     )]
-    #[derive(Default)]
     #[ethcall(
         name = "getInternalBalance",
         abi = "getInternalBalance(address,address[])"
@@ -813,8 +808,8 @@ pub mod vault {
         PartialEq,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
+        Default,
     )]
-    #[derive(Default)]
     #[ethcall(name = "getNextNonce", abi = "getNextNonce(address)")]
     pub struct GetNextNonceCall {
         pub user: ::ethers::core::types::Address,
@@ -827,8 +822,8 @@ pub mod vault {
         PartialEq,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
+        Default,
     )]
-    #[derive(Default)]
     #[ethcall(name = "getPausedState", abi = "getPausedState()")]
     pub struct GetPausedStateCall;
     ///Container type for all input parameters for the `getPool` function with signature `getPool(bytes32)` and selector `0xf6c00927`
@@ -839,8 +834,8 @@ pub mod vault {
         PartialEq,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
+        Default,
     )]
-    #[derive(Default)]
     #[ethcall(name = "getPool", abi = "getPool(bytes32)")]
     pub struct GetPoolCall {
         pub pool_id: [u8; 32],
@@ -853,8 +848,8 @@ pub mod vault {
         PartialEq,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
+        Default,
     )]
-    #[derive(Default)]
     #[ethcall(name = "getPoolTokenInfo", abi = "getPoolTokenInfo(bytes32,address)")]
     pub struct GetPoolTokenInfoCall {
         pub pool_id: [u8; 32],
@@ -868,8 +863,8 @@ pub mod vault {
         PartialEq,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
+        Default,
     )]
-    #[derive(Default)]
     #[ethcall(name = "getPoolTokens", abi = "getPoolTokens(bytes32)")]
     pub struct GetPoolTokensCall {
         pub pool_id: [u8; 32],
@@ -882,8 +877,8 @@ pub mod vault {
         PartialEq,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
+        Default,
     )]
-    #[derive(Default)]
     #[ethcall(name = "getProtocolFeesCollector", abi = "getProtocolFeesCollector()")]
     pub struct GetProtocolFeesCollectorCall;
     ///Container type for all input parameters for the `hasApprovedRelayer` function with signature `hasApprovedRelayer(address,address)` and selector `0xfec90d72`
@@ -894,9 +889,12 @@ pub mod vault {
         PartialEq,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
+        Default,
     )]
-    #[derive(Default)]
-    #[ethcall(name = "hasApprovedRelayer", abi = "hasApprovedRelayer(address,address)")]
+    #[ethcall(
+        name = "hasApprovedRelayer",
+        abi = "hasApprovedRelayer(address,address)"
+    )]
     pub struct HasApprovedRelayerCall {
         pub user: ::ethers::core::types::Address,
         pub relayer: ::ethers::core::types::Address,
@@ -909,8 +907,8 @@ pub mod vault {
         PartialEq,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
+        Default,
     )]
-    #[derive(Default)]
     #[ethcall(
         name = "joinPool",
         abi = "joinPool(bytes32,address,address,(address[],uint256[],bytes,bool))"
@@ -929,8 +927,8 @@ pub mod vault {
         PartialEq,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
+        Default,
     )]
-    #[derive(Default)]
     #[ethcall(name = "registerPool", abi = "registerPool(uint8)")]
     pub struct RegisterPoolCall {
         pub specialization: u8,
@@ -943,8 +941,8 @@ pub mod vault {
         PartialEq,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
+        Default,
     )]
-    #[derive(Default)]
     #[ethcall(
         name = "registerTokens",
         abi = "registerTokens(bytes32,address[],address[])"
@@ -962,8 +960,8 @@ pub mod vault {
         PartialEq,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
+        Default,
     )]
-    #[derive(Default)]
     #[ethcall(name = "setAuthorizer", abi = "setAuthorizer(address)")]
     pub struct SetAuthorizerCall {
         pub new_authorizer: ::ethers::core::types::Address,
@@ -976,8 +974,8 @@ pub mod vault {
         PartialEq,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
+        Default,
     )]
-    #[derive(Default)]
     #[ethcall(name = "setPaused", abi = "setPaused(bool)")]
     pub struct SetPausedCall {
         pub paused: bool,
@@ -990,8 +988,8 @@ pub mod vault {
         PartialEq,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
+        Default,
     )]
-    #[derive(Default)]
     #[ethcall(
         name = "setRelayerApproval",
         abi = "setRelayerApproval(address,address,bool)"
@@ -1009,8 +1007,8 @@ pub mod vault {
         PartialEq,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
+        Default,
     )]
-    #[derive(Default)]
     #[ethcall(
         name = "swap",
         abi = "swap((bytes32,uint8,address,address,uint256,bytes),(address,bool,address,bool),uint256,uint256)"
@@ -1050,132 +1048,114 @@ pub mod vault {
         fn decode(
             data: impl AsRef<[u8]>,
         ) -> ::std::result::Result<Self, ::ethers::core::abi::AbiError> {
-            if let Ok(decoded)
-                = <WethCall as ::ethers::core::abi::AbiDecode>::decode(data.as_ref()) {
+            if let Ok(decoded) = <WethCall as ::ethers::core::abi::AbiDecode>::decode(data.as_ref())
+            {
                 return Ok(VaultCalls::Weth(decoded));
             }
-            if let Ok(decoded)
-                = <DeregisterTokensCall as ::ethers::core::abi::AbiDecode>::decode(
-                    data.as_ref(),
-                ) {
+            if let Ok(decoded) =
+                <DeregisterTokensCall as ::ethers::core::abi::AbiDecode>::decode(data.as_ref())
+            {
                 return Ok(VaultCalls::DeregisterTokens(decoded));
             }
-            if let Ok(decoded)
-                = <ExitPoolCall as ::ethers::core::abi::AbiDecode>::decode(
-                    data.as_ref(),
-                ) {
+            if let Ok(decoded) =
+                <ExitPoolCall as ::ethers::core::abi::AbiDecode>::decode(data.as_ref())
+            {
                 return Ok(VaultCalls::ExitPool(decoded));
             }
-            if let Ok(decoded)
-                = <FlashLoanCall as ::ethers::core::abi::AbiDecode>::decode(
-                    data.as_ref(),
-                ) {
+            if let Ok(decoded) =
+                <FlashLoanCall as ::ethers::core::abi::AbiDecode>::decode(data.as_ref())
+            {
                 return Ok(VaultCalls::FlashLoan(decoded));
             }
-            if let Ok(decoded)
-                = <GetActionIdCall as ::ethers::core::abi::AbiDecode>::decode(
-                    data.as_ref(),
-                ) {
+            if let Ok(decoded) =
+                <GetActionIdCall as ::ethers::core::abi::AbiDecode>::decode(data.as_ref())
+            {
                 return Ok(VaultCalls::GetActionId(decoded));
             }
-            if let Ok(decoded)
-                = <GetAuthorizerCall as ::ethers::core::abi::AbiDecode>::decode(
-                    data.as_ref(),
-                ) {
+            if let Ok(decoded) =
+                <GetAuthorizerCall as ::ethers::core::abi::AbiDecode>::decode(data.as_ref())
+            {
                 return Ok(VaultCalls::GetAuthorizer(decoded));
             }
-            if let Ok(decoded)
-                = <GetDomainSeparatorCall as ::ethers::core::abi::AbiDecode>::decode(
-                    data.as_ref(),
-                ) {
+            if let Ok(decoded) =
+                <GetDomainSeparatorCall as ::ethers::core::abi::AbiDecode>::decode(data.as_ref())
+            {
                 return Ok(VaultCalls::GetDomainSeparator(decoded));
             }
-            if let Ok(decoded)
-                = <GetInternalBalanceCall as ::ethers::core::abi::AbiDecode>::decode(
-                    data.as_ref(),
-                ) {
+            if let Ok(decoded) =
+                <GetInternalBalanceCall as ::ethers::core::abi::AbiDecode>::decode(data.as_ref())
+            {
                 return Ok(VaultCalls::GetInternalBalance(decoded));
             }
-            if let Ok(decoded)
-                = <GetNextNonceCall as ::ethers::core::abi::AbiDecode>::decode(
-                    data.as_ref(),
-                ) {
+            if let Ok(decoded) =
+                <GetNextNonceCall as ::ethers::core::abi::AbiDecode>::decode(data.as_ref())
+            {
                 return Ok(VaultCalls::GetNextNonce(decoded));
             }
-            if let Ok(decoded)
-                = <GetPausedStateCall as ::ethers::core::abi::AbiDecode>::decode(
-                    data.as_ref(),
-                ) {
+            if let Ok(decoded) =
+                <GetPausedStateCall as ::ethers::core::abi::AbiDecode>::decode(data.as_ref())
+            {
                 return Ok(VaultCalls::GetPausedState(decoded));
             }
-            if let Ok(decoded)
-                = <GetPoolCall as ::ethers::core::abi::AbiDecode>::decode(
-                    data.as_ref(),
-                ) {
+            if let Ok(decoded) =
+                <GetPoolCall as ::ethers::core::abi::AbiDecode>::decode(data.as_ref())
+            {
                 return Ok(VaultCalls::GetPool(decoded));
             }
-            if let Ok(decoded)
-                = <GetPoolTokenInfoCall as ::ethers::core::abi::AbiDecode>::decode(
-                    data.as_ref(),
-                ) {
+            if let Ok(decoded) =
+                <GetPoolTokenInfoCall as ::ethers::core::abi::AbiDecode>::decode(data.as_ref())
+            {
                 return Ok(VaultCalls::GetPoolTokenInfo(decoded));
             }
-            if let Ok(decoded)
-                = <GetPoolTokensCall as ::ethers::core::abi::AbiDecode>::decode(
-                    data.as_ref(),
-                ) {
+            if let Ok(decoded) =
+                <GetPoolTokensCall as ::ethers::core::abi::AbiDecode>::decode(data.as_ref())
+            {
                 return Ok(VaultCalls::GetPoolTokens(decoded));
             }
-            if let Ok(decoded)
-                = <GetProtocolFeesCollectorCall as ::ethers::core::abi::AbiDecode>::decode(
+            if let Ok(decoded) =
+                <GetProtocolFeesCollectorCall as ::ethers::core::abi::AbiDecode>::decode(
                     data.as_ref(),
-                ) {
+                )
+            {
                 return Ok(VaultCalls::GetProtocolFeesCollector(decoded));
             }
-            if let Ok(decoded)
-                = <HasApprovedRelayerCall as ::ethers::core::abi::AbiDecode>::decode(
-                    data.as_ref(),
-                ) {
+            if let Ok(decoded) =
+                <HasApprovedRelayerCall as ::ethers::core::abi::AbiDecode>::decode(data.as_ref())
+            {
                 return Ok(VaultCalls::HasApprovedRelayer(decoded));
             }
-            if let Ok(decoded)
-                = <JoinPoolCall as ::ethers::core::abi::AbiDecode>::decode(
-                    data.as_ref(),
-                ) {
+            if let Ok(decoded) =
+                <JoinPoolCall as ::ethers::core::abi::AbiDecode>::decode(data.as_ref())
+            {
                 return Ok(VaultCalls::JoinPool(decoded));
             }
-            if let Ok(decoded)
-                = <RegisterPoolCall as ::ethers::core::abi::AbiDecode>::decode(
-                    data.as_ref(),
-                ) {
+            if let Ok(decoded) =
+                <RegisterPoolCall as ::ethers::core::abi::AbiDecode>::decode(data.as_ref())
+            {
                 return Ok(VaultCalls::RegisterPool(decoded));
             }
-            if let Ok(decoded)
-                = <RegisterTokensCall as ::ethers::core::abi::AbiDecode>::decode(
-                    data.as_ref(),
-                ) {
+            if let Ok(decoded) =
+                <RegisterTokensCall as ::ethers::core::abi::AbiDecode>::decode(data.as_ref())
+            {
                 return Ok(VaultCalls::RegisterTokens(decoded));
             }
-            if let Ok(decoded)
-                = <SetAuthorizerCall as ::ethers::core::abi::AbiDecode>::decode(
-                    data.as_ref(),
-                ) {
+            if let Ok(decoded) =
+                <SetAuthorizerCall as ::ethers::core::abi::AbiDecode>::decode(data.as_ref())
+            {
                 return Ok(VaultCalls::SetAuthorizer(decoded));
             }
-            if let Ok(decoded)
-                = <SetPausedCall as ::ethers::core::abi::AbiDecode>::decode(
-                    data.as_ref(),
-                ) {
+            if let Ok(decoded) =
+                <SetPausedCall as ::ethers::core::abi::AbiDecode>::decode(data.as_ref())
+            {
                 return Ok(VaultCalls::SetPaused(decoded));
             }
-            if let Ok(decoded)
-                = <SetRelayerApprovalCall as ::ethers::core::abi::AbiDecode>::decode(
-                    data.as_ref(),
-                ) {
+            if let Ok(decoded) =
+                <SetRelayerApprovalCall as ::ethers::core::abi::AbiDecode>::decode(data.as_ref())
+            {
                 return Ok(VaultCalls::SetRelayerApproval(decoded));
             }
-            if let Ok(decoded)
-                = <SwapCall as ::ethers::core::abi::AbiDecode>::decode(data.as_ref()) {
+            if let Ok(decoded) = <SwapCall as ::ethers::core::abi::AbiDecode>::decode(data.as_ref())
+            {
                 return Ok(VaultCalls::Swap(decoded));
             }
             Err(::ethers::core::abi::Error::InvalidData.into())
@@ -1355,8 +1335,8 @@ pub mod vault {
         PartialEq,
         ::ethers::contract::EthAbiType,
         ::ethers::contract::EthAbiCodec,
+        Default,
     )]
-    #[derive(Default)]
     pub struct WethReturn(pub ::ethers::core::types::Address);
     ///Container type for all return fields from the `getActionId` function with signature `getActionId(bytes4)` and selector `0x851c1bb3`
     #[derive(
@@ -1366,8 +1346,8 @@ pub mod vault {
         PartialEq,
         ::ethers::contract::EthAbiType,
         ::ethers::contract::EthAbiCodec,
+        Default,
     )]
-    #[derive(Default)]
     pub struct GetActionIdReturn(pub [u8; 32]);
     ///Container type for all return fields from the `getAuthorizer` function with signature `getAuthorizer()` and selector `0xaaabadc5`
     #[derive(
@@ -1377,8 +1357,8 @@ pub mod vault {
         PartialEq,
         ::ethers::contract::EthAbiType,
         ::ethers::contract::EthAbiCodec,
+        Default,
     )]
-    #[derive(Default)]
     pub struct GetAuthorizerReturn(pub ::ethers::core::types::Address);
     ///Container type for all return fields from the `getDomainSeparator` function with signature `getDomainSeparator()` and selector `0xed24911d`
     #[derive(
@@ -1388,8 +1368,8 @@ pub mod vault {
         PartialEq,
         ::ethers::contract::EthAbiType,
         ::ethers::contract::EthAbiCodec,
+        Default,
     )]
-    #[derive(Default)]
     pub struct GetDomainSeparatorReturn(pub [u8; 32]);
     ///Container type for all return fields from the `getInternalBalance` function with signature `getInternalBalance(address,address[])` and selector `0x0f5a6efa`
     #[derive(
@@ -1399,8 +1379,8 @@ pub mod vault {
         PartialEq,
         ::ethers::contract::EthAbiType,
         ::ethers::contract::EthAbiCodec,
+        Default,
     )]
-    #[derive(Default)]
     pub struct GetInternalBalanceReturn {
         pub balances: ::std::vec::Vec<::ethers::core::types::U256>,
     }
@@ -1412,8 +1392,8 @@ pub mod vault {
         PartialEq,
         ::ethers::contract::EthAbiType,
         ::ethers::contract::EthAbiCodec,
+        Default,
     )]
-    #[derive(Default)]
     pub struct GetNextNonceReturn(pub ::ethers::core::types::U256);
     ///Container type for all return fields from the `getPausedState` function with signature `getPausedState()` and selector `0x1c0de051`
     #[derive(
@@ -1423,8 +1403,8 @@ pub mod vault {
         PartialEq,
         ::ethers::contract::EthAbiType,
         ::ethers::contract::EthAbiCodec,
+        Default,
     )]
-    #[derive(Default)]
     pub struct GetPausedStateReturn {
         pub paused: bool,
         pub pause_window_end_time: ::ethers::core::types::U256,
@@ -1438,8 +1418,8 @@ pub mod vault {
         PartialEq,
         ::ethers::contract::EthAbiType,
         ::ethers::contract::EthAbiCodec,
+        Default,
     )]
-    #[derive(Default)]
     pub struct GetPoolReturn(pub ::ethers::core::types::Address, pub u8);
     ///Container type for all return fields from the `getPoolTokenInfo` function with signature `getPoolTokenInfo(bytes32,address)` and selector `0xb05f8e48`
     #[derive(
@@ -1449,8 +1429,8 @@ pub mod vault {
         PartialEq,
         ::ethers::contract::EthAbiType,
         ::ethers::contract::EthAbiCodec,
+        Default,
     )]
-    #[derive(Default)]
     pub struct GetPoolTokenInfoReturn {
         pub cash: ::ethers::core::types::U256,
         pub managed: ::ethers::core::types::U256,
@@ -1465,8 +1445,8 @@ pub mod vault {
         PartialEq,
         ::ethers::contract::EthAbiType,
         ::ethers::contract::EthAbiCodec,
+        Default,
     )]
-    #[derive(Default)]
     pub struct GetPoolTokensReturn {
         pub tokens: ::std::vec::Vec<::ethers::core::types::Address>,
         pub balances: ::std::vec::Vec<::ethers::core::types::U256>,
@@ -1480,8 +1460,8 @@ pub mod vault {
         PartialEq,
         ::ethers::contract::EthAbiType,
         ::ethers::contract::EthAbiCodec,
+        Default,
     )]
-    #[derive(Default)]
     pub struct GetProtocolFeesCollectorReturn(pub ::ethers::core::types::Address);
     ///Container type for all return fields from the `hasApprovedRelayer` function with signature `hasApprovedRelayer(address,address)` and selector `0xfec90d72`
     #[derive(
@@ -1491,8 +1471,8 @@ pub mod vault {
         PartialEq,
         ::ethers::contract::EthAbiType,
         ::ethers::contract::EthAbiCodec,
+        Default,
     )]
-    #[derive(Default)]
     pub struct HasApprovedRelayerReturn(pub bool);
     ///Container type for all return fields from the `registerPool` function with signature `registerPool(uint8)` and selector `0x09b2760f`
     #[derive(
@@ -1502,8 +1482,8 @@ pub mod vault {
         PartialEq,
         ::ethers::contract::EthAbiType,
         ::ethers::contract::EthAbiCodec,
+        Default,
     )]
-    #[derive(Default)]
     pub struct RegisterPoolReturn(pub [u8; 32]);
     ///Container type for all return fields from the `swap` function with signature `swap((bytes32,uint8,address,address,uint256,bytes),(address,bool,address,bool),uint256,uint256)` and selector `0x52bbbe29`
     #[derive(
@@ -1513,8 +1493,8 @@ pub mod vault {
         PartialEq,
         ::ethers::contract::EthAbiType,
         ::ethers::contract::EthAbiCodec,
+        Default,
     )]
-    #[derive(Default)]
     pub struct SwapReturn {
         pub amount_calculated: ::ethers::core::types::U256,
     }

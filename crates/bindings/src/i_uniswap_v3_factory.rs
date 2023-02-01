@@ -5,25 +5,24 @@ pub mod i_uniswap_v3_factory {
     #![allow(dead_code)]
     #![allow(clippy::type_complexity)]
     #![allow(unused_imports)]
-    ///IUniswapV3Factory was auto-generated with ethers-rs Abigen. More information at: https://github.com/gakonst/ethers-rs
-    use std::sync::Arc;
+    use ::ethers::contract::{
+        builders::{ContractCall, Event},
+        Contract, Lazy,
+    };
     use ::ethers::core::{
-        abi::{Abi, Token, Detokenize, InvalidOutputType, Tokenizable},
+        abi::{Abi, Detokenize, InvalidOutputType, Token, Tokenizable},
         types::*,
     };
-    use ::ethers::contract::{
-        Contract, builders::{ContractCall, Event},
-        Lazy,
-    };
     use ::ethers::providers::Middleware;
+    ///IUniswapV3Factory was auto-generated with ethers-rs Abigen. More information at: https://github.com/gakonst/ethers-rs
+    use std::sync::Arc;
     #[rustfmt::skip]
     const __ABI: &str = "[{\"inputs\":[{\"internalType\":\"uint24\",\"name\":\"fee\",\"type\":\"uint24\",\"components\":[],\"indexed\":true},{\"internalType\":\"int24\",\"name\":\"tickSpacing\",\"type\":\"int24\",\"components\":[],\"indexed\":true}],\"type\":\"event\",\"name\":\"FeeAmountEnabled\",\"outputs\":[],\"anonymous\":false},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"oldOwner\",\"type\":\"address\",\"components\":[],\"indexed\":true},{\"internalType\":\"address\",\"name\":\"newOwner\",\"type\":\"address\",\"components\":[],\"indexed\":true}],\"type\":\"event\",\"name\":\"OwnerChanged\",\"outputs\":[],\"anonymous\":false},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"token0\",\"type\":\"address\",\"components\":[],\"indexed\":true},{\"internalType\":\"address\",\"name\":\"token1\",\"type\":\"address\",\"components\":[],\"indexed\":true},{\"internalType\":\"uint24\",\"name\":\"fee\",\"type\":\"uint24\",\"components\":[],\"indexed\":true},{\"internalType\":\"int24\",\"name\":\"tickSpacing\",\"type\":\"int24\",\"components\":[],\"indexed\":false},{\"internalType\":\"address\",\"name\":\"pool\",\"type\":\"address\",\"components\":[],\"indexed\":false}],\"type\":\"event\",\"name\":\"PoolCreated\",\"outputs\":[],\"anonymous\":false},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"tokenA\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"address\",\"name\":\"tokenB\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint24\",\"name\":\"fee\",\"type\":\"uint24\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"function\",\"name\":\"createPool\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"pool\",\"type\":\"address\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"uint24\",\"name\":\"fee\",\"type\":\"uint24\",\"components\":[]},{\"internalType\":\"int24\",\"name\":\"tickSpacing\",\"type\":\"int24\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"function\",\"name\":\"enableFeeAmount\",\"outputs\":[]},{\"inputs\":[{\"internalType\":\"uint24\",\"name\":\"fee\",\"type\":\"uint24\",\"components\":[]}],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"feeAmountTickSpacing\",\"outputs\":[{\"internalType\":\"int24\",\"name\":\"\",\"type\":\"int24\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"tokenA\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"address\",\"name\":\"tokenB\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint24\",\"name\":\"fee\",\"type\":\"uint24\",\"components\":[]}],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"getPool\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"pool\",\"type\":\"address\",\"components\":[]}]},{\"inputs\":[],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"owner\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_owner\",\"type\":\"address\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"function\",\"name\":\"setOwner\",\"outputs\":[]}]";
     /// The parsed JSON-ABI of the contract.
-    pub static IUNISWAPV3FACTORY_ABI: ::ethers::contract::Lazy<
-        ::ethers::core::abi::Abi,
-    > = ::ethers::contract::Lazy::new(|| {
-        ::ethers::core::utils::__serde_json::from_str(__ABI).expect("invalid abi")
-    });
+    pub static IUNISWAPV3FACTORY_ABI: ::ethers::contract::Lazy<::ethers::core::abi::Abi> =
+        ::ethers::contract::Lazy::new(|| {
+            ::ethers::core::utils::__serde_json::from_str(__ABI).expect("invalid abi")
+        });
     pub struct IUniswapV3Factory<M>(::ethers::contract::Contract<M>);
     impl<M> Clone for IUniswapV3Factory<M> {
         fn clone(&self) -> Self {
@@ -38,7 +37,9 @@ pub mod i_uniswap_v3_factory {
     }
     impl<M> std::fmt::Debug for IUniswapV3Factory<M> {
         fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-            f.debug_tuple(stringify!(IUniswapV3Factory)).field(&self.address()).finish()
+            f.debug_tuple(stringify!(IUniswapV3Factory))
+                .field(&self.address())
+                .finish()
         }
     }
     impl<M: ::ethers::providers::Middleware> IUniswapV3Factory<M> {
@@ -49,13 +50,11 @@ pub mod i_uniswap_v3_factory {
             address: T,
             client: ::std::sync::Arc<M>,
         ) -> Self {
-            Self(
-                ::ethers::contract::Contract::new(
-                    address.into(),
-                    IUNISWAPV3FACTORY_ABI.clone(),
-                    client,
-                ),
-            )
+            Self(::ethers::contract::Contract::new(
+                address.into(),
+                IUNISWAPV3FACTORY_ABI.clone(),
+                client,
+            ))
         }
         ///Calls the contract's `createPool` (0xa1671295) function
         pub fn create_pool(
@@ -63,10 +62,7 @@ pub mod i_uniswap_v3_factory {
             token_a: ::ethers::core::types::Address,
             token_b: ::ethers::core::types::Address,
             fee: u32,
-        ) -> ::ethers::contract::builders::ContractCall<
-            M,
-            ::ethers::core::types::Address,
-        > {
+        ) -> ::ethers::contract::builders::ContractCall<M, ::ethers::core::types::Address> {
             self.0
                 .method_hash([161, 103, 18, 149], (token_a, token_b, fee))
                 .expect("method not found (this should never happen)")
@@ -96,10 +92,7 @@ pub mod i_uniswap_v3_factory {
             token_a: ::ethers::core::types::Address,
             token_b: ::ethers::core::types::Address,
             fee: u32,
-        ) -> ::ethers::contract::builders::ContractCall<
-            M,
-            ::ethers::core::types::Address,
-        > {
+        ) -> ::ethers::contract::builders::ContractCall<M, ::ethers::core::types::Address> {
             self.0
                 .method_hash([22, 152, 238, 130], (token_a, token_b, fee))
                 .expect("method not found (this should never happen)")
@@ -107,10 +100,7 @@ pub mod i_uniswap_v3_factory {
         ///Calls the contract's `owner` (0x8da5cb5b) function
         pub fn owner(
             &self,
-        ) -> ::ethers::contract::builders::ContractCall<
-            M,
-            ::ethers::core::types::Address,
-        > {
+        ) -> ::ethers::contract::builders::ContractCall<M, ::ethers::core::types::Address> {
             self.0
                 .method_hash([141, 165, 203, 91], ())
                 .expect("method not found (this should never happen)")
@@ -143,14 +133,13 @@ pub mod i_uniswap_v3_factory {
             self.0.event()
         }
         /// Returns an [`Event`](#ethers_contract::builders::Event) builder for all events of this contract
-        pub fn events(
-            &self,
-        ) -> ::ethers::contract::builders::Event<M, IUniswapV3FactoryEvents> {
+        pub fn events(&self) -> ::ethers::contract::builders::Event<M, IUniswapV3FactoryEvents> {
             self.0.event_with_filter(Default::default())
         }
     }
     impl<M: ::ethers::providers::Middleware> From<::ethers::contract::Contract<M>>
-    for IUniswapV3Factory<M> {
+        for IUniswapV3Factory<M>
+    {
         fn from(contract: ::ethers::contract::Contract<M>) -> Self {
             Self::new(contract.address(), contract.client())
         }
@@ -162,8 +151,8 @@ pub mod i_uniswap_v3_factory {
         PartialEq,
         ::ethers::contract::EthEvent,
         ::ethers::contract::EthDisplay,
+        Default,
     )]
-    #[derive(Default)]
     #[ethevent(name = "FeeAmountEnabled", abi = "FeeAmountEnabled(uint24,int24)")]
     pub struct FeeAmountEnabledFilter {
         #[ethevent(indexed)]
@@ -178,8 +167,8 @@ pub mod i_uniswap_v3_factory {
         PartialEq,
         ::ethers::contract::EthEvent,
         ::ethers::contract::EthDisplay,
+        Default,
     )]
-    #[derive(Default)]
     #[ethevent(name = "OwnerChanged", abi = "OwnerChanged(address,address)")]
     pub struct OwnerChangedFilter {
         #[ethevent(indexed)]
@@ -194,8 +183,8 @@ pub mod i_uniswap_v3_factory {
         PartialEq,
         ::ethers::contract::EthEvent,
         ::ethers::contract::EthDisplay,
+        Default,
     )]
-    #[derive(Default)]
     #[ethevent(
         name = "PoolCreated",
         abi = "PoolCreated(address,address,uint24,int24,address)"
@@ -238,9 +227,7 @@ pub mod i_uniswap_v3_factory {
     impl ::std::fmt::Display for IUniswapV3FactoryEvents {
         fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
             match self {
-                IUniswapV3FactoryEvents::FeeAmountEnabledFilter(element) => {
-                    element.fmt(f)
-                }
+                IUniswapV3FactoryEvents::FeeAmountEnabledFilter(element) => element.fmt(f),
                 IUniswapV3FactoryEvents::OwnerChangedFilter(element) => element.fmt(f),
                 IUniswapV3FactoryEvents::PoolCreatedFilter(element) => element.fmt(f),
             }
@@ -254,8 +241,8 @@ pub mod i_uniswap_v3_factory {
         PartialEq,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
+        Default,
     )]
-    #[derive(Default)]
     #[ethcall(name = "createPool", abi = "createPool(address,address,uint24)")]
     pub struct CreatePoolCall {
         pub token_a: ::ethers::core::types::Address,
@@ -270,8 +257,8 @@ pub mod i_uniswap_v3_factory {
         PartialEq,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
+        Default,
     )]
-    #[derive(Default)]
     #[ethcall(name = "enableFeeAmount", abi = "enableFeeAmount(uint24,int24)")]
     pub struct EnableFeeAmountCall {
         pub fee: u32,
@@ -285,8 +272,8 @@ pub mod i_uniswap_v3_factory {
         PartialEq,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
+        Default,
     )]
-    #[derive(Default)]
     #[ethcall(name = "feeAmountTickSpacing", abi = "feeAmountTickSpacing(uint24)")]
     pub struct FeeAmountTickSpacingCall {
         pub fee: u32,
@@ -299,8 +286,8 @@ pub mod i_uniswap_v3_factory {
         PartialEq,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
+        Default,
     )]
-    #[derive(Default)]
     #[ethcall(name = "getPool", abi = "getPool(address,address,uint24)")]
     pub struct GetPoolCall {
         pub token_a: ::ethers::core::types::Address,
@@ -315,8 +302,8 @@ pub mod i_uniswap_v3_factory {
         PartialEq,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
+        Default,
     )]
-    #[derive(Default)]
     #[ethcall(name = "owner", abi = "owner()")]
     pub struct OwnerCall;
     ///Container type for all input parameters for the `setOwner` function with signature `setOwner(address)` and selector `0x13af4035`
@@ -327,8 +314,8 @@ pub mod i_uniswap_v3_factory {
         PartialEq,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
+        Default,
     )]
-    #[derive(Default)]
     #[ethcall(name = "setOwner", abi = "setOwner(address)")]
     pub struct SetOwnerCall {
         pub owner: ::ethers::core::types::Address,
@@ -346,38 +333,34 @@ pub mod i_uniswap_v3_factory {
         fn decode(
             data: impl AsRef<[u8]>,
         ) -> ::std::result::Result<Self, ::ethers::core::abi::AbiError> {
-            if let Ok(decoded)
-                = <CreatePoolCall as ::ethers::core::abi::AbiDecode>::decode(
-                    data.as_ref(),
-                ) {
+            if let Ok(decoded) =
+                <CreatePoolCall as ::ethers::core::abi::AbiDecode>::decode(data.as_ref())
+            {
                 return Ok(IUniswapV3FactoryCalls::CreatePool(decoded));
             }
-            if let Ok(decoded)
-                = <EnableFeeAmountCall as ::ethers::core::abi::AbiDecode>::decode(
-                    data.as_ref(),
-                ) {
+            if let Ok(decoded) =
+                <EnableFeeAmountCall as ::ethers::core::abi::AbiDecode>::decode(data.as_ref())
+            {
                 return Ok(IUniswapV3FactoryCalls::EnableFeeAmount(decoded));
             }
-            if let Ok(decoded)
-                = <FeeAmountTickSpacingCall as ::ethers::core::abi::AbiDecode>::decode(
-                    data.as_ref(),
-                ) {
+            if let Ok(decoded) =
+                <FeeAmountTickSpacingCall as ::ethers::core::abi::AbiDecode>::decode(data.as_ref())
+            {
                 return Ok(IUniswapV3FactoryCalls::FeeAmountTickSpacing(decoded));
             }
-            if let Ok(decoded)
-                = <GetPoolCall as ::ethers::core::abi::AbiDecode>::decode(
-                    data.as_ref(),
-                ) {
+            if let Ok(decoded) =
+                <GetPoolCall as ::ethers::core::abi::AbiDecode>::decode(data.as_ref())
+            {
                 return Ok(IUniswapV3FactoryCalls::GetPool(decoded));
             }
-            if let Ok(decoded)
-                = <OwnerCall as ::ethers::core::abi::AbiDecode>::decode(data.as_ref()) {
+            if let Ok(decoded) =
+                <OwnerCall as ::ethers::core::abi::AbiDecode>::decode(data.as_ref())
+            {
                 return Ok(IUniswapV3FactoryCalls::Owner(decoded));
             }
-            if let Ok(decoded)
-                = <SetOwnerCall as ::ethers::core::abi::AbiDecode>::decode(
-                    data.as_ref(),
-                ) {
+            if let Ok(decoded) =
+                <SetOwnerCall as ::ethers::core::abi::AbiDecode>::decode(data.as_ref())
+            {
                 return Ok(IUniswapV3FactoryCalls::SetOwner(decoded));
             }
             Err(::ethers::core::abi::Error::InvalidData.into())
@@ -445,8 +428,8 @@ pub mod i_uniswap_v3_factory {
         PartialEq,
         ::ethers::contract::EthAbiType,
         ::ethers::contract::EthAbiCodec,
+        Default,
     )]
-    #[derive(Default)]
     pub struct CreatePoolReturn {
         pub pool: ::ethers::core::types::Address,
     }
@@ -458,8 +441,8 @@ pub mod i_uniswap_v3_factory {
         PartialEq,
         ::ethers::contract::EthAbiType,
         ::ethers::contract::EthAbiCodec,
+        Default,
     )]
-    #[derive(Default)]
     pub struct FeeAmountTickSpacingReturn(pub i32);
     ///Container type for all return fields from the `getPool` function with signature `getPool(address,address,uint24)` and selector `0x1698ee82`
     #[derive(
@@ -469,8 +452,8 @@ pub mod i_uniswap_v3_factory {
         PartialEq,
         ::ethers::contract::EthAbiType,
         ::ethers::contract::EthAbiCodec,
+        Default,
     )]
-    #[derive(Default)]
     pub struct GetPoolReturn {
         pub pool: ::ethers::core::types::Address,
     }
@@ -482,7 +465,7 @@ pub mod i_uniswap_v3_factory {
         PartialEq,
         ::ethers::contract::EthAbiType,
         ::ethers::contract::EthAbiCodec,
+        Default,
     )]
-    #[derive(Default)]
     pub struct OwnerReturn(pub ::ethers::core::types::Address);
 }

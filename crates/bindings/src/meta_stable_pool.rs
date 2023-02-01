@@ -5,22 +5,24 @@ pub mod meta_stable_pool {
     #![allow(dead_code)]
     #![allow(clippy::type_complexity)]
     #![allow(unused_imports)]
-    ///MetaStablePool was auto-generated with ethers-rs Abigen. More information at: https://github.com/gakonst/ethers-rs
-    use std::sync::Arc;
+    use ::ethers::contract::{
+        builders::{ContractCall, Event},
+        Contract, Lazy,
+    };
     use ::ethers::core::{
-        abi::{Abi, Token, Detokenize, InvalidOutputType, Tokenizable},
+        abi::{Abi, Detokenize, InvalidOutputType, Token, Tokenizable},
         types::*,
     };
-    use ::ethers::contract::{
-        Contract, builders::{ContractCall, Event},
-        Lazy,
-    };
     use ::ethers::providers::Middleware;
+    ///MetaStablePool was auto-generated with ethers-rs Abigen. More information at: https://github.com/gakonst/ethers-rs
+    use std::sync::Arc;
     #[rustfmt::skip]
     const __ABI: &str = "[{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"startValue\",\"type\":\"uint256\",\"components\":[],\"indexed\":false},{\"internalType\":\"uint256\",\"name\":\"endValue\",\"type\":\"uint256\",\"components\":[],\"indexed\":false},{\"internalType\":\"uint256\",\"name\":\"startTime\",\"type\":\"uint256\",\"components\":[],\"indexed\":false},{\"internalType\":\"uint256\",\"name\":\"endTime\",\"type\":\"uint256\",\"components\":[],\"indexed\":false}],\"type\":\"event\",\"name\":\"AmpUpdateStarted\",\"outputs\":[],\"anonymous\":false},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"currentValue\",\"type\":\"uint256\",\"components\":[],\"indexed\":false}],\"type\":\"event\",\"name\":\"AmpUpdateStopped\",\"outputs\":[],\"anonymous\":false},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"owner\",\"type\":\"address\",\"components\":[],\"indexed\":true},{\"internalType\":\"address\",\"name\":\"spender\",\"type\":\"address\",\"components\":[],\"indexed\":true},{\"internalType\":\"uint256\",\"name\":\"value\",\"type\":\"uint256\",\"components\":[],\"indexed\":false}],\"type\":\"event\",\"name\":\"Approval\",\"outputs\":[],\"anonymous\":false},{\"inputs\":[{\"internalType\":\"bool\",\"name\":\"enabled\",\"type\":\"bool\",\"components\":[],\"indexed\":false}],\"type\":\"event\",\"name\":\"OracleEnabledChanged\",\"outputs\":[],\"anonymous\":false},{\"inputs\":[{\"internalType\":\"bool\",\"name\":\"paused\",\"type\":\"bool\",\"components\":[],\"indexed\":false}],\"type\":\"event\",\"name\":\"PausedStateChanged\",\"outputs\":[],\"anonymous\":false},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"token\",\"type\":\"address\",\"components\":[],\"indexed\":true},{\"internalType\":\"uint256\",\"name\":\"rate\",\"type\":\"uint256\",\"components\":[],\"indexed\":false}],\"type\":\"event\",\"name\":\"PriceRateCacheUpdated\",\"outputs\":[],\"anonymous\":false},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"token\",\"type\":\"address\",\"components\":[],\"indexed\":true},{\"internalType\":\"address\",\"name\":\"provider\",\"type\":\"address\",\"components\":[],\"indexed\":true},{\"internalType\":\"uint256\",\"name\":\"cacheDuration\",\"type\":\"uint256\",\"components\":[],\"indexed\":false}],\"type\":\"event\",\"name\":\"PriceRateProviderSet\",\"outputs\":[],\"anonymous\":false},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"swapFeePercentage\",\"type\":\"uint256\",\"components\":[],\"indexed\":false}],\"type\":\"event\",\"name\":\"SwapFeePercentageChanged\",\"outputs\":[],\"anonymous\":false},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"from\",\"type\":\"address\",\"components\":[],\"indexed\":true},{\"internalType\":\"address\",\"name\":\"to\",\"type\":\"address\",\"components\":[],\"indexed\":true},{\"internalType\":\"uint256\",\"name\":\"value\",\"type\":\"uint256\",\"components\":[],\"indexed\":false}],\"type\":\"event\",\"name\":\"Transfer\",\"outputs\":[],\"anonymous\":false},{\"inputs\":[],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"DOMAIN_SEPARATOR\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"owner\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"address\",\"name\":\"spender\",\"type\":\"address\",\"components\":[]}],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"allowance\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"spender\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"function\",\"name\":\"approve\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"account\",\"type\":\"address\",\"components\":[]}],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"balanceOf\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\",\"components\":[]}]},{\"inputs\":[],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"decimals\",\"outputs\":[{\"internalType\":\"uint8\",\"name\":\"\",\"type\":\"uint8\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"spender\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"function\",\"name\":\"decreaseAllowance\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\",\"components\":[]}]},{\"inputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\",\"name\":\"enableOracle\",\"outputs\":[]},{\"inputs\":[{\"internalType\":\"bytes4\",\"name\":\"selector\",\"type\":\"bytes4\",\"components\":[]}],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"getActionId\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\",\"components\":[]}]},{\"inputs\":[],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"getAmplificationParameter\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"value\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"bool\",\"name\":\"isUpdating\",\"type\":\"bool\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"precision\",\"type\":\"uint256\",\"components\":[]}]},{\"inputs\":[],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"getAuthorizer\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\",\"components\":[]}]},{\"inputs\":[],\"stateMutability\":\"pure\",\"type\":\"function\",\"name\":\"getLargestSafeQueryWindow\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\",\"components\":[]}]},{\"inputs\":[],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"getLastInvariant\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"lastInvariant\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"lastInvariantAmp\",\"type\":\"uint256\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"uint8\",\"name\":\"variable\",\"type\":\"uint8\",\"components\":[]}],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"getLatest\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\",\"components\":[]}]},{\"inputs\":[],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"getOracleMiscData\",\"outputs\":[{\"internalType\":\"int256\",\"name\":\"logInvariant\",\"type\":\"int256\",\"components\":[]},{\"internalType\":\"int256\",\"name\":\"logTotalSupply\",\"type\":\"int256\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"oracleSampleCreationTimestamp\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"oracleIndex\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"bool\",\"name\":\"oracleEnabled\",\"type\":\"bool\",\"components\":[]}]},{\"inputs\":[],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"getOwner\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\",\"components\":[]}]},{\"inputs\":[],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"getPausedState\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"paused\",\"type\":\"bool\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"pauseWindowEndTime\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"bufferPeriodEndTime\",\"type\":\"uint256\",\"components\":[]}]},{\"inputs\":[],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"getPoolId\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"token\",\"type\":\"address\",\"components\":[]}],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"getPriceRateCache\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"rate\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"duration\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"expires\",\"type\":\"uint256\",\"components\":[]}]},{\"inputs\":[],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"getRate\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\",\"components\":[]}]},{\"inputs\":[],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"getRateProviders\",\"outputs\":[{\"internalType\":\"address[]\",\"name\":\"providers\",\"type\":\"address[]\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"index\",\"type\":\"uint256\",\"components\":[]}],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"getSample\",\"outputs\":[{\"internalType\":\"int256\",\"name\":\"logPairPrice\",\"type\":\"int256\",\"components\":[]},{\"internalType\":\"int256\",\"name\":\"accLogPairPrice\",\"type\":\"int256\",\"components\":[]},{\"internalType\":\"int256\",\"name\":\"logBptPrice\",\"type\":\"int256\",\"components\":[]},{\"internalType\":\"int256\",\"name\":\"accLogBptPrice\",\"type\":\"int256\",\"components\":[]},{\"internalType\":\"int256\",\"name\":\"logInvariant\",\"type\":\"int256\",\"components\":[]},{\"internalType\":\"int256\",\"name\":\"accLogInvariant\",\"type\":\"int256\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"timestamp\",\"type\":\"uint256\",\"components\":[]}]},{\"inputs\":[],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"getScalingFactors\",\"outputs\":[{\"internalType\":\"uint256[]\",\"name\":\"\",\"type\":\"uint256[]\",\"components\":[]}]},{\"inputs\":[],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"getSwapFeePercentage\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\",\"components\":[]}]},{\"inputs\":[],\"stateMutability\":\"pure\",\"type\":\"function\",\"name\":\"getTotalSamples\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\",\"components\":[]}]},{\"inputs\":[],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"getVault\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"spender\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"addedValue\",\"type\":\"uint256\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"function\",\"name\":\"increaseAllowance\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\",\"components\":[]}]},{\"inputs\":[],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"name\",\"outputs\":[{\"internalType\":\"string\",\"name\":\"\",\"type\":\"string\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"owner\",\"type\":\"address\",\"components\":[]}],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"nonces\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"poolId\",\"type\":\"bytes32\",\"components\":[]},{\"internalType\":\"address\",\"name\":\"sender\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"address\",\"name\":\"recipient\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint256[]\",\"name\":\"balances\",\"type\":\"uint256[]\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"lastChangeBlock\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"protocolSwapFeePercentage\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"bytes\",\"name\":\"userData\",\"type\":\"bytes\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"function\",\"name\":\"onExitPool\",\"outputs\":[{\"internalType\":\"uint256[]\",\"name\":\"amountsOut\",\"type\":\"uint256[]\",\"components\":[]},{\"internalType\":\"uint256[]\",\"name\":\"dueProtocolFeeAmounts\",\"type\":\"uint256[]\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"poolId\",\"type\":\"bytes32\",\"components\":[]},{\"internalType\":\"address\",\"name\":\"sender\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"address\",\"name\":\"recipient\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint256[]\",\"name\":\"balances\",\"type\":\"uint256[]\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"lastChangeBlock\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"protocolSwapFeePercentage\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"bytes\",\"name\":\"userData\",\"type\":\"bytes\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"function\",\"name\":\"onJoinPool\",\"outputs\":[{\"internalType\":\"uint256[]\",\"name\":\"amountsIn\",\"type\":\"uint256[]\",\"components\":[]},{\"internalType\":\"uint256[]\",\"name\":\"dueProtocolFeeAmounts\",\"type\":\"uint256[]\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"struct MetaStablePool.SwapRequest\",\"name\":\"request\",\"type\":\"tuple\",\"components\":[{\"internalType\":\"uint8\",\"name\":\"a\",\"type\":\"uint8\",\"components\":[]},{\"internalType\":\"address\",\"name\":\"b\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"address\",\"name\":\"c\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"d\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"bytes32\",\"name\":\"e\",\"type\":\"bytes32\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"f\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"address\",\"name\":\"g\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"address\",\"name\":\"h\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"bytes\",\"name\":\"i\",\"type\":\"bytes\",\"components\":[]}]},{\"internalType\":\"uint256[]\",\"name\":\"balances\",\"type\":\"uint256[]\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"indexIn\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"indexOut\",\"type\":\"uint256\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"function\",\"name\":\"onSwap\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"struct MetaStablePool.SwapRequest\",\"name\":\"request\",\"type\":\"tuple\",\"components\":[{\"internalType\":\"uint8\",\"name\":\"a\",\"type\":\"uint8\",\"components\":[]},{\"internalType\":\"address\",\"name\":\"b\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"address\",\"name\":\"c\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"d\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"bytes32\",\"name\":\"e\",\"type\":\"bytes32\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"f\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"address\",\"name\":\"g\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"address\",\"name\":\"h\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"bytes\",\"name\":\"i\",\"type\":\"bytes\",\"components\":[]}]},{\"internalType\":\"uint256\",\"name\":\"balanceTokenIn\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"balanceTokenOut\",\"type\":\"uint256\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"function\",\"name\":\"onSwap\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"owner\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"address\",\"name\":\"spender\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"value\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"deadline\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"uint8\",\"name\":\"v\",\"type\":\"uint8\",\"components\":[]},{\"internalType\":\"bytes32\",\"name\":\"r\",\"type\":\"bytes32\",\"components\":[]},{\"internalType\":\"bytes32\",\"name\":\"s\",\"type\":\"bytes32\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"function\",\"name\":\"permit\",\"outputs\":[]},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"poolId\",\"type\":\"bytes32\",\"components\":[]},{\"internalType\":\"address\",\"name\":\"sender\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"address\",\"name\":\"recipient\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint256[]\",\"name\":\"balances\",\"type\":\"uint256[]\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"lastChangeBlock\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"protocolSwapFeePercentage\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"bytes\",\"name\":\"userData\",\"type\":\"bytes\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"function\",\"name\":\"queryExit\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"bptIn\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"uint256[]\",\"name\":\"amountsOut\",\"type\":\"uint256[]\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"poolId\",\"type\":\"bytes32\",\"components\":[]},{\"internalType\":\"address\",\"name\":\"sender\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"address\",\"name\":\"recipient\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint256[]\",\"name\":\"balances\",\"type\":\"uint256[]\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"lastChangeBlock\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"protocolSwapFeePercentage\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"bytes\",\"name\":\"userData\",\"type\":\"bytes\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"function\",\"name\":\"queryJoin\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"bptOut\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"uint256[]\",\"name\":\"amountsIn\",\"type\":\"uint256[]\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"token\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"bytes\",\"name\":\"poolConfig\",\"type\":\"bytes\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"function\",\"name\":\"setAssetManagerPoolConfig\",\"outputs\":[]},{\"inputs\":[{\"internalType\":\"bool\",\"name\":\"paused\",\"type\":\"bool\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"function\",\"name\":\"setPaused\",\"outputs\":[]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"token\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"duration\",\"type\":\"uint256\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"function\",\"name\":\"setPriceRateCacheDuration\",\"outputs\":[]},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"swapFeePercentage\",\"type\":\"uint256\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"function\",\"name\":\"setSwapFeePercentage\",\"outputs\":[]},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"rawEndValue\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"endTime\",\"type\":\"uint256\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"function\",\"name\":\"startAmplificationParameterUpdate\",\"outputs\":[]},{\"inputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\",\"name\":\"stopAmplificationParameterUpdate\",\"outputs\":[]},{\"inputs\":[],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"symbol\",\"outputs\":[{\"internalType\":\"string\",\"name\":\"\",\"type\":\"string\",\"components\":[]}]},{\"inputs\":[],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"totalSupply\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"recipient\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"function\",\"name\":\"transfer\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"sender\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"address\",\"name\":\"recipient\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"function\",\"name\":\"transferFrom\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"token\",\"type\":\"address\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"function\",\"name\":\"updatePriceRateCache\",\"outputs\":[]}]";
     /// The parsed JSON-ABI of the contract.
-    pub static METASTABLEPOOL_ABI: ::ethers::contract::Lazy<::ethers::core::abi::Abi> = ::ethers::contract::Lazy::new(||
-    ::ethers::core::utils::__serde_json::from_str(__ABI).expect("invalid abi"));
+    pub static METASTABLEPOOL_ABI: ::ethers::contract::Lazy<::ethers::core::abi::Abi> =
+        ::ethers::contract::Lazy::new(|| {
+            ::ethers::core::utils::__serde_json::from_str(__ABI).expect("invalid abi")
+        });
     pub struct MetaStablePool<M>(::ethers::contract::Contract<M>);
     impl<M> Clone for MetaStablePool<M> {
         fn clone(&self) -> Self {
@@ -35,7 +37,9 @@ pub mod meta_stable_pool {
     }
     impl<M> std::fmt::Debug for MetaStablePool<M> {
         fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-            f.debug_tuple(stringify!(MetaStablePool)).field(&self.address()).finish()
+            f.debug_tuple(stringify!(MetaStablePool))
+                .field(&self.address())
+                .finish()
         }
     }
     impl<M: ::ethers::providers::Middleware> MetaStablePool<M> {
@@ -46,18 +50,14 @@ pub mod meta_stable_pool {
             address: T,
             client: ::std::sync::Arc<M>,
         ) -> Self {
-            Self(
-                ::ethers::contract::Contract::new(
-                    address.into(),
-                    METASTABLEPOOL_ABI.clone(),
-                    client,
-                ),
-            )
+            Self(::ethers::contract::Contract::new(
+                address.into(),
+                METASTABLEPOOL_ABI.clone(),
+                client,
+            ))
         }
         ///Calls the contract's `DOMAIN_SEPARATOR` (0x3644e515) function
-        pub fn domain_separator(
-            &self,
-        ) -> ::ethers::contract::builders::ContractCall<M, [u8; 32]> {
+        pub fn domain_separator(&self) -> ::ethers::contract::builders::ContractCall<M, [u8; 32]> {
             self.0
                 .method_hash([54, 68, 229, 21], ())
                 .expect("method not found (this should never happen)")
@@ -108,9 +108,7 @@ pub mod meta_stable_pool {
                 .expect("method not found (this should never happen)")
         }
         ///Calls the contract's `enableOracle` (0x292c914a) function
-        pub fn enable_oracle(
-            &self,
-        ) -> ::ethers::contract::builders::ContractCall<M, ()> {
+        pub fn enable_oracle(&self) -> ::ethers::contract::builders::ContractCall<M, ()> {
             self.0
                 .method_hash([41, 44, 145, 74], ())
                 .expect("method not found (this should never happen)")
@@ -129,7 +127,11 @@ pub mod meta_stable_pool {
             &self,
         ) -> ::ethers::contract::builders::ContractCall<
             M,
-            (::ethers::core::types::U256, bool, ::ethers::core::types::U256),
+            (
+                ::ethers::core::types::U256,
+                bool,
+                ::ethers::core::types::U256,
+            ),
         > {
             self.0
                 .method_hash([109, 172, 207, 250], ())
@@ -138,10 +140,7 @@ pub mod meta_stable_pool {
         ///Calls the contract's `getAuthorizer` (0xaaabadc5) function
         pub fn get_authorizer(
             &self,
-        ) -> ::ethers::contract::builders::ContractCall<
-            M,
-            ::ethers::core::types::Address,
-        > {
+        ) -> ::ethers::contract::builders::ContractCall<M, ::ethers::core::types::Address> {
             self.0
                 .method_hash([170, 171, 173, 197], ())
                 .expect("method not found (this should never happen)")
@@ -194,10 +193,7 @@ pub mod meta_stable_pool {
         ///Calls the contract's `getOwner` (0x893d20e8) function
         pub fn get_owner(
             &self,
-        ) -> ::ethers::contract::builders::ContractCall<
-            M,
-            ::ethers::core::types::Address,
-        > {
+        ) -> ::ethers::contract::builders::ContractCall<M, ::ethers::core::types::Address> {
             self.0
                 .method_hash([137, 61, 32, 232], ())
                 .expect("method not found (this should never happen)")
@@ -207,16 +203,18 @@ pub mod meta_stable_pool {
             &self,
         ) -> ::ethers::contract::builders::ContractCall<
             M,
-            (bool, ::ethers::core::types::U256, ::ethers::core::types::U256),
+            (
+                bool,
+                ::ethers::core::types::U256,
+                ::ethers::core::types::U256,
+            ),
         > {
             self.0
                 .method_hash([28, 13, 224, 81], ())
                 .expect("method not found (this should never happen)")
         }
         ///Calls the contract's `getPoolId` (0x38fff2d0) function
-        pub fn get_pool_id(
-            &self,
-        ) -> ::ethers::contract::builders::ContractCall<M, [u8; 32]> {
+        pub fn get_pool_id(&self) -> ::ethers::contract::builders::ContractCall<M, [u8; 32]> {
             self.0
                 .method_hash([56, 255, 242, 208], ())
                 .expect("method not found (this should never happen)")
@@ -306,10 +304,7 @@ pub mod meta_stable_pool {
         ///Calls the contract's `getVault` (0x8d928af8) function
         pub fn get_vault(
             &self,
-        ) -> ::ethers::contract::builders::ContractCall<
-            M,
-            ::ethers::core::types::Address,
-        > {
+        ) -> ::ethers::contract::builders::ContractCall<M, ::ethers::core::types::Address> {
             self.0
                 .method_hash([141, 146, 138, 248], ())
                 .expect("method not found (this should never happen)")
@@ -459,7 +454,10 @@ pub mod meta_stable_pool {
             user_data: ::ethers::core::types::Bytes,
         ) -> ::ethers::contract::builders::ContractCall<
             M,
-            (::ethers::core::types::U256, ::std::vec::Vec<::ethers::core::types::U256>),
+            (
+                ::ethers::core::types::U256,
+                ::std::vec::Vec<::ethers::core::types::U256>,
+            ),
         > {
             self.0
                 .method_hash(
@@ -488,7 +486,10 @@ pub mod meta_stable_pool {
             user_data: ::ethers::core::types::Bytes,
         ) -> ::ethers::contract::builders::ContractCall<
             M,
-            (::ethers::core::types::U256, ::std::vec::Vec<::ethers::core::types::U256>),
+            (
+                ::ethers::core::types::U256,
+                ::std::vec::Vec<::ethers::core::types::U256>,
+            ),
         > {
             self.0
                 .method_hash(
@@ -618,9 +619,7 @@ pub mod meta_stable_pool {
             self.0.event()
         }
         ///Gets the contract's `Approval` event
-        pub fn approval_filter(
-            &self,
-        ) -> ::ethers::contract::builders::Event<M, ApprovalFilter> {
+        pub fn approval_filter(&self) -> ::ethers::contract::builders::Event<M, ApprovalFilter> {
             self.0.event()
         }
         ///Gets the contract's `OracleEnabledChanged` event
@@ -654,20 +653,17 @@ pub mod meta_stable_pool {
             self.0.event()
         }
         ///Gets the contract's `Transfer` event
-        pub fn transfer_filter(
-            &self,
-        ) -> ::ethers::contract::builders::Event<M, TransferFilter> {
+        pub fn transfer_filter(&self) -> ::ethers::contract::builders::Event<M, TransferFilter> {
             self.0.event()
         }
         /// Returns an [`Event`](#ethers_contract::builders::Event) builder for all events of this contract
-        pub fn events(
-            &self,
-        ) -> ::ethers::contract::builders::Event<M, MetaStablePoolEvents> {
+        pub fn events(&self) -> ::ethers::contract::builders::Event<M, MetaStablePoolEvents> {
             self.0.event_with_filter(Default::default())
         }
     }
     impl<M: ::ethers::providers::Middleware> From<::ethers::contract::Contract<M>>
-    for MetaStablePool<M> {
+        for MetaStablePool<M>
+    {
         fn from(contract: ::ethers::contract::Contract<M>) -> Self {
             Self::new(contract.address(), contract.client())
         }
@@ -679,8 +675,8 @@ pub mod meta_stable_pool {
         PartialEq,
         ::ethers::contract::EthEvent,
         ::ethers::contract::EthDisplay,
+        Default,
     )]
-    #[derive(Default)]
     #[ethevent(
         name = "AmpUpdateStarted",
         abi = "AmpUpdateStarted(uint256,uint256,uint256,uint256)"
@@ -698,8 +694,8 @@ pub mod meta_stable_pool {
         PartialEq,
         ::ethers::contract::EthEvent,
         ::ethers::contract::EthDisplay,
+        Default,
     )]
-    #[derive(Default)]
     #[ethevent(name = "AmpUpdateStopped", abi = "AmpUpdateStopped(uint256)")]
     pub struct AmpUpdateStoppedFilter {
         pub current_value: ::ethers::core::types::U256,
@@ -711,8 +707,8 @@ pub mod meta_stable_pool {
         PartialEq,
         ::ethers::contract::EthEvent,
         ::ethers::contract::EthDisplay,
+        Default,
     )]
-    #[derive(Default)]
     #[ethevent(name = "Approval", abi = "Approval(address,address,uint256)")]
     pub struct ApprovalFilter {
         #[ethevent(indexed)]
@@ -728,8 +724,8 @@ pub mod meta_stable_pool {
         PartialEq,
         ::ethers::contract::EthEvent,
         ::ethers::contract::EthDisplay,
+        Default,
     )]
-    #[derive(Default)]
     #[ethevent(name = "OracleEnabledChanged", abi = "OracleEnabledChanged(bool)")]
     pub struct OracleEnabledChangedFilter {
         pub enabled: bool,
@@ -741,8 +737,8 @@ pub mod meta_stable_pool {
         PartialEq,
         ::ethers::contract::EthEvent,
         ::ethers::contract::EthDisplay,
+        Default,
     )]
-    #[derive(Default)]
     #[ethevent(name = "PausedStateChanged", abi = "PausedStateChanged(bool)")]
     pub struct PausedStateChangedFilter {
         pub paused: bool,
@@ -754,8 +750,8 @@ pub mod meta_stable_pool {
         PartialEq,
         ::ethers::contract::EthEvent,
         ::ethers::contract::EthDisplay,
+        Default,
     )]
-    #[derive(Default)]
     #[ethevent(
         name = "PriceRateCacheUpdated",
         abi = "PriceRateCacheUpdated(address,uint256)"
@@ -772,8 +768,8 @@ pub mod meta_stable_pool {
         PartialEq,
         ::ethers::contract::EthEvent,
         ::ethers::contract::EthDisplay,
+        Default,
     )]
-    #[derive(Default)]
     #[ethevent(
         name = "PriceRateProviderSet",
         abi = "PriceRateProviderSet(address,address,uint256)"
@@ -792,8 +788,8 @@ pub mod meta_stable_pool {
         PartialEq,
         ::ethers::contract::EthEvent,
         ::ethers::contract::EthDisplay,
+        Default,
     )]
-    #[derive(Default)]
     #[ethevent(
         name = "SwapFeePercentageChanged",
         abi = "SwapFeePercentageChanged(uint256)"
@@ -808,8 +804,8 @@ pub mod meta_stable_pool {
         PartialEq,
         ::ethers::contract::EthEvent,
         ::ethers::contract::EthDisplay,
+        Default,
     )]
-    #[derive(Default)]
     #[ethevent(name = "Transfer", abi = "Transfer(address,address,uint256)")]
     pub struct TransferFilter {
         #[ethevent(indexed)]
@@ -859,7 +855,9 @@ pub mod meta_stable_pool {
                 return Ok(MetaStablePoolEvents::PriceRateProviderSetFilter(decoded));
             }
             if let Ok(decoded) = SwapFeePercentageChangedFilter::decode_log(log) {
-                return Ok(MetaStablePoolEvents::SwapFeePercentageChangedFilter(decoded));
+                return Ok(MetaStablePoolEvents::SwapFeePercentageChangedFilter(
+                    decoded,
+                ));
             }
             if let Ok(decoded) = TransferFilter::decode_log(log) {
                 return Ok(MetaStablePoolEvents::TransferFilter(decoded));
@@ -873,19 +871,11 @@ pub mod meta_stable_pool {
                 MetaStablePoolEvents::AmpUpdateStartedFilter(element) => element.fmt(f),
                 MetaStablePoolEvents::AmpUpdateStoppedFilter(element) => element.fmt(f),
                 MetaStablePoolEvents::ApprovalFilter(element) => element.fmt(f),
-                MetaStablePoolEvents::OracleEnabledChangedFilter(element) => {
-                    element.fmt(f)
-                }
+                MetaStablePoolEvents::OracleEnabledChangedFilter(element) => element.fmt(f),
                 MetaStablePoolEvents::PausedStateChangedFilter(element) => element.fmt(f),
-                MetaStablePoolEvents::PriceRateCacheUpdatedFilter(element) => {
-                    element.fmt(f)
-                }
-                MetaStablePoolEvents::PriceRateProviderSetFilter(element) => {
-                    element.fmt(f)
-                }
-                MetaStablePoolEvents::SwapFeePercentageChangedFilter(element) => {
-                    element.fmt(f)
-                }
+                MetaStablePoolEvents::PriceRateCacheUpdatedFilter(element) => element.fmt(f),
+                MetaStablePoolEvents::PriceRateProviderSetFilter(element) => element.fmt(f),
+                MetaStablePoolEvents::SwapFeePercentageChangedFilter(element) => element.fmt(f),
                 MetaStablePoolEvents::TransferFilter(element) => element.fmt(f),
             }
         }
@@ -898,8 +888,8 @@ pub mod meta_stable_pool {
         PartialEq,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
+        Default,
     )]
-    #[derive(Default)]
     #[ethcall(name = "DOMAIN_SEPARATOR", abi = "DOMAIN_SEPARATOR()")]
     pub struct DomainSeparatorCall;
     ///Container type for all input parameters for the `allowance` function with signature `allowance(address,address)` and selector `0xdd62ed3e`
@@ -910,8 +900,8 @@ pub mod meta_stable_pool {
         PartialEq,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
+        Default,
     )]
-    #[derive(Default)]
     #[ethcall(name = "allowance", abi = "allowance(address,address)")]
     pub struct AllowanceCall {
         pub owner: ::ethers::core::types::Address,
@@ -925,8 +915,8 @@ pub mod meta_stable_pool {
         PartialEq,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
+        Default,
     )]
-    #[derive(Default)]
     #[ethcall(name = "approve", abi = "approve(address,uint256)")]
     pub struct ApproveCall {
         pub spender: ::ethers::core::types::Address,
@@ -940,8 +930,8 @@ pub mod meta_stable_pool {
         PartialEq,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
+        Default,
     )]
-    #[derive(Default)]
     #[ethcall(name = "balanceOf", abi = "balanceOf(address)")]
     pub struct BalanceOfCall {
         pub account: ::ethers::core::types::Address,
@@ -954,8 +944,8 @@ pub mod meta_stable_pool {
         PartialEq,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
+        Default,
     )]
-    #[derive(Default)]
     #[ethcall(name = "decimals", abi = "decimals()")]
     pub struct DecimalsCall;
     ///Container type for all input parameters for the `decreaseAllowance` function with signature `decreaseAllowance(address,uint256)` and selector `0xa457c2d7`
@@ -966,8 +956,8 @@ pub mod meta_stable_pool {
         PartialEq,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
+        Default,
     )]
-    #[derive(Default)]
     #[ethcall(name = "decreaseAllowance", abi = "decreaseAllowance(address,uint256)")]
     pub struct DecreaseAllowanceCall {
         pub spender: ::ethers::core::types::Address,
@@ -981,8 +971,8 @@ pub mod meta_stable_pool {
         PartialEq,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
+        Default,
     )]
-    #[derive(Default)]
     #[ethcall(name = "enableOracle", abi = "enableOracle()")]
     pub struct EnableOracleCall;
     ///Container type for all input parameters for the `getActionId` function with signature `getActionId(bytes4)` and selector `0x851c1bb3`
@@ -993,8 +983,8 @@ pub mod meta_stable_pool {
         PartialEq,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
+        Default,
     )]
-    #[derive(Default)]
     #[ethcall(name = "getActionId", abi = "getActionId(bytes4)")]
     pub struct GetActionIdCall {
         pub selector: [u8; 4],
@@ -1007,9 +997,12 @@ pub mod meta_stable_pool {
         PartialEq,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
+        Default,
     )]
-    #[derive(Default)]
-    #[ethcall(name = "getAmplificationParameter", abi = "getAmplificationParameter()")]
+    #[ethcall(
+        name = "getAmplificationParameter",
+        abi = "getAmplificationParameter()"
+    )]
     pub struct GetAmplificationParameterCall;
     ///Container type for all input parameters for the `getAuthorizer` function with signature `getAuthorizer()` and selector `0xaaabadc5`
     #[derive(
@@ -1019,8 +1012,8 @@ pub mod meta_stable_pool {
         PartialEq,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
+        Default,
     )]
-    #[derive(Default)]
     #[ethcall(name = "getAuthorizer", abi = "getAuthorizer()")]
     pub struct GetAuthorizerCall;
     ///Container type for all input parameters for the `getLargestSafeQueryWindow` function with signature `getLargestSafeQueryWindow()` and selector `0xffd088eb`
@@ -1031,9 +1024,12 @@ pub mod meta_stable_pool {
         PartialEq,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
+        Default,
     )]
-    #[derive(Default)]
-    #[ethcall(name = "getLargestSafeQueryWindow", abi = "getLargestSafeQueryWindow()")]
+    #[ethcall(
+        name = "getLargestSafeQueryWindow",
+        abi = "getLargestSafeQueryWindow()"
+    )]
     pub struct GetLargestSafeQueryWindowCall;
     ///Container type for all input parameters for the `getLastInvariant` function with signature `getLastInvariant()` and selector `0x9b02cdde`
     #[derive(
@@ -1043,8 +1039,8 @@ pub mod meta_stable_pool {
         PartialEq,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
+        Default,
     )]
-    #[derive(Default)]
     #[ethcall(name = "getLastInvariant", abi = "getLastInvariant()")]
     pub struct GetLastInvariantCall;
     ///Container type for all input parameters for the `getLatest` function with signature `getLatest(uint8)` and selector `0xb10be739`
@@ -1055,8 +1051,8 @@ pub mod meta_stable_pool {
         PartialEq,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
+        Default,
     )]
-    #[derive(Default)]
     #[ethcall(name = "getLatest", abi = "getLatest(uint8)")]
     pub struct GetLatestCall {
         pub variable: u8,
@@ -1069,8 +1065,8 @@ pub mod meta_stable_pool {
         PartialEq,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
+        Default,
     )]
-    #[derive(Default)]
     #[ethcall(name = "getOracleMiscData", abi = "getOracleMiscData()")]
     pub struct GetOracleMiscDataCall;
     ///Container type for all input parameters for the `getOwner` function with signature `getOwner()` and selector `0x893d20e8`
@@ -1081,8 +1077,8 @@ pub mod meta_stable_pool {
         PartialEq,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
+        Default,
     )]
-    #[derive(Default)]
     #[ethcall(name = "getOwner", abi = "getOwner()")]
     pub struct GetOwnerCall;
     ///Container type for all input parameters for the `getPausedState` function with signature `getPausedState()` and selector `0x1c0de051`
@@ -1093,8 +1089,8 @@ pub mod meta_stable_pool {
         PartialEq,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
+        Default,
     )]
-    #[derive(Default)]
     #[ethcall(name = "getPausedState", abi = "getPausedState()")]
     pub struct GetPausedStateCall;
     ///Container type for all input parameters for the `getPoolId` function with signature `getPoolId()` and selector `0x38fff2d0`
@@ -1105,8 +1101,8 @@ pub mod meta_stable_pool {
         PartialEq,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
+        Default,
     )]
-    #[derive(Default)]
     #[ethcall(name = "getPoolId", abi = "getPoolId()")]
     pub struct GetPoolIdCall;
     ///Container type for all input parameters for the `getPriceRateCache` function with signature `getPriceRateCache(address)` and selector `0xb867ee5a`
@@ -1117,8 +1113,8 @@ pub mod meta_stable_pool {
         PartialEq,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
+        Default,
     )]
-    #[derive(Default)]
     #[ethcall(name = "getPriceRateCache", abi = "getPriceRateCache(address)")]
     pub struct GetPriceRateCacheCall {
         pub token: ::ethers::core::types::Address,
@@ -1131,8 +1127,8 @@ pub mod meta_stable_pool {
         PartialEq,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
+        Default,
     )]
-    #[derive(Default)]
     #[ethcall(name = "getRate", abi = "getRate()")]
     pub struct GetRateCall;
     ///Container type for all input parameters for the `getRateProviders` function with signature `getRateProviders()` and selector `0x238a2d59`
@@ -1143,8 +1139,8 @@ pub mod meta_stable_pool {
         PartialEq,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
+        Default,
     )]
-    #[derive(Default)]
     #[ethcall(name = "getRateProviders", abi = "getRateProviders()")]
     pub struct GetRateProvidersCall;
     ///Container type for all input parameters for the `getSample` function with signature `getSample(uint256)` and selector `0x60d1507c`
@@ -1155,8 +1151,8 @@ pub mod meta_stable_pool {
         PartialEq,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
+        Default,
     )]
-    #[derive(Default)]
     #[ethcall(name = "getSample", abi = "getSample(uint256)")]
     pub struct GetSampleCall {
         pub index: ::ethers::core::types::U256,
@@ -1169,8 +1165,8 @@ pub mod meta_stable_pool {
         PartialEq,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
+        Default,
     )]
-    #[derive(Default)]
     #[ethcall(name = "getScalingFactors", abi = "getScalingFactors()")]
     pub struct GetScalingFactorsCall;
     ///Container type for all input parameters for the `getSwapFeePercentage` function with signature `getSwapFeePercentage()` and selector `0x55c67628`
@@ -1181,8 +1177,8 @@ pub mod meta_stable_pool {
         PartialEq,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
+        Default,
     )]
-    #[derive(Default)]
     #[ethcall(name = "getSwapFeePercentage", abi = "getSwapFeePercentage()")]
     pub struct GetSwapFeePercentageCall;
     ///Container type for all input parameters for the `getTotalSamples` function with signature `getTotalSamples()` and selector `0xb48b5b40`
@@ -1193,8 +1189,8 @@ pub mod meta_stable_pool {
         PartialEq,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
+        Default,
     )]
-    #[derive(Default)]
     #[ethcall(name = "getTotalSamples", abi = "getTotalSamples()")]
     pub struct GetTotalSamplesCall;
     ///Container type for all input parameters for the `getVault` function with signature `getVault()` and selector `0x8d928af8`
@@ -1205,8 +1201,8 @@ pub mod meta_stable_pool {
         PartialEq,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
+        Default,
     )]
-    #[derive(Default)]
     #[ethcall(name = "getVault", abi = "getVault()")]
     pub struct GetVaultCall;
     ///Container type for all input parameters for the `increaseAllowance` function with signature `increaseAllowance(address,uint256)` and selector `0x39509351`
@@ -1217,8 +1213,8 @@ pub mod meta_stable_pool {
         PartialEq,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
+        Default,
     )]
-    #[derive(Default)]
     #[ethcall(name = "increaseAllowance", abi = "increaseAllowance(address,uint256)")]
     pub struct IncreaseAllowanceCall {
         pub spender: ::ethers::core::types::Address,
@@ -1232,8 +1228,8 @@ pub mod meta_stable_pool {
         PartialEq,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
+        Default,
     )]
-    #[derive(Default)]
     #[ethcall(name = "name", abi = "name()")]
     pub struct NameCall;
     ///Container type for all input parameters for the `nonces` function with signature `nonces(address)` and selector `0x7ecebe00`
@@ -1244,8 +1240,8 @@ pub mod meta_stable_pool {
         PartialEq,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
+        Default,
     )]
-    #[derive(Default)]
     #[ethcall(name = "nonces", abi = "nonces(address)")]
     pub struct NoncesCall {
         pub owner: ::ethers::core::types::Address,
@@ -1258,8 +1254,8 @@ pub mod meta_stable_pool {
         PartialEq,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
+        Default,
     )]
-    #[derive(Default)]
     #[ethcall(
         name = "onExitPool",
         abi = "onExitPool(bytes32,address,address,uint256[],uint256,uint256,bytes)"
@@ -1281,8 +1277,8 @@ pub mod meta_stable_pool {
         PartialEq,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
+        Default,
     )]
-    #[derive(Default)]
     #[ethcall(
         name = "onJoinPool",
         abi = "onJoinPool(bytes32,address,address,uint256[],uint256,uint256,bytes)"
@@ -1304,8 +1300,8 @@ pub mod meta_stable_pool {
         PartialEq,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
+        Default,
     )]
-    #[derive(Default)]
     #[ethcall(
         name = "onSwap",
         abi = "onSwap((uint8,address,address,uint256,bytes32,uint256,address,address,bytes),uint256[],uint256,uint256)"
@@ -1324,8 +1320,8 @@ pub mod meta_stable_pool {
         PartialEq,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
+        Default,
     )]
-    #[derive(Default)]
     #[ethcall(
         name = "onSwap",
         abi = "onSwap((uint8,address,address,uint256,bytes32,uint256,address,address,bytes),uint256,uint256)"
@@ -1343,8 +1339,8 @@ pub mod meta_stable_pool {
         PartialEq,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
+        Default,
     )]
-    #[derive(Default)]
     #[ethcall(
         name = "permit",
         abi = "permit(address,address,uint256,uint256,uint8,bytes32,bytes32)"
@@ -1366,8 +1362,8 @@ pub mod meta_stable_pool {
         PartialEq,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
+        Default,
     )]
-    #[derive(Default)]
     #[ethcall(
         name = "queryExit",
         abi = "queryExit(bytes32,address,address,uint256[],uint256,uint256,bytes)"
@@ -1389,8 +1385,8 @@ pub mod meta_stable_pool {
         PartialEq,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
+        Default,
     )]
-    #[derive(Default)]
     #[ethcall(
         name = "queryJoin",
         abi = "queryJoin(bytes32,address,address,uint256[],uint256,uint256,bytes)"
@@ -1412,8 +1408,8 @@ pub mod meta_stable_pool {
         PartialEq,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
+        Default,
     )]
-    #[derive(Default)]
     #[ethcall(
         name = "setAssetManagerPoolConfig",
         abi = "setAssetManagerPoolConfig(address,bytes)"
@@ -1430,8 +1426,8 @@ pub mod meta_stable_pool {
         PartialEq,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
+        Default,
     )]
-    #[derive(Default)]
     #[ethcall(name = "setPaused", abi = "setPaused(bool)")]
     pub struct SetPausedCall {
         pub paused: bool,
@@ -1444,8 +1440,8 @@ pub mod meta_stable_pool {
         PartialEq,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
+        Default,
     )]
-    #[derive(Default)]
     #[ethcall(
         name = "setPriceRateCacheDuration",
         abi = "setPriceRateCacheDuration(address,uint256)"
@@ -1462,8 +1458,8 @@ pub mod meta_stable_pool {
         PartialEq,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
+        Default,
     )]
-    #[derive(Default)]
     #[ethcall(name = "setSwapFeePercentage", abi = "setSwapFeePercentage(uint256)")]
     pub struct SetSwapFeePercentageCall {
         pub swap_fee_percentage: ::ethers::core::types::U256,
@@ -1476,8 +1472,8 @@ pub mod meta_stable_pool {
         PartialEq,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
+        Default,
     )]
-    #[derive(Default)]
     #[ethcall(
         name = "startAmplificationParameterUpdate",
         abi = "startAmplificationParameterUpdate(uint256,uint256)"
@@ -1494,8 +1490,8 @@ pub mod meta_stable_pool {
         PartialEq,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
+        Default,
     )]
-    #[derive(Default)]
     #[ethcall(
         name = "stopAmplificationParameterUpdate",
         abi = "stopAmplificationParameterUpdate()"
@@ -1509,8 +1505,8 @@ pub mod meta_stable_pool {
         PartialEq,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
+        Default,
     )]
-    #[derive(Default)]
     #[ethcall(name = "symbol", abi = "symbol()")]
     pub struct SymbolCall;
     ///Container type for all input parameters for the `totalSupply` function with signature `totalSupply()` and selector `0x18160ddd`
@@ -1521,8 +1517,8 @@ pub mod meta_stable_pool {
         PartialEq,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
+        Default,
     )]
-    #[derive(Default)]
     #[ethcall(name = "totalSupply", abi = "totalSupply()")]
     pub struct TotalSupplyCall;
     ///Container type for all input parameters for the `transfer` function with signature `transfer(address,uint256)` and selector `0xa9059cbb`
@@ -1533,8 +1529,8 @@ pub mod meta_stable_pool {
         PartialEq,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
+        Default,
     )]
-    #[derive(Default)]
     #[ethcall(name = "transfer", abi = "transfer(address,uint256)")]
     pub struct TransferCall {
         pub recipient: ::ethers::core::types::Address,
@@ -1548,8 +1544,8 @@ pub mod meta_stable_pool {
         PartialEq,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
+        Default,
     )]
-    #[derive(Default)]
     #[ethcall(name = "transferFrom", abi = "transferFrom(address,address,uint256)")]
     pub struct TransferFromCall {
         pub sender: ::ethers::core::types::Address,
@@ -1564,8 +1560,8 @@ pub mod meta_stable_pool {
         PartialEq,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
+        Default,
     )]
-    #[derive(Default)]
     #[ethcall(name = "updatePriceRateCache", abi = "updatePriceRateCache(address)")]
     pub struct UpdatePriceRateCacheCall {
         pub token: ::ethers::core::types::Address,
@@ -1602,9 +1598,7 @@ pub mod meta_stable_pool {
         Nonces(NoncesCall),
         OnExitPool(OnExitPoolCall),
         OnJoinPool(OnJoinPoolCall),
-        OnSwapWithRequestAndBalancesAndIndexIn(
-            OnSwapWithRequestAndBalancesAndIndexInCall,
-        ),
+        OnSwapWithRequestAndBalancesAndIndexIn(OnSwapWithRequestAndBalancesAndIndexInCall),
         OnSwap(OnSwapCall),
         Permit(PermitCall),
         QueryExit(QueryExitCall),
@@ -1625,180 +1619,157 @@ pub mod meta_stable_pool {
         fn decode(
             data: impl AsRef<[u8]>,
         ) -> ::std::result::Result<Self, ::ethers::core::abi::AbiError> {
-            if let Ok(decoded)
-                = <DomainSeparatorCall as ::ethers::core::abi::AbiDecode>::decode(
-                    data.as_ref(),
-                ) {
+            if let Ok(decoded) =
+                <DomainSeparatorCall as ::ethers::core::abi::AbiDecode>::decode(data.as_ref())
+            {
                 return Ok(MetaStablePoolCalls::DomainSeparator(decoded));
             }
-            if let Ok(decoded)
-                = <AllowanceCall as ::ethers::core::abi::AbiDecode>::decode(
-                    data.as_ref(),
-                ) {
+            if let Ok(decoded) =
+                <AllowanceCall as ::ethers::core::abi::AbiDecode>::decode(data.as_ref())
+            {
                 return Ok(MetaStablePoolCalls::Allowance(decoded));
             }
-            if let Ok(decoded)
-                = <ApproveCall as ::ethers::core::abi::AbiDecode>::decode(
-                    data.as_ref(),
-                ) {
+            if let Ok(decoded) =
+                <ApproveCall as ::ethers::core::abi::AbiDecode>::decode(data.as_ref())
+            {
                 return Ok(MetaStablePoolCalls::Approve(decoded));
             }
-            if let Ok(decoded)
-                = <BalanceOfCall as ::ethers::core::abi::AbiDecode>::decode(
-                    data.as_ref(),
-                ) {
+            if let Ok(decoded) =
+                <BalanceOfCall as ::ethers::core::abi::AbiDecode>::decode(data.as_ref())
+            {
                 return Ok(MetaStablePoolCalls::BalanceOf(decoded));
             }
-            if let Ok(decoded)
-                = <DecimalsCall as ::ethers::core::abi::AbiDecode>::decode(
-                    data.as_ref(),
-                ) {
+            if let Ok(decoded) =
+                <DecimalsCall as ::ethers::core::abi::AbiDecode>::decode(data.as_ref())
+            {
                 return Ok(MetaStablePoolCalls::Decimals(decoded));
             }
-            if let Ok(decoded)
-                = <DecreaseAllowanceCall as ::ethers::core::abi::AbiDecode>::decode(
-                    data.as_ref(),
-                ) {
+            if let Ok(decoded) =
+                <DecreaseAllowanceCall as ::ethers::core::abi::AbiDecode>::decode(data.as_ref())
+            {
                 return Ok(MetaStablePoolCalls::DecreaseAllowance(decoded));
             }
-            if let Ok(decoded)
-                = <EnableOracleCall as ::ethers::core::abi::AbiDecode>::decode(
-                    data.as_ref(),
-                ) {
+            if let Ok(decoded) =
+                <EnableOracleCall as ::ethers::core::abi::AbiDecode>::decode(data.as_ref())
+            {
                 return Ok(MetaStablePoolCalls::EnableOracle(decoded));
             }
-            if let Ok(decoded)
-                = <GetActionIdCall as ::ethers::core::abi::AbiDecode>::decode(
-                    data.as_ref(),
-                ) {
+            if let Ok(decoded) =
+                <GetActionIdCall as ::ethers::core::abi::AbiDecode>::decode(data.as_ref())
+            {
                 return Ok(MetaStablePoolCalls::GetActionId(decoded));
             }
-            if let Ok(decoded)
-                = <GetAmplificationParameterCall as ::ethers::core::abi::AbiDecode>::decode(
+            if let Ok(decoded) =
+                <GetAmplificationParameterCall as ::ethers::core::abi::AbiDecode>::decode(
                     data.as_ref(),
-                ) {
+                )
+            {
                 return Ok(MetaStablePoolCalls::GetAmplificationParameter(decoded));
             }
-            if let Ok(decoded)
-                = <GetAuthorizerCall as ::ethers::core::abi::AbiDecode>::decode(
-                    data.as_ref(),
-                ) {
+            if let Ok(decoded) =
+                <GetAuthorizerCall as ::ethers::core::abi::AbiDecode>::decode(data.as_ref())
+            {
                 return Ok(MetaStablePoolCalls::GetAuthorizer(decoded));
             }
-            if let Ok(decoded)
-                = <GetLargestSafeQueryWindowCall as ::ethers::core::abi::AbiDecode>::decode(
+            if let Ok(decoded) =
+                <GetLargestSafeQueryWindowCall as ::ethers::core::abi::AbiDecode>::decode(
                     data.as_ref(),
-                ) {
+                )
+            {
                 return Ok(MetaStablePoolCalls::GetLargestSafeQueryWindow(decoded));
             }
-            if let Ok(decoded)
-                = <GetLastInvariantCall as ::ethers::core::abi::AbiDecode>::decode(
-                    data.as_ref(),
-                ) {
+            if let Ok(decoded) =
+                <GetLastInvariantCall as ::ethers::core::abi::AbiDecode>::decode(data.as_ref())
+            {
                 return Ok(MetaStablePoolCalls::GetLastInvariant(decoded));
             }
-            if let Ok(decoded)
-                = <GetLatestCall as ::ethers::core::abi::AbiDecode>::decode(
-                    data.as_ref(),
-                ) {
+            if let Ok(decoded) =
+                <GetLatestCall as ::ethers::core::abi::AbiDecode>::decode(data.as_ref())
+            {
                 return Ok(MetaStablePoolCalls::GetLatest(decoded));
             }
-            if let Ok(decoded)
-                = <GetOracleMiscDataCall as ::ethers::core::abi::AbiDecode>::decode(
-                    data.as_ref(),
-                ) {
+            if let Ok(decoded) =
+                <GetOracleMiscDataCall as ::ethers::core::abi::AbiDecode>::decode(data.as_ref())
+            {
                 return Ok(MetaStablePoolCalls::GetOracleMiscData(decoded));
             }
-            if let Ok(decoded)
-                = <GetOwnerCall as ::ethers::core::abi::AbiDecode>::decode(
-                    data.as_ref(),
-                ) {
+            if let Ok(decoded) =
+                <GetOwnerCall as ::ethers::core::abi::AbiDecode>::decode(data.as_ref())
+            {
                 return Ok(MetaStablePoolCalls::GetOwner(decoded));
             }
-            if let Ok(decoded)
-                = <GetPausedStateCall as ::ethers::core::abi::AbiDecode>::decode(
-                    data.as_ref(),
-                ) {
+            if let Ok(decoded) =
+                <GetPausedStateCall as ::ethers::core::abi::AbiDecode>::decode(data.as_ref())
+            {
                 return Ok(MetaStablePoolCalls::GetPausedState(decoded));
             }
-            if let Ok(decoded)
-                = <GetPoolIdCall as ::ethers::core::abi::AbiDecode>::decode(
-                    data.as_ref(),
-                ) {
+            if let Ok(decoded) =
+                <GetPoolIdCall as ::ethers::core::abi::AbiDecode>::decode(data.as_ref())
+            {
                 return Ok(MetaStablePoolCalls::GetPoolId(decoded));
             }
-            if let Ok(decoded)
-                = <GetPriceRateCacheCall as ::ethers::core::abi::AbiDecode>::decode(
-                    data.as_ref(),
-                ) {
+            if let Ok(decoded) =
+                <GetPriceRateCacheCall as ::ethers::core::abi::AbiDecode>::decode(data.as_ref())
+            {
                 return Ok(MetaStablePoolCalls::GetPriceRateCache(decoded));
             }
-            if let Ok(decoded)
-                = <GetRateCall as ::ethers::core::abi::AbiDecode>::decode(
-                    data.as_ref(),
-                ) {
+            if let Ok(decoded) =
+                <GetRateCall as ::ethers::core::abi::AbiDecode>::decode(data.as_ref())
+            {
                 return Ok(MetaStablePoolCalls::GetRate(decoded));
             }
-            if let Ok(decoded)
-                = <GetRateProvidersCall as ::ethers::core::abi::AbiDecode>::decode(
-                    data.as_ref(),
-                ) {
+            if let Ok(decoded) =
+                <GetRateProvidersCall as ::ethers::core::abi::AbiDecode>::decode(data.as_ref())
+            {
                 return Ok(MetaStablePoolCalls::GetRateProviders(decoded));
             }
-            if let Ok(decoded)
-                = <GetSampleCall as ::ethers::core::abi::AbiDecode>::decode(
-                    data.as_ref(),
-                ) {
+            if let Ok(decoded) =
+                <GetSampleCall as ::ethers::core::abi::AbiDecode>::decode(data.as_ref())
+            {
                 return Ok(MetaStablePoolCalls::GetSample(decoded));
             }
-            if let Ok(decoded)
-                = <GetScalingFactorsCall as ::ethers::core::abi::AbiDecode>::decode(
-                    data.as_ref(),
-                ) {
+            if let Ok(decoded) =
+                <GetScalingFactorsCall as ::ethers::core::abi::AbiDecode>::decode(data.as_ref())
+            {
                 return Ok(MetaStablePoolCalls::GetScalingFactors(decoded));
             }
-            if let Ok(decoded)
-                = <GetSwapFeePercentageCall as ::ethers::core::abi::AbiDecode>::decode(
-                    data.as_ref(),
-                ) {
+            if let Ok(decoded) =
+                <GetSwapFeePercentageCall as ::ethers::core::abi::AbiDecode>::decode(data.as_ref())
+            {
                 return Ok(MetaStablePoolCalls::GetSwapFeePercentage(decoded));
             }
-            if let Ok(decoded)
-                = <GetTotalSamplesCall as ::ethers::core::abi::AbiDecode>::decode(
-                    data.as_ref(),
-                ) {
+            if let Ok(decoded) =
+                <GetTotalSamplesCall as ::ethers::core::abi::AbiDecode>::decode(data.as_ref())
+            {
                 return Ok(MetaStablePoolCalls::GetTotalSamples(decoded));
             }
-            if let Ok(decoded)
-                = <GetVaultCall as ::ethers::core::abi::AbiDecode>::decode(
-                    data.as_ref(),
-                ) {
+            if let Ok(decoded) =
+                <GetVaultCall as ::ethers::core::abi::AbiDecode>::decode(data.as_ref())
+            {
                 return Ok(MetaStablePoolCalls::GetVault(decoded));
             }
-            if let Ok(decoded)
-                = <IncreaseAllowanceCall as ::ethers::core::abi::AbiDecode>::decode(
-                    data.as_ref(),
-                ) {
+            if let Ok(decoded) =
+                <IncreaseAllowanceCall as ::ethers::core::abi::AbiDecode>::decode(data.as_ref())
+            {
                 return Ok(MetaStablePoolCalls::IncreaseAllowance(decoded));
             }
-            if let Ok(decoded)
-                = <NameCall as ::ethers::core::abi::AbiDecode>::decode(data.as_ref()) {
+            if let Ok(decoded) = <NameCall as ::ethers::core::abi::AbiDecode>::decode(data.as_ref())
+            {
                 return Ok(MetaStablePoolCalls::Name(decoded));
             }
-            if let Ok(decoded)
-                = <NoncesCall as ::ethers::core::abi::AbiDecode>::decode(data.as_ref()) {
+            if let Ok(decoded) =
+                <NoncesCall as ::ethers::core::abi::AbiDecode>::decode(data.as_ref())
+            {
                 return Ok(MetaStablePoolCalls::Nonces(decoded));
             }
-            if let Ok(decoded)
-                = <OnExitPoolCall as ::ethers::core::abi::AbiDecode>::decode(
-                    data.as_ref(),
-                ) {
+            if let Ok(decoded) =
+                <OnExitPoolCall as ::ethers::core::abi::AbiDecode>::decode(data.as_ref())
+            {
                 return Ok(MetaStablePoolCalls::OnExitPool(decoded));
             }
-            if let Ok(decoded)
-                = <OnJoinPoolCall as ::ethers::core::abi::AbiDecode>::decode(
-                    data.as_ref(),
-                ) {
+            if let Ok(decoded) =
+                <OnJoinPoolCall as ::ethers::core::abi::AbiDecode>::decode(data.as_ref())
+            {
                 return Ok(MetaStablePoolCalls::OnJoinPool(decoded));
             }
             if let Ok(decoded)
@@ -1809,92 +1780,91 @@ pub mod meta_stable_pool {
                     MetaStablePoolCalls::OnSwapWithRequestAndBalancesAndIndexIn(decoded),
                 );
             }
-            if let Ok(decoded)
-                = <OnSwapCall as ::ethers::core::abi::AbiDecode>::decode(data.as_ref()) {
+            if let Ok(decoded) =
+                <OnSwapCall as ::ethers::core::abi::AbiDecode>::decode(data.as_ref())
+            {
                 return Ok(MetaStablePoolCalls::OnSwap(decoded));
             }
-            if let Ok(decoded)
-                = <PermitCall as ::ethers::core::abi::AbiDecode>::decode(data.as_ref()) {
+            if let Ok(decoded) =
+                <PermitCall as ::ethers::core::abi::AbiDecode>::decode(data.as_ref())
+            {
                 return Ok(MetaStablePoolCalls::Permit(decoded));
             }
-            if let Ok(decoded)
-                = <QueryExitCall as ::ethers::core::abi::AbiDecode>::decode(
-                    data.as_ref(),
-                ) {
+            if let Ok(decoded) =
+                <QueryExitCall as ::ethers::core::abi::AbiDecode>::decode(data.as_ref())
+            {
                 return Ok(MetaStablePoolCalls::QueryExit(decoded));
             }
-            if let Ok(decoded)
-                = <QueryJoinCall as ::ethers::core::abi::AbiDecode>::decode(
-                    data.as_ref(),
-                ) {
+            if let Ok(decoded) =
+                <QueryJoinCall as ::ethers::core::abi::AbiDecode>::decode(data.as_ref())
+            {
                 return Ok(MetaStablePoolCalls::QueryJoin(decoded));
             }
-            if let Ok(decoded)
-                = <SetAssetManagerPoolConfigCall as ::ethers::core::abi::AbiDecode>::decode(
+            if let Ok(decoded) =
+                <SetAssetManagerPoolConfigCall as ::ethers::core::abi::AbiDecode>::decode(
                     data.as_ref(),
-                ) {
+                )
+            {
                 return Ok(MetaStablePoolCalls::SetAssetManagerPoolConfig(decoded));
             }
-            if let Ok(decoded)
-                = <SetPausedCall as ::ethers::core::abi::AbiDecode>::decode(
-                    data.as_ref(),
-                ) {
+            if let Ok(decoded) =
+                <SetPausedCall as ::ethers::core::abi::AbiDecode>::decode(data.as_ref())
+            {
                 return Ok(MetaStablePoolCalls::SetPaused(decoded));
             }
-            if let Ok(decoded)
-                = <SetPriceRateCacheDurationCall as ::ethers::core::abi::AbiDecode>::decode(
+            if let Ok(decoded) =
+                <SetPriceRateCacheDurationCall as ::ethers::core::abi::AbiDecode>::decode(
                     data.as_ref(),
-                ) {
+                )
+            {
                 return Ok(MetaStablePoolCalls::SetPriceRateCacheDuration(decoded));
             }
-            if let Ok(decoded)
-                = <SetSwapFeePercentageCall as ::ethers::core::abi::AbiDecode>::decode(
-                    data.as_ref(),
-                ) {
+            if let Ok(decoded) =
+                <SetSwapFeePercentageCall as ::ethers::core::abi::AbiDecode>::decode(data.as_ref())
+            {
                 return Ok(MetaStablePoolCalls::SetSwapFeePercentage(decoded));
             }
-            if let Ok(decoded)
-                = <StartAmplificationParameterUpdateCall as ::ethers::core::abi::AbiDecode>::decode(
+            if let Ok(decoded) =
+                <StartAmplificationParameterUpdateCall as ::ethers::core::abi::AbiDecode>::decode(
                     data.as_ref(),
-                ) {
-                return Ok(
-                    MetaStablePoolCalls::StartAmplificationParameterUpdate(decoded),
-                );
+                )
+            {
+                return Ok(MetaStablePoolCalls::StartAmplificationParameterUpdate(
+                    decoded,
+                ));
             }
-            if let Ok(decoded)
-                = <StopAmplificationParameterUpdateCall as ::ethers::core::abi::AbiDecode>::decode(
+            if let Ok(decoded) =
+                <StopAmplificationParameterUpdateCall as ::ethers::core::abi::AbiDecode>::decode(
                     data.as_ref(),
-                ) {
-                return Ok(
-                    MetaStablePoolCalls::StopAmplificationParameterUpdate(decoded),
-                );
+                )
+            {
+                return Ok(MetaStablePoolCalls::StopAmplificationParameterUpdate(
+                    decoded,
+                ));
             }
-            if let Ok(decoded)
-                = <SymbolCall as ::ethers::core::abi::AbiDecode>::decode(data.as_ref()) {
+            if let Ok(decoded) =
+                <SymbolCall as ::ethers::core::abi::AbiDecode>::decode(data.as_ref())
+            {
                 return Ok(MetaStablePoolCalls::Symbol(decoded));
             }
-            if let Ok(decoded)
-                = <TotalSupplyCall as ::ethers::core::abi::AbiDecode>::decode(
-                    data.as_ref(),
-                ) {
+            if let Ok(decoded) =
+                <TotalSupplyCall as ::ethers::core::abi::AbiDecode>::decode(data.as_ref())
+            {
                 return Ok(MetaStablePoolCalls::TotalSupply(decoded));
             }
-            if let Ok(decoded)
-                = <TransferCall as ::ethers::core::abi::AbiDecode>::decode(
-                    data.as_ref(),
-                ) {
+            if let Ok(decoded) =
+                <TransferCall as ::ethers::core::abi::AbiDecode>::decode(data.as_ref())
+            {
                 return Ok(MetaStablePoolCalls::Transfer(decoded));
             }
-            if let Ok(decoded)
-                = <TransferFromCall as ::ethers::core::abi::AbiDecode>::decode(
-                    data.as_ref(),
-                ) {
+            if let Ok(decoded) =
+                <TransferFromCall as ::ethers::core::abi::AbiDecode>::decode(data.as_ref())
+            {
                 return Ok(MetaStablePoolCalls::TransferFrom(decoded));
             }
-            if let Ok(decoded)
-                = <UpdatePriceRateCacheCall as ::ethers::core::abi::AbiDecode>::decode(
-                    data.as_ref(),
-                ) {
+            if let Ok(decoded) =
+                <UpdatePriceRateCacheCall as ::ethers::core::abi::AbiDecode>::decode(data.as_ref())
+            {
                 return Ok(MetaStablePoolCalls::UpdatePriceRateCache(decoded));
             }
             Err(::ethers::core::abi::Error::InvalidData.into())
@@ -1911,13 +1881,9 @@ pub mod meta_stable_pool {
                 MetaStablePoolCalls::DecreaseAllowance(element) => element.encode(),
                 MetaStablePoolCalls::EnableOracle(element) => element.encode(),
                 MetaStablePoolCalls::GetActionId(element) => element.encode(),
-                MetaStablePoolCalls::GetAmplificationParameter(element) => {
-                    element.encode()
-                }
+                MetaStablePoolCalls::GetAmplificationParameter(element) => element.encode(),
                 MetaStablePoolCalls::GetAuthorizer(element) => element.encode(),
-                MetaStablePoolCalls::GetLargestSafeQueryWindow(element) => {
-                    element.encode()
-                }
+                MetaStablePoolCalls::GetLargestSafeQueryWindow(element) => element.encode(),
                 MetaStablePoolCalls::GetLastInvariant(element) => element.encode(),
                 MetaStablePoolCalls::GetLatest(element) => element.encode(),
                 MetaStablePoolCalls::GetOracleMiscData(element) => element.encode(),
@@ -1944,20 +1910,12 @@ pub mod meta_stable_pool {
                 MetaStablePoolCalls::Permit(element) => element.encode(),
                 MetaStablePoolCalls::QueryExit(element) => element.encode(),
                 MetaStablePoolCalls::QueryJoin(element) => element.encode(),
-                MetaStablePoolCalls::SetAssetManagerPoolConfig(element) => {
-                    element.encode()
-                }
+                MetaStablePoolCalls::SetAssetManagerPoolConfig(element) => element.encode(),
                 MetaStablePoolCalls::SetPaused(element) => element.encode(),
-                MetaStablePoolCalls::SetPriceRateCacheDuration(element) => {
-                    element.encode()
-                }
+                MetaStablePoolCalls::SetPriceRateCacheDuration(element) => element.encode(),
                 MetaStablePoolCalls::SetSwapFeePercentage(element) => element.encode(),
-                MetaStablePoolCalls::StartAmplificationParameterUpdate(element) => {
-                    element.encode()
-                }
-                MetaStablePoolCalls::StopAmplificationParameterUpdate(element) => {
-                    element.encode()
-                }
+                MetaStablePoolCalls::StartAmplificationParameterUpdate(element) => element.encode(),
+                MetaStablePoolCalls::StopAmplificationParameterUpdate(element) => element.encode(),
                 MetaStablePoolCalls::Symbol(element) => element.encode(),
                 MetaStablePoolCalls::TotalSupply(element) => element.encode(),
                 MetaStablePoolCalls::Transfer(element) => element.encode(),
@@ -2010,12 +1968,8 @@ pub mod meta_stable_pool {
                 MetaStablePoolCalls::SetPaused(element) => element.fmt(f),
                 MetaStablePoolCalls::SetPriceRateCacheDuration(element) => element.fmt(f),
                 MetaStablePoolCalls::SetSwapFeePercentage(element) => element.fmt(f),
-                MetaStablePoolCalls::StartAmplificationParameterUpdate(element) => {
-                    element.fmt(f)
-                }
-                MetaStablePoolCalls::StopAmplificationParameterUpdate(element) => {
-                    element.fmt(f)
-                }
+                MetaStablePoolCalls::StartAmplificationParameterUpdate(element) => element.fmt(f),
+                MetaStablePoolCalls::StopAmplificationParameterUpdate(element) => element.fmt(f),
                 MetaStablePoolCalls::Symbol(element) => element.fmt(f),
                 MetaStablePoolCalls::TotalSupply(element) => element.fmt(f),
                 MetaStablePoolCalls::Transfer(element) => element.fmt(f),
@@ -2174,8 +2128,7 @@ pub mod meta_stable_pool {
             MetaStablePoolCalls::OnJoinPool(var)
         }
     }
-    impl ::std::convert::From<OnSwapWithRequestAndBalancesAndIndexInCall>
-    for MetaStablePoolCalls {
+    impl ::std::convert::From<OnSwapWithRequestAndBalancesAndIndexInCall> for MetaStablePoolCalls {
         fn from(var: OnSwapWithRequestAndBalancesAndIndexInCall) -> Self {
             MetaStablePoolCalls::OnSwapWithRequestAndBalancesAndIndexIn(var)
         }
@@ -2220,14 +2173,12 @@ pub mod meta_stable_pool {
             MetaStablePoolCalls::SetSwapFeePercentage(var)
         }
     }
-    impl ::std::convert::From<StartAmplificationParameterUpdateCall>
-    for MetaStablePoolCalls {
+    impl ::std::convert::From<StartAmplificationParameterUpdateCall> for MetaStablePoolCalls {
         fn from(var: StartAmplificationParameterUpdateCall) -> Self {
             MetaStablePoolCalls::StartAmplificationParameterUpdate(var)
         }
     }
-    impl ::std::convert::From<StopAmplificationParameterUpdateCall>
-    for MetaStablePoolCalls {
+    impl ::std::convert::From<StopAmplificationParameterUpdateCall> for MetaStablePoolCalls {
         fn from(var: StopAmplificationParameterUpdateCall) -> Self {
             MetaStablePoolCalls::StopAmplificationParameterUpdate(var)
         }
@@ -2265,8 +2216,8 @@ pub mod meta_stable_pool {
         PartialEq,
         ::ethers::contract::EthAbiType,
         ::ethers::contract::EthAbiCodec,
+        Default,
     )]
-    #[derive(Default)]
     pub struct DomainSeparatorReturn(pub [u8; 32]);
     ///Container type for all return fields from the `allowance` function with signature `allowance(address,address)` and selector `0xdd62ed3e`
     #[derive(
@@ -2276,8 +2227,8 @@ pub mod meta_stable_pool {
         PartialEq,
         ::ethers::contract::EthAbiType,
         ::ethers::contract::EthAbiCodec,
+        Default,
     )]
-    #[derive(Default)]
     pub struct AllowanceReturn(pub ::ethers::core::types::U256);
     ///Container type for all return fields from the `approve` function with signature `approve(address,uint256)` and selector `0x095ea7b3`
     #[derive(
@@ -2287,8 +2238,8 @@ pub mod meta_stable_pool {
         PartialEq,
         ::ethers::contract::EthAbiType,
         ::ethers::contract::EthAbiCodec,
+        Default,
     )]
-    #[derive(Default)]
     pub struct ApproveReturn(pub bool);
     ///Container type for all return fields from the `balanceOf` function with signature `balanceOf(address)` and selector `0x70a08231`
     #[derive(
@@ -2298,8 +2249,8 @@ pub mod meta_stable_pool {
         PartialEq,
         ::ethers::contract::EthAbiType,
         ::ethers::contract::EthAbiCodec,
+        Default,
     )]
-    #[derive(Default)]
     pub struct BalanceOfReturn(pub ::ethers::core::types::U256);
     ///Container type for all return fields from the `decimals` function with signature `decimals()` and selector `0x313ce567`
     #[derive(
@@ -2309,8 +2260,8 @@ pub mod meta_stable_pool {
         PartialEq,
         ::ethers::contract::EthAbiType,
         ::ethers::contract::EthAbiCodec,
+        Default,
     )]
-    #[derive(Default)]
     pub struct DecimalsReturn(pub u8);
     ///Container type for all return fields from the `decreaseAllowance` function with signature `decreaseAllowance(address,uint256)` and selector `0xa457c2d7`
     #[derive(
@@ -2320,8 +2271,8 @@ pub mod meta_stable_pool {
         PartialEq,
         ::ethers::contract::EthAbiType,
         ::ethers::contract::EthAbiCodec,
+        Default,
     )]
-    #[derive(Default)]
     pub struct DecreaseAllowanceReturn(pub bool);
     ///Container type for all return fields from the `getActionId` function with signature `getActionId(bytes4)` and selector `0x851c1bb3`
     #[derive(
@@ -2331,8 +2282,8 @@ pub mod meta_stable_pool {
         PartialEq,
         ::ethers::contract::EthAbiType,
         ::ethers::contract::EthAbiCodec,
+        Default,
     )]
-    #[derive(Default)]
     pub struct GetActionIdReturn(pub [u8; 32]);
     ///Container type for all return fields from the `getAmplificationParameter` function with signature `getAmplificationParameter()` and selector `0x6daccffa`
     #[derive(
@@ -2342,8 +2293,8 @@ pub mod meta_stable_pool {
         PartialEq,
         ::ethers::contract::EthAbiType,
         ::ethers::contract::EthAbiCodec,
+        Default,
     )]
-    #[derive(Default)]
     pub struct GetAmplificationParameterReturn {
         pub value: ::ethers::core::types::U256,
         pub is_updating: bool,
@@ -2357,8 +2308,8 @@ pub mod meta_stable_pool {
         PartialEq,
         ::ethers::contract::EthAbiType,
         ::ethers::contract::EthAbiCodec,
+        Default,
     )]
-    #[derive(Default)]
     pub struct GetAuthorizerReturn(pub ::ethers::core::types::Address);
     ///Container type for all return fields from the `getLargestSafeQueryWindow` function with signature `getLargestSafeQueryWindow()` and selector `0xffd088eb`
     #[derive(
@@ -2368,8 +2319,8 @@ pub mod meta_stable_pool {
         PartialEq,
         ::ethers::contract::EthAbiType,
         ::ethers::contract::EthAbiCodec,
+        Default,
     )]
-    #[derive(Default)]
     pub struct GetLargestSafeQueryWindowReturn(pub ::ethers::core::types::U256);
     ///Container type for all return fields from the `getLastInvariant` function with signature `getLastInvariant()` and selector `0x9b02cdde`
     #[derive(
@@ -2379,8 +2330,8 @@ pub mod meta_stable_pool {
         PartialEq,
         ::ethers::contract::EthAbiType,
         ::ethers::contract::EthAbiCodec,
+        Default,
     )]
-    #[derive(Default)]
     pub struct GetLastInvariantReturn {
         pub last_invariant: ::ethers::core::types::U256,
         pub last_invariant_amp: ::ethers::core::types::U256,
@@ -2393,8 +2344,8 @@ pub mod meta_stable_pool {
         PartialEq,
         ::ethers::contract::EthAbiType,
         ::ethers::contract::EthAbiCodec,
+        Default,
     )]
-    #[derive(Default)]
     pub struct GetLatestReturn(pub ::ethers::core::types::U256);
     ///Container type for all return fields from the `getOracleMiscData` function with signature `getOracleMiscData()` and selector `0x1ed4eddc`
     #[derive(
@@ -2404,8 +2355,8 @@ pub mod meta_stable_pool {
         PartialEq,
         ::ethers::contract::EthAbiType,
         ::ethers::contract::EthAbiCodec,
+        Default,
     )]
-    #[derive(Default)]
     pub struct GetOracleMiscDataReturn {
         pub log_invariant: ::ethers::core::types::I256,
         pub log_total_supply: ::ethers::core::types::I256,
@@ -2421,8 +2372,8 @@ pub mod meta_stable_pool {
         PartialEq,
         ::ethers::contract::EthAbiType,
         ::ethers::contract::EthAbiCodec,
+        Default,
     )]
-    #[derive(Default)]
     pub struct GetOwnerReturn(pub ::ethers::core::types::Address);
     ///Container type for all return fields from the `getPausedState` function with signature `getPausedState()` and selector `0x1c0de051`
     #[derive(
@@ -2432,8 +2383,8 @@ pub mod meta_stable_pool {
         PartialEq,
         ::ethers::contract::EthAbiType,
         ::ethers::contract::EthAbiCodec,
+        Default,
     )]
-    #[derive(Default)]
     pub struct GetPausedStateReturn {
         pub paused: bool,
         pub pause_window_end_time: ::ethers::core::types::U256,
@@ -2447,8 +2398,8 @@ pub mod meta_stable_pool {
         PartialEq,
         ::ethers::contract::EthAbiType,
         ::ethers::contract::EthAbiCodec,
+        Default,
     )]
-    #[derive(Default)]
     pub struct GetPoolIdReturn(pub [u8; 32]);
     ///Container type for all return fields from the `getPriceRateCache` function with signature `getPriceRateCache(address)` and selector `0xb867ee5a`
     #[derive(
@@ -2458,8 +2409,8 @@ pub mod meta_stable_pool {
         PartialEq,
         ::ethers::contract::EthAbiType,
         ::ethers::contract::EthAbiCodec,
+        Default,
     )]
-    #[derive(Default)]
     pub struct GetPriceRateCacheReturn {
         pub rate: ::ethers::core::types::U256,
         pub duration: ::ethers::core::types::U256,
@@ -2473,8 +2424,8 @@ pub mod meta_stable_pool {
         PartialEq,
         ::ethers::contract::EthAbiType,
         ::ethers::contract::EthAbiCodec,
+        Default,
     )]
-    #[derive(Default)]
     pub struct GetRateReturn(pub ::ethers::core::types::U256);
     ///Container type for all return fields from the `getRateProviders` function with signature `getRateProviders()` and selector `0x238a2d59`
     #[derive(
@@ -2484,8 +2435,8 @@ pub mod meta_stable_pool {
         PartialEq,
         ::ethers::contract::EthAbiType,
         ::ethers::contract::EthAbiCodec,
+        Default,
     )]
-    #[derive(Default)]
     pub struct GetRateProvidersReturn {
         pub providers: ::std::vec::Vec<::ethers::core::types::Address>,
     }
@@ -2497,8 +2448,8 @@ pub mod meta_stable_pool {
         PartialEq,
         ::ethers::contract::EthAbiType,
         ::ethers::contract::EthAbiCodec,
+        Default,
     )]
-    #[derive(Default)]
     pub struct GetSampleReturn {
         pub log_pair_price: ::ethers::core::types::I256,
         pub acc_log_pair_price: ::ethers::core::types::I256,
@@ -2516,8 +2467,8 @@ pub mod meta_stable_pool {
         PartialEq,
         ::ethers::contract::EthAbiType,
         ::ethers::contract::EthAbiCodec,
+        Default,
     )]
-    #[derive(Default)]
     pub struct GetScalingFactorsReturn(pub ::std::vec::Vec<::ethers::core::types::U256>);
     ///Container type for all return fields from the `getSwapFeePercentage` function with signature `getSwapFeePercentage()` and selector `0x55c67628`
     #[derive(
@@ -2527,8 +2478,8 @@ pub mod meta_stable_pool {
         PartialEq,
         ::ethers::contract::EthAbiType,
         ::ethers::contract::EthAbiCodec,
+        Default,
     )]
-    #[derive(Default)]
     pub struct GetSwapFeePercentageReturn(pub ::ethers::core::types::U256);
     ///Container type for all return fields from the `getTotalSamples` function with signature `getTotalSamples()` and selector `0xb48b5b40`
     #[derive(
@@ -2538,8 +2489,8 @@ pub mod meta_stable_pool {
         PartialEq,
         ::ethers::contract::EthAbiType,
         ::ethers::contract::EthAbiCodec,
+        Default,
     )]
-    #[derive(Default)]
     pub struct GetTotalSamplesReturn(pub ::ethers::core::types::U256);
     ///Container type for all return fields from the `getVault` function with signature `getVault()` and selector `0x8d928af8`
     #[derive(
@@ -2549,8 +2500,8 @@ pub mod meta_stable_pool {
         PartialEq,
         ::ethers::contract::EthAbiType,
         ::ethers::contract::EthAbiCodec,
+        Default,
     )]
-    #[derive(Default)]
     pub struct GetVaultReturn(pub ::ethers::core::types::Address);
     ///Container type for all return fields from the `increaseAllowance` function with signature `increaseAllowance(address,uint256)` and selector `0x39509351`
     #[derive(
@@ -2560,8 +2511,8 @@ pub mod meta_stable_pool {
         PartialEq,
         ::ethers::contract::EthAbiType,
         ::ethers::contract::EthAbiCodec,
+        Default,
     )]
-    #[derive(Default)]
     pub struct IncreaseAllowanceReturn(pub bool);
     ///Container type for all return fields from the `name` function with signature `name()` and selector `0x06fdde03`
     #[derive(
@@ -2571,8 +2522,8 @@ pub mod meta_stable_pool {
         PartialEq,
         ::ethers::contract::EthAbiType,
         ::ethers::contract::EthAbiCodec,
+        Default,
     )]
-    #[derive(Default)]
     pub struct NameReturn(pub String);
     ///Container type for all return fields from the `nonces` function with signature `nonces(address)` and selector `0x7ecebe00`
     #[derive(
@@ -2582,8 +2533,8 @@ pub mod meta_stable_pool {
         PartialEq,
         ::ethers::contract::EthAbiType,
         ::ethers::contract::EthAbiCodec,
+        Default,
     )]
-    #[derive(Default)]
     pub struct NoncesReturn(pub ::ethers::core::types::U256);
     ///Container type for all return fields from the `onExitPool` function with signature `onExitPool(bytes32,address,address,uint256[],uint256,uint256,bytes)` and selector `0x74f3b009`
     #[derive(
@@ -2593,8 +2544,8 @@ pub mod meta_stable_pool {
         PartialEq,
         ::ethers::contract::EthAbiType,
         ::ethers::contract::EthAbiCodec,
+        Default,
     )]
-    #[derive(Default)]
     pub struct OnExitPoolReturn {
         pub amounts_out: ::std::vec::Vec<::ethers::core::types::U256>,
         pub due_protocol_fee_amounts: ::std::vec::Vec<::ethers::core::types::U256>,
@@ -2607,8 +2558,8 @@ pub mod meta_stable_pool {
         PartialEq,
         ::ethers::contract::EthAbiType,
         ::ethers::contract::EthAbiCodec,
+        Default,
     )]
-    #[derive(Default)]
     pub struct OnJoinPoolReturn {
         pub amounts_in: ::std::vec::Vec<::ethers::core::types::U256>,
         pub due_protocol_fee_amounts: ::std::vec::Vec<::ethers::core::types::U256>,
@@ -2621,11 +2572,9 @@ pub mod meta_stable_pool {
         PartialEq,
         ::ethers::contract::EthAbiType,
         ::ethers::contract::EthAbiCodec,
+        Default,
     )]
-    #[derive(Default)]
-    pub struct OnSwapWithRequestAndBalancesAndIndexInReturn(
-        pub ::ethers::core::types::U256,
-    );
+    pub struct OnSwapWithRequestAndBalancesAndIndexInReturn(pub ::ethers::core::types::U256);
     ///Container type for all return fields from the `onSwap` function with signature `onSwap((uint8,address,address,uint256,bytes32,uint256,address,address,bytes),uint256,uint256)` and selector `0x9d2c110c`
     #[derive(
         Clone,
@@ -2634,8 +2583,8 @@ pub mod meta_stable_pool {
         PartialEq,
         ::ethers::contract::EthAbiType,
         ::ethers::contract::EthAbiCodec,
+        Default,
     )]
-    #[derive(Default)]
     pub struct OnSwapReturn(pub ::ethers::core::types::U256);
     ///Container type for all return fields from the `queryExit` function with signature `queryExit(bytes32,address,address,uint256[],uint256,uint256,bytes)` and selector `0x6028bfd4`
     #[derive(
@@ -2645,8 +2594,8 @@ pub mod meta_stable_pool {
         PartialEq,
         ::ethers::contract::EthAbiType,
         ::ethers::contract::EthAbiCodec,
+        Default,
     )]
-    #[derive(Default)]
     pub struct QueryExitReturn {
         pub bpt_in: ::ethers::core::types::U256,
         pub amounts_out: ::std::vec::Vec<::ethers::core::types::U256>,
@@ -2659,8 +2608,8 @@ pub mod meta_stable_pool {
         PartialEq,
         ::ethers::contract::EthAbiType,
         ::ethers::contract::EthAbiCodec,
+        Default,
     )]
-    #[derive(Default)]
     pub struct QueryJoinReturn {
         pub bpt_out: ::ethers::core::types::U256,
         pub amounts_in: ::std::vec::Vec<::ethers::core::types::U256>,
@@ -2673,8 +2622,8 @@ pub mod meta_stable_pool {
         PartialEq,
         ::ethers::contract::EthAbiType,
         ::ethers::contract::EthAbiCodec,
+        Default,
     )]
-    #[derive(Default)]
     pub struct SymbolReturn(pub String);
     ///Container type for all return fields from the `totalSupply` function with signature `totalSupply()` and selector `0x18160ddd`
     #[derive(
@@ -2684,8 +2633,8 @@ pub mod meta_stable_pool {
         PartialEq,
         ::ethers::contract::EthAbiType,
         ::ethers::contract::EthAbiCodec,
+        Default,
     )]
-    #[derive(Default)]
     pub struct TotalSupplyReturn(pub ::ethers::core::types::U256);
     ///Container type for all return fields from the `transfer` function with signature `transfer(address,uint256)` and selector `0xa9059cbb`
     #[derive(
@@ -2695,8 +2644,8 @@ pub mod meta_stable_pool {
         PartialEq,
         ::ethers::contract::EthAbiType,
         ::ethers::contract::EthAbiCodec,
+        Default,
     )]
-    #[derive(Default)]
     pub struct TransferReturn(pub bool);
     ///Container type for all return fields from the `transferFrom` function with signature `transferFrom(address,address,uint256)` and selector `0x23b872dd`
     #[derive(
@@ -2706,8 +2655,8 @@ pub mod meta_stable_pool {
         PartialEq,
         ::ethers::contract::EthAbiType,
         ::ethers::contract::EthAbiCodec,
+        Default,
     )]
-    #[derive(Default)]
     pub struct TransferFromReturn(pub bool);
     ///`SwapRequest(uint8,address,address,uint256,bytes32,uint256,address,address,bytes)`
     #[derive(
