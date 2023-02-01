@@ -138,16 +138,6 @@ async fn main() -> Result<()> {
                 .unwrap()
                 .insert_account_info(user_addr, user_acc_info);
 
-            // Get contracts bytes
-            let contract_bytes = bindings::hello_world::HELLOWORLD_BYTECODE.to_owned();
-            println!("{:#?}", contract_bytes);
-
-            let contract_bytes = contract_bytes.to_vec();
-            let contract_bytes = Bytes::from(contract_bytes);
-
-            let contract_bytecode = Bytecode::new_raw(contract_bytes);
-            println!("{:#?}", contract_bytecode);
-
             // Get initialization code from bindings (in future will try to do this manually without a client)
             let contract_deployer = bindings::hello_world::HelloWorld::deploy(client, ()).unwrap();
             let initialization_bytes = contract_deployer.deployer.tx.data().unwrap();
@@ -161,56 +151,7 @@ async fn main() -> Result<()> {
             let result = testbed.evm.transact().0;
 
             println!("Printing value from TransactOut: {:#?}", result);
-            // Do a transaction using revm
-            // CLIENT STUFF WE NEED TO GET RID OF
-            // let client = get_provider().await;
 
-            // // create a testbed where we can run sims
-            // let mut testbed = Testbed::new();
-
-            // // insert a default user
-            // let user_addr = eH160::from_str("0x0000000000000000000000000000000000000000")?;
-            // let user_acc_info = AccountInfo::new(
-            //     eU256::from(1293874298374982736983074_u128),
-            //     0,
-            //     Bytecode::new(),
-            // );
-            // testbed.create_user(user_addr);
-            // testbed.evm.db().unwrap().insert_account_info(user_addr, user_acc_info);
-
-            // // deploy a local uni pool
-            // let pool_addr = eH160::from_str("0x1111111111111111111111111111111111111111")?;
-            // // let factory_abi = bindings::uniswap_v3_factory::UNISWAPV3FACTORY_ABI.to_owned(); // TODO: we should be using something like this.
-            // let factory_bytes = std::fs::read("./bin/UniswapV3Factory.bin").unwrap();
-            // let factory_bytecode = Bytecode::new_raw(Bytes::from(factory_bytes));
-
-            // let pool_acc_info = AccountInfo::new(
-            //     eU256::from(0),
-            //     0,
-            //     factory_bytecode,
-            // );
-            // testbed
-            // .evm
-            // .db()
-            // .unwrap()
-            // .insert_account_info(pool_addr, pool_acc_info);
-
-            // println!("Database after adding user and factory contract: {:#?}", testbed.evm.db());
-
-            // let newfactory = UniswapV3Factory::new(pool_addr, client.clone());
-            // let calldata = newfactory.create_pool(eH160::from_str("0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2").unwrap(),eH160::from_str("0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2").unwrap(), 500).calldata().unwrap();
-            // println!("Calldata sent to EVM: {:#?}", calldata);
-
-            // // perform a transaction
-            // testbed.evm.env.tx.caller = user_addr;
-            // testbed.evm.env.tx.transact_to = TransactTo::Call(pool_addr);
-            // testbed.evm.env.tx.data = Bytes::from(hex::decode(hex::encode(&calldata))?);
-            // testbed.evm.env.tx.value = eU256::from(0);
-            // testbed.evm.env.tx.gas_price = eU256::from(10000);
-            // testbed.evm.env.tx.gas_limit = 18446744073709551615 as u64;
-            // let result = testbed.evm.transact();
-
-            // println!("Transaction result: {:#?}", result);
         }
         None => {}
     }
