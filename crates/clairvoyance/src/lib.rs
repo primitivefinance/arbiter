@@ -1,2 +1,2 @@
-pub mod clairerror;
+pub mod error;
 pub mod uniswap;

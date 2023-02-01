@@ -12,6 +12,7 @@ bindings = { path = "../bindings" }
 utils = { path = "../utils" }
 toml = "0.5.10"
 ethers = "1.0.0"
+thiserror = "1.0.38"
 eyre = "0.6.6"
 num-bigfloat = "1.6.0"
 clap = {version = "~2.27.0"}
