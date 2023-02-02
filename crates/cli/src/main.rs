@@ -3,12 +3,9 @@ use std::{env, str::FromStr, sync::Arc};
 use bytes::Bytes;
 use clairvoyance::uniswap::{get_pool, Pool};
 use clap::{Parser, Subcommand};
-use ethers::{
-    providers::{Http, Provider},
-    types::{H160 as eH160, U256 as eU256},
-};
+use ethers::providers::{Http, Provider};
 use eyre::Result;
-use revm::{AccountInfo, Bytecode, TransactTo};
+use revm::primitives::{ruint::Uint, AccountInfo, Bytecode, TransactTo, B160};
 use simulate::{price_simulation::PriceSimulation, testbed::Testbed};
 use tokio::join;
 use utils::chain_tools::get_provider;
@@ -127,12 +124,8 @@ async fn main() -> Result<()> {
             let mut testbed = Testbed::new();
 
             // insert a default user
-            let user_addr = eH160::from_str("0x0000000000000000000000000000000000000001")?;
-            let user_acc_info = AccountInfo::new(
-                eU256::from(1293874298374982736983074_u128),
-                0,
-                Bytecode::new(),
-            );
+            let user_addr = B160::from_str("0x0000000000000000000000000000000000000001")?;
+            let user_acc_info = AccountInfo::new(Uint::from(0), 0, Bytecode::new());
             testbed.create_user(user_addr);
             testbed
                 .evm
@@ -149,8 +142,8 @@ async fn main() -> Result<()> {
             testbed.evm.env.tx.caller = user_addr;
             testbed.evm.env.tx.transact_to = TransactTo::create();
             testbed.evm.env.tx.data = initialization_bytes;
-            testbed.evm.env.tx.value = eU256::zero();
-            let result = testbed.evm.transact().0;
+            testbed.evm.env.tx.value = Uint::from(0);
+            let result = testbed.evm.transact().unwrap().result;
 
             println!("Printing value from TransactOut: {result:#?}");
         }
