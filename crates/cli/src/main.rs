@@ -132,7 +132,13 @@ async fn main() -> Result<()> {
             // insert a default user
             let user_addr = B160::from_str("0x0000000000000000000000000000000000000001")?;
             testbed.create_user(user_addr);
-            // Get initialization code from bindings (in future will try to do this manually without a client)
+
+            // This is good because we don't use any provider, is there a way to do this for the deploy scripts?
+            // Crux would be getting the initialization bytes from this base Contract object.
+            let hello_world_contract =
+                BaseContract::from(bindings::hello_world::HELLOWORLD_ABI.clone());
+
+            // One thing we can do is get this from solc
             let contract_deployer = bindings::hello_world::HelloWorld::deploy(client, ()).unwrap();
             let initialization_bytes = contract_deployer.deployer.tx.data().unwrap();
             let initialization_bytes = Bytes::from(hex::decode(hex::encode(initialization_bytes))?);
@@ -154,10 +160,7 @@ async fn main() -> Result<()> {
             let db = testbed.evm.db().unwrap().clone();
             let hello_world_contract_address = db.accounts.into_iter().nth(2).unwrap().0;
 
-            // This is good because we don't use any provider, is there a way to do this for the deploy scripts?
-            // Crux would be getting the initialization bytes from this base Contract object.
-            let hello_world_contract =
-                BaseContract::from(bindings::hello_world::HELLOWORLD_ABI.clone());
+
             let call_bytes = hello_world_contract.encode("greet", ())?;
             let call_bytes = Bytes::from(hex::decode(hex::encode(call_bytes))?);
 
