@@ -3,10 +3,13 @@ use std::{env, str::FromStr, sync::Arc};
 use bytes::Bytes;
 use clairvoyance::uniswap::{get_pool, Pool};
 use clap::{Parser, Subcommand};
-use ethers::{providers::{Http, Provider}, types::{H160, Address}, prelude::BaseContract, abi::parse_abi};
+use ethers::{
+    prelude::BaseContract,
+    providers::{Http, Provider},
+};
 use eyre::Result;
-use hex::ToHex;
-use revm::primitives::{ruint::Uint, AccountInfo, Bytecode, TransactTo, B160, ExecutionResult, Output};
+
+use revm::primitives::{ruint::Uint, ExecutionResult, Output, TransactTo, B160};
 use simulate::{price_simulation::PriceSimulation, testbed::Testbed};
 use tokio::join;
 use utils::chain_tools::get_provider;
@@ -119,6 +122,8 @@ async fn main() -> Result<()> {
             );
 
             test_sim.plot();
+
+            // contract we will use
             let client = get_provider().await;
 
             // create a testbed where we can run sims
@@ -128,7 +133,7 @@ async fn main() -> Result<()> {
             let user_addr = B160::from_str("0x0000000000000000000000000000000000000001")?;
             testbed.create_user(user_addr);
             // Get initialization code from bindings (in future will try to do this manually without a client)
-            let contract_deployer = bindings::hello_world::HelloWorld::deploy(client.clone(), ()).unwrap();
+            let contract_deployer = bindings::hello_world::HelloWorld::deploy(client, ()).unwrap();
             let initialization_bytes = contract_deployer.deployer.tx.data().unwrap();
             let initialization_bytes = Bytes::from(hex::decode(hex::encode(initialization_bytes))?);
 
@@ -145,20 +150,18 @@ async fn main() -> Result<()> {
                 println!("Contract deployment failed.");
             }
 
+            // Get deployed adderess. In order of most recent (can use a counter for complicated sims)
             let db = testbed.evm.db().unwrap().clone();
-
             let hello_world_contract_address = db.accounts.into_iter().nth(2).unwrap().0;
 
-            let function_signature = BaseContract::from(
-                parse_abi(&[
-                    "function greet() public view returns (string memory greeting)",
-                ])?
-            );
-
-            let call_bytes = function_signature.encode("greet", ())?;
+            // This is good because we don't use any provider, is there a way to do this for the deploy scripts?
+            // Crux would be getting the initialization bytes from this base Contract object.
+            let hello_world_contract =
+                BaseContract::from(bindings::hello_world::HELLOWORLD_ABI.clone());
+            let call_bytes = hello_world_contract.encode("greet", ())?;
             let call_bytes = Bytes::from(hex::decode(hex::encode(call_bytes))?);
 
-            // // execute initialization code from user
+            // execute initialization code from user
             testbed.evm.env.tx.caller = user_addr;
             testbed.evm.env.tx.transact_to = TransactTo::Call(hello_world_contract_address);
             testbed.evm.env.tx.data = call_bytes;
@@ -169,24 +172,24 @@ async fn main() -> Result<()> {
             } else {
                 println!("Contract Call failed.");
             }
-            
-            println!("Printing result from TransactOut: {result1:#?}");    // unpack output call enum into raw bytes
-            
+
+            println!("Printing result from TransactOut: {result1:#?}");
+
+            // unpack output call enum into raw bytes
+            // TODO: We need to return the right response on line 186 so that we can decode the deployed contract's response
             let value = match result1 {
                 ExecutionResult::Success { output, .. } => match output {
                     Output::Call(value) => Some(value),
+                    Output::Create(_, Some(_)) => None,
                     _ => None,
-                    Output::Create(_, _) => todo!(),
                 },
                 _ => None,
             };
-        
-            // decode bytes to reserves + ts via ethers-rs's abi decode
-            let (response): (String) =
-                function_signature.decode_output("greet", value.unwrap())?;
-            
-            println!("Printing result from decode_output: {response:#?}");
 
+            // decode bytes to reserves + ts via ethers-rs's abi decode
+            let response: String = hello_world_contract.decode_output("greet", value.unwrap())?;
+
+            println!("Printing result from decode_output: {response:#?}");
         }
         None => {}
     }
