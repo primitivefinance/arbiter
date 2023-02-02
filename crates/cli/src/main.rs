@@ -3,16 +3,9 @@ use std::{env, str::FromStr, sync::Arc};
 use bytes::Bytes;
 use clairvoyance::uniswap::{get_pool, Pool};
 use clap::{Parser, Subcommand};
-use ethers::{
-    abi::parse_abi,
-    prelude::BaseContract,
-    providers::{Http, Provider},
-    types::{BlockId, H160 as eH160, H256, U256 as eU256},
-};
-use ethers_providers::Middleware;
+use ethers::providers::{Http, Provider};
 use eyre::Result;
-use revm::{AccountInfo, Bytecode, TransactOut, TransactTo};
-use ruint::aliases::U256 as rU256;
+use revm::primitives::{AccountInfo, Bytecode, TransactTo,B160,ruint::Uint};
 use simulate::{price_simulation::PriceSimulation, testbed::Testbed};
 use tokio::join;
 use utils::chain_tools::get_provider;
@@ -126,13 +119,16 @@ async fn main() -> Result<()> {
             );
 
             test_sim.plot();
-
-            // Do a transaction using revm
+            let client = get_provider().await;
             // create a testbed where we can run sims
             let mut testbed = Testbed::new();
-
             // insert a default user
-            let user_addr = eH160::from_str("0x0000000000000000000000000000000000000000")?;
+            let user_addr = B160::from_str("0x0000000000000000000000000000000000000001")?;
+            let user_acc_info = AccountInfo::new(
+                Uint::from(0),
+                0,
+                Bytecode::new(),
+            );
             testbed.create_user(user_addr);
 
             // get contract info
@@ -194,18 +190,10 @@ async fn main() -> Result<()> {
 
             // perform a transaction
             testbed.evm.env.tx.caller = user_addr;
-            testbed.evm.env.tx.transact_to = TransactTo::Call(pool_addr);
-            testbed.evm.env.tx.data = Bytes::from(hex::decode(hex::encode(&encoded))?);
-            testbed.evm.env.tx.value = eU256::from(0);
-            let result = testbed.evm.transact_commit();
-
-            // unpack output
-            let value = match result.out {
-                TransactOut::Call(value) => Some(value),
-                _ => None,
-            };
-            let (reserve0, reserve1, ts): (u128, u128, u32) =
-                abi.decode_output("getReserves", value.unwrap())?;
+            testbed.evm.env.tx.transact_to = TransactTo::create();
+            testbed.evm.env.tx.data = initialization_bytes;
+            testbed.evm.env.tx.value = Uint::from(0);
+            let result = testbed.evm.transact().unwrap();
 
             // Print emualted getReserves() call output
             println!("Reserve0: {reserve0:#?}");

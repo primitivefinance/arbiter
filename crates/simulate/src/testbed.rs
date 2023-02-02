@@ -1,5 +1,5 @@
-use ethers_core::types::H160 as eH160;
 use revm::{
+    primitives::{AccountInfo,B160},
     db::{CacheDB, EmptyDB},
     EVM,
 };
@@ -16,6 +16,7 @@ impl Default for Testbed {
     }
 }
 
+
 impl Testbed {
     pub fn new() -> Self {
         let db = CacheDB::new(EmptyDB {});
@@ -28,16 +29,9 @@ impl Testbed {
             evm,
         }
     }
-    // Suspected to be mutex/semaphore for threading safety (not Ethereum blocks!)
-    pub fn block_on<F: core::future::Future>(&self, f: F) -> F::Output {
-        match &self.runtime {
-            Some(runtime) => runtime.block_on(f),
-            None => futures::executor::block_on(f),
-        }
-    }
 
-    pub fn create_user(&mut self, addr: eH160) {
-        let info = revm::AccountInfo::default();
+    pub fn create_user(&mut self, addr: B160) {
+        let info = AccountInfo::default();
         self.evm.db().unwrap().insert_account_info(addr, info);
     }
 
