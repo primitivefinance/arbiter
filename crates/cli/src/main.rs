@@ -8,7 +8,6 @@ use ethers::{
     providers::{Http, Provider},
 };
 use eyre::Result;
-
 use revm::primitives::{ruint::Uint, ExecutionResult, Output, TransactTo, B160};
 use simulate::{price_simulation::PriceSimulation, testbed::Testbed};
 use tokio::join;
