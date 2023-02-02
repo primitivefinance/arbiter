@@ -3,13 +3,21 @@ use std::{env, str::FromStr, sync::Arc};
 use bytes::Bytes;
 use clairvoyance::uniswap::{get_pool, Pool};
 use clap::{Parser, Subcommand};
+<<<<<<< HEAD
 use ethers::providers::{Http, Provider};
 use eyre::Result;
 use revm::primitives::{AccountInfo, Bytecode, TransactTo,B160,ruint::Uint};
+=======
+use ethers::{
+    providers::{Http, Provider},
+    types::{H160 as eH160, U256 as eU256},
+};
+use eyre::Result;
+use revm::{AccountInfo, Bytecode, TransactTo};
+>>>>>>> main
 use simulate::{price_simulation::PriceSimulation, testbed::Testbed};
 use tokio::join;
 use utils::chain_tools::get_provider;
-
 mod config;
 
 #[derive(Parser)]
@@ -120,9 +128,14 @@ async fn main() -> Result<()> {
 
             test_sim.plot();
             let client = get_provider().await;
+<<<<<<< HEAD
+=======
+
+>>>>>>> main
             // create a testbed where we can run sims
             let mut testbed = Testbed::new();
             // insert a default user
+<<<<<<< HEAD
             let user_addr = B160::from_str("0x0000000000000000000000000000000000000001")?;
             let user_acc_info = AccountInfo::new(
                 Uint::from(0),
@@ -174,24 +187,31 @@ async fn main() -> Result<()> {
                     code.unwrap_or_else(|e| panic!("ethers get code error: {e:?}"))
                         .0,
                 ),
+=======
+            let user_addr = eH160::from_str("0x0000000000000000000000000000000000000001")?;
+            let user_acc_info = AccountInfo::new(
+                eU256::from(1293874298374982736983074_u128),
+                0,
+                Bytecode::new(),
+>>>>>>> main
             );
-
+            testbed.create_user(user_addr);
             testbed
                 .evm
                 .db()
                 .unwrap()
-                .insert_account_info(pool_addr, pool_acc_info);
-            testbed
-                .evm
-                .db()
-                .unwrap()
-                .insert_account_storage(pool_addr, eU256::from(slot), value)
-                .unwrap();
+                .insert_account_info(user_addr, user_acc_info);
 
-            // perform a transaction
+            // Get initialization code from bindings (in future will try to do this manually without a client)
+            let contract_deployer = bindings::hello_world::HelloWorld::deploy(client, ()).unwrap();
+            let initialization_bytes = contract_deployer.deployer.tx.data().unwrap();
+            let initialization_bytes = Bytes::from(hex::decode(hex::encode(initialization_bytes))?);
+
+            // execute initialization code from user
             testbed.evm.env.tx.caller = user_addr;
             testbed.evm.env.tx.transact_to = TransactTo::create();
             testbed.evm.env.tx.data = initialization_bytes;
+<<<<<<< HEAD
             testbed.evm.env.tx.value = Uint::from(0);
             let result = testbed.evm.transact().unwrap();
 
@@ -199,6 +219,12 @@ async fn main() -> Result<()> {
             println!("Reserve0: {reserve0:#?}");
             println!("Reserve1: {reserve1:#?}");
             println!("Timestamp: {ts:#?}");
+=======
+            testbed.evm.env.tx.value = eU256::zero();
+            let result = testbed.evm.transact().0;
+
+            println!("Printing value from TransactOut: {result:#?}");
+>>>>>>> main
         }
         None => {}
     }
