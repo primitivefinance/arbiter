@@ -132,12 +132,7 @@ async fn main() -> Result<()> {
             let user_addr = B160::from_str("0x0000000000000000000000000000000000000001")?;
             testbed.create_user(user_addr);
 
-            // This is good because we don't use any provider, is there a way to do this for the deploy scripts?
-            // Crux would be getting the initialization bytes from this base Contract object.
-            let hello_world_contract =
-                BaseContract::from(bindings::hello_world::HELLOWORLD_ABI.clone());
-
-            // One thing we can do is get this from solc
+            // This is the only part of main that uses a provider/client. The client doesn't actually do anything, but it is a necessary inner for ContractDeployer
             let contract_deployer = bindings::hello_world::HelloWorld::deploy(client, ()).unwrap();
             let initialization_bytes = contract_deployer.deployer.tx.data().unwrap();
             let initialization_bytes = Bytes::from(hex::decode(hex::encode(initialization_bytes))?);
@@ -155,9 +150,13 @@ async fn main() -> Result<()> {
                 println!("Contract deployment failed.");
             }
 
-            // Get deployed adderess. In order of most recent (can use a counter for complicated sims)
-            let db = testbed.evm.db().unwrap().clone();
-            let hello_world_contract_address = db.accounts.into_iter().nth(2).unwrap().0;
+            // Get deployed address. In order of most recent (can use a counter for complicated sims)
+            // This is good because we don't use any provider, is there a way to do this for the deploy scripts?
+            // Crux would be getting the initialization bytes from this base Contract object.
+            // One thing we can do is get this from solc
+            let hello_world_contract =
+                BaseContract::from(bindings::hello_world::HELLOWORLD_ABI.clone());
+            let hello_world_contract_address = testbed.evm.db().unwrap().clone().accounts.into_iter().nth(2).unwrap().0;
 
             let call_bytes = hello_world_contract.encode("greet", ())?;
             let call_bytes = Bytes::from(hex::decode(hex::encode(call_bytes))?);
