@@ -9,10 +9,10 @@ edition = "2021"
 # Local
 clairvoyance = { path = "../clairvoyance" }
 simulate = { path = "../simulate" }
+bindings = {path = "../bindings"}
 
 # External
 tokio = { version = "1.23", features = [
-    # "rt-multi-thread",
     "macros",
     "full"
 ]}
@@ -29,17 +29,7 @@ ethers-providers = "1.0.2"
 ethers-core = "1.0.2"
 
 # revm and related
-# revm = { version = "2.3.1", features = ["default"] }
 revm = "3.0.0"
-# revm_precompiles = "1.1.2"
 bytes = "1.3.0"
-anyhow = "1.0.68"
 hex = { version = "0.4", default-features = false }
-futures = "0.3.24"
 ruint = "1.7.0"
-
-# TEST
-ethers-solc = "1.0.2"
-bindings = {path = "../bindings"}
-ethers-contract = "1.0.2"
-ethabi = "18.0.0"

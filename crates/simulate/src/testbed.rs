@@ -1,6 +1,6 @@
 use revm::{
-    primitives::{AccountInfo,B160},
     db::{CacheDB, EmptyDB},
+    primitives::{AccountInfo, B160},
     EVM,
 };
 use tokio::runtime::{Handle, Runtime};
@@ -15,7 +15,6 @@ impl Default for Testbed {
         Self::new()
     }
 }
-
 
 impl Testbed {
     pub fn new() -> Self {
