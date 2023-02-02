@@ -3,9 +3,10 @@ use std::{env, str::FromStr, sync::Arc};
 use bytes::Bytes;
 use clairvoyance::uniswap::{get_pool, Pool};
 use clap::{Parser, Subcommand};
-use ethers::providers::{Http, Provider};
+use ethers::{providers::{Http, Provider}, types::{H160, Address}, prelude::BaseContract, abi::parse_abi};
 use eyre::Result;
-use revm::primitives::{ruint::Uint, AccountInfo, Bytecode, TransactTo, B160};
+use hex::ToHex;
+use revm::primitives::{ruint::Uint, AccountInfo, Bytecode, TransactTo, B160, ExecutionResult, Output};
 use simulate::{price_simulation::PriceSimulation, testbed::Testbed};
 use tokio::join;
 use utils::chain_tools::get_provider;
@@ -125,16 +126,9 @@ async fn main() -> Result<()> {
 
             // insert a default user
             let user_addr = B160::from_str("0x0000000000000000000000000000000000000001")?;
-            let user_acc_info = AccountInfo::new(Uint::from(0), 0, Bytecode::new());
             testbed.create_user(user_addr);
-            testbed
-                .evm
-                .db()
-                .unwrap()
-                .insert_account_info(user_addr, user_acc_info);
-
             // Get initialization code from bindings (in future will try to do this manually without a client)
-            let contract_deployer = bindings::hello_world::HelloWorld::deploy(client, ()).unwrap();
+            let contract_deployer = bindings::hello_world::HelloWorld::deploy(client.clone(), ()).unwrap();
             let initialization_bytes = contract_deployer.deployer.tx.data().unwrap();
             let initialization_bytes = Bytes::from(hex::decode(hex::encode(initialization_bytes))?);
 
@@ -143,9 +137,56 @@ async fn main() -> Result<()> {
             testbed.evm.env.tx.transact_to = TransactTo::create();
             testbed.evm.env.tx.data = initialization_bytes;
             testbed.evm.env.tx.value = Uint::from(0);
-            let result = testbed.evm.transact().unwrap().result;
+            let result = testbed.evm.transact_commit().unwrap();
 
-            println!("Printing value from TransactOut: {result:#?}");
+            if result.is_success() {
+                println!("Contract deployed successfully!");
+            } else {
+                println!("Contract deployment failed.");
+            }
+
+            let db = testbed.evm.db().unwrap().clone();
+
+            let hello_world_contract_address = db.accounts.into_iter().nth(2).unwrap().0;
+
+            let function_signature = BaseContract::from(
+                parse_abi(&[
+                    "function greet() public view returns (string memory greeting)",
+                ])?
+            );
+
+            let call_bytes = function_signature.encode("greet", ())?;
+            let call_bytes = Bytes::from(hex::decode(hex::encode(call_bytes))?);
+
+            // // execute initialization code from user
+            testbed.evm.env.tx.caller = user_addr;
+            testbed.evm.env.tx.transact_to = TransactTo::Call(hello_world_contract_address);
+            testbed.evm.env.tx.data = call_bytes;
+            testbed.evm.env.tx.value = Uint::from(0);
+            let result1 = testbed.evm.transact().unwrap().result;
+            if result1.is_success() {
+                println!("Contract Called successfully!");
+            } else {
+                println!("Contract Call failed.");
+            }
+            
+            println!("Printing result from TransactOut: {result1:#?}");    // unpack output call enum into raw bytes
+            
+            let value = match result1 {
+                ExecutionResult::Success { output, .. } => match output {
+                    Output::Call(value) => Some(value),
+                    _ => None,
+                    Output::Create(_, _) => todo!(),
+                },
+                _ => None,
+            };
+        
+            // decode bytes to reserves + ts via ethers-rs's abi decode
+            let (response): (String) =
+                function_signature.decode_output("greet", value.unwrap())?;
+            
+            println!("Printing result from decode_output: {response:#?}");
+
         }
         None => {}
     }
