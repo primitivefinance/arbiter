@@ -1,13 +1,12 @@
-use std::str::FromStr;
+
 
 use bytes::Bytes;
 use revm::{
     db::{CacheDB, EmptyDB},
     primitives::{
-        result::EVMError, ruint::Uint, AccountInfo, Bytecode, ExecutionResult, TransactTo, B160,
+        AccountInfo, Bytecode, ExecutionResult, TransactTo, B160,
         U256,
-    },
-    Database, EVM,
+    }, EVM,
 };
 
 #[derive(Default)]
@@ -19,7 +18,7 @@ impl ExecutionManager {
     /// Public constructor function to instantiate an `ExecutionManager`.
     pub fn new() -> Self {
         let mut evm = EVM::new();
-        let mut db = CacheDB::new(EmptyDB {});
+        let db = CacheDB::new(EmptyDB {});
 
         evm.database(db);
 
@@ -50,10 +49,10 @@ impl ExecutionManager {
         self.evm.env.tx.value = value;
 
         match self.evm.transact_commit() {
-            Ok(val) => return val,
+            Ok(val) => val,
             // URGENT: change this to a custom error
             Err(_) => panic!("failed"),
-        };
+        }
     }
 
     /// Give an address a specified amount of ether.
