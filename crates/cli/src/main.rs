@@ -140,10 +140,10 @@ async fn main() -> Result<()> {
             // Create a `ExecutionManager` where we can run simulations.
             let mut manager = ExecutionManager::new();
 
-            let hello_world_contract_address = B160::from_str("0x0000000000000000000000000000000000000002").unwrap();
+            let hello_world_contract_address =
+                B160::from_str("0x0000000000000000000000000000000000000002").unwrap();
 
             manager.deploy_contract(bytecode, hello_world_contract_address);
-            
 
             let result1 = manager.execute(
                 B160::from_str("0x0000000000000000000000000000000000000001").unwrap(),
