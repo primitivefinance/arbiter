@@ -6,13 +6,15 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-serde = {version = "1.0.145", features= ["derive"]}
-tokio = { version = "1.17.0", features = ["macros"] }
+# Local
 bindings = { path = "../bindings" }
 utils = { path = "../utils" }
+
+# External
+serde = {version = "1.0.145", features= ["derive"]}
+tokio = { version = "1.17.0", features = ["macros"] }
 toml = "0.5.10"
 ethers = "1.0.0"
 thiserror = "1.0.38"
 eyre = "0.6.6"
 num-bigfloat = "1.6.0"
-clap = {version = "~2.27.0"}
