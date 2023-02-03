@@ -3,9 +3,12 @@ use std::{env, str::FromStr, sync::Arc};
 use bytes::Bytes;
 use clairvoyance::uniswap::{get_pool, Pool};
 use clap::{Parser, Subcommand};
-use ethers::providers::{Http, Provider};
+use ethers::{
+    prelude::BaseContract,
+    providers::{Http, Provider},
+};
 use eyre::Result;
-use revm::primitives::{ruint::Uint, AccountInfo, Bytecode, TransactTo, B160};
+use revm::primitives::{ruint::Uint, ExecutionResult, Output, TransactTo, B160};
 use simulate::{price_simulation::PriceSimulation, testbed::Testbed};
 use tokio::join;
 use utils::chain_tools::get_provider;
@@ -118,6 +121,8 @@ async fn main() -> Result<()> {
             );
 
             test_sim.plot();
+
+            // contract we will use
             let client = get_provider().await;
 
             // create a testbed where we can run sims
@@ -125,15 +130,9 @@ async fn main() -> Result<()> {
 
             // insert a default user
             let user_addr = B160::from_str("0x0000000000000000000000000000000000000001")?;
-            let user_acc_info = AccountInfo::new(Uint::from(0), 0, Bytecode::new());
             testbed.create_user(user_addr);
-            testbed
-                .evm
-                .db()
-                .unwrap()
-                .insert_account_info(user_addr, user_acc_info);
 
-            // Get initialization code from bindings (in future will try to do this manually without a client)
+            // This is the only part of main that uses a provider/client. The client doesn't actually do anything, but it is a necessary inner for ContractDeployer
             let contract_deployer = bindings::hello_world::HelloWorld::deploy(client, ()).unwrap();
             let initialization_bytes = contract_deployer.deployer.tx.data().unwrap();
             let initialization_bytes = Bytes::from(hex::decode(hex::encode(initialization_bytes))?);
@@ -143,9 +142,63 @@ async fn main() -> Result<()> {
             testbed.evm.env.tx.transact_to = TransactTo::create();
             testbed.evm.env.tx.data = initialization_bytes;
             testbed.evm.env.tx.value = Uint::from(0);
-            let result = testbed.evm.transact().unwrap().result;
+            let result = testbed.evm.transact_commit().unwrap();
 
-            println!("Printing value from TransactOut: {result:#?}");
+            if result.is_success() {
+                println!("Contract deployed successfully!");
+            } else {
+                println!("Contract deployment failed.");
+            }
+
+            // Get deployed address. In order of most recent (can use a counter for complicated sims)
+            // This is good because we don't use any provider, is there a way to do this for the deploy scripts?
+            // Crux would be getting the initialization bytes from this base Contract object.
+            // One thing we can do is get this from solc
+            let hello_world_contract =
+                BaseContract::from(bindings::hello_world::HELLOWORLD_ABI.clone());
+            let hello_world_contract_address = testbed
+                .evm
+                .db()
+                .unwrap()
+                .clone()
+                .accounts
+                .into_iter()
+                .nth(2)
+                .unwrap()
+                .0;
+
+            let call_bytes = hello_world_contract.encode("greet", ())?;
+            let call_bytes = Bytes::from(hex::decode(hex::encode(call_bytes))?);
+
+            // execute initialization code from user
+            testbed.evm.env.tx.caller = user_addr;
+            testbed.evm.env.tx.transact_to = TransactTo::Call(hello_world_contract_address);
+            testbed.evm.env.tx.data = call_bytes;
+            testbed.evm.env.tx.value = Uint::from(0);
+            let result1 = testbed.evm.transact().unwrap().result;
+            if result1.is_success() {
+                println!("Contract Called successfully!");
+            } else {
+                println!("Contract Call failed.");
+            }
+
+            println!("Printing result from TransactOut: {result1:#?}");
+
+            // unpack output call enum into raw bytes
+            // TODO: We need to return the right response on line 186 so that we can decode the deployed contract's response
+            let value = match result1 {
+                ExecutionResult::Success { output, .. } => match output {
+                    Output::Call(value) => Some(value),
+                    Output::Create(_, Some(_)) => None,
+                    _ => None,
+                },
+                _ => None,
+            };
+
+            // decode bytes to reserves + ts via ethers-rs's abi decode
+            let response: String = hello_world_contract.decode_output("greet", value.unwrap())?;
+
+            println!("Printing result from decode_output: {response:#?}");
         }
         None => {}
     }

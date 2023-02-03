@@ -1,6 +1,6 @@
 use revm::{
     db::{CacheDB, EmptyDB},
-    primitives::{AccountInfo, B160},
+    primitives::{AccountInfo, B160, U256},
     EVM,
 };
 use tokio::runtime::{Handle, Runtime};
@@ -30,7 +30,7 @@ impl Testbed {
     }
 
     pub fn create_user(&mut self, addr: B160) {
-        let info = AccountInfo::default();
+        let info = AccountInfo::from_balance(U256::from(1000000000));
         self.evm.db().unwrap().insert_account_info(addr, info);
     }
 
