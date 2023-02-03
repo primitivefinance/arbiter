@@ -139,6 +139,8 @@ async fn main() -> Result<()> {
             // Create a `ExecutionManager` where we can run simulations.
             let mut manager = ExecutionManager::new();
 
+            manager.deploy_contract(bytecode);
+
             let hello_world_contract_address = manager
                 .evm
                 .db()
@@ -146,11 +148,9 @@ async fn main() -> Result<()> {
                 .clone()
                 .accounts
                 .into_iter()
-                .nth(2)
+                .nth(0)
                 .unwrap()
                 .0;
-
-            manager.deploy_contract(bytecode);
 
             let result1 = manager.execute(
                 B160::from_str("0x0000000000000000000000000000000000000001").unwrap(),
@@ -171,11 +171,6 @@ async fn main() -> Result<()> {
                 },
                 _ => None,
             };
-
-            // decode bytes to reserves + ts via ethers-rs's abi decode
-            let response: String = hello_world_contract.decode_output("greet", value.unwrap())?;
-
-            println!("Printing result from decode_output: {response:#?}");
         }
         None => {}
     }
