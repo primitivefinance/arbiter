@@ -164,11 +164,6 @@ async fn main() -> Result<()> {
                 },
                 _ => None,
             };
-
-            // decode bytes to reserves + ts via ethers-rs's abi decode
-            let response: String = hello_world_contract.decode_output("greet", value.unwrap())?;
-
-            println!("Printing result from decode_output: {response:#?}");
         }
         None => {}
     }
