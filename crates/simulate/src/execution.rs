@@ -30,6 +30,22 @@ impl ExecutionManager {
         self.evm.db.insert_account_info(B160::from_str(FACTORY), factory_info);
     }
 
+    /// Execute a transaction.
+    fn execute(
+        &mut self, 
+        caller: B160,
+        data: Bytes
+        transact_to: TransactTo,
+        value: Uint,
+    ) {
+        self.evm.env.tx.caller = caller;
+        self.evm.env.tx.transact_to = transact_to;
+        self.evm.env.tx.data = data;
+        self.evm.env.tx.value = value;
+
+        self.evm.transact_commit().unwrap();
+    }
+
     /// Give an address a specified amount of ether.
     fn deal(&mut self, address: B160, amount: U256) {
         let account = self.load_account(address).unwrap();

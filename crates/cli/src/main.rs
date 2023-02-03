@@ -122,26 +122,31 @@ async fn main() -> Result<()> {
 
             test_sim.plot();
 
-            // contract we will use
+            // Provider we will use.
             let client = get_provider().await;
-
-            // create a testbed where we can run sims
-            let mut testbed = Testbed::new();
-
-            // insert a default user
-            let user_addr = B160::from_str("0x0000000000000000000000000000000000000001")?;
-            testbed.create_user(user_addr);
 
             // This is the only part of main that uses a provider/client. The client doesn't actually do anything, but it is a necessary inner for ContractDeployer
             let contract_deployer = bindings::hello_world::HelloWorld::deploy(client, ()).unwrap();
             let initialization_bytes = contract_deployer.deployer.tx.data().unwrap();
             let initialization_bytes = Bytes::from(hex::decode(hex::encode(initialization_bytes))?);
 
+            // Create a `ExecutionManager` where we can run simulations.
+            let mut manager = ExecutionManager::new();
+
+            manager.deploy_contract()
+
+            // insert a default user
+            let user_addr = B160::from_str("0x0000000000000000000000000000000000000001")?;
+            testbed.create_user(user_addr);
+
+
+
             // execute initialization code from user
             testbed.evm.env.tx.caller = user_addr;
             testbed.evm.env.tx.transact_to = TransactTo::create();
             testbed.evm.env.tx.data = initialization_bytes;
             testbed.evm.env.tx.value = Uint::from(0);
+
             let result = testbed.evm.transact_commit().unwrap();
 
             if result.is_success() {
@@ -175,6 +180,7 @@ async fn main() -> Result<()> {
             testbed.evm.env.tx.transact_to = TransactTo::Call(hello_world_contract_address);
             testbed.evm.env.tx.data = call_bytes;
             testbed.evm.env.tx.value = Uint::from(0);
+
             let result1 = testbed.evm.transact().unwrap().result;
             if result1.is_success() {
                 println!("Contract Called successfully!");
