@@ -8,7 +8,7 @@ use ethers::{
     providers::{Http, Provider},
 };
 use eyre::Result;
-use revm::primitives::{ruint::Uint, ExecutionResult, Output, TransactTo, B160};
+use revm::primitives::{ruint::Uint, ExecutionResult, Output, TransactTo, B160, Bytecode};
 use simulate::{price_simulation::PriceSimulation, execution::ExecutionManager};
 use tokio::join;
 use utils::chain_tools::get_provider;
@@ -139,19 +139,25 @@ async fn main() -> Result<()> {
             // Create a `ExecutionManager` where we can run simulations.
             let mut manager = ExecutionManager::new();
 
+            let hello_world_contract_address = manager
+                .evm
+                .db()
+                .unwrap()
+                .clone()
+                .accounts
+                .into_iter()
+                .nth(2)
+                .unwrap()
+                .0;
+
             manager.deploy_contract(bytecode);
-            
+
             let result1 = manager.execute(
                 B160::from_str("0x0000000000000000000000000000000000000001").unwrap(),
                 call_bytes,
                 TransactTo::Call(hello_world_contract_address),
                 Uint::from(0),
             );
-
-            match result1 {
-                Ok(_) => println!("Contract Called successfully!"),
-                Err(_) => println!("Contract Call failed."),
-            }
 
             println!("Printing result from TransactOut: {result1:#?}");
 
