@@ -3,36 +3,37 @@ use revm::{
     primitives::{AccountInfo, B160, U256},
     EVM,
 };
-use tokio::runtime::{Handle, Runtime};
 
-pub struct Testbed {
-    pub runtime: Option<Runtime>,
+/// Uniswap V3 factory address.
+const FACTORY: &str = "0x1F98431c8aD98523631AE4a59f267346ea31F984";
+
+#[derive(Debug, Default)]
+pub struct ExecutionManager {
     pub evm: EVM<CacheDB<EmptyDB>>,
 }
 
-impl Default for Testbed {
-    fn default() -> Self {
-        Self::new()
-    }
-}
-
-impl Testbed {
+impl ExecutionManager {
+    /// Public constructor function to instantiate an `ExecutionManager`.
     pub fn new() -> Self {
-        let db = CacheDB::new(EmptyDB {});
         let mut evm = EVM::new();
+        let mut db = CacheDB::new(EmptyDB {});
+
         evm.database(db);
-        Testbed {
-            runtime: Handle::try_current()
-                .is_err()
-                .then(|| Runtime::new().unwrap()),
-            evm,
-        }
+
+        Self { evm }
     }
 
-    pub fn create_user(&mut self, addr: B160) {
-        let info = AccountInfo::from_balance(U256::from(1000000000));
-        self.evm.db().unwrap().insert_account_info(addr, info);
+    /// Deploy a contract to the Execution instance.
+    fn deploy_contract(&mut self, bytecode: Bytecode) {
+        let factory_info = AccountInfo::new(U256::from(0), 0, bytecode);
+
+        self.evm.db.insert_account_info(B160::from_str(FACTORY), factory_info);
     }
 
-    // TODO: Implement a create_contract() fxn
+    /// Give an address a specified amount of ether.
+    fn deal(&mut self, address: B160, amount: U256) {
+        let account = self.load_account(address).unwrap();
+
+        account.info.balance = amount;
+    }
 }
