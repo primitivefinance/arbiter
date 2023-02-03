@@ -156,7 +156,16 @@ async fn main() -> Result<()> {
             // One thing we can do is get this from solc
             let hello_world_contract =
                 BaseContract::from(bindings::hello_world::HELLOWORLD_ABI.clone());
-            let hello_world_contract_address = testbed.evm.db().unwrap().clone().accounts.into_iter().nth(2).unwrap().0;
+            let hello_world_contract_address = testbed
+                .evm
+                .db()
+                .unwrap()
+                .clone()
+                .accounts
+                .into_iter()
+                .nth(2)
+                .unwrap()
+                .0;
 
             let call_bytes = hello_world_contract.encode("greet", ())?;
             let call_bytes = Bytes::from(hex::decode(hex::encode(call_bytes))?);
