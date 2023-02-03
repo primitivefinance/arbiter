@@ -1,8 +1,10 @@
 use revm::{
+    Database as DB,
     db::{CacheDB, EmptyDB},
-    primitives::{AccountInfo, B160, U256},
+    primitives::{AccountInfo, B160, U256, ExecutionResult},
     EVM,
 };
+use revm::primitives::result::EVMError;
 
 /// Uniswap V3 factory address.
 const FACTORY: &str = "0x1F98431c8aD98523631AE4a59f267346ea31F984";
@@ -37,13 +39,13 @@ impl ExecutionManager {
         data: Bytes
         transact_to: TransactTo,
         value: Uint,
-    ) {
+    ) -> Result<ExecutionResult, EVMError<DB::Error>> {
         self.evm.env.tx.caller = caller;
         self.evm.env.tx.transact_to = transact_to;
         self.evm.env.tx.data = data;
         self.evm.env.tx.value = value;
 
-        self.evm.transact_commit().unwrap();
+        self.evm.transact_commit();
     }
 
     /// Give an address a specified amount of ether.
