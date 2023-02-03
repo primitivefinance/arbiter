@@ -1,12 +1,14 @@
-use revm::{
-    Database,
-    db::{CacheDB, EmptyDB},
-    primitives::{AccountInfo, Bytecode, B160, U256, ExecutionResult, TransactTo, ruint::Uint},
-    EVM,
-};
-use bytes::Bytes;
 use std::str::FromStr;
-use revm::primitives::result::EVMError;
+
+use bytes::Bytes;
+use revm::{
+    db::{CacheDB, EmptyDB},
+    primitives::{
+        result::EVMError, ruint::Uint, AccountInfo, Bytecode, ExecutionResult, TransactTo, B160,
+        U256,
+    },
+    Database, EVM,
+};
 
 /// Uniswap V3 factory address.
 const FACTORY: &str = "0x1F98431c8aD98523631AE4a59f267346ea31F984";
@@ -31,12 +33,15 @@ impl ExecutionManager {
     pub fn deploy_contract(&mut self, bytecode: Bytecode) {
         let factory_info = AccountInfo::new(U256::from(0), 0, bytecode);
 
-        self.evm.db().unwrap().insert_account_info(B160::from_str(FACTORY).unwrap(), factory_info);
+        self.evm
+            .db()
+            .unwrap()
+            .insert_account_info(B160::from_str(FACTORY).unwrap(), factory_info);
     }
 
     /// Execute a transaction.
     pub fn execute(
-        &mut self, 
+        &mut self,
         caller: B160,
         data: Bytes,
         transact_to: TransactTo,
