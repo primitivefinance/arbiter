@@ -1,7 +1,7 @@
 use bytes::Bytes;
 use revm::{
     db::{CacheDB, EmptyDB},
-    primitives::{AccountInfo, Bytecode, ExecutionResult, TransactTo, B160, U256},
+    primitives::{ExecutionResult, TransactTo, B160, U256},
     EVM,
 };
 

@@ -179,7 +179,7 @@ async fn main() -> Result<()> {
             };
 
             let response = hello_world_contract.decode_output("greet", value.unwrap())?;
-            
+
             println!("Printing result from decode_output: {response:#?}");
         }
         None => {}
