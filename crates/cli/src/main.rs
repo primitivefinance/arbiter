@@ -152,6 +152,8 @@ async fn main() -> Result<()> {
                 Uint::from(0),
             );
 
+            println!("{:#?}", manager.evm.db());
+
             println!("Printing result from TransactOut: {result1:#?}");
 
             // unpack output call enum into raw bytes
@@ -164,6 +166,12 @@ async fn main() -> Result<()> {
                 },
                 _ => None,
             };
+
+            println!("{value:?}");
+
+            let response = hello_world_contract.decode_output("greet", value.unwrap())?;
+
+            println!("{response:?}");
         }
         None => {}
     }
