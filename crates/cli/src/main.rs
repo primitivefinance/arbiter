@@ -140,10 +140,23 @@ async fn main() -> Result<()> {
             // Create a `ExecutionManager` where we can run simulations.
             let mut manager = ExecutionManager::new();
 
-            let hello_world_contract_address =
-                B160::from_str("0x0000000000000000000000000000000000000002").unwrap();
+            manager.execute(
+                B160::from_str("0x0000000000000000000000000000000000000001").unwrap(),
+                Bytes::copy_from_slice(&*initialization_bytes.0),
+                TransactTo::create(),
+                Uint::from(0),
+            );
 
-            manager.deploy_contract(bytecode, hello_world_contract_address);
+            let hello_world_contract_address = manager
+                .evm
+                .db()
+                .unwrap()
+                .clone()
+                .accounts
+                .into_iter()
+                .nth(2)
+                .unwrap()
+                .0;
 
             let result1 = manager.execute(
                 B160::from_str("0x0000000000000000000000000000000000000001").unwrap(),
@@ -151,8 +164,6 @@ async fn main() -> Result<()> {
                 TransactTo::Call(hello_world_contract_address),
                 Uint::from(0),
             );
-
-            println!("{:#?}", manager.evm.db());
 
             println!("Printing result from TransactOut: {result1:#?}");
 
@@ -167,11 +178,9 @@ async fn main() -> Result<()> {
                 _ => None,
             };
 
-            println!("{value:?}");
-
             let response = hello_world_contract.decode_output("greet", value.unwrap())?;
-
-            println!("{response:?}");
+            
+            println!("Printing result from decode_output: {response:#?}");
         }
         None => {}
     }

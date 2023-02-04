@@ -21,16 +21,6 @@ impl ExecutionManager {
         Self { evm }
     }
 
-    /// Deploy a contract to the Execution instance.
-    pub fn deploy_contract(&mut self, bytecode: Bytecode, address: B160) {
-        let factory_info = AccountInfo::new(U256::from(0), 0, bytecode);
-
-        self.evm
-            .db()
-            .unwrap()
-            .insert_account_info(address, factory_info);
-    }
-
     /// Execute a transaction.
     pub fn execute(
         &mut self,
