@@ -6,8 +6,7 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-# testbed
-tokio = { version = "1.24.2", features = ["macros", "full"] }
+# execution
 revm = "3.0.0"
 
 # price_simulation
