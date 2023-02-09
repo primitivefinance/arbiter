@@ -6,8 +6,7 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-# testbed
-tokio = { version = "1.24.2", features = ["macros", "full"] }
+# execution
 revm = "3.0.0"
 
 # price_simulation
@@ -15,3 +14,5 @@ rand = "0.8.5"
 rand_chacha = "0.3.1"
 rand_distr = "0.4.3"
 plotly = "0.8.3"
+
+bytes = "1.4.0"
