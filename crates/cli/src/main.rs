@@ -8,7 +8,7 @@ use ethers::{
     providers::{Http, Provider},
 };
 use eyre::Result;
-use revm::primitives::{ruint::Uint, Bytecode, ExecutionResult, Output, TransactTo, B160};
+use revm::primitives::{ruint::Uint, ExecutionResult, Output, TransactTo, B160};
 use simulate::{execution::ExecutionManager, price_simulation::PriceSimulation};
 use tokio::join;
 use utils::chain_tools::get_provider;
@@ -128,8 +128,6 @@ async fn main() -> Result<()> {
             // This is the only part of main that uses a provider/client. The client doesn't actually do anything, but it is a necessary inner for ContractDeployer
             let contract_deployer = bindings::hello_world::HelloWorld::deploy(client, ()).unwrap();
             let initialization_bytes = contract_deployer.deployer.tx.data().unwrap();
-            let bytecode =
-                Bytecode::new_raw(Bytes::from(hex::decode(hex::encode(initialization_bytes))?));
 
             let hello_world_contract =
                 BaseContract::from(bindings::hello_world::HELLOWORLD_ABI.clone());
@@ -142,7 +140,7 @@ async fn main() -> Result<()> {
 
             manager.execute(
                 B160::from_str("0x0000000000000000000000000000000000000001").unwrap(),
-                Bytes::copy_from_slice(&*initialization_bytes.0),
+                Bytes::copy_from_slice(&initialization_bytes.0),
                 TransactTo::create(),
                 Uint::from(0),
             );
@@ -177,7 +175,7 @@ async fn main() -> Result<()> {
                 _ => None,
             };
 
-            let response: (String) = hello_world_contract.decode_output("greet", value.unwrap())?;
+            let response: String = hello_world_contract.decode_output("greet", value.unwrap())?;
 
             println!("Printing result from decode_output: {response:#?}");
         }
