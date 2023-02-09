@@ -168,7 +168,6 @@ async fn main() -> Result<()> {
             println!("Printing result from TransactOut: {result1:#?}");
 
             // unpack output call enum into raw bytes
-            // TODO: We need to return the right response on line 186 so that we can decode the deployed contract's response
             let value = match result1 {
                 ExecutionResult::Success { output, .. } => match output {
                     Output::Call(value) => Some(value),
@@ -178,7 +177,7 @@ async fn main() -> Result<()> {
                 _ => None,
             };
 
-            let response = hello_world_contract.decode_output("greet", value.unwrap())?;
+            let response: (String) = hello_world_contract.decode_output("greet", value.unwrap())?;
 
             println!("Printing result from decode_output: {response:#?}");
         }
