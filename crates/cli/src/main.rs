@@ -75,15 +75,11 @@ async fn main() -> Result<()> {
                     // We still need to handle the error properly here, but at least we have a custom type.
                     let config = config::Config::new(config).unwrap();
 
-                    println!("Getting Pool...");
-
                     Clairvoyance { provider }
                         .see(&config.token0, &config.token1, &config.bp)
                         .await;
                 }
                 None => {
-                    println!("Getting Pool...");
-
                     // Get pool from command line inputs
                     Clairvoyance { provider }.see(token0, token1, bp).await;
                 }
