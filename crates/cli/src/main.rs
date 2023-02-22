@@ -1,7 +1,7 @@
 use std::{env, str::FromStr, sync::Arc};
 
 use bytes::Bytes;
-use clairvoyance::{Clairvoyance, uniswap::{get_pool, Pool}};
+use clairvoyance::Clairvoyance;
 use clap::{Parser, Subcommand};
 use ethers::{
     prelude::BaseContract,
@@ -10,7 +10,6 @@ use ethers::{
 use eyre::Result;
 use revm::primitives::{ruint::Uint, ExecutionResult, Output, TransactTo, B160};
 use simulate::{execution::ExecutionManager, price_simulation::PriceSimulation};
-use tokio::join;
 use utils::chain_tools::get_provider;
 mod config;
 
@@ -78,7 +77,9 @@ async fn main() -> Result<()> {
 
                     println!("Getting Pool...");
 
-                    Clairvoyance { provider }.see(&config.token0, &config.token1, &config.bp).await;
+                    Clairvoyance { provider }
+                        .see(&config.token0, &config.token1, &config.bp)
+                        .await;
                 }
                 None => {
                     println!("Getting Pool...");
