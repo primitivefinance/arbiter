@@ -12,6 +12,7 @@ Cargo.lock
 /cache/
 /out/
 *.html
+/lib/
 
 /src/
-/lib/
+.DS_Store
