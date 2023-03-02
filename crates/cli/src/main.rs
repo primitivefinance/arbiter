@@ -1,7 +1,7 @@
 use std::{env, str::FromStr, sync::Arc};
 
 use bytes::Bytes;
-use clairvoyance::uniswap::{get_pool, Pool};
+use clairvoyance::Clairvoyance;
 use clap::{Parser, Subcommand};
 use ethers::{
     prelude::BaseContract,
@@ -10,7 +10,6 @@ use ethers::{
 use eyre::Result;
 use revm::primitives::{ruint::Uint, ExecutionResult, Output, TransactTo, B160};
 use simulate::{execution::ExecutionManager, price_simulation::PriceSimulation};
-use tokio::join;
 use utils::chain_tools::get_provider;
 mod config;
 
@@ -68,8 +67,7 @@ async fn main() -> Result<()> {
                 Some(v) => Arc::new(Provider::<Http>::try_from(v.into_string().unwrap())?),
                 None => get_provider().await,
             };
-
-            let pools: Vec<Pool> = match config {
+            match config {
                 Some(config) => {
                     // If present, load config.toml and get pool from there.
                     println!("\nLoading config.toml...");
@@ -77,26 +75,15 @@ async fn main() -> Result<()> {
                     // We still need to handle the error properly here, but at least we have a custom type.
                     let config = config::Config::new(config).unwrap();
 
-                    println!("Getting Pool...");
-
-                    let pool = get_pool(&config.token0, &config.token1, &config.bp, provider)
-                        .await
-                        .unwrap();
-
-                    vec![pool]
+                    Clairvoyance { provider }
+                        .see(&config.token0, &config.token1, &config.bp)
+                        .await;
                 }
                 None => {
-                    println!("Getting Pool...");
-
                     // Get pool from command line inputs
-                    let pool = get_pool(token0, token1, bp, provider).await.unwrap();
-
-                    vec![pool]
+                    Clairvoyance { provider }.see(token0, token1, bp).await;
                 }
             };
-            for mut pool in pools {
-                join!(pool.monitor_pool());
-            }
         }
         Some(Commands::Sim { config }) => {
             // Plot a GBM price path
