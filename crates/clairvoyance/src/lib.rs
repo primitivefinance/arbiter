@@ -18,7 +18,7 @@ impl Clairvoyance {
         Self { provider }
     }
 
-    pub async fn see(self, token0: &String, token1: &String, bp: &String) {
+    pub async fn see(self, token0: &String, token1: &String, bp: &str) {
         println!("Getting Pool...");
         let pools: Vec<Pool> = vec![get_pool(token0, token1, bp, self.provider).await.unwrap()];
         for mut pool in pools {
