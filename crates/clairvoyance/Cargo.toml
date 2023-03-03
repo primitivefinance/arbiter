@@ -14,7 +14,7 @@ utils = { path = "../utils" }
 serde = {version = "1.0.145", features= ["derive"]}
 tokio = { version = "1.17.0", features = ["macros"] }
 toml = "0.5.10"
-ethers = "1.0.0"
+ethers = "=1.0.2"
 thiserror = "1.0.38"
 eyre = "0.6.6"
 num-bigfloat = "1.6.0"
