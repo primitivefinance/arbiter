@@ -48,6 +48,12 @@ enum Commands {
     Sim {
         /// Path to config.toml containing simulation parameterization (optional)
         #[arg(short, long, default_value = "./crates/cli/src/config.toml", num_args = 0..=1)]
+        config: Option<String>,
+    },
+
+    Gbm {
+        /// Path to config.toml containing simulation parameterization (optional)
+        #[arg(short, long, default_value = "./crates/cli/src/config.toml", num_args = 0..=1)]
         config: String,
     },
 }
@@ -85,30 +91,7 @@ async fn main() -> Result<()> {
                 }
             };
         }
-        Some(Commands::Sim { config }) => {
-            // Plot a GBM price path
-            let config::Config {
-                timestep,
-                timescale,
-                num_steps,
-                initial_price,
-                drift,
-                volatility,
-                seed,
-                ..
-            } = config::Config::new(config).unwrap();
-            let test_sim = PriceSimulation::new(
-                timestep,
-                timescale,
-                num_steps,
-                initial_price,
-                drift,
-                volatility,
-                seed,
-            );
-
-            test_sim.plot();
-
+        Some(Commands::Sim { config: _ }) => {
             // Provider we will use.
             let client = get_provider().await;
 
@@ -165,6 +148,30 @@ async fn main() -> Result<()> {
             let response: String = hello_world_contract.decode_output("greet", value.unwrap())?;
 
             println!("Printing result from decode_output: {response:#?}");
+        }
+        Some(Commands::Gbm { config }) => {
+            // Plot a GBM price path
+            let config::Config {
+                timestep,
+                timescale,
+                num_steps,
+                initial_price,
+                drift,
+                volatility,
+                seed,
+                ..
+            } = config::Config::new(config).unwrap();
+            let test_sim = PriceSimulation::new(
+                timestep,
+                timescale,
+                num_steps,
+                initial_price,
+                drift,
+                volatility,
+                seed,
+            );
+
+            test_sim.plot();
         }
         None => {}
     }
