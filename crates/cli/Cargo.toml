@@ -24,9 +24,13 @@ eyre = "0.6.6"
 toml = "0.5.10"
 
 # ethers
-ethers = "1.0.0"
-ethers-providers = "1.0.2"
-ethers-core = "1.0.2"
+ethers = "=1.0.2"
+ethers-providers = "=1.0.2"
+ethers-core = "=1.0.2"
+ethers-etherscan = "=1.0.2"
+ethers-contract-abigen = "=1.0.2"
+ethers-contract-derive = "=1.0.2"
+ethers-middleware = "=1.0.2"
 
 # revm and related
 revm = "3.0.0"
