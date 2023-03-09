@@ -2,7 +2,7 @@ use std::{env, str::FromStr, sync::Arc};
 
 use bytes::Bytes;
 use clairvoyance::Clairvoyance;
-use clap::{Parser, Subcommand};
+use clap::{CommandFactory, Parser, Subcommand};
 use ethers::{
     prelude::BaseContract,
     providers::{Http, Provider},
@@ -173,7 +173,12 @@ async fn main() -> Result<()> {
 
             test_sim.plot();
         }
-        None => {}
+        None => {
+            Args::command()
+                .print_long_help()
+                .map_err(|err| println!("{:?}", err))
+                .ok();
+        }
     }
     Ok(())
 }
