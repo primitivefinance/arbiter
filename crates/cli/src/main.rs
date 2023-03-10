@@ -6,6 +6,7 @@ use clap::{CommandFactory, Parser, Subcommand};
 use ethers::{
     prelude::BaseContract,
     providers::{Http, Provider},
+    abi::Tokenize,
 };
 use eyre::Result;
 use revm::primitives::{ruint::Uint, ExecutionResult, Output, TransactTo, B160};
@@ -92,25 +93,28 @@ async fn main() -> Result<()> {
             };
         }
         Some(Commands::Sim { config: _ }) => {
-            // Provider we will use.
-            let client = get_provider().await;
+                        // Create a `ExecutionManager` where we can run simulations.
+                        let mut manager = ExecutionManager::new();
 
-            // This is the only part of main that uses a provider/client. The client doesn't actually do anything, but it is a necessary inner for ContractDeployer
-            let contract_deployer = bindings::hello_world::HelloWorld::deploy(client, ()).unwrap();
-            let initialization_bytes = contract_deployer.deployer.tx.data().unwrap();
+                        // Get a BaseContract for the ERC-20 contract from the ABI.
+                        let erc20_contract = BaseContract::from(bindings::erc20::ERC20_ABI.clone());
 
-            let hello_world_contract =
-                BaseContract::from(bindings::hello_world::HELLOWORLD_ABI.clone());
+                        // Choose name and symbol for the constructor args required by ERC-20 contracts.
+                        let name = "ArbiterToken";
+                        let symbol = "ARBT";
 
-            let call_bytes = hello_world_contract.encode("greet", ())?;
-            let call_bytes = Bytes::from(hex::decode(hex::encode(call_bytes))?);
+                        // Tokenize the constructor args.
+                        let mut constructor_args = (name.to_string(),symbol.to_string()).into_tokens();
+                        println!("constructor_args: {:#?}", constructor_args);
 
-            // Create a `ExecutionManager` where we can run simulations.
-            let mut manager = ExecutionManager::new();
+                        // Append to generate the deploy bytecode
+                        let bytecode = Bytes::copy_from_slice(&bindings::erc20::ERC20_BYTECODE).into();
+                        let bytecode = erc20_contract.abi().constructor().unwrap().encode_input(bytecode, &constructor_args)?.into();
+
 
             manager.execute(
                 B160::from_str("0x0000000000000000000000000000000000000001").unwrap(),
-                Bytes::copy_from_slice(&initialization_bytes.0),
+                bytecode,
                 TransactTo::create(),
                 Uint::from(0),
             );
@@ -125,6 +129,10 @@ async fn main() -> Result<()> {
                 .nth(2)
                 .unwrap()
                 .0;
+
+                // Generate calldata for the 'name' function
+                let call_bytes = erc20_contract.encode("name", ())?;
+                let call_bytes = Bytes::from(hex::decode(hex::encode(call_bytes))?);
 
             let result1 = manager.execute(
                 B160::from_str("0x0000000000000000000000000000000000000001").unwrap(),
@@ -145,7 +153,7 @@ async fn main() -> Result<()> {
                 _ => None,
             };
 
-            let response: String = hello_world_contract.decode_output("greet", value.unwrap())?;
+            let response: String = erc20_contract.decode_output("name", value.unwrap())?;
 
             println!("Printing result from decode_output: {response:#?}");
         }

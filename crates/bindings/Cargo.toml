@@ -7,5 +7,5 @@ edition = "2021"
 
 [dependencies]
 
-ethers = "=1.0.2"
+ethers = "1.0.2"
 serde_json = "1.0.79"
