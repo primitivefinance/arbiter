@@ -1,29 +1,21 @@
 # Arbiter (In Progress)
 
 ![](https://visitor-badge.laobi.icu/badge?page_id=arbiter)
-![Github Actions](https://github.com/primitivefinance/arbiter/workflows/Rust/badge.svg) 
+![Github Actions](https://github.com/primitivefinance/arbiter/workflows/Rust/badge.svg)
 [![](https://dcbadge.vercel.app/api/server/primitive?style=flat)](https://discord.gg/primitive)
 [![Twitter Badge](https://badgen.net/badge/icon/twitter?icon=twitter&label)](https://twitter.com/primitivefi)
 
-> Code that runs code that runs code to study how code runs code and behaves in any environment.
+> Perform high speed modeling and economic fuzzing with EVM parity.
 
+Ethereum's execution environment, the Ethereum virtual machine (EVM), has given fruit to a rich collection of decentralized applications. The EVM resembles a simple stack machine and sequentially executes opcodes as decentralized applications are used, deployed, or exploited. Arbiter is a highly configurable rust interface over [REVM](https://github.com/bluealloy/revm).
 
-Perform high speed modeling and Economic Fuzzing with EVM parity. 
+Financial engineers need to study complex portfolio management strategies against many market conditions, contract parameters, and arbitrageurs. To configure such a rich simulation environment on a test network would take months to get a sufficient quantity of data points to draw conclusions with confidence and isolate key variables. Even with a local network with no block time, the networking latency on port to port communication will be significant.
 
-
-Ethereum's execution environment, the Ethereum virtual machine (EVM), has given fruit to a rich collection of decentralized applications. The EVM resembles a simple stack machine and sequentially executes opcodes as decentralized applications are used, deployed, or exploited.
-
-Arbiter is a highly configurable rust interface over [REVM](). Since there is a 1-1 mapping of the revm and EVM opcodes, to switch to an execution environment, all you have to do is change your endpoint.
-
-Financial engineers have the motive to study complex portfolio management strategies in significant numbers against many market conditions, contract parameters, and arbitrageurs. To configure such a rich simulation environment on a test network would take months to get a sufficient quantity of data points to draw conclusions with confidence and isolate ket variables. If we modeled this problem with historical data but omitted gas or a certain level of precision, our results would also be insignificant. But with REVM, we would be about to generate hundreds of thousands of data points spanning years of data in a matter of estimated hours or days. In financial engineering, this is a critical tool in evaluating capital efficiency, loss vs. rebalancing, and game theoretic security.
-
-Thus arbiter as a tool will bring value to individuals and teams.
+In financial engineering, this is a critical tool in evaluating capital efficiency, loss vs. rebalancing, and game theoretic security. Arbiter can be used for:
 
 - Evaluating the game theoretic and composable security of smart contracts in production environments (Security Firms and Academics)
 - Engineering and testing new financial products built on top of more primitive financial products (DeFi Firms and Academics)
 - Evaluating financial risk and mitigation strategies (Funds, prop-shops, searchers)
-
-With Arbiter, we aim to build a layer of abstraction to lower the required technical competence to support more study and experimentation. To get a head start, we built an open-source MVP intending to abstract away complexity at different layers of the blockchain stack and are using the uniswapV3 core contracts to test our implementation.
 
 ## Features:
 
@@ -32,8 +24,8 @@ For our next beta release, we will be focusing on the following features:
 #### TODOs:
 
 - [x] Interface over Loading contracts with specific state
-- [ ] Interface over calldata
-- [ ] Interface over deploying contracts to REVM
+- [x] Interface over calldata
+- [x] Interface over deploying contracts to REVM
 - [ ] Case study on results of simulations.
 - [ ] Documentation for the project.
 - [ ] Publish to crates.io.
@@ -49,7 +41,10 @@ cargo install --path ./crates/cli
 ```
 
 Set the PROVIDER environment variable to use a custom provider.
-`arbiter` has many subcommands and therefore many arguments. To see the available arguments for pool monitoring, run the following:
+
+## Event Monitoring
+
+While `arbiter` is a powerful tool for modeling and fuzzing, it also supports event monitoring on uniswap V3 pools. To see the available arguments for pool monitoring, run the following:
 
 ```
 arbiter see --help
@@ -58,8 +53,6 @@ arbiter see --help
 This will display the `help` menu for this crate
 
 ```console
-Access the event monitoring module via this subcommand
-
 Usage: arbiter.exe see [TOKEN0] [TOKEN1] [BP] [CONFIG]
 
 Arguments:
@@ -112,6 +105,8 @@ Tick:      205282
 Price:     "1.216568804789000000000000000000000000000e+3"
 ```
 
+The event monitoring feature will be depricated in a future release.
+
 You may also build the executable with `cargo build`, which will output a binary in `target/`
 
 ## Configuration File
@@ -142,26 +137,6 @@ If you need to unset the `PROVIDER` variable, do:
 
 ```
 unset PROVIDER
-```
-
-## Test Network Simulations
-
-In order to run a test network and simulate transactions with DEXs or other objects, we need `Foundry`. This can be run on your local machine, or an external machine. To get the full `Foundry` suite, run:
-
-````
-cargo install --git https://github.com/foundry-rs/foundry --profile local --locked foundry-cli anvil
-```
-
-From here, you need a way to fork the blockchain network you want. For example, you can create an Alchemy account, get an Alchemy API key. With this key, export it to your `env` variables by
-
-```
-export ALCHEMY_KEY = your_key_here
-```
-
-You can check this by `echo $ALCHEMY_KEY`. If all is well, you can run your fork of the Ethereum main-net by:
-
-```
-anvil --fork-url https://eth-mainnet.g.alchemy.com/v2/
 ```
 
 ## Contributing
