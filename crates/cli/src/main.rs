@@ -7,12 +7,14 @@ use ethers::{
     abi::Tokenize,
     prelude::BaseContract,
     providers::{Http, Provider},
+    prelude::Address,
 };
 use eyre::Result;
 use revm::primitives::{ruint::Uint, ExecutionResult, Output, TransactTo, B160};
 use simulate::{execution::ExecutionManager, price_simulation::PriceSimulation};
 use utils::chain_tools::get_provider;
 mod config;
+use revm::primitives::AccountInfo;
 
 #[derive(Parser)]
 #[command(name = "Arbiter")]
@@ -96,6 +98,12 @@ async fn main() -> Result<()> {
             // Create a `ExecutionManager` where we can run simulations.
             let mut manager = ExecutionManager::new();
 
+            // Generate a user account to mint tokens to. (TODO: MOVE INTO EXECUTION?)
+            let user_address = B160::from_str("0x0000000000000000000000000000000000000001").unwrap();
+            manager.evm.db().unwrap().insert_account_info(user_address, AccountInfo::default());
+
+            println!("Database after adding account: {:#?}", manager.evm.db().unwrap());
+
             // Get a BaseContract for the ERC-20 contract from the ABI.
             let erc20_contract = BaseContract::from(bindings::erc20::ERC20_ABI.clone());
 
@@ -105,7 +113,6 @@ async fn main() -> Result<()> {
 
             // Tokenize the constructor args.
             let constructor_args = (name.to_string(), symbol.to_string()).into_tokens();
-            println!("constructor_args: {:#?}", constructor_args);
 
             // Append to generate the deploy bytecode
             let bytecode = Bytes::copy_from_slice(&bindings::erc20::ERC20_BYTECODE).into();
@@ -117,13 +124,13 @@ async fn main() -> Result<()> {
                 .into();
 
             manager.execute(
-                B160::from_str("0x0000000000000000000000000000000000000001").unwrap(),
+                user_address,
                 bytecode,
                 TransactTo::create(),
                 Uint::from(0),
             );
 
-            let hello_world_contract_address = manager
+            let erc20_contract_address = manager
                 .evm
                 .db()
                 .unwrap()
@@ -138,14 +145,13 @@ async fn main() -> Result<()> {
             let call_bytes = erc20_contract.encode("name", ())?;
             let call_bytes = Bytes::from(hex::decode(hex::encode(call_bytes))?);
 
+            // Execute the call to retrieve the token name.
             let result1 = manager.execute(
-                B160::from_str("0x0000000000000000000000000000000000000001").unwrap(),
+                user_address,
                 call_bytes,
-                TransactTo::Call(hello_world_contract_address),
+                TransactTo::Call(erc20_contract_address),
                 Uint::from(0),
             );
-
-            println!("Printing result from TransactOut: {result1:#?}");
 
             // unpack output call enum into raw bytes
             let value = match result1 {
@@ -159,7 +165,41 @@ async fn main() -> Result<()> {
 
             let response: String = erc20_contract.decode_output("name", value.unwrap())?;
 
-            println!("Printing result from decode_output: {response:#?}");
+            println!("Token Name: {response:#?}");
+
+            // Minting new tokens.
+            let mint_amount = 1000;
+
+            // Set up the calldata for the mint function.
+            let user_address_recast: [u8;20] = user_address.as_bytes().try_into()?;
+            let user_address_recast: Address = Address::from(user_address_recast);
+            let input_arguments = (user_address_recast,mint_amount).into_tokens();
+            println!("Input args for mint: {:#?}", input_arguments);
+            let mint_bytes = erc20_contract.encode("increaseAllowance", input_arguments);
+            println!("Mint bytes error: {:#?}", mint_bytes.as_ref().unwrap_err());
+            let mint_bytes = Bytes::from(hex::decode(hex::encode(mint_bytes.unwrap()))?);
+
+            // Call the mint function.
+            let result2 = manager.execute(
+                user_address,
+                mint_bytes,
+                TransactTo::Call(erc20_contract_address),
+                Uint::from(0),
+            );
+
+                        // unpack output call enum into raw bytes
+                        let value = match result2 {
+                            ExecutionResult::Success { output, .. } => match output {
+                                Output::Call(value) => Some(value),
+                                Output::Create(_, Some(_)) => None,
+                                _ => None,
+                            },
+                            _ => None,
+                        };
+
+            let response: String = erc20_contract.decode_output("increaseAllowance", value.unwrap())?;
+
+            println!("Minting Response: {response:#?}");
         }
         Some(Commands::Gbm { config }) => {
             // Plot a GBM price path
