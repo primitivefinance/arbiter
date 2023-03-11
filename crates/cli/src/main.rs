@@ -5,16 +5,15 @@ use clairvoyance::Clairvoyance;
 use clap::{CommandFactory, Parser, Subcommand};
 use ethers::{
     abi::Tokenize,
-    prelude::BaseContract,
+    prelude::{BaseContract, Address},
     providers::{Http, Provider},
-    prelude::Address,
 };
+use ethers_core::types::U256;
 use eyre::Result;
-use revm::primitives::{ruint::Uint, ExecutionResult, Output, TransactTo, B160};
+use revm::primitives::{ruint::Uint, ExecutionResult, Output, TransactTo, B160, AccountInfo};
 use simulate::{execution::ExecutionManager, price_simulation::PriceSimulation};
 use utils::chain_tools::get_provider;
 mod config;
-use revm::primitives::AccountInfo;
 
 #[derive(Parser)]
 #[command(name = "Arbiter")]
@@ -168,7 +167,7 @@ async fn main() -> Result<()> {
             println!("Token Name: {response:#?}");
 
             // Minting new tokens.
-            let mint_amount = 1000;
+            let mint_amount = U256::from(1000);
 
             // Set up the calldata for the mint function.
             let user_address_recast: [u8;20] = user_address.as_bytes().try_into()?;
