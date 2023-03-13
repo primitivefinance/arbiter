@@ -3,12 +3,14 @@ pub mod price_simulation;
 
 #[cfg(test)]
 mod tests {
-    use crate::execution::ExecutionManager;
+    use std::str::FromStr;
+
     use bindings;
     use bytes::Bytes;
     use ethers::{abi::Tokenize, prelude::BaseContract};
     use revm::primitives::{ruint::Uint, ExecutionResult, Output, TransactTo, B160};
-    use std::str::FromStr;
+
+    use crate::execution::ExecutionManager;
     #[test]
     fn test_string_write() {
         // Set up the execution manager and a user address.
@@ -40,7 +42,7 @@ mod tests {
 
         // Generate calldata for the 'echoString' function
         let test_string = "Hello, world!";
-        let input_arguments = test_string.to_string(); 
+        let input_arguments = test_string.to_string();
         let call_bytes = writer_contract.encode("echoString", input_arguments);
         let call_bytes = Bytes::from(hex::decode(hex::encode(call_bytes.unwrap())).unwrap());
 

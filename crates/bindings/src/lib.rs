@@ -21,4 +21,5 @@ pub mod uniswap_v3_factory;
 pub mod vault;
 
 // Testing
+pub mod arbiter_token;
 pub mod writer;
