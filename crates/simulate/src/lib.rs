@@ -7,7 +7,7 @@ mod tests {
 
     use bindings;
     use bytes::Bytes;
-    use ethers::{abi::Tokenize, prelude::BaseContract};
+    use ethers::prelude::BaseContract;
     use revm::primitives::{ruint::Uint, ExecutionResult, Output, TransactTo, B160};
 
     use crate::execution::ExecutionManager;
