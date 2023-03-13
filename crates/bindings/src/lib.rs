@@ -19,3 +19,6 @@ pub mod i_uniswap_v3_swap_callback;
 pub mod meta_stable_pool;
 pub mod uniswap_v3_factory;
 pub mod vault;
+
+// Testing
+pub mod writer;

@@ -16,3 +16,9 @@ rand_distr = "0.4.3"
 plotly = "0.8.3"
 
 bytes = "1.4.0"
+
+
+# added for tests
+bindings = { path = "../bindings" }
+ethers = "=1.0.2"
+hex = { version = "0.4", default-features = false }
