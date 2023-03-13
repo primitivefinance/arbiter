@@ -16,3 +16,4 @@ Cargo.lock
 
 /src/
 .DS_Store
+# /contracts/*

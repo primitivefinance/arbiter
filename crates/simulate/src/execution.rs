@@ -41,7 +41,7 @@ impl ExecutionManager {
         }
     }
 
-    /// Give an address a specified amount of ether.
+    /// Give an address a specified amount of raw ether.
     pub fn deal(&mut self, address: B160, amount: U256) {
         let account = self.evm.db().unwrap().load_account(address).unwrap();
 
