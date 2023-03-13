@@ -1,38 +1,21 @@
 # Arbiter (In Progress)
 
 ![](https://visitor-badge.laobi.icu/badge?page_id=arbiter)
-![Github Actions](https://github.com/primitivefinance/arbiter/workflows/Rust/badge.svg) 
+![Github Actions](https://github.com/primitivefinance/arbiter/workflows/Rust/badge.svg)
 [![](https://dcbadge.vercel.app/api/server/primitive?style=flat)](https://discord.gg/primitive)
 [![Twitter Badge](https://badgen.net/badge/icon/twitter?icon=twitter&label)](https://twitter.com/primitivefi)
 
-> Code that runs code that runs code to study how code runs code and behaves in any environment.
+> Perform high speed modeling and economic fuzzing with EVM parity.
 
-Ethereum's execution environment, the Ethereum virtual machine (EVM), has given fruit to a rich collection of decentralized applications. The EVM resembles a simple stack machine and sequentially executes opcodes as decentralized applications are used, deployed, or exploited.
+Ethereum's execution environment, the Ethereum virtual machine (EVM), has given fruit to a rich collection of decentralized applications. The EVM is stack machine that sequentially executes opcodes as decentralized applications are used, deployed, or exploited. Arbiter is a highly configurable rust interface over [revm](https://github.com/bluealloy/revm).
 
-With the rich new array of applications and builders, there becomes an increasing need for developer tools. The developer tooling for the Ethereum ecosystem has increased drastically over the past years. For example, [Foundry](https://github.com/foundry-rs/foundry)'s integration of [revm](https://github.com/bluealloy/revm), a rust implementation of the EVM, allows them to fuzz smart contracts at high speeds. Revm allows for much more resilient testing and helps detect anomaly behavior. While we have come far, we still need critical testing infrastructure. Because the Ethereum production environment is open and available to anyone, it would be nice to see how a given smart contract would interact with existing smart contracts at scale. With the revm, we can achieve this. If we want to study arbitrage in a production environment so we can account for things as granular as gas, and we don't want to lose any precision (EVM types are u256 which not all other languages support the same quantity of accuracy natively), this isn't easy with current tools. If we upload the opcodes of these contracts and algorithmic calls from an arbitrage script to the revm, we can have thousands of data points in a matter of minutes. If we wanted to do this on a test network, we would be limited by the network's block times. For this case, many innovators and scientists have resulted in simulations with less granularity and precision. While this can help validate the theory, it tells us little about how these theories hold up in practice.
+Financial engineers need to study complex portfolio management strategies against many market conditions, contract parameters, and agents. To configure such a rich simulation environment on a test network would take months to get a sufficient quantity of data points to draw conclusions with confidence and isolate key variables. Even with a local network with no block time, the networking latency on port to port communication will be significant.
 
-
-Arbiter implements revm (in Rust) to build highly configurable and efficient simulations. Since there is a 1-1 mapping of the revm and EVM opcodes, to switch to an execution environment, all you have to do is change your endpoint.
-
-Financial engineers have the motive to study complex portfolio management strategies in significant numbers against many market conditions, contract parameters, and arbitrageurs. To configure such a rich simulation environment on a test network would take months to get a sufficient quantity of data points to draw conclusions with confidence and isolate ket variables. If we modeled this problem with historical data but omitted gas or a certain level of precision, our results would also be insignificant. But with REVM, we would be about to generate hundreds of thousands of data points (spanning years of data) in a matter of (estimated) hours or days. In financial engineering, this is a critical tool in evaluating capital efficiency, loss vs. rebalancing, and game theoretic security.
-
-Thus arbiter as a tool will bring value to individuals and teams.
+In financial engineering, this is a critical tool in evaluating capital efficiency, loss vs. rebalancing, and game theoretic security. Arbiter can be used for:
 
 - Evaluating the game theoretic and composable security of smart contracts in production environments (Security Firms and Academics)
 - Engineering and testing new financial products built on top of more primitive financial products (DeFi Firms and Academics)
 - Evaluating financial risk and mitigation strategies (Funds, prop-shops, searchers)
-
-With Arbiter, we aim to build a layer of abstraction to lower the required technical competence to support more study and experimentation. To get a head start, we built an open-source MVP intending to abstract away complexity at different layers of the blockchain stack and are using the uniswapV3 core contracts to test our implementation.
-
-- Arbiter consists of three primary components:
-    - **Architect:** A simple execution module to bundle and execute transactions (supports flashbot bundles).
-    - **Clairvoyance:** A live monitoring tool supporting historical and real-time concurrent contract data monitoring.
-    - **Simulate** toolbox for testing strategies.
-
-
-## Architecture:
-
-There are three primary crates: `architect` which handles the construction and execution of transactions, and `clairvoyance`, which handles the live monitoring of contract events, and `simulate`, which handles a large multi-agent simulations in revm. The program is designed to be modular and extensible.
 
 ## Features:
 
@@ -40,15 +23,9 @@ For our next beta release, we will be focusing on the following features:
 
 #### TODOs:
 
-- [x] Library of popular tokens includes symbols, addresses, and decimals.
-- [x] Takes user input of token addresses and finds the corresponding PoolIDs for UniswapV3.
-- [x] Monitors the UniswapV3 pool prices continuously.
-- [x] Integrate with user-selected RPC endpoint.
-- [x] Concurrent pool monitoring for multiple pools.
-- [x] Data Monitoring Component: Clairvoyance.
-- [x] Execution Component: Architect.
-- [ ] Simulation component: Simulate.
-- [ ] Simulate and measure arbitrage behavoir against different price paths on local test networks.
+- [x] Interface over Loading contracts with specific state
+- [x] Interface over calldata
+- [x] Interface over deploying contracts to REVM
 - [ ] Case study on results of simulations.
 - [ ] Documentation for the project.
 - [ ] Publish to crates.io.
@@ -64,17 +41,18 @@ cargo install --path ./crates/cli
 ```
 
 Set the PROVIDER environment variable to use a custom provider.
-`arbiter` has many subcommands and therefore many arguments. To see the available arguments for pool monitoring, run the following:
+
+## Event Monitoring
+
+While `arbiter` is a powerful tool for modeling and fuzzing, it also supports event monitoring on uniswap V3 pools. To see the available arguments for pool monitoring, run the following:
 
 ```
 arbiter see --help
 ```
 
-This will display the `help` menu for the `Clairvoyance` crate
+This will display the `help` menu for this crate
 
 ```console
-Access the `Clairvoyance` monitoring module via this subcommand
-
 Usage: arbiter.exe see [TOKEN0] [TOKEN1] [BP] [CONFIG]
 
 Arguments:
@@ -127,6 +105,8 @@ Tick:      205282
 Price:     "1.216568804789000000000000000000000000000e+3"
 ```
 
+The event monitoring feature will be depricated in a future release.
+
 You may also build the executable with `cargo build`, which will output a binary in `target/`
 
 ## Configuration File
@@ -157,26 +137,6 @@ If you need to unset the `PROVIDER` variable, do:
 
 ```
 unset PROVIDER
-```
-
-## Test Network Simulations
-
-In order to run a test network and simulate transactions with DEXs or other objects, we need `Foundry`. This can be run on your local machine, or an external machine. To get the full `Foundry` suite, run:
-
-````
-cargo install --git https://github.com/foundry-rs/foundry --profile local --locked foundry-cli anvil
-```
-
-From here, you need a way to fork the blockchain network you want. For example, you can create an Alchemy account, get an Alchemy API key. With this key, export it to your `env` variables by
-
-```
-export ALCHEMY_KEY = your_key_here
-```
-
-You can check this by `echo $ALCHEMY_KEY`. If all is well, you can run your fork of the Ethereum main-net by:
-
-```
-anvil --fork-url https://eth-mainnet.g.alchemy.com/v2/
 ```
 
 ## Contributing
