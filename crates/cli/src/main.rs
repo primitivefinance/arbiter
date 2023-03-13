@@ -171,22 +171,23 @@ async fn main() -> Result<()> {
 
             println!("Token Name: {response:#?}");
 
-            // Minting new tokens.
-            let mint_amount = U256::from(1000);
+            // Allocating new tokens to user.
+            let increase_allowance_amount = U256::from(1000);
 
-            // Set up the calldata for the mint function.
-            let user_address_recast: [u8; 20] = user_address.as_bytes().try_into()?;
+            // Set up the calldata for the 'increaseAllowance' function.
+            let user_address_recast: [u8; 20] = user_address.as_bytes().try_into()?; // Some of this may be unecessary.
             let user_address_recast: Address = Address::from(user_address_recast);
-            let input_arguments = (user_address_recast, mint_amount).into_tokens();
+            let input_arguments = (user_address_recast, increase_allowance_amount); //.into_tokens();
             println!("Input args for mint: {:#?}", input_arguments);
-            let mint_bytes = erc20_contract.encode("increaseAllowance", input_arguments);
-            println!("Mint bytes error: {:#?}", mint_bytes.as_ref().unwrap_err());
-            let mint_bytes = Bytes::from(hex::decode(hex::encode(mint_bytes?))?);
+            let increase_allowance_bytes =
+                erc20_contract.encode("increaseAllowance", input_arguments);
+            let increase_allowance_bytes =
+                Bytes::from(hex::decode(hex::encode(increase_allowance_bytes?))?);
 
-            // Call the mint function.
+            // Call the increaseAllowance function.
             let result2 = manager.execute(
                 user_address,
-                mint_bytes,
+                increase_allowance_bytes,
                 TransactTo::Call(erc20_contract_address),
                 Uint::from(0),
             );
@@ -201,10 +202,36 @@ async fn main() -> Result<()> {
                 _ => None,
             };
 
-            let response: String =
+            let response: bool =
                 erc20_contract.decode_output("increaseAllowance", value.unwrap())?;
 
-            println!("Minting Response: {response:#?}");
+            println!("increaseAllowance Response: {response:#?}");
+
+            // Generate calldata for the 'balanceOf' function
+            let balance_of_bytes = erc20_contract.encode("balanceOf", user_address_recast);
+            let balance_of_bytes = Bytes::from(hex::decode(hex::encode(balance_of_bytes?))?);
+
+            // Call the 'balanceOf' function.
+            let result3 = manager.execute(
+                user_address,
+                balance_of_bytes,
+                TransactTo::Call(erc20_contract_address),
+                Uint::from(0),
+            );
+
+            // unpack output call enum into raw bytes
+            let value = match result3 {
+                ExecutionResult::Success { output, .. } => match output {
+                    Output::Call(value) => Some(value),
+                    Output::Create(_, Some(_)) => None,
+                    _ => None,
+                },
+                _ => None,
+            };
+
+            let response: U256 = erc20_contract.decode_output("balanceOf", value.unwrap())?;
+
+            print!("Balance of user: {response:#?}")
         }
         Some(Commands::Gbm { config }) => {
             // Plot a GBM price path

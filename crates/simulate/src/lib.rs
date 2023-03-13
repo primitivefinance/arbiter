@@ -40,9 +40,8 @@ mod tests {
 
         // Generate calldata for the 'echoString' function
         let test_string = "Hello, world!";
-        let input_arguments = test_string.to_string().into_tokens();
+        let input_arguments = test_string.to_string(); 
         let call_bytes = writer_contract.encode("echoString", input_arguments);
-        println!("Mint bytes error: {:#?}", call_bytes.as_ref().unwrap_err());
         let call_bytes = Bytes::from(hex::decode(hex::encode(call_bytes.unwrap())).unwrap());
 
         // Call the 'echoString' function.
@@ -63,8 +62,9 @@ mod tests {
             _ => None,
         };
 
-        let response: String =
-            writer_contract.decode_output("increaseAllowance", value.unwrap()).unwrap();
+        let response: String = writer_contract
+            .decode_output("echoString", value.unwrap())
+            .unwrap();
 
         println!("Minting Response: {response:#?}");
         assert_eq!(response, test_string);
