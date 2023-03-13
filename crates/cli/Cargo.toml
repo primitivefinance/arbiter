@@ -31,6 +31,7 @@ ethers-etherscan = "=1.0.2"
 ethers-contract-abigen = "=1.0.2"
 ethers-contract-derive = "=1.0.2"
 ethers-middleware = "=1.0.2"
+ethabi = "18.0.0"
 
 # revm and related
 revm = "3.0.0"
