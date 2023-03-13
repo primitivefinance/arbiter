@@ -7,9 +7,9 @@
 
 > Perform high speed modeling and economic fuzzing with EVM parity.
 
-Ethereum's execution environment, the Ethereum virtual machine (EVM), has given fruit to a rich collection of decentralized applications. The EVM resembles a simple stack machine and sequentially executes opcodes as decentralized applications are used, deployed, or exploited. Arbiter is a highly configurable rust interface over [REVM](https://github.com/bluealloy/revm).
+Ethereum's execution environment, the Ethereum virtual machine (EVM), has given fruit to a rich collection of decentralized applications. The EVM is stack machine that sequentially executes opcodes as decentralized applications are used, deployed, or exploited. Arbiter is a highly configurable rust interface over [revm](https://github.com/bluealloy/revm).
 
-Financial engineers need to study complex portfolio management strategies against many market conditions, contract parameters, and arbitrageurs. To configure such a rich simulation environment on a test network would take months to get a sufficient quantity of data points to draw conclusions with confidence and isolate key variables. Even with a local network with no block time, the networking latency on port to port communication will be significant.
+Financial engineers need to study complex portfolio management strategies against many market conditions, contract parameters, and agents. To configure such a rich simulation environment on a test network would take months to get a sufficient quantity of data points to draw conclusions with confidence and isolate key variables. Even with a local network with no block time, the networking latency on port to port communication will be significant.
 
 In financial engineering, this is a critical tool in evaluating capital efficiency, loss vs. rebalancing, and game theoretic security. Arbiter can be used for:
 
