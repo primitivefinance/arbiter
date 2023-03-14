@@ -1,67 +1,50 @@
 pub mod execution;
 pub mod price_simulation;
 
-use bytes::Bytes;
-use ethers::{
-    abi::{Abi, Address, Tokenizable},
-    prelude::BaseContract,
-};
-use revm::{
-    db::{CacheDB, EmptyDB},
-    primitives::{ExecutionResult, TransactTo, B160, U256},
-    EVM,
-};
-
 #[cfg(test)]
 mod tests {
     use std::str::FromStr;
 
     use bindings;
-    use bytes::Bytes;
-    use ethers::prelude::BaseContract;
+    use ethers::{abi::Tokenizable, prelude::BaseContract};
     use revm::primitives::{ruint::Uint, ExecutionResult, Output, TransactTo, B160};
 
-    use crate::execution::ExecutionManager;
+    use crate::execution::{ExecutionManager, SimulationContract};
     #[test]
+    /// Test that the writer contract can echo a string.
+    /// The writer contract takes in no args.
     fn test_string_write() {
         // Set up the execution manager and a user address.
         let mut manager = ExecutionManager::new();
         let user_address = B160::from_str("0x0000000000000000000000000000000000000001").unwrap();
 
         // Get bytecode and abi for the writer contract.
-        let writer_contract = BaseContract::from(bindings::writer::WRITER_ABI.clone());
-        let writer_bytecode = Bytes::copy_from_slice(&bindings::writer::WRITER_BYTECODE).into();
-
-        // Deploy the writer contract.
-        manager.execute(
-            user_address,
-            writer_bytecode,
-            TransactTo::create(),
-            Uint::from(0),
+        let writer = SimulationContract::new(
+            BaseContract::from(bindings::writer::WRITER_ABI.clone()),
+            bindings::writer::WRITER_BYTECODE
+                .clone()
+                .into_iter()
+                .collect(),
         );
 
-        let writer_contract_address = manager
-            .evm
-            .db()
-            .unwrap()
-            .clone()
-            .accounts
-            .into_iter()
-            .nth(2)
-            .unwrap()
-            .0;
+        // Deploy the writer contract.
+        let writer = manager.deploy(user_address, writer, ());
 
         // Generate calldata for the 'echoString' function
         let test_string = "Hello, world!";
         let input_arguments = test_string.to_string();
-        let call_bytes = writer_contract.encode("echoString", input_arguments);
-        let call_bytes = Bytes::from(hex::decode(hex::encode(call_bytes.unwrap())).unwrap());
+        let call_data = writer
+            .base_contract
+            .encode("echoString", input_arguments)
+            .unwrap()
+            .into_iter()
+            .collect();
 
         // Call the 'echoString' function.
         let result = manager.execute(
             user_address,
-            call_bytes,
-            TransactTo::Call(writer_contract_address),
+            call_data,
+            TransactTo::Call(writer.address.unwrap()),
             Uint::from(0),
         );
 
@@ -75,7 +58,8 @@ mod tests {
             _ => None,
         };
 
-        let response: String = writer_contract
+        let response: String = writer
+            .base_contract
             .decode_output("echoString", value.unwrap())
             .unwrap();
 

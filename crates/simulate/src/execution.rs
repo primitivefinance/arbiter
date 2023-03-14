@@ -1,8 +1,4 @@
-use bytes::Bytes;
-use ethers::{
-    abi::{Abi, Address, Tokenizable, Tokenize},
-    prelude::BaseContract,
-};
+use ethers::{abi::Tokenize, prelude::BaseContract};
 use revm::{
     db::{CacheDB, EmptyDB},
     primitives::{ruint::Uint, ExecutionResult, TransactTo, B160, U256},
@@ -32,10 +28,10 @@ impl SimulationContract<NotDeployed> {
         }
     }
 
-    fn to_deployed(self, address: B160) -> SimulationContract<IsDeployed> {
+    fn to_deployed(&self, address: B160) -> SimulationContract<IsDeployed> {
         SimulationContract {
-            base_contract: self.base_contract,
-            bytecode: self.bytecode,
+            base_contract: self.base_contract.clone(),
+            bytecode: self.bytecode.clone(),
             address: Some(address),
             deployed: std::marker::PhantomData,
         }
@@ -79,21 +75,20 @@ impl ExecutionManager {
     }
 
     /// Deploy a contract.
-    pub fn deploy<T: Tokenizable>(
+    pub fn deploy<T: Tokenize>(
         &mut self,
         sender: B160,
         contract: SimulationContract<NotDeployed>,
         args: T,
     ) -> SimulationContract<IsDeployed> {
-        let args = args.into_tokens();
-        // Append to generate the deploy bytecode;
-        let bytecode = contract
-            .base_contract
-            .abi()
-            .constructor()
-            .unwrap()
-            .encode_input(contract.bytecode.clone(), &args)
-            .unwrap(); // TODO: Need to catch this if error
+        // Append constructor args (if available) to generate the deploy bytecode;
+        let constructor = contract.base_contract.abi().constructor();
+        let bytecode = match constructor {
+            Some(constructor) => constructor
+                .encode_input(contract.bytecode.clone(), &args.into_tokens())
+                .unwrap(),
+            None => contract.bytecode.clone(),
+        };
 
         self.execute(sender, bytecode, TransactTo::create(), Uint::from(0));
 
