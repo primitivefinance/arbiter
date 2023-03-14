@@ -1,5 +1,4 @@
 use std::{env, str::FromStr, sync::Arc};
-
 use clairvoyance::Clairvoyance;
 use clap::{CommandFactory, Parser, Subcommand};
 use ethers::{
@@ -102,14 +101,13 @@ async fn main() -> Result<()> {
             // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
             // Create a `ExecutionManager` where we can run simulations.
             let mut manager = ExecutionManager::new();
-            // Generate a user account to mint tokens to. (TODO: MOVE INTO EXECUTION?)
-            let user_address =
-                B160::from_str("0x0000000000000000000000000000000000000001").unwrap();
+            // Generate a user account to mint tokens to.
+            let user_address = B160::from_str("0x0000000000000000000000000000000000000001").unwrap();
             manager
-                .evm
-                .db()
-                .unwrap()
-                .insert_account_info(user_address, AccountInfo::default());
+            .evm
+            .db()
+            .unwrap()
+            .insert_account_info(user_address, AccountInfo::default());
             // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
             // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -196,7 +194,7 @@ async fn main() -> Result<()> {
                 .collect();
 
             // Call the 'balanceOf' function.
-            let result3 = manager.execute(
+            let result = manager.execute(
                 user_address,
                 call_data,
                 TransactTo::Call(arbiter_token.address.unwrap()),
@@ -204,7 +202,7 @@ async fn main() -> Result<()> {
             );
 
             // unpack output call enum into raw bytes
-            let value = match result3 {
+            let value = match result {
                 ExecutionResult::Success { output, .. } => match output {
                     Output::Call(value) => Some(value),
                     Output::Create(_, Some(_)) => None,
@@ -217,7 +215,7 @@ async fn main() -> Result<()> {
                 .base_contract
                 .decode_output("balanceOf", value.unwrap())?;
 
-            print!("Balance of user {user_address:#?}: {response:#?}")
+            print!("Balance of user {user_address:#?}: {response:#?}\n")
             // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         }
         Some(Commands::Gbm { config }) => {
