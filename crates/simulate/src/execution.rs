@@ -9,7 +9,9 @@ use revm::{
     EVM,
 };
 
+#[derive(Debug)]
 pub struct NotDeployed;
+#[derive(Debug)]
 pub struct IsDeployed;
 
 #[derive(Debug)]
@@ -34,7 +36,7 @@ impl SimulationContract<NotDeployed> {
         SimulationContract {
             base_contract: self.base_contract,
             bytecode: self.bytecode,
-            address: self.address,
+            address: Some(address),
             deployed: std::marker::PhantomData,
         }
     }
@@ -80,7 +82,7 @@ impl ExecutionManager {
     pub fn deploy<T: Tokenizable>(
         &mut self,
         sender: B160,
-        contract: SimulationContract,
+        contract: SimulationContract<NotDeployed>,
         args: T,
     ) -> SimulationContract<IsDeployed> {
         let args = args.into_tokens();

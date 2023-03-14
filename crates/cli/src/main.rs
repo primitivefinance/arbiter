@@ -115,31 +115,28 @@ async fn main() -> Result<()> {
             // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
             // Deploy the Arbiter Token ERC-20 contract.
             // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-            // Get a SimulationContract for the Arbiter Token ERC-20 instance from the ABI.
+            // Get a SimulationContract for the Arbiter Token ERC-20 instance from the ABI and bytecode.
             let arbitertoken_contract = SimulationContract::new(
                 BaseContract::from(bindings::arbiter_token::ARBITERTOKEN_ABI.clone()),
                 Bytes::copy_from_slice(&bindings::arbiter_token::ARBITERTOKEN_BYTECODE).into(),
             );
-            println!("arbitertoken_contract: {:#?}", arbitertoken_contract);
 
             // Choose name and symbol and combine into the constructor args required by ERC-20 contracts.
             let name = "ArbiterToken";
             let symbol = "ARBT";
-            let constructor_args = (name.to_string(), symbol.to_string());
+            let args = (name.to_string(), symbol.to_string());
 
-            // Call the contract deployer.
+            // Call the contract deployer and receive a IsDeployed version of SimulationContract that now has an address.
             let arbitertoken_contract = manager.deploy(user_address, arbitertoken_contract, args);
 
-
             // Generate calldata for the 'name' function
-            let call_bytes = arbitertoken_contract.encode("name", ())?;
-            let call_bytes = Bytes::from(hex::decode(hex::encode(call_bytes))?);
+            let call_data = arbitertoken_contract.base_contract.encode("name", ())?.into_iter().collect();
 
             // Execute the call to retrieve the token name as a test. (TODO: Some of this should be written as tests properly)
             let result1 = manager.execute(
                 user_address,
-                call_bytes,
-                TransactTo::Call(arbitertoken_contract_address),
+                call_data,
+                TransactTo::Call(arbitertoken_contract.address.unwrap()),
                 Uint::from(0),
             );
 
@@ -153,59 +150,59 @@ async fn main() -> Result<()> {
                 _ => None,
             };
 
-            let response: String = arbitertoken_contract.decode_output("name", value.unwrap())?;
+            let response: String = arbitertoken_contract.base_contract.decode_output("name", value.unwrap())?;
 
             println!("Token Name: {response:#?}");
             // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-            // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-            // Mint tokens to the user.
-            // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-            // Allocating new tokens to user by calling Arbiter Token's ERC20 'mint' instance.
-            let mint_amount = U256::from(1000);
+            // // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+            // // Mint tokens to the user.
+            // // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+            // // Allocating new tokens to user by calling Arbiter Token's ERC20 'mint' instance.
+            // let mint_amount = U256::from(1000);
 
-            // Set up the calldata for the 'increaseAllowance' function.
-            let user_address_recast: [u8; 20] = user_address.as_bytes().try_into()?;
-            let user_address_recast: Address = Address::from(user_address_recast);
-            let input_arguments = (user_address_recast, mint_amount);
-            println!("Input args for mint: {:#?}", input_arguments);
-            let mint_bytes = arbitertoken_contract.encode("mint", input_arguments);
-            let mint_bytes = Bytes::from(hex::decode(hex::encode(mint_bytes?))?);
+            // // Set up the calldata for the 'increaseAllowance' function.
+            // let user_address_recast: [u8; 20] = user_address.as_bytes().try_into()?;
+            // let user_address_recast: Address = Address::from(user_address_recast);
+            // let input_arguments = (user_address_recast, mint_amount);
+            // println!("Input args for mint: {:#?}", input_arguments);
+            // let mint_bytes = arbitertoken_contract.encode("mint", input_arguments);
+            // let mint_bytes = Bytes::from(hex::decode(hex::encode(mint_bytes?))?);
 
-            // Call the 'mint' function.
-            let _result = manager.execute(
-                user_address,
-                mint_bytes,
-                TransactTo::Call(arbitertoken_contract_address),
-                Uint::from(0),
-            ); // TODO: SOME KIND OF ERROR HANDLING IS NECESSARY FOR THESE TYPES OF CALLS
+            // // Call the 'mint' function.
+            // let _result = manager.execute(
+            //     user_address,
+            //     mint_bytes,
+            //     TransactTo::Call(arbitertoken_contract_address),
+            //     Uint::from(0),
+            // ); // TODO: SOME KIND OF ERROR HANDLING IS NECESSARY FOR THESE TYPES OF CALLS
 
-            let balance_of_bytes = arbitertoken_contract.encode("balanceOf", user_address_recast);
-            let balance_of_bytes = Bytes::from(hex::decode(hex::encode(balance_of_bytes?))?);
+            // let balance_of_bytes = arbitertoken_contract.encode("balanceOf", user_address_recast);
+            // let balance_of_bytes = Bytes::from(hex::decode(hex::encode(balance_of_bytes?))?);
 
-            // Call the 'balanceOf' function.
-            let result3 = manager.execute(
-                user_address,
-                balance_of_bytes,
-                TransactTo::Call(arbitertoken_contract_address),
-                Uint::from(0),
-            );
+            // // Call the 'balanceOf' function.
+            // let result3 = manager.execute(
+            //     user_address,
+            //     balance_of_bytes,
+            //     TransactTo::Call(arbitertoken_contract_address),
+            //     Uint::from(0),
+            // );
 
-            // unpack output call enum into raw bytes
-            let value = match result3 {
-                ExecutionResult::Success { output, .. } => match output {
-                    Output::Call(value) => Some(value),
-                    Output::Create(_, Some(_)) => None,
-                    _ => None,
-                },
-                _ => None,
-            };
+            // // unpack output call enum into raw bytes
+            // let value = match result3 {
+            //     ExecutionResult::Success { output, .. } => match output {
+            //         Output::Call(value) => Some(value),
+            //         Output::Create(_, Some(_)) => None,
+            //         _ => None,
+            //     },
+            //     _ => None,
+            // };
 
-            let response: U256 =
-                arbitertoken_contract.decode_output("balanceOf", value.unwrap())?;
+            // let response: U256 =
+            //     arbitertoken_contract.decode_output("balanceOf", value.unwrap())?;
 
-            print!("Balance of user {user_address:#?}: {response:#?}")
-            // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+            // print!("Balance of user {user_address:#?}: {response:#?}")
+            // // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         }
         Some(Commands::Gbm { config }) => {
             // Plot a GBM price path
