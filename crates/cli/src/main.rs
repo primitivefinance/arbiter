@@ -1,17 +1,18 @@
 use std::{env, str::FromStr, sync::Arc};
 
-use bytes::Bytes;
 use clairvoyance::Clairvoyance;
 use clap::{CommandFactory, Parser, Subcommand};
 use ethers::{
-    abi::Tokenize,
     prelude::BaseContract,
     providers::{Http, Provider},
 };
 use ethers_core::types::U256;
 use eyre::Result;
 use revm::primitives::{ruint::Uint, AccountInfo, ExecutionResult, Output, TransactTo, B160};
-use simulate::{execution::ExecutionManager, price_simulation::PriceSimulation};
+use simulate::{
+    execution::{ExecutionManager, SimulationContract},
+    price_simulation::PriceSimulation,
+};
 use utils::chain_tools::get_provider;
 mod config;
 
@@ -101,7 +102,7 @@ async fn main() -> Result<()> {
             // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
             // Create a `ExecutionManager` where we can run simulations.
             let mut manager = ExecutionManager::new();
-            // Generate a user account to mint tokens to. (TODO: MOVE INTO EXECUTION?)
+            // Generate a user account to mint tokens to.
             let user_address =
                 B160::from_str("0x0000000000000000000000000000000000000001").unwrap();
             manager
@@ -109,59 +110,40 @@ async fn main() -> Result<()> {
                 .db()
                 .unwrap()
                 .insert_account_info(user_address, AccountInfo::default());
-
-            println!(
-                "Database after adding account: {:#?}",
-                manager.evm.db().unwrap()
-            );
             // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
             // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
             // Deploy the Arbiter Token ERC-20 contract.
             // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-            // Get a BaseContract for the Arbiter Token ERC-20 instance from the ABI.
-            let arbitertoken_contract =
-                BaseContract::from(bindings::arbiter_token::ARBITERTOKEN_ABI.clone());
+            // Get a SimulationContract for the Arbiter Token ERC-20 instance from the ABI and bytecode.
+            let arbiter_token = SimulationContract::new(
+                BaseContract::from(bindings::arbiter_token::ARBITERTOKEN_ABI.clone()),
+                bindings::arbiter_token::ARBITERTOKEN_BYTECODE
+                    .clone()
+                    .into_iter()
+                    .collect(),
+            );
 
-            // Choose name and symbol for the constructor args required by ERC-20 contracts.
+            // Choose name and symbol and combine into the constructor args required by ERC-20 contracts.
             let name = "ArbiterToken";
             let symbol = "ARBT";
+            let args = (name.to_string(), symbol.to_string());
 
-            // Tokenize the constructor args.
-            let constructor_args = (name.to_string(), symbol.to_string()).into_tokens();
-
-            // Append to generate the deploy bytecode
-            let bytecode =
-                Bytes::copy_from_slice(&bindings::arbiter_token::ARBITERTOKEN_BYTECODE).into();
-            let bytecode = arbitertoken_contract
-                .abi()
-                .constructor()
-                .unwrap()
-                .encode_input(bytecode, &constructor_args)?
-                .into();
-
-            manager.execute(user_address, bytecode, TransactTo::create(), Uint::from(0));
-
-            let arbitertoken_contract_address = manager
-                .evm
-                .db()
-                .unwrap()
-                .clone()
-                .accounts
-                .into_iter()
-                .nth(2)
-                .unwrap()
-                .0;
+            // Call the contract deployer and receive a IsDeployed version of SimulationContract that now has an address.
+            let arbiter_token = manager.deploy(user_address, arbiter_token, args);
 
             // Generate calldata for the 'name' function
-            let call_bytes = arbitertoken_contract.encode("name", ())?;
-            let call_bytes = Bytes::from(hex::decode(hex::encode(call_bytes))?);
+            let call_data = arbiter_token
+                .base_contract
+                .encode("name", ())?
+                .into_iter()
+                .collect();
 
             // Execute the call to retrieve the token name as a test. (TODO: Some of this should be written as tests properly)
             let result1 = manager.execute(
                 user_address,
-                call_bytes,
-                TransactTo::Call(arbitertoken_contract_address),
+                call_data,
+                TransactTo::Call(arbiter_token.address.unwrap()),
                 Uint::from(0),
             );
 
@@ -175,7 +157,9 @@ async fn main() -> Result<()> {
                 _ => None,
             };
 
-            let response: String = arbitertoken_contract.decode_output("name", value.unwrap())?;
+            let response: String = arbiter_token
+                .base_contract
+                .decode_output("name", value.unwrap())?;
 
             println!("Token Name: {response:#?}");
             // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -191,30 +175,36 @@ async fn main() -> Result<()> {
             let user_address_recast: Address = Address::from(user_address_recast);
             let input_arguments = (user_address_recast, mint_amount);
             println!("Input args for mint: {:#?}", input_arguments);
-            let mint_bytes = arbitertoken_contract.encode("mint", input_arguments);
-            let mint_bytes = Bytes::from(hex::decode(hex::encode(mint_bytes?))?);
+            let call_data = arbiter_token
+                .base_contract
+                .encode("mint", input_arguments)?
+                .into_iter()
+                .collect();
 
             // Call the 'mint' function.
             let _result = manager.execute(
                 user_address,
-                mint_bytes,
-                TransactTo::Call(arbitertoken_contract_address),
+                call_data,
+                TransactTo::Call(arbiter_token.address.unwrap()),
                 Uint::from(0),
             ); // TODO: SOME KIND OF ERROR HANDLING IS NECESSARY FOR THESE TYPES OF CALLS
 
-            let balance_of_bytes = arbitertoken_contract.encode("balanceOf", user_address_recast);
-            let balance_of_bytes = Bytes::from(hex::decode(hex::encode(balance_of_bytes?))?);
+            let call_data = arbiter_token
+                .base_contract
+                .encode("balanceOf", user_address_recast)?
+                .into_iter()
+                .collect();
 
             // Call the 'balanceOf' function.
-            let result3 = manager.execute(
+            let result = manager.execute(
                 user_address,
-                balance_of_bytes,
-                TransactTo::Call(arbitertoken_contract_address),
+                call_data,
+                TransactTo::Call(arbiter_token.address.unwrap()),
                 Uint::from(0),
             );
 
             // unpack output call enum into raw bytes
-            let value = match result3 {
+            let value = match result {
                 ExecutionResult::Success { output, .. } => match output {
                     Output::Call(value) => Some(value),
                     Output::Create(_, Some(_)) => None,
@@ -223,10 +213,11 @@ async fn main() -> Result<()> {
                 _ => None,
             };
 
-            let response: U256 =
-                arbitertoken_contract.decode_output("balanceOf", value.unwrap())?;
+            let response: U256 = arbiter_token
+                .base_contract
+                .decode_output("balanceOf", value.unwrap())?;
 
-            print!("Balance of user {user_address:#?}: {response:#?}")
+            println!("Balance of user {user_address:#?}: {response:#?}")
             // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         }
         Some(Commands::Gbm { config }) => {
