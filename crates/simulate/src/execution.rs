@@ -12,7 +12,8 @@ use revm::{
 pub struct NotDeployed;
 pub struct IsDeployed;
 
-pub struct SimulationContract<Deployed = NotDeployed> {
+#[derive(Debug)]
+pub struct SimulationContract<Deployed> {
     pub base_contract: BaseContract,
     pub bytecode: Vec<u8>,
     pub address: Option<B160>,

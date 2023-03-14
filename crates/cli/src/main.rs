@@ -110,19 +110,13 @@ async fn main() -> Result<()> {
                 .db()
                 .unwrap()
                 .insert_account_info(user_address, AccountInfo::default());
-
-            println!(
-                "Database after adding account: {:#?}",
-                manager.evm.db().unwrap()
-            );
             // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
             // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
             // Deploy the Arbiter Token ERC-20 contract.
             // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-            // Get a BaseContract for the Arbiter Token ERC-20 instance from the ABI.
-
-            let arbitertoken_contract = SimulationContract<NotDeployed>::new(
+            // Get a SimulationContract for the Arbiter Token ERC-20 instance from the ABI.
+            let arbitertoken_contract = SimulationContract::new(
                 BaseContract::from(bindings::arbiter_token::ARBITERTOKEN_ABI.clone()),
                 Bytes::copy_from_slice(&bindings::arbiter_token::ARBITERTOKEN_BYTECODE).into(),
             );
