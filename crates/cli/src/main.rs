@@ -1,5 +1,6 @@
 use std::{env, str::FromStr, sync::Arc};
 
+use bindings::arbiter_token;
 use bytes::Bytes;
 use clairvoyance::Clairvoyance;
 use clap::{CommandFactory, Parser, Subcommand};
@@ -10,8 +11,8 @@ use ethers::{
 };
 use ethers_core::types::U256;
 use eyre::Result;
-use revm::primitives::{ruint::Uint, AccountInfo, ExecutionResult, Output, TransactTo, B160};
-use simulate::{execution::ExecutionManager, price_simulation::PriceSimulation};
+use revm::{primitives::{ruint::Uint, AccountInfo, ExecutionResult, Output, TransactTo, B160}, new};
+use simulate::{execution::{ExecutionManager, SimulationContract, IsDeployed, NotDeployed}, price_simulation::PriceSimulation};
 use utils::chain_tools::get_provider;
 mod config;
 
@@ -120,38 +121,21 @@ async fn main() -> Result<()> {
             // Deploy the Arbiter Token ERC-20 contract.
             // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
             // Get a BaseContract for the Arbiter Token ERC-20 instance from the ABI.
-            let arbitertoken_contract =
-                BaseContract::from(bindings::arbiter_token::ARBITERTOKEN_ABI.clone());
 
-            // Choose name and symbol for the constructor args required by ERC-20 contracts.
+            let arbitertoken_contract = SimulationContract<NotDeployed>::new(
+                BaseContract::from(bindings::arbiter_token::ARBITERTOKEN_ABI.clone()),
+                Bytes::copy_from_slice(&bindings::arbiter_token::ARBITERTOKEN_BYTECODE).into(),
+            );
+            println!("arbitertoken_contract: {:#?}", arbitertoken_contract);
+
+            // Choose name and symbol and combine into the constructor args required by ERC-20 contracts.
             let name = "ArbiterToken";
             let symbol = "ARBT";
+            let constructor_args = (name.to_string(), symbol.to_string());
 
-            // Tokenize the constructor args.
-            let constructor_args = (name.to_string(), symbol.to_string()).into_tokens();
+            // Call the contract deployer.
+            let arbitertoken_contract = manager.deploy(user_address, arbitertoken_contract, args);
 
-            // Append to generate the deploy bytecode
-            let bytecode =
-                Bytes::copy_from_slice(&bindings::arbiter_token::ARBITERTOKEN_BYTECODE).into();
-            let bytecode = arbitertoken_contract
-                .abi()
-                .constructor()
-                .unwrap()
-                .encode_input(bytecode, &constructor_args)?
-                .into();
-
-            manager.execute(user_address, bytecode, TransactTo::create(), Uint::from(0));
-
-            let arbitertoken_contract_address = manager
-                .evm
-                .db()
-                .unwrap()
-                .clone()
-                .accounts
-                .into_iter()
-                .nth(2)
-                .unwrap()
-                .0;
 
             // Generate calldata for the 'name' function
             let call_bytes = arbitertoken_contract.encode("name", ())?;

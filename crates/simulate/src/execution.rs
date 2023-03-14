@@ -1,9 +1,43 @@
 use bytes::Bytes;
+use ethers::{
+    abi::{Abi, Address, Tokenizable, Tokenize},
+    prelude::BaseContract,
+};
 use revm::{
     db::{CacheDB, EmptyDB},
-    primitives::{ExecutionResult, TransactTo, B160, U256},
+    primitives::{ruint::Uint, ExecutionResult, TransactTo, B160, U256},
     EVM,
 };
+
+pub struct NotDeployed;
+pub struct IsDeployed;
+
+pub struct SimulationContract<Deployed = NotDeployed> {
+    pub base_contract: BaseContract,
+    pub bytecode: Vec<u8>,
+    pub address: Option<B160>,
+    pub deployed: std::marker::PhantomData<Deployed>,
+}
+
+impl SimulationContract<NotDeployed> {
+    pub fn new(base_contract: BaseContract, bytecode: Vec<u8>) -> Self {
+        Self {
+            base_contract,
+            bytecode,
+            address: None,
+            deployed: std::marker::PhantomData,
+        }
+    }
+
+    fn to_deployed(self, address: B160) -> SimulationContract<IsDeployed> {
+        SimulationContract {
+            base_contract: self.base_contract,
+            bytecode: self.bytecode,
+            address: self.address,
+            deployed: std::marker::PhantomData,
+        }
+    }
+}
 
 #[derive(Default)]
 pub struct ExecutionManager {
@@ -24,14 +58,14 @@ impl ExecutionManager {
     /// Execute a transaction.
     pub fn execute(
         &mut self,
-        caller: B160,
-        data: Bytes,
+        sender: B160,
+        data: Vec<u8>,
         transact_to: TransactTo,
         value: U256,
     ) -> ExecutionResult {
-        self.evm.env.tx.caller = caller;
+        self.evm.env.tx.caller = sender;
         self.evm.env.tx.transact_to = transact_to;
-        self.evm.env.tx.data = data;
+        self.evm.env.tx.data = data.into();
         self.evm.env.tx.value = value;
 
         match self.evm.transact_commit() {
@@ -39,6 +73,39 @@ impl ExecutionManager {
             // URGENT: change this to a custom error
             Err(_) => panic!("failed"),
         }
+    }
+
+    /// Deploy a contract.
+    pub fn deploy<T: Tokenizable>(
+        &mut self,
+        sender: B160,
+        contract: SimulationContract,
+        args: T,
+    ) -> SimulationContract<IsDeployed> {
+        let args = args.into_tokens();
+        // Append to generate the deploy bytecode;
+        let bytecode = contract
+            .base_contract
+            .abi()
+            .constructor()
+            .unwrap()
+            .encode_input(contract.bytecode.clone(), &args)
+            .unwrap(); // TODO: Need to catch this if error
+
+        self.execute(sender, bytecode, TransactTo::create(), Uint::from(0));
+
+        let contract_address = self
+            .evm
+            .db()
+            .unwrap()
+            .clone()
+            .accounts
+            .into_iter()
+            .nth(2)
+            .unwrap()
+            .0;
+
+        contract.to_deployed(contract_address)
     }
 
     /// Give an address a specified amount of raw ether.

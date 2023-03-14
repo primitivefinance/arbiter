@@ -1,6 +1,17 @@
 pub mod execution;
 pub mod price_simulation;
 
+use bytes::Bytes;
+use ethers::{
+    abi::{Abi, Address, Tokenizable},
+    prelude::BaseContract,
+};
+use revm::{
+    db::{CacheDB, EmptyDB},
+    primitives::{ExecutionResult, TransactTo, B160, U256},
+    EVM,
+};
+
 #[cfg(test)]
 mod tests {
     use std::str::FromStr;
