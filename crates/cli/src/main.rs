@@ -1,3 +1,5 @@
+use std::{env, str::FromStr, sync::Arc};
+
 use clairvoyance::Clairvoyance;
 use clap::{CommandFactory, Parser, Subcommand};
 use ethers::{
@@ -11,7 +13,6 @@ use simulate::{
     execution::{ExecutionManager, SimulationContract},
     price_simulation::PriceSimulation,
 };
-use std::{env, str::FromStr, sync::Arc};
 use utils::chain_tools::get_provider;
 mod config;
 
