@@ -1,4 +1,3 @@
-use std::{env, str::FromStr, sync::Arc};
 use clairvoyance::Clairvoyance;
 use clap::{CommandFactory, Parser, Subcommand};
 use ethers::{
@@ -12,6 +11,7 @@ use simulate::{
     execution::{ExecutionManager, SimulationContract},
     price_simulation::PriceSimulation,
 };
+use std::{env, str::FromStr, sync::Arc};
 use utils::chain_tools::get_provider;
 mod config;
 
@@ -102,12 +102,13 @@ async fn main() -> Result<()> {
             // Create a `ExecutionManager` where we can run simulations.
             let mut manager = ExecutionManager::new();
             // Generate a user account to mint tokens to.
-            let user_address = B160::from_str("0x0000000000000000000000000000000000000001").unwrap();
+            let user_address =
+                B160::from_str("0x0000000000000000000000000000000000000001").unwrap();
             manager
-            .evm
-            .db()
-            .unwrap()
-            .insert_account_info(user_address, AccountInfo::default());
+                .evm
+                .db()
+                .unwrap()
+                .insert_account_info(user_address, AccountInfo::default());
             // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
             // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -215,7 +216,7 @@ async fn main() -> Result<()> {
                 .base_contract
                 .decode_output("balanceOf", value.unwrap())?;
 
-            print!("Balance of user {user_address:#?}: {response:#?}\n")
+            println!("Balance of user {user_address:#?}: {response:#?}")
             // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         }
         Some(Commands::Gbm { config }) => {
