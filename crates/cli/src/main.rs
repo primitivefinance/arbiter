@@ -18,7 +18,7 @@ use ethabi::ethereum_types::Address; // Can try this or ethers::prelude::Address
 #[derive(Parser)]
 #[command(name = "Arbiter")]
 #[command(version = "1.0")]
-#[command(about = "Data monitoring and execution tool for decentralized exchanges.", long_about = None)]
+#[command(about = "Analytics tool for decentralized exchanges.", long_about = None)]
 #[command(author)]
 struct Args {
     /// Pass a subcommand in.
@@ -167,8 +167,24 @@ async fn main() -> Result<()> {
                 .base_contract
                 .decode_output("balanceOf", value.unwrap())?;
 
-            println!("Balance of user {user_address:#?}: {response:#?}")
+            println!("Balance of user {user_address:#?}: {response:#?}");
+
             // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+            // Deploy the Portfolio contract.
+            // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+            // Get a SimulationContract for the Weth Token ERC-20 instance from the ABI and bytecode.
+            let portfolio = SimulationContract::new(
+                BaseContract::from(bindings::rmm01_portfolio::RMM01PORTFOLIO_ABI.clone()),
+                bindings::rmm01_portfolio::RMM01PORTFOLIO_BYTECODE.clone().into_iter().collect()
+            );
+            let weth = Some(Address);
+            let registry = Some(Address);
+            let args = (weth.unwrap().to_string(), registry.unwrap().to_string());
+
+
+            let portfolio_deploy = manager.deploy(user_address, portfolio, args);
+
+    
         }
         Some(Commands::Gbm { config }) => {
             // Plot a GBM price path

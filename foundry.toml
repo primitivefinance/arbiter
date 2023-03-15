@@ -1,6 +1,6 @@
 [profile.default] # all profiles inherit from this
 solc = '0.8.13'
-src = 'contracts'
+src = 'contracts/portfolio'
 out = '/crates/bindings' # default
 test = 'test' # default
 libs = ['lib']

@@ -7,7 +7,6 @@ pub mod erc20;
 pub mod rmm01_portfolio;
 pub mod weth;
 pub mod shared_types;
-
 // Testing
 pub mod arbiter_token;
 pub mod writer;
