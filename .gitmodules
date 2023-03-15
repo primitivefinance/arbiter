@@ -4,6 +4,8 @@
 [submodule "lib/solmate"]
 	path = lib/solmate
 	url = https://github.com/rari-capital/solmate
+	branch = v7
 [submodule "lib/solstat"]
 	path = lib/solstat
 	url = https://github.com/primitivefinance/solstat
+	branch = main

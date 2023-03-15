@@ -3,7 +3,7 @@ solc = '0.8.13'
 src = 'contracts'
 out = '/crates/bindings' # default
 test = 'test' # default
-libs = ['lib', 'node_modules']
+libs = ['lib']
 cache = false # !important! breaks echidna if cache = true.
 remappings = [
     'forge-std/=lib/forge-std/src/',
