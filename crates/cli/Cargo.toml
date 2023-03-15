@@ -7,7 +7,6 @@ edition = "2021"
 
 [dependencies]
 # Local
-clairvoyance = { path = "../clairvoyance" }
 simulate = { path = "../simulate" }
 bindings = {path = "../bindings"}
 
