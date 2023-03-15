@@ -4,7 +4,7 @@
 
 use std::sync::Arc;
 
-use bindings::{i_uniswap_v3_pool::IUniswapV3Pool, uniswap_v3_factory::UniswapV3Factory};
+use bindings::{uniswap_v3_factory::UniswapV3Factory};
 use ethers::{abi::Address, prelude::*, providers::Provider, types::H160};
 use num_bigfloat::BigFloat;
 use utils::{
@@ -31,7 +31,7 @@ pub struct Pool {
     /// Factory that created the pool. This could be generic in future.
     factory: UniswapV3Factory<Provider<Http>>,
     /// Pool contract object.
-    inner: IUniswapV3Pool<Provider<Http>>,
+    // inner: IUniswapV3Pool<Provider<Http>>,
     /// Current Tick.
     tick: i32,
     /// Current liquidity.
@@ -57,7 +57,7 @@ impl Pool {
         let uniswap_v3_factory_address = FACTORY.parse::<Address>().unwrap();
 
         // Factory contract object.
-        let factory = UniswapV3Factory::new(uniswap_v3_factory_address, provider.clone());
+        let factory = UniswapV3Factory::new(uniswap_v3_factory_address, provider);
 
         let pool_address = match factory
             .get_pool(token_0.address, token_1.address, bp * 100)
@@ -78,7 +78,7 @@ impl Pool {
             bp,
             address: pool_address,
             factory,
-            inner: IUniswapV3Pool::new(pool_address, provider.clone()),
+            // inner: IUniswapV3Pool::new(pool_address, provider.clone()),
             tick: 0,
             liquidity: 0,
             sqrt_price_x96: ethers::types::U256::zero(),
@@ -118,9 +118,9 @@ impl Pool {
     }
 
     /// Get the pool contract.
-    pub fn get_contract(&self) -> IUniswapV3Pool<Provider<Http>> {
-        self.inner.clone()
-    }
+    // pub fn get_contract(&self) -> IUniswapV3Pool<Provider<Http>> {
+    //     self.inner.clone()
+    // }
 
     /// Get the pool sqrt_price.
     /// More information regarding how to derive pricing can be found in the whitepaper.
@@ -141,28 +141,28 @@ impl Pool {
     }
 
     /// Updates the pool tick and liquidity manually with a contract call.
-    pub async fn _update_pool(&mut self) -> Result<(), UniswapError> {
-        let slot_0 = match self.inner.slot_0().call().await {
-            Err(err) => return Err(UniswapError::ContractInteractionError(err)),
-            Ok(val) => val,
-        };
+    // pub async fn _update_pool(&mut self) -> Result<(), UniswapError> {
+    //     let slot_0 = match self.inner.slot_0().call().await {
+    //         Err(err) => return Err(UniswapError::ContractInteractionError(err)),
+    //         Ok(val) => val,
+    //     };
 
-        let liquidity = match self.inner.liquidity().call().await {
-            Err(err) => return Err(UniswapError::ContractInteractionError(err)),
-            Ok(val) => val,
-        };
+    //     let liquidity = match self.inner.liquidity().call().await {
+    //         Err(err) => return Err(UniswapError::ContractInteractionError(err)),
+    //         Ok(val) => val,
+    //     };
 
-        self.set_liquidity(liquidity);
-        self.set_tick(slot_0.1);
-        self.set_sqrt_price_x96(slot_0.0);
+    //     self.set_liquidity(liquidity);
+    //     self.set_tick(slot_0.1);
+    //     self.set_sqrt_price_x96(slot_0.0);
 
-        Ok(())
-    }
+    //     Ok(())
+    // }
 
     /// Monitor a pool for swap events and print to standard output.
     /// TODO: Make it print a `Swap` struct that implements fmt in a special way.
     pub async fn monitor_pool(&mut self) {
-        let pool_contract = self.get_contract();
+        let pool_contract = self.address;
         let pool_tokens = self.get_tokens();
         let pool_bp = self.get_bp();
 
@@ -171,7 +171,7 @@ impl Pool {
             pool_tokens.0.name,
             pool_tokens.1.name,
             pool_bp,
-            pool_contract.address()
+            pool_contract
         );
 
         println!("Listening for events...");
