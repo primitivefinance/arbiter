@@ -5,4 +5,3 @@
 //! These files may be overwritten by the codegen system at any time.
 pub mod i_uniswap_v3_pool;
 pub mod uniswap_v3_factory;
-

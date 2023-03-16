@@ -4,6 +4,7 @@
 //! Do not manually edit these files.
 //! These files may be overwritten by the codegen system at any time.
 pub mod account_lib;
+pub mod arbiter_token;
 pub mod assembly_lib;
 pub mod echidna_erc20;
 pub mod erc20;
@@ -33,7 +34,6 @@ pub mod shared_types;
 pub mod simple_registry;
 pub mod units;
 pub mod weth9;
-pub mod arbiter_token;
 
 // Testing
 pub mod writer;
