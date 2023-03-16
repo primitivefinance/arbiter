@@ -1,10 +1,11 @@
+use std::collections::HashSet;
+
 use ethers::{abi::Tokenize, prelude::BaseContract};
 use revm::{
     db::{CacheDB, EmptyDB},
     primitives::{ruint::Uint, ExecutionResult, TransactTo, B160, U256},
     EVM,
 };
-use std::collections::HashSet;
 
 #[derive(Debug)]
 pub struct NotDeployed;
@@ -103,28 +104,23 @@ impl ExecutionManager {
         };
 
         self.execute(sender, bytecode, TransactTo::create(), Uint::from(0));
-        
-        // let contract_address = self
-        //     .evm
-        //     .db()
-        //     .unwrap()
-        //     .clone()
-        //     .accounts
-        //     .into_iter()
-        //     .nth(2)
-        //     .unwrap()
-        //     .0;
-        let new_addresses = self
-        .evm
-        .db()
-        .unwrap()
-        .clone()
-        .accounts
-        .into_iter()
-        .map(|(address, _)| address)
-        .collect::<HashSet<B160>>();
 
-        let contract_address = *new_addresses.difference(&previous_addresses).nth(0).unwrap();
+        // Get list of new addresses (after running the current deploy being called) in the DB
+        let new_addresses = self
+            .evm
+            .db()
+            .unwrap()
+            .clone()
+            .accounts
+            .into_iter()
+            .map(|(address, _)| address)
+            .collect::<HashSet<B160>>();
+
+        // Since we only added a single address, the contract address must be the new address found in the difference of the two sets of addresses
+        let contract_address = *new_addresses
+            .difference(&previous_addresses)
+            .next()
+            .unwrap();
 
         contract.to_deployed(contract_address)
     }

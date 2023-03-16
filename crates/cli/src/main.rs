@@ -117,7 +117,10 @@ async fn main() -> Result<()> {
             // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
             let weth = SimulationContract::new(
                 BaseContract::from(bindings::weth9::WETH9_ABI.clone()),
-                bindings::weth9::WRITER_BYTECODE.clone().into_iter().collect(),
+                bindings::weth9::WRITER_BYTECODE
+                    .clone()
+                    .into_iter()
+                    .collect(),
             );
             let weth = manager.deploy(user_address, weth, ());
             println!("WETH deployed at: {}", weth.address.unwrap());
@@ -142,10 +145,16 @@ async fn main() -> Result<()> {
 
             // Call the contract deployer and receive a IsDeployed version of SimulationContract that now has an address.
             let arbiter_token = manager.deploy(user_address, arbiter_token, args);
-            println!("Arbiter Token deployed at: {}", arbiter_token.address.unwrap());
+            println!(
+                "Arbiter Token deployed at: {}",
+                arbiter_token.address.unwrap()
+            );
 
             // TESTING ADDRESSES
-            println!("Accounts in DB: {:#?}", manager.evm.db().unwrap().accounts.keys());
+            println!(
+                "Accounts in DB: {:#?}",
+                manager.evm.db().unwrap().accounts.keys()
+            );
 
             // Generate calldata for the 'name' function
             let call_data = arbiter_token
