@@ -1,28 +1,770 @@
 pub use erc20::*;
-/// THIS IS A TOTALLY BUTCHERED BINDINGS FILE THAT JUST HAS THE ABI AND BYTECODE.
+/// This module was auto-generated with ethers-rs Abigen.
+/// More information at: <https://github.com/gakonst/ethers-rs>
 #[allow(
     clippy::enum_variant_names,
     clippy::too_many_arguments,
     clippy::upper_case_acronyms,
     clippy::type_complexity,
     dead_code,
-    non_camel_case_types
+    non_camel_case_types,
 )]
 pub mod erc20 {
-
     #[rustfmt::skip]
-    const __ABI: &str = "[{\"inputs\":[{\"internalType\":\"string\",\"name\":\"name_\",\"type\":\"string\",\"components\":[]},{\"internalType\":\"string\",\"name\":\"symbol_\",\"type\":\"string\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"constructor\",\"outputs\":[]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"owner\",\"type\":\"address\",\"components\":[],\"indexed\":true},{\"internalType\":\"address\",\"name\":\"spender\",\"type\":\"address\",\"components\":[],\"indexed\":true},{\"internalType\":\"uint256\",\"name\":\"value\",\"type\":\"uint256\",\"components\":[],\"indexed\":false}],\"type\":\"event\",\"name\":\"Approval\",\"outputs\":[],\"anonymous\":false},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"from\",\"type\":\"address\",\"components\":[],\"indexed\":true},{\"internalType\":\"address\",\"name\":\"to\",\"type\":\"address\",\"components\":[],\"indexed\":true},{\"internalType\":\"uint256\",\"name\":\"value\",\"type\":\"uint256\",\"components\":[],\"indexed\":false}],\"type\":\"event\",\"name\":\"Transfer\",\"outputs\":[],\"anonymous\":false},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"owner\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"address\",\"name\":\"spender\",\"type\":\"address\",\"components\":[]}],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"allowance\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"spender\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"function\",\"name\":\"approve\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"account\",\"type\":\"address\",\"components\":[]}],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"balanceOf\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\",\"components\":[]}]},{\"inputs\":[],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"decimals\",\"outputs\":[{\"internalType\":\"uint8\",\"name\":\"\",\"type\":\"uint8\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"spender\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"subtractedValue\",\"type\":\"uint256\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"function\",\"name\":\"decreaseAllowance\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"spender\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"addedValue\",\"type\":\"uint256\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"function\",\"name\":\"increaseAllowance\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\",\"components\":[]}]},{\"inputs\":[],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"name\",\"outputs\":[{\"internalType\":\"string\",\"name\":\"\",\"type\":\"string\",\"components\":[]}]},{\"inputs\":[],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"symbol\",\"outputs\":[{\"internalType\":\"string\",\"name\":\"\",\"type\":\"string\",\"components\":[]}]},{\"inputs\":[],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"totalSupply\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"to\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"function\",\"name\":\"transfer\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"from\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"address\",\"name\":\"to\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"function\",\"name\":\"transferFrom\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\",\"components\":[]}]}]";
+    const __ABI: &str = "[{\"inputs\":[{\"internalType\":\"address\",\"name\":\"owner\",\"type\":\"address\",\"components\":[],\"indexed\":true},{\"internalType\":\"address\",\"name\":\"spender\",\"type\":\"address\",\"components\":[],\"indexed\":true},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\",\"components\":[],\"indexed\":false}],\"type\":\"event\",\"name\":\"Approval\",\"outputs\":[],\"anonymous\":false},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"from\",\"type\":\"address\",\"components\":[],\"indexed\":true},{\"internalType\":\"address\",\"name\":\"to\",\"type\":\"address\",\"components\":[],\"indexed\":true},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\",\"components\":[],\"indexed\":false}],\"type\":\"event\",\"name\":\"Transfer\",\"outputs\":[],\"anonymous\":false},{\"inputs\":[],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"DOMAIN_SEPARATOR\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\",\"components\":[]}],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"allowance\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"spender\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"function\",\"name\":\"approve\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\",\"components\":[]}],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"balanceOf\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\",\"components\":[]}]},{\"inputs\":[],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"decimals\",\"outputs\":[{\"internalType\":\"uint8\",\"name\":\"\",\"type\":\"uint8\",\"components\":[]}]},{\"inputs\":[],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"name\",\"outputs\":[{\"internalType\":\"string\",\"name\":\"\",\"type\":\"string\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\",\"components\":[]}],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"nonces\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"owner\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"address\",\"name\":\"spender\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"value\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"deadline\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"uint8\",\"name\":\"v\",\"type\":\"uint8\",\"components\":[]},{\"internalType\":\"bytes32\",\"name\":\"r\",\"type\":\"bytes32\",\"components\":[]},{\"internalType\":\"bytes32\",\"name\":\"s\",\"type\":\"bytes32\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"function\",\"name\":\"permit\",\"outputs\":[]},{\"inputs\":[],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"symbol\",\"outputs\":[{\"internalType\":\"string\",\"name\":\"\",\"type\":\"string\",\"components\":[]}]},{\"inputs\":[],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"totalSupply\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"to\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"function\",\"name\":\"transfer\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"from\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"address\",\"name\":\"to\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"function\",\"name\":\"transferFrom\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\",\"components\":[]}]}]";
     ///The parsed JSON ABI of the contract.
-    pub static ERC20_ABI: ::ethers::contract::Lazy<::ethers::core::abi::Abi> =
-        ::ethers::contract::Lazy::new(|| {
-            ::ethers::core::utils::__serde_json::from_str(__ABI).expect("ABI is always valid")
-        });
-    #[rustfmt::skip]
-    ///The bytecode of the contract.
-    pub static ERC20_BYTECODE: ::ethers::contract::Lazy<::ethers::core::types::Bytes> =
-    ::ethers::contract::Lazy::new(|| {
-        "0x60806040523480156200001157600080fd5b5060405162000b4638038062000b4683398101604081905262000034916200011f565b600362000042838262000218565b50600462000051828262000218565b505050620002e4565b634e487b7160e01b600052604160045260246000fd5b600082601f8301126200008257600080fd5b81516001600160401b03808211156200009f576200009f6200005a565b604051601f8301601f19908116603f01168101908282118183101715620000ca57620000ca6200005a565b81604052838152602092508683858801011115620000e757600080fd5b600091505b838210156200010b5785820183015181830184015290820190620000ec565b600093810190920192909252949350505050565b600080604083850312156200013357600080fd5b82516001600160401b03808211156200014b57600080fd5b620001598683870162000070565b935060208501519150808211156200017057600080fd5b506200017f8582860162000070565b9150509250929050565b600181811c908216806200019e57607f821691505b602082108103620001bf57634e487b7160e01b600052602260045260246000fd5b50919050565b601f8211156200021357600081815260208120601f850160051c81016020861015620001ee5750805b601f850160051c820191505b818110156200020f57828155600101620001fa565b5050505b505050565b81516001600160401b038111156200023457620002346200005a565b6200024c8162000245845462000189565b84620001c5565b602080601f8311600181146200028457600084156200026b5750858301515b600019600386901b1c1916600185901b1785556200020f565b600085815260208120601f198616915b82811015620002b55788860151825594840194600190910190840162000294565b5085821015620002d45787850151600019600388901b60f8161c191681555b5050505050600190811b01905550565b61085280620002f46000396000f3fe608060405234801561001057600080fd5b50600436106100a95760003560e01c80633950935111610071578063395093511461012357806370a082311461013657806395d89b411461015f578063a457c2d714610167578063a9059cbb1461017a578063dd62ed3e1461018d57600080fd5b806306fdde03146100ae578063095ea7b3146100cc57806318160ddd146100ef57806323b872dd14610101578063313ce56714610114575b600080fd5b6100b66101a0565b6040516100c3919061069c565b60405180910390f35b6100df6100da366004610706565b610232565b60405190151581526020016100c3565b6002545b6040519081526020016100c3565b6100df61010f366004610730565b61024c565b604051601281526020016100c3565b6100df610131366004610706565b610270565b6100f361014436600461076c565b6001600160a01b031660009081526020819052604090205490565b6100b6610292565b6100df610175366004610706565b6102a1565b6100df610188366004610706565b610321565b6100f361019b36600461078e565b61032f565b6060600380546101af906107c1565b80601f01602080910402602001604051908101604052809291908181526020018280546101db906107c1565b80156102285780601f106101fd57610100808354040283529160200191610228565b820191906000526020600020905b81548152906001019060200180831161020b57829003601f168201915b5050505050905090565b60003361024081858561035a565b60019150505b92915050565b60003361025a85828561047e565b6102658585856104f8565b506001949350505050565b600033610240818585610283838361032f565b61028d91906107fb565b61035a565b6060600480546101af906107c1565b600033816102af828661032f565b9050838110156103145760405162461bcd60e51b815260206004820152602560248201527f45524332303a2064656372656173656420616c6c6f77616e63652062656c6f77604482015264207a65726f60d81b60648201526084015b60405180910390fd5b610265828686840361035a565b6000336102408185856104f8565b6001600160a01b03918216600090815260016020908152604080832093909416825291909152205490565b6001600160a01b0383166103bc5760405162461bcd60e51b8152602060048201526024808201527f45524332303a20617070726f76652066726f6d20746865207a65726f206164646044820152637265737360e01b606482015260840161030b565b6001600160a01b03821661041d5760405162461bcd60e51b815260206004820152602260248201527f45524332303a20617070726f766520746f20746865207a65726f206164647265604482015261737360f01b606482015260840161030b565b6001600160a01b0383811660008181526001602090815260408083209487168084529482529182902085905590518481527f8c5be1e5ebec7d5bd14f71427d1e84f3dd0314c0f7b2291e5b200ac8c7c3b925910160405180910390a3505050565b600061048a848461032f565b905060001981146104f257818110156104e55760405162461bcd60e51b815260206004820152601d60248201527f45524332303a20696e73756666696369656e7420616c6c6f77616e6365000000604482015260640161030b565b6104f2848484840361035a565b50505050565b6001600160a01b03831661055c5760405162461bcd60e51b815260206004820152602560248201527f45524332303a207472616e736665722066726f6d20746865207a65726f206164604482015264647265737360d81b606482015260840161030b565b6001600160a01b0382166105be5760405162461bcd60e51b815260206004820152602360248201527f45524332303a207472616e7366657220746f20746865207a65726f206164647260448201526265737360e81b606482015260840161030b565b6001600160a01b038316600090815260208190526040902054818110156106365760405162461bcd60e51b815260206004820152602660248201527f45524332303a207472616e7366657220616d6f756e7420657863656564732062604482015265616c616e636560d01b606482015260840161030b565b6001600160a01b03848116600081815260208181526040808320878703905593871680835291849020805487019055925185815290927fddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef910160405180910390a36104f2565b600060208083528351808285015260005b818110156106c9578581018301518582016040015282016106ad565b506000604082860101526040601f19601f8301168501019250505092915050565b80356001600160a01b038116811461070157600080fd5b919050565b6000806040838503121561071957600080fd5b610722836106ea565b946020939093013593505050565b60008060006060848603121561074557600080fd5b61074e846106ea565b925061075c602085016106ea565b9150604084013590509250925092565b60006020828403121561077e57600080fd5b610787826106ea565b9392505050565b600080604083850312156107a157600080fd5b6107aa836106ea565b91506107b8602084016106ea565b90509250929050565b600181811c908216806107d557607f821691505b6020821081036107f557634e487b7160e01b600052602260045260246000fd5b50919050565b8082018082111561024657634e487b7160e01b600052601160045260246000fdfea26469706673582212208671477bb1f24e4459adad6ae3c48e47b77009e459fd2bf66d6794e2c634d1ae64736f6c63430008110033"
-        .parse()
-        .expect("invalid bytecode")
-    });
+    pub static ERC20_ABI: ::ethers::contract::Lazy<::ethers::core::abi::Abi> = ::ethers::contract::Lazy::new(||
+    ::ethers::core::utils::__serde_json::from_str(__ABI).expect("ABI is always valid"));
+    pub struct ERC20<M>(::ethers::contract::Contract<M>);
+    impl<M> ::core::clone::Clone for ERC20<M> {
+        fn clone(&self) -> Self {
+            Self(::core::clone::Clone::clone(&self.0))
+        }
+    }
+    impl<M> ::core::ops::Deref for ERC20<M> {
+        type Target = ::ethers::contract::Contract<M>;
+        fn deref(&self) -> &Self::Target {
+            &self.0
+        }
+    }
+    impl<M> ::core::ops::DerefMut for ERC20<M> {
+        fn deref_mut(&mut self) -> &mut Self::Target {
+            &mut self.0
+        }
+    }
+    impl<M> ::core::fmt::Debug for ERC20<M> {
+        fn fmt(&self, f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
+            f.debug_tuple(stringify!(ERC20)).field(&self.address()).finish()
+        }
+    }
+    impl<M: ::ethers::providers::Middleware> ERC20<M> {
+        /// Creates a new contract instance with the specified `ethers` client at
+        /// `address`. The contract derefs to a `ethers::Contract` object.
+        pub fn new<T: Into<::ethers::core::types::Address>>(
+            address: T,
+            client: ::std::sync::Arc<M>,
+        ) -> Self {
+            Self(
+                ::ethers::contract::Contract::new(
+                    address.into(),
+                    ERC20_ABI.clone(),
+                    client,
+                ),
+            )
+        }
+        ///Calls the contract's `DOMAIN_SEPARATOR` (0x3644e515) function
+        pub fn domain_separator(
+            &self,
+        ) -> ::ethers::contract::builders::ContractCall<M, [u8; 32]> {
+            self.0
+                .method_hash([54, 68, 229, 21], ())
+                .expect("method not found (this should never happen)")
+        }
+        ///Calls the contract's `allowance` (0xdd62ed3e) function
+        pub fn allowance(
+            &self,
+            p0: ::ethers::core::types::Address,
+            p1: ::ethers::core::types::Address,
+        ) -> ::ethers::contract::builders::ContractCall<M, ::ethers::core::types::U256> {
+            self.0
+                .method_hash([221, 98, 237, 62], (p0, p1))
+                .expect("method not found (this should never happen)")
+        }
+        ///Calls the contract's `approve` (0x095ea7b3) function
+        pub fn approve(
+            &self,
+            spender: ::ethers::core::types::Address,
+            amount: ::ethers::core::types::U256,
+        ) -> ::ethers::contract::builders::ContractCall<M, bool> {
+            self.0
+                .method_hash([9, 94, 167, 179], (spender, amount))
+                .expect("method not found (this should never happen)")
+        }
+        ///Calls the contract's `balanceOf` (0x70a08231) function
+        pub fn balance_of(
+            &self,
+            p0: ::ethers::core::types::Address,
+        ) -> ::ethers::contract::builders::ContractCall<M, ::ethers::core::types::U256> {
+            self.0
+                .method_hash([112, 160, 130, 49], p0)
+                .expect("method not found (this should never happen)")
+        }
+        ///Calls the contract's `decimals` (0x313ce567) function
+        pub fn decimals(&self) -> ::ethers::contract::builders::ContractCall<M, u8> {
+            self.0
+                .method_hash([49, 60, 229, 103], ())
+                .expect("method not found (this should never happen)")
+        }
+        ///Calls the contract's `name` (0x06fdde03) function
+        pub fn name(
+            &self,
+        ) -> ::ethers::contract::builders::ContractCall<M, ::std::string::String> {
+            self.0
+                .method_hash([6, 253, 222, 3], ())
+                .expect("method not found (this should never happen)")
+        }
+        ///Calls the contract's `nonces` (0x7ecebe00) function
+        pub fn nonces(
+            &self,
+            p0: ::ethers::core::types::Address,
+        ) -> ::ethers::contract::builders::ContractCall<M, ::ethers::core::types::U256> {
+            self.0
+                .method_hash([126, 206, 190, 0], p0)
+                .expect("method not found (this should never happen)")
+        }
+        ///Calls the contract's `permit` (0xd505accf) function
+        pub fn permit(
+            &self,
+            owner: ::ethers::core::types::Address,
+            spender: ::ethers::core::types::Address,
+            value: ::ethers::core::types::U256,
+            deadline: ::ethers::core::types::U256,
+            v: u8,
+            r: [u8; 32],
+            s: [u8; 32],
+        ) -> ::ethers::contract::builders::ContractCall<M, ()> {
+            self.0
+                .method_hash(
+                    [213, 5, 172, 207],
+                    (owner, spender, value, deadline, v, r, s),
+                )
+                .expect("method not found (this should never happen)")
+        }
+        ///Calls the contract's `symbol` (0x95d89b41) function
+        pub fn symbol(
+            &self,
+        ) -> ::ethers::contract::builders::ContractCall<M, ::std::string::String> {
+            self.0
+                .method_hash([149, 216, 155, 65], ())
+                .expect("method not found (this should never happen)")
+        }
+        ///Calls the contract's `totalSupply` (0x18160ddd) function
+        pub fn total_supply(
+            &self,
+        ) -> ::ethers::contract::builders::ContractCall<M, ::ethers::core::types::U256> {
+            self.0
+                .method_hash([24, 22, 13, 221], ())
+                .expect("method not found (this should never happen)")
+        }
+        ///Calls the contract's `transfer` (0xa9059cbb) function
+        pub fn transfer(
+            &self,
+            to: ::ethers::core::types::Address,
+            amount: ::ethers::core::types::U256,
+        ) -> ::ethers::contract::builders::ContractCall<M, bool> {
+            self.0
+                .method_hash([169, 5, 156, 187], (to, amount))
+                .expect("method not found (this should never happen)")
+        }
+        ///Calls the contract's `transferFrom` (0x23b872dd) function
+        pub fn transfer_from(
+            &self,
+            from: ::ethers::core::types::Address,
+            to: ::ethers::core::types::Address,
+            amount: ::ethers::core::types::U256,
+        ) -> ::ethers::contract::builders::ContractCall<M, bool> {
+            self.0
+                .method_hash([35, 184, 114, 221], (from, to, amount))
+                .expect("method not found (this should never happen)")
+        }
+        ///Gets the contract's `Approval` event
+        pub fn approval_filter(
+            &self,
+        ) -> ::ethers::contract::builders::Event<
+            ::std::sync::Arc<M>,
+            M,
+            ApprovalFilter,
+        > {
+            self.0.event()
+        }
+        ///Gets the contract's `Transfer` event
+        pub fn transfer_filter(
+            &self,
+        ) -> ::ethers::contract::builders::Event<
+            ::std::sync::Arc<M>,
+            M,
+            TransferFilter,
+        > {
+            self.0.event()
+        }
+        /// Returns an `Event` builder for all the events of this contract.
+        pub fn events(
+            &self,
+        ) -> ::ethers::contract::builders::Event<::std::sync::Arc<M>, M, ERC20Events> {
+            self.0.event_with_filter(::core::default::Default::default())
+        }
+    }
+    impl<M: ::ethers::providers::Middleware> From<::ethers::contract::Contract<M>>
+    for ERC20<M> {
+        fn from(contract: ::ethers::contract::Contract<M>) -> Self {
+            Self::new(contract.address(), contract.client())
+        }
+    }
+    #[derive(
+        Clone,
+        ::ethers::contract::EthEvent,
+        ::ethers::contract::EthDisplay,
+        Default,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash
+    )]
+    #[ethevent(name = "Approval", abi = "Approval(address,address,uint256)")]
+    pub struct ApprovalFilter {
+        #[ethevent(indexed)]
+        pub owner: ::ethers::core::types::Address,
+        #[ethevent(indexed)]
+        pub spender: ::ethers::core::types::Address,
+        pub amount: ::ethers::core::types::U256,
+    }
+    #[derive(
+        Clone,
+        ::ethers::contract::EthEvent,
+        ::ethers::contract::EthDisplay,
+        Default,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash
+    )]
+    #[ethevent(name = "Transfer", abi = "Transfer(address,address,uint256)")]
+    pub struct TransferFilter {
+        #[ethevent(indexed)]
+        pub from: ::ethers::core::types::Address,
+        #[ethevent(indexed)]
+        pub to: ::ethers::core::types::Address,
+        pub amount: ::ethers::core::types::U256,
+    }
+    ///Container type for all of the contract's events
+    #[derive(Clone, ::ethers::contract::EthAbiType, Debug, PartialEq, Eq, Hash)]
+    pub enum ERC20Events {
+        ApprovalFilter(ApprovalFilter),
+        TransferFilter(TransferFilter),
+    }
+    impl ::ethers::contract::EthLogDecode for ERC20Events {
+        fn decode_log(
+            log: &::ethers::core::abi::RawLog,
+        ) -> ::core::result::Result<Self, ::ethers::core::abi::Error> {
+            if let Ok(decoded) = ApprovalFilter::decode_log(log) {
+                return Ok(ERC20Events::ApprovalFilter(decoded));
+            }
+            if let Ok(decoded) = TransferFilter::decode_log(log) {
+                return Ok(ERC20Events::TransferFilter(decoded));
+            }
+            Err(::ethers::core::abi::Error::InvalidData)
+        }
+    }
+    impl ::core::fmt::Display for ERC20Events {
+        fn fmt(&self, f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
+            match self {
+                Self::ApprovalFilter(element) => ::core::fmt::Display::fmt(element, f),
+                Self::TransferFilter(element) => ::core::fmt::Display::fmt(element, f),
+            }
+        }
+    }
+    impl ::core::convert::From<ApprovalFilter> for ERC20Events {
+        fn from(value: ApprovalFilter) -> Self {
+            Self::ApprovalFilter(value)
+        }
+    }
+    impl ::core::convert::From<TransferFilter> for ERC20Events {
+        fn from(value: TransferFilter) -> Self {
+            Self::TransferFilter(value)
+        }
+    }
+    ///Container type for all input parameters for the `DOMAIN_SEPARATOR` function with signature `DOMAIN_SEPARATOR()` and selector `0x3644e515`
+    #[derive(
+        Clone,
+        ::ethers::contract::EthCall,
+        ::ethers::contract::EthDisplay,
+        Default,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash
+    )]
+    #[ethcall(name = "DOMAIN_SEPARATOR", abi = "DOMAIN_SEPARATOR()")]
+    pub struct DomainSeparatorCall;
+    ///Container type for all input parameters for the `allowance` function with signature `allowance(address,address)` and selector `0xdd62ed3e`
+    #[derive(
+        Clone,
+        ::ethers::contract::EthCall,
+        ::ethers::contract::EthDisplay,
+        Default,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash
+    )]
+    #[ethcall(name = "allowance", abi = "allowance(address,address)")]
+    pub struct AllowanceCall(
+        pub ::ethers::core::types::Address,
+        pub ::ethers::core::types::Address,
+    );
+    ///Container type for all input parameters for the `approve` function with signature `approve(address,uint256)` and selector `0x095ea7b3`
+    #[derive(
+        Clone,
+        ::ethers::contract::EthCall,
+        ::ethers::contract::EthDisplay,
+        Default,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash
+    )]
+    #[ethcall(name = "approve", abi = "approve(address,uint256)")]
+    pub struct ApproveCall {
+        pub spender: ::ethers::core::types::Address,
+        pub amount: ::ethers::core::types::U256,
+    }
+    ///Container type for all input parameters for the `balanceOf` function with signature `balanceOf(address)` and selector `0x70a08231`
+    #[derive(
+        Clone,
+        ::ethers::contract::EthCall,
+        ::ethers::contract::EthDisplay,
+        Default,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash
+    )]
+    #[ethcall(name = "balanceOf", abi = "balanceOf(address)")]
+    pub struct BalanceOfCall(pub ::ethers::core::types::Address);
+    ///Container type for all input parameters for the `decimals` function with signature `decimals()` and selector `0x313ce567`
+    #[derive(
+        Clone,
+        ::ethers::contract::EthCall,
+        ::ethers::contract::EthDisplay,
+        Default,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash
+    )]
+    #[ethcall(name = "decimals", abi = "decimals()")]
+    pub struct DecimalsCall;
+    ///Container type for all input parameters for the `name` function with signature `name()` and selector `0x06fdde03`
+    #[derive(
+        Clone,
+        ::ethers::contract::EthCall,
+        ::ethers::contract::EthDisplay,
+        Default,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash
+    )]
+    #[ethcall(name = "name", abi = "name()")]
+    pub struct NameCall;
+    ///Container type for all input parameters for the `nonces` function with signature `nonces(address)` and selector `0x7ecebe00`
+    #[derive(
+        Clone,
+        ::ethers::contract::EthCall,
+        ::ethers::contract::EthDisplay,
+        Default,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash
+    )]
+    #[ethcall(name = "nonces", abi = "nonces(address)")]
+    pub struct NoncesCall(pub ::ethers::core::types::Address);
+    ///Container type for all input parameters for the `permit` function with signature `permit(address,address,uint256,uint256,uint8,bytes32,bytes32)` and selector `0xd505accf`
+    #[derive(
+        Clone,
+        ::ethers::contract::EthCall,
+        ::ethers::contract::EthDisplay,
+        Default,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash
+    )]
+    #[ethcall(
+        name = "permit",
+        abi = "permit(address,address,uint256,uint256,uint8,bytes32,bytes32)"
+    )]
+    pub struct PermitCall {
+        pub owner: ::ethers::core::types::Address,
+        pub spender: ::ethers::core::types::Address,
+        pub value: ::ethers::core::types::U256,
+        pub deadline: ::ethers::core::types::U256,
+        pub v: u8,
+        pub r: [u8; 32],
+        pub s: [u8; 32],
+    }
+    ///Container type for all input parameters for the `symbol` function with signature `symbol()` and selector `0x95d89b41`
+    #[derive(
+        Clone,
+        ::ethers::contract::EthCall,
+        ::ethers::contract::EthDisplay,
+        Default,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash
+    )]
+    #[ethcall(name = "symbol", abi = "symbol()")]
+    pub struct SymbolCall;
+    ///Container type for all input parameters for the `totalSupply` function with signature `totalSupply()` and selector `0x18160ddd`
+    #[derive(
+        Clone,
+        ::ethers::contract::EthCall,
+        ::ethers::contract::EthDisplay,
+        Default,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash
+    )]
+    #[ethcall(name = "totalSupply", abi = "totalSupply()")]
+    pub struct TotalSupplyCall;
+    ///Container type for all input parameters for the `transfer` function with signature `transfer(address,uint256)` and selector `0xa9059cbb`
+    #[derive(
+        Clone,
+        ::ethers::contract::EthCall,
+        ::ethers::contract::EthDisplay,
+        Default,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash
+    )]
+    #[ethcall(name = "transfer", abi = "transfer(address,uint256)")]
+    pub struct TransferCall {
+        pub to: ::ethers::core::types::Address,
+        pub amount: ::ethers::core::types::U256,
+    }
+    ///Container type for all input parameters for the `transferFrom` function with signature `transferFrom(address,address,uint256)` and selector `0x23b872dd`
+    #[derive(
+        Clone,
+        ::ethers::contract::EthCall,
+        ::ethers::contract::EthDisplay,
+        Default,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash
+    )]
+    #[ethcall(name = "transferFrom", abi = "transferFrom(address,address,uint256)")]
+    pub struct TransferFromCall {
+        pub from: ::ethers::core::types::Address,
+        pub to: ::ethers::core::types::Address,
+        pub amount: ::ethers::core::types::U256,
+    }
+    ///Container type for all of the contract's call
+    #[derive(Clone, ::ethers::contract::EthAbiType, Debug, PartialEq, Eq, Hash)]
+    pub enum ERC20Calls {
+        DomainSeparator(DomainSeparatorCall),
+        Allowance(AllowanceCall),
+        Approve(ApproveCall),
+        BalanceOf(BalanceOfCall),
+        Decimals(DecimalsCall),
+        Name(NameCall),
+        Nonces(NoncesCall),
+        Permit(PermitCall),
+        Symbol(SymbolCall),
+        TotalSupply(TotalSupplyCall),
+        Transfer(TransferCall),
+        TransferFrom(TransferFromCall),
+    }
+    impl ::ethers::core::abi::AbiDecode for ERC20Calls {
+        fn decode(
+            data: impl AsRef<[u8]>,
+        ) -> ::core::result::Result<Self, ::ethers::core::abi::AbiError> {
+            let data = data.as_ref();
+            if let Ok(decoded)
+                = <DomainSeparatorCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+                return Ok(Self::DomainSeparator(decoded));
+            }
+            if let Ok(decoded)
+                = <AllowanceCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+                return Ok(Self::Allowance(decoded));
+            }
+            if let Ok(decoded)
+                = <ApproveCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+                return Ok(Self::Approve(decoded));
+            }
+            if let Ok(decoded)
+                = <BalanceOfCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+                return Ok(Self::BalanceOf(decoded));
+            }
+            if let Ok(decoded)
+                = <DecimalsCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+                return Ok(Self::Decimals(decoded));
+            }
+            if let Ok(decoded)
+                = <NameCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+                return Ok(Self::Name(decoded));
+            }
+            if let Ok(decoded)
+                = <NoncesCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+                return Ok(Self::Nonces(decoded));
+            }
+            if let Ok(decoded)
+                = <PermitCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+                return Ok(Self::Permit(decoded));
+            }
+            if let Ok(decoded)
+                = <SymbolCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+                return Ok(Self::Symbol(decoded));
+            }
+            if let Ok(decoded)
+                = <TotalSupplyCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+                return Ok(Self::TotalSupply(decoded));
+            }
+            if let Ok(decoded)
+                = <TransferCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+                return Ok(Self::Transfer(decoded));
+            }
+            if let Ok(decoded)
+                = <TransferFromCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+                return Ok(Self::TransferFrom(decoded));
+            }
+            Err(::ethers::core::abi::Error::InvalidData.into())
+        }
+    }
+    impl ::ethers::core::abi::AbiEncode for ERC20Calls {
+        fn encode(self) -> Vec<u8> {
+            match self {
+                Self::DomainSeparator(element) => {
+                    ::ethers::core::abi::AbiEncode::encode(element)
+                }
+                Self::Allowance(element) => {
+                    ::ethers::core::abi::AbiEncode::encode(element)
+                }
+                Self::Approve(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::BalanceOf(element) => {
+                    ::ethers::core::abi::AbiEncode::encode(element)
+                }
+                Self::Decimals(element) => {
+                    ::ethers::core::abi::AbiEncode::encode(element)
+                }
+                Self::Name(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::Nonces(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::Permit(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::Symbol(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::TotalSupply(element) => {
+                    ::ethers::core::abi::AbiEncode::encode(element)
+                }
+                Self::Transfer(element) => {
+                    ::ethers::core::abi::AbiEncode::encode(element)
+                }
+                Self::TransferFrom(element) => {
+                    ::ethers::core::abi::AbiEncode::encode(element)
+                }
+            }
+        }
+    }
+    impl ::core::fmt::Display for ERC20Calls {
+        fn fmt(&self, f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
+            match self {
+                Self::DomainSeparator(element) => ::core::fmt::Display::fmt(element, f),
+                Self::Allowance(element) => ::core::fmt::Display::fmt(element, f),
+                Self::Approve(element) => ::core::fmt::Display::fmt(element, f),
+                Self::BalanceOf(element) => ::core::fmt::Display::fmt(element, f),
+                Self::Decimals(element) => ::core::fmt::Display::fmt(element, f),
+                Self::Name(element) => ::core::fmt::Display::fmt(element, f),
+                Self::Nonces(element) => ::core::fmt::Display::fmt(element, f),
+                Self::Permit(element) => ::core::fmt::Display::fmt(element, f),
+                Self::Symbol(element) => ::core::fmt::Display::fmt(element, f),
+                Self::TotalSupply(element) => ::core::fmt::Display::fmt(element, f),
+                Self::Transfer(element) => ::core::fmt::Display::fmt(element, f),
+                Self::TransferFrom(element) => ::core::fmt::Display::fmt(element, f),
+            }
+        }
+    }
+    impl ::core::convert::From<DomainSeparatorCall> for ERC20Calls {
+        fn from(value: DomainSeparatorCall) -> Self {
+            Self::DomainSeparator(value)
+        }
+    }
+    impl ::core::convert::From<AllowanceCall> for ERC20Calls {
+        fn from(value: AllowanceCall) -> Self {
+            Self::Allowance(value)
+        }
+    }
+    impl ::core::convert::From<ApproveCall> for ERC20Calls {
+        fn from(value: ApproveCall) -> Self {
+            Self::Approve(value)
+        }
+    }
+    impl ::core::convert::From<BalanceOfCall> for ERC20Calls {
+        fn from(value: BalanceOfCall) -> Self {
+            Self::BalanceOf(value)
+        }
+    }
+    impl ::core::convert::From<DecimalsCall> for ERC20Calls {
+        fn from(value: DecimalsCall) -> Self {
+            Self::Decimals(value)
+        }
+    }
+    impl ::core::convert::From<NameCall> for ERC20Calls {
+        fn from(value: NameCall) -> Self {
+            Self::Name(value)
+        }
+    }
+    impl ::core::convert::From<NoncesCall> for ERC20Calls {
+        fn from(value: NoncesCall) -> Self {
+            Self::Nonces(value)
+        }
+    }
+    impl ::core::convert::From<PermitCall> for ERC20Calls {
+        fn from(value: PermitCall) -> Self {
+            Self::Permit(value)
+        }
+    }
+    impl ::core::convert::From<SymbolCall> for ERC20Calls {
+        fn from(value: SymbolCall) -> Self {
+            Self::Symbol(value)
+        }
+    }
+    impl ::core::convert::From<TotalSupplyCall> for ERC20Calls {
+        fn from(value: TotalSupplyCall) -> Self {
+            Self::TotalSupply(value)
+        }
+    }
+    impl ::core::convert::From<TransferCall> for ERC20Calls {
+        fn from(value: TransferCall) -> Self {
+            Self::Transfer(value)
+        }
+    }
+    impl ::core::convert::From<TransferFromCall> for ERC20Calls {
+        fn from(value: TransferFromCall) -> Self {
+            Self::TransferFrom(value)
+        }
+    }
+    ///Container type for all return fields from the `DOMAIN_SEPARATOR` function with signature `DOMAIN_SEPARATOR()` and selector `0x3644e515`
+    #[derive(
+        Clone,
+        ::ethers::contract::EthAbiType,
+        ::ethers::contract::EthAbiCodec,
+        Default,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash
+    )]
+    pub struct DomainSeparatorReturn(pub [u8; 32]);
+    ///Container type for all return fields from the `allowance` function with signature `allowance(address,address)` and selector `0xdd62ed3e`
+    #[derive(
+        Clone,
+        ::ethers::contract::EthAbiType,
+        ::ethers::contract::EthAbiCodec,
+        Default,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash
+    )]
+    pub struct AllowanceReturn(pub ::ethers::core::types::U256);
+    ///Container type for all return fields from the `approve` function with signature `approve(address,uint256)` and selector `0x095ea7b3`
+    #[derive(
+        Clone,
+        ::ethers::contract::EthAbiType,
+        ::ethers::contract::EthAbiCodec,
+        Default,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash
+    )]
+    pub struct ApproveReturn(pub bool);
+    ///Container type for all return fields from the `balanceOf` function with signature `balanceOf(address)` and selector `0x70a08231`
+    #[derive(
+        Clone,
+        ::ethers::contract::EthAbiType,
+        ::ethers::contract::EthAbiCodec,
+        Default,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash
+    )]
+    pub struct BalanceOfReturn(pub ::ethers::core::types::U256);
+    ///Container type for all return fields from the `decimals` function with signature `decimals()` and selector `0x313ce567`
+    #[derive(
+        Clone,
+        ::ethers::contract::EthAbiType,
+        ::ethers::contract::EthAbiCodec,
+        Default,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash
+    )]
+    pub struct DecimalsReturn(pub u8);
+    ///Container type for all return fields from the `name` function with signature `name()` and selector `0x06fdde03`
+    #[derive(
+        Clone,
+        ::ethers::contract::EthAbiType,
+        ::ethers::contract::EthAbiCodec,
+        Default,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash
+    )]
+    pub struct NameReturn(pub ::std::string::String);
+    ///Container type for all return fields from the `nonces` function with signature `nonces(address)` and selector `0x7ecebe00`
+    #[derive(
+        Clone,
+        ::ethers::contract::EthAbiType,
+        ::ethers::contract::EthAbiCodec,
+        Default,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash
+    )]
+    pub struct NoncesReturn(pub ::ethers::core::types::U256);
+    ///Container type for all return fields from the `symbol` function with signature `symbol()` and selector `0x95d89b41`
+    #[derive(
+        Clone,
+        ::ethers::contract::EthAbiType,
+        ::ethers::contract::EthAbiCodec,
+        Default,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash
+    )]
+    pub struct SymbolReturn(pub ::std::string::String);
+    ///Container type for all return fields from the `totalSupply` function with signature `totalSupply()` and selector `0x18160ddd`
+    #[derive(
+        Clone,
+        ::ethers::contract::EthAbiType,
+        ::ethers::contract::EthAbiCodec,
+        Default,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash
+    )]
+    pub struct TotalSupplyReturn(pub ::ethers::core::types::U256);
+    ///Container type for all return fields from the `transfer` function with signature `transfer(address,uint256)` and selector `0xa9059cbb`
+    #[derive(
+        Clone,
+        ::ethers::contract::EthAbiType,
+        ::ethers::contract::EthAbiCodec,
+        Default,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash
+    )]
+    pub struct TransferReturn(pub bool);
+    ///Container type for all return fields from the `transferFrom` function with signature `transferFrom(address,address,uint256)` and selector `0x23b872dd`
+    #[derive(
+        Clone,
+        ::ethers::contract::EthAbiType,
+        ::ethers::contract::EthAbiCodec,
+        Default,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash
+    )]
+    pub struct TransferFromReturn(pub bool);
 }

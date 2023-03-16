@@ -7,7 +7,7 @@ edition = "2021"
 
 [dependencies]
 # Local
-bindings = { path = "../bindings" }
+bindings_old = { path = "../bindings_old" }
 utils = { path = "../utils" }
 
 # External
