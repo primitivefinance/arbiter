@@ -1,3 +1,4 @@
+#![allow(deprecated)]
 #![warn(missing_docs)]
 #![warn(unsafe_code)]
 
@@ -16,6 +17,8 @@ use url::Url;
 
 /// Type that represents an `Architect`, a transaction executor designed to
 /// execute, simulate and bundle arbitrage opportunities.
+#[allow(warnings)]
+#[deprecated(since = "0.0.1", note = "will be useful for actors in the future")]
 #[derive(Debug)]
 pub struct Architect<S>
 where
@@ -29,6 +32,8 @@ where
 
 /// Errors for bundle construction or execution.
 #[derive(Error, Debug)]
+#[deprecated(since = "0.0.1", note = "will be useful for actors in the future")]
+#[allow(warnings)]
 pub enum ArchitectError {
     /// Error with parsing the Flashbots relay URL.
     #[error(transparent)]
@@ -44,8 +49,11 @@ pub enum ArchitectError {
 }
 
 /// Type that represents an execution result from either a send or simulation.
+#[deprecated(since = "0.0.1", note = "will be useful for actors in the future")]
+#[allow(warnings)]
 pub type ExecutionResult<T> = Result<T, FlashbotsMiddlewareError<Provider<Http>, LocalWallet>>;
-
+#[deprecated(since = "0.0.1", note = "will be useful for actors in the future")]
+#[allow(warnings)]
 impl<S: Signer> Architect<S> {
     /// Public constructor function that instantiates an `Architect`.
     pub async fn new(provider: Provider<Http>, wallet: S) -> Result<Self, ArchitectError> {
@@ -79,6 +87,8 @@ impl<S: Signer> Architect<S> {
     }
 
     /// Add and sign a transaction to the bundle to be executed.
+    #[deprecated(since = "0.0.1", note = "will be useful for actors in the future")]
+    #[allow(warnings)]
     pub async fn add_transactions(
         mut self,
         transactions: &Vec<TypedTransaction>,
@@ -96,11 +106,15 @@ impl<S: Signer> Architect<S> {
     }
 
     /// Simulate bundle execution.
+    #[deprecated(since = "0.0.1", note = "will be useful for actors in the future")]
+    #[allow(warnings)]
     pub async fn simulate(&mut self) -> ExecutionResult<SimulatedBundle> {
         self.client.inner().simulate_bundle(&self.bundle).await
     }
 
     /// Send the bundle.
+    #[allow(warnings)]
+    #[deprecated(since = "0.0.1", note = "will be useful for actors in the future")]
     pub async fn send(
         &mut self,
     ) -> ExecutionResult<

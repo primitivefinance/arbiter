@@ -5,6 +5,8 @@ use thiserror::Error;
 
 /// Error enumeration type for the `uniswap` module of `clairvoyance`.
 #[derive(Debug, Error)]
+#[deprecated(since = "0.0.1", note = "will be useful for actors in the future")]
+#[allow(warnings)]
 pub enum UniswapError {
     /// Error occured when fetching data from the Uniswap contract.
     #[error(transparent)]

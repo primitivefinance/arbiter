@@ -7,11 +7,13 @@ use std::sync::Arc;
 use bindings::{i_uniswap_v3_pool::IUniswapV3Pool, uniswap_v3_factory::UniswapV3Factory};
 use ethers::{abi::Address, prelude::*, providers::Provider, types::H160};
 use num_bigfloat::BigFloat;
+#[allow(warnings)]
 use utils::{
     chain_tools::convert_q64_96,
     tokens::{get_tokens, Token},
 };
 
+#[allow(warnings)]
 use crate::error::UniswapError;
 
 /// Uniswap V3 factory address.
@@ -19,6 +21,8 @@ const FACTORY: &str = "0x1F98431c8aD98523631AE4a59f267346ea31F984";
 
 /// Representation of a pool.
 #[derive(Debug, Clone)]
+#[deprecated(since = "0.0.1", note = "will be useful for agents in the future")]
+#[allow(warnings)]
 pub struct Pool {
     /// Token 0.
     token_0: Token,
@@ -39,7 +43,7 @@ pub struct Pool {
     /// sqrt_price_x96
     sqrt_price_x96: ethers::types::U256,
 }
-
+#[allow(warnings)]
 impl Pool {
     /// Public constructor function that instantiates a `Pool`.
     pub async fn new(
@@ -127,15 +131,12 @@ impl Pool {
     pub fn get_sqrt_price_x96(&self) -> ethers::types::U256 {
         self.sqrt_price_x96
     }
-
     fn set_tick(&mut self, tick: i32) {
         self.tick = tick;
     }
-
     fn set_liquidity(&mut self, liquidity: u128) {
         self.liquidity = liquidity;
     }
-
     fn set_sqrt_price_x96(&mut self, sqrt_price_x96: ethers::types::U256) {
         self.sqrt_price_x96 = sqrt_price_x96;
     }
@@ -220,6 +221,7 @@ impl Pool {
 }
 
 /// Wrapper function to easily create a pool.
+#[allow(warnings)]
 pub async fn get_pool(
     token0: &String,
     token1: &String,
@@ -246,6 +248,7 @@ pub async fn get_pool(
 }
 
 /// Get a sample test pool.
+#[allow(warnings)]
 pub async fn _get_test_pool(bp: String, provider: Arc<Provider<Http>>) -> Pool {
     let tokens = get_tokens();
     Pool::new(
@@ -260,6 +263,7 @@ pub async fn _get_test_pool(bp: String, provider: Arc<Provider<Http>>) -> Pool {
 
 /// Takes in UniswapV3's sqrt_price_x96 (a q64_96 fixed point number) and outputs the price in human readable form.
 /// See Uniswap's documentation: <https://docs.uniswap.org/sdk/guides/fetching-prices>
+#[allow(warnings)]
 pub fn compute_price(tokens: (Token, Token), sqrt_price_x96: U256, pool_token_0: H160) -> BigFloat {
     let diff_decimals: BigFloat = ((tokens.0.decimals as i16) - (tokens.1.decimals as i16)).into();
     if pool_token_0 == tokens.0.address {
@@ -276,6 +280,7 @@ pub fn compute_price(tokens: (Token, Token), sqrt_price_x96: U256, pool_token_0:
 }
 
 #[cfg(test)]
+#[allow(warnings)]
 mod tests {
     use std::sync::Arc;
 
