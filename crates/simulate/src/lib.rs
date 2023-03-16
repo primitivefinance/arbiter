@@ -6,7 +6,7 @@ mod tests {
     use std::str::FromStr;
 
     use bindings;
-    use ethers::{prelude::BaseContract};
+    use ethers::prelude::BaseContract;
     use revm::primitives::{ruint::Uint, ExecutionResult, Output, TransactTo, B160};
 
     use crate::execution::{ExecutionManager, SimulationContract};

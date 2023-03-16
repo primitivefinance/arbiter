@@ -12,6 +12,7 @@ use utils::{
     chain_tools::convert_q64_96,
     tokens::{get_tokens, Token},
 };
+
 #[allow(warnings)]
 use crate::error::UniswapError;
 
@@ -20,7 +21,7 @@ const FACTORY: &str = "0x1F98431c8aD98523631AE4a59f267346ea31F984";
 
 /// Representation of a pool.
 #[derive(Debug, Clone)]
-#[deprecated(since = "0.0.1", note = "will be useful for actors in the future")]
+#[deprecated(since = "0.0.1", note = "will be useful for agents in the future")]
 #[allow(warnings)]
 pub struct Pool {
     /// Token 0.

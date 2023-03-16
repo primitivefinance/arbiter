@@ -1,9 +1,7 @@
 use std::str::FromStr;
 
 use clap::{CommandFactory, Parser, Subcommand};
-use ethers::{
-    prelude::BaseContract,
-};
+use ethers::prelude::BaseContract;
 use ethers_core::types::U256;
 use eyre::Result;
 use revm::primitives::{ruint::Uint, AccountInfo, ExecutionResult, Output, TransactTo, B160};
@@ -28,7 +26,6 @@ struct Args {
 
 #[derive(Subcommand)]
 enum Commands {
-    /// Access the `Clairvoyance` monitoring module via this subcommand.
     Sim {
         /// Path to config.toml containing simulation parameterization (optional)
         #[arg(short, long, default_value = "./crates/cli/src/config.toml", num_args = 0..=1)]
