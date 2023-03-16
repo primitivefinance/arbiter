@@ -8,3 +8,6 @@
 [submodule "lib/solstat"]
 	path = lib/solstat
 	url = https://github.com/primitivefinance/solstat
+[submodule "lib/portfolio"]
+	path = lib/portfolio
+	url = https://github.com/primitivefinance/portfolio
