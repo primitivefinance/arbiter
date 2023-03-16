@@ -1,3 +1,5 @@
+use std::collections::HashSet;
+
 use ethers::{abi::Tokenize, prelude::BaseContract};
 use revm::{
     db::{CacheDB, EmptyDB},
@@ -81,6 +83,17 @@ impl ExecutionManager {
         contract: SimulationContract<NotDeployed>,
         args: T,
     ) -> SimulationContract<IsDeployed> {
+        // Get list of previous addresses (before running the current deploy being called) in the DB
+        let previous_addresses = self
+            .evm
+            .db()
+            .unwrap()
+            .clone()
+            .accounts
+            .into_iter()
+            .map(|(address, _)| address)
+            .collect::<HashSet<B160>>();
+
         // Append constructor args (if available) to generate the deploy bytecode;
         let constructor = contract.base_contract.abi().constructor();
         let bytecode = match constructor {
@@ -92,16 +105,22 @@ impl ExecutionManager {
 
         self.execute(sender, bytecode, TransactTo::create(), Uint::from(0));
 
-        let contract_address = self
+        // Get list of new addresses (after running the current deploy being called) in the DB
+        let new_addresses = self
             .evm
             .db()
             .unwrap()
             .clone()
             .accounts
             .into_iter()
-            .nth(2)
-            .unwrap()
-            .0;
+            .map(|(address, _)| address)
+            .collect::<HashSet<B160>>();
+
+        // Since we only added a single address, the contract address must be the new address found in the difference of the two sets of addresses
+        let contract_address = *new_addresses
+            .difference(&previous_addresses)
+            .next()
+            .unwrap();
 
         contract.to_deployed(contract_address)
     }
