@@ -11,7 +11,7 @@ use utils::{
     chain_tools::convert_q64_96,
     tokens::{get_tokens, Token},
 };
-
+#[allow(warnings)]
 use crate::error::UniswapError;
 
 /// Uniswap V3 factory address.
@@ -19,6 +19,8 @@ const FACTORY: &str = "0x1F98431c8aD98523631AE4a59f267346ea31F984";
 
 /// Representation of a pool.
 #[derive(Debug, Clone)]
+#[deprecated(since = "0.0.1", note = "will be useful for actors in the future")]
+#[allow(warnings)]
 pub struct Pool {
     /// Token 0.
     token_0: Token,
@@ -39,7 +41,7 @@ pub struct Pool {
     /// sqrt_price_x96
     sqrt_price_x96: ethers::types::U256,
 }
-
+#[allow(warnings)]
 impl Pool {
     /// Public constructor function that instantiates a `Pool`.
     pub async fn new(
@@ -127,15 +129,12 @@ impl Pool {
     pub fn get_sqrt_price_x96(&self) -> ethers::types::U256 {
         self.sqrt_price_x96
     }
-
     fn set_tick(&mut self, tick: i32) {
         self.tick = tick;
     }
-
     fn set_liquidity(&mut self, liquidity: u128) {
         self.liquidity = liquidity;
     }
-
     fn set_sqrt_price_x96(&mut self, sqrt_price_x96: ethers::types::U256) {
         self.sqrt_price_x96 = sqrt_price_x96;
     }
@@ -220,6 +219,7 @@ impl Pool {
 }
 
 /// Wrapper function to easily create a pool.
+#[allow(warnings)]
 pub async fn get_pool(
     token0: &String,
     token1: &String,
@@ -246,6 +246,7 @@ pub async fn get_pool(
 }
 
 /// Get a sample test pool.
+#[allow(warnings)]
 pub async fn _get_test_pool(bp: String, provider: Arc<Provider<Http>>) -> Pool {
     let tokens = get_tokens();
     Pool::new(
@@ -276,6 +277,7 @@ pub fn compute_price(tokens: (Token, Token), sqrt_price_x96: U256, pool_token_0:
 }
 
 #[cfg(test)]
+#[allow(warnings)]
 mod tests {
     use std::sync::Arc;
 

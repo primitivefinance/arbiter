@@ -3,6 +3,7 @@ use std::collections::HashMap;
 use ethers::types::{Address, H160};
 
 /// Insert a token to the HashMap.
+#[deprecated(since = "0.0.1", note = "will be useful for actors in the future")]
 macro_rules! token_insert {
     (
         $address:expr,
@@ -19,6 +20,7 @@ macro_rules! token_insert {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
+#[deprecated(since = "0.0.1", note = "will be useful for actors in the future")]
 /// Represents an ERC20 token.
 pub struct Token {
     /// Address of the token.
@@ -30,7 +32,8 @@ pub struct Token {
     /// Whether the token is a stablecoin.
     pub is_stable: bool,
 }
-
+#[deprecated(since = "0.0.1", note = "will be useful for actors in the future")]
+#[allow(warnings)]
 impl Token {
     /// Public builder function that instantiates a `Token`.
     pub fn new(address: H160, decimals: u16, name: String, is_stable: bool) -> Self {
@@ -44,6 +47,8 @@ impl Token {
 }
 
 // return hashmap, name = key, value = token object
+#[deprecated(since = "0.0.1", note = "will be useful for actors in the future")]
+#[allow(warnings)]
 pub fn get_tokens() -> HashMap<String, Token> {
     let mut tokens = HashMap::new();
 
