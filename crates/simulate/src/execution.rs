@@ -1,9 +1,7 @@
-use std::collections::HashSet;
-
 use ethers::{abi::Tokenize, prelude::BaseContract};
 use revm::{
     db::{CacheDB, EmptyDB},
-    primitives::{ruint::Uint, ExecutionResult, TransactTo, B160, U256},
+    primitives::{ruint::Uint, ExecutionResult, Output, TransactTo, B160, U256},
     EVM,
 };
 
@@ -83,17 +81,6 @@ impl ExecutionManager {
         contract: SimulationContract<NotDeployed>,
         args: T,
     ) -> SimulationContract<IsDeployed> {
-        // Get list of previous addresses (before running the current deploy being called) in the DB
-        let previous_addresses = self
-            .evm
-            .db()
-            .unwrap()
-            .clone()
-            .accounts
-            .into_iter()
-            .map(|(address, _)| address)
-            .collect::<HashSet<B160>>();
-
         // Append constructor args (if available) to generate the deploy bytecode;
         let constructor = contract.base_contract.abi().constructor();
         let bytecode = match constructor {
@@ -103,24 +90,16 @@ impl ExecutionManager {
             None => contract.bytecode.clone(),
         };
 
-        self.execute(sender, bytecode, TransactTo::create(), Uint::from(0));
-
-        // Get list of new addresses (after running the current deploy being called) in the DB
-        let new_addresses = self
-            .evm
-            .db()
-            .unwrap()
-            .clone()
-            .accounts
-            .into_iter()
-            .map(|(address, _)| address)
-            .collect::<HashSet<B160>>();
-
-        // Since we only added a single address, the contract address must be the new address found in the difference of the two sets of addresses
-        let contract_address = *new_addresses
-            .difference(&previous_addresses)
-            .next()
-            .unwrap();
+        // Take the execution result and extract the contract address.
+        let execution_result = self.execute(sender, bytecode, TransactTo::create(), Uint::from(0));
+        let output = match execution_result {
+            ExecutionResult::Success { output, .. } => output,
+            _ => panic!("failed"),
+        };
+        let contract_address = match output {
+            Output::Create(_, address) => address.unwrap(),
+            _ => panic!("failed"),
+        };
 
         contract.to_deployed(contract_address)
     }
