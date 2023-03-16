@@ -4,6 +4,7 @@ use revm::{
     primitives::{ruint::Uint, ExecutionResult, TransactTo, B160, U256},
     EVM,
 };
+use std::collections::HashSet;
 
 #[derive(Debug)]
 pub struct NotDeployed;
@@ -81,6 +82,17 @@ impl ExecutionManager {
         contract: SimulationContract<NotDeployed>,
         args: T,
     ) -> SimulationContract<IsDeployed> {
+        // Get list of previous addresses (before running the current deploy being called) in the DB
+        let previous_addresses = self
+            .evm
+            .db()
+            .unwrap()
+            .clone()
+            .accounts
+            .into_iter()
+            .map(|(address, _)| address)
+            .collect::<HashSet<B160>>();
+
         // Append constructor args (if available) to generate the deploy bytecode;
         let constructor = contract.base_contract.abi().constructor();
         let bytecode = match constructor {
@@ -91,17 +103,28 @@ impl ExecutionManager {
         };
 
         self.execute(sender, bytecode, TransactTo::create(), Uint::from(0));
+        
+        // let contract_address = self
+        //     .evm
+        //     .db()
+        //     .unwrap()
+        //     .clone()
+        //     .accounts
+        //     .into_iter()
+        //     .nth(2)
+        //     .unwrap()
+        //     .0;
+        let new_addresses = self
+        .evm
+        .db()
+        .unwrap()
+        .clone()
+        .accounts
+        .into_iter()
+        .map(|(address, _)| address)
+        .collect::<HashSet<B160>>();
 
-        let contract_address = self
-            .evm
-            .db()
-            .unwrap()
-            .clone()
-            .accounts
-            .into_iter()
-            .nth(2)
-            .unwrap()
-            .0;
+        let contract_address = *new_addresses.difference(&previous_addresses).nth(0).unwrap();
 
         contract.to_deployed(contract_address)
     }

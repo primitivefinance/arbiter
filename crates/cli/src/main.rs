@@ -113,6 +113,17 @@ async fn main() -> Result<()> {
             // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
             // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+            // Deploy the WETH contract.
+            // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+            let weth = SimulationContract::new(
+                BaseContract::from(bindings::weth9::WETH9_ABI.clone()),
+                bindings::weth9::WRITER_BYTECODE.clone().into_iter().collect(),
+            );
+            let weth = manager.deploy(user_address, weth, ());
+            println!("WETH deployed at: {}", weth.address.unwrap());
+            // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+            // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
             // Deploy the Arbiter Token ERC-20 contract.
             // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
             // Get a SimulationContract for the Arbiter Token ERC-20 instance from the ABI and bytecode.
@@ -131,6 +142,10 @@ async fn main() -> Result<()> {
 
             // Call the contract deployer and receive a IsDeployed version of SimulationContract that now has an address.
             let arbiter_token = manager.deploy(user_address, arbiter_token, args);
+            println!("Arbiter Token deployed at: {}", arbiter_token.address.unwrap());
+
+            // TESTING ADDRESSES
+            println!("Accounts in DB: {:#?}", manager.evm.db().unwrap().accounts.keys());
 
             // Generate calldata for the 'name' function
             let call_data = arbiter_token
@@ -140,7 +155,7 @@ async fn main() -> Result<()> {
                 .collect();
 
             // Execute the call to retrieve the token name as a test. (TODO: Some of this should be written as tests properly)
-            let result1 = manager.execute(
+            let result = manager.execute(
                 user_address,
                 call_data,
                 TransactTo::Call(arbiter_token.address.unwrap()),
@@ -148,7 +163,7 @@ async fn main() -> Result<()> {
             );
 
             // unpack output call enum into raw bytes
-            let value = match result1 {
+            let value = match result {
                 ExecutionResult::Success { output, .. } => match output {
                     Output::Call(value) => Some(value),
                     Output::Create(_, Some(_)) => None,
