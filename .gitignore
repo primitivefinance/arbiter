@@ -13,7 +13,5 @@ Cargo.lock
 /out/
 *.html
 
-
-/src/
 .DS_Store
 # /contracts/*
