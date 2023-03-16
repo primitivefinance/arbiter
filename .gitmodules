@@ -1,13 +1,6 @@
 [submodule "lib/ds-test"]
 	path = lib/ds-test
 	url = https://github.com/dapphub/ds-test
-[submodule "lib/solmate"]
-	path = lib/solmate
-	url = https://github.com/transmissions11/solmate
-	branch = v7
-[submodule "lib/solstat"]
-	path = lib/solstat
-	url = https://github.com/primitivefinance/solstat
 [submodule "lib/portfolio"]
 	path = lib/portfolio
 	url = https://github.com/primitivefinance/portfolio
