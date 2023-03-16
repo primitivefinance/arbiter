@@ -177,12 +177,12 @@ async fn main() -> Result<()> {
                 BaseContract::from(bindings::rmm01_portfolio::RMM01PORTFOLIO_ABI.clone()),
                 bindings::rmm01_portfolio::RMM01PORTFOLIO_BYTECODE.clone().into_iter().collect()
             );
-            let weth = Some(Address); // Needs to be Weth
-            let registry = Some(Address); // Need to ask alex about this
-            let args = (weth.unwrap().to_string(), registry.unwrap().to_string());
+            // let weth = Some(Address); // Needs to be Weth
+            // let registry = Some(Address); // Need to ask alex about this
+            // let args = (weth.unwrap().to_string(), registry.unwrap().to_string());
 
 
-            let portfolio_deploy = manager.deploy(user_address, portfolio, args);
+            // let portfolio_deploy = manager.deploy(user_address, portfolio, args);
 
     
         }
