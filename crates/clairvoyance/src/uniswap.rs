@@ -7,6 +7,7 @@ use std::sync::Arc;
 use bindings::{i_uniswap_v3_pool::IUniswapV3Pool, uniswap_v3_factory::UniswapV3Factory};
 use ethers::{abi::Address, prelude::*, providers::Provider, types::H160};
 use num_bigfloat::BigFloat;
+#[allow(warnings)]
 use utils::{
     chain_tools::convert_q64_96,
     tokens::{get_tokens, Token},
@@ -261,6 +262,7 @@ pub async fn _get_test_pool(bp: String, provider: Arc<Provider<Http>>) -> Pool {
 
 /// Takes in UniswapV3's sqrt_price_x96 (a q64_96 fixed point number) and outputs the price in human readable form.
 /// See Uniswap's documentation: <https://docs.uniswap.org/sdk/guides/fetching-prices>
+#[allow(warnings)]
 pub fn compute_price(tokens: (Token, Token), sqrt_price_x96: U256, pool_token_0: H160) -> BigFloat {
     let diff_decimals: BigFloat = ((tokens.0.decimals as i16) - (tokens.1.decimals as i16)).into();
     if pool_token_0 == tokens.0.address {
