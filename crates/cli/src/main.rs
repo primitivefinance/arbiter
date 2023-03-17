@@ -93,10 +93,15 @@ async fn main() -> Result<()> {
                     .collect(),
             );
             // println!("portfolio bytecode at: {:#?}", portfolio.bytecode);
+            let weth_address_recast: [u8; 20] = weth.address.unwrap().as_bytes().try_into()?;
+            let weth_address_recast: Address = Address::from(weth_address_recast);
+            
+            let registry_address_recast: [u8; 20] = register.address.unwrap().as_bytes().try_into()?;
+            let registry_address_recast: Address = Address::from(registry_address_recast);
 
             let portfolio_args = (
-                weth.address.unwrap().to_string(),
-                register.address.unwrap().to_string(),
+                weth_address_recast,
+                registry_address_recast,
             );
             let portfolio = manager.deploy(user_address, portfolio, portfolio_args);
             println!("portfolio deployed at: {}", portfolio.address.unwrap());
