@@ -10,4 +10,4 @@ ethers-flashbots = "0.12.1"
 tokio = { version = "1.17.0", features = ["macros"] }
 url = { version = "2.3.1", default-features = false }
 thiserror = "1.0.38"
-ethers = "=1.0.2"
+ethers = "=2.0.0"
