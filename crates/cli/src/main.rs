@@ -8,7 +8,8 @@ use revm::primitives::{
     env, ruint::Uint, Account, AccountInfo, ExecutionResult, Output, TransactTo, B160,
 };
 use simulate::{
-    environment::{SimulationContract, SimulationEnvironment, recast_address},
+    environment::recast_address,
+    agent::{SimulationContract, SimulationManager},
     price_simulation::PriceSimulation,
 };
 mod config;
@@ -47,9 +48,9 @@ async fn main() -> Result<()> {
 
     match &args.command {
         Some(Commands::Sim { config: _ }) => {
-            // Create a `SimulationEnvironment` where we can run simulations.
+            // Create a `SimulationManager` that runs simulations in their `SimulationEnvironment`.
             // This will create an EVM instance along with an admin user account.
-            let mut environment = SimulationEnvironment::new();
+            let mut manager = SimulationManager::new();
 
             // Deploy the WETH contract.
             let weth = SimulationContract::new(
@@ -59,7 +60,7 @@ async fn main() -> Result<()> {
                     .into_iter()
                     .collect(),
             );
-            let weth = environment.deploy(weth, ());
+            let weth = manager.deploy(weth, ());
             println!("WETH deployed at: {}", weth.address.unwrap());
 
             // Deploy the registry contract.
@@ -70,7 +71,7 @@ async fn main() -> Result<()> {
                     .into_iter()
                     .collect(),
             );
-            let registry = environment.deploy(registry, ());
+            let registry = manager.deploy(registry, ());
             println!("Simple registry deployed at: {}", registry.address.unwrap());
 
             // Deploy the portfolio contract.
@@ -86,7 +87,7 @@ async fn main() -> Result<()> {
                 recast_address(weth.address.unwrap()),
                 recast_address(registry.address.unwrap()),
             );
-            let portfolio = environment.deploy(portfolio, portfolio_args);
+            let portfolio = manager.deploy(portfolio, portfolio_args);
             println!("Portfolio deployed at: {}", portfolio.address.unwrap());
         }
         Some(Commands::Gbm { config }) => {

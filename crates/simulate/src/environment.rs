@@ -1,5 +1,5 @@
 use std::collections::HashMap;
-use crate::agent::{Agent, Admin};
+use crate::agent::{Agent, SimulationManager};
 use ethers::{abi::Tokenize, prelude::{BaseContract, Address}};
 use revm::{
     db::{CacheDB, EmptyDB},
@@ -7,43 +7,9 @@ use revm::{
     EVM,
 };
 
-#[derive(Debug)]
-pub struct NotDeployed;
-#[derive(Debug)]
-pub struct IsDeployed;
 
-#[derive(Debug)]
-pub struct SimulationContract<Deployed> {
-    pub base_contract: BaseContract,
-    pub bytecode: Vec<u8>,
-    pub address: Option<B160>, //TODO: Options may not be the best thing here. Also, B160 might not and Address=H160 might be. 
-    pub deployed: std::marker::PhantomData<Deployed>,
-}
-
-impl SimulationContract<NotDeployed> {
-    pub fn new(base_contract: BaseContract, bytecode: Vec<u8>) -> Self {
-        Self {
-            base_contract,
-            bytecode,
-            address: None,
-            deployed: std::marker::PhantomData,
-        }
-    }
-
-    fn to_deployed(&self, address: B160) -> SimulationContract<IsDeployed> {
-        SimulationContract {
-            base_contract: self.base_contract.clone(),
-            bytecode: self.bytecode.clone(),
-            address: Some(address),
-            deployed: std::marker::PhantomData,
-        }
-    }
-}
-
-// #[derive(Default)] // Not sure this was ever necessary
 pub struct SimulationEnvironment {
     pub evm: EVM<CacheDB<EmptyDB>>,
-    pub admin: Admin,
     pub agents: HashMap<String, Box<dyn Agent>>,
 }
 
@@ -57,13 +23,11 @@ impl SimulationEnvironment {
 
         Self {
             evm,
-            admin: Admin::new(),
-            agents: HashMap::new(), 
+            agents: HashMap::new(), // This will only store agents that aren't the manager.
         }
     }
 
     /// Execute a transaction.
-    /// TODO: An agent should be making calls, but the calls should probably just call execute?
     pub fn execute(
         &mut self,
         sender: B160,
@@ -81,43 +45,6 @@ impl SimulationEnvironment {
             // URGENT: change this to a custom error
             Err(_) => panic!("failed"),
         }
-    }
-
-    /// Deploy a contract. We will assume the sender is always the admin.
-    /// TODO: This should call `recast_address` when a B160 is passed as an arg. Not sure how to handle this yet.
-    /// Given the above comments there should be a nice way to do this.
-    pub fn deploy<T: Tokenize>(
-        &mut self,
-        contract: SimulationContract<NotDeployed>,
-        args: T,
-    ) -> SimulationContract<IsDeployed> {
-        // Append constructor args (if available) to generate the deploy bytecode;
-        let constructor = contract.base_contract.abi().constructor();
-        let bytecode = match constructor {
-            Some(constructor) => constructor
-                .encode_input(contract.bytecode.clone(), &args.into_tokens())
-                .unwrap(),
-            None => contract.bytecode.clone(),
-        };
-
-        // Take the execution result and extract the contract address.
-        let execution_result = self.execute(
-            self.admin.address,
-            bytecode,
-            TransactTo::create(),
-            Uint::from(0),
-        );
-        let output = match execution_result {
-            ExecutionResult::Success { output, .. } => output,
-            ExecutionResult::Revert { output, .. } => panic!("Failed due to revert: {:?}", output),
-            ExecutionResult::Halt { reason, .. } => panic!("Failed due to halt: {:?}", reason),
-        };
-        let contract_address = match output {
-            Output::Create(_, address) => address.unwrap(),
-            _ => panic!("failed"),
-        };
-
-        contract.to_deployed(contract_address)
     }
     
     /// Create a user account.
