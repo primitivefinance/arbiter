@@ -77,7 +77,7 @@ async fn main() -> Result<()> {
                 BaseContract::from(bindings::simple_registry::SIMPLEREGISTRY_ABI.clone()),
                 bindings::simple_registry::SIMPLEREGISTRY_BYTECODE
                     .clone()
-                    .clone()
+                    
                     .into_iter()
                     .collect(),
             );
@@ -88,7 +88,7 @@ async fn main() -> Result<()> {
                 BaseContract::from(bindings::rmm01_portfolio::RMM01PORTFOLIO_ABI.clone()),
                 bindings::rmm01_portfolio::RMM01PORTFOLIO_BYTECODE
                     .clone()
-                    .clone()
+                    
                     .into_iter()
                     .collect(),
             );
