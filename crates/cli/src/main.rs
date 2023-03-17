@@ -1,20 +1,12 @@
-use std::str::FromStr;
-
 use clap::{CommandFactory, Parser, Subcommand};
 use ethers::prelude::BaseContract;
-use ethers_core::types::U256;
 use eyre::Result;
-use revm::primitives::{
-    env, ruint::Uint, Account, AccountInfo, ExecutionResult, Output, TransactTo, B160,
-};
 use simulate::{
-    environment::recast_address,
     agent::{SimulationContract, SimulationManager},
+    environment::recast_address,
     price_simulation::PriceSimulation,
 };
 mod config;
-
-use ethabi::ethereum_types::Address; // Can try this or ethers::prelude::Address, remove ethabi in Cargo.toml if unused.
 
 #[derive(Parser)]
 #[command(name = "Arbiter")]
@@ -50,7 +42,7 @@ async fn main() -> Result<()> {
         Some(Commands::Sim { config: _ }) => {
             // Create a `SimulationManager` that runs simulations in their `SimulationEnvironment`.
             // This will create an EVM instance along with an admin user account.
-            let mut manager = SimulationManager::new();
+            let mut manager = SimulationManager::default();
 
             // Deploy the WETH contract.
             let weth = SimulationContract::new(

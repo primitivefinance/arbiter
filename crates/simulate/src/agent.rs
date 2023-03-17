@@ -1,14 +1,12 @@
-use crate::environment::{self, *};
-use ethers::{abi::Tokenize, prelude::BaseContract};
-use revm::{
-    db::{CacheDB, EmptyDB},
-    primitives::{
-        ruint::Uint, Account, AccountInfo, ExecutionResult, Output, TransactTo, TxEnv, B160, U256,
-    },
-    EVM,
-};
-use bytes::Bytes;
 use std::str::FromStr;
+
+use bytes::Bytes;
+use ethers::{abi::Tokenize, prelude::BaseContract};
+use revm::primitives::{
+    Account, AccountInfo, ExecutionResult, Output, TransactTo, TxEnv, B160, U256,
+};
+
+use crate::environment::SimulationEnvironment;
 
 pub struct TransactSettings {
     pub gas_limit: u64,
@@ -44,7 +42,7 @@ impl Agent for SimulationManager {
             gas_price: self.transact_settings.gas_price,
             gas_priority_fee: None,
             transact_to: TransactTo::Call(address),
-            value: value,
+            value,
             data: call_data,
             chain_id: None,
             nonce: None,
@@ -52,13 +50,12 @@ impl Agent for SimulationManager {
         }
     }
 }
-
-impl SimulationManager {
-    pub fn new() -> Self {
+impl Default for SimulationManager {
+    fn default() -> Self {
         Self {
             address: B160::from_str("0x0000000000000000000000000000000000000001").unwrap(),
             account: Account::from(AccountInfo::default()),
-            environment: SimulationEnvironment::new(),
+            environment: SimulationEnvironment::default(),
             transact_settings: TransactSettings {
                 gas_limit: u64::MAX,
                 gas_price: U256::ZERO,
@@ -66,7 +63,8 @@ impl SimulationManager {
             },
         }
     }
-
+}
+impl SimulationManager {
     fn build_deploy_transaction(&self, bytecode: Bytes) -> TxEnv {
         TxEnv {
             caller: self.address,
@@ -82,7 +80,7 @@ impl SimulationManager {
         }
     }
 
-    pub fn mint(&mut self, address: B160, amount: U256) {
+    pub fn mint(&mut self, _address: B160, _amount: U256) {
         todo!()
     }
 
@@ -96,9 +94,11 @@ impl SimulationManager {
         // Append constructor args (if available) to generate the deploy bytecode;
         let constructor = contract.base_contract.abi().constructor();
         let bytecode = match constructor {
-            Some(constructor) => Bytes::from(constructor
-                .encode_input(contract.bytecode.clone(), &args.into_tokens())
-                .unwrap()),
+            Some(constructor) => Bytes::from(
+                constructor
+                    .encode_input(contract.bytecode.clone(), &args.into_tokens())
+                    .unwrap(),
+            ),
             None => Bytes::from(contract.bytecode.clone()),
         };
 
@@ -130,7 +130,7 @@ pub struct IsDeployed;
 pub struct SimulationContract<Deployed> {
     pub base_contract: BaseContract,
     pub bytecode: Vec<u8>,
-    pub address: Option<B160>, //TODO: Options may not be the best thing here. Also, B160 might not and Address=H160 might be. 
+    pub address: Option<B160>, /* TODO: Options may not be the best thing here. Also, B160 might not and Address=H160 might be. */
     pub deployed: std::marker::PhantomData<Deployed>,
 }
 
