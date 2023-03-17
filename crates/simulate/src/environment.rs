@@ -1,3 +1,4 @@
+use std::collections::HashMap;
 use crate::agent::{Agent, Admin};
 use ethers::{abi::Tokenize, prelude::{BaseContract, Address}};
 use revm::{
@@ -43,7 +44,7 @@ impl SimulationContract<NotDeployed> {
 pub struct SimulationEnvironment {
     pub evm: EVM<CacheDB<EmptyDB>>,
     pub admin: Admin,
-    pub agents: Vec<Box<dyn Agent>>,
+    pub agents: HashMap<String, Box<dyn Agent>>,
 }
 
 impl SimulationEnvironment {
@@ -57,7 +58,7 @@ impl SimulationEnvironment {
         Self {
             evm,
             admin: Admin::new(),
-            agents: vec![], // TODO: This should be a hashmap of agents? 
+            agents: HashMap::new(), 
         }
     }
 

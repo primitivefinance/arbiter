@@ -41,4 +41,6 @@ impl Admin {
     pub fn mint(&mut self, address: B160, amount: U256) {
         todo!()
     }
+
+    
 }

@@ -177,6 +177,5 @@ mod tests {
                 .decode_output("balanceOf", value.unwrap()).unwrap();
 
             assert_eq!(response, mint_amount); // Check that the value minted is correct.
-            // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     }
 }
