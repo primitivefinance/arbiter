@@ -94,8 +94,8 @@ impl ExecutionManager {
         let execution_result = self.execute(sender, bytecode, TransactTo::create(), Uint::from(0));
         let output = match execution_result {
             ExecutionResult::Success { output, .. } => output,
-            ExecutionResult::Revert  { output, ..} => panic!("Failed due to revert: {:?}", output),
-            ExecutionResult::Halt  { reason, ..} => panic!("Failed due to halt: {:?}", reason),
+            ExecutionResult::Revert { output, .. } => panic!("Failed due to revert: {:?}", output),
+            ExecutionResult::Halt { reason, .. } => panic!("Failed due to halt: {:?}", reason),
         };
         let contract_address = match output {
             Output::Create(_, address) => address.unwrap(),
