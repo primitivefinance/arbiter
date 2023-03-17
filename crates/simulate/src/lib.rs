@@ -1,21 +1,21 @@
-pub mod execution;
+pub mod agent;
+pub mod environment;
 pub mod price_simulation;
 
 #[cfg(test)]
 mod tests {
+    use bindings;
+    use ethers::prelude::{BaseContract, Address, U256};
+    use revm::primitives::{ruint::Uint, ExecutionResult, Output, TransactTo, B160};
     use std::str::FromStr;
 
-    use bindings;
-    use ethers::prelude::BaseContract;
-    use revm::primitives::{ruint::Uint, ExecutionResult, Output, TransactTo, B160};
-
-    use crate::execution::{ExecutionManager, SimulationContract};
+    use crate::environment::{SimulationContract, SimulationEnvironment, recast_address};
     #[test]
     /// Test that the writer contract can echo a string.
     /// The writer contract takes in no args.
     fn test_string_write() {
         // Set up the execution manager and a user address.
-        let mut manager = ExecutionManager::new();
+        let mut manager = SimulationEnvironment::new();
         let user_address = B160::from_str("0x0000000000000000000000000000000000000001").unwrap();
 
         // Get bytecode and abi for the writer contract.
@@ -28,7 +28,7 @@ mod tests {
         );
 
         // Deploy the writer contract.
-        let writer = manager.deploy(user_address, writer, ());
+        let writer = manager.deploy(writer, ());
 
         // Generate calldata for the 'echoString' function
         let test_string = "Hello, world!";
@@ -65,5 +65,118 @@ mod tests {
 
         println!("Minting Response: {response:#?}");
         assert_eq!(response, test_string);
+    }
+
+    #[test]
+    fn test_token_mint() {
+                    // Create a `SimulationEnvironment` where we can run simulations.
+            // This will create an EVM instance along with an admin user account.
+            let mut environment = SimulationEnvironment::new();
+            // Get a SimulationContract for the Arbiter Token ERC-20 instance from the ABI and bytecode.
+            let arbiter_token = SimulationContract::new(
+                BaseContract::from(bindings::arbiter_token::ARBITERTOKEN_ABI.clone()),
+                bindings::arbiter_token::ARBITERTOKEN_BYTECODE
+                    .clone()
+                    .into_iter()
+                    .collect(),
+            );
+
+            // Choose name and symbol and combine into the constructor args required by ERC-20 contracts.
+            let name = "ArbiterToken";
+            let symbol = "ARBT";
+            let args = (name.to_string(), symbol.to_string());
+
+            // Call the contract deployer and receive a IsDeployed version of SimulationContract that now has an address.
+            let arbiter_token = environment.deploy(arbiter_token, args);
+            println!(
+                "Arbiter Token deployed at: {}",
+                arbiter_token.address.unwrap()
+            );
+
+            // Generate calldata for the 'name' function
+            let call_data = arbiter_token
+                .base_contract
+                .encode("name", ()).unwrap()
+                .into_iter()
+                .collect();
+
+            // Execute the call to retrieve the token name as a test.  //TODO: We need to make an agent make the calls
+            let result = environment.execute(
+                environment.admin.address,
+                call_data,
+                TransactTo::Call(arbiter_token.address.unwrap()),
+                Uint::from(0),
+            );
+
+            // unpack output call enum into raw bytes
+            let value = match result {
+                ExecutionResult::Success { output, .. } => match output {
+                    Output::Call(value) => Some(value),
+                    Output::Create(_, Some(_)) => None,
+                    _ => None,
+                },
+                _ => None,
+            };
+
+            let response: String = arbiter_token
+                .base_contract
+                .decode_output("name", value.unwrap()).unwrap();
+
+            assert_eq!(response, name); // Quick check that the name is correct.
+
+            // Allocating new tokens to user by calling Arbiter Token's ERC20 'mint' instance.
+            let mint_amount = U256::from(1000);
+
+            // Set up the calldata for the 'mint' function.
+            let input_arguments = (recast_address(environment.admin.address), mint_amount);
+            
+            let call_data = arbiter_token
+                .base_contract
+                .encode("mint", input_arguments).unwrap()
+                .into_iter()
+                .collect();
+
+            // Call the 'mint' function.
+            let _result = environment.execute(
+                environment.admin.address,
+                call_data,
+                TransactTo::Call(arbiter_token.address.unwrap()),
+                Uint::from(0),
+            ); // TODO: SOME KIND OF ERROR HANDLING IS NECESSARY FOR THESE TYPES OF CALLS
+
+            // Create a user.
+            let user_address = B160::from_str("0x0000000000000000000000000000000000000002").unwrap();
+            environment.create_user(user_address);
+
+            let call_data = arbiter_token
+                .base_contract
+                .encode("balanceOf", recast_address(environment.admin.address)).unwrap()
+                .into_iter()
+                .collect();
+
+            // Call the 'balanceOf' function.
+            let result = environment.execute(
+                environment.admin.address,
+                call_data,
+                TransactTo::Call(arbiter_token.address.unwrap()),
+                Uint::from(0),
+            );
+
+            // unpack output call enum into raw bytes
+            let value = match result {
+                ExecutionResult::Success { output, .. } => match output {
+                    Output::Call(value) => Some(value),
+                    Output::Create(_, Some(_)) => None,
+                    _ => None,
+                },
+                _ => None,
+            };
+
+            let response: U256 = arbiter_token
+                .base_contract
+                .decode_output("balanceOf", value.unwrap()).unwrap();
+
+            assert_eq!(response, mint_amount); // Check that the value minted is correct.
+            // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     }
 }
