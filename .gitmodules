@@ -4,3 +4,6 @@
 [submodule "lib/portfolio"]
 	path = lib/portfolio
 	url = https://github.com/primitivefinance/portfolio
+[submodule "lib/arbmod"]
+	path = lib/arbmod
+	url = https://github.com/primitivefinance/arbmod
