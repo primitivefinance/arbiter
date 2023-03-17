@@ -1,8 +1,9 @@
 [workspace]
 members = [
     "crates/bindings",
-    "crates/clairvoyance",
-    "crates/architect",
+    "crates/bindings_old",
+    # "crates/clairvoyance",
+    # "crates/architect",
     "crates/cli",
     "crates/utils",
     "crates/simulate"

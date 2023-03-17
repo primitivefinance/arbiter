@@ -12,8 +12,6 @@ Cargo.lock
 /cache/
 /out/
 *.html
-/lib/
 
-/src/
 .DS_Store
 # /contracts/*

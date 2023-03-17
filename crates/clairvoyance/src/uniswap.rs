@@ -4,7 +4,7 @@
 
 use std::sync::Arc;
 
-use bindings::{i_uniswap_v3_pool::IUniswapV3Pool, uniswap_v3_factory::UniswapV3Factory};
+use bindings_old::{i_uniswap_v3_pool::IUniswapV3Pool, uniswap_v3_factory::UniswapV3Factory};
 use ethers::{abi::Address, prelude::*, providers::Provider, types::H160};
 use num_bigfloat::BigFloat;
 #[allow(warnings)]

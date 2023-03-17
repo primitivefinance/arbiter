@@ -14,11 +14,11 @@ unmaintained = "warn"
 unsound = "warn"
 yanked = "warn"
 notice = "warn"
-ignore = [
-    # potential unaligned pointer read on windows. Doesn't happen in practice, don't
-    # care
-    "RUSTSEC-2021-0145",
-]
+# ignore = [
+#     # potential unaligned pointer read on windows. Doesn't happen in practice, don't
+#     # care
+#     "RUSTSEC-2021-0145",
+# ]
 severity-threshold = "medium"
 
 [bans]
@@ -58,6 +58,6 @@ exceptions = [
 name = "ring"
 expression = "LicenseRef-ring"
 license-files = [
-    { path = "LICENSE", hash = 0xbd0eed23 },
+    { path = "LICENSE", hash = 0xbd0eed23 }
 ]
 
