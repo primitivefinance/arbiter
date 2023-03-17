@@ -7,26 +7,49 @@ use revm::{
     },
     EVM,
 };
+use bytes::Bytes;
 use std::str::FromStr;
+
+pub struct TransactSettings {
+    pub gas_limit: u64,
+    pub gas_price: U256,
+    pub value: U256,
+}
 
 pub struct SimulationManager {
     pub address: B160, //TODO: Consider using Address=H160 instead of B160
     pub account: Account,
     pub environment: SimulationEnvironment,
+    pub transact_settings: TransactSettings,
 }
 
 pub trait Agent {
-    fn call(&self, environment: SimulationEnvironment, tx: TxEnv) -> ExecutionResult;
+    fn transact(&mut self, tx: TxEnv) -> ExecutionResult;
     fn storage(&self) -> U256;
+    fn build_call_transaction(&self, address: B160, call_data: Bytes, value: U256) -> TxEnv;
     // TODO: Should agents be labeled as `active` or `inactive` similarly to `IsDeployed` and `NotDeployed`?
 }
 
 impl Agent for SimulationManager {
-    fn call(&self, environment: SimulationEnvironment, tx: TxEnv) -> ExecutionResult {
-        todo!()
+    fn transact(&mut self, tx: TxEnv) -> ExecutionResult {
+        self.environment.execute(tx)
     }
     fn storage(&self) -> U256 {
         todo!()
+    }
+    fn build_call_transaction(&self, address: B160, call_data: Bytes, value: U256) -> TxEnv {
+        TxEnv {
+            caller: self.address,
+            gas_limit: self.transact_settings.gas_limit,
+            gas_price: self.transact_settings.gas_price,
+            gas_priority_fee: None,
+            transact_to: TransactTo::Call(address),
+            value: value,
+            data: call_data,
+            chain_id: None,
+            nonce: None,
+            access_list: Vec::new(),
+        }
     }
 }
 
@@ -36,6 +59,26 @@ impl SimulationManager {
             address: B160::from_str("0x0000000000000000000000000000000000000001").unwrap(),
             account: Account::from(AccountInfo::default()),
             environment: SimulationEnvironment::new(),
+            transact_settings: TransactSettings {
+                gas_limit: u64::MAX,
+                gas_price: U256::ZERO,
+                value: U256::ZERO,
+            },
+        }
+    }
+
+    fn build_deploy_transaction(&self, bytecode: Bytes) -> TxEnv {
+        TxEnv {
+            caller: self.address,
+            gas_limit: self.transact_settings.gas_limit,
+            gas_price: self.transact_settings.gas_price,
+            gas_priority_fee: None,
+            transact_to: TransactTo::create(),
+            value: U256::ZERO,
+            data: bytecode,
+            chain_id: None,
+            nonce: None,
+            access_list: Vec::new(),
         }
     }
 
@@ -53,20 +96,17 @@ impl SimulationManager {
         // Append constructor args (if available) to generate the deploy bytecode;
         let constructor = contract.base_contract.abi().constructor();
         let bytecode = match constructor {
-            Some(constructor) => constructor
+            Some(constructor) => Bytes::from(constructor
                 .encode_input(contract.bytecode.clone(), &args.into_tokens())
-                .unwrap(),
-            None => contract.bytecode.clone(),
+                .unwrap()),
+            None => Bytes::from(contract.bytecode.clone()),
         };
 
         // Take the execution result and extract the contract address.
         // Manager address will always be the sender for contract deployments.
-        let execution_result = self.environment.execute(
-            self.address,
-            bytecode,
-            TransactTo::create(),
-            Uint::from(0),
-        );
+
+        let deploy_transaction = self.build_deploy_transaction(bytecode);
+        let execution_result = self.transact(deploy_transaction);
         let output = match execution_result {
             ExecutionResult::Success { output, .. } => output,
             ExecutionResult::Revert { output, .. } => panic!("Failed due to revert: {:?}", output),

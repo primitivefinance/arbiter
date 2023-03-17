@@ -6,17 +6,16 @@ pub mod price_simulation;
 mod tests {
     use bindings;
     use ethers::prelude::{BaseContract, Address, U256};
-    use revm::primitives::{ruint::Uint, ExecutionResult, Output, TransactTo, B160};
+    use revm::primitives::{ruint::Uint, ExecutionResult, Output, TransactTo, B160, TxEnv};
     use std::str::FromStr;
 
-    use crate::environment::{SimulationContract, SimulationEnvironment, recast_address};
+    use crate::{environment::recast_address, agent::{Agent, SimulationContract, SimulationManager}};
     #[test]
     /// Test that the writer contract can echo a string.
     /// The writer contract takes in no args.
     fn test_string_write() {
         // Set up the execution manager and a user address.
-        let mut manager = SimulationEnvironment::new();
-        let user_address = B160::from_str("0x0000000000000000000000000000000000000001").unwrap();
+        let mut manager = SimulationManager::new();
 
         // Get bytecode and abi for the writer contract.
         let writer = SimulationContract::new(
@@ -41,12 +40,8 @@ mod tests {
             .collect();
 
         // Call the 'echoString' function.
-        let result = manager.execute(
-            user_address,
-            call_data,
-            TransactTo::Call(writer.address.unwrap()),
-            Uint::from(0),
-        );
+        let transaction = manager.build_call_transaction(writer.address.unwrap(), call_data, Uint::from(0));
+        let result = manager.transact(transaction);
 
         // unpack output call enum into raw bytes
         let value = match result {
@@ -69,9 +64,9 @@ mod tests {
 
     #[test]
     fn test_token_mint() {
-                    // Create a `SimulationEnvironment` where we can run simulations.
-            // This will create an EVM instance along with an admin user account.
-            let mut environment = SimulationEnvironment::new();
+            // Create a `SimulationManager` where we can run simulations.
+            // This will also create an EVM instance associated to the manager.
+            let mut manager = SimulationManager::new();
             // Get a SimulationContract for the Arbiter Token ERC-20 instance from the ABI and bytecode.
             let arbiter_token = SimulationContract::new(
                 BaseContract::from(bindings::arbiter_token::ARBITERTOKEN_ABI.clone()),
@@ -87,7 +82,7 @@ mod tests {
             let args = (name.to_string(), symbol.to_string());
 
             // Call the contract deployer and receive a IsDeployed version of SimulationContract that now has an address.
-            let arbiter_token = environment.deploy(arbiter_token, args);
+            let arbiter_token = manager.deploy(arbiter_token, args);
             println!(
                 "Arbiter Token deployed at: {}",
                 arbiter_token.address.unwrap()
@@ -100,13 +95,9 @@ mod tests {
                 .into_iter()
                 .collect();
 
-            // Execute the call to retrieve the token name as a test.  //TODO: We need to make an agent make the calls
-            let result = environment.execute(
-                environment.admin.address,
-                call_data,
-                TransactTo::Call(arbiter_token.address.unwrap()),
-                Uint::from(0),
-            );
+            // Execute the call to retrieve the token name as a test. 
+            let transaction = manager.build_call_transaction(arbiter_token.address.unwrap(), call_data, Uint::from(0));
+            let result = manager.transact(transaction);
 
             // unpack output call enum into raw bytes
             let value = match result {
@@ -128,7 +119,7 @@ mod tests {
             let mint_amount = U256::from(1000);
 
             // Set up the calldata for the 'mint' function.
-            let input_arguments = (recast_address(environment.admin.address), mint_amount);
+            let input_arguments = (recast_address(manager.address), mint_amount);
             
             let call_data = arbiter_token
                 .base_contract
@@ -137,30 +128,22 @@ mod tests {
                 .collect();
 
             // Call the 'mint' function.
-            let _result = environment.execute(
-                environment.admin.address,
-                call_data,
-                TransactTo::Call(arbiter_token.address.unwrap()),
-                Uint::from(0),
-            ); // TODO: SOME KIND OF ERROR HANDLING IS NECESSARY FOR THESE TYPES OF CALLS
+            let transaction = manager.build_call_transaction(arbiter_token.address.unwrap(), call_data, Uint::from(0));
+            let result = manager.transact(transaction); // TODO: SOME KIND OF ERROR HANDLING IS NECESSARY FOR THESE TYPES OF CALLS
 
             // Create a user.
             let user_address = B160::from_str("0x0000000000000000000000000000000000000002").unwrap();
-            environment.create_user(user_address);
+            manager.environment.create_user(user_address); // TODO: This should probably be done by the manager itself. THough it will be something to consider when we have more agents.
 
             let call_data = arbiter_token
                 .base_contract
-                .encode("balanceOf", recast_address(environment.admin.address)).unwrap()
+                .encode("balanceOf", recast_address(manager.address)).unwrap()
                 .into_iter()
                 .collect();
 
             // Call the 'balanceOf' function.
-            let result = environment.execute(
-                environment.admin.address,
-                call_data,
-                TransactTo::Call(arbiter_token.address.unwrap()),
-                Uint::from(0),
-            );
+            let transaction = manager.build_call_transaction(arbiter_token.address.unwrap(), call_data, Uint::from(0));
+            let result = manager.transact(transaction); // TODO: SOME KIND OF ERROR HANDLING IS NECESSARY FOR THESE TYPES OF CALLS
 
             // unpack output call enum into raw bytes
             let value = match result {

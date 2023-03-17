@@ -3,7 +3,7 @@ use crate::agent::{Agent, SimulationManager};
 use ethers::{abi::Tokenize, prelude::{BaseContract, Address}};
 use revm::{
     db::{CacheDB, EmptyDB},
-    primitives::{ruint::Uint, AccountInfo, ExecutionResult, Output, TransactTo, B160, U256},
+    primitives::{ruint::Uint, AccountInfo, ExecutionResult, Output, TransactTo, B160, U256, TxEnv},
     EVM,
 };
 
@@ -28,38 +28,39 @@ impl SimulationEnvironment {
     }
 
     /// Execute a transaction.
-    pub fn execute(
-        &mut self,
-        sender: B160,
-        data: Vec<u8>,
-        transact_to: TransactTo,
-        value: U256,
-    ) -> ExecutionResult {
-        self.evm.env.tx.caller = sender;
-        self.evm.env.tx.transact_to = transact_to;
-        self.evm.env.tx.data = data.into();
-        self.evm.env.tx.value = value;
-
+    // pub fn execute(
+    //     &mut self,
+    //     sender: B160,
+    //     data: Vec<u8>,
+    //     transact_to: TransactTo,
+    //     value: U256,
+    // ) -> ExecutionResult {
+    //     self.evm.env.tx.caller = sender;
+    //     self.evm.env.tx.transact_to = transact_to;
+    //     self.evm.env.tx.data = data.into();
+    //     self.evm.env.tx.value = value;
+    pub fn execute(&mut self, tx: TxEnv) -> ExecutionResult {
+        self.evm.env.tx = tx;
         match self.evm.transact_commit() {
             Ok(val) => val,
             // URGENT: change this to a custom error
             Err(_) => panic!("failed"),
         }
     }
-    
-    /// Create a user account.
-    pub fn create_user(&mut self, address: B160) {
-        self.evm
-            .db()
-            .unwrap()
-            .insert_account_info(address, AccountInfo::default());
-    }
+
+        /// Create a user account.
+        pub fn create_user(&mut self, address: B160) {
+            self.evm
+                .db()
+                .unwrap()
+                .insert_account_info(address, AccountInfo::default());
+        }
 
     /// Give an address a specified amount of raw ether.
     pub fn deal(&mut self, address: B160, amount: U256) {
         let account = self.evm.db().unwrap().load_account(address).unwrap();
 
-        account.info.balance = amount;
+        account.info.balance += amount;
     }
 }
 
