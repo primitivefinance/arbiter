@@ -48,7 +48,7 @@ impl ExecutionManager {
     pub fn new() -> Self {
         let mut evm = EVM::new();
         let db = CacheDB::new(EmptyDB {});
-
+        evm.env.cfg.limit_contract_code_size = Some(0x100000);
         evm.database(db);
 
         Self { evm }
@@ -94,7 +94,8 @@ impl ExecutionManager {
         let execution_result = self.execute(sender, bytecode, TransactTo::create(), Uint::from(0));
         let output = match execution_result {
             ExecutionResult::Success { output, .. } => output,
-            _ => panic!("failed"),
+            ExecutionResult::Revert { output, .. } => panic!("Failed due to revert: {:?}", output),
+            ExecutionResult::Halt { reason, .. } => panic!("Failed due to halt: {:?}", reason),
         };
         let contract_address = match output {
             Output::Create(_, address) => address.unwrap(),

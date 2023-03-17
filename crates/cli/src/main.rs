@@ -72,6 +72,35 @@ async fn main() -> Result<()> {
             );
             let weth = manager.deploy(user_address, weth, ());
             println!("WETH deployed at: {}", weth.address.unwrap());
+
+            let register = SimulationContract::new(
+                BaseContract::from(bindings::simple_registry::SIMPLEREGISTRY_ABI.clone()),
+                bindings::simple_registry::SIMPLEREGISTRY_BYTECODE
+                    .clone()
+                    .into_iter()
+                    .collect(),
+            );
+            let register = manager.deploy(user_address, register, ());
+            println!("simple register deployed at: {}", register.address.unwrap());
+
+            let portfolio = SimulationContract::new(
+                BaseContract::from(bindings::rmm01_portfolio::RMM01PORTFOLIO_ABI.clone()),
+                bindings::rmm01_portfolio::RMM01PORTFOLIO_BYTECODE
+                    .clone()
+                    .into_iter()
+                    .collect(),
+            );
+            // println!("portfolio bytecode at: {:#?}", portfolio.bytecode);
+            let weth_address_recast: [u8; 20] = weth.address.unwrap().as_bytes().try_into()?;
+            let weth_address_recast: Address = Address::from(weth_address_recast);
+
+            let registry_address_recast: [u8; 20] =
+                register.address.unwrap().as_bytes().try_into()?;
+            let registry_address_recast: Address = Address::from(registry_address_recast);
+
+            let portfolio_args = (weth_address_recast, registry_address_recast);
+            let portfolio = manager.deploy(user_address, portfolio, portfolio_args);
+            println!("portfolio deployed at: {}", portfolio.address.unwrap());
             // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
             // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -135,7 +164,7 @@ async fn main() -> Result<()> {
 
             println!("Token Name: {response:#?}");
             // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
+            // I think we could probably migrate everything below into a test.
             // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
             // Mint tokens to the user.
             // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
