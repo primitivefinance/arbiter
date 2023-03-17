@@ -2,7 +2,7 @@ use std::str::FromStr;
 
 use clap::{CommandFactory, Parser, Subcommand};
 use ethers::prelude::BaseContract;
-use ethers_core::types::U256;
+use ethers_core::{types::U256};
 use eyre::Result;
 use revm::primitives::{ruint::Uint, AccountInfo, ExecutionResult, Output, TransactTo, B160};
 use simulate::{
@@ -11,7 +11,7 @@ use simulate::{
 };
 mod config;
 
-use ethabi::ethereum_types::Address; // Can try this or ethers::prelude::Address, remove ethabi in Cargo.toml if unused.
+use ethabi::{ethereum_types::Address}; // Can try this or ethers::prelude::Address, remove ethabi in Cargo.toml if unused.
 
 #[derive(Parser)]
 #[command(name = "Arbiter")]
@@ -83,16 +83,18 @@ async fn main() -> Result<()> {
             let register = manager.deploy(user_address, register, ());
             println!("simple register deployed at: {}", register.address.unwrap());
 
-            // let portfolio = SimulationContract::new(
-            //     BaseContract::from(bindings::rmm01_portfolio::RMM01PORTFOLIO_ABI.clone()),
-            //     bindings::rmm01_portfolio::RMM01PORTFOLIO_BYTECODE.clone()
-            //         .clone()
-            //         .into_iter()
-            //         .collect(),
-            // );
-            // let portfolio_args = (weth.address.unwrap().to_string(), register.address.unwrap().to_string());
-            // let portfolio = manager.deploy(user_address, portfolio, portfolio_args);
-            // println!("portfolio deployed at: {}", portfolio.address.unwrap());
+            let portfolio = SimulationContract::new(
+                BaseContract::from(bindings::rmm01_portfolio::RMM01PORTFOLIO_ABI.clone()),
+                bindings::rmm01_portfolio::RMM01PORTFOLIO_BYTECODE.clone()
+                    .clone()
+                    .into_iter()
+                    .collect(),
+            );
+            // println!("portfolio bytecode at: {:#?}", portfolio.bytecode);
+
+            let portfolio_args = (weth.address.unwrap().to_string(), register.address.unwrap().to_string());
+            let portfolio = manager.deploy(user_address, portfolio, portfolio_args);
+            println!("portfolio deployed at: {}", portfolio.address.unwrap());
             // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
             // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
