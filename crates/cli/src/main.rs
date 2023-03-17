@@ -72,6 +72,27 @@ async fn main() -> Result<()> {
             );
             let weth = manager.deploy(user_address, weth, ());
             println!("WETH deployed at: {}", weth.address.unwrap());
+
+            let register = SimulationContract::new(
+                BaseContract::from(bindings::simple_registry::SIMPLEREGISTRY_ABI.clone()),
+                bindings::simple_registry::SIMPLEREGISTRY_BYTECODE.clone()
+                    .clone()
+                    .into_iter()
+                    .collect(),
+            );
+            let register = manager.deploy(user_address, register, ());
+            println!("simple register deployed at: {}", register.address.unwrap());
+
+            // let portfolio = SimulationContract::new(
+            //     BaseContract::from(bindings::rmm01_portfolio::RMM01PORTFOLIO_ABI.clone()),
+            //     bindings::rmm01_portfolio::RMM01PORTFOLIO_BYTECODE.clone()
+            //         .clone()
+            //         .into_iter()
+            //         .collect(),
+            // );
+            // let portfolio_args = (weth.address.unwrap().to_string(), register.address.unwrap().to_string());
+            // let portfolio = manager.deploy(user_address, portfolio, portfolio_args);
+            // println!("portfolio deployed at: {}", portfolio.address.unwrap());
             // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
             // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -135,7 +156,7 @@ async fn main() -> Result<()> {
 
             println!("Token Name: {response:#?}");
             // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
+            // I think we could probably migrate everything below into a test.
             // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
             // Mint tokens to the user.
             // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
