@@ -145,7 +145,7 @@ mod tests {
             call_data,
             Uint::from(0),
         );
-        let result = manager.transact(transaction); // TODO: SOME KIND OF ERROR HANDLING IS NECESSARY FOR THESE TYPES OF CALLS
+        manager.transact(transaction); // TODO: SOME KIND OF ERROR HANDLING IS NECESSARY FOR THESE TYPES OF CALLS
 
         // Create a user.
         let user_address = B160::from_str("0x0000000000000000000000000000000000000002").unwrap();
