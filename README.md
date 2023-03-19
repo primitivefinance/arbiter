@@ -44,6 +44,8 @@ Set the PROVIDER environment variable to use a custom provider.
 
 ## Event Monitoring
 
+### **The event monitoring feature is currently depricated in `main`. The following feature represents old output.**
+
 While `arbiter` is a powerful tool for modeling and fuzzing, it also supports event monitoring on uniswap V3 pools. To see the available arguments for pool monitoring, run the following:
 
 ```
@@ -104,8 +106,6 @@ Liquidity: 21972098821216706277
 Tick:      205282
 Price:     "1.216568804789000000000000000000000000000e+3"
 ```
-
-The event monitoring feature will be depricated in a future release.
 
 You may also build the executable with `cargo build`, which will output a binary in `target/`
 
