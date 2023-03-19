@@ -1,4 +1,4 @@
-# Arbiter (In Progress)
+# Arbiter
 
 ![](https://visitor-badge.laobi.icu/badge?page_id=arbiter)
 ![Github Actions](https://github.com/primitivefinance/arbiter/workflows/Rust/badge.svg)
