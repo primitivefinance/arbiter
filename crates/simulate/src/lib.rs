@@ -11,8 +11,8 @@ mod tests {
     use revm::primitives::{ruint::Uint, ExecutionResult, Output, B160};
 
     use crate::{
-        agent::{Agent, SimulationContract, SimulationManager},
-        environment::recast_address,
+        agent::Agent,
+        environment::{recast_address, SimulationContract, SimulationManager},
     };
     #[test]
     /// Test that the writer contract can echo a string.
@@ -44,12 +44,10 @@ mod tests {
             .collect();
 
         // Call the 'echoString' function.
-        let transaction =
-            manager.build_call_transaction(writer.address.unwrap(), call_data, Uint::from(0));
-        let result = manager.transact(transaction);
+        let execution_result = manager.call(writer.address.unwrap(), call_data, Uint::from(0));
 
         // unpack output call enum into raw bytes
-        let value = match result {
+        let value = match execution_result {
             ExecutionResult::Success { output, .. } => match output {
                 Output::Call(value) => Some(value),
                 Output::Create(_, Some(_)) => None,
@@ -102,15 +100,11 @@ mod tests {
             .collect();
 
         // Execute the call to retrieve the token name as a test.
-        let transaction = manager.build_call_transaction(
-            arbiter_token.address.unwrap(),
-            call_data,
-            Uint::from(0),
-        );
-        let result = manager.transact(transaction);
+        let execution_result =
+            manager.call(arbiter_token.address.unwrap(), call_data, Uint::from(0));
 
         // unpack output call enum into raw bytes
-        let value = match result {
+        let value = match execution_result {
             ExecutionResult::Success { output, .. } => match output {
                 Output::Call(value) => Some(value),
                 Output::Create(_, Some(_)) => None,
@@ -126,11 +120,15 @@ mod tests {
 
         assert_eq!(response, name); // Quick check that the name is correct.
 
+        // Create a user to mint tokens to.
+        let user_address = B160::from_str("0x0000000000000000000000000000000000000002").unwrap();
+        manager.create_user(user_address); // TODO: This should probably be done by the manager itself. THough it will be something to consider when we have more agents.
+
         // Allocating new tokens to user by calling Arbiter Token's ERC20 'mint' instance.
         let mint_amount = U256::from(1000);
 
         // Set up the calldata for the 'mint' function.
-        let input_arguments = (recast_address(manager.address), mint_amount);
+        let input_arguments = (recast_address(user_address), mint_amount);
 
         let call_data = arbiter_token
             .base_contract
@@ -140,34 +138,22 @@ mod tests {
             .collect();
 
         // Call the 'mint' function.
-        let transaction = manager.build_call_transaction(
-            arbiter_token.address.unwrap(),
-            call_data,
-            Uint::from(0),
-        );
-        manager.transact(transaction); // TODO: SOME KIND OF ERROR HANDLING IS NECESSARY FOR THESE TYPES OF CALLS
-
-        // Create a user.
-        let user_address = B160::from_str("0x0000000000000000000000000000000000000002").unwrap();
-        manager.environment.create_user(user_address); // TODO: This should probably be done by the manager itself. THough it will be something to consider when we have more agents.
+        let _execution_result =
+            manager.call(arbiter_token.address.unwrap(), call_data, Uint::from(0)); // TODO: SOME KIND OF ERROR HANDLING IS NECESSARY FOR THESE TYPES OF CALLS
 
         let call_data = arbiter_token
             .base_contract
-            .encode("balanceOf", recast_address(manager.address))
+            .encode("balanceOf", recast_address(user_address))
             .unwrap()
             .into_iter()
             .collect();
 
         // Call the 'balanceOf' function.
-        let transaction = manager.build_call_transaction(
-            arbiter_token.address.unwrap(),
-            call_data,
-            Uint::from(0),
-        );
-        let result = manager.transact(transaction); // TODO: SOME KIND OF ERROR HANDLING IS NECESSARY FOR THESE TYPES OF CALLS
+        let execution_result =
+            manager.call(arbiter_token.address.unwrap(), call_data, Uint::from(0)); // TODO: SOME KIND OF ERROR HANDLING IS NECESSARY FOR THESE TYPES OF CALLS
 
         // unpack output call enum into raw bytes
-        let value = match result {
+        let value = match execution_result {
             ExecutionResult::Success { output, .. } => match output {
                 Output::Call(value) => Some(value),
                 Output::Create(_, Some(_)) => None,
