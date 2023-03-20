@@ -1,17 +1,15 @@
-use std::collections::HashMap;
-
-use ethers::prelude::Address;
-use revm::{
-    db::{CacheDB, EmptyDB},
-    primitives::{AccountInfo, ExecutionResult, TxEnv, B160, U256},
-    EVM,
-};
-
-use std::str::FromStr;
+use std::{collections::HashMap, str::FromStr};
 
 use bytes::Bytes;
-use ethers::{abi::Tokenize, prelude::BaseContract};
-use revm::primitives::{Account, Output, TransactTo};
+use ethers::{
+    abi::Tokenize,
+    prelude::{Address, BaseContract},
+};
+use revm::{
+    db::{CacheDB, EmptyDB},
+    primitives::{Account, AccountInfo, ExecutionResult, Output, TransactTo, TxEnv, B160, U256},
+    EVM,
+};
 
 use crate::agent::{Agent, TransactSettings};
 

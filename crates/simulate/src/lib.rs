@@ -141,7 +141,6 @@ mod tests {
         let _execution_result =
             manager.call(arbiter_token.address.unwrap(), call_data, Uint::from(0)); // TODO: SOME KIND OF ERROR HANDLING IS NECESSARY FOR THESE TYPES OF CALLS
 
-
         let call_data = arbiter_token
             .base_contract
             .encode("balanceOf", recast_address(user_address))
