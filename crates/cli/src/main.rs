@@ -2,7 +2,6 @@ use clap::{CommandFactory, Parser, Subcommand};
 use ethers::prelude::BaseContract;
 use eyre::Result;
 use simulate::{
-    agent::Agent,
     environment::{recast_address, SimulationContract, SimulationManager},
     price_simulation::PriceSimulation,
 };
