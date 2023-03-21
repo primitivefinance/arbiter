@@ -8,8 +8,8 @@ mod tests {
     use std::str::FromStr;
 
     use bindings::{self, arbiter_token};
-    use ethers::prelude::{BaseContract, U256, H256};
-    use revm::primitives::{ruint::Uint, ExecutionResult, Output, B160, Log, B256};
+    use ethers::prelude::{BaseContract, H256, U256};
+    use revm::primitives::{ruint::Uint, ExecutionResult, Log, Output, B160, B256};
 
     use crate::{
         agent::Agent,
@@ -208,11 +208,19 @@ mod tests {
         };
 
         // Get the logs from the execution manager.
-        let log_topics: Vec<H256> = logs.clone().unwrap()[0].topics.clone().into_iter().map(|x| H256::from_slice(x.as_slice())).collect();
+        let log_topics: Vec<H256> = logs.clone().unwrap()[0]
+            .topics
+            .clone()
+            .into_iter()
+            .map(|x| H256::from_slice(x.as_slice()))
+            .collect();
         let log_data = logs.unwrap()[0].data.clone().into();
-        let output = writer.base_contract.decode_event::<String>("WasWritten", log_topics, log_data).unwrap();
+        let output = writer
+            .base_contract
+            .decode_event::<String>("WasWritten", log_topics, log_data)
+            .unwrap();
         println!("Log Response: {:#?}", output);
-        
+
         assert_eq!(output, test_string);
     }
 }

@@ -65,7 +65,6 @@ impl Agent for SimulationManager {
         // TODO: Go ahead and handle the execution result here?
 
         // TODO: Handle the output of the execution result and decode?
-
     }
     fn get_logs(&mut self) -> &Vec<Log> {
         &self.environment.evm.db().unwrap().logs
