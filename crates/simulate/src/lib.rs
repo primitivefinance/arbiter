@@ -45,21 +45,14 @@ mod tests {
             .collect();
 
         // Call the 'echoString' function.
-        let execution_result = manager.call(writer.address.unwrap(), call_data, Uint::from(0));
+        let execution_result = manager.call_contract(&writer, call_data, Uint::from(0));
 
         // unpack output call enum into raw bytes
-        let value = match execution_result {
-            ExecutionResult::Success { output, .. } => match output {
-                Output::Call(value) => Some(value),
-                Output::Create(_, Some(_)) => None,
-                _ => None,
-            },
-            _ => None,
-        };
+        let (value, _) = manager.unpack_execution(execution_result);
 
         let response: String = writer
             .base_contract
-            .decode_output("echoString", value.unwrap())
+            .decode_output("echoString", value)
             .unwrap();
 
         println!("Writing Response: {response:#?}");
@@ -101,22 +94,13 @@ mod tests {
             .collect();
 
         // Execute the call to retrieve the token name as a test.
-        let execution_result =
-            manager.call(arbiter_token.address.unwrap(), call_data, Uint::from(0));
+        let execution_result = manager.call_contract(&arbiter_token, call_data, Uint::from(0));
 
-        // unpack output call enum into raw bytes
-        let value = match execution_result {
-            ExecutionResult::Success { output, .. } => match output {
-                Output::Call(value) => Some(value),
-                Output::Create(_, Some(_)) => None,
-                _ => None,
-            },
-            _ => None,
-        };
+        let (value, _) = manager.unpack_execution(execution_result);
 
         let response: String = arbiter_token
             .base_contract
-            .decode_output("name", value.unwrap())
+            .decode_output("name", value)
             .unwrap();
 
         assert_eq!(response, name); // Quick check that the name is correct.
@@ -139,8 +123,7 @@ mod tests {
             .collect();
 
         // Call the 'mint' function.
-        let _execution_result =
-            manager.call(arbiter_token.address.unwrap(), call_data, Uint::from(0)); // TODO: SOME KIND OF ERROR HANDLING IS NECESSARY FOR THESE TYPES OF CALLS
+        let _execution_result = manager.call_contract(&arbiter_token, call_data, Uint::from(0)); // TODO: SOME KIND OF ERROR HANDLING IS NECESSARY FOR THESE TYPES OF CALLS
 
         let call_data = arbiter_token
             .base_contract
@@ -150,22 +133,14 @@ mod tests {
             .collect();
 
         // Call the 'balanceOf' function.
-        let execution_result =
-            manager.call(arbiter_token.address.unwrap(), call_data, Uint::from(0)); // TODO: SOME KIND OF ERROR HANDLING IS NECESSARY FOR THESE TYPES OF CALLS
+        let execution_result = manager.call_contract(&arbiter_token, call_data, Uint::from(0)); // TODO: SOME KIND OF ERROR HANDLING IS NECESSARY FOR THESE TYPES OF CALLS
 
         // unpack output call enum into raw bytes
-        let value = match execution_result {
-            ExecutionResult::Success { output, .. } => match output {
-                Output::Call(value) => Some(value),
-                Output::Create(_, Some(_)) => None,
-                _ => None,
-            },
-            _ => None,
-        };
+        let (value, _) = manager.unpack_execution(execution_result);
 
         let response: U256 = arbiter_token
             .base_contract
-            .decode_output("balanceOf", value.unwrap())
+            .decode_output("balanceOf", value)
             .unwrap();
 
         assert_eq!(response, mint_amount); // Check that the value minted is correct.
@@ -199,28 +174,23 @@ mod tests {
             .collect();
 
         // Call the 'echoString' function.
-        let execution_result = manager.call(writer.address.unwrap(), call_data, Uint::from(0));
-
-        // unpack output call enum into raw bytes
-        let logs = match execution_result {
-            ExecutionResult::Success { output, logs, .. } => Some(logs),
-            _ => None,
-        };
+        let execution_result = manager.call_contract(&writer, call_data, Uint::from(0));
+        let (_, logs) = manager.unpack_execution(execution_result);
 
         // Get the logs from the execution manager.
-        let log_topics: Vec<H256> = logs.clone().unwrap()[0]
+        let log_topics: Vec<H256> = logs.clone()[0]
             .topics
             .clone()
             .into_iter()
             .map(|x| H256::from_slice(x.as_slice()))
             .collect();
-        let log_data = logs.unwrap()[0].data.clone().into();
-        let output = writer
+        let log_data = logs[0].data.clone().into();
+        let log_output = writer
             .base_contract
             .decode_event::<String>("WasWritten", log_topics, log_data)
             .unwrap();
-        println!("Log Response: {:#?}", output);
+        println!("Log Response: {:#?}", log_output);
 
-        assert_eq!(output, test_string);
+        assert_eq!(log_output, test_string);
     }
 }

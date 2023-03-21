@@ -44,6 +44,12 @@ impl SimulationEnvironment {
             Err(_) => panic!("failed"),
         }
     }
+
+    // TODO: Echo logs to a buffer that all agents can read and await.
+    #[allow(dead_code)] // Ignore this todo for now
+    fn echo_logs(&self) {
+        todo!()
+    }
     // TODO: Implementing the following functions could be useful.
     // fn decode_event;
     // fn decode_output;
@@ -58,16 +64,44 @@ pub struct SimulationManager {
 }
 
 impl Agent for SimulationManager {
-    fn call(&mut self, receiver_address: B160, call_data: Bytes, value: U256) -> ExecutionResult {
-        let tx = self.build_call_transaction(receiver_address, call_data, value);
+    // TODO: Can calling a contract ever need for raw eth "value" to be sent along with?
+    fn call_contract(
+        &mut self,
+        contract: &SimulationContract<IsDeployed>,
+        call_data: Bytes,
+        value: U256,
+    ) -> ExecutionResult {
+        let tx = self.build_call_transaction(contract.address.unwrap(), call_data, value);
         self.environment.execute(tx)
-
-        // TODO: Go ahead and handle the execution result here?
-
-        // TODO: Handle the output of the execution result and decode?
     }
-    fn get_logs(&mut self) -> &Vec<Log> {
-        &self.environment.evm.db().unwrap().logs
+    // TODO: Handle the output of the execution result and decode?
+
+    fn read_logs(
+        &mut self,
+        _contract: SimulationContract<IsDeployed>,
+        _event_name: &str,
+        _execution_result: ExecutionResult,
+    ) -> &Vec<Log> {
+        todo!()
+        // // &self.environment.evm.db().unwrap().logs
+        //         // unpack output call enum into raw bytes
+        //         let logs = match execution_result {
+        //             ExecutionResult::Success { logs, .. } => Some(logs),
+        //             _ => None,
+        //         };
+
+        //         // Get the logs from the execution manager.
+        //         let log_topics: Vec<H256> = logs.clone().unwrap()[0]
+        //             .topics
+        //             .clone()
+        //             .into_iter()
+        //             .map(|x| H256::from_slice(x.as_slice()))
+        //             .collect();
+        //         let log_data = logs.unwrap().data.clone().into();
+        //         let output = contract
+        //             .base_contract
+        //             .decode_event::<String>(event_name, log_topics, log_data)
+        //             .unwrap();
     }
 
     fn build_call_transaction(
