@@ -44,6 +44,10 @@ impl SimulationEnvironment {
             Err(_) => panic!("failed"),
         }
     }
+    // TODO: Implementing the following functions could be useful.
+    // fn decode_event;
+    // fn decode_output;
+    // fn handle_execution_result;
 }
 
 pub struct SimulationManager {
@@ -57,6 +61,11 @@ impl Agent for SimulationManager {
     fn call(&mut self, receiver_address: B160, call_data: Bytes, value: U256) -> ExecutionResult {
         let tx = self.build_call_transaction(receiver_address, call_data, value);
         self.environment.execute(tx)
+
+        // TODO: Go ahead and handle the execution result here?
+
+        // TODO: Handle the output of the execution result and decode?
+
     }
     fn get_logs(&mut self) -> &Vec<Log> {
         &self.environment.evm.db().unwrap().logs

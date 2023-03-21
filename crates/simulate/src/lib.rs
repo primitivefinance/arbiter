@@ -186,7 +186,7 @@ mod tests {
         );
 
         // Deploy the writer contract.
-        let writer = manager.deploy(writer, ());
+        let writer = manager.deploy(writer, ()); // TODO: Probably worth saying this is deployed under a specific manager.
 
         // Generate calldata for the 'echoString' function
         let test_string = "Hello, world!";
@@ -207,21 +207,12 @@ mod tests {
             _ => None,
         };
 
-        // let response: String = writer
-        //     .base_contract
-        //     .decode_output("WasWritten", value.unwrap())
-        //     .unwrap();
-
-        // println!("Writing Response: {logs:#?}");
-
         // Get the logs from the execution manager.
-        // let logs = manager.get_logs().clone();
-        let log_topics = logs.clone().unwrap()[0].topics.clone().into_iter().map(|x| H256::from_slice(x.as_slice())).collect();
-        let log_data = ethers::types::Bytes::from_str(std::str::from_utf8(logs.unwrap()[0].data.as_ref()).unwrap()).unwrap();
-
+        let log_topics: Vec<H256> = logs.clone().unwrap()[0].topics.clone().into_iter().map(|x| H256::from_slice(x.as_slice())).collect();
+        let log_data = logs.unwrap()[0].data.clone().into();
         let output = writer.base_contract.decode_event::<String>("WasWritten", log_topics, log_data).unwrap();
-
         println!("Log Response: {:#?}", output);
-        // assert_eq!(logs, test_string);
+        
+        assert_eq!(output, test_string);
     }
 }
