@@ -17,6 +17,7 @@ pub trait Agent {
         call_data: Bytes,
         value: U256,
     ) -> TxEnv;
-    fn storage(&self) -> U256;
-    // TODO: Should agents be labeled as `active` or `inactive` similarly to `IsDeployed` and `NotDeployed`?
+    fn get_logs(&mut self) -> &Vec<revm::primitives::Log>; // TODO: Not sure this needs to be mutable self
+                                                           // fn storage(&self) -> U256;
+                                                           // TODO: Should agents be labeled as `active` or `inactive` similarly to `IsDeployed` and `NotDeployed`?
 }

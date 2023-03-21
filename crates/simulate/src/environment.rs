@@ -7,7 +7,9 @@ use ethers::{
 };
 use revm::{
     db::{CacheDB, EmptyDB},
-    primitives::{Account, AccountInfo, ExecutionResult, Output, TransactTo, TxEnv, B160, U256},
+    primitives::{
+        Account, AccountInfo, ExecutionResult, Log, Output, TransactTo, TxEnv, B160, U256,
+    },
     EVM,
 };
 
@@ -56,9 +58,10 @@ impl Agent for SimulationManager {
         let tx = self.build_call_transaction(receiver_address, call_data, value);
         self.environment.execute(tx)
     }
-    fn storage(&self) -> U256 {
-        todo!()
+    fn get_logs(&mut self) -> &Vec<Log> {
+        &self.environment.evm.db().unwrap().logs
     }
+
     fn build_call_transaction(
         &self,
         receiver_address: B160,

@@ -4,11 +4,12 @@ pub mod price_simulation;
 
 #[cfg(test)]
 mod tests {
+    // use core::slice::SlicePattern;
     use std::str::FromStr;
 
-    use bindings;
-    use ethers::prelude::{BaseContract, U256};
-    use revm::primitives::{ruint::Uint, ExecutionResult, Output, B160};
+    use bindings::{self, arbiter_token};
+    use ethers::prelude::{BaseContract, U256, H256};
+    use revm::primitives::{ruint::Uint, ExecutionResult, Output, B160, Log, B256};
 
     use crate::{
         agent::Agent,
@@ -61,7 +62,7 @@ mod tests {
             .decode_output("echoString", value.unwrap())
             .unwrap();
 
-        println!("Minting Response: {response:#?}");
+        println!("Writing Response: {response:#?}");
         assert_eq!(response, test_string);
     }
 
@@ -168,5 +169,59 @@ mod tests {
             .unwrap();
 
         assert_eq!(response, mint_amount); // Check that the value minted is correct.
+    }
+
+    #[test]
+    fn test_event_logging() {
+        // Set up the execution manager and a user address.
+        let mut manager = SimulationManager::default();
+
+        // Get bytecode and abi for the writer contract.
+        let writer = SimulationContract::new(
+            BaseContract::from(bindings::writer::WRITER_ABI.clone()),
+            bindings::writer::WRITER_BYTECODE
+                .clone()
+                .into_iter()
+                .collect(),
+        );
+
+        // Deploy the writer contract.
+        let writer = manager.deploy(writer, ());
+
+        // Generate calldata for the 'echoString' function
+        let test_string = "Hello, world!";
+        let input_arguments = test_string.to_string();
+        let call_data = writer
+            .base_contract
+            .encode("echoString", input_arguments)
+            .unwrap()
+            .into_iter()
+            .collect();
+
+        // Call the 'echoString' function.
+        let execution_result = manager.call(writer.address.unwrap(), call_data, Uint::from(0));
+
+        // unpack output call enum into raw bytes
+        let logs = match execution_result {
+            ExecutionResult::Success { output, logs, .. } => Some(logs),
+            _ => None,
+        };
+
+        // let response: String = writer
+        //     .base_contract
+        //     .decode_output("WasWritten", value.unwrap())
+        //     .unwrap();
+
+        // println!("Writing Response: {logs:#?}");
+
+        // Get the logs from the execution manager.
+        // let logs = manager.get_logs().clone();
+        let log_topics = logs.clone().unwrap()[0].topics.clone().into_iter().map(|x| H256::from_slice(x.as_slice())).collect();
+        let log_data = ethers::types::Bytes::from_str(std::str::from_utf8(logs.unwrap()[0].data.as_ref()).unwrap()).unwrap();
+
+        let output = writer.base_contract.decode_event::<String>("WasWritten", log_topics, log_data).unwrap();
+
+        println!("Log Response: {:#?}", output);
+        // assert_eq!(logs, test_string);
     }
 }
