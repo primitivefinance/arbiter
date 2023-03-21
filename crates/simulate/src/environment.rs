@@ -1,4 +1,4 @@
-use std::{collections::HashMap, str::FromStr};
+use std::{collections::HashMap, str::FromStr, sync::{Arc, RwLock}};
 
 use bytes::Bytes;
 use ethers::{
@@ -18,6 +18,8 @@ use crate::agent::{Agent, TransactSettings};
 struct SimulationEnvironment {
     evm: EVM<CacheDB<EmptyDB>>,
     _agents: HashMap<String, Box<dyn Agent>>,
+    event_buffer: Arc<RwLock<Vec<Vec<Log>>>>,
+    writer_thread: Option<std::thread::JoinHandle<()>>,
 }
 
 impl Default for SimulationEnvironment {
@@ -31,6 +33,8 @@ impl Default for SimulationEnvironment {
         Self {
             evm,
             _agents: HashMap::new(), // This will only store agents that aren't the manager.
+            event_buffer: Arc::new(RwLock::new(Vec::<Vec::<Log>>::new())),
+            writer_thread: Some(std::thread::spawn(|| {})),
         }
     }
 }
@@ -38,17 +42,24 @@ impl Default for SimulationEnvironment {
 impl SimulationEnvironment {
     fn execute(&mut self, tx: TxEnv) -> ExecutionResult {
         self.evm.env.tx = tx;
-        match self.evm.transact_commit() {
+        let execution_result = match self.evm.transact_commit() {
             Ok(val) => val,
             // URGENT: change this to a custom error
             Err(_) => panic!("failed"),
-        }
-    }
+        };
 
+        let logs = execution_result.clone().logs();
+        self.echo_logs(logs);
+        execution_result
+    }
     // TODO: Echo logs to a buffer that all agents can read and await.
-    #[allow(dead_code)] // Ignore this todo for now
-    fn echo_logs(&self) {
-        todo!()
+    fn echo_logs(&mut self, logs: Vec<Log>) {
+        // let writer_thread = self.writer_thread.take();
+        if let Some(handle) = self.writer_thread.take() {
+            handle.join().unwrap();
+        }
+        println!("Writing logs: {:#?}", logs);
+        self.event_buffer.write().unwrap().push(logs);
     }
     // TODO: Implementing the following functions could be useful.
     // fn decode_event;
@@ -78,11 +89,9 @@ impl Agent for SimulationManager {
 
     fn read_logs(
         &mut self,
-        _contract: SimulationContract<IsDeployed>,
-        _event_name: &str,
-        _execution_result: ExecutionResult,
-    ) -> &Vec<Log> {
-        todo!()
+    ) -> Vec<Vec<Log>> {
+        self.environment.event_buffer.read().unwrap().to_vec()        
+        // todo!()
         // // &self.environment.evm.db().unwrap().logs
         //         // unpack output call enum into raw bytes
         //         let logs = match execution_result {
@@ -140,6 +149,21 @@ impl Default for SimulationManager {
 }
 
 impl SimulationManager {
+
+        // TODO: Unpacking should probably be defined on ExecutionResult type. But that will be in the crate.
+        pub fn unpack_execution(&self, execution_result: ExecutionResult) -> Bytes {
+            // unpack output call enum into raw bytes
+            match execution_result {
+                ExecutionResult::Success { output, logs, .. } => match output {
+                    Output::Call(value) => value,
+                    Output::Create(_, Some(_)) => {
+                        panic!("Failed. This was a 'Create' call, use 'Deploy' instead.")
+                    }
+                    _ => panic!("This call has failed."),
+                },
+                _ => panic!("This call generated no execution result. This should not happen."),
+            }
+        }
     /// Used in the deploy function to create a transaction environment for deploying a contract.
     fn build_deploy_transaction(&self, bytecode: Bytes) -> TxEnv {
         TxEnv {

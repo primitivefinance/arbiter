@@ -46,9 +46,7 @@ mod tests {
 
         // Call the 'echoString' function.
         let execution_result = manager.call_contract(&writer, call_data, Uint::from(0));
-
-        // unpack output call enum into raw bytes
-        let (value, _) = manager.unpack_execution(execution_result);
+        let value = manager.unpack_execution(execution_result);
 
         let response: String = writer
             .base_contract
@@ -95,8 +93,7 @@ mod tests {
 
         // Execute the call to retrieve the token name as a test.
         let execution_result = manager.call_contract(&arbiter_token, call_data, Uint::from(0));
-
-        let (value, _) = manager.unpack_execution(execution_result);
+        let value = manager.unpack_execution(execution_result);
 
         let response: String = arbiter_token
             .base_contract
@@ -134,9 +131,7 @@ mod tests {
 
         // Call the 'balanceOf' function.
         let execution_result = manager.call_contract(&arbiter_token, call_data, Uint::from(0)); // TODO: SOME KIND OF ERROR HANDLING IS NECESSARY FOR THESE TYPES OF CALLS
-
-        // unpack output call enum into raw bytes
-        let (value, _) = manager.unpack_execution(execution_result);
+        let value = manager.unpack_execution(execution_result);
 
         let response: U256 = arbiter_token
             .base_contract
@@ -175,8 +170,8 @@ mod tests {
 
         // Call the 'echoString' function.
         let execution_result = manager.call_contract(&writer, call_data, Uint::from(0));
-        let (_, logs) = manager.unpack_execution(execution_result);
-
+        let logs = manager.read_logs();
+        let logs = logs[1].clone();
         // Get the logs from the execution manager.
         let log_topics: Vec<H256> = logs.clone()[0]
             .topics
