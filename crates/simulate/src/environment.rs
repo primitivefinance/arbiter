@@ -18,7 +18,7 @@ use crate::agent::{Agent, TransactSettings};
 struct SimulationEnvironment {
     evm: EVM<CacheDB<EmptyDB>>,
     _agents: HashMap<String, Box<dyn Agent>>,
-    event_buffer: Arc<RwLock<Vec<Vec<Log>>>>,
+    event_buffer: Arc<RwLock<Vec<Log>>>, // TODO: This should probably just store head
     writer_thread: Option<std::thread::JoinHandle<()>>,
 }
 
@@ -33,7 +33,7 @@ impl Default for SimulationEnvironment {
         Self {
             evm,
             _agents: HashMap::new(), // This will only store agents that aren't the manager.
-            event_buffer: Arc::new(RwLock::new(Vec::<Vec::<Log>>::new())),
+            event_buffer: Arc::new(RwLock::new(Vec::<Log>::new())),
             writer_thread: Some(std::thread::spawn(|| {})),
         }
     }
@@ -58,8 +58,10 @@ impl SimulationEnvironment {
         if let Some(handle) = self.writer_thread.take() {
             handle.join().unwrap();
         }
-        println!("Writing logs: {:#?}", logs);
-        self.event_buffer.write().unwrap().push(logs);
+        self.event_buffer.write().unwrap().clear();
+        logs.into_iter().for_each(|log| {
+            self.event_buffer.write().unwrap().push(log);
+        });
     }
     // TODO: Implementing the following functions could be useful.
     // fn decode_event;
@@ -89,28 +91,8 @@ impl Agent for SimulationManager {
 
     fn read_logs(
         &mut self,
-    ) -> Vec<Vec<Log>> {
-        self.environment.event_buffer.read().unwrap().to_vec()        
-        // todo!()
-        // // &self.environment.evm.db().unwrap().logs
-        //         // unpack output call enum into raw bytes
-        //         let logs = match execution_result {
-        //             ExecutionResult::Success { logs, .. } => Some(logs),
-        //             _ => None,
-        //         };
-
-        //         // Get the logs from the execution manager.
-        //         let log_topics: Vec<H256> = logs.clone().unwrap()[0]
-        //             .topics
-        //             .clone()
-        //             .into_iter()
-        //             .map(|x| H256::from_slice(x.as_slice()))
-        //             .collect();
-        //         let log_data = logs.unwrap().data.clone().into();
-        //         let output = contract
-        //             .base_contract
-        //             .decode_event::<String>(event_name, log_topics, log_data)
-        //             .unwrap();
+    ) -> Vec<Log> {
+        self.environment.event_buffer.read().unwrap().to_vec()
     }
 
     fn build_call_transaction(

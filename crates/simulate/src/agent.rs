@@ -26,7 +26,7 @@ pub trait Agent {
     ) -> TxEnv;
     fn read_logs(
         &mut self,
-    ) -> Vec<Vec<Log>>; // TODO: Not sure this needs to be mutable self
+    ) -> Vec<Log>; // TODO: Not sure this needs to be mutable self
 
     // TODO: Should agents be labeled as `active` or `inactive` similarly to `IsDeployed` and `NotDeployed`?
 }

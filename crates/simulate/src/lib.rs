@@ -7,9 +7,9 @@ mod tests {
     // use core::slice::SlicePattern;
     use std::str::FromStr;
 
-    use bindings::{self, arbiter_token};
+    // use bindings::{self, arbiter_token};
     use ethers::prelude::{BaseContract, H256, U256};
-    use revm::primitives::{ruint::Uint, ExecutionResult, Log, Output, B160, B256};
+    use revm::primitives::{ruint::Uint, B160};
 
     use crate::{
         agent::Agent,
@@ -169,9 +169,8 @@ mod tests {
             .collect();
 
         // Call the 'echoString' function.
-        let execution_result = manager.call_contract(&writer, call_data, Uint::from(0));
+        let _execution_result = manager.call_contract(&writer, call_data, Uint::from(0));
         let logs = manager.read_logs();
-        let logs = logs[1].clone();
         // Get the logs from the execution manager.
         let log_topics: Vec<H256> = logs.clone()[0]
             .topics
