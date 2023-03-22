@@ -1,5 +1,5 @@
 use bytes::Bytes;
-use revm::primitives::{ExecutionResult, Log, Output, TxEnv, B160, U256};
+use revm::primitives::{ExecutionResult, Log, TxEnv, B160, U256};
 
 use crate::environment::{IsDeployed, SimulationContract};
 
@@ -24,9 +24,7 @@ pub trait Agent {
         call_data: Bytes,
         value: U256,
     ) -> TxEnv;
-    fn read_logs(
-        &mut self,
-    ) -> Vec<Log>; // TODO: Not sure this needs to be mutable self
+    fn read_logs(&mut self) -> Vec<Log>; // TODO: Not sure this needs to be mutable self
 
     // TODO: Should agents be labeled as `active` or `inactive` similarly to `IsDeployed` and `NotDeployed`?
 }

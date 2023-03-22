@@ -1,4 +1,8 @@
-use std::{collections::HashMap, str::FromStr, sync::{Arc, RwLock}};
+use std::{
+    collections::HashMap,
+    str::FromStr,
+    sync::{Arc, RwLock},
+};
 
 use bytes::Bytes;
 use ethers::{
@@ -48,7 +52,7 @@ impl SimulationEnvironment {
             Err(_) => panic!("failed"),
         };
 
-        let logs = execution_result.clone().logs();
+        let logs = execution_result.logs();
         self.echo_logs(logs);
         execution_result
     }
@@ -89,9 +93,7 @@ impl Agent for SimulationManager {
     }
     // TODO: Handle the output of the execution result and decode?
 
-    fn read_logs(
-        &mut self,
-    ) -> Vec<Log> {
+    fn read_logs(&mut self) -> Vec<Log> {
         self.environment.event_buffer.read().unwrap().to_vec()
     }
 
@@ -131,21 +133,20 @@ impl Default for SimulationManager {
 }
 
 impl SimulationManager {
-
-        // TODO: Unpacking should probably be defined on ExecutionResult type. But that will be in the crate.
-        pub fn unpack_execution(&self, execution_result: ExecutionResult) -> Bytes {
-            // unpack output call enum into raw bytes
-            match execution_result {
-                ExecutionResult::Success { output, logs, .. } => match output {
-                    Output::Call(value) => value,
-                    Output::Create(_, Some(_)) => {
-                        panic!("Failed. This was a 'Create' call, use 'Deploy' instead.")
-                    }
-                    _ => panic!("This call has failed."),
-                },
-                _ => panic!("This call generated no execution result. This should not happen."),
-            }
+    // TODO: Unpacking should probably be defined on ExecutionResult type. But that will be in the crate.
+    pub fn unpack_execution(&self, execution_result: ExecutionResult) -> Bytes {
+        // unpack output call enum into raw bytes
+        match execution_result {
+            ExecutionResult::Success { output, .. } => match output {
+                Output::Call(value) => value,
+                Output::Create(_, Some(_)) => {
+                    panic!("Failed. This was a 'Create' call, use 'Deploy' instead.")
+                }
+                _ => panic!("This call has failed."),
+            },
+            _ => panic!("This call generated no execution result. This should not happen."),
         }
+    }
     /// Used in the deploy function to create a transaction environment for deploying a contract.
     fn build_deploy_transaction(&self, bytecode: Bytes) -> TxEnv {
         TxEnv {
