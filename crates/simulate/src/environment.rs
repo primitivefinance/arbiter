@@ -150,7 +150,6 @@ impl Default for SimulationManager {
             transact_settings: TransactSettings {
                 gas_limit: u64::MAX,
                 gas_price: U256::ZERO,
-                value: U256::ZERO,
             },
         }
     }
