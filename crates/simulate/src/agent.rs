@@ -3,8 +3,6 @@ use revm::primitives::{ExecutionResult, Log, TxEnv, B160, U256};
 
 use crate::environment::{IsDeployed, SimulationContract};
 
-// use crate::environment::SimulationEnvironment;
-
 pub struct TransactSettings {
     pub gas_limit: u64,
     pub gas_price: U256,
@@ -24,7 +22,6 @@ pub trait Agent {
         call_data: Bytes,
         value: U256,
     ) -> TxEnv;
-    fn read_logs(&mut self) -> Vec<Log>; // TODO: Not sure this needs to be mutable self
-
-    // TODO: Should agents be labeled as `active` or `inactive` similarly to `IsDeployed` and `NotDeployed`?
+    // TODO: Not sure this needs to be mutable self
+    fn read_logs(&mut self) -> Vec<Log>; 
 }

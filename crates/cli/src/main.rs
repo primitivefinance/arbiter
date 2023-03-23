@@ -9,7 +9,7 @@ mod config;
 
 #[derive(Parser)]
 #[command(name = "Arbiter")]
-#[command(version = "1.0")]
+#[command(version = "0.1.0")]
 #[command(about = "Data analysis tool for decentralized exchanges.", long_about = None)]
 #[command(author)]
 struct Args {
