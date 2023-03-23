@@ -1,4 +1,4 @@
-pub use std_style::*;
+pub use rmm01_extended_lib::*;
 /// This module was auto-generated with ethers-rs Abigen.
 /// More information at: <https://github.com/gakonst/ethers-rs>
 #[allow(
@@ -9,12 +9,16 @@ pub use std_style::*;
     dead_code,
     non_camel_case_types,
 )]
-pub mod std_style {
+pub mod rmm01_extended_lib {
     #[rustfmt::skip]
     const __ABI: &str = "[]";
     ///The parsed JSON ABI of the contract.
-    pub static STDSTYLE_ABI: ::ethers::contract::Lazy<::ethers::core::abi::Abi> = ::ethers::contract::Lazy::new(||
-    ::ethers::core::utils::__serde_json::from_str(__ABI).expect("ABI is always valid"));
+    pub static RMM01EXTENDEDLIB_ABI: ::ethers::contract::Lazy<
+        ::ethers::core::abi::Abi,
+    > = ::ethers::contract::Lazy::new(|| {
+        ::ethers::core::utils::__serde_json::from_str(__ABI)
+            .expect("ABI is always valid")
+    });
     #[rustfmt::skip]
     const __BYTECODE: &[u8] = &[
         96,
@@ -115,38 +119,38 @@ pub mod std_style {
         34,
         18,
         32,
-        13,
-        55,
-        40,
-        122,
-        235,
-        181,
-        91,
-        222,
-        160,
-        49,
-        200,
-        233,
-        75,
-        99,
-        175,
-        190,
-        54,
-        165,
+        3,
+        58,
+        70,
         213,
-        114,
-        96,
-        46,
-        148,
-        142,
-        123,
-        207,
-        196,
-        126,
-        14,
-        205,
-        118,
-        6,
+        162,
+        55,
+        206,
+        12,
+        107,
+        43,
+        161,
+        254,
+        242,
+        37,
+        151,
+        0,
+        125,
+        156,
+        202,
+        149,
+        9,
+        193,
+        2,
+        177,
+        246,
+        156,
+        97,
+        161,
+        89,
+        115,
+        29,
+        85,
         100,
         115,
         111,
@@ -155,12 +159,12 @@ pub mod std_style {
         67,
         0,
         8,
-        19,
+        13,
         0,
         51,
     ];
     ///The bytecode of the contract.
-    pub static STDSTYLE_BYTECODE: ::ethers::core::types::Bytes = ::ethers::core::types::Bytes::from_static(
+    pub static RMM01EXTENDEDLIB_BYTECODE: ::ethers::core::types::Bytes = ::ethers::core::types::Bytes::from_static(
         __BYTECODE,
     );
     #[rustfmt::skip]
@@ -208,38 +212,38 @@ pub mod std_style {
         34,
         18,
         32,
-        13,
-        55,
-        40,
-        122,
-        235,
-        181,
-        91,
-        222,
-        160,
-        49,
-        200,
-        233,
-        75,
-        99,
-        175,
-        190,
-        54,
-        165,
+        3,
+        58,
+        70,
         213,
-        114,
-        96,
-        46,
-        148,
-        142,
-        123,
-        207,
-        196,
-        126,
-        14,
-        205,
-        118,
-        6,
+        162,
+        55,
+        206,
+        12,
+        107,
+        43,
+        161,
+        254,
+        242,
+        37,
+        151,
+        0,
+        125,
+        156,
+        202,
+        149,
+        9,
+        193,
+        2,
+        177,
+        246,
+        156,
+        97,
+        161,
+        89,
+        115,
+        29,
+        85,
         100,
         115,
         111,
@@ -248,37 +252,37 @@ pub mod std_style {
         67,
         0,
         8,
-        19,
+        13,
         0,
         51,
     ];
     ///The deployed bytecode of the contract.
-    pub static STDSTYLE_DEPLOYED_BYTECODE: ::ethers::core::types::Bytes = ::ethers::core::types::Bytes::from_static(
+    pub static RMM01EXTENDEDLIB_DEPLOYED_BYTECODE: ::ethers::core::types::Bytes = ::ethers::core::types::Bytes::from_static(
         __DEPLOYED_BYTECODE,
     );
-    pub struct StdStyle<M>(::ethers::contract::Contract<M>);
-    impl<M> ::core::clone::Clone for StdStyle<M> {
+    pub struct RMM01ExtendedLib<M>(::ethers::contract::Contract<M>);
+    impl<M> ::core::clone::Clone for RMM01ExtendedLib<M> {
         fn clone(&self) -> Self {
             Self(::core::clone::Clone::clone(&self.0))
         }
     }
-    impl<M> ::core::ops::Deref for StdStyle<M> {
+    impl<M> ::core::ops::Deref for RMM01ExtendedLib<M> {
         type Target = ::ethers::contract::Contract<M>;
         fn deref(&self) -> &Self::Target {
             &self.0
         }
     }
-    impl<M> ::core::ops::DerefMut for StdStyle<M> {
+    impl<M> ::core::ops::DerefMut for RMM01ExtendedLib<M> {
         fn deref_mut(&mut self) -> &mut Self::Target {
             &mut self.0
         }
     }
-    impl<M> ::core::fmt::Debug for StdStyle<M> {
+    impl<M> ::core::fmt::Debug for RMM01ExtendedLib<M> {
         fn fmt(&self, f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
-            f.debug_tuple(stringify!(StdStyle)).field(&self.address()).finish()
+            f.debug_tuple(stringify!(RMM01ExtendedLib)).field(&self.address()).finish()
         }
     }
-    impl<M: ::ethers::providers::Middleware> StdStyle<M> {
+    impl<M: ::ethers::providers::Middleware> RMM01ExtendedLib<M> {
         /// Creates a new contract instance with the specified `ethers` client at
         /// `address`. The contract derefs to a `ethers::Contract` object.
         pub fn new<T: Into<::ethers::core::types::Address>>(
@@ -288,7 +292,7 @@ pub mod std_style {
             Self(
                 ::ethers::contract::Contract::new(
                     address.into(),
-                    STDSTYLE_ABI.clone(),
+                    RMM01EXTENDEDLIB_ABI.clone(),
                     client,
                 ),
             )
@@ -324,8 +328,8 @@ pub mod std_style {
             ::ethers::contract::ContractError<M>,
         > {
             let factory = ::ethers::contract::ContractFactory::new(
-                STDSTYLE_ABI.clone(),
-                STDSTYLE_BYTECODE.clone().into(),
+                RMM01EXTENDEDLIB_ABI.clone(),
+                RMM01EXTENDEDLIB_BYTECODE.clone().into(),
                 client,
             );
             let deployer = factory.deploy(constructor_args)?;
@@ -334,7 +338,7 @@ pub mod std_style {
         }
     }
     impl<M: ::ethers::providers::Middleware> From<::ethers::contract::Contract<M>>
-    for StdStyle<M> {
+    for RMM01ExtendedLib<M> {
         fn from(contract: ::ethers::contract::Contract<M>) -> Self {
             Self::new(contract.address(), contract.client())
         }

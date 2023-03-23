@@ -1,4 +1,4 @@
-pub use reverting_contract::*;
+pub use fixed_point_math_lib::*;
 /// This module was auto-generated with ethers-rs Abigen.
 /// More information at: <https://github.com/gakonst/ethers-rs>
 #[allow(
@@ -9,11 +9,11 @@ pub use reverting_contract::*;
     dead_code,
     non_camel_case_types,
 )]
-pub mod reverting_contract {
+pub mod fixed_point_math_lib {
     #[rustfmt::skip]
-    const __ABI: &str = "[{\"inputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"constructor\",\"outputs\":[]}]";
+    const __ABI: &str = "[]";
     ///The parsed JSON ABI of the contract.
-    pub static REVERTINGCONTRACT_ABI: ::ethers::contract::Lazy<
+    pub static FIXEDPOINTMATHLIB_ABI: ::ethers::contract::Lazy<
         ::ethers::core::abi::Abi,
     > = ::ethers::contract::Lazy::new(|| {
         ::ethers::core::utils::__serde_json::from_str(__ABI)
@@ -22,33 +22,83 @@ pub mod reverting_contract {
     #[rustfmt::skip]
     const __BYTECODE: &[u8] = &[
         96,
-        128,
+        86,
         96,
-        64,
-        82,
-        52,
-        128,
-        21,
+        55,
         96,
-        15,
-        87,
+        11,
+        130,
+        130,
+        130,
+        57,
+        128,
+        81,
         96,
         0,
-        128,
+        26,
+        96,
+        115,
+        20,
+        96,
+        42,
+        87,
+        99,
+        78,
+        72,
+        123,
+        113,
+        96,
+        224,
+        27,
+        96,
+        0,
+        82,
+        96,
+        0,
+        96,
+        4,
+        82,
+        96,
+        36,
+        96,
+        0,
         253,
         91,
+        48,
         96,
         0,
-        128,
-        253,
+        82,
+        96,
+        115,
+        129,
+        83,
+        130,
+        129,
+        243,
         254,
-    ];
-    ///The bytecode of the contract.
-    pub static REVERTINGCONTRACT_BYTECODE: ::ethers::core::types::Bytes = ::ethers::core::types::Bytes::from_static(
-        __BYTECODE,
-    );
-    #[rustfmt::skip]
-    const __DEPLOYED_BYTECODE: &[u8] = &[
+        115,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        48,
+        20,
         96,
         128,
         96,
@@ -69,38 +119,38 @@ pub mod reverting_contract {
         34,
         18,
         32,
-        127,
-        112,
-        102,
-        45,
-        76,
-        248,
-        41,
-        249,
-        118,
-        154,
-        47,
+        179,
+        57,
+        13,
+        16,
+        88,
         48,
+        27,
+        105,
+        123,
+        27,
+        186,
+        51,
+        30,
+        187,
+        174,
+        68,
+        233,
+        146,
+        251,
+        61,
         250,
-        2,
+        111,
+        203,
+        105,
+        140,
+        23,
         0,
-        231,
-        250,
-        6,
-        166,
-        0,
-        53,
-        235,
-        229,
-        90,
-        38,
-        197,
-        8,
-        163,
-        213,
-        10,
+        140,
         141,
-        22,
+        135,
+        222,
+        94,
         100,
         115,
         111,
@@ -109,37 +159,130 @@ pub mod reverting_contract {
         67,
         0,
         8,
-        19,
+        13,
+        0,
+        51,
+    ];
+    ///The bytecode of the contract.
+    pub static FIXEDPOINTMATHLIB_BYTECODE: ::ethers::core::types::Bytes = ::ethers::core::types::Bytes::from_static(
+        __BYTECODE,
+    );
+    #[rustfmt::skip]
+    const __DEPLOYED_BYTECODE: &[u8] = &[
+        115,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        48,
+        20,
+        96,
+        128,
+        96,
+        64,
+        82,
+        96,
+        0,
+        128,
+        253,
+        254,
+        162,
+        100,
+        105,
+        112,
+        102,
+        115,
+        88,
+        34,
+        18,
+        32,
+        179,
+        57,
+        13,
+        16,
+        88,
+        48,
+        27,
+        105,
+        123,
+        27,
+        186,
+        51,
+        30,
+        187,
+        174,
+        68,
+        233,
+        146,
+        251,
+        61,
+        250,
+        111,
+        203,
+        105,
+        140,
+        23,
+        0,
+        140,
+        141,
+        135,
+        222,
+        94,
+        100,
+        115,
+        111,
+        108,
+        99,
+        67,
+        0,
+        8,
+        13,
         0,
         51,
     ];
     ///The deployed bytecode of the contract.
-    pub static REVERTINGCONTRACT_DEPLOYED_BYTECODE: ::ethers::core::types::Bytes = ::ethers::core::types::Bytes::from_static(
+    pub static FIXEDPOINTMATHLIB_DEPLOYED_BYTECODE: ::ethers::core::types::Bytes = ::ethers::core::types::Bytes::from_static(
         __DEPLOYED_BYTECODE,
     );
-    pub struct RevertingContract<M>(::ethers::contract::Contract<M>);
-    impl<M> ::core::clone::Clone for RevertingContract<M> {
+    pub struct FixedPointMathLib<M>(::ethers::contract::Contract<M>);
+    impl<M> ::core::clone::Clone for FixedPointMathLib<M> {
         fn clone(&self) -> Self {
             Self(::core::clone::Clone::clone(&self.0))
         }
     }
-    impl<M> ::core::ops::Deref for RevertingContract<M> {
+    impl<M> ::core::ops::Deref for FixedPointMathLib<M> {
         type Target = ::ethers::contract::Contract<M>;
         fn deref(&self) -> &Self::Target {
             &self.0
         }
     }
-    impl<M> ::core::ops::DerefMut for RevertingContract<M> {
+    impl<M> ::core::ops::DerefMut for FixedPointMathLib<M> {
         fn deref_mut(&mut self) -> &mut Self::Target {
             &mut self.0
         }
     }
-    impl<M> ::core::fmt::Debug for RevertingContract<M> {
+    impl<M> ::core::fmt::Debug for FixedPointMathLib<M> {
         fn fmt(&self, f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
-            f.debug_tuple(stringify!(RevertingContract)).field(&self.address()).finish()
+            f.debug_tuple(stringify!(FixedPointMathLib)).field(&self.address()).finish()
         }
     }
-    impl<M: ::ethers::providers::Middleware> RevertingContract<M> {
+    impl<M: ::ethers::providers::Middleware> FixedPointMathLib<M> {
         /// Creates a new contract instance with the specified `ethers` client at
         /// `address`. The contract derefs to a `ethers::Contract` object.
         pub fn new<T: Into<::ethers::core::types::Address>>(
@@ -149,7 +292,7 @@ pub mod reverting_contract {
             Self(
                 ::ethers::contract::Contract::new(
                     address.into(),
-                    REVERTINGCONTRACT_ABI.clone(),
+                    FIXEDPOINTMATHLIB_ABI.clone(),
                     client,
                 ),
             )
@@ -185,8 +328,8 @@ pub mod reverting_contract {
             ::ethers::contract::ContractError<M>,
         > {
             let factory = ::ethers::contract::ContractFactory::new(
-                REVERTINGCONTRACT_ABI.clone(),
-                REVERTINGCONTRACT_BYTECODE.clone().into(),
+                FIXEDPOINTMATHLIB_ABI.clone(),
+                FIXEDPOINTMATHLIB_BYTECODE.clone().into(),
                 client,
             );
             let deployer = factory.deploy(constructor_args)?;
@@ -195,7 +338,7 @@ pub mod reverting_contract {
         }
     }
     impl<M: ::ethers::providers::Middleware> From<::ethers::contract::Contract<M>>
-    for RevertingContract<M> {
+    for FixedPointMathLib<M> {
         fn from(contract: ::ethers::contract::Contract<M>) -> Self {
             Self::new(contract.address(), contract.client())
         }

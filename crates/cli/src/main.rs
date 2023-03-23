@@ -8,7 +8,7 @@ use simulate::{
     environment::{recast_address, SimulationContract, SimulationManager},
     price_simulation::PriceSimulation,
 };
-use bindings::{weth9};
+use bindings::{weth9, simple_registry, rmm01_portfolio};
 mod config;
 
 #[derive(Parser)]
@@ -61,8 +61,8 @@ async fn main() -> Result<()> {
 
             // Deploy the registry contract.
             let registry = SimulationContract::new(
-                BaseContract::from(bindings::simple_registry::SIMPLEREGISTRY_ABI.clone()),
-                bindings::simple_registry::SIMPLEREGISTRY_BYTECODE
+                BaseContract::from(simple_registry::SIMPLEREGISTRY_ABI.clone()),
+                simple_registry::SIMPLEREGISTRY_BYTECODE
                     .clone()
                     .into_iter()
                     .collect(),
@@ -72,8 +72,8 @@ async fn main() -> Result<()> {
 
             // Deploy the portfolio contract.
             let portfolio = SimulationContract::new(
-                BaseContract::from(bindings::rmm01_portfolio::RMM01PORTFOLIO_ABI.clone()),
-                bindings::rmm01_portfolio::RMM01PORTFOLIO_BYTECODE
+                BaseContract::from(rmm01_portfolio::RMM01PORTFOLIO_ABI.clone()),
+                rmm01_portfolio::RMM01PORTFOLIO_BYTECODE
                     .clone()
                     .into_iter()
                     .collect(),
