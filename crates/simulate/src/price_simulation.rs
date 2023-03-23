@@ -1,34 +1,39 @@
+#![warn(missing_docs)]
+//! Used to generate price paths for a simulation.
+//! Managers will be able to read from this data to change prices of for infinitely liquid pools.
+
 use plotly::{Plot, Scatter};
 use rand::prelude::*;
 use rand_chacha::ChaCha8Rng;
 use rand_distr::{Distribution, StandardNormal};
 
+/// Data needed for a Geometric Brownian Motion (GBM) price path generator information.
 #[derive(Debug)]
 pub struct PriceSimulation {
-    // Name/identifier for the simulation (will set filenames)
+    /// Name/identifier for the simulation (will set filenames)
     pub identifier: String, // E.g., "test"
-    // Numerical timestep for the simulation (typically just 1).
+    /// Numerical timestep for the simulation (typically just 1).
     pub timestep: f64,
-    // Time in string interpretation.
+    /// Time in string interpretation.
     pub timescale: String, // E.g., "day"
-    // Number of steps.
+    /// Number of steps.
     pub num_steps: usize,
-    // Initial price of the simulation.
+    /// Initial price of the simulation.
     pub initial_price: f64,
-    // Price drift of the underlying asset.
+    /// Price drift of the underlying asset.
     pub drift: f64,
-    // Volatility of the underlying asset.c
+    /// Volatility of the underlying asset.c
     pub volatility: f64,
-    // Time data for the simulation.
+    /// Time data for the simulation.
     pub time_data: Vec<f64>,
-    // Price data for the simulation.
+    /// Price data for the simulation.
     pub price_data: Vec<f64>,
-    // Seed for testing.
+    /// Seed for testing.
     pub seed: u64,
 }
 
 impl PriceSimulation {
-    // Public builder function that instantiates a `Simulation`.
+    /// Public builder function that instantiates a `Simulation`.
     pub fn new(
         timestep: f64,
         timescale: String,
@@ -73,7 +78,7 @@ impl PriceSimulation {
             seed,
         }
     }
-
+    /// Displays a plot of the GBM price path.
     pub fn plot(&self) {
         let mut filename = self.identifier.to_owned();
         filename.push_str(".html");
@@ -86,6 +91,7 @@ impl PriceSimulation {
     }
 }
 
+/// Produces a GBM price path.
 fn generate_gbm(
     initial_price: f64,
     timestep: f64,

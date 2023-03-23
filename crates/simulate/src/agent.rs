@@ -16,18 +16,21 @@ pub struct TransactSettings {
 }
 /// Basic traits that every `Agent` must implement in order to properly interact with an EVM.
 pub trait Agent {
+    /// Used to allow agentws to make a generic call a specific smart contract.
     fn call_contract(
         &mut self,
         contract: &SimulationContract<IsDeployed>,
         call_data: Bytes,
         value: U256,
     ) -> ExecutionResult;
+    /// A constructor to build a `TxEnv` for an agent (uses agent data like `address` and `TransactSettings`).
     fn build_call_transaction(
         &self,
         receiver_address: B160,
         call_data: Bytes,
         value: U256,
     ) -> TxEnv;
-    // TODO: Not sure this needs to be mutable self
-    fn read_logs(&mut self) -> Vec<Log>; 
+    // TODO: Not sure `read_logs` needs to be mutable self.
+    /// Provides the ability to read event logs from the simulation's EVM.
+    fn read_logs(&mut self) -> Vec<Log>;
 }
