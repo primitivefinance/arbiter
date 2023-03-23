@@ -1,4 +1,23 @@
-                                 Apache License
+#!/bin/bash
+
+forge bind -C lib/arbmod/contracts -b crates/bindings/ --crate-name bindings --overwrite --single-file
+echo "Generated bindings for arbmod" 
+forge bind -C lib/portfolio/contracts -b crates/bindings/ --crate-name bindings --overwrite --single-file
+echo "Generated bindings for portfolio"
+
+#!/bin/bash
+
+# Define the input and output files
+input_file="crates/bindings/Cargo.toml"
+output_file="crates/bindings/Cargo-updated.toml"
+
+# Use sed to search and replace a string in the input file
+sed 's/git = "https:\/\/github.com\/gakonst\/ethers-rs"/version = "=2.0.0"/g' "$input_file" > "$output_file"
+mv "$output_file" "$input_file"
+
+
+
+echo "                                 Apache License
                            Version 2.0, January 2004
                         http://www.apache.org/licenses/
 
@@ -198,4 +217,4 @@
    distributed under the License is distributed on an "AS IS" BASIS,
    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
    See the License for the specific language governing permissions and
-   limitations under the License.
+   limitations under the License." > crates/bindings/LICENSE 

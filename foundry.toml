@@ -1,12 +1,11 @@
 [profile.default] # all profiles inherit from this
-# solc = '0.8.19'
-src = 'lib/portfolio/contracts'
+src = 'lib/'
 out = 'out/' # default
 test = 'test' # default
 libs = ['lib']
 cache = false # !important! breaks echidna if cache = true.
 remappings = [
-    'forge-std/=lib/forge-std/src/',
-    'solmate/=lib/solmate/src/',
-    'solstat/=lib/solstat/src/',
+    '@forge-std/=lib/forge-std/src/',
+    '@solmate/=lib/solmate/src/',
+    '@solstat/=lib/solstat/src/',
 ]

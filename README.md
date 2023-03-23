@@ -53,6 +53,16 @@ cargo doc --workspace --no-deps --open
 ```
 This will generate and open the docs in your browser. From there, you can look at the documentation for each crate in the Arbiter workspace.
 
+## Including More Contracts
+
+In the `lib/` folder you can add additional smart contracts or regenerate Rust bindings. To do so, run the following from the Arbiter root directory:
+
+```
+./bind.sh
+```
+
+At the moment, this only builds the bindings for the contracts in the `lib/arbmod/contracts/` and `lib/portfolio/contracts`. You can of course add an additional directory of contracts in `lib/`. Just be sure to include it when you generate bindings!
+
 ## Contributing
 
 See our [Contributing Guidelines](https://github.com/primitivefinance/arbiter/blob/main/.github/CONTRIBUTING.md)
