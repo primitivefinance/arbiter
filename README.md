@@ -38,10 +38,13 @@ First, clone the repository to your local environment so
 ```
 git clone https://github.com/primitivefinance/arbiter.git
 cd arbiter
-cargo install --path ./crates/cli
+cargo build
 ```
 
-Set the PROVIDER environment variable to use a custom provider.
+With the `arbiter` binary generated, you can run commands such as:
+```
+arbiter sim
+```
 
 ## Generating Docs
 To see the documentation for Arbiter, after cloning the repo, you can run:
