@@ -8,6 +8,7 @@ use simulate::{
     environment::{recast_address, SimulationContract, SimulationManager},
     price_simulation::PriceSimulation,
 };
+use bindings::{weth9};
 mod config;
 
 #[derive(Parser)]
@@ -49,8 +50,8 @@ async fn main() -> Result<()> {
 
             // Deploy the WETH contract.
             let weth = SimulationContract::new(
-                BaseContract::from(bindings::weth9::WETH9_ABI.clone()),
-                bindings::weth9::WRITER_BYTECODE
+                BaseContract::from(weth9::WETH9_ABI.clone()),
+                weth9::WETH9_BYTECODE
                     .clone()
                     .into_iter()
                     .collect(),

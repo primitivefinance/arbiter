@@ -1,4 +1,4 @@
-pub use fixed_point_math_lib::*;
+pub use std_style::*;
 /// This module was auto-generated with ethers-rs Abigen.
 /// More information at: <https://github.com/gakonst/ethers-rs>
 #[allow(
@@ -7,16 +7,14 @@ pub use fixed_point_math_lib::*;
     clippy::upper_case_acronyms,
     clippy::type_complexity,
     dead_code,
-    non_camel_case_types
+    non_camel_case_types,
 )]
-pub mod fixed_point_math_lib {
+pub mod std_style {
     #[rustfmt::skip]
     const __ABI: &str = "[]";
     ///The parsed JSON ABI of the contract.
-    pub static FIXEDPOINTMATHLIB_ABI: ::ethers::contract::Lazy<::ethers::core::abi::Abi> =
-        ::ethers::contract::Lazy::new(|| {
-            ::ethers::core::utils::__serde_json::from_str(__ABI).expect("ABI is always valid")
-        });
+    pub static STDSTYLE_ABI: ::ethers::contract::Lazy<::ethers::core::abi::Abi> = ::ethers::contract::Lazy::new(||
+    ::ethers::core::utils::__serde_json::from_str(__ABI).expect("ABI is always valid"));
     #[rustfmt::skip]
     const __BYTECODE: &[u8] = &[
         96,
@@ -117,38 +115,38 @@ pub mod fixed_point_math_lib {
         34,
         18,
         32,
-        10,
-        31,
-        207,
-        94,
-        138,
-        157,
-        89,
-        69,
-        87,
-        143,
-        145,
-        109,
-        224,
-        173,
-        93,
-        237,
-        220,
-        229,
-        204,
-        196,
-        69,
-        167,
-        59,
+        13,
+        55,
+        40,
+        122,
+        235,
+        181,
+        91,
+        222,
+        160,
+        49,
+        200,
+        233,
+        75,
+        99,
+        175,
+        190,
+        54,
+        165,
+        213,
+        114,
+        96,
         46,
-        155,
-        228,
-        45,
-        45,
-        50,
-        239,
-        24,
-        98,
+        148,
+        142,
+        123,
+        207,
+        196,
+        126,
+        14,
+        205,
+        118,
+        6,
         100,
         115,
         111,
@@ -157,13 +155,14 @@ pub mod fixed_point_math_lib {
         67,
         0,
         8,
-        13,
+        19,
         0,
         51,
     ];
     ///The bytecode of the contract.
-    pub static FIXEDPOINTMATHLIB_BYTECODE: ::ethers::core::types::Bytes =
-        ::ethers::core::types::Bytes::from_static(__BYTECODE);
+    pub static STDSTYLE_BYTECODE: ::ethers::core::types::Bytes = ::ethers::core::types::Bytes::from_static(
+        __BYTECODE,
+    );
     #[rustfmt::skip]
     const __DEPLOYED_BYTECODE: &[u8] = &[
         115,
@@ -209,38 +208,38 @@ pub mod fixed_point_math_lib {
         34,
         18,
         32,
-        10,
-        31,
-        207,
-        94,
-        138,
-        157,
-        89,
-        69,
-        87,
-        143,
-        145,
-        109,
-        224,
-        173,
-        93,
-        237,
-        220,
-        229,
-        204,
-        196,
-        69,
-        167,
-        59,
+        13,
+        55,
+        40,
+        122,
+        235,
+        181,
+        91,
+        222,
+        160,
+        49,
+        200,
+        233,
+        75,
+        99,
+        175,
+        190,
+        54,
+        165,
+        213,
+        114,
+        96,
         46,
-        155,
-        228,
-        45,
-        45,
-        50,
-        239,
-        24,
-        98,
+        148,
+        142,
+        123,
+        207,
+        196,
+        126,
+        14,
+        205,
+        118,
+        6,
         100,
         115,
         111,
@@ -249,49 +248,50 @@ pub mod fixed_point_math_lib {
         67,
         0,
         8,
-        13,
+        19,
         0,
         51,
     ];
     ///The deployed bytecode of the contract.
-    pub static FIXEDPOINTMATHLIB_DEPLOYED_BYTECODE: ::ethers::core::types::Bytes =
-        ::ethers::core::types::Bytes::from_static(__DEPLOYED_BYTECODE);
-    pub struct FixedPointMathLib<M>(::ethers::contract::Contract<M>);
-    impl<M> ::core::clone::Clone for FixedPointMathLib<M> {
+    pub static STDSTYLE_DEPLOYED_BYTECODE: ::ethers::core::types::Bytes = ::ethers::core::types::Bytes::from_static(
+        __DEPLOYED_BYTECODE,
+    );
+    pub struct StdStyle<M>(::ethers::contract::Contract<M>);
+    impl<M> ::core::clone::Clone for StdStyle<M> {
         fn clone(&self) -> Self {
             Self(::core::clone::Clone::clone(&self.0))
         }
     }
-    impl<M> ::core::ops::Deref for FixedPointMathLib<M> {
+    impl<M> ::core::ops::Deref for StdStyle<M> {
         type Target = ::ethers::contract::Contract<M>;
         fn deref(&self) -> &Self::Target {
             &self.0
         }
     }
-    impl<M> ::core::ops::DerefMut for FixedPointMathLib<M> {
+    impl<M> ::core::ops::DerefMut for StdStyle<M> {
         fn deref_mut(&mut self) -> &mut Self::Target {
             &mut self.0
         }
     }
-    impl<M> ::core::fmt::Debug for FixedPointMathLib<M> {
+    impl<M> ::core::fmt::Debug for StdStyle<M> {
         fn fmt(&self, f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
-            f.debug_tuple(stringify!(FixedPointMathLib))
-                .field(&self.address())
-                .finish()
+            f.debug_tuple(stringify!(StdStyle)).field(&self.address()).finish()
         }
     }
-    impl<M: ::ethers::providers::Middleware> FixedPointMathLib<M> {
+    impl<M: ::ethers::providers::Middleware> StdStyle<M> {
         /// Creates a new contract instance with the specified `ethers` client at
         /// `address`. The contract derefs to a `ethers::Contract` object.
         pub fn new<T: Into<::ethers::core::types::Address>>(
             address: T,
             client: ::std::sync::Arc<M>,
         ) -> Self {
-            Self(::ethers::contract::Contract::new(
-                address.into(),
-                FIXEDPOINTMATHLIB_ABI.clone(),
-                client,
-            ))
+            Self(
+                ::ethers::contract::Contract::new(
+                    address.into(),
+                    STDSTYLE_ABI.clone(),
+                    client,
+                ),
+            )
         }
         /// Constructs the general purpose `Deployer` instance based on the provided constructor arguments and sends it.
         /// Returns a new instance of a deployer that returns an instance of this contract after sending the transaction
@@ -324,8 +324,8 @@ pub mod fixed_point_math_lib {
             ::ethers::contract::ContractError<M>,
         > {
             let factory = ::ethers::contract::ContractFactory::new(
-                FIXEDPOINTMATHLIB_ABI.clone(),
-                FIXEDPOINTMATHLIB_BYTECODE.clone().into(),
+                STDSTYLE_ABI.clone(),
+                STDSTYLE_BYTECODE.clone().into(),
                 client,
             );
             let deployer = factory.deploy(constructor_args)?;
@@ -334,8 +334,7 @@ pub mod fixed_point_math_lib {
         }
     }
     impl<M: ::ethers::providers::Middleware> From<::ethers::contract::Contract<M>>
-        for FixedPointMathLib<M>
-    {
+    for StdStyle<M> {
         fn from(contract: ::ethers::contract::Contract<M>) -> Self {
             Self::new(contract.address(), contract.client())
         }

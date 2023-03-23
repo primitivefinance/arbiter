@@ -6,6 +6,4 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-
-ethers = "=2.0.0"
-serde_json = "1.0.79"
+ethers = { git = "https://github.com/gakonst/ethers-rs", default-features = false, features = ["abigen"] }

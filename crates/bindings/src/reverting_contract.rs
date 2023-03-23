@@ -1,4 +1,4 @@
-pub use assembly_lib::*;
+pub use reverting_contract::*;
 /// This module was auto-generated with ethers-rs Abigen.
 /// More information at: <https://github.com/gakonst/ethers-rs>
 #[allow(
@@ -7,188 +7,48 @@ pub use assembly_lib::*;
     clippy::upper_case_acronyms,
     clippy::type_complexity,
     dead_code,
-    non_camel_case_types
+    non_camel_case_types,
 )]
-pub mod assembly_lib {
+pub mod reverting_contract {
     #[rustfmt::skip]
-    const __ABI: &str = "[]";
+    const __ABI: &str = "[{\"inputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"constructor\",\"outputs\":[]}]";
     ///The parsed JSON ABI of the contract.
-    pub static ASSEMBLYLIB_ABI: ::ethers::contract::Lazy<::ethers::core::abi::Abi> =
-        ::ethers::contract::Lazy::new(|| {
-            ::ethers::core::utils::__serde_json::from_str(__ABI).expect("ABI is always valid")
-        });
+    pub static REVERTINGCONTRACT_ABI: ::ethers::contract::Lazy<
+        ::ethers::core::abi::Abi,
+    > = ::ethers::contract::Lazy::new(|| {
+        ::ethers::core::utils::__serde_json::from_str(__ABI)
+            .expect("ABI is always valid")
+    });
     #[rustfmt::skip]
     const __BYTECODE: &[u8] = &[
         96,
-        86,
-        96,
-        55,
-        96,
-        11,
-        130,
-        130,
-        130,
-        57,
         128,
-        81,
         96,
-        0,
-        26,
+        64,
+        82,
+        52,
+        128,
+        21,
         96,
-        115,
-        20,
-        96,
-        42,
+        15,
         87,
-        99,
-        78,
-        72,
-        123,
-        113,
-        96,
-        224,
-        27,
         96,
         0,
-        82,
-        96,
-        0,
-        96,
-        4,
-        82,
-        96,
-        36,
-        96,
-        0,
+        128,
         253,
         91,
-        48,
-        96,
-        0,
-        82,
-        96,
-        115,
-        129,
-        83,
-        130,
-        129,
-        243,
-        254,
-        115,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        48,
-        20,
-        96,
-        128,
-        96,
-        64,
-        82,
         96,
         0,
         128,
         253,
         254,
-        162,
-        100,
-        105,
-        112,
-        102,
-        115,
-        88,
-        34,
-        18,
-        32,
-        43,
-        19,
-        162,
-        183,
-        196,
-        4,
-        36,
-        151,
-        85,
-        55,
-        170,
-        48,
-        137,
-        165,
-        111,
-        103,
-        28,
-        22,
-        220,
-        80,
-        120,
-        115,
-        144,
-        25,
-        73,
-        105,
-        95,
-        19,
-        28,
-        165,
-        134,
-        170,
-        100,
-        115,
-        111,
-        108,
-        99,
-        67,
-        0,
-        8,
-        13,
-        0,
-        51,
     ];
     ///The bytecode of the contract.
-    pub static ASSEMBLYLIB_BYTECODE: ::ethers::core::types::Bytes =
-        ::ethers::core::types::Bytes::from_static(__BYTECODE);
+    pub static REVERTINGCONTRACT_BYTECODE: ::ethers::core::types::Bytes = ::ethers::core::types::Bytes::from_static(
+        __BYTECODE,
+    );
     #[rustfmt::skip]
     const __DEPLOYED_BYTECODE: &[u8] = &[
-        115,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        48,
-        20,
         96,
         128,
         96,
@@ -209,38 +69,38 @@ pub mod assembly_lib {
         34,
         18,
         32,
-        43,
-        19,
-        162,
-        183,
-        196,
-        4,
-        36,
-        151,
-        85,
-        55,
-        170,
+        127,
+        112,
+        102,
+        45,
+        76,
+        248,
+        41,
+        249,
+        118,
+        154,
+        47,
         48,
-        137,
-        165,
-        111,
-        103,
-        28,
+        250,
+        2,
+        0,
+        231,
+        250,
+        6,
+        166,
+        0,
+        53,
+        235,
+        229,
+        90,
+        38,
+        197,
+        8,
+        163,
+        213,
+        10,
+        141,
         22,
-        220,
-        80,
-        120,
-        115,
-        144,
-        25,
-        73,
-        105,
-        95,
-        19,
-        28,
-        165,
-        134,
-        170,
         100,
         115,
         111,
@@ -249,49 +109,50 @@ pub mod assembly_lib {
         67,
         0,
         8,
-        13,
+        19,
         0,
         51,
     ];
     ///The deployed bytecode of the contract.
-    pub static ASSEMBLYLIB_DEPLOYED_BYTECODE: ::ethers::core::types::Bytes =
-        ::ethers::core::types::Bytes::from_static(__DEPLOYED_BYTECODE);
-    pub struct AssemblyLib<M>(::ethers::contract::Contract<M>);
-    impl<M> ::core::clone::Clone for AssemblyLib<M> {
+    pub static REVERTINGCONTRACT_DEPLOYED_BYTECODE: ::ethers::core::types::Bytes = ::ethers::core::types::Bytes::from_static(
+        __DEPLOYED_BYTECODE,
+    );
+    pub struct RevertingContract<M>(::ethers::contract::Contract<M>);
+    impl<M> ::core::clone::Clone for RevertingContract<M> {
         fn clone(&self) -> Self {
             Self(::core::clone::Clone::clone(&self.0))
         }
     }
-    impl<M> ::core::ops::Deref for AssemblyLib<M> {
+    impl<M> ::core::ops::Deref for RevertingContract<M> {
         type Target = ::ethers::contract::Contract<M>;
         fn deref(&self) -> &Self::Target {
             &self.0
         }
     }
-    impl<M> ::core::ops::DerefMut for AssemblyLib<M> {
+    impl<M> ::core::ops::DerefMut for RevertingContract<M> {
         fn deref_mut(&mut self) -> &mut Self::Target {
             &mut self.0
         }
     }
-    impl<M> ::core::fmt::Debug for AssemblyLib<M> {
+    impl<M> ::core::fmt::Debug for RevertingContract<M> {
         fn fmt(&self, f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
-            f.debug_tuple(stringify!(AssemblyLib))
-                .field(&self.address())
-                .finish()
+            f.debug_tuple(stringify!(RevertingContract)).field(&self.address()).finish()
         }
     }
-    impl<M: ::ethers::providers::Middleware> AssemblyLib<M> {
+    impl<M: ::ethers::providers::Middleware> RevertingContract<M> {
         /// Creates a new contract instance with the specified `ethers` client at
         /// `address`. The contract derefs to a `ethers::Contract` object.
         pub fn new<T: Into<::ethers::core::types::Address>>(
             address: T,
             client: ::std::sync::Arc<M>,
         ) -> Self {
-            Self(::ethers::contract::Contract::new(
-                address.into(),
-                ASSEMBLYLIB_ABI.clone(),
-                client,
-            ))
+            Self(
+                ::ethers::contract::Contract::new(
+                    address.into(),
+                    REVERTINGCONTRACT_ABI.clone(),
+                    client,
+                ),
+            )
         }
         /// Constructs the general purpose `Deployer` instance based on the provided constructor arguments and sends it.
         /// Returns a new instance of a deployer that returns an instance of this contract after sending the transaction
@@ -324,8 +185,8 @@ pub mod assembly_lib {
             ::ethers::contract::ContractError<M>,
         > {
             let factory = ::ethers::contract::ContractFactory::new(
-                ASSEMBLYLIB_ABI.clone(),
-                ASSEMBLYLIB_BYTECODE.clone().into(),
+                REVERTINGCONTRACT_ABI.clone(),
+                REVERTINGCONTRACT_BYTECODE.clone().into(),
                 client,
             );
             let deployer = factory.deploy(constructor_args)?;
@@ -333,7 +194,8 @@ pub mod assembly_lib {
             Ok(deployer)
         }
     }
-    impl<M: ::ethers::providers::Middleware> From<::ethers::contract::Contract<M>> for AssemblyLib<M> {
+    impl<M: ::ethers::providers::Middleware> From<::ethers::contract::Contract<M>>
+    for RevertingContract<M> {
         fn from(contract: ::ethers::contract::Contract<M>) -> Self {
             Self::new(contract.address(), contract.client())
         }
