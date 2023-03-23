@@ -58,11 +58,10 @@ This will generate and open the docs in your browser. From there, you can look a
 In the `lib/` folder you can add additional smart contracts or regenerate Rust bindings. To do so, run the following from the Arbiter root directory:
 
 ```
-forge bind -C lib/arbmod/contracts -b crates/bindings/ --crate-name bindings --overwrite \
-&& forge bind -C lib/portfolio/contracts -b crates/bindings/ --crate-name bindings --overwrite
+./bind.sh
 ```
 
-You can of course add an additional directory of contracts in `lib/`. Just be sure to include it when you generate bindings!
+At the moment, this only builds the bindings for the contracts in the `lib/arbmod/contracts/` and `lib/portfolio/contracts`. You can of course add an additional directory of contracts in `lib/`. Just be sure to include it when you generate bindings!
 
 ## Contributing
 
