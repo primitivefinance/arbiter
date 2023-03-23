@@ -1,7 +1,13 @@
+#![warn(missing_docs)]
+//! This module contains the structs necessary to serve as an environment that a simulation that can be run inside of.
+//! The `SimulationManager` inherits the `Agent` trait and is given control over the `SimulationEnvironment` struct.
+//! The job of the manager is to deploy contracts and call upon special functionality that guides the simulation forward.
+
 use std::{
     collections::HashMap,
     str::FromStr,
     sync::{Arc, RwLock},
+    thread,
 };
 
 use bytes::Bytes;
@@ -19,15 +25,20 @@ use revm::{
 
 use crate::agent::{Agent, TransactSettings};
 
+/// The `SimulationEnvironment` struct controls the execution environment (EVM), has an associated set of agents, and provides an event (ETH log) buffer.
 struct SimulationEnvironment {
     evm: EVM<CacheDB<EmptyDB>>,
     _agents: HashMap<String, Box<dyn Agent>>,
     event_buffer: Arc<RwLock<Vec<Log>>>, // TODO: This should probably just store head
-    writer_thread: Option<std::thread::JoinHandle<()>>,
+    writer_thread: Option<thread::JoinHandle<()>>,
 }
 
-impl Default for SimulationEnvironment {
-    /// Public default constructor function to instantiate an `ExecutionManager`.
+impl SimulationEnvironment {
+    /**
+    Public default constructor function to instantiate an `ExecutionManager`.
+    Private and can only be called by the `SimulationManager` struct.
+    This prevents a user from creating an `ExecutionManager` without a `SimulationManager` which will not function well.
+    */
     fn default() -> Self {
         let mut evm = EVM::new();
         let db = CacheDB::new(EmptyDB {});
@@ -38,12 +49,14 @@ impl Default for SimulationEnvironment {
             evm,
             _agents: HashMap::new(), // This will only store agents that aren't the manager.
             event_buffer: Arc::new(RwLock::new(Vec::<Log>::new())),
-            writer_thread: Some(std::thread::spawn(|| {})),
+            writer_thread: Some(thread::spawn(|| {})),
         }
     }
 }
 
+/// `SimulationEnvironment` serves as a mechanism for getting EVM computation results and distributing logs to agents.
 impl SimulationEnvironment {
+    /// `execute` is a public function that takes a transaction and executes it on the EVM.
     fn execute(&mut self, tx: TxEnv) -> ExecutionResult {
         self.evm.env.tx = tx;
         let execution_result = match self.evm.transact_commit() {
@@ -56,7 +69,7 @@ impl SimulationEnvironment {
         self.echo_logs(logs);
         execution_result
     }
-    // TODO: Echo logs to a buffer that all agents can read and await.
+    /// `echo_logs` is a private function that takes a vector of logs and writes them to the event buffer that all agents can read.
     fn echo_logs(&mut self, logs: Vec<Log>) {
         // let writer_thread = self.writer_thread.take();
         if let Some(handle) = self.writer_thread.take() {
@@ -69,19 +82,28 @@ impl SimulationEnvironment {
     }
     // TODO: Implementing the following functions could be useful.
     // fn decode_event;
-    // fn decode_output;
-    // fn handle_execution_result;
+    // fn decode_output; // These two could be combined.
+    // fn unpack_execution_result;
 }
-
+/**
+`SimulationManager` is the main struct that is used to control the simulation environment.
+It acts in some ways as an agent, but it also has special control over the environment such as deploying contracts.
+It is the only agent that contains an execution environment.
+*/
 pub struct SimulationManager {
-    pub address: B160, //TODO: Consider using Address=H160 instead of B160
+    /// `address` is the public address of the simulation manager.
+    pub address: B160, //TODO: Consider using Address=H160 instead of B160, or wait for ruints.
+    /// `account` is the revm-primitive account of the simulation manager.
     pub account: Account,
+    /// `environment` is the `SimulationEnvironment` that the simulation manager controls.
     environment: SimulationEnvironment,
+    /// `transact_settings` is a struct that contains the default transaction options for revm such as gas limit and gas price.
     pub transact_settings: TransactSettings,
 }
 
 impl Agent for SimulationManager {
     // TODO: Can calling a contract ever need for raw eth "value" to be sent along with?
+    /// `call_contract` is a public function that takes a contract call and passes it to the execution environment.
     fn call_contract(
         &mut self,
         contract: &SimulationContract<IsDeployed>,
@@ -92,11 +114,11 @@ impl Agent for SimulationManager {
         self.environment.execute(tx)
     }
     // TODO: Handle the output of the execution result and decode?
-
+    /// `read_logs` gets the most current event (which is all that is stored in the event buffer).
     fn read_logs(&mut self) -> Vec<Log> {
         self.environment.event_buffer.read().unwrap().to_vec()
     }
-
+    /// `build_call_transaction` is a constructor function that takes an address and an account and returns a `TxEnv` which the EVM uses natively.
     fn build_call_transaction(
         &self,
         receiver_address: B160,
@@ -118,6 +140,8 @@ impl Agent for SimulationManager {
     }
 }
 impl Default for SimulationManager {
+    /// `default` is a public constructor function that returns a `SimulationManager` with default values.
+    /// Unless more simulations are being run in parallel, this is the only constructor function that should be used since a manager comes equipped with an environment.
     fn default() -> Self {
         Self {
             address: B160::from_str("0x0000000000000000000000000000000000000001").unwrap(),
@@ -126,7 +150,6 @@ impl Default for SimulationManager {
             transact_settings: TransactSettings {
                 gas_limit: u64::MAX,
                 gas_price: U256::ZERO,
-                value: U256::ZERO,
             },
         }
     }
@@ -134,6 +157,7 @@ impl Default for SimulationManager {
 
 impl SimulationManager {
     // TODO: Unpacking should probably be defined on ExecutionResult type. But that will be in the crate.
+    /// `unpack_execution` is a public function that takes an `ExecutionResult` and returns the raw bytes of the output that can then be decoded.
     pub fn unpack_execution(&self, execution_result: ExecutionResult) -> Bytes {
         // unpack output call enum into raw bytes
         match execution_result {
@@ -147,7 +171,8 @@ impl SimulationManager {
             _ => panic!("This call generated no execution result. This should not happen."),
         }
     }
-    /// Used in the deploy function to create a transaction environment for deploying a contract.
+    /// `build_deploy_transaction` is a constructor function for `Create` types of transactions.
+    /// This is special to the `SimulationManager` since it is the only agent that can deploy contracts.
     fn build_deploy_transaction(&self, bytecode: Bytes) -> TxEnv {
         TxEnv {
             caller: self.address,
@@ -163,8 +188,8 @@ impl SimulationManager {
         }
     }
 
+    // TODO: This should call `recast_address` when a B160 is passed as an arg. Not sure how to handle this yet.
     /// Deploy a contract. We will assume the sender is always the admin.
-    /// TODO: This should call `recast_address` when a B160 is passed as an arg. Not sure how to handle this yet.
     pub fn deploy<T: Tokenize>(
         &mut self,
         contract: SimulationContract<NotDeployed>,
@@ -222,7 +247,7 @@ impl SimulationManager {
 
         account.info.balance += amount;
     }
-
+    /// `mint` can be used to mint certain tokens to specific addresses.
     pub fn mint(&mut self, _address: B160, _amount: U256) {
         todo!()
     }
@@ -235,19 +260,30 @@ pub fn recast_address(address: B160) -> Address {
 }
 
 #[derive(Debug)]
+/// A struct use for `PhantomData` to indicate a lock on contracts that are not deployed.
 pub struct NotDeployed;
 #[derive(Debug)]
+// TODO: It would be good to also allow the `IsDeployed` to also mention which `SimulationManager` has deployed it (when we have multiple managers).
+/// A struct use for `PhantomData` to indicate an unlocked contract that is deployed.
 pub struct IsDeployed;
 
 #[derive(Debug)]
+/// A struct that wraps around the ethers `BaseContract` and adds some additional information relevant for revm and the simulation.
 pub struct SimulationContract<Deployed> {
+    /// The ethers `BaseContract` that holds the ABI.
     pub base_contract: BaseContract,
+    // TODO: Bytecode is really only used for deployment. Maybe we don't need to store it like this.
+    /// The contract's deployed bytecode.
     pub bytecode: Vec<u8>,
-    pub address: Option<B160>, /* TODO: Options may not be the best thing here. Also, B160 might not and Address=H160 might be. */
+    //TODO: Options are not great here. We want an address for the deployment to some `SimulationEnvironment`.
+    /// The address of the contract within the relevant `SimulationEnvironment`.
+    pub address: Option<B160>,
+    /// A `PhantomData` marker to indicate whether the contract is deployed or not.
     pub deployed: std::marker::PhantomData<Deployed>,
 }
 
 impl SimulationContract<NotDeployed> {
+    /// A constructor function for `SimulationContract` that takes a `BaseContract` and the deployment bytecode.
     pub fn new(base_contract: BaseContract, bytecode: Vec<u8>) -> Self {
         Self {
             base_contract,
@@ -256,7 +292,8 @@ impl SimulationContract<NotDeployed> {
             deployed: std::marker::PhantomData,
         }
     }
-
+    /// Creates a new `SimulationContract` that is marked as deployed.
+    /// This is only called by implicitly by the `SimulationManager` inside of the `deploy` function.
     fn to_deployed(&self, address: B160) -> SimulationContract<IsDeployed> {
         SimulationContract {
             base_contract: self.base_contract.clone(),

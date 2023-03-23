@@ -1,3 +1,6 @@
+#![warn(missing_docs)]
+//! Lib crate for describing simulations.
+
 pub mod agent;
 pub mod environment;
 pub mod price_simulation;

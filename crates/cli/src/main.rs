@@ -1,3 +1,6 @@
+#![warn(missing_docs)]
+//! Main lives in the `cli` crate so that we can do our input parsing.
+
 use clap::{CommandFactory, Parser, Subcommand};
 use ethers::prelude::BaseContract;
 use eyre::Result;
@@ -9,7 +12,7 @@ mod config;
 
 #[derive(Parser)]
 #[command(name = "Arbiter")]
-#[command(version = "1.0")]
+#[command(version = "0.1.0")]
 #[command(about = "Data analysis tool for decentralized exchanges.", long_about = None)]
 #[command(author)]
 struct Args {
@@ -18,6 +21,7 @@ struct Args {
     command: Option<Commands>,
 }
 
+/// Subcommands for the Arbiter CLI.
 #[derive(Subcommand)]
 enum Commands {
     Sim {

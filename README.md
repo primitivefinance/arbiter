@@ -7,15 +7,16 @@
 
 > Perform high speed modeling and economic fuzzing with EVM parity.
 
-Ethereum's execution environment, the Ethereum virtual machine (EVM), has given fruit to a rich collection of decentralized applications. The EVM is stack machine that sequentially executes opcodes as decentralized applications are used, deployed, or exploited. Arbiter is a highly configurable rust interface over [revm](https://github.com/bluealloy/revm).
+The Ethereum blockchain's execution environment, the Ethereum Virtual machine (EVM), contains a rich collection of decentralized applications. The EVM is stack machine that sequentially executes opcodes sent to it by users and smart contracts. Arbiter is a highly configurable rust interface over [revm](https://github.com/bluealloy/revm) which is a Rust implementation of the EVM stack machine logic. The purpose of Arbiter is to interface with arbitrary agents and contracts and run this all directly on a blazing-fast simulated EVM.
 
-Financial engineers need to study complex portfolio management strategies against many market conditions, contract parameters, and agents. To configure such a rich simulation environment on a test network would take months to get a sufficient quantity of data points to draw conclusions with confidence and isolate key variables. Even with a local network with no block time, the networking latency on port to port communication will be significant.
+Financial engineers need to study a wide array of complex portfolio management strategies against thousands of market conditions, contract parameters, and agents. To configure such a rich simulation environment on a test network could be possible, but a more efficient choice for getting the most robust, yet quick, simulations would bypass any local networking and use a low level language's  implementation of the EVM.
 
-In financial engineering, this is a critical tool in evaluating capital efficiency, loss vs. rebalancing, and game theoretic security. Arbiter can be used for:
+Arbiter is being primarily developed to be a tool in evaluating economic and game theoretic security of DeFi applications. 
 
-- Evaluating the game theoretic and composable security of smart contracts in production environments (Security Firms and Academics)
-- Engineering and testing new financial products built on top of more primitive financial products (DeFi Firms and Academics)
-- Evaluating financial risk and mitigation strategies (Funds, prop-shops, searchers)
+Arbiter can be used for:
+- Evaluating the game theoretic and composable security of smart contracts in production environments (security firms and academics)
+- investigating risk, capital efficiency, rebalancing strategies, and portfolio replication (or performance). (LPs, funds, quants, traders)
+- Engineering and testing new financial products built on top of more primitive financial products (DeFi firms and academics)
 
 ## Features:
 
@@ -37,36 +38,20 @@ First, clone the repository to your local environment so
 ```
 git clone https://github.com/primitivefinance/arbiter.git
 cd arbiter
-cargo install --path ./crates/cli
+cargo build
 ```
 
-Set the PROVIDER environment variable to use a custom provider.
-
-## Setting Custom RPC
-
-If you would like to use your own RPC endpoint, then you can set the environment variable `PROVIDER`. By default, the provider we have set is via Alchemy. To set your own environment variable on a UNIX OS just perform:
-
+With the `arbiter` binary generated, you can run commands such as:
 ```
-export PROVIDER=https://url-to-your-RPC-endpoint.xyz
+arbiter sim
 ```
 
-and replace your own URL as needed. Double check the environment variable is set by:
-
+## Generating Docs
+To see the documentation for Arbiter, after cloning the repo, you can run:
 ```
-echo $PROVIDER
+cargo doc --workspace --no-deps --open
 ```
-
-or just list all environment variables with:
-
-```
-env
-```
-
-If you need to unset the `PROVIDER` variable, do:
-
-```
-unset PROVIDER
-```
+This will generate and open the docs in your browser. From there, you can look at the documentation for each crate in the Arbiter workspace.
 
 ## Contributing
 
