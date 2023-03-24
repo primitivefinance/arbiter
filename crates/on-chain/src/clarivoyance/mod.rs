@@ -1,7 +1,7 @@
 #![allow(clippy::useless_attribute)]
 use std::sync::Arc;
 
-use ethers::{providers::{Http, Provider}, contract::{BaseContract, Contract}, abi::Address};
+use ethers::{providers::{Http, Provider}, contract::{BaseContract}, abi::Address};
 
 #[allow(warnings)]
 pub mod error;
