@@ -42,7 +42,10 @@ mod tests {
 
     // use bindings::{self, arbiter_token};
     use bindings;
-    use ethers::prelude::{BaseContract, H256, U256};
+    use ethers::{
+        prelude::{BaseContract, H256, U256},
+        types::Address,
+    };
     use revm::primitives::{ruint::Uint, B160};
 
     use crate::{
@@ -86,16 +89,12 @@ mod tests {
             .unwrap()
             .into_iter()
             .collect();
-
-        // Call the 'balanceOf' function.
-        let execution_result = manager.call_contract(&token_x, call_data, Uint::from(0)); // TODO: SOME KIND OF ERROR HANDLING IS NECESSARY FOR THESE TYPES OF CALLS
+        let execution_result = manager.call_contract(&token_x, call_data, Uint::from(0)); // Call the 'balanceOf' function.
         let value = manager.unpack_execution(execution_result);
-
         let response: U256 = token_x
             .base_contract
             .decode_output("balanceOf", value)
             .unwrap();
-
         assert_eq!(response, U256::MAX);
 
         // Deploy token_y
@@ -103,5 +102,129 @@ mod tests {
         let symbol = "TKNY";
         let args = (name.to_string(), symbol.to_string());
         let token_y = manager.deploy(&arbiter_token, args);
+
+        // Mint max token_y to the manager
+        let call_data = token_y
+            .base_contract
+            .encode("mintMax", recast_address(manager.address))
+            .unwrap()
+            .into_iter()
+            .collect();
+        manager.call_contract(&token_y, call_data, Uint::from(0));
+
+        // Check that the manager has the max amount of token_y
+        let call_data = token_x
+            .base_contract
+            .encode("balanceOf", recast_address(manager.address))
+            .unwrap()
+            .into_iter()
+            .collect();
+        let execution_result = manager.call_contract(&token_x, call_data, Uint::from(0)); // Call the 'balanceOf' function.
+        let value = manager.unpack_execution(execution_result);
+        let response: U256 = token_x
+            .base_contract
+            .decode_output("balanceOf", value)
+            .unwrap();
+        assert_eq!(response, U256::MAX);
+
+        // Deploy LiquidExchange
+        let initial_price = 1000;
+        let liquid_exchange = SimulationContract::new(
+            BaseContract::from(bindings::liquid_exchange::LIQUIDEXCHANGE_ABI.clone()),
+            bindings::liquid_exchange::LIQUIDEXCHANGE_BYTECODE
+                .clone()
+                .into_iter()
+                .collect(),
+        );
+        let args = (
+            recast_address(token_x.address.unwrap()),
+            recast_address(token_y.address.unwrap()),
+            U256::from(initial_price),
+        );
+        let le_xy = manager.deploy(&liquid_exchange, args);
+
+        // Check the price on the exchange
+        let call_data = le_xy
+            .base_contract
+            .encode("getPrice", ())
+            .unwrap()
+            .into_iter()
+            .collect();
+        let execution_result = manager.call_contract(&le_xy, call_data, Uint::from(0)); // Call the 'balanceOf' function.
+        let value = manager.unpack_execution(execution_result);
+        let response: U256 = le_xy
+            .base_contract
+            .decode_output("getPrice", value)
+            .unwrap();
+        println!("initial price from contract: {:?}", response);
+        assert_eq!(response, U256::from(initial_price));
+
+        // Let the manager call the swap function where we trade in token x for token y
+        let swap_amount = 2;
+        let call_data = le_xy
+            .base_contract
+            .encode(
+                "swap",
+                (
+                    recast_address(token_x.address.unwrap()),
+                    U256::from(swap_amount),
+                ),
+            )
+            .unwrap()
+            .into_iter()
+            .collect();
+        manager.call_contract(&le_xy, call_data, Uint::from(0));
+
+        // Check the event log for the amount_out
+        let logs = manager.read_logs();
+        println!("logs: {:#?}", logs);
+        let log_topics: Vec<H256> = logs.clone()[0]
+            .topics
+            .clone()
+            .into_iter()
+            .map(|x| H256::from_slice(x.as_slice()))
+            .collect();
+        let log_data = logs[0].data.clone().into();
+        let log_output = le_xy
+            .base_contract
+            .decode_event::<(Address, U256, Address, U256)>("SwapOccured", log_topics, log_data)
+            .unwrap();
+        println!("log output: {:#?}", log_output);
+        println!("log entry for amount_out: {:#?}", log_output.3);
+        assert_eq!(log_output.3, U256::from(initial_price * swap_amount));
+
+        // Let the manager call the swap function where we trade in token y for token x
+        let swap_amount = 3000_i32;
+        let call_data = le_xy
+            .base_contract
+            .encode(
+                "swap",
+                (
+                    recast_address(token_y.address.unwrap()),
+                    U256::from(swap_amount),
+                ),
+            )
+            .unwrap()
+            .into_iter()
+            .collect();
+        manager.call_contract(&le_xy, call_data, Uint::from(0));
+        
+        // Check the event log for the amount_out
+        let logs = manager.read_logs();
+        println!("logs: {:#?}", logs);
+        let log_topics: Vec<H256> = logs.clone()[0]
+            .topics
+            .clone()
+            .into_iter()
+            .map(|x| H256::from_slice(x.as_slice()))
+            .collect();
+        let log_data = logs[0].data.clone().into();
+        let log_output = le_xy
+            .base_contract
+            .decode_event::<(Address, U256, Address, U256)>("SwapOccured", log_topics, log_data)
+            .unwrap();
+        println!("log output: {:#?}", log_output);
+        println!("log entry for amount_out: {:#?}", log_output.3);
+        assert_eq!(log_output.3, U256::from(swap_amount/initial_price));
     }
 }
