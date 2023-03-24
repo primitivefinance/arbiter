@@ -70,7 +70,8 @@ impl<S: Signer> Architect<S> {
         // old approach doesn't work with new ethers.
         let client = SignerMiddleware::new(
             FlashbotsMiddleware::new(provider, relay, bundle_signer),
-            wallet);
+            wallet,
+        );
 
         let block_number = match client.get_block_number().await {
             Err(_) => return Err(ArchitectError::BlockNumberError),

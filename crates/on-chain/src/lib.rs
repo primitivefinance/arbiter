@@ -1,2 +1,2 @@
-pub mod clairvoyance;
 pub mod architect;
+pub mod clairvoyance;
