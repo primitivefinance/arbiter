@@ -3,6 +3,5 @@ members = [
     "crates/bindings",
     "crates/cli",
     "crates/simulate",
-    "crates/on-chain"
 ]
 
