@@ -1,6 +1,7 @@
 #![warn(missing_docs)]
 //! Main lives in the `cli` crate so that we can do our input parsing.
 
+use bindings::{rmm01_portfolio, simple_registry, weth9};
 use clap::{CommandFactory, Parser, Subcommand};
 use ethers::prelude::BaseContract;
 use eyre::Result;
@@ -8,7 +9,6 @@ use simulate::{
     environment::{recast_address, SimulationContract, SimulationManager},
     price_simulation::PriceSimulation,
 };
-use bindings::{weth9, simple_registry, rmm01_portfolio};
 mod config;
 
 #[derive(Parser)]
@@ -51,10 +51,7 @@ async fn main() -> Result<()> {
             // Deploy the WETH contract.
             let weth = SimulationContract::new(
                 BaseContract::from(weth9::WETH9_ABI.clone()),
-                weth9::WETH9_BYTECODE
-                    .clone()
-                    .into_iter()
-                    .collect(),
+                weth9::WETH9_BYTECODE.clone().into_iter().collect(),
             );
             let weth = manager.deploy(weth, ());
             println!("WETH deployed at: {}", weth.address.unwrap());

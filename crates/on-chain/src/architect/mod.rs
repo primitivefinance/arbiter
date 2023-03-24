@@ -67,6 +67,7 @@ impl<S: Signer> Architect<S> {
             Ok(url) => url,
         };
 
+        // old approach doesn't work with new ethers.
         let client = SignerMiddleware::new(
             FlashbotsMiddleware::new(provider, relay, bundle_signer),
             wallet,
@@ -133,7 +134,7 @@ mod tests {
         core::rand::thread_rng, prelude::*, types::transaction::eip2718::TypedTransaction,
     };
 
-    use crate::Architect;
+    use super::Architect;
 
     // We will need more tests in future but this just ensures basic functionality is working.
     #[tokio::test]
