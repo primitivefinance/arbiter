@@ -192,7 +192,7 @@ impl SimulationManager {
     /// Deploy a contract. We will assume the sender is always the admin.
     pub fn deploy<T: Tokenize>(
         &mut self,
-        contract: SimulationContract<NotDeployed>,
+        contract: &SimulationContract<NotDeployed>,
         args: T,
     ) -> SimulationContract<IsDeployed> {
         // Append constructor args (if available) to generate the deploy bytecode;

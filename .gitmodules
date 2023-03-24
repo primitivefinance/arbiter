@@ -7,3 +7,6 @@
 [submodule "lib/arbmod"]
 	path = lib/arbmod
 	url = https://github.com/primitivefinance/arbmod
+# [submodule "lib/solmate"]
+# 	path = lib/solmate
+# 	url = https://github.com/transmissions11/solmate

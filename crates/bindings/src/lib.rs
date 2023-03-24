@@ -13,7 +13,7 @@ pub mod __shared_types {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     pub struct PortfolioCurve {
         pub max_price: u128,
@@ -34,7 +34,7 @@ pub mod __shared_types {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     pub struct PortfolioPair {
         pub token_asset: ::ethers::core::types::Address,
@@ -52,14 +52,16 @@ pub use account_lib::*;
     clippy::upper_case_acronyms,
     clippy::type_complexity,
     dead_code,
-    non_camel_case_types,
+    non_camel_case_types
 )]
 pub mod account_lib {
     #[rustfmt::skip]
     const __ABI: &str = "[]";
     ///The parsed JSON ABI of the contract.
-    pub static ACCOUNTLIB_ABI: ::ethers::contract::Lazy<::ethers::core::abi::Abi> = ::ethers::contract::Lazy::new(||
-    ::ethers::core::utils::__serde_json::from_str(__ABI).expect("ABI is always valid"));
+    pub static ACCOUNTLIB_ABI: ::ethers::contract::Lazy<::ethers::core::abi::Abi> =
+        ::ethers::contract::Lazy::new(|| {
+            ::ethers::core::utils::__serde_json::from_str(__ABI).expect("ABI is always valid")
+        });
     pub struct AccountLib<M>(::ethers::contract::Contract<M>);
     impl<M> ::core::clone::Clone for AccountLib<M> {
         fn clone(&self) -> Self {
@@ -79,7 +81,9 @@ pub mod account_lib {
     }
     impl<M> ::core::fmt::Debug for AccountLib<M> {
         fn fmt(&self, f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
-            f.debug_tuple(stringify!(AccountLib)).field(&self.address()).finish()
+            f.debug_tuple(stringify!(AccountLib))
+                .field(&self.address())
+                .finish()
         }
     }
     impl<M: ::ethers::providers::Middleware> AccountLib<M> {
@@ -89,17 +93,14 @@ pub mod account_lib {
             address: T,
             client: ::std::sync::Arc<M>,
         ) -> Self {
-            Self(
-                ::ethers::contract::Contract::new(
-                    address.into(),
-                    ACCOUNTLIB_ABI.clone(),
-                    client,
-                ),
-            )
+            Self(::ethers::contract::Contract::new(
+                address.into(),
+                ACCOUNTLIB_ABI.clone(),
+                client,
+            ))
         }
     }
-    impl<M: ::ethers::providers::Middleware> From<::ethers::contract::Contract<M>>
-    for AccountLib<M> {
+    impl<M: ::ethers::providers::Middleware> From<::ethers::contract::Contract<M>> for AccountLib<M> {
         fn from(contract: ::ethers::contract::Contract<M>) -> Self {
             Self::new(contract.address(), contract.client())
         }
@@ -114,14 +115,16 @@ pub use arbiter_token::*;
     clippy::upper_case_acronyms,
     clippy::type_complexity,
     dead_code,
-    non_camel_case_types,
+    non_camel_case_types
 )]
 pub mod arbiter_token {
     #[rustfmt::skip]
-    const __ABI: &str = "[{\"inputs\":[{\"internalType\":\"string\",\"name\":\"name\",\"type\":\"string\",\"components\":[]},{\"internalType\":\"string\",\"name\":\"symbol\",\"type\":\"string\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"constructor\",\"outputs\":[]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"owner\",\"type\":\"address\",\"components\":[],\"indexed\":true},{\"internalType\":\"address\",\"name\":\"spender\",\"type\":\"address\",\"components\":[],\"indexed\":true},{\"internalType\":\"uint256\",\"name\":\"value\",\"type\":\"uint256\",\"components\":[],\"indexed\":false}],\"type\":\"event\",\"name\":\"Approval\",\"outputs\":[],\"anonymous\":false},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"from\",\"type\":\"address\",\"components\":[],\"indexed\":true},{\"internalType\":\"address\",\"name\":\"to\",\"type\":\"address\",\"components\":[],\"indexed\":true},{\"internalType\":\"uint256\",\"name\":\"value\",\"type\":\"uint256\",\"components\":[],\"indexed\":false}],\"type\":\"event\",\"name\":\"Transfer\",\"outputs\":[],\"anonymous\":false},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"owner\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"address\",\"name\":\"spender\",\"type\":\"address\",\"components\":[]}],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"allowance\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"spender\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"function\",\"name\":\"approve\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"account\",\"type\":\"address\",\"components\":[]}],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"balanceOf\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\",\"components\":[]}]},{\"inputs\":[],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"decimals\",\"outputs\":[{\"internalType\":\"uint8\",\"name\":\"\",\"type\":\"uint8\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"spender\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"subtractedValue\",\"type\":\"uint256\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"function\",\"name\":\"decreaseAllowance\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"spender\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"addedValue\",\"type\":\"uint256\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"function\",\"name\":\"increaseAllowance\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"receiver\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"function\",\"name\":\"mint\",\"outputs\":[]},{\"inputs\":[],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"name\",\"outputs\":[{\"internalType\":\"string\",\"name\":\"\",\"type\":\"string\",\"components\":[]}]},{\"inputs\":[],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"symbol\",\"outputs\":[{\"internalType\":\"string\",\"name\":\"\",\"type\":\"string\",\"components\":[]}]},{\"inputs\":[],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"totalSupply\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"to\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"function\",\"name\":\"transfer\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"from\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"address\",\"name\":\"to\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"function\",\"name\":\"transferFrom\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\",\"components\":[]}]}]";
+    const __ABI: &str = "[{\"inputs\":[{\"internalType\":\"string\",\"name\":\"name\",\"type\":\"string\",\"components\":[]},{\"internalType\":\"string\",\"name\":\"symbol\",\"type\":\"string\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"constructor\",\"outputs\":[]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"owner\",\"type\":\"address\",\"components\":[],\"indexed\":true},{\"internalType\":\"address\",\"name\":\"spender\",\"type\":\"address\",\"components\":[],\"indexed\":true},{\"internalType\":\"uint256\",\"name\":\"value\",\"type\":\"uint256\",\"components\":[],\"indexed\":false}],\"type\":\"event\",\"name\":\"Approval\",\"outputs\":[],\"anonymous\":false},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"from\",\"type\":\"address\",\"components\":[],\"indexed\":true},{\"internalType\":\"address\",\"name\":\"to\",\"type\":\"address\",\"components\":[],\"indexed\":true},{\"internalType\":\"uint256\",\"name\":\"value\",\"type\":\"uint256\",\"components\":[],\"indexed\":false}],\"type\":\"event\",\"name\":\"Transfer\",\"outputs\":[],\"anonymous\":false},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"owner\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"address\",\"name\":\"spender\",\"type\":\"address\",\"components\":[]}],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"allowance\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"spender\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"function\",\"name\":\"approve\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"account\",\"type\":\"address\",\"components\":[]}],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"balanceOf\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\",\"components\":[]}]},{\"inputs\":[],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"decimals\",\"outputs\":[{\"internalType\":\"uint8\",\"name\":\"\",\"type\":\"uint8\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"spender\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"subtractedValue\",\"type\":\"uint256\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"function\",\"name\":\"decreaseAllowance\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"spender\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"addedValue\",\"type\":\"uint256\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"function\",\"name\":\"increaseAllowance\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"receiver\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"function\",\"name\":\"mint\",\"outputs\":[]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"receiver\",\"type\":\"address\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"function\",\"name\":\"mintMax\",\"outputs\":[]},{\"inputs\":[],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"name\",\"outputs\":[{\"internalType\":\"string\",\"name\":\"\",\"type\":\"string\",\"components\":[]}]},{\"inputs\":[],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"symbol\",\"outputs\":[{\"internalType\":\"string\",\"name\":\"\",\"type\":\"string\",\"components\":[]}]},{\"inputs\":[],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"totalSupply\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"to\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"function\",\"name\":\"transfer\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"from\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"address\",\"name\":\"to\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"function\",\"name\":\"transferFrom\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\",\"components\":[]}]}]";
     ///The parsed JSON ABI of the contract.
-    pub static ARBITERTOKEN_ABI: ::ethers::contract::Lazy<::ethers::core::abi::Abi> = ::ethers::contract::Lazy::new(||
-    ::ethers::core::utils::__serde_json::from_str(__ABI).expect("ABI is always valid"));
+    pub static ARBITERTOKEN_ABI: ::ethers::contract::Lazy<::ethers::core::abi::Abi> =
+        ::ethers::contract::Lazy::new(|| {
+            ::ethers::core::utils::__serde_json::from_str(__ABI).expect("ABI is always valid")
+        });
     #[rustfmt::skip]
     const __BYTECODE: &[u8] = &[
         96,
@@ -149,14 +152,14 @@ pub mod arbiter_token {
         98,
         0,
         12,
-        55,
+        116,
         56,
         3,
         128,
         98,
         0,
         12,
-        55,
+        116,
         131,
         57,
         129,
@@ -871,7 +874,7 @@ pub mod arbiter_token {
         91,
         97,
         9,
-        63,
+        124,
         128,
         98,
         0,
@@ -908,7 +911,7 @@ pub mod arbiter_token {
         16,
         97,
         0,
-        180,
+        207,
         87,
         96,
         0,
@@ -918,36 +921,25 @@ pub mod arbiter_token {
         28,
         128,
         99,
-        64,
-        193,
-        15,
-        25,
+        57,
+        80,
+        147,
+        81,
         17,
         97,
         0,
-        113,
+        140,
         87,
         128,
         99,
-        64,
-        193,
-        15,
-        25,
-        20,
-        97,
-        1,
+        149,
+        216,
+        155,
         65,
-        87,
-        128,
-        99,
-        112,
-        160,
-        130,
-        49,
-        20,
+        17,
         97,
-        1,
-        86,
+        0,
+        102,
         87,
         128,
         99,
@@ -958,7 +950,7 @@ pub mod arbiter_token {
         20,
         97,
         1,
-        127,
+        173,
         87,
         128,
         99,
@@ -969,7 +961,7 @@ pub mod arbiter_token {
         20,
         97,
         1,
-        135,
+        181,
         87,
         128,
         99,
@@ -980,7 +972,7 @@ pub mod arbiter_token {
         20,
         97,
         1,
-        154,
+        200,
         87,
         128,
         99,
@@ -991,7 +983,45 @@ pub mod arbiter_token {
         20,
         97,
         1,
-        173,
+        219,
+        87,
+        96,
+        0,
+        128,
+        253,
+        91,
+        128,
+        99,
+        57,
+        80,
+        147,
+        81,
+        20,
+        97,
+        1,
+        94,
+        87,
+        128,
+        99,
+        64,
+        193,
+        15,
+        25,
+        20,
+        97,
+        1,
+        113,
+        87,
+        128,
+        99,
+        112,
+        160,
+        130,
+        49,
+        20,
+        97,
+        1,
+        132,
         87,
         96,
         0,
@@ -1007,7 +1037,7 @@ pub mod arbiter_token {
         20,
         97,
         0,
-        185,
+        212,
         87,
         128,
         99,
@@ -1018,7 +1048,18 @@ pub mod arbiter_token {
         20,
         97,
         0,
-        215,
+        242,
+        87,
+        128,
+        99,
+        15,
+        181,
+        216,
+        171,
+        20,
+        97,
+        1,
+        21,
         87,
         128,
         99,
@@ -1028,8 +1069,8 @@ pub mod arbiter_token {
         221,
         20,
         97,
-        0,
-        250,
+        1,
+        42,
         87,
         128,
         99,
@@ -1040,7 +1081,7 @@ pub mod arbiter_token {
         20,
         97,
         1,
-        12,
+        60,
         87,
         128,
         99,
@@ -1051,18 +1092,7 @@ pub mod arbiter_token {
         20,
         97,
         1,
-        31,
-        87,
-        128,
-        99,
-        57,
-        80,
-        147,
-        81,
-        20,
-        97,
-        1,
-        46,
+        79,
         87,
         91,
         96,
@@ -1072,10 +1102,10 @@ pub mod arbiter_token {
         91,
         97,
         0,
-        193,
+        220,
         97,
         1,
-        192,
+        238,
         86,
         91,
         96,
@@ -1083,12 +1113,12 @@ pub mod arbiter_token {
         81,
         97,
         0,
-        206,
+        233,
         145,
         144,
         97,
         7,
-        137,
+        198,
         86,
         91,
         96,
@@ -1101,22 +1131,22 @@ pub mod arbiter_token {
         243,
         91,
         97,
-        0,
-        234,
+        1,
+        5,
         97,
+        1,
         0,
-        229,
         54,
         96,
         4,
         97,
-        7,
-        243,
+        8,
+        48,
         86,
         91,
         97,
         2,
-        82,
+        128,
         86,
         91,
         96,
@@ -1132,8 +1162,29 @@ pub mod arbiter_token {
         1,
         97,
         0,
-        206,
+        233,
         86,
+        91,
+        97,
+        1,
+        40,
+        97,
+        1,
+        35,
+        54,
+        96,
+        4,
+        97,
+        8,
+        90,
+        86,
+        91,
+        97,
+        2,
+        154,
+        86,
+        91,
+        0,
         91,
         96,
         2,
@@ -1150,26 +1201,26 @@ pub mod arbiter_token {
         1,
         97,
         0,
-        206,
+        233,
         86,
         91,
         97,
-        0,
-        234,
+        1,
+        5,
         97,
         1,
-        26,
+        74,
         54,
         96,
         4,
         97,
         8,
-        29,
+        124,
         86,
         91,
         97,
         2,
-        108,
+        169,
         86,
         91,
         96,
@@ -1184,61 +1235,59 @@ pub mod arbiter_token {
         1,
         97,
         0,
-        206,
-        86,
-        91,
-        97,
-        0,
-        234,
-        97,
-        1,
-        60,
-        54,
-        96,
-        4,
-        97,
-        7,
-        243,
-        86,
-        91,
-        97,
-        2,
-        144,
+        233,
         86,
         91,
         97,
         1,
-        84,
+        5,
         97,
         1,
-        79,
-        54,
-        96,
-        4,
-        97,
-        7,
-        243,
-        86,
-        91,
-        97,
-        2,
-        178,
-        86,
-        91,
-        0,
-        91,
-        97,
-        0,
-        254,
-        97,
-        1,
-        100,
+        108,
         54,
         96,
         4,
         97,
         8,
-        89,
+        48,
+        86,
+        91,
+        97,
+        2,
+        205,
+        86,
+        91,
+        97,
+        1,
+        40,
+        97,
+        1,
+        127,
+        54,
+        96,
+        4,
+        97,
+        8,
+        48,
+        86,
+        91,
+        97,
+        2,
+        239,
+        86,
+        91,
+        97,
+        1,
+        46,
+        97,
+        1,
+        146,
+        54,
+        96,
+        4,
+        97,
+        8,
+        90,
         86,
         91,
         96,
@@ -1270,67 +1319,67 @@ pub mod arbiter_token {
         91,
         97,
         0,
-        193,
+        220,
         97,
         2,
-        192,
+        253,
         86,
         91,
-        97,
-        0,
-        234,
         97,
         1,
-        149,
-        54,
-        96,
-        4,
-        97,
-        7,
-        243,
-        86,
-        91,
-        97,
-        2,
-        207,
-        86,
-        91,
-        97,
-        0,
-        234,
+        5,
         97,
         1,
-        168,
-        54,
-        96,
-        4,
-        97,
-        7,
-        243,
-        86,
-        91,
-        97,
-        3,
-        79,
-        86,
-        91,
-        97,
-        0,
-        254,
-        97,
-        1,
-        187,
+        195,
         54,
         96,
         4,
         97,
         8,
-        123,
+        48,
         86,
         91,
         97,
         3,
-        93,
+        12,
+        86,
+        91,
+        97,
+        1,
+        5,
+        97,
+        1,
+        214,
+        54,
+        96,
+        4,
+        97,
+        8,
+        48,
+        86,
+        91,
+        97,
+        3,
+        140,
+        86,
+        91,
+        97,
+        1,
+        46,
+        97,
+        1,
+        233,
+        54,
+        96,
+        4,
+        97,
+        8,
+        184,
+        86,
+        91,
+        97,
+        3,
+        154,
         86,
         91,
         96,
@@ -1341,11 +1390,11 @@ pub mod arbiter_token {
         84,
         97,
         1,
-        207,
+        253,
         144,
         97,
         8,
-        174,
+        235,
         86,
         91,
         128,
@@ -1384,19 +1433,19 @@ pub mod arbiter_token {
         128,
         84,
         97,
-        1,
-        251,
+        2,
+        41,
         144,
         97,
         8,
-        174,
+        235,
         86,
         91,
         128,
         21,
         97,
         2,
-        72,
+        118,
         87,
         128,
         96,
@@ -1404,7 +1453,7 @@ pub mod arbiter_token {
         16,
         97,
         2,
-        29,
+        75,
         87,
         97,
         1,
@@ -1423,7 +1472,7 @@ pub mod arbiter_token {
         145,
         97,
         2,
-        72,
+        118,
         86,
         91,
         130,
@@ -1457,7 +1506,7 @@ pub mod arbiter_token {
         17,
         97,
         2,
-        43,
+        89,
         87,
         130,
         144,
@@ -1484,13 +1533,13 @@ pub mod arbiter_token {
         51,
         97,
         2,
-        96,
+        142,
         129,
         133,
         133,
         97,
         3,
-        136,
+        197,
         86,
         91,
         96,
@@ -1505,29 +1554,44 @@ pub mod arbiter_token {
         80,
         86,
         91,
+        97,
+        2,
+        166,
+        129,
+        96,
+        0,
+        25,
+        97,
+        4,
+        233,
+        86,
+        91,
+        80,
+        86,
+        91,
         96,
         0,
         51,
         97,
         2,
-        122,
+        183,
         133,
         130,
         133,
         97,
-        4,
-        172,
+        5,
+        168,
         86,
         91,
         97,
         2,
-        133,
+        194,
         133,
         133,
         133,
         97,
-        5,
-        38,
+        6,
+        34,
         86,
         91,
         80,
@@ -1546,43 +1610,43 @@ pub mod arbiter_token {
         51,
         97,
         2,
-        96,
+        142,
         129,
         133,
         133,
         97,
         2,
-        163,
+        224,
         131,
         131,
         97,
         3,
-        93,
+        154,
         86,
         91,
         97,
         2,
-        173,
+        234,
         145,
         144,
         97,
-        8,
-        232,
+        9,
+        37,
         86,
         91,
         97,
         3,
-        136,
+        197,
         86,
         91,
         97,
         2,
-        188,
+        249,
         130,
         130,
         97,
-        6,
-        202,
+        4,
+        233,
         86,
         91,
         80,
@@ -1597,11 +1661,11 @@ pub mod arbiter_token {
         84,
         97,
         1,
-        207,
+        253,
         144,
         97,
         8,
-        174,
+        235,
         86,
         91,
         96,
@@ -1609,13 +1673,13 @@ pub mod arbiter_token {
         51,
         129,
         97,
-        2,
-        221,
+        3,
+        26,
         130,
         134,
         97,
         3,
-        93,
+        154,
         86,
         91,
         144,
@@ -1626,7 +1690,7 @@ pub mod arbiter_token {
         21,
         97,
         3,
-        66,
+        127,
         87,
         96,
         64,
@@ -1721,7 +1785,7 @@ pub mod arbiter_token {
         91,
         97,
         2,
-        133,
+        194,
         130,
         134,
         134,
@@ -1729,7 +1793,7 @@ pub mod arbiter_token {
         3,
         97,
         3,
-        136,
+        197,
         86,
         91,
         96,
@@ -1737,13 +1801,13 @@ pub mod arbiter_token {
         51,
         97,
         2,
-        96,
+        142,
         129,
         133,
         133,
         97,
-        5,
-        38,
+        6,
+        34,
         86,
         91,
         96,
@@ -1800,8 +1864,8 @@ pub mod arbiter_token {
         131,
         22,
         97,
-        3,
-        234,
+        4,
+        39,
         87,
         96,
         64,
@@ -1884,7 +1948,7 @@ pub mod arbiter_token {
         1,
         97,
         3,
-        57,
+        118,
         86,
         91,
         96,
@@ -1899,7 +1963,7 @@ pub mod arbiter_token {
         22,
         97,
         4,
-        75,
+        136,
         87,
         96,
         64,
@@ -1981,7 +2045,7 @@ pub mod arbiter_token {
         1,
         97,
         3,
-        57,
+        118,
         86,
         91,
         96,
@@ -2082,15 +2146,206 @@ pub mod arbiter_token {
         86,
         91,
         96,
+        1,
+        96,
+        1,
+        96,
+        160,
+        27,
+        3,
+        130,
+        22,
+        97,
+        5,
+        63,
+        87,
+        96,
+        64,
+        81,
+        98,
+        70,
+        27,
+        205,
+        96,
+        229,
+        27,
+        129,
+        82,
+        96,
+        32,
+        96,
+        4,
+        130,
+        1,
+        82,
+        96,
+        31,
+        96,
+        36,
+        130,
+        1,
+        82,
+        127,
+        69,
+        82,
+        67,
+        50,
+        48,
+        58,
+        32,
+        109,
+        105,
+        110,
+        116,
+        32,
+        116,
+        111,
+        32,
+        116,
+        104,
+        101,
+        32,
+        122,
+        101,
+        114,
+        111,
+        32,
+        97,
+        100,
+        100,
+        114,
+        101,
+        115,
+        115,
+        0,
+        96,
+        68,
+        130,
+        1,
+        82,
+        96,
+        100,
+        1,
+        97,
+        3,
+        118,
+        86,
+        91,
+        128,
+        96,
+        2,
+        96,
+        0,
+        130,
+        130,
+        84,
+        97,
+        5,
+        81,
+        145,
+        144,
+        97,
+        9,
+        37,
+        86,
+        91,
+        144,
+        145,
+        85,
+        80,
+        80,
+        96,
+        1,
+        96,
+        1,
+        96,
+        160,
+        27,
+        3,
+        130,
+        22,
+        96,
+        0,
+        129,
+        129,
+        82,
+        96,
+        32,
+        129,
+        129,
+        82,
+        96,
+        64,
+        128,
+        131,
+        32,
+        128,
+        84,
+        134,
+        1,
+        144,
+        85,
+        81,
+        132,
+        129,
+        82,
+        127,
+        221,
+        242,
+        82,
+        173,
+        27,
+        226,
+        200,
+        155,
+        105,
+        194,
+        176,
+        104,
+        252,
+        55,
+        141,
+        170,
+        149,
+        43,
+        167,
+        241,
+        99,
+        196,
+        161,
+        22,
+        40,
+        245,
+        90,
+        77,
+        245,
+        35,
+        179,
+        239,
+        145,
+        1,
+        96,
+        64,
+        81,
+        128,
+        145,
+        3,
+        144,
+        163,
+        80,
+        80,
+        86,
+        91,
+        96,
         0,
         97,
-        4,
-        184,
+        5,
+        180,
         132,
         132,
         97,
         3,
-        93,
+        154,
         86,
         91,
         144,
@@ -2101,16 +2356,16 @@ pub mod arbiter_token {
         129,
         20,
         97,
-        5,
-        32,
+        6,
+        28,
         87,
         129,
         129,
         16,
         21,
         97,
-        5,
-        19,
+        6,
+        15,
         87,
         96,
         64,
@@ -2181,12 +2436,12 @@ pub mod arbiter_token {
         1,
         97,
         3,
-        57,
+        118,
         86,
         91,
         97,
-        5,
-        32,
+        6,
+        28,
         132,
         132,
         132,
@@ -2194,7 +2449,7 @@ pub mod arbiter_token {
         3,
         97,
         3,
-        136,
+        197,
         86,
         91,
         80,
@@ -2214,8 +2469,8 @@ pub mod arbiter_token {
         131,
         22,
         97,
-        5,
-        138,
+        6,
+        134,
         87,
         96,
         64,
@@ -2300,7 +2555,7 @@ pub mod arbiter_token {
         1,
         97,
         3,
-        57,
+        118,
         86,
         91,
         96,
@@ -2314,8 +2569,8 @@ pub mod arbiter_token {
         130,
         22,
         97,
-        5,
-        236,
+        6,
+        232,
         87,
         96,
         64,
@@ -2398,7 +2653,7 @@ pub mod arbiter_token {
         1,
         97,
         3,
-        57,
+        118,
         86,
         91,
         96,
@@ -2431,8 +2686,8 @@ pub mod arbiter_token {
         16,
         21,
         97,
-        6,
-        100,
+        7,
+        96,
         87,
         96,
         64,
@@ -2518,7 +2773,7 @@ pub mod arbiter_token {
         1,
         97,
         3,
-        57,
+        118,
         86,
         91,
         96,
@@ -2619,199 +2874,8 @@ pub mod arbiter_token {
         144,
         163,
         97,
-        5,
-        32,
-        86,
-        91,
-        96,
-        1,
-        96,
-        1,
-        96,
-        160,
-        27,
-        3,
-        130,
-        22,
-        97,
-        7,
-        32,
-        87,
-        96,
-        64,
-        81,
-        98,
-        70,
-        27,
-        205,
-        96,
-        229,
-        27,
-        129,
-        82,
-        96,
-        32,
-        96,
-        4,
-        130,
-        1,
-        82,
-        96,
-        31,
-        96,
-        36,
-        130,
-        1,
-        82,
-        127,
-        69,
-        82,
-        67,
-        50,
-        48,
-        58,
-        32,
-        109,
-        105,
-        110,
-        116,
-        32,
-        116,
-        111,
-        32,
-        116,
-        104,
-        101,
-        32,
-        122,
-        101,
-        114,
-        111,
-        32,
-        97,
-        100,
-        100,
-        114,
-        101,
-        115,
-        115,
-        0,
-        96,
-        68,
-        130,
-        1,
-        82,
-        96,
-        100,
-        1,
-        97,
-        3,
-        57,
-        86,
-        91,
-        128,
-        96,
-        2,
-        96,
-        0,
-        130,
-        130,
-        84,
-        97,
-        7,
-        50,
-        145,
-        144,
-        97,
-        8,
-        232,
-        86,
-        91,
-        144,
-        145,
-        85,
-        80,
-        80,
-        96,
-        1,
-        96,
-        1,
-        96,
-        160,
-        27,
-        3,
-        130,
-        22,
-        96,
-        0,
-        129,
-        129,
-        82,
-        96,
-        32,
-        129,
-        129,
-        82,
-        96,
-        64,
-        128,
-        131,
-        32,
-        128,
-        84,
-        134,
-        1,
-        144,
-        85,
-        81,
-        132,
-        129,
-        82,
-        127,
-        221,
-        242,
-        82,
-        173,
-        27,
-        226,
-        200,
-        155,
-        105,
-        194,
-        176,
-        104,
-        252,
-        55,
-        141,
-        170,
-        149,
-        43,
-        167,
-        241,
-        99,
-        196,
-        161,
-        22,
-        40,
-        245,
-        90,
-        77,
-        245,
-        35,
-        179,
-        239,
-        145,
-        1,
-        96,
-        64,
-        81,
-        128,
-        145,
-        3,
-        144,
-        163,
-        80,
-        80,
+        6,
+        28,
         86,
         91,
         96,
@@ -2837,7 +2901,7 @@ pub mod arbiter_token {
         21,
         97,
         7,
-        182,
+        243,
         87,
         133,
         129,
@@ -2856,7 +2920,7 @@ pub mod arbiter_token {
         1,
         97,
         7,
-        154,
+        215,
         86,
         91,
         80,
@@ -2907,8 +2971,8 @@ pub mod arbiter_token {
         129,
         20,
         97,
-        7,
-        238,
+        8,
+        43,
         87,
         96,
         0,
@@ -2932,7 +2996,7 @@ pub mod arbiter_token {
         21,
         97,
         8,
-        6,
+        67,
         87,
         96,
         0,
@@ -2941,11 +3005,11 @@ pub mod arbiter_token {
         91,
         97,
         8,
-        15,
+        76,
         131,
         97,
-        7,
-        215,
+        8,
+        20,
         86,
         91,
         148,
@@ -2957,6 +3021,40 @@ pub mod arbiter_token {
         1,
         53,
         147,
+        80,
+        80,
+        80,
+        86,
+        91,
+        96,
+        0,
+        96,
+        32,
+        130,
+        132,
+        3,
+        18,
+        21,
+        97,
+        8,
+        108,
+        87,
+        96,
+        0,
+        128,
+        253,
+        91,
+        97,
+        8,
+        117,
+        130,
+        97,
+        8,
+        20,
+        86,
+        91,
+        147,
+        146,
         80,
         80,
         80,
@@ -2976,7 +3074,7 @@ pub mod arbiter_token {
         21,
         97,
         8,
-        50,
+        145,
         87,
         96,
         0,
@@ -2985,25 +3083,25 @@ pub mod arbiter_token {
         91,
         97,
         8,
-        59,
+        154,
         132,
         97,
-        7,
-        215,
+        8,
+        20,
         86,
         91,
         146,
         80,
         97,
         8,
-        73,
+        168,
         96,
         32,
         133,
         1,
         97,
-        7,
-        215,
+        8,
+        20,
         86,
         91,
         145,
@@ -3024,40 +3122,6 @@ pub mod arbiter_token {
         91,
         96,
         0,
-        96,
-        32,
-        130,
-        132,
-        3,
-        18,
-        21,
-        97,
-        8,
-        107,
-        87,
-        96,
-        0,
-        128,
-        253,
-        91,
-        97,
-        8,
-        116,
-        130,
-        97,
-        7,
-        215,
-        86,
-        91,
-        147,
-        146,
-        80,
-        80,
-        80,
-        86,
-        91,
-        96,
-        0,
         128,
         96,
         64,
@@ -3068,7 +3132,7 @@ pub mod arbiter_token {
         21,
         97,
         8,
-        142,
+        203,
         87,
         96,
         0,
@@ -3077,25 +3141,25 @@ pub mod arbiter_token {
         91,
         97,
         8,
-        151,
+        212,
         131,
         97,
-        7,
-        215,
+        8,
+        20,
         86,
         91,
         145,
         80,
         97,
         8,
-        165,
+        226,
         96,
         32,
         132,
         1,
         97,
-        7,
-        215,
+        8,
+        20,
         86,
         91,
         144,
@@ -3118,7 +3182,7 @@ pub mod arbiter_token {
         128,
         97,
         8,
-        194,
+        255,
         87,
         96,
         127,
@@ -3134,8 +3198,8 @@ pub mod arbiter_token {
         129,
         3,
         97,
-        8,
-        226,
+        9,
+        31,
         87,
         99,
         78,
@@ -3174,7 +3238,7 @@ pub mod arbiter_token {
         21,
         97,
         2,
-        102,
+        148,
         87,
         99,
         78,
@@ -3208,38 +3272,38 @@ pub mod arbiter_token {
         34,
         18,
         32,
-        168,
-        118,
-        56,
-        225,
-        102,
+        42,
         69,
-        151,
-        88,
-        138,
-        92,
-        145,
-        175,
-        36,
-        148,
+        22,
+        120,
+        231,
+        66,
+        174,
+        243,
+        13,
+        115,
+        98,
+        28,
+        130,
+        233,
+        71,
+        188,
+        159,
         74,
-        82,
-        157,
-        206,
-        19,
-        225,
-        210,
-        135,
-        45,
-        235,
-        250,
-        41,
-        178,
+        177,
         131,
-        55,
-        18,
-        8,
-        235,
+        148,
+        156,
+        101,
+        199,
+        130,
+        1,
+        52,
+        102,
+        188,
+        159,
+        148,
+        232,
         100,
         115,
         111,
@@ -3253,9 +3317,8 @@ pub mod arbiter_token {
         51,
     ];
     ///The bytecode of the contract.
-    pub static ARBITERTOKEN_BYTECODE: ::ethers::core::types::Bytes = ::ethers::core::types::Bytes::from_static(
-        __BYTECODE,
-    );
+    pub static ARBITERTOKEN_BYTECODE: ::ethers::core::types::Bytes =
+        ::ethers::core::types::Bytes::from_static(__BYTECODE);
     #[rustfmt::skip]
     const __DEPLOYED_BYTECODE: &[u8] = &[
         96,
@@ -3282,7 +3345,7 @@ pub mod arbiter_token {
         16,
         97,
         0,
-        180,
+        207,
         87,
         96,
         0,
@@ -3292,36 +3355,25 @@ pub mod arbiter_token {
         28,
         128,
         99,
-        64,
-        193,
-        15,
-        25,
+        57,
+        80,
+        147,
+        81,
         17,
         97,
         0,
-        113,
+        140,
         87,
         128,
         99,
-        64,
-        193,
-        15,
-        25,
-        20,
-        97,
-        1,
+        149,
+        216,
+        155,
         65,
-        87,
-        128,
-        99,
-        112,
-        160,
-        130,
-        49,
-        20,
+        17,
         97,
-        1,
-        86,
+        0,
+        102,
         87,
         128,
         99,
@@ -3332,7 +3384,7 @@ pub mod arbiter_token {
         20,
         97,
         1,
-        127,
+        173,
         87,
         128,
         99,
@@ -3343,7 +3395,7 @@ pub mod arbiter_token {
         20,
         97,
         1,
-        135,
+        181,
         87,
         128,
         99,
@@ -3354,7 +3406,7 @@ pub mod arbiter_token {
         20,
         97,
         1,
-        154,
+        200,
         87,
         128,
         99,
@@ -3365,7 +3417,45 @@ pub mod arbiter_token {
         20,
         97,
         1,
-        173,
+        219,
+        87,
+        96,
+        0,
+        128,
+        253,
+        91,
+        128,
+        99,
+        57,
+        80,
+        147,
+        81,
+        20,
+        97,
+        1,
+        94,
+        87,
+        128,
+        99,
+        64,
+        193,
+        15,
+        25,
+        20,
+        97,
+        1,
+        113,
+        87,
+        128,
+        99,
+        112,
+        160,
+        130,
+        49,
+        20,
+        97,
+        1,
+        132,
         87,
         96,
         0,
@@ -3381,7 +3471,7 @@ pub mod arbiter_token {
         20,
         97,
         0,
-        185,
+        212,
         87,
         128,
         99,
@@ -3392,7 +3482,18 @@ pub mod arbiter_token {
         20,
         97,
         0,
-        215,
+        242,
+        87,
+        128,
+        99,
+        15,
+        181,
+        216,
+        171,
+        20,
+        97,
+        1,
+        21,
         87,
         128,
         99,
@@ -3402,8 +3503,8 @@ pub mod arbiter_token {
         221,
         20,
         97,
-        0,
-        250,
+        1,
+        42,
         87,
         128,
         99,
@@ -3414,7 +3515,7 @@ pub mod arbiter_token {
         20,
         97,
         1,
-        12,
+        60,
         87,
         128,
         99,
@@ -3425,18 +3526,7 @@ pub mod arbiter_token {
         20,
         97,
         1,
-        31,
-        87,
-        128,
-        99,
-        57,
-        80,
-        147,
-        81,
-        20,
-        97,
-        1,
-        46,
+        79,
         87,
         91,
         96,
@@ -3446,10 +3536,10 @@ pub mod arbiter_token {
         91,
         97,
         0,
-        193,
+        220,
         97,
         1,
-        192,
+        238,
         86,
         91,
         96,
@@ -3457,12 +3547,12 @@ pub mod arbiter_token {
         81,
         97,
         0,
-        206,
+        233,
         145,
         144,
         97,
         7,
-        137,
+        198,
         86,
         91,
         96,
@@ -3475,22 +3565,22 @@ pub mod arbiter_token {
         243,
         91,
         97,
-        0,
-        234,
+        1,
+        5,
         97,
+        1,
         0,
-        229,
         54,
         96,
         4,
         97,
-        7,
-        243,
+        8,
+        48,
         86,
         91,
         97,
         2,
-        82,
+        128,
         86,
         91,
         96,
@@ -3506,8 +3596,29 @@ pub mod arbiter_token {
         1,
         97,
         0,
-        206,
+        233,
         86,
+        91,
+        97,
+        1,
+        40,
+        97,
+        1,
+        35,
+        54,
+        96,
+        4,
+        97,
+        8,
+        90,
+        86,
+        91,
+        97,
+        2,
+        154,
+        86,
+        91,
+        0,
         91,
         96,
         2,
@@ -3524,26 +3635,26 @@ pub mod arbiter_token {
         1,
         97,
         0,
-        206,
+        233,
         86,
         91,
         97,
-        0,
-        234,
+        1,
+        5,
         97,
         1,
-        26,
+        74,
         54,
         96,
         4,
         97,
         8,
-        29,
+        124,
         86,
         91,
         97,
         2,
-        108,
+        169,
         86,
         91,
         96,
@@ -3558,61 +3669,59 @@ pub mod arbiter_token {
         1,
         97,
         0,
-        206,
-        86,
-        91,
-        97,
-        0,
-        234,
-        97,
-        1,
-        60,
-        54,
-        96,
-        4,
-        97,
-        7,
-        243,
-        86,
-        91,
-        97,
-        2,
-        144,
+        233,
         86,
         91,
         97,
         1,
-        84,
+        5,
         97,
         1,
-        79,
-        54,
-        96,
-        4,
-        97,
-        7,
-        243,
-        86,
-        91,
-        97,
-        2,
-        178,
-        86,
-        91,
-        0,
-        91,
-        97,
-        0,
-        254,
-        97,
-        1,
-        100,
+        108,
         54,
         96,
         4,
         97,
         8,
-        89,
+        48,
+        86,
+        91,
+        97,
+        2,
+        205,
+        86,
+        91,
+        97,
+        1,
+        40,
+        97,
+        1,
+        127,
+        54,
+        96,
+        4,
+        97,
+        8,
+        48,
+        86,
+        91,
+        97,
+        2,
+        239,
+        86,
+        91,
+        97,
+        1,
+        46,
+        97,
+        1,
+        146,
+        54,
+        96,
+        4,
+        97,
+        8,
+        90,
         86,
         91,
         96,
@@ -3644,67 +3753,67 @@ pub mod arbiter_token {
         91,
         97,
         0,
-        193,
+        220,
         97,
         2,
-        192,
+        253,
         86,
         91,
-        97,
-        0,
-        234,
         97,
         1,
-        149,
-        54,
-        96,
-        4,
-        97,
-        7,
-        243,
-        86,
-        91,
-        97,
-        2,
-        207,
-        86,
-        91,
-        97,
-        0,
-        234,
+        5,
         97,
         1,
-        168,
-        54,
-        96,
-        4,
-        97,
-        7,
-        243,
-        86,
-        91,
-        97,
-        3,
-        79,
-        86,
-        91,
-        97,
-        0,
-        254,
-        97,
-        1,
-        187,
+        195,
         54,
         96,
         4,
         97,
         8,
-        123,
+        48,
         86,
         91,
         97,
         3,
-        93,
+        12,
+        86,
+        91,
+        97,
+        1,
+        5,
+        97,
+        1,
+        214,
+        54,
+        96,
+        4,
+        97,
+        8,
+        48,
+        86,
+        91,
+        97,
+        3,
+        140,
+        86,
+        91,
+        97,
+        1,
+        46,
+        97,
+        1,
+        233,
+        54,
+        96,
+        4,
+        97,
+        8,
+        184,
+        86,
+        91,
+        97,
+        3,
+        154,
         86,
         91,
         96,
@@ -3715,11 +3824,11 @@ pub mod arbiter_token {
         84,
         97,
         1,
-        207,
+        253,
         144,
         97,
         8,
-        174,
+        235,
         86,
         91,
         128,
@@ -3758,19 +3867,19 @@ pub mod arbiter_token {
         128,
         84,
         97,
-        1,
-        251,
+        2,
+        41,
         144,
         97,
         8,
-        174,
+        235,
         86,
         91,
         128,
         21,
         97,
         2,
-        72,
+        118,
         87,
         128,
         96,
@@ -3778,7 +3887,7 @@ pub mod arbiter_token {
         16,
         97,
         2,
-        29,
+        75,
         87,
         97,
         1,
@@ -3797,7 +3906,7 @@ pub mod arbiter_token {
         145,
         97,
         2,
-        72,
+        118,
         86,
         91,
         130,
@@ -3831,7 +3940,7 @@ pub mod arbiter_token {
         17,
         97,
         2,
-        43,
+        89,
         87,
         130,
         144,
@@ -3858,13 +3967,13 @@ pub mod arbiter_token {
         51,
         97,
         2,
-        96,
+        142,
         129,
         133,
         133,
         97,
         3,
-        136,
+        197,
         86,
         91,
         96,
@@ -3879,29 +3988,44 @@ pub mod arbiter_token {
         80,
         86,
         91,
+        97,
+        2,
+        166,
+        129,
+        96,
+        0,
+        25,
+        97,
+        4,
+        233,
+        86,
+        91,
+        80,
+        86,
+        91,
         96,
         0,
         51,
         97,
         2,
-        122,
+        183,
         133,
         130,
         133,
         97,
-        4,
-        172,
+        5,
+        168,
         86,
         91,
         97,
         2,
-        133,
+        194,
         133,
         133,
         133,
         97,
-        5,
-        38,
+        6,
+        34,
         86,
         91,
         80,
@@ -3920,43 +4044,43 @@ pub mod arbiter_token {
         51,
         97,
         2,
-        96,
+        142,
         129,
         133,
         133,
         97,
         2,
-        163,
+        224,
         131,
         131,
         97,
         3,
-        93,
+        154,
         86,
         91,
         97,
         2,
-        173,
+        234,
         145,
         144,
         97,
-        8,
-        232,
+        9,
+        37,
         86,
         91,
         97,
         3,
-        136,
+        197,
         86,
         91,
         97,
         2,
-        188,
+        249,
         130,
         130,
         97,
-        6,
-        202,
+        4,
+        233,
         86,
         91,
         80,
@@ -3971,11 +4095,11 @@ pub mod arbiter_token {
         84,
         97,
         1,
-        207,
+        253,
         144,
         97,
         8,
-        174,
+        235,
         86,
         91,
         96,
@@ -3983,13 +4107,13 @@ pub mod arbiter_token {
         51,
         129,
         97,
-        2,
-        221,
+        3,
+        26,
         130,
         134,
         97,
         3,
-        93,
+        154,
         86,
         91,
         144,
@@ -4000,7 +4124,7 @@ pub mod arbiter_token {
         21,
         97,
         3,
-        66,
+        127,
         87,
         96,
         64,
@@ -4095,7 +4219,7 @@ pub mod arbiter_token {
         91,
         97,
         2,
-        133,
+        194,
         130,
         134,
         134,
@@ -4103,7 +4227,7 @@ pub mod arbiter_token {
         3,
         97,
         3,
-        136,
+        197,
         86,
         91,
         96,
@@ -4111,13 +4235,13 @@ pub mod arbiter_token {
         51,
         97,
         2,
-        96,
+        142,
         129,
         133,
         133,
         97,
-        5,
-        38,
+        6,
+        34,
         86,
         91,
         96,
@@ -4174,8 +4298,8 @@ pub mod arbiter_token {
         131,
         22,
         97,
-        3,
-        234,
+        4,
+        39,
         87,
         96,
         64,
@@ -4258,7 +4382,7 @@ pub mod arbiter_token {
         1,
         97,
         3,
-        57,
+        118,
         86,
         91,
         96,
@@ -4273,7 +4397,7 @@ pub mod arbiter_token {
         22,
         97,
         4,
-        75,
+        136,
         87,
         96,
         64,
@@ -4355,7 +4479,7 @@ pub mod arbiter_token {
         1,
         97,
         3,
-        57,
+        118,
         86,
         91,
         96,
@@ -4456,15 +4580,206 @@ pub mod arbiter_token {
         86,
         91,
         96,
+        1,
+        96,
+        1,
+        96,
+        160,
+        27,
+        3,
+        130,
+        22,
+        97,
+        5,
+        63,
+        87,
+        96,
+        64,
+        81,
+        98,
+        70,
+        27,
+        205,
+        96,
+        229,
+        27,
+        129,
+        82,
+        96,
+        32,
+        96,
+        4,
+        130,
+        1,
+        82,
+        96,
+        31,
+        96,
+        36,
+        130,
+        1,
+        82,
+        127,
+        69,
+        82,
+        67,
+        50,
+        48,
+        58,
+        32,
+        109,
+        105,
+        110,
+        116,
+        32,
+        116,
+        111,
+        32,
+        116,
+        104,
+        101,
+        32,
+        122,
+        101,
+        114,
+        111,
+        32,
+        97,
+        100,
+        100,
+        114,
+        101,
+        115,
+        115,
+        0,
+        96,
+        68,
+        130,
+        1,
+        82,
+        96,
+        100,
+        1,
+        97,
+        3,
+        118,
+        86,
+        91,
+        128,
+        96,
+        2,
+        96,
+        0,
+        130,
+        130,
+        84,
+        97,
+        5,
+        81,
+        145,
+        144,
+        97,
+        9,
+        37,
+        86,
+        91,
+        144,
+        145,
+        85,
+        80,
+        80,
+        96,
+        1,
+        96,
+        1,
+        96,
+        160,
+        27,
+        3,
+        130,
+        22,
+        96,
+        0,
+        129,
+        129,
+        82,
+        96,
+        32,
+        129,
+        129,
+        82,
+        96,
+        64,
+        128,
+        131,
+        32,
+        128,
+        84,
+        134,
+        1,
+        144,
+        85,
+        81,
+        132,
+        129,
+        82,
+        127,
+        221,
+        242,
+        82,
+        173,
+        27,
+        226,
+        200,
+        155,
+        105,
+        194,
+        176,
+        104,
+        252,
+        55,
+        141,
+        170,
+        149,
+        43,
+        167,
+        241,
+        99,
+        196,
+        161,
+        22,
+        40,
+        245,
+        90,
+        77,
+        245,
+        35,
+        179,
+        239,
+        145,
+        1,
+        96,
+        64,
+        81,
+        128,
+        145,
+        3,
+        144,
+        163,
+        80,
+        80,
+        86,
+        91,
+        96,
         0,
         97,
-        4,
-        184,
+        5,
+        180,
         132,
         132,
         97,
         3,
-        93,
+        154,
         86,
         91,
         144,
@@ -4475,16 +4790,16 @@ pub mod arbiter_token {
         129,
         20,
         97,
-        5,
-        32,
+        6,
+        28,
         87,
         129,
         129,
         16,
         21,
         97,
-        5,
-        19,
+        6,
+        15,
         87,
         96,
         64,
@@ -4555,12 +4870,12 @@ pub mod arbiter_token {
         1,
         97,
         3,
-        57,
+        118,
         86,
         91,
         97,
-        5,
-        32,
+        6,
+        28,
         132,
         132,
         132,
@@ -4568,7 +4883,7 @@ pub mod arbiter_token {
         3,
         97,
         3,
-        136,
+        197,
         86,
         91,
         80,
@@ -4588,8 +4903,8 @@ pub mod arbiter_token {
         131,
         22,
         97,
-        5,
-        138,
+        6,
+        134,
         87,
         96,
         64,
@@ -4674,7 +4989,7 @@ pub mod arbiter_token {
         1,
         97,
         3,
-        57,
+        118,
         86,
         91,
         96,
@@ -4688,8 +5003,8 @@ pub mod arbiter_token {
         130,
         22,
         97,
-        5,
-        236,
+        6,
+        232,
         87,
         96,
         64,
@@ -4772,7 +5087,7 @@ pub mod arbiter_token {
         1,
         97,
         3,
-        57,
+        118,
         86,
         91,
         96,
@@ -4805,8 +5120,8 @@ pub mod arbiter_token {
         16,
         21,
         97,
-        6,
-        100,
+        7,
+        96,
         87,
         96,
         64,
@@ -4892,7 +5207,7 @@ pub mod arbiter_token {
         1,
         97,
         3,
-        57,
+        118,
         86,
         91,
         96,
@@ -4993,199 +5308,8 @@ pub mod arbiter_token {
         144,
         163,
         97,
-        5,
-        32,
-        86,
-        91,
-        96,
-        1,
-        96,
-        1,
-        96,
-        160,
-        27,
-        3,
-        130,
-        22,
-        97,
-        7,
-        32,
-        87,
-        96,
-        64,
-        81,
-        98,
-        70,
-        27,
-        205,
-        96,
-        229,
-        27,
-        129,
-        82,
-        96,
-        32,
-        96,
-        4,
-        130,
-        1,
-        82,
-        96,
-        31,
-        96,
-        36,
-        130,
-        1,
-        82,
-        127,
-        69,
-        82,
-        67,
-        50,
-        48,
-        58,
-        32,
-        109,
-        105,
-        110,
-        116,
-        32,
-        116,
-        111,
-        32,
-        116,
-        104,
-        101,
-        32,
-        122,
-        101,
-        114,
-        111,
-        32,
-        97,
-        100,
-        100,
-        114,
-        101,
-        115,
-        115,
-        0,
-        96,
-        68,
-        130,
-        1,
-        82,
-        96,
-        100,
-        1,
-        97,
-        3,
-        57,
-        86,
-        91,
-        128,
-        96,
-        2,
-        96,
-        0,
-        130,
-        130,
-        84,
-        97,
-        7,
-        50,
-        145,
-        144,
-        97,
-        8,
-        232,
-        86,
-        91,
-        144,
-        145,
-        85,
-        80,
-        80,
-        96,
-        1,
-        96,
-        1,
-        96,
-        160,
-        27,
-        3,
-        130,
-        22,
-        96,
-        0,
-        129,
-        129,
-        82,
-        96,
-        32,
-        129,
-        129,
-        82,
-        96,
-        64,
-        128,
-        131,
-        32,
-        128,
-        84,
-        134,
-        1,
-        144,
-        85,
-        81,
-        132,
-        129,
-        82,
-        127,
-        221,
-        242,
-        82,
-        173,
-        27,
-        226,
-        200,
-        155,
-        105,
-        194,
-        176,
-        104,
-        252,
-        55,
-        141,
-        170,
-        149,
-        43,
-        167,
-        241,
-        99,
-        196,
-        161,
-        22,
-        40,
-        245,
-        90,
-        77,
-        245,
-        35,
-        179,
-        239,
-        145,
-        1,
-        96,
-        64,
-        81,
-        128,
-        145,
-        3,
-        144,
-        163,
-        80,
-        80,
+        6,
+        28,
         86,
         91,
         96,
@@ -5211,7 +5335,7 @@ pub mod arbiter_token {
         21,
         97,
         7,
-        182,
+        243,
         87,
         133,
         129,
@@ -5230,7 +5354,7 @@ pub mod arbiter_token {
         1,
         97,
         7,
-        154,
+        215,
         86,
         91,
         80,
@@ -5281,8 +5405,8 @@ pub mod arbiter_token {
         129,
         20,
         97,
-        7,
-        238,
+        8,
+        43,
         87,
         96,
         0,
@@ -5306,7 +5430,7 @@ pub mod arbiter_token {
         21,
         97,
         8,
-        6,
+        67,
         87,
         96,
         0,
@@ -5315,11 +5439,11 @@ pub mod arbiter_token {
         91,
         97,
         8,
-        15,
+        76,
         131,
         97,
-        7,
-        215,
+        8,
+        20,
         86,
         91,
         148,
@@ -5331,6 +5455,40 @@ pub mod arbiter_token {
         1,
         53,
         147,
+        80,
+        80,
+        80,
+        86,
+        91,
+        96,
+        0,
+        96,
+        32,
+        130,
+        132,
+        3,
+        18,
+        21,
+        97,
+        8,
+        108,
+        87,
+        96,
+        0,
+        128,
+        253,
+        91,
+        97,
+        8,
+        117,
+        130,
+        97,
+        8,
+        20,
+        86,
+        91,
+        147,
+        146,
         80,
         80,
         80,
@@ -5350,7 +5508,7 @@ pub mod arbiter_token {
         21,
         97,
         8,
-        50,
+        145,
         87,
         96,
         0,
@@ -5359,25 +5517,25 @@ pub mod arbiter_token {
         91,
         97,
         8,
-        59,
+        154,
         132,
         97,
-        7,
-        215,
+        8,
+        20,
         86,
         91,
         146,
         80,
         97,
         8,
-        73,
+        168,
         96,
         32,
         133,
         1,
         97,
-        7,
-        215,
+        8,
+        20,
         86,
         91,
         145,
@@ -5398,40 +5556,6 @@ pub mod arbiter_token {
         91,
         96,
         0,
-        96,
-        32,
-        130,
-        132,
-        3,
-        18,
-        21,
-        97,
-        8,
-        107,
-        87,
-        96,
-        0,
-        128,
-        253,
-        91,
-        97,
-        8,
-        116,
-        130,
-        97,
-        7,
-        215,
-        86,
-        91,
-        147,
-        146,
-        80,
-        80,
-        80,
-        86,
-        91,
-        96,
-        0,
         128,
         96,
         64,
@@ -5442,7 +5566,7 @@ pub mod arbiter_token {
         21,
         97,
         8,
-        142,
+        203,
         87,
         96,
         0,
@@ -5451,25 +5575,25 @@ pub mod arbiter_token {
         91,
         97,
         8,
-        151,
+        212,
         131,
         97,
-        7,
-        215,
+        8,
+        20,
         86,
         91,
         145,
         80,
         97,
         8,
-        165,
+        226,
         96,
         32,
         132,
         1,
         97,
-        7,
-        215,
+        8,
+        20,
         86,
         91,
         144,
@@ -5492,7 +5616,7 @@ pub mod arbiter_token {
         128,
         97,
         8,
-        194,
+        255,
         87,
         96,
         127,
@@ -5508,8 +5632,8 @@ pub mod arbiter_token {
         129,
         3,
         97,
-        8,
-        226,
+        9,
+        31,
         87,
         99,
         78,
@@ -5548,7 +5672,7 @@ pub mod arbiter_token {
         21,
         97,
         2,
-        102,
+        148,
         87,
         99,
         78,
@@ -5582,38 +5706,38 @@ pub mod arbiter_token {
         34,
         18,
         32,
-        168,
-        118,
-        56,
-        225,
-        102,
+        42,
         69,
-        151,
-        88,
-        138,
-        92,
-        145,
-        175,
-        36,
-        148,
+        22,
+        120,
+        231,
+        66,
+        174,
+        243,
+        13,
+        115,
+        98,
+        28,
+        130,
+        233,
+        71,
+        188,
+        159,
         74,
-        82,
-        157,
-        206,
-        19,
-        225,
-        210,
-        135,
-        45,
-        235,
-        250,
-        41,
-        178,
+        177,
         131,
-        55,
-        18,
-        8,
-        235,
+        148,
+        156,
+        101,
+        199,
+        130,
+        1,
+        52,
+        102,
+        188,
+        159,
+        148,
+        232,
         100,
         115,
         111,
@@ -5627,9 +5751,8 @@ pub mod arbiter_token {
         51,
     ];
     ///The deployed bytecode of the contract.
-    pub static ARBITERTOKEN_DEPLOYED_BYTECODE: ::ethers::core::types::Bytes = ::ethers::core::types::Bytes::from_static(
-        __DEPLOYED_BYTECODE,
-    );
+    pub static ARBITERTOKEN_DEPLOYED_BYTECODE: ::ethers::core::types::Bytes =
+        ::ethers::core::types::Bytes::from_static(__DEPLOYED_BYTECODE);
     pub struct ArbiterToken<M>(::ethers::contract::Contract<M>);
     impl<M> ::core::clone::Clone for ArbiterToken<M> {
         fn clone(&self) -> Self {
@@ -5649,7 +5772,9 @@ pub mod arbiter_token {
     }
     impl<M> ::core::fmt::Debug for ArbiterToken<M> {
         fn fmt(&self, f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
-            f.debug_tuple(stringify!(ArbiterToken)).field(&self.address()).finish()
+            f.debug_tuple(stringify!(ArbiterToken))
+                .field(&self.address())
+                .finish()
         }
     }
     impl<M: ::ethers::providers::Middleware> ArbiterToken<M> {
@@ -5659,13 +5784,11 @@ pub mod arbiter_token {
             address: T,
             client: ::std::sync::Arc<M>,
         ) -> Self {
-            Self(
-                ::ethers::contract::Contract::new(
-                    address.into(),
-                    ARBITERTOKEN_ABI.clone(),
-                    client,
-                ),
-            )
+            Self(::ethers::contract::Contract::new(
+                address.into(),
+                ARBITERTOKEN_ABI.clone(),
+                client,
+            ))
         }
         /// Constructs the general purpose `Deployer` instance based on the provided constructor arguments and sends it.
         /// Returns a new instance of a deployer that returns an instance of this contract after sending the transaction
@@ -5771,10 +5894,17 @@ pub mod arbiter_token {
                 .method_hash([64, 193, 15, 25], (receiver, amount))
                 .expect("method not found (this should never happen)")
         }
-        ///Calls the contract's `name` (0x06fdde03) function
-        pub fn name(
+        ///Calls the contract's `mintMax` (0x0fb5d8ab) function
+        pub fn mint_max(
             &self,
-        ) -> ::ethers::contract::builders::ContractCall<M, ::std::string::String> {
+            receiver: ::ethers::core::types::Address,
+        ) -> ::ethers::contract::builders::ContractCall<M, ()> {
+            self.0
+                .method_hash([15, 181, 216, 171], receiver)
+                .expect("method not found (this should never happen)")
+        }
+        ///Calls the contract's `name` (0x06fdde03) function
+        pub fn name(&self) -> ::ethers::contract::builders::ContractCall<M, ::std::string::String> {
             self.0
                 .method_hash([6, 253, 222, 3], ())
                 .expect("method not found (this should never happen)")
@@ -5819,36 +5949,25 @@ pub mod arbiter_token {
         ///Gets the contract's `Approval` event
         pub fn approval_filter(
             &self,
-        ) -> ::ethers::contract::builders::Event<
-            ::std::sync::Arc<M>,
-            M,
-            ApprovalFilter,
-        > {
+        ) -> ::ethers::contract::builders::Event<::std::sync::Arc<M>, M, ApprovalFilter> {
             self.0.event()
         }
         ///Gets the contract's `Transfer` event
         pub fn transfer_filter(
             &self,
-        ) -> ::ethers::contract::builders::Event<
-            ::std::sync::Arc<M>,
-            M,
-            TransferFilter,
-        > {
+        ) -> ::ethers::contract::builders::Event<::std::sync::Arc<M>, M, TransferFilter> {
             self.0.event()
         }
         /// Returns an `Event` builder for all the events of this contract.
         pub fn events(
             &self,
-        ) -> ::ethers::contract::builders::Event<
-            ::std::sync::Arc<M>,
-            M,
-            ArbiterTokenEvents,
-        > {
-            self.0.event_with_filter(::core::default::Default::default())
+        ) -> ::ethers::contract::builders::Event<::std::sync::Arc<M>, M, ArbiterTokenEvents>
+        {
+            self.0
+                .event_with_filter(::core::default::Default::default())
         }
     }
-    impl<M: ::ethers::providers::Middleware> From<::ethers::contract::Contract<M>>
-    for ArbiterToken<M> {
+    impl<M: ::ethers::providers::Middleware> From<::ethers::contract::Contract<M>> for ArbiterToken<M> {
         fn from(contract: ::ethers::contract::Contract<M>) -> Self {
             Self::new(contract.address(), contract.client())
         }
@@ -5861,7 +5980,7 @@ pub mod arbiter_token {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethevent(name = "Approval", abi = "Approval(address,address,uint256)")]
     pub struct ApprovalFilter {
@@ -5879,7 +5998,7 @@ pub mod arbiter_token {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethevent(name = "Transfer", abi = "Transfer(address,address,uint256)")]
     pub struct TransferFilter {
@@ -5935,7 +6054,7 @@ pub mod arbiter_token {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "allowance", abi = "allowance(address,address)")]
     pub struct AllowanceCall {
@@ -5951,7 +6070,7 @@ pub mod arbiter_token {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "approve", abi = "approve(address,uint256)")]
     pub struct ApproveCall {
@@ -5967,7 +6086,7 @@ pub mod arbiter_token {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "balanceOf", abi = "balanceOf(address)")]
     pub struct BalanceOfCall {
@@ -5982,7 +6101,7 @@ pub mod arbiter_token {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "decimals", abi = "decimals()")]
     pub struct DecimalsCall;
@@ -5995,7 +6114,7 @@ pub mod arbiter_token {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "decreaseAllowance", abi = "decreaseAllowance(address,uint256)")]
     pub struct DecreaseAllowanceCall {
@@ -6011,7 +6130,7 @@ pub mod arbiter_token {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "increaseAllowance", abi = "increaseAllowance(address,uint256)")]
     pub struct IncreaseAllowanceCall {
@@ -6027,12 +6146,27 @@ pub mod arbiter_token {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "mint", abi = "mint(address,uint256)")]
     pub struct MintCall {
         pub receiver: ::ethers::core::types::Address,
         pub amount: ::ethers::core::types::U256,
+    }
+    ///Container type for all input parameters for the `mintMax` function with signature `mintMax(address)` and selector `0x0fb5d8ab`
+    #[derive(
+        Clone,
+        ::ethers::contract::EthCall,
+        ::ethers::contract::EthDisplay,
+        Default,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash,
+    )]
+    #[ethcall(name = "mintMax", abi = "mintMax(address)")]
+    pub struct MintMaxCall {
+        pub receiver: ::ethers::core::types::Address,
     }
     ///Container type for all input parameters for the `name` function with signature `name()` and selector `0x06fdde03`
     #[derive(
@@ -6043,7 +6177,7 @@ pub mod arbiter_token {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "name", abi = "name()")]
     pub struct NameCall;
@@ -6056,7 +6190,7 @@ pub mod arbiter_token {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "symbol", abi = "symbol()")]
     pub struct SymbolCall;
@@ -6069,7 +6203,7 @@ pub mod arbiter_token {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "totalSupply", abi = "totalSupply()")]
     pub struct TotalSupplyCall;
@@ -6082,7 +6216,7 @@ pub mod arbiter_token {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "transfer", abi = "transfer(address,uint256)")]
     pub struct TransferCall {
@@ -6098,7 +6232,7 @@ pub mod arbiter_token {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "transferFrom", abi = "transferFrom(address,address,uint256)")]
     pub struct TransferFromCall {
@@ -6116,6 +6250,7 @@ pub mod arbiter_token {
         DecreaseAllowance(DecreaseAllowanceCall),
         IncreaseAllowance(IncreaseAllowanceCall),
         Mint(MintCall),
+        MintMax(MintMaxCall),
         Name(NameCall),
         Symbol(SymbolCall),
         TotalSupply(TotalSupplyCall),
@@ -6127,56 +6262,48 @@ pub mod arbiter_token {
             data: impl AsRef<[u8]>,
         ) -> ::core::result::Result<Self, ::ethers::core::abi::AbiError> {
             let data = data.as_ref();
-            if let Ok(decoded)
-                = <AllowanceCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <AllowanceCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::Allowance(decoded));
             }
-            if let Ok(decoded)
-                = <ApproveCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <ApproveCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::Approve(decoded));
             }
-            if let Ok(decoded)
-                = <BalanceOfCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <BalanceOfCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::BalanceOf(decoded));
             }
-            if let Ok(decoded)
-                = <DecimalsCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <DecimalsCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::Decimals(decoded));
             }
-            if let Ok(decoded)
-                = <DecreaseAllowanceCall as ::ethers::core::abi::AbiDecode>::decode(
-                    data,
-                ) {
+            if let Ok(decoded) =
+                <DecreaseAllowanceCall as ::ethers::core::abi::AbiDecode>::decode(data)
+            {
                 return Ok(Self::DecreaseAllowance(decoded));
             }
-            if let Ok(decoded)
-                = <IncreaseAllowanceCall as ::ethers::core::abi::AbiDecode>::decode(
-                    data,
-                ) {
+            if let Ok(decoded) =
+                <IncreaseAllowanceCall as ::ethers::core::abi::AbiDecode>::decode(data)
+            {
                 return Ok(Self::IncreaseAllowance(decoded));
             }
-            if let Ok(decoded)
-                = <MintCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <MintCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::Mint(decoded));
             }
-            if let Ok(decoded)
-                = <NameCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <MintMaxCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+                return Ok(Self::MintMax(decoded));
+            }
+            if let Ok(decoded) = <NameCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::Name(decoded));
             }
-            if let Ok(decoded)
-                = <SymbolCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <SymbolCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::Symbol(decoded));
             }
-            if let Ok(decoded)
-                = <TotalSupplyCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <TotalSupplyCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::TotalSupply(decoded));
             }
-            if let Ok(decoded)
-                = <TransferCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <TransferCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::Transfer(decoded));
             }
-            if let Ok(decoded)
-                = <TransferFromCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <TransferFromCall as ::ethers::core::abi::AbiDecode>::decode(data)
+            {
                 return Ok(Self::TransferFrom(decoded));
             }
             Err(::ethers::core::abi::Error::InvalidData.into())
@@ -6185,34 +6312,19 @@ pub mod arbiter_token {
     impl ::ethers::core::abi::AbiEncode for ArbiterTokenCalls {
         fn encode(self) -> Vec<u8> {
             match self {
-                Self::Allowance(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
+                Self::Allowance(element) => ::ethers::core::abi::AbiEncode::encode(element),
                 Self::Approve(element) => ::ethers::core::abi::AbiEncode::encode(element),
-                Self::BalanceOf(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
-                Self::Decimals(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
-                Self::DecreaseAllowance(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
-                Self::IncreaseAllowance(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
+                Self::BalanceOf(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::Decimals(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::DecreaseAllowance(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::IncreaseAllowance(element) => ::ethers::core::abi::AbiEncode::encode(element),
                 Self::Mint(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::MintMax(element) => ::ethers::core::abi::AbiEncode::encode(element),
                 Self::Name(element) => ::ethers::core::abi::AbiEncode::encode(element),
                 Self::Symbol(element) => ::ethers::core::abi::AbiEncode::encode(element),
-                Self::TotalSupply(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
-                Self::Transfer(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
-                Self::TransferFrom(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
+                Self::TotalSupply(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::Transfer(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::TransferFrom(element) => ::ethers::core::abi::AbiEncode::encode(element),
             }
         }
     }
@@ -6226,6 +6338,7 @@ pub mod arbiter_token {
                 Self::DecreaseAllowance(element) => ::core::fmt::Display::fmt(element, f),
                 Self::IncreaseAllowance(element) => ::core::fmt::Display::fmt(element, f),
                 Self::Mint(element) => ::core::fmt::Display::fmt(element, f),
+                Self::MintMax(element) => ::core::fmt::Display::fmt(element, f),
                 Self::Name(element) => ::core::fmt::Display::fmt(element, f),
                 Self::Symbol(element) => ::core::fmt::Display::fmt(element, f),
                 Self::TotalSupply(element) => ::core::fmt::Display::fmt(element, f),
@@ -6269,6 +6382,11 @@ pub mod arbiter_token {
             Self::Mint(value)
         }
     }
+    impl ::core::convert::From<MintMaxCall> for ArbiterTokenCalls {
+        fn from(value: MintMaxCall) -> Self {
+            Self::MintMax(value)
+        }
+    }
     impl ::core::convert::From<NameCall> for ArbiterTokenCalls {
         fn from(value: NameCall) -> Self {
             Self::Name(value)
@@ -6303,7 +6421,7 @@ pub mod arbiter_token {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     pub struct AllowanceReturn(pub ::ethers::core::types::U256);
     ///Container type for all return fields from the `approve` function with signature `approve(address,uint256)` and selector `0x095ea7b3`
@@ -6315,7 +6433,7 @@ pub mod arbiter_token {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     pub struct ApproveReturn(pub bool);
     ///Container type for all return fields from the `balanceOf` function with signature `balanceOf(address)` and selector `0x70a08231`
@@ -6327,7 +6445,7 @@ pub mod arbiter_token {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     pub struct BalanceOfReturn(pub ::ethers::core::types::U256);
     ///Container type for all return fields from the `decimals` function with signature `decimals()` and selector `0x313ce567`
@@ -6339,7 +6457,7 @@ pub mod arbiter_token {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     pub struct DecimalsReturn(pub u8);
     ///Container type for all return fields from the `decreaseAllowance` function with signature `decreaseAllowance(address,uint256)` and selector `0xa457c2d7`
@@ -6351,7 +6469,7 @@ pub mod arbiter_token {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     pub struct DecreaseAllowanceReturn(pub bool);
     ///Container type for all return fields from the `increaseAllowance` function with signature `increaseAllowance(address,uint256)` and selector `0x39509351`
@@ -6363,7 +6481,7 @@ pub mod arbiter_token {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     pub struct IncreaseAllowanceReturn(pub bool);
     ///Container type for all return fields from the `name` function with signature `name()` and selector `0x06fdde03`
@@ -6375,7 +6493,7 @@ pub mod arbiter_token {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     pub struct NameReturn(pub ::std::string::String);
     ///Container type for all return fields from the `symbol` function with signature `symbol()` and selector `0x95d89b41`
@@ -6387,7 +6505,7 @@ pub mod arbiter_token {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     pub struct SymbolReturn(pub ::std::string::String);
     ///Container type for all return fields from the `totalSupply` function with signature `totalSupply()` and selector `0x18160ddd`
@@ -6399,7 +6517,7 @@ pub mod arbiter_token {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     pub struct TotalSupplyReturn(pub ::ethers::core::types::U256);
     ///Container type for all return fields from the `transfer` function with signature `transfer(address,uint256)` and selector `0xa9059cbb`
@@ -6411,7 +6529,7 @@ pub mod arbiter_token {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     pub struct TransferReturn(pub bool);
     ///Container type for all return fields from the `transferFrom` function with signature `transferFrom(address,address,uint256)` and selector `0x23b872dd`
@@ -6423,7 +6541,7 @@ pub mod arbiter_token {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     pub struct TransferFromReturn(pub bool);
 }
@@ -6436,14 +6554,16 @@ pub use assembly_lib::*;
     clippy::upper_case_acronyms,
     clippy::type_complexity,
     dead_code,
-    non_camel_case_types,
+    non_camel_case_types
 )]
 pub mod assembly_lib {
     #[rustfmt::skip]
     const __ABI: &str = "[]";
     ///The parsed JSON ABI of the contract.
-    pub static ASSEMBLYLIB_ABI: ::ethers::contract::Lazy<::ethers::core::abi::Abi> = ::ethers::contract::Lazy::new(||
-    ::ethers::core::utils::__serde_json::from_str(__ABI).expect("ABI is always valid"));
+    pub static ASSEMBLYLIB_ABI: ::ethers::contract::Lazy<::ethers::core::abi::Abi> =
+        ::ethers::contract::Lazy::new(|| {
+            ::ethers::core::utils::__serde_json::from_str(__ABI).expect("ABI is always valid")
+        });
     #[rustfmt::skip]
     const __BYTECODE: &[u8] = &[
         96,
@@ -6589,9 +6709,8 @@ pub mod assembly_lib {
         51,
     ];
     ///The bytecode of the contract.
-    pub static ASSEMBLYLIB_BYTECODE: ::ethers::core::types::Bytes = ::ethers::core::types::Bytes::from_static(
-        __BYTECODE,
-    );
+    pub static ASSEMBLYLIB_BYTECODE: ::ethers::core::types::Bytes =
+        ::ethers::core::types::Bytes::from_static(__BYTECODE);
     #[rustfmt::skip]
     const __DEPLOYED_BYTECODE: &[u8] = &[
         115,
@@ -6682,9 +6801,8 @@ pub mod assembly_lib {
         51,
     ];
     ///The deployed bytecode of the contract.
-    pub static ASSEMBLYLIB_DEPLOYED_BYTECODE: ::ethers::core::types::Bytes = ::ethers::core::types::Bytes::from_static(
-        __DEPLOYED_BYTECODE,
-    );
+    pub static ASSEMBLYLIB_DEPLOYED_BYTECODE: ::ethers::core::types::Bytes =
+        ::ethers::core::types::Bytes::from_static(__DEPLOYED_BYTECODE);
     pub struct AssemblyLib<M>(::ethers::contract::Contract<M>);
     impl<M> ::core::clone::Clone for AssemblyLib<M> {
         fn clone(&self) -> Self {
@@ -6704,7 +6822,9 @@ pub mod assembly_lib {
     }
     impl<M> ::core::fmt::Debug for AssemblyLib<M> {
         fn fmt(&self, f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
-            f.debug_tuple(stringify!(AssemblyLib)).field(&self.address()).finish()
+            f.debug_tuple(stringify!(AssemblyLib))
+                .field(&self.address())
+                .finish()
         }
     }
     impl<M: ::ethers::providers::Middleware> AssemblyLib<M> {
@@ -6714,13 +6834,11 @@ pub mod assembly_lib {
             address: T,
             client: ::std::sync::Arc<M>,
         ) -> Self {
-            Self(
-                ::ethers::contract::Contract::new(
-                    address.into(),
-                    ASSEMBLYLIB_ABI.clone(),
-                    client,
-                ),
-            )
+            Self(::ethers::contract::Contract::new(
+                address.into(),
+                ASSEMBLYLIB_ABI.clone(),
+                client,
+            ))
         }
         /// Constructs the general purpose `Deployer` instance based on the provided constructor arguments and sends it.
         /// Returns a new instance of a deployer that returns an instance of this contract after sending the transaction
@@ -6762,8 +6880,7 @@ pub mod assembly_lib {
             Ok(deployer)
         }
     }
-    impl<M: ::ethers::providers::Middleware> From<::ethers::contract::Contract<M>>
-    for AssemblyLib<M> {
+    impl<M: ::ethers::providers::Middleware> From<::ethers::contract::Contract<M>> for AssemblyLib<M> {
         fn from(contract: ::ethers::contract::Contract<M>) -> Self {
             Self::new(contract.address(), contract.client())
         }
@@ -6778,14 +6895,16 @@ pub use context::*;
     clippy::upper_case_acronyms,
     clippy::type_complexity,
     dead_code,
-    non_camel_case_types,
+    non_camel_case_types
 )]
 pub mod context {
     #[rustfmt::skip]
     const __ABI: &str = "[]";
     ///The parsed JSON ABI of the contract.
-    pub static CONTEXT_ABI: ::ethers::contract::Lazy<::ethers::core::abi::Abi> = ::ethers::contract::Lazy::new(||
-    ::ethers::core::utils::__serde_json::from_str(__ABI).expect("ABI is always valid"));
+    pub static CONTEXT_ABI: ::ethers::contract::Lazy<::ethers::core::abi::Abi> =
+        ::ethers::contract::Lazy::new(|| {
+            ::ethers::core::utils::__serde_json::from_str(__ABI).expect("ABI is always valid")
+        });
     pub struct Context<M>(::ethers::contract::Contract<M>);
     impl<M> ::core::clone::Clone for Context<M> {
         fn clone(&self) -> Self {
@@ -6805,7 +6924,9 @@ pub mod context {
     }
     impl<M> ::core::fmt::Debug for Context<M> {
         fn fmt(&self, f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
-            f.debug_tuple(stringify!(Context)).field(&self.address()).finish()
+            f.debug_tuple(stringify!(Context))
+                .field(&self.address())
+                .finish()
         }
     }
     impl<M: ::ethers::providers::Middleware> Context<M> {
@@ -6815,17 +6936,14 @@ pub mod context {
             address: T,
             client: ::std::sync::Arc<M>,
         ) -> Self {
-            Self(
-                ::ethers::contract::Contract::new(
-                    address.into(),
-                    CONTEXT_ABI.clone(),
-                    client,
-                ),
-            )
+            Self(::ethers::contract::Contract::new(
+                address.into(),
+                CONTEXT_ABI.clone(),
+                client,
+            ))
         }
     }
-    impl<M: ::ethers::providers::Middleware> From<::ethers::contract::Contract<M>>
-    for Context<M> {
+    impl<M: ::ethers::providers::Middleware> From<::ethers::contract::Contract<M>> for Context<M> {
         fn from(contract: ::ethers::contract::Contract<M>) -> Self {
             Self::new(contract.address(), contract.client())
         }
@@ -6840,14 +6958,16 @@ pub use erc20::*;
     clippy::upper_case_acronyms,
     clippy::type_complexity,
     dead_code,
-    non_camel_case_types,
+    non_camel_case_types
 )]
 pub mod erc20 {
     #[rustfmt::skip]
     const __ABI: &str = "[{\"inputs\":[{\"internalType\":\"address\",\"name\":\"owner\",\"type\":\"address\",\"components\":[],\"indexed\":true},{\"internalType\":\"address\",\"name\":\"spender\",\"type\":\"address\",\"components\":[],\"indexed\":true},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\",\"components\":[],\"indexed\":false}],\"type\":\"event\",\"name\":\"Approval\",\"outputs\":[],\"anonymous\":false},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"from\",\"type\":\"address\",\"components\":[],\"indexed\":true},{\"internalType\":\"address\",\"name\":\"to\",\"type\":\"address\",\"components\":[],\"indexed\":true},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\",\"components\":[],\"indexed\":false}],\"type\":\"event\",\"name\":\"Transfer\",\"outputs\":[],\"anonymous\":false},{\"inputs\":[],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"DOMAIN_SEPARATOR\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\",\"components\":[]}],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"allowance\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"spender\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"function\",\"name\":\"approve\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\",\"components\":[]}],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"balanceOf\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\",\"components\":[]}]},{\"inputs\":[],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"decimals\",\"outputs\":[{\"internalType\":\"uint8\",\"name\":\"\",\"type\":\"uint8\",\"components\":[]}]},{\"inputs\":[],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"name\",\"outputs\":[{\"internalType\":\"string\",\"name\":\"\",\"type\":\"string\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\",\"components\":[]}],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"nonces\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"owner\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"address\",\"name\":\"spender\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"value\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"deadline\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"uint8\",\"name\":\"v\",\"type\":\"uint8\",\"components\":[]},{\"internalType\":\"bytes32\",\"name\":\"r\",\"type\":\"bytes32\",\"components\":[]},{\"internalType\":\"bytes32\",\"name\":\"s\",\"type\":\"bytes32\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"function\",\"name\":\"permit\",\"outputs\":[]},{\"inputs\":[],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"symbol\",\"outputs\":[{\"internalType\":\"string\",\"name\":\"\",\"type\":\"string\",\"components\":[]}]},{\"inputs\":[],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"totalSupply\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"to\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"function\",\"name\":\"transfer\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"from\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"address\",\"name\":\"to\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"function\",\"name\":\"transferFrom\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\",\"components\":[]}]}]";
     ///The parsed JSON ABI of the contract.
-    pub static ERC20_ABI: ::ethers::contract::Lazy<::ethers::core::abi::Abi> = ::ethers::contract::Lazy::new(||
-    ::ethers::core::utils::__serde_json::from_str(__ABI).expect("ABI is always valid"));
+    pub static ERC20_ABI: ::ethers::contract::Lazy<::ethers::core::abi::Abi> =
+        ::ethers::contract::Lazy::new(|| {
+            ::ethers::core::utils::__serde_json::from_str(__ABI).expect("ABI is always valid")
+        });
     pub struct ERC20<M>(::ethers::contract::Contract<M>);
     impl<M> ::core::clone::Clone for ERC20<M> {
         fn clone(&self) -> Self {
@@ -6867,7 +6987,9 @@ pub mod erc20 {
     }
     impl<M> ::core::fmt::Debug for ERC20<M> {
         fn fmt(&self, f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
-            f.debug_tuple(stringify!(ERC20)).field(&self.address()).finish()
+            f.debug_tuple(stringify!(ERC20))
+                .field(&self.address())
+                .finish()
         }
     }
     impl<M: ::ethers::providers::Middleware> ERC20<M> {
@@ -6877,18 +6999,14 @@ pub mod erc20 {
             address: T,
             client: ::std::sync::Arc<M>,
         ) -> Self {
-            Self(
-                ::ethers::contract::Contract::new(
-                    address.into(),
-                    ERC20_ABI.clone(),
-                    client,
-                ),
-            )
+            Self(::ethers::contract::Contract::new(
+                address.into(),
+                ERC20_ABI.clone(),
+                client,
+            ))
         }
         ///Calls the contract's `DOMAIN_SEPARATOR` (0x3644e515) function
-        pub fn domain_separator(
-            &self,
-        ) -> ::ethers::contract::builders::ContractCall<M, [u8; 32]> {
+        pub fn domain_separator(&self) -> ::ethers::contract::builders::ContractCall<M, [u8; 32]> {
             self.0
                 .method_hash([54, 68, 229, 21], ())
                 .expect("method not found (this should never happen)")
@@ -6929,9 +7047,7 @@ pub mod erc20 {
                 .expect("method not found (this should never happen)")
         }
         ///Calls the contract's `name` (0x06fdde03) function
-        pub fn name(
-            &self,
-        ) -> ::ethers::contract::builders::ContractCall<M, ::std::string::String> {
+        pub fn name(&self) -> ::ethers::contract::builders::ContractCall<M, ::std::string::String> {
             self.0
                 .method_hash([6, 253, 222, 3], ())
                 .expect("method not found (this should never happen)")
@@ -7003,32 +7119,24 @@ pub mod erc20 {
         ///Gets the contract's `Approval` event
         pub fn approval_filter(
             &self,
-        ) -> ::ethers::contract::builders::Event<
-            ::std::sync::Arc<M>,
-            M,
-            ApprovalFilter,
-        > {
+        ) -> ::ethers::contract::builders::Event<::std::sync::Arc<M>, M, ApprovalFilter> {
             self.0.event()
         }
         ///Gets the contract's `Transfer` event
         pub fn transfer_filter(
             &self,
-        ) -> ::ethers::contract::builders::Event<
-            ::std::sync::Arc<M>,
-            M,
-            TransferFilter,
-        > {
+        ) -> ::ethers::contract::builders::Event<::std::sync::Arc<M>, M, TransferFilter> {
             self.0.event()
         }
         /// Returns an `Event` builder for all the events of this contract.
         pub fn events(
             &self,
         ) -> ::ethers::contract::builders::Event<::std::sync::Arc<M>, M, ERC20Events> {
-            self.0.event_with_filter(::core::default::Default::default())
+            self.0
+                .event_with_filter(::core::default::Default::default())
         }
     }
-    impl<M: ::ethers::providers::Middleware> From<::ethers::contract::Contract<M>>
-    for ERC20<M> {
+    impl<M: ::ethers::providers::Middleware> From<::ethers::contract::Contract<M>> for ERC20<M> {
         fn from(contract: ::ethers::contract::Contract<M>) -> Self {
             Self::new(contract.address(), contract.client())
         }
@@ -7041,7 +7149,7 @@ pub mod erc20 {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethevent(name = "Approval", abi = "Approval(address,address,uint256)")]
     pub struct ApprovalFilter {
@@ -7059,7 +7167,7 @@ pub mod erc20 {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethevent(name = "Transfer", abi = "Transfer(address,address,uint256)")]
     pub struct TransferFilter {
@@ -7115,7 +7223,7 @@ pub mod erc20 {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "DOMAIN_SEPARATOR", abi = "DOMAIN_SEPARATOR()")]
     pub struct DomainSeparatorCall;
@@ -7128,7 +7236,7 @@ pub mod erc20 {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "allowance", abi = "allowance(address,address)")]
     pub struct AllowanceCall(
@@ -7144,7 +7252,7 @@ pub mod erc20 {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "approve", abi = "approve(address,uint256)")]
     pub struct ApproveCall {
@@ -7160,7 +7268,7 @@ pub mod erc20 {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "balanceOf", abi = "balanceOf(address)")]
     pub struct BalanceOfCall(pub ::ethers::core::types::Address);
@@ -7173,7 +7281,7 @@ pub mod erc20 {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "decimals", abi = "decimals()")]
     pub struct DecimalsCall;
@@ -7186,7 +7294,7 @@ pub mod erc20 {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "name", abi = "name()")]
     pub struct NameCall;
@@ -7199,7 +7307,7 @@ pub mod erc20 {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "nonces", abi = "nonces(address)")]
     pub struct NoncesCall(pub ::ethers::core::types::Address);
@@ -7212,7 +7320,7 @@ pub mod erc20 {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(
         name = "permit",
@@ -7236,7 +7344,7 @@ pub mod erc20 {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "symbol", abi = "symbol()")]
     pub struct SymbolCall;
@@ -7249,7 +7357,7 @@ pub mod erc20 {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "totalSupply", abi = "totalSupply()")]
     pub struct TotalSupplyCall;
@@ -7262,7 +7370,7 @@ pub mod erc20 {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "transfer", abi = "transfer(address,uint256)")]
     pub struct TransferCall {
@@ -7278,7 +7386,7 @@ pub mod erc20 {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "transferFrom", abi = "transferFrom(address,address,uint256)")]
     pub struct TransferFromCall {
@@ -7307,52 +7415,43 @@ pub mod erc20 {
             data: impl AsRef<[u8]>,
         ) -> ::core::result::Result<Self, ::ethers::core::abi::AbiError> {
             let data = data.as_ref();
-            if let Ok(decoded)
-                = <DomainSeparatorCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) =
+                <DomainSeparatorCall as ::ethers::core::abi::AbiDecode>::decode(data)
+            {
                 return Ok(Self::DomainSeparator(decoded));
             }
-            if let Ok(decoded)
-                = <AllowanceCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <AllowanceCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::Allowance(decoded));
             }
-            if let Ok(decoded)
-                = <ApproveCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <ApproveCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::Approve(decoded));
             }
-            if let Ok(decoded)
-                = <BalanceOfCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <BalanceOfCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::BalanceOf(decoded));
             }
-            if let Ok(decoded)
-                = <DecimalsCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <DecimalsCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::Decimals(decoded));
             }
-            if let Ok(decoded)
-                = <NameCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <NameCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::Name(decoded));
             }
-            if let Ok(decoded)
-                = <NoncesCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <NoncesCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::Nonces(decoded));
             }
-            if let Ok(decoded)
-                = <PermitCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <PermitCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::Permit(decoded));
             }
-            if let Ok(decoded)
-                = <SymbolCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <SymbolCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::Symbol(decoded));
             }
-            if let Ok(decoded)
-                = <TotalSupplyCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <TotalSupplyCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::TotalSupply(decoded));
             }
-            if let Ok(decoded)
-                = <TransferCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <TransferCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::Transfer(decoded));
             }
-            if let Ok(decoded)
-                = <TransferFromCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <TransferFromCall as ::ethers::core::abi::AbiDecode>::decode(data)
+            {
                 return Ok(Self::TransferFrom(decoded));
             }
             Err(::ethers::core::abi::Error::InvalidData.into())
@@ -7361,32 +7460,18 @@ pub mod erc20 {
     impl ::ethers::core::abi::AbiEncode for ERC20Calls {
         fn encode(self) -> Vec<u8> {
             match self {
-                Self::DomainSeparator(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
-                Self::Allowance(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
+                Self::DomainSeparator(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::Allowance(element) => ::ethers::core::abi::AbiEncode::encode(element),
                 Self::Approve(element) => ::ethers::core::abi::AbiEncode::encode(element),
-                Self::BalanceOf(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
-                Self::Decimals(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
+                Self::BalanceOf(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::Decimals(element) => ::ethers::core::abi::AbiEncode::encode(element),
                 Self::Name(element) => ::ethers::core::abi::AbiEncode::encode(element),
                 Self::Nonces(element) => ::ethers::core::abi::AbiEncode::encode(element),
                 Self::Permit(element) => ::ethers::core::abi::AbiEncode::encode(element),
                 Self::Symbol(element) => ::ethers::core::abi::AbiEncode::encode(element),
-                Self::TotalSupply(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
-                Self::Transfer(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
-                Self::TransferFrom(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
+                Self::TotalSupply(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::Transfer(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::TransferFrom(element) => ::ethers::core::abi::AbiEncode::encode(element),
             }
         }
     }
@@ -7477,7 +7562,7 @@ pub mod erc20 {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     pub struct DomainSeparatorReturn(pub [u8; 32]);
     ///Container type for all return fields from the `allowance` function with signature `allowance(address,address)` and selector `0xdd62ed3e`
@@ -7489,7 +7574,7 @@ pub mod erc20 {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     pub struct AllowanceReturn(pub ::ethers::core::types::U256);
     ///Container type for all return fields from the `approve` function with signature `approve(address,uint256)` and selector `0x095ea7b3`
@@ -7501,7 +7586,7 @@ pub mod erc20 {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     pub struct ApproveReturn(pub bool);
     ///Container type for all return fields from the `balanceOf` function with signature `balanceOf(address)` and selector `0x70a08231`
@@ -7513,7 +7598,7 @@ pub mod erc20 {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     pub struct BalanceOfReturn(pub ::ethers::core::types::U256);
     ///Container type for all return fields from the `decimals` function with signature `decimals()` and selector `0x313ce567`
@@ -7525,7 +7610,7 @@ pub mod erc20 {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     pub struct DecimalsReturn(pub u8);
     ///Container type for all return fields from the `name` function with signature `name()` and selector `0x06fdde03`
@@ -7537,7 +7622,7 @@ pub mod erc20 {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     pub struct NameReturn(pub ::std::string::String);
     ///Container type for all return fields from the `nonces` function with signature `nonces(address)` and selector `0x7ecebe00`
@@ -7549,7 +7634,7 @@ pub mod erc20 {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     pub struct NoncesReturn(pub ::ethers::core::types::U256);
     ///Container type for all return fields from the `symbol` function with signature `symbol()` and selector `0x95d89b41`
@@ -7561,7 +7646,7 @@ pub mod erc20 {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     pub struct SymbolReturn(pub ::std::string::String);
     ///Container type for all return fields from the `totalSupply` function with signature `totalSupply()` and selector `0x18160ddd`
@@ -7573,7 +7658,7 @@ pub mod erc20 {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     pub struct TotalSupplyReturn(pub ::ethers::core::types::U256);
     ///Container type for all return fields from the `transfer` function with signature `transfer(address,uint256)` and selector `0xa9059cbb`
@@ -7585,7 +7670,7 @@ pub mod erc20 {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     pub struct TransferReturn(pub bool);
     ///Container type for all return fields from the `transferFrom` function with signature `transferFrom(address,address,uint256)` and selector `0x23b872dd`
@@ -7597,7 +7682,7 @@ pub mod erc20 {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     pub struct TransferFromReturn(pub bool);
 }
@@ -7610,14 +7695,16 @@ pub use echidna_erc20::*;
     clippy::upper_case_acronyms,
     clippy::type_complexity,
     dead_code,
-    non_camel_case_types,
+    non_camel_case_types
 )]
 pub mod echidna_erc20 {
     #[rustfmt::skip]
     const __ABI: &str = "[{\"inputs\":[{\"internalType\":\"string\",\"name\":\"name_\",\"type\":\"string\",\"components\":[]},{\"internalType\":\"string\",\"name\":\"symbol_\",\"type\":\"string\",\"components\":[]},{\"internalType\":\"uint8\",\"name\":\"decimals_\",\"type\":\"uint8\",\"components\":[]},{\"internalType\":\"address\",\"name\":\"_Portfolio\",\"type\":\"address\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"constructor\",\"outputs\":[]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"owner\",\"type\":\"address\",\"components\":[],\"indexed\":true},{\"internalType\":\"address\",\"name\":\"spender\",\"type\":\"address\",\"components\":[],\"indexed\":true},{\"internalType\":\"uint256\",\"name\":\"value\",\"type\":\"uint256\",\"components\":[],\"indexed\":false}],\"type\":\"event\",\"name\":\"Approval\",\"outputs\":[],\"anonymous\":false},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"from\",\"type\":\"address\",\"components\":[],\"indexed\":true},{\"internalType\":\"address\",\"name\":\"to\",\"type\":\"address\",\"components\":[],\"indexed\":true},{\"internalType\":\"uint256\",\"name\":\"value\",\"type\":\"uint256\",\"components\":[],\"indexed\":false}],\"type\":\"event\",\"name\":\"Transfer\",\"outputs\":[],\"anonymous\":false},{\"inputs\":[],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"Portfolio\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"owner\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"address\",\"name\":\"spender\",\"type\":\"address\",\"components\":[]}],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"allowance\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"spender\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"function\",\"name\":\"approve\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"account\",\"type\":\"address\",\"components\":[]}],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"balanceOf\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"to\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"wad\",\"type\":\"uint256\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"function\",\"name\":\"burn\",\"outputs\":[]},{\"inputs\":[],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"decimals\",\"outputs\":[{\"internalType\":\"uint8\",\"name\":\"\",\"type\":\"uint8\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"spender\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"subtractedValue\",\"type\":\"uint256\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"function\",\"name\":\"decreaseAllowance\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"spender\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"addedValue\",\"type\":\"uint256\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"function\",\"name\":\"increaseAllowance\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"to\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"wad\",\"type\":\"uint256\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"function\",\"name\":\"mint\",\"outputs\":[]},{\"inputs\":[],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"name\",\"outputs\":[{\"internalType\":\"string\",\"name\":\"\",\"type\":\"string\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"uint8\",\"name\":\"decimals_\",\"type\":\"uint8\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"function\",\"name\":\"setDecimals\",\"outputs\":[]},{\"inputs\":[],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"symbol\",\"outputs\":[{\"internalType\":\"string\",\"name\":\"\",\"type\":\"string\",\"components\":[]}]},{\"inputs\":[],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"totalSupply\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"recipient\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"function\",\"name\":\"transfer\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"sender\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"address\",\"name\":\"recipient\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"function\",\"name\":\"transferFrom\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\",\"components\":[]}]}]";
     ///The parsed JSON ABI of the contract.
-    pub static ECHIDNAERC20_ABI: ::ethers::contract::Lazy<::ethers::core::abi::Abi> = ::ethers::contract::Lazy::new(||
-    ::ethers::core::utils::__serde_json::from_str(__ABI).expect("ABI is always valid"));
+    pub static ECHIDNAERC20_ABI: ::ethers::contract::Lazy<::ethers::core::abi::Abi> =
+        ::ethers::contract::Lazy::new(|| {
+            ::ethers::core::utils::__serde_json::from_str(__ABI).expect("ABI is always valid")
+        });
     #[rustfmt::skip]
     const __BYTECODE: &[u8] = &[
         96,
@@ -11505,9 +11592,8 @@ pub mod echidna_erc20 {
         51,
     ];
     ///The bytecode of the contract.
-    pub static ECHIDNAERC20_BYTECODE: ::ethers::core::types::Bytes = ::ethers::core::types::Bytes::from_static(
-        __BYTECODE,
-    );
+    pub static ECHIDNAERC20_BYTECODE: ::ethers::core::types::Bytes =
+        ::ethers::core::types::Bytes::from_static(__BYTECODE);
     #[rustfmt::skip]
     const __DEPLOYED_BYTECODE: &[u8] = &[
         96,
@@ -14636,9 +14722,8 @@ pub mod echidna_erc20 {
         51,
     ];
     ///The deployed bytecode of the contract.
-    pub static ECHIDNAERC20_DEPLOYED_BYTECODE: ::ethers::core::types::Bytes = ::ethers::core::types::Bytes::from_static(
-        __DEPLOYED_BYTECODE,
-    );
+    pub static ECHIDNAERC20_DEPLOYED_BYTECODE: ::ethers::core::types::Bytes =
+        ::ethers::core::types::Bytes::from_static(__DEPLOYED_BYTECODE);
     pub struct EchidnaERC20<M>(::ethers::contract::Contract<M>);
     impl<M> ::core::clone::Clone for EchidnaERC20<M> {
         fn clone(&self) -> Self {
@@ -14658,7 +14743,9 @@ pub mod echidna_erc20 {
     }
     impl<M> ::core::fmt::Debug for EchidnaERC20<M> {
         fn fmt(&self, f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
-            f.debug_tuple(stringify!(EchidnaERC20)).field(&self.address()).finish()
+            f.debug_tuple(stringify!(EchidnaERC20))
+                .field(&self.address())
+                .finish()
         }
     }
     impl<M: ::ethers::providers::Middleware> EchidnaERC20<M> {
@@ -14668,13 +14755,11 @@ pub mod echidna_erc20 {
             address: T,
             client: ::std::sync::Arc<M>,
         ) -> Self {
-            Self(
-                ::ethers::contract::Contract::new(
-                    address.into(),
-                    ECHIDNAERC20_ABI.clone(),
-                    client,
-                ),
-            )
+            Self(::ethers::contract::Contract::new(
+                address.into(),
+                ECHIDNAERC20_ABI.clone(),
+                client,
+            ))
         }
         /// Constructs the general purpose `Deployer` instance based on the provided constructor arguments and sends it.
         /// Returns a new instance of a deployer that returns an instance of this contract after sending the transaction
@@ -14718,10 +14803,7 @@ pub mod echidna_erc20 {
         ///Calls the contract's `Portfolio` (0x50d3f47c) function
         pub fn portfolio(
             &self,
-        ) -> ::ethers::contract::builders::ContractCall<
-            M,
-            ::ethers::core::types::Address,
-        > {
+        ) -> ::ethers::contract::builders::ContractCall<M, ::ethers::core::types::Address> {
             self.0
                 .method_hash([80, 211, 244, 124], ())
                 .expect("method not found (this should never happen)")
@@ -14802,9 +14884,7 @@ pub mod echidna_erc20 {
                 .expect("method not found (this should never happen)")
         }
         ///Calls the contract's `name` (0x06fdde03) function
-        pub fn name(
-            &self,
-        ) -> ::ethers::contract::builders::ContractCall<M, ::std::string::String> {
+        pub fn name(&self) -> ::ethers::contract::builders::ContractCall<M, ::std::string::String> {
             self.0
                 .method_hash([6, 253, 222, 3], ())
                 .expect("method not found (this should never happen)")
@@ -14858,36 +14938,25 @@ pub mod echidna_erc20 {
         ///Gets the contract's `Approval` event
         pub fn approval_filter(
             &self,
-        ) -> ::ethers::contract::builders::Event<
-            ::std::sync::Arc<M>,
-            M,
-            ApprovalFilter,
-        > {
+        ) -> ::ethers::contract::builders::Event<::std::sync::Arc<M>, M, ApprovalFilter> {
             self.0.event()
         }
         ///Gets the contract's `Transfer` event
         pub fn transfer_filter(
             &self,
-        ) -> ::ethers::contract::builders::Event<
-            ::std::sync::Arc<M>,
-            M,
-            TransferFilter,
-        > {
+        ) -> ::ethers::contract::builders::Event<::std::sync::Arc<M>, M, TransferFilter> {
             self.0.event()
         }
         /// Returns an `Event` builder for all the events of this contract.
         pub fn events(
             &self,
-        ) -> ::ethers::contract::builders::Event<
-            ::std::sync::Arc<M>,
-            M,
-            EchidnaERC20Events,
-        > {
-            self.0.event_with_filter(::core::default::Default::default())
+        ) -> ::ethers::contract::builders::Event<::std::sync::Arc<M>, M, EchidnaERC20Events>
+        {
+            self.0
+                .event_with_filter(::core::default::Default::default())
         }
     }
-    impl<M: ::ethers::providers::Middleware> From<::ethers::contract::Contract<M>>
-    for EchidnaERC20<M> {
+    impl<M: ::ethers::providers::Middleware> From<::ethers::contract::Contract<M>> for EchidnaERC20<M> {
         fn from(contract: ::ethers::contract::Contract<M>) -> Self {
             Self::new(contract.address(), contract.client())
         }
@@ -14900,7 +14969,7 @@ pub mod echidna_erc20 {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethevent(name = "Approval", abi = "Approval(address,address,uint256)")]
     pub struct ApprovalFilter {
@@ -14918,7 +14987,7 @@ pub mod echidna_erc20 {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethevent(name = "Transfer", abi = "Transfer(address,address,uint256)")]
     pub struct TransferFilter {
@@ -14974,7 +15043,7 @@ pub mod echidna_erc20 {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "Portfolio", abi = "Portfolio()")]
     pub struct PortfolioCall;
@@ -14987,7 +15056,7 @@ pub mod echidna_erc20 {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "allowance", abi = "allowance(address,address)")]
     pub struct AllowanceCall {
@@ -15003,7 +15072,7 @@ pub mod echidna_erc20 {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "approve", abi = "approve(address,uint256)")]
     pub struct ApproveCall {
@@ -15019,7 +15088,7 @@ pub mod echidna_erc20 {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "balanceOf", abi = "balanceOf(address)")]
     pub struct BalanceOfCall {
@@ -15034,7 +15103,7 @@ pub mod echidna_erc20 {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "burn", abi = "burn(address,uint256)")]
     pub struct BurnCall {
@@ -15050,7 +15119,7 @@ pub mod echidna_erc20 {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "decimals", abi = "decimals()")]
     pub struct DecimalsCall;
@@ -15063,7 +15132,7 @@ pub mod echidna_erc20 {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "decreaseAllowance", abi = "decreaseAllowance(address,uint256)")]
     pub struct DecreaseAllowanceCall {
@@ -15079,7 +15148,7 @@ pub mod echidna_erc20 {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "increaseAllowance", abi = "increaseAllowance(address,uint256)")]
     pub struct IncreaseAllowanceCall {
@@ -15095,7 +15164,7 @@ pub mod echidna_erc20 {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "mint", abi = "mint(address,uint256)")]
     pub struct MintCall {
@@ -15111,7 +15180,7 @@ pub mod echidna_erc20 {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "name", abi = "name()")]
     pub struct NameCall;
@@ -15124,7 +15193,7 @@ pub mod echidna_erc20 {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "setDecimals", abi = "setDecimals(uint8)")]
     pub struct SetDecimalsCall {
@@ -15139,7 +15208,7 @@ pub mod echidna_erc20 {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "symbol", abi = "symbol()")]
     pub struct SymbolCall;
@@ -15152,7 +15221,7 @@ pub mod echidna_erc20 {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "totalSupply", abi = "totalSupply()")]
     pub struct TotalSupplyCall;
@@ -15165,7 +15234,7 @@ pub mod echidna_erc20 {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "transfer", abi = "transfer(address,uint256)")]
     pub struct TransferCall {
@@ -15181,7 +15250,7 @@ pub mod echidna_erc20 {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "transferFrom", abi = "transferFrom(address,address,uint256)")]
     pub struct TransferFromCall {
@@ -15213,68 +15282,54 @@ pub mod echidna_erc20 {
             data: impl AsRef<[u8]>,
         ) -> ::core::result::Result<Self, ::ethers::core::abi::AbiError> {
             let data = data.as_ref();
-            if let Ok(decoded)
-                = <PortfolioCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <PortfolioCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::Portfolio(decoded));
             }
-            if let Ok(decoded)
-                = <AllowanceCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <AllowanceCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::Allowance(decoded));
             }
-            if let Ok(decoded)
-                = <ApproveCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <ApproveCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::Approve(decoded));
             }
-            if let Ok(decoded)
-                = <BalanceOfCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <BalanceOfCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::BalanceOf(decoded));
             }
-            if let Ok(decoded)
-                = <BurnCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <BurnCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::Burn(decoded));
             }
-            if let Ok(decoded)
-                = <DecimalsCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <DecimalsCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::Decimals(decoded));
             }
-            if let Ok(decoded)
-                = <DecreaseAllowanceCall as ::ethers::core::abi::AbiDecode>::decode(
-                    data,
-                ) {
+            if let Ok(decoded) =
+                <DecreaseAllowanceCall as ::ethers::core::abi::AbiDecode>::decode(data)
+            {
                 return Ok(Self::DecreaseAllowance(decoded));
             }
-            if let Ok(decoded)
-                = <IncreaseAllowanceCall as ::ethers::core::abi::AbiDecode>::decode(
-                    data,
-                ) {
+            if let Ok(decoded) =
+                <IncreaseAllowanceCall as ::ethers::core::abi::AbiDecode>::decode(data)
+            {
                 return Ok(Self::IncreaseAllowance(decoded));
             }
-            if let Ok(decoded)
-                = <MintCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <MintCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::Mint(decoded));
             }
-            if let Ok(decoded)
-                = <NameCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <NameCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::Name(decoded));
             }
-            if let Ok(decoded)
-                = <SetDecimalsCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <SetDecimalsCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::SetDecimals(decoded));
             }
-            if let Ok(decoded)
-                = <SymbolCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <SymbolCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::Symbol(decoded));
             }
-            if let Ok(decoded)
-                = <TotalSupplyCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <TotalSupplyCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::TotalSupply(decoded));
             }
-            if let Ok(decoded)
-                = <TransferCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <TransferCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::Transfer(decoded));
             }
-            if let Ok(decoded)
-                = <TransferFromCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <TransferFromCall as ::ethers::core::abi::AbiDecode>::decode(data)
+            {
                 return Ok(Self::TransferFrom(decoded));
             }
             Err(::ethers::core::abi::Error::InvalidData.into())
@@ -15283,41 +15338,21 @@ pub mod echidna_erc20 {
     impl ::ethers::core::abi::AbiEncode for EchidnaERC20Calls {
         fn encode(self) -> Vec<u8> {
             match self {
-                Self::Portfolio(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
-                Self::Allowance(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
+                Self::Portfolio(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::Allowance(element) => ::ethers::core::abi::AbiEncode::encode(element),
                 Self::Approve(element) => ::ethers::core::abi::AbiEncode::encode(element),
-                Self::BalanceOf(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
+                Self::BalanceOf(element) => ::ethers::core::abi::AbiEncode::encode(element),
                 Self::Burn(element) => ::ethers::core::abi::AbiEncode::encode(element),
-                Self::Decimals(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
-                Self::DecreaseAllowance(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
-                Self::IncreaseAllowance(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
+                Self::Decimals(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::DecreaseAllowance(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::IncreaseAllowance(element) => ::ethers::core::abi::AbiEncode::encode(element),
                 Self::Mint(element) => ::ethers::core::abi::AbiEncode::encode(element),
                 Self::Name(element) => ::ethers::core::abi::AbiEncode::encode(element),
-                Self::SetDecimals(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
+                Self::SetDecimals(element) => ::ethers::core::abi::AbiEncode::encode(element),
                 Self::Symbol(element) => ::ethers::core::abi::AbiEncode::encode(element),
-                Self::TotalSupply(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
-                Self::Transfer(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
-                Self::TransferFrom(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
+                Self::TotalSupply(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::Transfer(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::TransferFrom(element) => ::ethers::core::abi::AbiEncode::encode(element),
             }
         }
     }
@@ -15426,7 +15461,7 @@ pub mod echidna_erc20 {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     pub struct PortfolioReturn(pub ::ethers::core::types::Address);
     ///Container type for all return fields from the `allowance` function with signature `allowance(address,address)` and selector `0xdd62ed3e`
@@ -15438,7 +15473,7 @@ pub mod echidna_erc20 {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     pub struct AllowanceReturn(pub ::ethers::core::types::U256);
     ///Container type for all return fields from the `approve` function with signature `approve(address,uint256)` and selector `0x095ea7b3`
@@ -15450,7 +15485,7 @@ pub mod echidna_erc20 {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     pub struct ApproveReturn(pub bool);
     ///Container type for all return fields from the `balanceOf` function with signature `balanceOf(address)` and selector `0x70a08231`
@@ -15462,7 +15497,7 @@ pub mod echidna_erc20 {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     pub struct BalanceOfReturn(pub ::ethers::core::types::U256);
     ///Container type for all return fields from the `decimals` function with signature `decimals()` and selector `0x313ce567`
@@ -15474,7 +15509,7 @@ pub mod echidna_erc20 {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     pub struct DecimalsReturn(pub u8);
     ///Container type for all return fields from the `decreaseAllowance` function with signature `decreaseAllowance(address,uint256)` and selector `0xa457c2d7`
@@ -15486,7 +15521,7 @@ pub mod echidna_erc20 {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     pub struct DecreaseAllowanceReturn(pub bool);
     ///Container type for all return fields from the `increaseAllowance` function with signature `increaseAllowance(address,uint256)` and selector `0x39509351`
@@ -15498,7 +15533,7 @@ pub mod echidna_erc20 {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     pub struct IncreaseAllowanceReturn(pub bool);
     ///Container type for all return fields from the `name` function with signature `name()` and selector `0x06fdde03`
@@ -15510,7 +15545,7 @@ pub mod echidna_erc20 {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     pub struct NameReturn(pub ::std::string::String);
     ///Container type for all return fields from the `symbol` function with signature `symbol()` and selector `0x95d89b41`
@@ -15522,7 +15557,7 @@ pub mod echidna_erc20 {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     pub struct SymbolReturn(pub ::std::string::String);
     ///Container type for all return fields from the `totalSupply` function with signature `totalSupply()` and selector `0x18160ddd`
@@ -15534,7 +15569,7 @@ pub mod echidna_erc20 {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     pub struct TotalSupplyReturn(pub ::ethers::core::types::U256);
     ///Container type for all return fields from the `transfer` function with signature `transfer(address,uint256)` and selector `0xa9059cbb`
@@ -15546,7 +15581,7 @@ pub mod echidna_erc20 {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     pub struct TransferReturn(pub bool);
     ///Container type for all return fields from the `transferFrom` function with signature `transferFrom(address,address,uint256)` and selector `0x23b872dd`
@@ -15558,7 +15593,7 @@ pub mod echidna_erc20 {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     pub struct TransferFromReturn(pub bool);
 }
@@ -15571,14 +15606,16 @@ pub use fvm_lib::*;
     clippy::upper_case_acronyms,
     clippy::type_complexity,
     dead_code,
-    non_camel_case_types,
+    non_camel_case_types
 )]
 pub mod fvm_lib {
     #[rustfmt::skip]
     const __ABI: &str = "[]";
     ///The parsed JSON ABI of the contract.
-    pub static FVMLIB_ABI: ::ethers::contract::Lazy<::ethers::core::abi::Abi> = ::ethers::contract::Lazy::new(||
-    ::ethers::core::utils::__serde_json::from_str(__ABI).expect("ABI is always valid"));
+    pub static FVMLIB_ABI: ::ethers::contract::Lazy<::ethers::core::abi::Abi> =
+        ::ethers::contract::Lazy::new(|| {
+            ::ethers::core::utils::__serde_json::from_str(__ABI).expect("ABI is always valid")
+        });
     pub struct FVMLib<M>(::ethers::contract::Contract<M>);
     impl<M> ::core::clone::Clone for FVMLib<M> {
         fn clone(&self) -> Self {
@@ -15598,7 +15635,9 @@ pub mod fvm_lib {
     }
     impl<M> ::core::fmt::Debug for FVMLib<M> {
         fn fmt(&self, f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
-            f.debug_tuple(stringify!(FVMLib)).field(&self.address()).finish()
+            f.debug_tuple(stringify!(FVMLib))
+                .field(&self.address())
+                .finish()
         }
     }
     impl<M: ::ethers::providers::Middleware> FVMLib<M> {
@@ -15608,17 +15647,14 @@ pub mod fvm_lib {
             address: T,
             client: ::std::sync::Arc<M>,
         ) -> Self {
-            Self(
-                ::ethers::contract::Contract::new(
-                    address.into(),
-                    FVMLIB_ABI.clone(),
-                    client,
-                ),
-            )
+            Self(::ethers::contract::Contract::new(
+                address.into(),
+                FVMLIB_ABI.clone(),
+                client,
+            ))
         }
     }
-    impl<M: ::ethers::providers::Middleware> From<::ethers::contract::Contract<M>>
-    for FVMLib<M> {
+    impl<M: ::ethers::providers::Middleware> From<::ethers::contract::Contract<M>> for FVMLib<M> {
         fn from(contract: ::ethers::contract::Contract<M>) -> Self {
             Self::new(contract.address(), contract.client())
         }
@@ -15633,18 +15669,16 @@ pub use fee_on_transfer_token::*;
     clippy::upper_case_acronyms,
     clippy::type_complexity,
     dead_code,
-    non_camel_case_types,
+    non_camel_case_types
 )]
 pub mod fee_on_transfer_token {
     #[rustfmt::skip]
     const __ABI: &str = "[{\"inputs\":[{\"internalType\":\"string\",\"name\":\"name_\",\"type\":\"string\",\"components\":[]},{\"internalType\":\"string\",\"name\":\"symbol_\",\"type\":\"string\",\"components\":[]},{\"internalType\":\"uint8\",\"name\":\"decimals\",\"type\":\"uint8\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"constructor\",\"outputs\":[]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"owner\",\"type\":\"address\",\"components\":[],\"indexed\":true},{\"internalType\":\"address\",\"name\":\"spender\",\"type\":\"address\",\"components\":[],\"indexed\":true},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\",\"components\":[],\"indexed\":false}],\"type\":\"event\",\"name\":\"Approval\",\"outputs\":[],\"anonymous\":false},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"from\",\"type\":\"address\",\"components\":[],\"indexed\":true},{\"internalType\":\"address\",\"name\":\"to\",\"type\":\"address\",\"components\":[],\"indexed\":true},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\",\"components\":[],\"indexed\":false}],\"type\":\"event\",\"name\":\"Transfer\",\"outputs\":[],\"anonymous\":false},{\"inputs\":[],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"DOMAIN_SEPARATOR\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\",\"components\":[]}],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"allowance\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"spender\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"function\",\"name\":\"approve\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\",\"components\":[]}],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"balanceOf\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"from\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"value\",\"type\":\"uint256\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"function\",\"name\":\"burn\",\"outputs\":[]},{\"inputs\":[],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"decimals\",\"outputs\":[{\"internalType\":\"uint8\",\"name\":\"\",\"type\":\"uint8\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"to\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"value\",\"type\":\"uint256\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"function\",\"name\":\"mint\",\"outputs\":[]},{\"inputs\":[],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"name\",\"outputs\":[{\"internalType\":\"string\",\"name\":\"\",\"type\":\"string\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\",\"components\":[]}],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"nonces\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"owner\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"address\",\"name\":\"spender\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"value\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"deadline\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"uint8\",\"name\":\"v\",\"type\":\"uint8\",\"components\":[]},{\"internalType\":\"bytes32\",\"name\":\"r\",\"type\":\"bytes32\",\"components\":[]},{\"internalType\":\"bytes32\",\"name\":\"s\",\"type\":\"bytes32\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"function\",\"name\":\"permit\",\"outputs\":[]},{\"inputs\":[],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"symbol\",\"outputs\":[{\"internalType\":\"string\",\"name\":\"\",\"type\":\"string\",\"components\":[]}]},{\"inputs\":[],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"totalSupply\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"to\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"function\",\"name\":\"transfer\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"from\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"address\",\"name\":\"to\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"function\",\"name\":\"transferFrom\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\",\"components\":[]}]}]";
     ///The parsed JSON ABI of the contract.
-    pub static FEEONTRANSFERTOKEN_ABI: ::ethers::contract::Lazy<
-        ::ethers::core::abi::Abi,
-    > = ::ethers::contract::Lazy::new(|| {
-        ::ethers::core::utils::__serde_json::from_str(__ABI)
-            .expect("ABI is always valid")
-    });
+    pub static FEEONTRANSFERTOKEN_ABI: ::ethers::contract::Lazy<::ethers::core::abi::Abi> =
+        ::ethers::contract::Lazy::new(|| {
+            ::ethers::core::utils::__serde_json::from_str(__ABI).expect("ABI is always valid")
+        });
     #[rustfmt::skip]
     const __BYTECODE: &[u8] = &[
         96,
@@ -19908,9 +19942,8 @@ pub mod fee_on_transfer_token {
         51,
     ];
     ///The bytecode of the contract.
-    pub static FEEONTRANSFERTOKEN_BYTECODE: ::ethers::core::types::Bytes = ::ethers::core::types::Bytes::from_static(
-        __BYTECODE,
-    );
+    pub static FEEONTRANSFERTOKEN_BYTECODE: ::ethers::core::types::Bytes =
+        ::ethers::core::types::Bytes::from_static(__BYTECODE);
     #[rustfmt::skip]
     const __DEPLOYED_BYTECODE: &[u8] = &[
         96,
@@ -23098,9 +23131,8 @@ pub mod fee_on_transfer_token {
         51,
     ];
     ///The deployed bytecode of the contract.
-    pub static FEEONTRANSFERTOKEN_DEPLOYED_BYTECODE: ::ethers::core::types::Bytes = ::ethers::core::types::Bytes::from_static(
-        __DEPLOYED_BYTECODE,
-    );
+    pub static FEEONTRANSFERTOKEN_DEPLOYED_BYTECODE: ::ethers::core::types::Bytes =
+        ::ethers::core::types::Bytes::from_static(__DEPLOYED_BYTECODE);
     pub struct FeeOnTransferToken<M>(::ethers::contract::Contract<M>);
     impl<M> ::core::clone::Clone for FeeOnTransferToken<M> {
         fn clone(&self) -> Self {
@@ -23120,7 +23152,9 @@ pub mod fee_on_transfer_token {
     }
     impl<M> ::core::fmt::Debug for FeeOnTransferToken<M> {
         fn fmt(&self, f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
-            f.debug_tuple(stringify!(FeeOnTransferToken)).field(&self.address()).finish()
+            f.debug_tuple(stringify!(FeeOnTransferToken))
+                .field(&self.address())
+                .finish()
         }
     }
     impl<M: ::ethers::providers::Middleware> FeeOnTransferToken<M> {
@@ -23130,13 +23164,11 @@ pub mod fee_on_transfer_token {
             address: T,
             client: ::std::sync::Arc<M>,
         ) -> Self {
-            Self(
-                ::ethers::contract::Contract::new(
-                    address.into(),
-                    FEEONTRANSFERTOKEN_ABI.clone(),
-                    client,
-                ),
-            )
+            Self(::ethers::contract::Contract::new(
+                address.into(),
+                FEEONTRANSFERTOKEN_ABI.clone(),
+                client,
+            ))
         }
         /// Constructs the general purpose `Deployer` instance based on the provided constructor arguments and sends it.
         /// Returns a new instance of a deployer that returns an instance of this contract after sending the transaction
@@ -23178,9 +23210,7 @@ pub mod fee_on_transfer_token {
             Ok(deployer)
         }
         ///Calls the contract's `DOMAIN_SEPARATOR` (0x3644e515) function
-        pub fn domain_separator(
-            &self,
-        ) -> ::ethers::contract::builders::ContractCall<M, [u8; 32]> {
+        pub fn domain_separator(&self) -> ::ethers::contract::builders::ContractCall<M, [u8; 32]> {
             self.0
                 .method_hash([54, 68, 229, 21], ())
                 .expect("method not found (this should never happen)")
@@ -23241,9 +23271,7 @@ pub mod fee_on_transfer_token {
                 .expect("method not found (this should never happen)")
         }
         ///Calls the contract's `name` (0x06fdde03) function
-        pub fn name(
-            &self,
-        ) -> ::ethers::contract::builders::ContractCall<M, ::std::string::String> {
+        pub fn name(&self) -> ::ethers::contract::builders::ContractCall<M, ::std::string::String> {
             self.0
                 .method_hash([6, 253, 222, 3], ())
                 .expect("method not found (this should never happen)")
@@ -23315,36 +23343,27 @@ pub mod fee_on_transfer_token {
         ///Gets the contract's `Approval` event
         pub fn approval_filter(
             &self,
-        ) -> ::ethers::contract::builders::Event<
-            ::std::sync::Arc<M>,
-            M,
-            ApprovalFilter,
-        > {
+        ) -> ::ethers::contract::builders::Event<::std::sync::Arc<M>, M, ApprovalFilter> {
             self.0.event()
         }
         ///Gets the contract's `Transfer` event
         pub fn transfer_filter(
             &self,
-        ) -> ::ethers::contract::builders::Event<
-            ::std::sync::Arc<M>,
-            M,
-            TransferFilter,
-        > {
+        ) -> ::ethers::contract::builders::Event<::std::sync::Arc<M>, M, TransferFilter> {
             self.0.event()
         }
         /// Returns an `Event` builder for all the events of this contract.
         pub fn events(
             &self,
-        ) -> ::ethers::contract::builders::Event<
-            ::std::sync::Arc<M>,
-            M,
-            FeeOnTransferTokenEvents,
-        > {
-            self.0.event_with_filter(::core::default::Default::default())
+        ) -> ::ethers::contract::builders::Event<::std::sync::Arc<M>, M, FeeOnTransferTokenEvents>
+        {
+            self.0
+                .event_with_filter(::core::default::Default::default())
         }
     }
     impl<M: ::ethers::providers::Middleware> From<::ethers::contract::Contract<M>>
-    for FeeOnTransferToken<M> {
+        for FeeOnTransferToken<M>
+    {
         fn from(contract: ::ethers::contract::Contract<M>) -> Self {
             Self::new(contract.address(), contract.client())
         }
@@ -23357,7 +23376,7 @@ pub mod fee_on_transfer_token {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethevent(name = "Approval", abi = "Approval(address,address,uint256)")]
     pub struct ApprovalFilter {
@@ -23375,7 +23394,7 @@ pub mod fee_on_transfer_token {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethevent(name = "Transfer", abi = "Transfer(address,address,uint256)")]
     pub struct TransferFilter {
@@ -23431,7 +23450,7 @@ pub mod fee_on_transfer_token {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "DOMAIN_SEPARATOR", abi = "DOMAIN_SEPARATOR()")]
     pub struct DomainSeparatorCall;
@@ -23444,7 +23463,7 @@ pub mod fee_on_transfer_token {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "allowance", abi = "allowance(address,address)")]
     pub struct AllowanceCall(
@@ -23460,7 +23479,7 @@ pub mod fee_on_transfer_token {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "approve", abi = "approve(address,uint256)")]
     pub struct ApproveCall {
@@ -23476,7 +23495,7 @@ pub mod fee_on_transfer_token {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "balanceOf", abi = "balanceOf(address)")]
     pub struct BalanceOfCall(pub ::ethers::core::types::Address);
@@ -23489,7 +23508,7 @@ pub mod fee_on_transfer_token {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "burn", abi = "burn(address,uint256)")]
     pub struct BurnCall {
@@ -23505,7 +23524,7 @@ pub mod fee_on_transfer_token {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "decimals", abi = "decimals()")]
     pub struct DecimalsCall;
@@ -23518,7 +23537,7 @@ pub mod fee_on_transfer_token {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "mint", abi = "mint(address,uint256)")]
     pub struct MintCall {
@@ -23534,7 +23553,7 @@ pub mod fee_on_transfer_token {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "name", abi = "name()")]
     pub struct NameCall;
@@ -23547,7 +23566,7 @@ pub mod fee_on_transfer_token {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "nonces", abi = "nonces(address)")]
     pub struct NoncesCall(pub ::ethers::core::types::Address);
@@ -23560,7 +23579,7 @@ pub mod fee_on_transfer_token {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(
         name = "permit",
@@ -23584,7 +23603,7 @@ pub mod fee_on_transfer_token {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "symbol", abi = "symbol()")]
     pub struct SymbolCall;
@@ -23597,7 +23616,7 @@ pub mod fee_on_transfer_token {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "totalSupply", abi = "totalSupply()")]
     pub struct TotalSupplyCall;
@@ -23610,7 +23629,7 @@ pub mod fee_on_transfer_token {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "transfer", abi = "transfer(address,uint256)")]
     pub struct TransferCall {
@@ -23626,7 +23645,7 @@ pub mod fee_on_transfer_token {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "transferFrom", abi = "transferFrom(address,address,uint256)")]
     pub struct TransferFromCall {
@@ -23657,60 +23676,49 @@ pub mod fee_on_transfer_token {
             data: impl AsRef<[u8]>,
         ) -> ::core::result::Result<Self, ::ethers::core::abi::AbiError> {
             let data = data.as_ref();
-            if let Ok(decoded)
-                = <DomainSeparatorCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) =
+                <DomainSeparatorCall as ::ethers::core::abi::AbiDecode>::decode(data)
+            {
                 return Ok(Self::DomainSeparator(decoded));
             }
-            if let Ok(decoded)
-                = <AllowanceCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <AllowanceCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::Allowance(decoded));
             }
-            if let Ok(decoded)
-                = <ApproveCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <ApproveCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::Approve(decoded));
             }
-            if let Ok(decoded)
-                = <BalanceOfCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <BalanceOfCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::BalanceOf(decoded));
             }
-            if let Ok(decoded)
-                = <BurnCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <BurnCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::Burn(decoded));
             }
-            if let Ok(decoded)
-                = <DecimalsCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <DecimalsCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::Decimals(decoded));
             }
-            if let Ok(decoded)
-                = <MintCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <MintCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::Mint(decoded));
             }
-            if let Ok(decoded)
-                = <NameCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <NameCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::Name(decoded));
             }
-            if let Ok(decoded)
-                = <NoncesCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <NoncesCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::Nonces(decoded));
             }
-            if let Ok(decoded)
-                = <PermitCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <PermitCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::Permit(decoded));
             }
-            if let Ok(decoded)
-                = <SymbolCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <SymbolCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::Symbol(decoded));
             }
-            if let Ok(decoded)
-                = <TotalSupplyCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <TotalSupplyCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::TotalSupply(decoded));
             }
-            if let Ok(decoded)
-                = <TransferCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <TransferCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::Transfer(decoded));
             }
-            if let Ok(decoded)
-                = <TransferFromCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <TransferFromCall as ::ethers::core::abi::AbiDecode>::decode(data)
+            {
                 return Ok(Self::TransferFrom(decoded));
             }
             Err(::ethers::core::abi::Error::InvalidData.into())
@@ -23719,34 +23727,20 @@ pub mod fee_on_transfer_token {
     impl ::ethers::core::abi::AbiEncode for FeeOnTransferTokenCalls {
         fn encode(self) -> Vec<u8> {
             match self {
-                Self::DomainSeparator(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
-                Self::Allowance(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
+                Self::DomainSeparator(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::Allowance(element) => ::ethers::core::abi::AbiEncode::encode(element),
                 Self::Approve(element) => ::ethers::core::abi::AbiEncode::encode(element),
-                Self::BalanceOf(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
+                Self::BalanceOf(element) => ::ethers::core::abi::AbiEncode::encode(element),
                 Self::Burn(element) => ::ethers::core::abi::AbiEncode::encode(element),
-                Self::Decimals(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
+                Self::Decimals(element) => ::ethers::core::abi::AbiEncode::encode(element),
                 Self::Mint(element) => ::ethers::core::abi::AbiEncode::encode(element),
                 Self::Name(element) => ::ethers::core::abi::AbiEncode::encode(element),
                 Self::Nonces(element) => ::ethers::core::abi::AbiEncode::encode(element),
                 Self::Permit(element) => ::ethers::core::abi::AbiEncode::encode(element),
                 Self::Symbol(element) => ::ethers::core::abi::AbiEncode::encode(element),
-                Self::TotalSupply(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
-                Self::Transfer(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
-                Self::TransferFrom(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
+                Self::TotalSupply(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::Transfer(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::TransferFrom(element) => ::ethers::core::abi::AbiEncode::encode(element),
             }
         }
     }
@@ -23849,7 +23843,7 @@ pub mod fee_on_transfer_token {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     pub struct DomainSeparatorReturn(pub [u8; 32]);
     ///Container type for all return fields from the `allowance` function with signature `allowance(address,address)` and selector `0xdd62ed3e`
@@ -23861,7 +23855,7 @@ pub mod fee_on_transfer_token {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     pub struct AllowanceReturn(pub ::ethers::core::types::U256);
     ///Container type for all return fields from the `approve` function with signature `approve(address,uint256)` and selector `0x095ea7b3`
@@ -23873,7 +23867,7 @@ pub mod fee_on_transfer_token {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     pub struct ApproveReturn(pub bool);
     ///Container type for all return fields from the `balanceOf` function with signature `balanceOf(address)` and selector `0x70a08231`
@@ -23885,7 +23879,7 @@ pub mod fee_on_transfer_token {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     pub struct BalanceOfReturn(pub ::ethers::core::types::U256);
     ///Container type for all return fields from the `decimals` function with signature `decimals()` and selector `0x313ce567`
@@ -23897,7 +23891,7 @@ pub mod fee_on_transfer_token {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     pub struct DecimalsReturn(pub u8);
     ///Container type for all return fields from the `name` function with signature `name()` and selector `0x06fdde03`
@@ -23909,7 +23903,7 @@ pub mod fee_on_transfer_token {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     pub struct NameReturn(pub ::std::string::String);
     ///Container type for all return fields from the `nonces` function with signature `nonces(address)` and selector `0x7ecebe00`
@@ -23921,7 +23915,7 @@ pub mod fee_on_transfer_token {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     pub struct NoncesReturn(pub ::ethers::core::types::U256);
     ///Container type for all return fields from the `symbol` function with signature `symbol()` and selector `0x95d89b41`
@@ -23933,7 +23927,7 @@ pub mod fee_on_transfer_token {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     pub struct SymbolReturn(pub ::std::string::String);
     ///Container type for all return fields from the `totalSupply` function with signature `totalSupply()` and selector `0x18160ddd`
@@ -23945,7 +23939,7 @@ pub mod fee_on_transfer_token {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     pub struct TotalSupplyReturn(pub ::ethers::core::types::U256);
     ///Container type for all return fields from the `transfer` function with signature `transfer(address,uint256)` and selector `0xa9059cbb`
@@ -23957,7 +23951,7 @@ pub mod fee_on_transfer_token {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     pub struct TransferReturn(pub bool);
     ///Container type for all return fields from the `transferFrom` function with signature `transferFrom(address,address,uint256)` and selector `0x23b872dd`
@@ -23969,7 +23963,7 @@ pub mod fee_on_transfer_token {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     pub struct TransferFromReturn(pub bool);
 }
@@ -23982,18 +23976,16 @@ pub use fixed_point_math_lib::*;
     clippy::upper_case_acronyms,
     clippy::type_complexity,
     dead_code,
-    non_camel_case_types,
+    non_camel_case_types
 )]
 pub mod fixed_point_math_lib {
     #[rustfmt::skip]
     const __ABI: &str = "[]";
     ///The parsed JSON ABI of the contract.
-    pub static FIXEDPOINTMATHLIB_ABI: ::ethers::contract::Lazy<
-        ::ethers::core::abi::Abi,
-    > = ::ethers::contract::Lazy::new(|| {
-        ::ethers::core::utils::__serde_json::from_str(__ABI)
-            .expect("ABI is always valid")
-    });
+    pub static FIXEDPOINTMATHLIB_ABI: ::ethers::contract::Lazy<::ethers::core::abi::Abi> =
+        ::ethers::contract::Lazy::new(|| {
+            ::ethers::core::utils::__serde_json::from_str(__ABI).expect("ABI is always valid")
+        });
     #[rustfmt::skip]
     const __BYTECODE: &[u8] = &[
         96,
@@ -24139,9 +24131,8 @@ pub mod fixed_point_math_lib {
         51,
     ];
     ///The bytecode of the contract.
-    pub static FIXEDPOINTMATHLIB_BYTECODE: ::ethers::core::types::Bytes = ::ethers::core::types::Bytes::from_static(
-        __BYTECODE,
-    );
+    pub static FIXEDPOINTMATHLIB_BYTECODE: ::ethers::core::types::Bytes =
+        ::ethers::core::types::Bytes::from_static(__BYTECODE);
     #[rustfmt::skip]
     const __DEPLOYED_BYTECODE: &[u8] = &[
         115,
@@ -24232,9 +24223,8 @@ pub mod fixed_point_math_lib {
         51,
     ];
     ///The deployed bytecode of the contract.
-    pub static FIXEDPOINTMATHLIB_DEPLOYED_BYTECODE: ::ethers::core::types::Bytes = ::ethers::core::types::Bytes::from_static(
-        __DEPLOYED_BYTECODE,
-    );
+    pub static FIXEDPOINTMATHLIB_DEPLOYED_BYTECODE: ::ethers::core::types::Bytes =
+        ::ethers::core::types::Bytes::from_static(__DEPLOYED_BYTECODE);
     pub struct FixedPointMathLib<M>(::ethers::contract::Contract<M>);
     impl<M> ::core::clone::Clone for FixedPointMathLib<M> {
         fn clone(&self) -> Self {
@@ -24254,7 +24244,9 @@ pub mod fixed_point_math_lib {
     }
     impl<M> ::core::fmt::Debug for FixedPointMathLib<M> {
         fn fmt(&self, f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
-            f.debug_tuple(stringify!(FixedPointMathLib)).field(&self.address()).finish()
+            f.debug_tuple(stringify!(FixedPointMathLib))
+                .field(&self.address())
+                .finish()
         }
     }
     impl<M: ::ethers::providers::Middleware> FixedPointMathLib<M> {
@@ -24264,13 +24256,11 @@ pub mod fixed_point_math_lib {
             address: T,
             client: ::std::sync::Arc<M>,
         ) -> Self {
-            Self(
-                ::ethers::contract::Contract::new(
-                    address.into(),
-                    FIXEDPOINTMATHLIB_ABI.clone(),
-                    client,
-                ),
-            )
+            Self(::ethers::contract::Contract::new(
+                address.into(),
+                FIXEDPOINTMATHLIB_ABI.clone(),
+                client,
+            ))
         }
         /// Constructs the general purpose `Deployer` instance based on the provided constructor arguments and sends it.
         /// Returns a new instance of a deployer that returns an instance of this contract after sending the transaction
@@ -24313,7 +24303,8 @@ pub mod fixed_point_math_lib {
         }
     }
     impl<M: ::ethers::providers::Middleware> From<::ethers::contract::Contract<M>>
-    for FixedPointMathLib<M> {
+        for FixedPointMathLib<M>
+    {
         fn from(contract: ::ethers::contract::Contract<M>) -> Self {
             Self::new(contract.address(), contract.client())
         }
@@ -24328,14 +24319,16 @@ pub use gaussian::*;
     clippy::upper_case_acronyms,
     clippy::type_complexity,
     dead_code,
-    non_camel_case_types,
+    non_camel_case_types
 )]
 pub mod gaussian {
     #[rustfmt::skip]
     const __ABI: &str = "[{\"inputs\":[],\"type\":\"error\",\"name\":\"Infinity\",\"outputs\":[]},{\"inputs\":[],\"type\":\"error\",\"name\":\"NegativeInfinity\",\"outputs\":[]},{\"inputs\":[],\"type\":\"error\",\"name\":\"OutOfBounds\",\"outputs\":[]}]";
     ///The parsed JSON ABI of the contract.
-    pub static GAUSSIAN_ABI: ::ethers::contract::Lazy<::ethers::core::abi::Abi> = ::ethers::contract::Lazy::new(||
-    ::ethers::core::utils::__serde_json::from_str(__ABI).expect("ABI is always valid"));
+    pub static GAUSSIAN_ABI: ::ethers::contract::Lazy<::ethers::core::abi::Abi> =
+        ::ethers::contract::Lazy::new(|| {
+            ::ethers::core::utils::__serde_json::from_str(__ABI).expect("ABI is always valid")
+        });
     #[rustfmt::skip]
     const __BYTECODE: &[u8] = &[
         96,
@@ -24481,9 +24474,8 @@ pub mod gaussian {
         51,
     ];
     ///The bytecode of the contract.
-    pub static GAUSSIAN_BYTECODE: ::ethers::core::types::Bytes = ::ethers::core::types::Bytes::from_static(
-        __BYTECODE,
-    );
+    pub static GAUSSIAN_BYTECODE: ::ethers::core::types::Bytes =
+        ::ethers::core::types::Bytes::from_static(__BYTECODE);
     #[rustfmt::skip]
     const __DEPLOYED_BYTECODE: &[u8] = &[
         115,
@@ -24574,9 +24566,8 @@ pub mod gaussian {
         51,
     ];
     ///The deployed bytecode of the contract.
-    pub static GAUSSIAN_DEPLOYED_BYTECODE: ::ethers::core::types::Bytes = ::ethers::core::types::Bytes::from_static(
-        __DEPLOYED_BYTECODE,
-    );
+    pub static GAUSSIAN_DEPLOYED_BYTECODE: ::ethers::core::types::Bytes =
+        ::ethers::core::types::Bytes::from_static(__DEPLOYED_BYTECODE);
     pub struct Gaussian<M>(::ethers::contract::Contract<M>);
     impl<M> ::core::clone::Clone for Gaussian<M> {
         fn clone(&self) -> Self {
@@ -24596,7 +24587,9 @@ pub mod gaussian {
     }
     impl<M> ::core::fmt::Debug for Gaussian<M> {
         fn fmt(&self, f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
-            f.debug_tuple(stringify!(Gaussian)).field(&self.address()).finish()
+            f.debug_tuple(stringify!(Gaussian))
+                .field(&self.address())
+                .finish()
         }
     }
     impl<M: ::ethers::providers::Middleware> Gaussian<M> {
@@ -24606,13 +24599,11 @@ pub mod gaussian {
             address: T,
             client: ::std::sync::Arc<M>,
         ) -> Self {
-            Self(
-                ::ethers::contract::Contract::new(
-                    address.into(),
-                    GAUSSIAN_ABI.clone(),
-                    client,
-                ),
-            )
+            Self(::ethers::contract::Contract::new(
+                address.into(),
+                GAUSSIAN_ABI.clone(),
+                client,
+            ))
         }
         /// Constructs the general purpose `Deployer` instance based on the provided constructor arguments and sends it.
         /// Returns a new instance of a deployer that returns an instance of this contract after sending the transaction
@@ -24654,8 +24645,7 @@ pub mod gaussian {
             Ok(deployer)
         }
     }
-    impl<M: ::ethers::providers::Middleware> From<::ethers::contract::Contract<M>>
-    for Gaussian<M> {
+    impl<M: ::ethers::providers::Middleware> From<::ethers::contract::Contract<M>> for Gaussian<M> {
         fn from(contract: ::ethers::contract::Contract<M>) -> Self {
             Self::new(contract.address(), contract.client())
         }
@@ -24669,7 +24659,7 @@ pub mod gaussian {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[etherror(name = "Infinity", abi = "Infinity()")]
     pub struct Infinity;
@@ -24682,7 +24672,7 @@ pub mod gaussian {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[etherror(name = "NegativeInfinity", abi = "NegativeInfinity()")]
     pub struct NegativeInfinity;
@@ -24695,7 +24685,7 @@ pub mod gaussian {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[etherror(name = "OutOfBounds", abi = "OutOfBounds()")]
     pub struct OutOfBounds;
@@ -24714,22 +24704,19 @@ pub mod gaussian {
             data: impl AsRef<[u8]>,
         ) -> ::core::result::Result<Self, ::ethers::core::abi::AbiError> {
             let data = data.as_ref();
-            if let Ok(decoded)
-                = <::std::string::String as ::ethers::core::abi::AbiDecode>::decode(
-                    data,
-                ) {
+            if let Ok(decoded) =
+                <::std::string::String as ::ethers::core::abi::AbiDecode>::decode(data)
+            {
                 return Ok(Self::RevertString(decoded));
             }
-            if let Ok(decoded)
-                = <Infinity as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <Infinity as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::Infinity(decoded));
             }
-            if let Ok(decoded)
-                = <NegativeInfinity as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <NegativeInfinity as ::ethers::core::abi::AbiDecode>::decode(data)
+            {
                 return Ok(Self::NegativeInfinity(decoded));
             }
-            if let Ok(decoded)
-                = <OutOfBounds as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <OutOfBounds as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::OutOfBounds(decoded));
             }
             Err(::ethers::core::abi::Error::InvalidData.into())
@@ -24738,15 +24725,9 @@ pub mod gaussian {
     impl ::ethers::core::abi::AbiEncode for GaussianErrors {
         fn encode(self) -> ::std::vec::Vec<u8> {
             match self {
-                Self::Infinity(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
-                Self::NegativeInfinity(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
-                Self::OutOfBounds(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
+                Self::Infinity(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::NegativeInfinity(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::OutOfBounds(element) => ::ethers::core::abi::AbiEncode::encode(element),
                 Self::RevertString(s) => ::ethers::core::abi::AbiEncode::encode(s),
             }
         }
@@ -24755,14 +24736,11 @@ pub mod gaussian {
         fn valid_selector(selector: [u8; 4]) -> bool {
             match selector {
                 [0x08, 0xc3, 0x79, 0xa0] => true,
-                _ if selector
-                    == <Infinity as ::ethers::contract::EthError>::selector() => true,
-                _ if selector
-                    == <NegativeInfinity as ::ethers::contract::EthError>::selector() => {
+                _ if selector == <Infinity as ::ethers::contract::EthError>::selector() => true,
+                _ if selector == <NegativeInfinity as ::ethers::contract::EthError>::selector() => {
                     true
                 }
-                _ if selector
-                    == <OutOfBounds as ::ethers::contract::EthError>::selector() => true,
+                _ if selector == <OutOfBounds as ::ethers::contract::EthError>::selector() => true,
                 _ => false,
             }
         }
@@ -24807,14 +24785,16 @@ pub use ierc20::*;
     clippy::upper_case_acronyms,
     clippy::type_complexity,
     dead_code,
-    non_camel_case_types,
+    non_camel_case_types
 )]
 pub mod ierc20 {
     #[rustfmt::skip]
     const __ABI: &str = "[{\"inputs\":[{\"internalType\":\"address\",\"name\":\"owner\",\"type\":\"address\",\"components\":[],\"indexed\":true},{\"internalType\":\"address\",\"name\":\"spender\",\"type\":\"address\",\"components\":[],\"indexed\":true},{\"internalType\":\"uint256\",\"name\":\"value\",\"type\":\"uint256\",\"components\":[],\"indexed\":false}],\"type\":\"event\",\"name\":\"Approval\",\"outputs\":[],\"anonymous\":false},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"from\",\"type\":\"address\",\"components\":[],\"indexed\":true},{\"internalType\":\"address\",\"name\":\"to\",\"type\":\"address\",\"components\":[],\"indexed\":true},{\"internalType\":\"uint256\",\"name\":\"value\",\"type\":\"uint256\",\"components\":[],\"indexed\":false}],\"type\":\"event\",\"name\":\"Transfer\",\"outputs\":[],\"anonymous\":false},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"owner\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"address\",\"name\":\"spender\",\"type\":\"address\",\"components\":[]}],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"allowance\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"spender\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"function\",\"name\":\"approve\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"account\",\"type\":\"address\",\"components\":[]}],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"balanceOf\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\",\"components\":[]}]},{\"inputs\":[],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"decimals\",\"outputs\":[{\"internalType\":\"uint8\",\"name\":\"\",\"type\":\"uint8\",\"components\":[]}]},{\"inputs\":[],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"totalSupply\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"recipient\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"function\",\"name\":\"transfer\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"sender\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"address\",\"name\":\"recipient\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"function\",\"name\":\"transferFrom\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\",\"components\":[]}]}]";
     ///The parsed JSON ABI of the contract.
-    pub static IERC20_ABI: ::ethers::contract::Lazy<::ethers::core::abi::Abi> = ::ethers::contract::Lazy::new(||
-    ::ethers::core::utils::__serde_json::from_str(__ABI).expect("ABI is always valid"));
+    pub static IERC20_ABI: ::ethers::contract::Lazy<::ethers::core::abi::Abi> =
+        ::ethers::contract::Lazy::new(|| {
+            ::ethers::core::utils::__serde_json::from_str(__ABI).expect("ABI is always valid")
+        });
     pub struct IERC20<M>(::ethers::contract::Contract<M>);
     impl<M> ::core::clone::Clone for IERC20<M> {
         fn clone(&self) -> Self {
@@ -24834,7 +24814,9 @@ pub mod ierc20 {
     }
     impl<M> ::core::fmt::Debug for IERC20<M> {
         fn fmt(&self, f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
-            f.debug_tuple(stringify!(IERC20)).field(&self.address()).finish()
+            f.debug_tuple(stringify!(IERC20))
+                .field(&self.address())
+                .finish()
         }
     }
     impl<M: ::ethers::providers::Middleware> IERC20<M> {
@@ -24844,13 +24826,11 @@ pub mod ierc20 {
             address: T,
             client: ::std::sync::Arc<M>,
         ) -> Self {
-            Self(
-                ::ethers::contract::Contract::new(
-                    address.into(),
-                    IERC20_ABI.clone(),
-                    client,
-                ),
-            )
+            Self(::ethers::contract::Contract::new(
+                address.into(),
+                IERC20_ABI.clone(),
+                client,
+            ))
         }
         ///Calls the contract's `allowance` (0xdd62ed3e) function
         pub fn allowance(
@@ -24919,32 +24899,24 @@ pub mod ierc20 {
         ///Gets the contract's `Approval` event
         pub fn approval_filter(
             &self,
-        ) -> ::ethers::contract::builders::Event<
-            ::std::sync::Arc<M>,
-            M,
-            ApprovalFilter,
-        > {
+        ) -> ::ethers::contract::builders::Event<::std::sync::Arc<M>, M, ApprovalFilter> {
             self.0.event()
         }
         ///Gets the contract's `Transfer` event
         pub fn transfer_filter(
             &self,
-        ) -> ::ethers::contract::builders::Event<
-            ::std::sync::Arc<M>,
-            M,
-            TransferFilter,
-        > {
+        ) -> ::ethers::contract::builders::Event<::std::sync::Arc<M>, M, TransferFilter> {
             self.0.event()
         }
         /// Returns an `Event` builder for all the events of this contract.
         pub fn events(
             &self,
         ) -> ::ethers::contract::builders::Event<::std::sync::Arc<M>, M, IERC20Events> {
-            self.0.event_with_filter(::core::default::Default::default())
+            self.0
+                .event_with_filter(::core::default::Default::default())
         }
     }
-    impl<M: ::ethers::providers::Middleware> From<::ethers::contract::Contract<M>>
-    for IERC20<M> {
+    impl<M: ::ethers::providers::Middleware> From<::ethers::contract::Contract<M>> for IERC20<M> {
         fn from(contract: ::ethers::contract::Contract<M>) -> Self {
             Self::new(contract.address(), contract.client())
         }
@@ -24957,7 +24929,7 @@ pub mod ierc20 {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethevent(name = "Approval", abi = "Approval(address,address,uint256)")]
     pub struct ApprovalFilter {
@@ -24975,7 +24947,7 @@ pub mod ierc20 {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethevent(name = "Transfer", abi = "Transfer(address,address,uint256)")]
     pub struct TransferFilter {
@@ -25031,7 +25003,7 @@ pub mod ierc20 {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "allowance", abi = "allowance(address,address)")]
     pub struct AllowanceCall {
@@ -25047,7 +25019,7 @@ pub mod ierc20 {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "approve", abi = "approve(address,uint256)")]
     pub struct ApproveCall {
@@ -25063,7 +25035,7 @@ pub mod ierc20 {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "balanceOf", abi = "balanceOf(address)")]
     pub struct BalanceOfCall {
@@ -25078,7 +25050,7 @@ pub mod ierc20 {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "decimals", abi = "decimals()")]
     pub struct DecimalsCall;
@@ -25091,7 +25063,7 @@ pub mod ierc20 {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "totalSupply", abi = "totalSupply()")]
     pub struct TotalSupplyCall;
@@ -25104,7 +25076,7 @@ pub mod ierc20 {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "transfer", abi = "transfer(address,uint256)")]
     pub struct TransferCall {
@@ -25120,7 +25092,7 @@ pub mod ierc20 {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "transferFrom", abi = "transferFrom(address,address,uint256)")]
     pub struct TransferFromCall {
@@ -25144,32 +25116,26 @@ pub mod ierc20 {
             data: impl AsRef<[u8]>,
         ) -> ::core::result::Result<Self, ::ethers::core::abi::AbiError> {
             let data = data.as_ref();
-            if let Ok(decoded)
-                = <AllowanceCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <AllowanceCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::Allowance(decoded));
             }
-            if let Ok(decoded)
-                = <ApproveCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <ApproveCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::Approve(decoded));
             }
-            if let Ok(decoded)
-                = <BalanceOfCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <BalanceOfCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::BalanceOf(decoded));
             }
-            if let Ok(decoded)
-                = <DecimalsCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <DecimalsCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::Decimals(decoded));
             }
-            if let Ok(decoded)
-                = <TotalSupplyCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <TotalSupplyCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::TotalSupply(decoded));
             }
-            if let Ok(decoded)
-                = <TransferCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <TransferCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::Transfer(decoded));
             }
-            if let Ok(decoded)
-                = <TransferFromCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <TransferFromCall as ::ethers::core::abi::AbiDecode>::decode(data)
+            {
                 return Ok(Self::TransferFrom(decoded));
             }
             Err(::ethers::core::abi::Error::InvalidData.into())
@@ -25178,25 +25144,13 @@ pub mod ierc20 {
     impl ::ethers::core::abi::AbiEncode for IERC20Calls {
         fn encode(self) -> Vec<u8> {
             match self {
-                Self::Allowance(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
+                Self::Allowance(element) => ::ethers::core::abi::AbiEncode::encode(element),
                 Self::Approve(element) => ::ethers::core::abi::AbiEncode::encode(element),
-                Self::BalanceOf(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
-                Self::Decimals(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
-                Self::TotalSupply(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
-                Self::Transfer(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
-                Self::TransferFrom(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
+                Self::BalanceOf(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::Decimals(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::TotalSupply(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::Transfer(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::TransferFrom(element) => ::ethers::core::abi::AbiEncode::encode(element),
             }
         }
     }
@@ -25257,7 +25211,7 @@ pub mod ierc20 {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     pub struct AllowanceReturn(pub ::ethers::core::types::U256);
     ///Container type for all return fields from the `approve` function with signature `approve(address,uint256)` and selector `0x095ea7b3`
@@ -25269,7 +25223,7 @@ pub mod ierc20 {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     pub struct ApproveReturn(pub bool);
     ///Container type for all return fields from the `balanceOf` function with signature `balanceOf(address)` and selector `0x70a08231`
@@ -25281,7 +25235,7 @@ pub mod ierc20 {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     pub struct BalanceOfReturn(pub ::ethers::core::types::U256);
     ///Container type for all return fields from the `decimals` function with signature `decimals()` and selector `0x313ce567`
@@ -25293,7 +25247,7 @@ pub mod ierc20 {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     pub struct DecimalsReturn(pub u8);
     ///Container type for all return fields from the `totalSupply` function with signature `totalSupply()` and selector `0x18160ddd`
@@ -25305,7 +25259,7 @@ pub mod ierc20 {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     pub struct TotalSupplyReturn(pub ::ethers::core::types::U256);
     ///Container type for all return fields from the `transfer` function with signature `transfer(address,uint256)` and selector `0xa9059cbb`
@@ -25317,7 +25271,7 @@ pub mod ierc20 {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     pub struct TransferReturn(pub bool);
     ///Container type for all return fields from the `transferFrom` function with signature `transferFrom(address,address,uint256)` and selector `0x23b872dd`
@@ -25329,7 +25283,7 @@ pub mod ierc20 {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     pub struct TransferFromReturn(pub bool);
 }
@@ -25342,14 +25296,16 @@ pub use ierc20_metadata::*;
     clippy::upper_case_acronyms,
     clippy::type_complexity,
     dead_code,
-    non_camel_case_types,
+    non_camel_case_types
 )]
 pub mod ierc20_metadata {
     #[rustfmt::skip]
     const __ABI: &str = "[{\"inputs\":[{\"internalType\":\"address\",\"name\":\"owner\",\"type\":\"address\",\"components\":[],\"indexed\":true},{\"internalType\":\"address\",\"name\":\"spender\",\"type\":\"address\",\"components\":[],\"indexed\":true},{\"internalType\":\"uint256\",\"name\":\"value\",\"type\":\"uint256\",\"components\":[],\"indexed\":false}],\"type\":\"event\",\"name\":\"Approval\",\"outputs\":[],\"anonymous\":false},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"from\",\"type\":\"address\",\"components\":[],\"indexed\":true},{\"internalType\":\"address\",\"name\":\"to\",\"type\":\"address\",\"components\":[],\"indexed\":true},{\"internalType\":\"uint256\",\"name\":\"value\",\"type\":\"uint256\",\"components\":[],\"indexed\":false}],\"type\":\"event\",\"name\":\"Transfer\",\"outputs\":[],\"anonymous\":false},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"owner\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"address\",\"name\":\"spender\",\"type\":\"address\",\"components\":[]}],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"allowance\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"spender\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"function\",\"name\":\"approve\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"account\",\"type\":\"address\",\"components\":[]}],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"balanceOf\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\",\"components\":[]}]},{\"inputs\":[],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"decimals\",\"outputs\":[{\"internalType\":\"uint8\",\"name\":\"\",\"type\":\"uint8\",\"components\":[]}]},{\"inputs\":[],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"name\",\"outputs\":[{\"internalType\":\"string\",\"name\":\"\",\"type\":\"string\",\"components\":[]}]},{\"inputs\":[],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"symbol\",\"outputs\":[{\"internalType\":\"string\",\"name\":\"\",\"type\":\"string\",\"components\":[]}]},{\"inputs\":[],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"totalSupply\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"to\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"function\",\"name\":\"transfer\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"from\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"address\",\"name\":\"to\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"function\",\"name\":\"transferFrom\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\",\"components\":[]}]}]";
     ///The parsed JSON ABI of the contract.
-    pub static IERC20METADATA_ABI: ::ethers::contract::Lazy<::ethers::core::abi::Abi> = ::ethers::contract::Lazy::new(||
-    ::ethers::core::utils::__serde_json::from_str(__ABI).expect("ABI is always valid"));
+    pub static IERC20METADATA_ABI: ::ethers::contract::Lazy<::ethers::core::abi::Abi> =
+        ::ethers::contract::Lazy::new(|| {
+            ::ethers::core::utils::__serde_json::from_str(__ABI).expect("ABI is always valid")
+        });
     pub struct IERC20Metadata<M>(::ethers::contract::Contract<M>);
     impl<M> ::core::clone::Clone for IERC20Metadata<M> {
         fn clone(&self) -> Self {
@@ -25369,7 +25325,9 @@ pub mod ierc20_metadata {
     }
     impl<M> ::core::fmt::Debug for IERC20Metadata<M> {
         fn fmt(&self, f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
-            f.debug_tuple(stringify!(IERC20Metadata)).field(&self.address()).finish()
+            f.debug_tuple(stringify!(IERC20Metadata))
+                .field(&self.address())
+                .finish()
         }
     }
     impl<M: ::ethers::providers::Middleware> IERC20Metadata<M> {
@@ -25379,13 +25337,11 @@ pub mod ierc20_metadata {
             address: T,
             client: ::std::sync::Arc<M>,
         ) -> Self {
-            Self(
-                ::ethers::contract::Contract::new(
-                    address.into(),
-                    IERC20METADATA_ABI.clone(),
-                    client,
-                ),
-            )
+            Self(::ethers::contract::Contract::new(
+                address.into(),
+                IERC20METADATA_ABI.clone(),
+                client,
+            ))
         }
         ///Calls the contract's `allowance` (0xdd62ed3e) function
         pub fn allowance(
@@ -25423,9 +25379,7 @@ pub mod ierc20_metadata {
                 .expect("method not found (this should never happen)")
         }
         ///Calls the contract's `name` (0x06fdde03) function
-        pub fn name(
-            &self,
-        ) -> ::ethers::contract::builders::ContractCall<M, ::std::string::String> {
+        pub fn name(&self) -> ::ethers::contract::builders::ContractCall<M, ::std::string::String> {
             self.0
                 .method_hash([6, 253, 222, 3], ())
                 .expect("method not found (this should never happen)")
@@ -25470,36 +25424,27 @@ pub mod ierc20_metadata {
         ///Gets the contract's `Approval` event
         pub fn approval_filter(
             &self,
-        ) -> ::ethers::contract::builders::Event<
-            ::std::sync::Arc<M>,
-            M,
-            ApprovalFilter,
-        > {
+        ) -> ::ethers::contract::builders::Event<::std::sync::Arc<M>, M, ApprovalFilter> {
             self.0.event()
         }
         ///Gets the contract's `Transfer` event
         pub fn transfer_filter(
             &self,
-        ) -> ::ethers::contract::builders::Event<
-            ::std::sync::Arc<M>,
-            M,
-            TransferFilter,
-        > {
+        ) -> ::ethers::contract::builders::Event<::std::sync::Arc<M>, M, TransferFilter> {
             self.0.event()
         }
         /// Returns an `Event` builder for all the events of this contract.
         pub fn events(
             &self,
-        ) -> ::ethers::contract::builders::Event<
-            ::std::sync::Arc<M>,
-            M,
-            IERC20MetadataEvents,
-        > {
-            self.0.event_with_filter(::core::default::Default::default())
+        ) -> ::ethers::contract::builders::Event<::std::sync::Arc<M>, M, IERC20MetadataEvents>
+        {
+            self.0
+                .event_with_filter(::core::default::Default::default())
         }
     }
     impl<M: ::ethers::providers::Middleware> From<::ethers::contract::Contract<M>>
-    for IERC20Metadata<M> {
+        for IERC20Metadata<M>
+    {
         fn from(contract: ::ethers::contract::Contract<M>) -> Self {
             Self::new(contract.address(), contract.client())
         }
@@ -25512,7 +25457,7 @@ pub mod ierc20_metadata {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethevent(name = "Approval", abi = "Approval(address,address,uint256)")]
     pub struct ApprovalFilter {
@@ -25530,7 +25475,7 @@ pub mod ierc20_metadata {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethevent(name = "Transfer", abi = "Transfer(address,address,uint256)")]
     pub struct TransferFilter {
@@ -25586,7 +25531,7 @@ pub mod ierc20_metadata {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "allowance", abi = "allowance(address,address)")]
     pub struct AllowanceCall {
@@ -25602,7 +25547,7 @@ pub mod ierc20_metadata {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "approve", abi = "approve(address,uint256)")]
     pub struct ApproveCall {
@@ -25618,7 +25563,7 @@ pub mod ierc20_metadata {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "balanceOf", abi = "balanceOf(address)")]
     pub struct BalanceOfCall {
@@ -25633,7 +25578,7 @@ pub mod ierc20_metadata {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "decimals", abi = "decimals()")]
     pub struct DecimalsCall;
@@ -25646,7 +25591,7 @@ pub mod ierc20_metadata {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "name", abi = "name()")]
     pub struct NameCall;
@@ -25659,7 +25604,7 @@ pub mod ierc20_metadata {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "symbol", abi = "symbol()")]
     pub struct SymbolCall;
@@ -25672,7 +25617,7 @@ pub mod ierc20_metadata {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "totalSupply", abi = "totalSupply()")]
     pub struct TotalSupplyCall;
@@ -25685,7 +25630,7 @@ pub mod ierc20_metadata {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "transfer", abi = "transfer(address,uint256)")]
     pub struct TransferCall {
@@ -25701,7 +25646,7 @@ pub mod ierc20_metadata {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "transferFrom", abi = "transferFrom(address,address,uint256)")]
     pub struct TransferFromCall {
@@ -25727,40 +25672,32 @@ pub mod ierc20_metadata {
             data: impl AsRef<[u8]>,
         ) -> ::core::result::Result<Self, ::ethers::core::abi::AbiError> {
             let data = data.as_ref();
-            if let Ok(decoded)
-                = <AllowanceCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <AllowanceCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::Allowance(decoded));
             }
-            if let Ok(decoded)
-                = <ApproveCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <ApproveCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::Approve(decoded));
             }
-            if let Ok(decoded)
-                = <BalanceOfCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <BalanceOfCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::BalanceOf(decoded));
             }
-            if let Ok(decoded)
-                = <DecimalsCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <DecimalsCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::Decimals(decoded));
             }
-            if let Ok(decoded)
-                = <NameCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <NameCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::Name(decoded));
             }
-            if let Ok(decoded)
-                = <SymbolCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <SymbolCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::Symbol(decoded));
             }
-            if let Ok(decoded)
-                = <TotalSupplyCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <TotalSupplyCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::TotalSupply(decoded));
             }
-            if let Ok(decoded)
-                = <TransferCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <TransferCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::Transfer(decoded));
             }
-            if let Ok(decoded)
-                = <TransferFromCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <TransferFromCall as ::ethers::core::abi::AbiDecode>::decode(data)
+            {
                 return Ok(Self::TransferFrom(decoded));
             }
             Err(::ethers::core::abi::Error::InvalidData.into())
@@ -25769,27 +25706,15 @@ pub mod ierc20_metadata {
     impl ::ethers::core::abi::AbiEncode for IERC20MetadataCalls {
         fn encode(self) -> Vec<u8> {
             match self {
-                Self::Allowance(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
+                Self::Allowance(element) => ::ethers::core::abi::AbiEncode::encode(element),
                 Self::Approve(element) => ::ethers::core::abi::AbiEncode::encode(element),
-                Self::BalanceOf(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
-                Self::Decimals(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
+                Self::BalanceOf(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::Decimals(element) => ::ethers::core::abi::AbiEncode::encode(element),
                 Self::Name(element) => ::ethers::core::abi::AbiEncode::encode(element),
                 Self::Symbol(element) => ::ethers::core::abi::AbiEncode::encode(element),
-                Self::TotalSupply(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
-                Self::Transfer(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
-                Self::TransferFrom(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
+                Self::TotalSupply(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::Transfer(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::TransferFrom(element) => ::ethers::core::abi::AbiEncode::encode(element),
             }
         }
     }
@@ -25862,7 +25787,7 @@ pub mod ierc20_metadata {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     pub struct AllowanceReturn(pub ::ethers::core::types::U256);
     ///Container type for all return fields from the `approve` function with signature `approve(address,uint256)` and selector `0x095ea7b3`
@@ -25874,7 +25799,7 @@ pub mod ierc20_metadata {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     pub struct ApproveReturn(pub bool);
     ///Container type for all return fields from the `balanceOf` function with signature `balanceOf(address)` and selector `0x70a08231`
@@ -25886,7 +25811,7 @@ pub mod ierc20_metadata {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     pub struct BalanceOfReturn(pub ::ethers::core::types::U256);
     ///Container type for all return fields from the `decimals` function with signature `decimals()` and selector `0x313ce567`
@@ -25898,7 +25823,7 @@ pub mod ierc20_metadata {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     pub struct DecimalsReturn(pub u8);
     ///Container type for all return fields from the `name` function with signature `name()` and selector `0x06fdde03`
@@ -25910,7 +25835,7 @@ pub mod ierc20_metadata {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     pub struct NameReturn(pub ::std::string::String);
     ///Container type for all return fields from the `symbol` function with signature `symbol()` and selector `0x95d89b41`
@@ -25922,7 +25847,7 @@ pub mod ierc20_metadata {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     pub struct SymbolReturn(pub ::std::string::String);
     ///Container type for all return fields from the `totalSupply` function with signature `totalSupply()` and selector `0x18160ddd`
@@ -25934,7 +25859,7 @@ pub mod ierc20_metadata {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     pub struct TotalSupplyReturn(pub ::ethers::core::types::U256);
     ///Container type for all return fields from the `transfer` function with signature `transfer(address,uint256)` and selector `0xa9059cbb`
@@ -25946,7 +25871,7 @@ pub mod ierc20_metadata {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     pub struct TransferReturn(pub bool);
     ///Container type for all return fields from the `transferFrom` function with signature `transferFrom(address,address,uint256)` and selector `0x23b872dd`
@@ -25958,7 +25883,7 @@ pub mod ierc20_metadata {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     pub struct TransferFromReturn(pub bool);
 }
@@ -25971,15 +25896,17 @@ pub use i_portfolio::*;
     clippy::upper_case_acronyms,
     clippy::type_complexity,
     dead_code,
-    non_camel_case_types,
+    non_camel_case_types
 )]
 pub mod i_portfolio {
     pub use super::__shared_types::*;
     #[rustfmt::skip]
     const __ABI: &str = "[{\"inputs\":[{\"internalType\":\"uint64\",\"name\":\"poolId\",\"type\":\"uint64\",\"components\":[],\"indexed\":true},{\"internalType\":\"address\",\"name\":\"asset\",\"type\":\"address\",\"components\":[],\"indexed\":true},{\"internalType\":\"address\",\"name\":\"quote\",\"type\":\"address\",\"components\":[],\"indexed\":true},{\"internalType\":\"uint256\",\"name\":\"deltaAsset\",\"type\":\"uint256\",\"components\":[],\"indexed\":false},{\"internalType\":\"uint256\",\"name\":\"deltaQuote\",\"type\":\"uint256\",\"components\":[],\"indexed\":false},{\"internalType\":\"uint256\",\"name\":\"deltaLiquidity\",\"type\":\"uint256\",\"components\":[],\"indexed\":false}],\"type\":\"event\",\"name\":\"Allocate\",\"outputs\":[],\"anonymous\":false},{\"inputs\":[{\"internalType\":\"uint64\",\"name\":\"poolId\",\"type\":\"uint64\",\"components\":[],\"indexed\":true},{\"internalType\":\"uint16\",\"name\":\"priorityFee\",\"type\":\"uint16\",\"components\":[],\"indexed\":true},{\"internalType\":\"uint16\",\"name\":\"fee\",\"type\":\"uint16\",\"components\":[],\"indexed\":true},{\"internalType\":\"uint16\",\"name\":\"jit\",\"type\":\"uint16\",\"components\":[],\"indexed\":false}],\"type\":\"event\",\"name\":\"ChangeParameters\",\"outputs\":[],\"anonymous\":false},{\"inputs\":[{\"internalType\":\"uint64\",\"name\":\"poolId\",\"type\":\"uint64\",\"components\":[],\"indexed\":false},{\"internalType\":\"address\",\"name\":\"account\",\"type\":\"address\",\"components\":[],\"indexed\":true},{\"internalType\":\"uint256\",\"name\":\"feeAssetDec\",\"type\":\"uint256\",\"components\":[],\"indexed\":false},{\"internalType\":\"address\",\"name\":\"asset\",\"type\":\"address\",\"components\":[],\"indexed\":true},{\"internalType\":\"uint256\",\"name\":\"feeQuoteDec\",\"type\":\"uint256\",\"components\":[],\"indexed\":false},{\"internalType\":\"address\",\"name\":\"quote\",\"type\":\"address\",\"components\":[],\"indexed\":true}],\"type\":\"event\",\"name\":\"Collect\",\"outputs\":[],\"anonymous\":false},{\"inputs\":[{\"internalType\":\"uint24\",\"name\":\"pairId\",\"type\":\"uint24\",\"components\":[],\"indexed\":true},{\"internalType\":\"address\",\"name\":\"asset\",\"type\":\"address\",\"components\":[],\"indexed\":true},{\"internalType\":\"address\",\"name\":\"quote\",\"type\":\"address\",\"components\":[],\"indexed\":true},{\"internalType\":\"uint8\",\"name\":\"decimalsAsset\",\"type\":\"uint8\",\"components\":[],\"indexed\":false},{\"internalType\":\"uint8\",\"name\":\"decimalsQuote\",\"type\":\"uint8\",\"components\":[],\"indexed\":false}],\"type\":\"event\",\"name\":\"CreatePair\",\"outputs\":[],\"anonymous\":false},{\"inputs\":[{\"internalType\":\"uint64\",\"name\":\"poolId\",\"type\":\"uint64\",\"components\":[],\"indexed\":true},{\"internalType\":\"bool\",\"name\":\"isMutable\",\"type\":\"bool\",\"components\":[],\"indexed\":false},{\"internalType\":\"address\",\"name\":\"asset\",\"type\":\"address\",\"components\":[],\"indexed\":true},{\"internalType\":\"address\",\"name\":\"quote\",\"type\":\"address\",\"components\":[],\"indexed\":true},{\"internalType\":\"uint256\",\"name\":\"price\",\"type\":\"uint256\",\"components\":[],\"indexed\":false}],\"type\":\"event\",\"name\":\"CreatePool\",\"outputs\":[],\"anonymous\":false},{\"inputs\":[{\"internalType\":\"uint64\",\"name\":\"poolId\",\"type\":\"uint64\",\"components\":[],\"indexed\":true},{\"internalType\":\"address\",\"name\":\"asset\",\"type\":\"address\",\"components\":[],\"indexed\":true},{\"internalType\":\"address\",\"name\":\"quote\",\"type\":\"address\",\"components\":[],\"indexed\":true},{\"internalType\":\"uint256\",\"name\":\"deltaAsset\",\"type\":\"uint256\",\"components\":[],\"indexed\":false},{\"internalType\":\"uint256\",\"name\":\"deltaQuote\",\"type\":\"uint256\",\"components\":[],\"indexed\":false},{\"internalType\":\"uint256\",\"name\":\"deltaLiquidity\",\"type\":\"uint256\",\"components\":[],\"indexed\":false}],\"type\":\"event\",\"name\":\"Deallocate\",\"outputs\":[],\"anonymous\":false},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"token\",\"type\":\"address\",\"components\":[],\"indexed\":true},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\",\"components\":[],\"indexed\":false}],\"type\":\"event\",\"name\":\"DecreaseReserveBalance\",\"outputs\":[],\"anonymous\":false},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"account\",\"type\":\"address\",\"components\":[],\"indexed\":true},{\"internalType\":\"address\",\"name\":\"token\",\"type\":\"address\",\"components\":[],\"indexed\":true},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\",\"components\":[],\"indexed\":false}],\"type\":\"event\",\"name\":\"DecreaseUserBalance\",\"outputs\":[],\"anonymous\":false},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"account\",\"type\":\"address\",\"components\":[],\"indexed\":true},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\",\"components\":[],\"indexed\":false}],\"type\":\"event\",\"name\":\"Deposit\",\"outputs\":[],\"anonymous\":false},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"token\",\"type\":\"address\",\"components\":[],\"indexed\":true},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\",\"components\":[],\"indexed\":false}],\"type\":\"event\",\"name\":\"IncreaseReserveBalance\",\"outputs\":[],\"anonymous\":false},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"account\",\"type\":\"address\",\"components\":[],\"indexed\":true},{\"internalType\":\"address\",\"name\":\"token\",\"type\":\"address\",\"components\":[],\"indexed\":true},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\",\"components\":[],\"indexed\":false}],\"type\":\"event\",\"name\":\"IncreaseUserBalance\",\"outputs\":[],\"anonymous\":false},{\"inputs\":[{\"internalType\":\"uint64\",\"name\":\"poolId\",\"type\":\"uint64\",\"components\":[],\"indexed\":true},{\"internalType\":\"uint256\",\"name\":\"price\",\"type\":\"uint256\",\"components\":[],\"indexed\":false},{\"internalType\":\"address\",\"name\":\"sellAsset\",\"type\":\"address\",\"components\":[],\"indexed\":true},{\"internalType\":\"uint256\",\"name\":\"input\",\"type\":\"uint256\",\"components\":[],\"indexed\":false},{\"internalType\":\"address\",\"name\":\"tokenOut\",\"type\":\"address\",\"components\":[],\"indexed\":true},{\"internalType\":\"uint256\",\"name\":\"output\",\"type\":\"uint256\",\"components\":[],\"indexed\":false},{\"internalType\":\"uint256\",\"name\":\"feeAmountDec\",\"type\":\"uint256\",\"components\":[],\"indexed\":false},{\"internalType\":\"int256\",\"name\":\"invariantWad\",\"type\":\"int256\",\"components\":[],\"indexed\":false}],\"type\":\"event\",\"name\":\"Swap\",\"outputs\":[],\"anonymous\":false},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"prevFee\",\"type\":\"uint256\",\"components\":[],\"indexed\":false},{\"internalType\":\"uint256\",\"name\":\"nextFee\",\"type\":\"uint256\",\"components\":[],\"indexed\":false}],\"type\":\"event\",\"name\":\"UpdateProtocolFee\",\"outputs\":[],\"anonymous\":false},{\"inputs\":[],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"REGISTRY\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\",\"components\":[]}]},{\"inputs\":[],\"stateMutability\":\"pure\",\"type\":\"function\",\"name\":\"VERSION\",\"outputs\":[{\"internalType\":\"string\",\"name\":\"\",\"type\":\"string\",\"components\":[]}]},{\"inputs\":[],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"WETH\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"uint64\",\"name\":\"poolId\",\"type\":\"uint64\",\"components\":[]},{\"internalType\":\"uint16\",\"name\":\"priorityFee\",\"type\":\"uint16\",\"components\":[]},{\"internalType\":\"uint16\",\"name\":\"fee\",\"type\":\"uint16\",\"components\":[]},{\"internalType\":\"uint16\",\"name\":\"jit\",\"type\":\"uint16\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"function\",\"name\":\"changeParameters\",\"outputs\":[]},{\"inputs\":[],\"stateMutability\":\"payable\",\"type\":\"function\",\"name\":\"deposit\",\"outputs\":[]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"token\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"address\",\"name\":\"to\",\"type\":\"address\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"function\",\"name\":\"draw\",\"outputs\":[]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"token\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"function\",\"name\":\"fund\",\"outputs\":[]},{\"inputs\":[{\"internalType\":\"uint64\",\"name\":\"poolId\",\"type\":\"uint64\",\"components\":[]},{\"internalType\":\"bool\",\"name\":\"sellAsset\",\"type\":\"bool\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"amountIn\",\"type\":\"uint256\",\"components\":[]}],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"getAmountOut\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"owner\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"address\",\"name\":\"token\",\"type\":\"address\",\"components\":[]}],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"getBalance\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"uint64\",\"name\":\"poolId\",\"type\":\"uint64\",\"components\":[]},{\"internalType\":\"int128\",\"name\":\"deltaLiquidity\",\"type\":\"int128\",\"components\":[]}],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"getLiquidityDeltas\",\"outputs\":[{\"internalType\":\"uint128\",\"name\":\"deltaAsset\",\"type\":\"uint128\",\"components\":[]},{\"internalType\":\"uint128\",\"name\":\"deltaQuote\",\"type\":\"uint128\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"uint64\",\"name\":\"poolId\",\"type\":\"uint64\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"deltaAsset\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"deltaQuote\",\"type\":\"uint256\",\"components\":[]}],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"getMaxLiquidity\",\"outputs\":[{\"internalType\":\"uint128\",\"name\":\"deltaLiquidity\",\"type\":\"uint128\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"token\",\"type\":\"address\",\"components\":[]}],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"getNetBalance\",\"outputs\":[{\"internalType\":\"int256\",\"name\":\"\",\"type\":\"int256\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"asset\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"address\",\"name\":\"quote\",\"type\":\"address\",\"components\":[]}],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"getPairId\",\"outputs\":[{\"internalType\":\"uint24\",\"name\":\"pairId\",\"type\":\"uint24\",\"components\":[]}]},{\"inputs\":[],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"getPairNonce\",\"outputs\":[{\"internalType\":\"uint24\",\"name\":\"\",\"type\":\"uint24\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"uint24\",\"name\":\"pairNonce\",\"type\":\"uint24\",\"components\":[]}],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"getPoolNonce\",\"outputs\":[{\"internalType\":\"uint32\",\"name\":\"\",\"type\":\"uint32\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"uint64\",\"name\":\"poolId\",\"type\":\"uint64\",\"components\":[]}],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"getPoolReserves\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"deltaAsset\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"deltaQuote\",\"type\":\"uint256\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"token\",\"type\":\"address\",\"components\":[]}],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"getReserve\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"uint64\",\"name\":\"poolId\",\"type\":\"uint64\",\"components\":[]}],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"getVirtualPrice\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"price\",\"type\":\"uint256\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"uint64\",\"name\":\"poolId\",\"type\":\"uint64\",\"components\":[]}],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"getVirtualReservesPerLiquidity\",\"outputs\":[{\"internalType\":\"uint128\",\"name\":\"deltaAsset\",\"type\":\"uint128\",\"components\":[]},{\"internalType\":\"uint128\",\"name\":\"deltaQuote\",\"type\":\"uint128\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"bytes\",\"name\":\"data\",\"type\":\"bytes\",\"components\":[]}],\"stateMutability\":\"payable\",\"type\":\"function\",\"name\":\"multiprocess\",\"outputs\":[]},{\"inputs\":[{\"internalType\":\"uint24\",\"name\":\"pairId\",\"type\":\"uint24\",\"components\":[]}],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"pairs\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"tokenAsset\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint8\",\"name\":\"decimalsAsset\",\"type\":\"uint8\",\"components\":[]},{\"internalType\":\"address\",\"name\":\"tokenQuote\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint8\",\"name\":\"decimalsQuote\",\"type\":\"uint8\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"uint64\",\"name\":\"poolId\",\"type\":\"uint64\",\"components\":[]}],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"pools\",\"outputs\":[{\"internalType\":\"uint128\",\"name\":\"virtualX\",\"type\":\"uint128\",\"components\":[]},{\"internalType\":\"uint128\",\"name\":\"virtualY\",\"type\":\"uint128\",\"components\":[]},{\"internalType\":\"uint128\",\"name\":\"liquidity\",\"type\":\"uint128\",\"components\":[]},{\"internalType\":\"uint32\",\"name\":\"lastTimestamp\",\"type\":\"uint32\",\"components\":[]},{\"internalType\":\"address\",\"name\":\"controller\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"invariantGrowthGlobal\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"feeGrowthGlobalAsset\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"feeGrowthGlobalQuote\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"struct PortfolioCurve\",\"name\":\"\",\"type\":\"tuple\",\"components\":[{\"internalType\":\"uint128\",\"name\":\"maxPrice\",\"type\":\"uint128\",\"components\":[]},{\"internalType\":\"uint16\",\"name\":\"jit\",\"type\":\"uint16\",\"components\":[]},{\"internalType\":\"uint16\",\"name\":\"fee\",\"type\":\"uint16\",\"components\":[]},{\"internalType\":\"uint16\",\"name\":\"duration\",\"type\":\"uint16\",\"components\":[]},{\"internalType\":\"uint16\",\"name\":\"volatility\",\"type\":\"uint16\",\"components\":[]},{\"internalType\":\"uint16\",\"name\":\"priorityFee\",\"type\":\"uint16\",\"components\":[]},{\"internalType\":\"uint32\",\"name\":\"createdAt\",\"type\":\"uint32\",\"components\":[]},{\"internalType\":\"bool\",\"name\":\"perpetual\",\"type\":\"bool\",\"components\":[]}]},{\"internalType\":\"struct PortfolioPair\",\"name\":\"\",\"type\":\"tuple\",\"components\":[{\"internalType\":\"address\",\"name\":\"tokenAsset\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint8\",\"name\":\"decimalsAsset\",\"type\":\"uint8\",\"components\":[]},{\"internalType\":\"address\",\"name\":\"tokenQuote\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint8\",\"name\":\"decimalsQuote\",\"type\":\"uint8\",\"components\":[]}]}]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"owner\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint64\",\"name\":\"poolId\",\"type\":\"uint64\",\"components\":[]}],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"positions\",\"outputs\":[{\"internalType\":\"uint128\",\"name\":\"freeLiquidity\",\"type\":\"uint128\",\"components\":[]},{\"internalType\":\"uint32\",\"name\":\"lastTimestamp\",\"type\":\"uint32\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"invariantGrowthLast\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"feeGrowthAssetLast\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"feeGrowthQuoteLast\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"uint128\",\"name\":\"tokensOwedAsset\",\"type\":\"uint128\",\"components\":[]},{\"internalType\":\"uint128\",\"name\":\"tokensOwedQuote\",\"type\":\"uint128\",\"components\":[]},{\"internalType\":\"uint128\",\"name\":\"invariantOwed\",\"type\":\"uint128\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"fee\",\"type\":\"uint256\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"function\",\"name\":\"setProtocolFee\",\"outputs\":[]}]";
     ///The parsed JSON ABI of the contract.
-    pub static IPORTFOLIO_ABI: ::ethers::contract::Lazy<::ethers::core::abi::Abi> = ::ethers::contract::Lazy::new(||
-    ::ethers::core::utils::__serde_json::from_str(__ABI).expect("ABI is always valid"));
+    pub static IPORTFOLIO_ABI: ::ethers::contract::Lazy<::ethers::core::abi::Abi> =
+        ::ethers::contract::Lazy::new(|| {
+            ::ethers::core::utils::__serde_json::from_str(__ABI).expect("ABI is always valid")
+        });
     pub struct IPortfolio<M>(::ethers::contract::Contract<M>);
     impl<M> ::core::clone::Clone for IPortfolio<M> {
         fn clone(&self) -> Self {
@@ -25999,7 +25926,9 @@ pub mod i_portfolio {
     }
     impl<M> ::core::fmt::Debug for IPortfolio<M> {
         fn fmt(&self, f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
-            f.debug_tuple(stringify!(IPortfolio)).field(&self.address()).finish()
+            f.debug_tuple(stringify!(IPortfolio))
+                .field(&self.address())
+                .finish()
         }
     }
     impl<M: ::ethers::providers::Middleware> IPortfolio<M> {
@@ -26009,21 +25938,16 @@ pub mod i_portfolio {
             address: T,
             client: ::std::sync::Arc<M>,
         ) -> Self {
-            Self(
-                ::ethers::contract::Contract::new(
-                    address.into(),
-                    IPORTFOLIO_ABI.clone(),
-                    client,
-                ),
-            )
+            Self(::ethers::contract::Contract::new(
+                address.into(),
+                IPORTFOLIO_ABI.clone(),
+                client,
+            ))
         }
         ///Calls the contract's `REGISTRY` (0x06433b1b) function
         pub fn registry(
             &self,
-        ) -> ::ethers::contract::builders::ContractCall<
-            M,
-            ::ethers::core::types::Address,
-        > {
+        ) -> ::ethers::contract::builders::ContractCall<M, ::ethers::core::types::Address> {
             self.0
                 .method_hash([6, 67, 59, 27], ())
                 .expect("method not found (this should never happen)")
@@ -26039,10 +25963,7 @@ pub mod i_portfolio {
         ///Calls the contract's `WETH` (0xad5c4648) function
         pub fn weth(
             &self,
-        ) -> ::ethers::contract::builders::ContractCall<
-            M,
-            ::ethers::core::types::Address,
-        > {
+        ) -> ::ethers::contract::builders::ContractCall<M, ::ethers::core::types::Address> {
             self.0
                 .method_hash([173, 92, 70, 72], ())
                 .expect("method not found (this should never happen)")
@@ -26148,9 +26069,7 @@ pub mod i_portfolio {
                 .expect("method not found (this should never happen)")
         }
         ///Calls the contract's `getPairNonce` (0x078888d6) function
-        pub fn get_pair_nonce(
-            &self,
-        ) -> ::ethers::contract::builders::ContractCall<M, u32> {
+        pub fn get_pair_nonce(&self) -> ::ethers::contract::builders::ContractCall<M, u32> {
             self.0
                 .method_hash([7, 136, 136, 214], ())
                 .expect("method not found (this should never happen)")
@@ -26218,7 +26137,12 @@ pub mod i_portfolio {
             pair_id: u32,
         ) -> ::ethers::contract::builders::ContractCall<
             M,
-            (::ethers::core::types::Address, u8, ::ethers::core::types::Address, u8),
+            (
+                ::ethers::core::types::Address,
+                u8,
+                ::ethers::core::types::Address,
+                u8,
+            ),
         > {
             self.0
                 .method_hash([94, 71, 102, 60], pair_id)
@@ -26281,21 +26205,14 @@ pub mod i_portfolio {
         ///Gets the contract's `Allocate` event
         pub fn allocate_filter(
             &self,
-        ) -> ::ethers::contract::builders::Event<
-            ::std::sync::Arc<M>,
-            M,
-            AllocateFilter,
-        > {
+        ) -> ::ethers::contract::builders::Event<::std::sync::Arc<M>, M, AllocateFilter> {
             self.0.event()
         }
         ///Gets the contract's `ChangeParameters` event
         pub fn change_parameters_filter(
             &self,
-        ) -> ::ethers::contract::builders::Event<
-            ::std::sync::Arc<M>,
-            M,
-            ChangeParametersFilter,
-        > {
+        ) -> ::ethers::contract::builders::Event<::std::sync::Arc<M>, M, ChangeParametersFilter>
+        {
             self.0.event()
         }
         ///Gets the contract's `Collect` event
@@ -26307,51 +26224,33 @@ pub mod i_portfolio {
         ///Gets the contract's `CreatePair` event
         pub fn create_pair_filter(
             &self,
-        ) -> ::ethers::contract::builders::Event<
-            ::std::sync::Arc<M>,
-            M,
-            CreatePairFilter,
-        > {
+        ) -> ::ethers::contract::builders::Event<::std::sync::Arc<M>, M, CreatePairFilter> {
             self.0.event()
         }
         ///Gets the contract's `CreatePool` event
         pub fn create_pool_filter(
             &self,
-        ) -> ::ethers::contract::builders::Event<
-            ::std::sync::Arc<M>,
-            M,
-            CreatePoolFilter,
-        > {
+        ) -> ::ethers::contract::builders::Event<::std::sync::Arc<M>, M, CreatePoolFilter> {
             self.0.event()
         }
         ///Gets the contract's `Deallocate` event
         pub fn deallocate_filter(
             &self,
-        ) -> ::ethers::contract::builders::Event<
-            ::std::sync::Arc<M>,
-            M,
-            DeallocateFilter,
-        > {
+        ) -> ::ethers::contract::builders::Event<::std::sync::Arc<M>, M, DeallocateFilter> {
             self.0.event()
         }
         ///Gets the contract's `DecreaseReserveBalance` event
         pub fn decrease_reserve_balance_filter(
             &self,
-        ) -> ::ethers::contract::builders::Event<
-            ::std::sync::Arc<M>,
-            M,
-            DecreaseReserveBalanceFilter,
-        > {
+        ) -> ::ethers::contract::builders::Event<::std::sync::Arc<M>, M, DecreaseReserveBalanceFilter>
+        {
             self.0.event()
         }
         ///Gets the contract's `DecreaseUserBalance` event
         pub fn decrease_user_balance_filter(
             &self,
-        ) -> ::ethers::contract::builders::Event<
-            ::std::sync::Arc<M>,
-            M,
-            DecreaseUserBalanceFilter,
-        > {
+        ) -> ::ethers::contract::builders::Event<::std::sync::Arc<M>, M, DecreaseUserBalanceFilter>
+        {
             self.0.event()
         }
         ///Gets the contract's `Deposit` event
@@ -26363,21 +26262,15 @@ pub mod i_portfolio {
         ///Gets the contract's `IncreaseReserveBalance` event
         pub fn increase_reserve_balance_filter(
             &self,
-        ) -> ::ethers::contract::builders::Event<
-            ::std::sync::Arc<M>,
-            M,
-            IncreaseReserveBalanceFilter,
-        > {
+        ) -> ::ethers::contract::builders::Event<::std::sync::Arc<M>, M, IncreaseReserveBalanceFilter>
+        {
             self.0.event()
         }
         ///Gets the contract's `IncreaseUserBalance` event
         pub fn increase_user_balance_filter(
             &self,
-        ) -> ::ethers::contract::builders::Event<
-            ::std::sync::Arc<M>,
-            M,
-            IncreaseUserBalanceFilter,
-        > {
+        ) -> ::ethers::contract::builders::Event<::std::sync::Arc<M>, M, IncreaseUserBalanceFilter>
+        {
             self.0.event()
         }
         ///Gets the contract's `Swap` event
@@ -26389,26 +26282,19 @@ pub mod i_portfolio {
         ///Gets the contract's `UpdateProtocolFee` event
         pub fn update_protocol_fee_filter(
             &self,
-        ) -> ::ethers::contract::builders::Event<
-            ::std::sync::Arc<M>,
-            M,
-            UpdateProtocolFeeFilter,
-        > {
+        ) -> ::ethers::contract::builders::Event<::std::sync::Arc<M>, M, UpdateProtocolFeeFilter>
+        {
             self.0.event()
         }
         /// Returns an `Event` builder for all the events of this contract.
         pub fn events(
             &self,
-        ) -> ::ethers::contract::builders::Event<
-            ::std::sync::Arc<M>,
-            M,
-            IPortfolioEvents,
-        > {
-            self.0.event_with_filter(::core::default::Default::default())
+        ) -> ::ethers::contract::builders::Event<::std::sync::Arc<M>, M, IPortfolioEvents> {
+            self.0
+                .event_with_filter(::core::default::Default::default())
         }
     }
-    impl<M: ::ethers::providers::Middleware> From<::ethers::contract::Contract<M>>
-    for IPortfolio<M> {
+    impl<M: ::ethers::providers::Middleware> From<::ethers::contract::Contract<M>> for IPortfolio<M> {
         fn from(contract: ::ethers::contract::Contract<M>) -> Self {
             Self::new(contract.address(), contract.client())
         }
@@ -26421,7 +26307,7 @@ pub mod i_portfolio {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethevent(
         name = "Allocate",
@@ -26446,7 +26332,7 @@ pub mod i_portfolio {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethevent(
         name = "ChangeParameters",
@@ -26469,7 +26355,7 @@ pub mod i_portfolio {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethevent(
         name = "Collect",
@@ -26494,7 +26380,7 @@ pub mod i_portfolio {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethevent(
         name = "CreatePair",
@@ -26518,7 +26404,7 @@ pub mod i_portfolio {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethevent(
         name = "CreatePool",
@@ -26542,7 +26428,7 @@ pub mod i_portfolio {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethevent(
         name = "Deallocate",
@@ -26567,7 +26453,7 @@ pub mod i_portfolio {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethevent(
         name = "DecreaseReserveBalance",
@@ -26586,7 +26472,7 @@ pub mod i_portfolio {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethevent(
         name = "DecreaseUserBalance",
@@ -26607,7 +26493,7 @@ pub mod i_portfolio {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethevent(name = "Deposit", abi = "Deposit(address,uint256)")]
     pub struct DepositFilter {
@@ -26623,7 +26509,7 @@ pub mod i_portfolio {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethevent(
         name = "IncreaseReserveBalance",
@@ -26642,7 +26528,7 @@ pub mod i_portfolio {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethevent(
         name = "IncreaseUserBalance",
@@ -26663,7 +26549,7 @@ pub mod i_portfolio {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethevent(
         name = "Swap",
@@ -26690,7 +26576,7 @@ pub mod i_portfolio {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethevent(name = "UpdateProtocolFee", abi = "UpdateProtocolFee(uint256,uint256)")]
     pub struct UpdateProtocolFeeFilter {
@@ -26764,9 +26650,7 @@ pub mod i_portfolio {
         fn fmt(&self, f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
             match self {
                 Self::AllocateFilter(element) => ::core::fmt::Display::fmt(element, f),
-                Self::ChangeParametersFilter(element) => {
-                    ::core::fmt::Display::fmt(element, f)
-                }
+                Self::ChangeParametersFilter(element) => ::core::fmt::Display::fmt(element, f),
                 Self::CollectFilter(element) => ::core::fmt::Display::fmt(element, f),
                 Self::CreatePairFilter(element) => ::core::fmt::Display::fmt(element, f),
                 Self::CreatePoolFilter(element) => ::core::fmt::Display::fmt(element, f),
@@ -26774,20 +26658,14 @@ pub mod i_portfolio {
                 Self::DecreaseReserveBalanceFilter(element) => {
                     ::core::fmt::Display::fmt(element, f)
                 }
-                Self::DecreaseUserBalanceFilter(element) => {
-                    ::core::fmt::Display::fmt(element, f)
-                }
+                Self::DecreaseUserBalanceFilter(element) => ::core::fmt::Display::fmt(element, f),
                 Self::DepositFilter(element) => ::core::fmt::Display::fmt(element, f),
                 Self::IncreaseReserveBalanceFilter(element) => {
                     ::core::fmt::Display::fmt(element, f)
                 }
-                Self::IncreaseUserBalanceFilter(element) => {
-                    ::core::fmt::Display::fmt(element, f)
-                }
+                Self::IncreaseUserBalanceFilter(element) => ::core::fmt::Display::fmt(element, f),
                 Self::SwapFilter(element) => ::core::fmt::Display::fmt(element, f),
-                Self::UpdateProtocolFeeFilter(element) => {
-                    ::core::fmt::Display::fmt(element, f)
-                }
+                Self::UpdateProtocolFeeFilter(element) => ::core::fmt::Display::fmt(element, f),
             }
         }
     }
@@ -26865,7 +26743,7 @@ pub mod i_portfolio {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "REGISTRY", abi = "REGISTRY()")]
     pub struct RegistryCall;
@@ -26878,7 +26756,7 @@ pub mod i_portfolio {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "VERSION", abi = "VERSION()")]
     pub struct VersionCall;
@@ -26891,7 +26769,7 @@ pub mod i_portfolio {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "WETH", abi = "WETH()")]
     pub struct WethCall;
@@ -26904,7 +26782,7 @@ pub mod i_portfolio {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(
         name = "changeParameters",
@@ -26925,7 +26803,7 @@ pub mod i_portfolio {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "deposit", abi = "deposit()")]
     pub struct DepositCall;
@@ -26938,7 +26816,7 @@ pub mod i_portfolio {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "draw", abi = "draw(address,uint256,address)")]
     pub struct DrawCall {
@@ -26955,7 +26833,7 @@ pub mod i_portfolio {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "fund", abi = "fund(address,uint256)")]
     pub struct FundCall {
@@ -26971,7 +26849,7 @@ pub mod i_portfolio {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "getAmountOut", abi = "getAmountOut(uint64,bool,uint256)")]
     pub struct GetAmountOutCall {
@@ -26988,7 +26866,7 @@ pub mod i_portfolio {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "getBalance", abi = "getBalance(address,address)")]
     pub struct GetBalanceCall {
@@ -27004,7 +26882,7 @@ pub mod i_portfolio {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "getLiquidityDeltas", abi = "getLiquidityDeltas(uint64,int128)")]
     pub struct GetLiquidityDeltasCall {
@@ -27020,9 +26898,12 @@ pub mod i_portfolio {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
-    #[ethcall(name = "getMaxLiquidity", abi = "getMaxLiquidity(uint64,uint256,uint256)")]
+    #[ethcall(
+        name = "getMaxLiquidity",
+        abi = "getMaxLiquidity(uint64,uint256,uint256)"
+    )]
     pub struct GetMaxLiquidityCall {
         pub pool_id: u64,
         pub delta_asset: ::ethers::core::types::U256,
@@ -27037,7 +26918,7 @@ pub mod i_portfolio {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "getNetBalance", abi = "getNetBalance(address)")]
     pub struct GetNetBalanceCall {
@@ -27052,7 +26933,7 @@ pub mod i_portfolio {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "getPairId", abi = "getPairId(address,address)")]
     pub struct GetPairIdCall {
@@ -27068,7 +26949,7 @@ pub mod i_portfolio {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "getPairNonce", abi = "getPairNonce()")]
     pub struct GetPairNonceCall;
@@ -27081,7 +26962,7 @@ pub mod i_portfolio {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "getPoolNonce", abi = "getPoolNonce(uint24)")]
     pub struct GetPoolNonceCall {
@@ -27096,7 +26977,7 @@ pub mod i_portfolio {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "getPoolReserves", abi = "getPoolReserves(uint64)")]
     pub struct GetPoolReservesCall {
@@ -27111,7 +26992,7 @@ pub mod i_portfolio {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "getReserve", abi = "getReserve(address)")]
     pub struct GetReserveCall {
@@ -27126,7 +27007,7 @@ pub mod i_portfolio {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "getVirtualPrice", abi = "getVirtualPrice(uint64)")]
     pub struct GetVirtualPriceCall {
@@ -27141,7 +27022,7 @@ pub mod i_portfolio {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(
         name = "getVirtualReservesPerLiquidity",
@@ -27159,7 +27040,7 @@ pub mod i_portfolio {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "multiprocess", abi = "multiprocess(bytes)")]
     pub struct MultiprocessCall {
@@ -27174,7 +27055,7 @@ pub mod i_portfolio {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "pairs", abi = "pairs(uint24)")]
     pub struct PairsCall {
@@ -27189,7 +27070,7 @@ pub mod i_portfolio {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "pools", abi = "pools(uint64)")]
     pub struct PoolsCall {
@@ -27204,7 +27085,7 @@ pub mod i_portfolio {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "positions", abi = "positions(address,uint64)")]
     pub struct PositionsCall {
@@ -27220,7 +27101,7 @@ pub mod i_portfolio {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "setProtocolFee", abi = "setProtocolFee(uint256)")]
     pub struct SetProtocolFeeCall {
@@ -27259,106 +27140,95 @@ pub mod i_portfolio {
             data: impl AsRef<[u8]>,
         ) -> ::core::result::Result<Self, ::ethers::core::abi::AbiError> {
             let data = data.as_ref();
-            if let Ok(decoded)
-                = <RegistryCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <RegistryCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::Registry(decoded));
             }
-            if let Ok(decoded)
-                = <VersionCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <VersionCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::Version(decoded));
             }
-            if let Ok(decoded)
-                = <WethCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <WethCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::Weth(decoded));
             }
-            if let Ok(decoded)
-                = <ChangeParametersCall as ::ethers::core::abi::AbiDecode>::decode(
-                    data,
-                ) {
+            if let Ok(decoded) =
+                <ChangeParametersCall as ::ethers::core::abi::AbiDecode>::decode(data)
+            {
                 return Ok(Self::ChangeParameters(decoded));
             }
-            if let Ok(decoded)
-                = <DepositCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <DepositCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::Deposit(decoded));
             }
-            if let Ok(decoded)
-                = <DrawCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <DrawCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::Draw(decoded));
             }
-            if let Ok(decoded)
-                = <FundCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <FundCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::Fund(decoded));
             }
-            if let Ok(decoded)
-                = <GetAmountOutCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <GetAmountOutCall as ::ethers::core::abi::AbiDecode>::decode(data)
+            {
                 return Ok(Self::GetAmountOut(decoded));
             }
-            if let Ok(decoded)
-                = <GetBalanceCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <GetBalanceCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::GetBalance(decoded));
             }
-            if let Ok(decoded)
-                = <GetLiquidityDeltasCall as ::ethers::core::abi::AbiDecode>::decode(
-                    data,
-                ) {
+            if let Ok(decoded) =
+                <GetLiquidityDeltasCall as ::ethers::core::abi::AbiDecode>::decode(data)
+            {
                 return Ok(Self::GetLiquidityDeltas(decoded));
             }
-            if let Ok(decoded)
-                = <GetMaxLiquidityCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) =
+                <GetMaxLiquidityCall as ::ethers::core::abi::AbiDecode>::decode(data)
+            {
                 return Ok(Self::GetMaxLiquidity(decoded));
             }
-            if let Ok(decoded)
-                = <GetNetBalanceCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <GetNetBalanceCall as ::ethers::core::abi::AbiDecode>::decode(data)
+            {
                 return Ok(Self::GetNetBalance(decoded));
             }
-            if let Ok(decoded)
-                = <GetPairIdCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <GetPairIdCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::GetPairId(decoded));
             }
-            if let Ok(decoded)
-                = <GetPairNonceCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <GetPairNonceCall as ::ethers::core::abi::AbiDecode>::decode(data)
+            {
                 return Ok(Self::GetPairNonce(decoded));
             }
-            if let Ok(decoded)
-                = <GetPoolNonceCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <GetPoolNonceCall as ::ethers::core::abi::AbiDecode>::decode(data)
+            {
                 return Ok(Self::GetPoolNonce(decoded));
             }
-            if let Ok(decoded)
-                = <GetPoolReservesCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) =
+                <GetPoolReservesCall as ::ethers::core::abi::AbiDecode>::decode(data)
+            {
                 return Ok(Self::GetPoolReserves(decoded));
             }
-            if let Ok(decoded)
-                = <GetReserveCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <GetReserveCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::GetReserve(decoded));
             }
-            if let Ok(decoded)
-                = <GetVirtualPriceCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) =
+                <GetVirtualPriceCall as ::ethers::core::abi::AbiDecode>::decode(data)
+            {
                 return Ok(Self::GetVirtualPrice(decoded));
             }
-            if let Ok(decoded)
-                = <GetVirtualReservesPerLiquidityCall as ::ethers::core::abi::AbiDecode>::decode(
-                    data,
-                ) {
+            if let Ok(decoded) =
+                <GetVirtualReservesPerLiquidityCall as ::ethers::core::abi::AbiDecode>::decode(data)
+            {
                 return Ok(Self::GetVirtualReservesPerLiquidity(decoded));
             }
-            if let Ok(decoded)
-                = <MultiprocessCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <MultiprocessCall as ::ethers::core::abi::AbiDecode>::decode(data)
+            {
                 return Ok(Self::Multiprocess(decoded));
             }
-            if let Ok(decoded)
-                = <PairsCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <PairsCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::Pairs(decoded));
             }
-            if let Ok(decoded)
-                = <PoolsCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <PoolsCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::Pools(decoded));
             }
-            if let Ok(decoded)
-                = <PositionsCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <PositionsCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::Positions(decoded));
             }
-            if let Ok(decoded)
-                = <SetProtocolFeeCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) =
+                <SetProtocolFeeCall as ::ethers::core::abi::AbiDecode>::decode(data)
+            {
                 return Ok(Self::SetProtocolFee(decoded));
             }
             Err(::ethers::core::abi::Error::InvalidData.into())
@@ -27367,64 +27237,34 @@ pub mod i_portfolio {
     impl ::ethers::core::abi::AbiEncode for IPortfolioCalls {
         fn encode(self) -> Vec<u8> {
             match self {
-                Self::Registry(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
+                Self::Registry(element) => ::ethers::core::abi::AbiEncode::encode(element),
                 Self::Version(element) => ::ethers::core::abi::AbiEncode::encode(element),
                 Self::Weth(element) => ::ethers::core::abi::AbiEncode::encode(element),
-                Self::ChangeParameters(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
+                Self::ChangeParameters(element) => ::ethers::core::abi::AbiEncode::encode(element),
                 Self::Deposit(element) => ::ethers::core::abi::AbiEncode::encode(element),
                 Self::Draw(element) => ::ethers::core::abi::AbiEncode::encode(element),
                 Self::Fund(element) => ::ethers::core::abi::AbiEncode::encode(element),
-                Self::GetAmountOut(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
-                Self::GetBalance(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
+                Self::GetAmountOut(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::GetBalance(element) => ::ethers::core::abi::AbiEncode::encode(element),
                 Self::GetLiquidityDeltas(element) => {
                     ::ethers::core::abi::AbiEncode::encode(element)
                 }
-                Self::GetMaxLiquidity(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
-                Self::GetNetBalance(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
-                Self::GetPairId(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
-                Self::GetPairNonce(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
-                Self::GetPoolNonce(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
-                Self::GetPoolReserves(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
-                Self::GetReserve(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
-                Self::GetVirtualPrice(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
+                Self::GetMaxLiquidity(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::GetNetBalance(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::GetPairId(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::GetPairNonce(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::GetPoolNonce(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::GetPoolReserves(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::GetReserve(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::GetVirtualPrice(element) => ::ethers::core::abi::AbiEncode::encode(element),
                 Self::GetVirtualReservesPerLiquidity(element) => {
                     ::ethers::core::abi::AbiEncode::encode(element)
                 }
-                Self::Multiprocess(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
+                Self::Multiprocess(element) => ::ethers::core::abi::AbiEncode::encode(element),
                 Self::Pairs(element) => ::ethers::core::abi::AbiEncode::encode(element),
                 Self::Pools(element) => ::ethers::core::abi::AbiEncode::encode(element),
-                Self::Positions(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
-                Self::SetProtocolFee(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
+                Self::Positions(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::SetProtocolFee(element) => ::ethers::core::abi::AbiEncode::encode(element),
             }
         }
     }
@@ -27440,9 +27280,7 @@ pub mod i_portfolio {
                 Self::Fund(element) => ::core::fmt::Display::fmt(element, f),
                 Self::GetAmountOut(element) => ::core::fmt::Display::fmt(element, f),
                 Self::GetBalance(element) => ::core::fmt::Display::fmt(element, f),
-                Self::GetLiquidityDeltas(element) => {
-                    ::core::fmt::Display::fmt(element, f)
-                }
+                Self::GetLiquidityDeltas(element) => ::core::fmt::Display::fmt(element, f),
                 Self::GetMaxLiquidity(element) => ::core::fmt::Display::fmt(element, f),
                 Self::GetNetBalance(element) => ::core::fmt::Display::fmt(element, f),
                 Self::GetPairId(element) => ::core::fmt::Display::fmt(element, f),
@@ -27591,7 +27429,7 @@ pub mod i_portfolio {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     pub struct RegistryReturn(pub ::ethers::core::types::Address);
     ///Container type for all return fields from the `VERSION` function with signature `VERSION()` and selector `0xffa1ad74`
@@ -27603,7 +27441,7 @@ pub mod i_portfolio {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     pub struct VersionReturn(pub ::std::string::String);
     ///Container type for all return fields from the `WETH` function with signature `WETH()` and selector `0xad5c4648`
@@ -27615,7 +27453,7 @@ pub mod i_portfolio {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     pub struct WethReturn(pub ::ethers::core::types::Address);
     ///Container type for all return fields from the `getAmountOut` function with signature `getAmountOut(uint64,bool,uint256)` and selector `0x7dae4890`
@@ -27627,7 +27465,7 @@ pub mod i_portfolio {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     pub struct GetAmountOutReturn(pub ::ethers::core::types::U256);
     ///Container type for all return fields from the `getBalance` function with signature `getBalance(address,address)` and selector `0xd4fac45d`
@@ -27639,7 +27477,7 @@ pub mod i_portfolio {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     pub struct GetBalanceReturn(pub ::ethers::core::types::U256);
     ///Container type for all return fields from the `getLiquidityDeltas` function with signature `getLiquidityDeltas(uint64,int128)` and selector `0x8992f20a`
@@ -27651,7 +27489,7 @@ pub mod i_portfolio {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     pub struct GetLiquidityDeltasReturn {
         pub delta_asset: u128,
@@ -27666,7 +27504,7 @@ pub mod i_portfolio {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     pub struct GetMaxLiquidityReturn {
         pub delta_liquidity: u128,
@@ -27680,7 +27518,7 @@ pub mod i_portfolio {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     pub struct GetNetBalanceReturn(pub ::ethers::core::types::I256);
     ///Container type for all return fields from the `getPairId` function with signature `getPairId(address,address)` and selector `0x3f92a339`
@@ -27692,7 +27530,7 @@ pub mod i_portfolio {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     pub struct GetPairIdReturn {
         pub pair_id: u32,
@@ -27706,7 +27544,7 @@ pub mod i_portfolio {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     pub struct GetPairNonceReturn(pub u32);
     ///Container type for all return fields from the `getPoolNonce` function with signature `getPoolNonce(uint24)` and selector `0xa5cd8a49`
@@ -27718,7 +27556,7 @@ pub mod i_portfolio {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     pub struct GetPoolNonceReturn(pub u32);
     ///Container type for all return fields from the `getPoolReserves` function with signature `getPoolReserves(uint64)` and selector `0x2afb9df8`
@@ -27730,7 +27568,7 @@ pub mod i_portfolio {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     pub struct GetPoolReservesReturn {
         pub delta_asset: ::ethers::core::types::U256,
@@ -27745,7 +27583,7 @@ pub mod i_portfolio {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     pub struct GetReserveReturn(pub ::ethers::core::types::U256);
     ///Container type for all return fields from the `getVirtualPrice` function with signature `getVirtualPrice(uint64)` and selector `0x61b7ea6a`
@@ -27757,7 +27595,7 @@ pub mod i_portfolio {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     pub struct GetVirtualPriceReturn {
         pub price: ::ethers::core::types::U256,
@@ -27771,7 +27609,7 @@ pub mod i_portfolio {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     pub struct GetVirtualReservesPerLiquidityReturn {
         pub delta_asset: u128,
@@ -27786,7 +27624,7 @@ pub mod i_portfolio {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     pub struct PairsReturn {
         pub token_asset: ::ethers::core::types::Address,
@@ -27803,7 +27641,7 @@ pub mod i_portfolio {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     pub struct PoolsReturn {
         pub virtual_x: u128,
@@ -27826,7 +27664,7 @@ pub mod i_portfolio {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     pub struct PositionsReturn {
         pub free_liquidity: u128,
@@ -27848,18 +27686,16 @@ pub use i_portfolio_actions::*;
     clippy::upper_case_acronyms,
     clippy::type_complexity,
     dead_code,
-    non_camel_case_types,
+    non_camel_case_types
 )]
 pub mod i_portfolio_actions {
     #[rustfmt::skip]
     const __ABI: &str = "[{\"inputs\":[{\"internalType\":\"uint64\",\"name\":\"poolId\",\"type\":\"uint64\",\"components\":[]},{\"internalType\":\"uint16\",\"name\":\"priorityFee\",\"type\":\"uint16\",\"components\":[]},{\"internalType\":\"uint16\",\"name\":\"fee\",\"type\":\"uint16\",\"components\":[]},{\"internalType\":\"uint16\",\"name\":\"jit\",\"type\":\"uint16\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"function\",\"name\":\"changeParameters\",\"outputs\":[]},{\"inputs\":[],\"stateMutability\":\"payable\",\"type\":\"function\",\"name\":\"deposit\",\"outputs\":[]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"token\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"address\",\"name\":\"to\",\"type\":\"address\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"function\",\"name\":\"draw\",\"outputs\":[]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"token\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"function\",\"name\":\"fund\",\"outputs\":[]},{\"inputs\":[{\"internalType\":\"bytes\",\"name\":\"data\",\"type\":\"bytes\",\"components\":[]}],\"stateMutability\":\"payable\",\"type\":\"function\",\"name\":\"multiprocess\",\"outputs\":[]},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"fee\",\"type\":\"uint256\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"function\",\"name\":\"setProtocolFee\",\"outputs\":[]}]";
     ///The parsed JSON ABI of the contract.
-    pub static IPORTFOLIOACTIONS_ABI: ::ethers::contract::Lazy<
-        ::ethers::core::abi::Abi,
-    > = ::ethers::contract::Lazy::new(|| {
-        ::ethers::core::utils::__serde_json::from_str(__ABI)
-            .expect("ABI is always valid")
-    });
+    pub static IPORTFOLIOACTIONS_ABI: ::ethers::contract::Lazy<::ethers::core::abi::Abi> =
+        ::ethers::contract::Lazy::new(|| {
+            ::ethers::core::utils::__serde_json::from_str(__ABI).expect("ABI is always valid")
+        });
     pub struct IPortfolioActions<M>(::ethers::contract::Contract<M>);
     impl<M> ::core::clone::Clone for IPortfolioActions<M> {
         fn clone(&self) -> Self {
@@ -27879,7 +27715,9 @@ pub mod i_portfolio_actions {
     }
     impl<M> ::core::fmt::Debug for IPortfolioActions<M> {
         fn fmt(&self, f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
-            f.debug_tuple(stringify!(IPortfolioActions)).field(&self.address()).finish()
+            f.debug_tuple(stringify!(IPortfolioActions))
+                .field(&self.address())
+                .finish()
         }
     }
     impl<M: ::ethers::providers::Middleware> IPortfolioActions<M> {
@@ -27889,13 +27727,11 @@ pub mod i_portfolio_actions {
             address: T,
             client: ::std::sync::Arc<M>,
         ) -> Self {
-            Self(
-                ::ethers::contract::Contract::new(
-                    address.into(),
-                    IPORTFOLIOACTIONS_ABI.clone(),
-                    client,
-                ),
-            )
+            Self(::ethers::contract::Contract::new(
+                address.into(),
+                IPORTFOLIOACTIONS_ABI.clone(),
+                client,
+            ))
         }
         ///Calls the contract's `changeParameters` (0xaf777855) function
         pub fn change_parameters(
@@ -27956,7 +27792,8 @@ pub mod i_portfolio_actions {
         }
     }
     impl<M: ::ethers::providers::Middleware> From<::ethers::contract::Contract<M>>
-    for IPortfolioActions<M> {
+        for IPortfolioActions<M>
+    {
         fn from(contract: ::ethers::contract::Contract<M>) -> Self {
             Self::new(contract.address(), contract.client())
         }
@@ -27970,7 +27807,7 @@ pub mod i_portfolio_actions {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(
         name = "changeParameters",
@@ -27991,7 +27828,7 @@ pub mod i_portfolio_actions {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "deposit", abi = "deposit()")]
     pub struct DepositCall;
@@ -28004,7 +27841,7 @@ pub mod i_portfolio_actions {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "draw", abi = "draw(address,uint256,address)")]
     pub struct DrawCall {
@@ -28021,7 +27858,7 @@ pub mod i_portfolio_actions {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "fund", abi = "fund(address,uint256)")]
     pub struct FundCall {
@@ -28037,7 +27874,7 @@ pub mod i_portfolio_actions {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "multiprocess", abi = "multiprocess(bytes)")]
     pub struct MultiprocessCall {
@@ -28052,7 +27889,7 @@ pub mod i_portfolio_actions {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "setProtocolFee", abi = "setProtocolFee(uint256)")]
     pub struct SetProtocolFeeCall {
@@ -28073,30 +27910,27 @@ pub mod i_portfolio_actions {
             data: impl AsRef<[u8]>,
         ) -> ::core::result::Result<Self, ::ethers::core::abi::AbiError> {
             let data = data.as_ref();
-            if let Ok(decoded)
-                = <ChangeParametersCall as ::ethers::core::abi::AbiDecode>::decode(
-                    data,
-                ) {
+            if let Ok(decoded) =
+                <ChangeParametersCall as ::ethers::core::abi::AbiDecode>::decode(data)
+            {
                 return Ok(Self::ChangeParameters(decoded));
             }
-            if let Ok(decoded)
-                = <DepositCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <DepositCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::Deposit(decoded));
             }
-            if let Ok(decoded)
-                = <DrawCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <DrawCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::Draw(decoded));
             }
-            if let Ok(decoded)
-                = <FundCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <FundCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::Fund(decoded));
             }
-            if let Ok(decoded)
-                = <MultiprocessCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <MultiprocessCall as ::ethers::core::abi::AbiDecode>::decode(data)
+            {
                 return Ok(Self::Multiprocess(decoded));
             }
-            if let Ok(decoded)
-                = <SetProtocolFeeCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) =
+                <SetProtocolFeeCall as ::ethers::core::abi::AbiDecode>::decode(data)
+            {
                 return Ok(Self::SetProtocolFee(decoded));
             }
             Err(::ethers::core::abi::Error::InvalidData.into())
@@ -28105,18 +27939,12 @@ pub mod i_portfolio_actions {
     impl ::ethers::core::abi::AbiEncode for IPortfolioActionsCalls {
         fn encode(self) -> Vec<u8> {
             match self {
-                Self::ChangeParameters(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
+                Self::ChangeParameters(element) => ::ethers::core::abi::AbiEncode::encode(element),
                 Self::Deposit(element) => ::ethers::core::abi::AbiEncode::encode(element),
                 Self::Draw(element) => ::ethers::core::abi::AbiEncode::encode(element),
                 Self::Fund(element) => ::ethers::core::abi::AbiEncode::encode(element),
-                Self::Multiprocess(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
-                Self::SetProtocolFee(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
+                Self::Multiprocess(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::SetProtocolFee(element) => ::ethers::core::abi::AbiEncode::encode(element),
             }
         }
     }
@@ -28172,18 +28000,16 @@ pub use i_portfolio_events::*;
     clippy::upper_case_acronyms,
     clippy::type_complexity,
     dead_code,
-    non_camel_case_types,
+    non_camel_case_types
 )]
 pub mod i_portfolio_events {
     #[rustfmt::skip]
     const __ABI: &str = "[{\"inputs\":[{\"internalType\":\"uint64\",\"name\":\"poolId\",\"type\":\"uint64\",\"components\":[],\"indexed\":true},{\"internalType\":\"address\",\"name\":\"asset\",\"type\":\"address\",\"components\":[],\"indexed\":true},{\"internalType\":\"address\",\"name\":\"quote\",\"type\":\"address\",\"components\":[],\"indexed\":true},{\"internalType\":\"uint256\",\"name\":\"deltaAsset\",\"type\":\"uint256\",\"components\":[],\"indexed\":false},{\"internalType\":\"uint256\",\"name\":\"deltaQuote\",\"type\":\"uint256\",\"components\":[],\"indexed\":false},{\"internalType\":\"uint256\",\"name\":\"deltaLiquidity\",\"type\":\"uint256\",\"components\":[],\"indexed\":false}],\"type\":\"event\",\"name\":\"Allocate\",\"outputs\":[],\"anonymous\":false},{\"inputs\":[{\"internalType\":\"uint64\",\"name\":\"poolId\",\"type\":\"uint64\",\"components\":[],\"indexed\":true},{\"internalType\":\"uint16\",\"name\":\"priorityFee\",\"type\":\"uint16\",\"components\":[],\"indexed\":true},{\"internalType\":\"uint16\",\"name\":\"fee\",\"type\":\"uint16\",\"components\":[],\"indexed\":true},{\"internalType\":\"uint16\",\"name\":\"jit\",\"type\":\"uint16\",\"components\":[],\"indexed\":false}],\"type\":\"event\",\"name\":\"ChangeParameters\",\"outputs\":[],\"anonymous\":false},{\"inputs\":[{\"internalType\":\"uint64\",\"name\":\"poolId\",\"type\":\"uint64\",\"components\":[],\"indexed\":false},{\"internalType\":\"address\",\"name\":\"account\",\"type\":\"address\",\"components\":[],\"indexed\":true},{\"internalType\":\"uint256\",\"name\":\"feeAssetDec\",\"type\":\"uint256\",\"components\":[],\"indexed\":false},{\"internalType\":\"address\",\"name\":\"asset\",\"type\":\"address\",\"components\":[],\"indexed\":true},{\"internalType\":\"uint256\",\"name\":\"feeQuoteDec\",\"type\":\"uint256\",\"components\":[],\"indexed\":false},{\"internalType\":\"address\",\"name\":\"quote\",\"type\":\"address\",\"components\":[],\"indexed\":true}],\"type\":\"event\",\"name\":\"Collect\",\"outputs\":[],\"anonymous\":false},{\"inputs\":[{\"internalType\":\"uint24\",\"name\":\"pairId\",\"type\":\"uint24\",\"components\":[],\"indexed\":true},{\"internalType\":\"address\",\"name\":\"asset\",\"type\":\"address\",\"components\":[],\"indexed\":true},{\"internalType\":\"address\",\"name\":\"quote\",\"type\":\"address\",\"components\":[],\"indexed\":true},{\"internalType\":\"uint8\",\"name\":\"decimalsAsset\",\"type\":\"uint8\",\"components\":[],\"indexed\":false},{\"internalType\":\"uint8\",\"name\":\"decimalsQuote\",\"type\":\"uint8\",\"components\":[],\"indexed\":false}],\"type\":\"event\",\"name\":\"CreatePair\",\"outputs\":[],\"anonymous\":false},{\"inputs\":[{\"internalType\":\"uint64\",\"name\":\"poolId\",\"type\":\"uint64\",\"components\":[],\"indexed\":true},{\"internalType\":\"bool\",\"name\":\"isMutable\",\"type\":\"bool\",\"components\":[],\"indexed\":false},{\"internalType\":\"address\",\"name\":\"asset\",\"type\":\"address\",\"components\":[],\"indexed\":true},{\"internalType\":\"address\",\"name\":\"quote\",\"type\":\"address\",\"components\":[],\"indexed\":true},{\"internalType\":\"uint256\",\"name\":\"price\",\"type\":\"uint256\",\"components\":[],\"indexed\":false}],\"type\":\"event\",\"name\":\"CreatePool\",\"outputs\":[],\"anonymous\":false},{\"inputs\":[{\"internalType\":\"uint64\",\"name\":\"poolId\",\"type\":\"uint64\",\"components\":[],\"indexed\":true},{\"internalType\":\"address\",\"name\":\"asset\",\"type\":\"address\",\"components\":[],\"indexed\":true},{\"internalType\":\"address\",\"name\":\"quote\",\"type\":\"address\",\"components\":[],\"indexed\":true},{\"internalType\":\"uint256\",\"name\":\"deltaAsset\",\"type\":\"uint256\",\"components\":[],\"indexed\":false},{\"internalType\":\"uint256\",\"name\":\"deltaQuote\",\"type\":\"uint256\",\"components\":[],\"indexed\":false},{\"internalType\":\"uint256\",\"name\":\"deltaLiquidity\",\"type\":\"uint256\",\"components\":[],\"indexed\":false}],\"type\":\"event\",\"name\":\"Deallocate\",\"outputs\":[],\"anonymous\":false},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"token\",\"type\":\"address\",\"components\":[],\"indexed\":true},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\",\"components\":[],\"indexed\":false}],\"type\":\"event\",\"name\":\"DecreaseReserveBalance\",\"outputs\":[],\"anonymous\":false},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"account\",\"type\":\"address\",\"components\":[],\"indexed\":true},{\"internalType\":\"address\",\"name\":\"token\",\"type\":\"address\",\"components\":[],\"indexed\":true},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\",\"components\":[],\"indexed\":false}],\"type\":\"event\",\"name\":\"DecreaseUserBalance\",\"outputs\":[],\"anonymous\":false},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"account\",\"type\":\"address\",\"components\":[],\"indexed\":true},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\",\"components\":[],\"indexed\":false}],\"type\":\"event\",\"name\":\"Deposit\",\"outputs\":[],\"anonymous\":false},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"token\",\"type\":\"address\",\"components\":[],\"indexed\":true},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\",\"components\":[],\"indexed\":false}],\"type\":\"event\",\"name\":\"IncreaseReserveBalance\",\"outputs\":[],\"anonymous\":false},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"account\",\"type\":\"address\",\"components\":[],\"indexed\":true},{\"internalType\":\"address\",\"name\":\"token\",\"type\":\"address\",\"components\":[],\"indexed\":true},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\",\"components\":[],\"indexed\":false}],\"type\":\"event\",\"name\":\"IncreaseUserBalance\",\"outputs\":[],\"anonymous\":false},{\"inputs\":[{\"internalType\":\"uint64\",\"name\":\"poolId\",\"type\":\"uint64\",\"components\":[],\"indexed\":true},{\"internalType\":\"uint256\",\"name\":\"price\",\"type\":\"uint256\",\"components\":[],\"indexed\":false},{\"internalType\":\"address\",\"name\":\"sellAsset\",\"type\":\"address\",\"components\":[],\"indexed\":true},{\"internalType\":\"uint256\",\"name\":\"input\",\"type\":\"uint256\",\"components\":[],\"indexed\":false},{\"internalType\":\"address\",\"name\":\"tokenOut\",\"type\":\"address\",\"components\":[],\"indexed\":true},{\"internalType\":\"uint256\",\"name\":\"output\",\"type\":\"uint256\",\"components\":[],\"indexed\":false},{\"internalType\":\"uint256\",\"name\":\"feeAmountDec\",\"type\":\"uint256\",\"components\":[],\"indexed\":false},{\"internalType\":\"int256\",\"name\":\"invariantWad\",\"type\":\"int256\",\"components\":[],\"indexed\":false}],\"type\":\"event\",\"name\":\"Swap\",\"outputs\":[],\"anonymous\":false},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"prevFee\",\"type\":\"uint256\",\"components\":[],\"indexed\":false},{\"internalType\":\"uint256\",\"name\":\"nextFee\",\"type\":\"uint256\",\"components\":[],\"indexed\":false}],\"type\":\"event\",\"name\":\"UpdateProtocolFee\",\"outputs\":[],\"anonymous\":false}]";
     ///The parsed JSON ABI of the contract.
-    pub static IPORTFOLIOEVENTS_ABI: ::ethers::contract::Lazy<
-        ::ethers::core::abi::Abi,
-    > = ::ethers::contract::Lazy::new(|| {
-        ::ethers::core::utils::__serde_json::from_str(__ABI)
-            .expect("ABI is always valid")
-    });
+    pub static IPORTFOLIOEVENTS_ABI: ::ethers::contract::Lazy<::ethers::core::abi::Abi> =
+        ::ethers::contract::Lazy::new(|| {
+            ::ethers::core::utils::__serde_json::from_str(__ABI).expect("ABI is always valid")
+        });
     pub struct IPortfolioEvents<M>(::ethers::contract::Contract<M>);
     impl<M> ::core::clone::Clone for IPortfolioEvents<M> {
         fn clone(&self) -> Self {
@@ -28203,7 +28029,9 @@ pub mod i_portfolio_events {
     }
     impl<M> ::core::fmt::Debug for IPortfolioEvents<M> {
         fn fmt(&self, f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
-            f.debug_tuple(stringify!(IPortfolioEvents)).field(&self.address()).finish()
+            f.debug_tuple(stringify!(IPortfolioEvents))
+                .field(&self.address())
+                .finish()
         }
     }
     impl<M: ::ethers::providers::Middleware> IPortfolioEvents<M> {
@@ -28213,32 +28041,23 @@ pub mod i_portfolio_events {
             address: T,
             client: ::std::sync::Arc<M>,
         ) -> Self {
-            Self(
-                ::ethers::contract::Contract::new(
-                    address.into(),
-                    IPORTFOLIOEVENTS_ABI.clone(),
-                    client,
-                ),
-            )
+            Self(::ethers::contract::Contract::new(
+                address.into(),
+                IPORTFOLIOEVENTS_ABI.clone(),
+                client,
+            ))
         }
         ///Gets the contract's `Allocate` event
         pub fn allocate_filter(
             &self,
-        ) -> ::ethers::contract::builders::Event<
-            ::std::sync::Arc<M>,
-            M,
-            AllocateFilter,
-        > {
+        ) -> ::ethers::contract::builders::Event<::std::sync::Arc<M>, M, AllocateFilter> {
             self.0.event()
         }
         ///Gets the contract's `ChangeParameters` event
         pub fn change_parameters_filter(
             &self,
-        ) -> ::ethers::contract::builders::Event<
-            ::std::sync::Arc<M>,
-            M,
-            ChangeParametersFilter,
-        > {
+        ) -> ::ethers::contract::builders::Event<::std::sync::Arc<M>, M, ChangeParametersFilter>
+        {
             self.0.event()
         }
         ///Gets the contract's `Collect` event
@@ -28250,51 +28069,33 @@ pub mod i_portfolio_events {
         ///Gets the contract's `CreatePair` event
         pub fn create_pair_filter(
             &self,
-        ) -> ::ethers::contract::builders::Event<
-            ::std::sync::Arc<M>,
-            M,
-            CreatePairFilter,
-        > {
+        ) -> ::ethers::contract::builders::Event<::std::sync::Arc<M>, M, CreatePairFilter> {
             self.0.event()
         }
         ///Gets the contract's `CreatePool` event
         pub fn create_pool_filter(
             &self,
-        ) -> ::ethers::contract::builders::Event<
-            ::std::sync::Arc<M>,
-            M,
-            CreatePoolFilter,
-        > {
+        ) -> ::ethers::contract::builders::Event<::std::sync::Arc<M>, M, CreatePoolFilter> {
             self.0.event()
         }
         ///Gets the contract's `Deallocate` event
         pub fn deallocate_filter(
             &self,
-        ) -> ::ethers::contract::builders::Event<
-            ::std::sync::Arc<M>,
-            M,
-            DeallocateFilter,
-        > {
+        ) -> ::ethers::contract::builders::Event<::std::sync::Arc<M>, M, DeallocateFilter> {
             self.0.event()
         }
         ///Gets the contract's `DecreaseReserveBalance` event
         pub fn decrease_reserve_balance_filter(
             &self,
-        ) -> ::ethers::contract::builders::Event<
-            ::std::sync::Arc<M>,
-            M,
-            DecreaseReserveBalanceFilter,
-        > {
+        ) -> ::ethers::contract::builders::Event<::std::sync::Arc<M>, M, DecreaseReserveBalanceFilter>
+        {
             self.0.event()
         }
         ///Gets the contract's `DecreaseUserBalance` event
         pub fn decrease_user_balance_filter(
             &self,
-        ) -> ::ethers::contract::builders::Event<
-            ::std::sync::Arc<M>,
-            M,
-            DecreaseUserBalanceFilter,
-        > {
+        ) -> ::ethers::contract::builders::Event<::std::sync::Arc<M>, M, DecreaseUserBalanceFilter>
+        {
             self.0.event()
         }
         ///Gets the contract's `Deposit` event
@@ -28306,21 +28107,15 @@ pub mod i_portfolio_events {
         ///Gets the contract's `IncreaseReserveBalance` event
         pub fn increase_reserve_balance_filter(
             &self,
-        ) -> ::ethers::contract::builders::Event<
-            ::std::sync::Arc<M>,
-            M,
-            IncreaseReserveBalanceFilter,
-        > {
+        ) -> ::ethers::contract::builders::Event<::std::sync::Arc<M>, M, IncreaseReserveBalanceFilter>
+        {
             self.0.event()
         }
         ///Gets the contract's `IncreaseUserBalance` event
         pub fn increase_user_balance_filter(
             &self,
-        ) -> ::ethers::contract::builders::Event<
-            ::std::sync::Arc<M>,
-            M,
-            IncreaseUserBalanceFilter,
-        > {
+        ) -> ::ethers::contract::builders::Event<::std::sync::Arc<M>, M, IncreaseUserBalanceFilter>
+        {
             self.0.event()
         }
         ///Gets the contract's `Swap` event
@@ -28332,26 +28127,22 @@ pub mod i_portfolio_events {
         ///Gets the contract's `UpdateProtocolFee` event
         pub fn update_protocol_fee_filter(
             &self,
-        ) -> ::ethers::contract::builders::Event<
-            ::std::sync::Arc<M>,
-            M,
-            UpdateProtocolFeeFilter,
-        > {
+        ) -> ::ethers::contract::builders::Event<::std::sync::Arc<M>, M, UpdateProtocolFeeFilter>
+        {
             self.0.event()
         }
         /// Returns an `Event` builder for all the events of this contract.
         pub fn events(
             &self,
-        ) -> ::ethers::contract::builders::Event<
-            ::std::sync::Arc<M>,
-            M,
-            IPortfolioEventsEvents,
-        > {
-            self.0.event_with_filter(::core::default::Default::default())
+        ) -> ::ethers::contract::builders::Event<::std::sync::Arc<M>, M, IPortfolioEventsEvents>
+        {
+            self.0
+                .event_with_filter(::core::default::Default::default())
         }
     }
     impl<M: ::ethers::providers::Middleware> From<::ethers::contract::Contract<M>>
-    for IPortfolioEvents<M> {
+        for IPortfolioEvents<M>
+    {
         fn from(contract: ::ethers::contract::Contract<M>) -> Self {
             Self::new(contract.address(), contract.client())
         }
@@ -28364,7 +28155,7 @@ pub mod i_portfolio_events {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethevent(
         name = "Allocate",
@@ -28389,7 +28180,7 @@ pub mod i_portfolio_events {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethevent(
         name = "ChangeParameters",
@@ -28412,7 +28203,7 @@ pub mod i_portfolio_events {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethevent(
         name = "Collect",
@@ -28437,7 +28228,7 @@ pub mod i_portfolio_events {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethevent(
         name = "CreatePair",
@@ -28461,7 +28252,7 @@ pub mod i_portfolio_events {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethevent(
         name = "CreatePool",
@@ -28485,7 +28276,7 @@ pub mod i_portfolio_events {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethevent(
         name = "Deallocate",
@@ -28510,7 +28301,7 @@ pub mod i_portfolio_events {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethevent(
         name = "DecreaseReserveBalance",
@@ -28529,7 +28320,7 @@ pub mod i_portfolio_events {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethevent(
         name = "DecreaseUserBalance",
@@ -28550,7 +28341,7 @@ pub mod i_portfolio_events {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethevent(name = "Deposit", abi = "Deposit(address,uint256)")]
     pub struct DepositFilter {
@@ -28566,7 +28357,7 @@ pub mod i_portfolio_events {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethevent(
         name = "IncreaseReserveBalance",
@@ -28585,7 +28376,7 @@ pub mod i_portfolio_events {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethevent(
         name = "IncreaseUserBalance",
@@ -28606,7 +28397,7 @@ pub mod i_portfolio_events {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethevent(
         name = "Swap",
@@ -28633,7 +28424,7 @@ pub mod i_portfolio_events {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethevent(name = "UpdateProtocolFee", abi = "UpdateProtocolFee(uint256,uint256)")]
     pub struct UpdateProtocolFeeFilter {
@@ -28680,7 +28471,9 @@ pub mod i_portfolio_events {
                 return Ok(IPortfolioEventsEvents::DeallocateFilter(decoded));
             }
             if let Ok(decoded) = DecreaseReserveBalanceFilter::decode_log(log) {
-                return Ok(IPortfolioEventsEvents::DecreaseReserveBalanceFilter(decoded));
+                return Ok(IPortfolioEventsEvents::DecreaseReserveBalanceFilter(
+                    decoded,
+                ));
             }
             if let Ok(decoded) = DecreaseUserBalanceFilter::decode_log(log) {
                 return Ok(IPortfolioEventsEvents::DecreaseUserBalanceFilter(decoded));
@@ -28689,7 +28482,9 @@ pub mod i_portfolio_events {
                 return Ok(IPortfolioEventsEvents::DepositFilter(decoded));
             }
             if let Ok(decoded) = IncreaseReserveBalanceFilter::decode_log(log) {
-                return Ok(IPortfolioEventsEvents::IncreaseReserveBalanceFilter(decoded));
+                return Ok(IPortfolioEventsEvents::IncreaseReserveBalanceFilter(
+                    decoded,
+                ));
             }
             if let Ok(decoded) = IncreaseUserBalanceFilter::decode_log(log) {
                 return Ok(IPortfolioEventsEvents::IncreaseUserBalanceFilter(decoded));
@@ -28707,9 +28502,7 @@ pub mod i_portfolio_events {
         fn fmt(&self, f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
             match self {
                 Self::AllocateFilter(element) => ::core::fmt::Display::fmt(element, f),
-                Self::ChangeParametersFilter(element) => {
-                    ::core::fmt::Display::fmt(element, f)
-                }
+                Self::ChangeParametersFilter(element) => ::core::fmt::Display::fmt(element, f),
                 Self::CollectFilter(element) => ::core::fmt::Display::fmt(element, f),
                 Self::CreatePairFilter(element) => ::core::fmt::Display::fmt(element, f),
                 Self::CreatePoolFilter(element) => ::core::fmt::Display::fmt(element, f),
@@ -28717,20 +28510,14 @@ pub mod i_portfolio_events {
                 Self::DecreaseReserveBalanceFilter(element) => {
                     ::core::fmt::Display::fmt(element, f)
                 }
-                Self::DecreaseUserBalanceFilter(element) => {
-                    ::core::fmt::Display::fmt(element, f)
-                }
+                Self::DecreaseUserBalanceFilter(element) => ::core::fmt::Display::fmt(element, f),
                 Self::DepositFilter(element) => ::core::fmt::Display::fmt(element, f),
                 Self::IncreaseReserveBalanceFilter(element) => {
                     ::core::fmt::Display::fmt(element, f)
                 }
-                Self::IncreaseUserBalanceFilter(element) => {
-                    ::core::fmt::Display::fmt(element, f)
-                }
+                Self::IncreaseUserBalanceFilter(element) => ::core::fmt::Display::fmt(element, f),
                 Self::SwapFilter(element) => ::core::fmt::Display::fmt(element, f),
-                Self::UpdateProtocolFeeFilter(element) => {
-                    ::core::fmt::Display::fmt(element, f)
-                }
+                Self::UpdateProtocolFeeFilter(element) => ::core::fmt::Display::fmt(element, f),
             }
         }
     }
@@ -28809,19 +28596,17 @@ pub use i_portfolio_getters::*;
     clippy::upper_case_acronyms,
     clippy::type_complexity,
     dead_code,
-    non_camel_case_types,
+    non_camel_case_types
 )]
 pub mod i_portfolio_getters {
     pub use super::__shared_types::*;
     #[rustfmt::skip]
     const __ABI: &str = "[{\"inputs\":[],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"REGISTRY\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\",\"components\":[]}]},{\"inputs\":[],\"stateMutability\":\"pure\",\"type\":\"function\",\"name\":\"VERSION\",\"outputs\":[{\"internalType\":\"string\",\"name\":\"\",\"type\":\"string\",\"components\":[]}]},{\"inputs\":[],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"WETH\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"uint64\",\"name\":\"poolId\",\"type\":\"uint64\",\"components\":[]},{\"internalType\":\"bool\",\"name\":\"sellAsset\",\"type\":\"bool\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"amountIn\",\"type\":\"uint256\",\"components\":[]}],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"getAmountOut\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"owner\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"address\",\"name\":\"token\",\"type\":\"address\",\"components\":[]}],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"getBalance\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"uint64\",\"name\":\"poolId\",\"type\":\"uint64\",\"components\":[]},{\"internalType\":\"int128\",\"name\":\"deltaLiquidity\",\"type\":\"int128\",\"components\":[]}],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"getLiquidityDeltas\",\"outputs\":[{\"internalType\":\"uint128\",\"name\":\"deltaAsset\",\"type\":\"uint128\",\"components\":[]},{\"internalType\":\"uint128\",\"name\":\"deltaQuote\",\"type\":\"uint128\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"uint64\",\"name\":\"poolId\",\"type\":\"uint64\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"deltaAsset\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"deltaQuote\",\"type\":\"uint256\",\"components\":[]}],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"getMaxLiquidity\",\"outputs\":[{\"internalType\":\"uint128\",\"name\":\"deltaLiquidity\",\"type\":\"uint128\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"token\",\"type\":\"address\",\"components\":[]}],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"getNetBalance\",\"outputs\":[{\"internalType\":\"int256\",\"name\":\"\",\"type\":\"int256\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"asset\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"address\",\"name\":\"quote\",\"type\":\"address\",\"components\":[]}],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"getPairId\",\"outputs\":[{\"internalType\":\"uint24\",\"name\":\"pairId\",\"type\":\"uint24\",\"components\":[]}]},{\"inputs\":[],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"getPairNonce\",\"outputs\":[{\"internalType\":\"uint24\",\"name\":\"\",\"type\":\"uint24\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"uint24\",\"name\":\"pairNonce\",\"type\":\"uint24\",\"components\":[]}],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"getPoolNonce\",\"outputs\":[{\"internalType\":\"uint32\",\"name\":\"\",\"type\":\"uint32\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"uint64\",\"name\":\"poolId\",\"type\":\"uint64\",\"components\":[]}],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"getPoolReserves\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"deltaAsset\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"deltaQuote\",\"type\":\"uint256\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"token\",\"type\":\"address\",\"components\":[]}],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"getReserve\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"uint64\",\"name\":\"poolId\",\"type\":\"uint64\",\"components\":[]}],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"getVirtualPrice\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"price\",\"type\":\"uint256\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"uint64\",\"name\":\"poolId\",\"type\":\"uint64\",\"components\":[]}],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"getVirtualReservesPerLiquidity\",\"outputs\":[{\"internalType\":\"uint128\",\"name\":\"deltaAsset\",\"type\":\"uint128\",\"components\":[]},{\"internalType\":\"uint128\",\"name\":\"deltaQuote\",\"type\":\"uint128\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"uint24\",\"name\":\"pairId\",\"type\":\"uint24\",\"components\":[]}],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"pairs\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"tokenAsset\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint8\",\"name\":\"decimalsAsset\",\"type\":\"uint8\",\"components\":[]},{\"internalType\":\"address\",\"name\":\"tokenQuote\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint8\",\"name\":\"decimalsQuote\",\"type\":\"uint8\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"uint64\",\"name\":\"poolId\",\"type\":\"uint64\",\"components\":[]}],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"pools\",\"outputs\":[{\"internalType\":\"uint128\",\"name\":\"virtualX\",\"type\":\"uint128\",\"components\":[]},{\"internalType\":\"uint128\",\"name\":\"virtualY\",\"type\":\"uint128\",\"components\":[]},{\"internalType\":\"uint128\",\"name\":\"liquidity\",\"type\":\"uint128\",\"components\":[]},{\"internalType\":\"uint32\",\"name\":\"lastTimestamp\",\"type\":\"uint32\",\"components\":[]},{\"internalType\":\"address\",\"name\":\"controller\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"invariantGrowthGlobal\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"feeGrowthGlobalAsset\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"feeGrowthGlobalQuote\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"struct PortfolioCurve\",\"name\":\"\",\"type\":\"tuple\",\"components\":[{\"internalType\":\"uint128\",\"name\":\"maxPrice\",\"type\":\"uint128\",\"components\":[]},{\"internalType\":\"uint16\",\"name\":\"jit\",\"type\":\"uint16\",\"components\":[]},{\"internalType\":\"uint16\",\"name\":\"fee\",\"type\":\"uint16\",\"components\":[]},{\"internalType\":\"uint16\",\"name\":\"duration\",\"type\":\"uint16\",\"components\":[]},{\"internalType\":\"uint16\",\"name\":\"volatility\",\"type\":\"uint16\",\"components\":[]},{\"internalType\":\"uint16\",\"name\":\"priorityFee\",\"type\":\"uint16\",\"components\":[]},{\"internalType\":\"uint32\",\"name\":\"createdAt\",\"type\":\"uint32\",\"components\":[]},{\"internalType\":\"bool\",\"name\":\"perpetual\",\"type\":\"bool\",\"components\":[]}]},{\"internalType\":\"struct PortfolioPair\",\"name\":\"\",\"type\":\"tuple\",\"components\":[{\"internalType\":\"address\",\"name\":\"tokenAsset\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint8\",\"name\":\"decimalsAsset\",\"type\":\"uint8\",\"components\":[]},{\"internalType\":\"address\",\"name\":\"tokenQuote\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint8\",\"name\":\"decimalsQuote\",\"type\":\"uint8\",\"components\":[]}]}]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"owner\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint64\",\"name\":\"poolId\",\"type\":\"uint64\",\"components\":[]}],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"positions\",\"outputs\":[{\"internalType\":\"uint128\",\"name\":\"freeLiquidity\",\"type\":\"uint128\",\"components\":[]},{\"internalType\":\"uint32\",\"name\":\"lastTimestamp\",\"type\":\"uint32\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"invariantGrowthLast\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"feeGrowthAssetLast\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"feeGrowthQuoteLast\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"uint128\",\"name\":\"tokensOwedAsset\",\"type\":\"uint128\",\"components\":[]},{\"internalType\":\"uint128\",\"name\":\"tokensOwedQuote\",\"type\":\"uint128\",\"components\":[]},{\"internalType\":\"uint128\",\"name\":\"invariantOwed\",\"type\":\"uint128\",\"components\":[]}]}]";
     ///The parsed JSON ABI of the contract.
-    pub static IPORTFOLIOGETTERS_ABI: ::ethers::contract::Lazy<
-        ::ethers::core::abi::Abi,
-    > = ::ethers::contract::Lazy::new(|| {
-        ::ethers::core::utils::__serde_json::from_str(__ABI)
-            .expect("ABI is always valid")
-    });
+    pub static IPORTFOLIOGETTERS_ABI: ::ethers::contract::Lazy<::ethers::core::abi::Abi> =
+        ::ethers::contract::Lazy::new(|| {
+            ::ethers::core::utils::__serde_json::from_str(__ABI).expect("ABI is always valid")
+        });
     pub struct IPortfolioGetters<M>(::ethers::contract::Contract<M>);
     impl<M> ::core::clone::Clone for IPortfolioGetters<M> {
         fn clone(&self) -> Self {
@@ -28841,7 +28626,9 @@ pub mod i_portfolio_getters {
     }
     impl<M> ::core::fmt::Debug for IPortfolioGetters<M> {
         fn fmt(&self, f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
-            f.debug_tuple(stringify!(IPortfolioGetters)).field(&self.address()).finish()
+            f.debug_tuple(stringify!(IPortfolioGetters))
+                .field(&self.address())
+                .finish()
         }
     }
     impl<M: ::ethers::providers::Middleware> IPortfolioGetters<M> {
@@ -28851,21 +28638,16 @@ pub mod i_portfolio_getters {
             address: T,
             client: ::std::sync::Arc<M>,
         ) -> Self {
-            Self(
-                ::ethers::contract::Contract::new(
-                    address.into(),
-                    IPORTFOLIOGETTERS_ABI.clone(),
-                    client,
-                ),
-            )
+            Self(::ethers::contract::Contract::new(
+                address.into(),
+                IPORTFOLIOGETTERS_ABI.clone(),
+                client,
+            ))
         }
         ///Calls the contract's `REGISTRY` (0x06433b1b) function
         pub fn registry(
             &self,
-        ) -> ::ethers::contract::builders::ContractCall<
-            M,
-            ::ethers::core::types::Address,
-        > {
+        ) -> ::ethers::contract::builders::ContractCall<M, ::ethers::core::types::Address> {
             self.0
                 .method_hash([6, 67, 59, 27], ())
                 .expect("method not found (this should never happen)")
@@ -28881,10 +28663,7 @@ pub mod i_portfolio_getters {
         ///Calls the contract's `WETH` (0xad5c4648) function
         pub fn weth(
             &self,
-        ) -> ::ethers::contract::builders::ContractCall<
-            M,
-            ::ethers::core::types::Address,
-        > {
+        ) -> ::ethers::contract::builders::ContractCall<M, ::ethers::core::types::Address> {
             self.0
                 .method_hash([173, 92, 70, 72], ())
                 .expect("method not found (this should never happen)")
@@ -28951,9 +28730,7 @@ pub mod i_portfolio_getters {
                 .expect("method not found (this should never happen)")
         }
         ///Calls the contract's `getPairNonce` (0x078888d6) function
-        pub fn get_pair_nonce(
-            &self,
-        ) -> ::ethers::contract::builders::ContractCall<M, u32> {
+        pub fn get_pair_nonce(&self) -> ::ethers::contract::builders::ContractCall<M, u32> {
             self.0
                 .method_hash([7, 136, 136, 214], ())
                 .expect("method not found (this should never happen)")
@@ -29012,7 +28789,12 @@ pub mod i_portfolio_getters {
             pair_id: u32,
         ) -> ::ethers::contract::builders::ContractCall<
             M,
-            (::ethers::core::types::Address, u8, ::ethers::core::types::Address, u8),
+            (
+                ::ethers::core::types::Address,
+                u8,
+                ::ethers::core::types::Address,
+                u8,
+            ),
         > {
             self.0
                 .method_hash([94, 71, 102, 60], pair_id)
@@ -29065,7 +28847,8 @@ pub mod i_portfolio_getters {
         }
     }
     impl<M: ::ethers::providers::Middleware> From<::ethers::contract::Contract<M>>
-    for IPortfolioGetters<M> {
+        for IPortfolioGetters<M>
+    {
         fn from(contract: ::ethers::contract::Contract<M>) -> Self {
             Self::new(contract.address(), contract.client())
         }
@@ -29079,7 +28862,7 @@ pub mod i_portfolio_getters {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "REGISTRY", abi = "REGISTRY()")]
     pub struct RegistryCall;
@@ -29092,7 +28875,7 @@ pub mod i_portfolio_getters {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "VERSION", abi = "VERSION()")]
     pub struct VersionCall;
@@ -29105,7 +28888,7 @@ pub mod i_portfolio_getters {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "WETH", abi = "WETH()")]
     pub struct WethCall;
@@ -29118,7 +28901,7 @@ pub mod i_portfolio_getters {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "getAmountOut", abi = "getAmountOut(uint64,bool,uint256)")]
     pub struct GetAmountOutCall {
@@ -29135,7 +28918,7 @@ pub mod i_portfolio_getters {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "getBalance", abi = "getBalance(address,address)")]
     pub struct GetBalanceCall {
@@ -29151,7 +28934,7 @@ pub mod i_portfolio_getters {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "getLiquidityDeltas", abi = "getLiquidityDeltas(uint64,int128)")]
     pub struct GetLiquidityDeltasCall {
@@ -29167,9 +28950,12 @@ pub mod i_portfolio_getters {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
-    #[ethcall(name = "getMaxLiquidity", abi = "getMaxLiquidity(uint64,uint256,uint256)")]
+    #[ethcall(
+        name = "getMaxLiquidity",
+        abi = "getMaxLiquidity(uint64,uint256,uint256)"
+    )]
     pub struct GetMaxLiquidityCall {
         pub pool_id: u64,
         pub delta_asset: ::ethers::core::types::U256,
@@ -29184,7 +28970,7 @@ pub mod i_portfolio_getters {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "getNetBalance", abi = "getNetBalance(address)")]
     pub struct GetNetBalanceCall {
@@ -29199,7 +28985,7 @@ pub mod i_portfolio_getters {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "getPairId", abi = "getPairId(address,address)")]
     pub struct GetPairIdCall {
@@ -29215,7 +29001,7 @@ pub mod i_portfolio_getters {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "getPairNonce", abi = "getPairNonce()")]
     pub struct GetPairNonceCall;
@@ -29228,7 +29014,7 @@ pub mod i_portfolio_getters {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "getPoolNonce", abi = "getPoolNonce(uint24)")]
     pub struct GetPoolNonceCall {
@@ -29243,7 +29029,7 @@ pub mod i_portfolio_getters {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "getPoolReserves", abi = "getPoolReserves(uint64)")]
     pub struct GetPoolReservesCall {
@@ -29258,7 +29044,7 @@ pub mod i_portfolio_getters {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "getReserve", abi = "getReserve(address)")]
     pub struct GetReserveCall {
@@ -29273,7 +29059,7 @@ pub mod i_portfolio_getters {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "getVirtualPrice", abi = "getVirtualPrice(uint64)")]
     pub struct GetVirtualPriceCall {
@@ -29288,7 +29074,7 @@ pub mod i_portfolio_getters {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(
         name = "getVirtualReservesPerLiquidity",
@@ -29306,7 +29092,7 @@ pub mod i_portfolio_getters {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "pairs", abi = "pairs(uint24)")]
     pub struct PairsCall {
@@ -29321,7 +29107,7 @@ pub mod i_portfolio_getters {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "pools", abi = "pools(uint64)")]
     pub struct PoolsCall {
@@ -29336,7 +29122,7 @@ pub mod i_portfolio_getters {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "positions", abi = "positions(address,uint64)")]
     pub struct PositionsCall {
@@ -29370,80 +29156,72 @@ pub mod i_portfolio_getters {
             data: impl AsRef<[u8]>,
         ) -> ::core::result::Result<Self, ::ethers::core::abi::AbiError> {
             let data = data.as_ref();
-            if let Ok(decoded)
-                = <RegistryCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <RegistryCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::Registry(decoded));
             }
-            if let Ok(decoded)
-                = <VersionCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <VersionCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::Version(decoded));
             }
-            if let Ok(decoded)
-                = <WethCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <WethCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::Weth(decoded));
             }
-            if let Ok(decoded)
-                = <GetAmountOutCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <GetAmountOutCall as ::ethers::core::abi::AbiDecode>::decode(data)
+            {
                 return Ok(Self::GetAmountOut(decoded));
             }
-            if let Ok(decoded)
-                = <GetBalanceCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <GetBalanceCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::GetBalance(decoded));
             }
-            if let Ok(decoded)
-                = <GetLiquidityDeltasCall as ::ethers::core::abi::AbiDecode>::decode(
-                    data,
-                ) {
+            if let Ok(decoded) =
+                <GetLiquidityDeltasCall as ::ethers::core::abi::AbiDecode>::decode(data)
+            {
                 return Ok(Self::GetLiquidityDeltas(decoded));
             }
-            if let Ok(decoded)
-                = <GetMaxLiquidityCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) =
+                <GetMaxLiquidityCall as ::ethers::core::abi::AbiDecode>::decode(data)
+            {
                 return Ok(Self::GetMaxLiquidity(decoded));
             }
-            if let Ok(decoded)
-                = <GetNetBalanceCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <GetNetBalanceCall as ::ethers::core::abi::AbiDecode>::decode(data)
+            {
                 return Ok(Self::GetNetBalance(decoded));
             }
-            if let Ok(decoded)
-                = <GetPairIdCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <GetPairIdCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::GetPairId(decoded));
             }
-            if let Ok(decoded)
-                = <GetPairNonceCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <GetPairNonceCall as ::ethers::core::abi::AbiDecode>::decode(data)
+            {
                 return Ok(Self::GetPairNonce(decoded));
             }
-            if let Ok(decoded)
-                = <GetPoolNonceCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <GetPoolNonceCall as ::ethers::core::abi::AbiDecode>::decode(data)
+            {
                 return Ok(Self::GetPoolNonce(decoded));
             }
-            if let Ok(decoded)
-                = <GetPoolReservesCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) =
+                <GetPoolReservesCall as ::ethers::core::abi::AbiDecode>::decode(data)
+            {
                 return Ok(Self::GetPoolReserves(decoded));
             }
-            if let Ok(decoded)
-                = <GetReserveCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <GetReserveCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::GetReserve(decoded));
             }
-            if let Ok(decoded)
-                = <GetVirtualPriceCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) =
+                <GetVirtualPriceCall as ::ethers::core::abi::AbiDecode>::decode(data)
+            {
                 return Ok(Self::GetVirtualPrice(decoded));
             }
-            if let Ok(decoded)
-                = <GetVirtualReservesPerLiquidityCall as ::ethers::core::abi::AbiDecode>::decode(
-                    data,
-                ) {
+            if let Ok(decoded) =
+                <GetVirtualReservesPerLiquidityCall as ::ethers::core::abi::AbiDecode>::decode(data)
+            {
                 return Ok(Self::GetVirtualReservesPerLiquidity(decoded));
             }
-            if let Ok(decoded)
-                = <PairsCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <PairsCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::Pairs(decoded));
             }
-            if let Ok(decoded)
-                = <PoolsCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <PoolsCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::Pools(decoded));
             }
-            if let Ok(decoded)
-                = <PositionsCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <PositionsCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::Positions(decoded));
             }
             Err(::ethers::core::abi::Error::InvalidData.into())
@@ -29452,52 +29230,28 @@ pub mod i_portfolio_getters {
     impl ::ethers::core::abi::AbiEncode for IPortfolioGettersCalls {
         fn encode(self) -> Vec<u8> {
             match self {
-                Self::Registry(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
+                Self::Registry(element) => ::ethers::core::abi::AbiEncode::encode(element),
                 Self::Version(element) => ::ethers::core::abi::AbiEncode::encode(element),
                 Self::Weth(element) => ::ethers::core::abi::AbiEncode::encode(element),
-                Self::GetAmountOut(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
-                Self::GetBalance(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
+                Self::GetAmountOut(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::GetBalance(element) => ::ethers::core::abi::AbiEncode::encode(element),
                 Self::GetLiquidityDeltas(element) => {
                     ::ethers::core::abi::AbiEncode::encode(element)
                 }
-                Self::GetMaxLiquidity(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
-                Self::GetNetBalance(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
-                Self::GetPairId(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
-                Self::GetPairNonce(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
-                Self::GetPoolNonce(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
-                Self::GetPoolReserves(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
-                Self::GetReserve(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
-                Self::GetVirtualPrice(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
+                Self::GetMaxLiquidity(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::GetNetBalance(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::GetPairId(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::GetPairNonce(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::GetPoolNonce(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::GetPoolReserves(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::GetReserve(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::GetVirtualPrice(element) => ::ethers::core::abi::AbiEncode::encode(element),
                 Self::GetVirtualReservesPerLiquidity(element) => {
                     ::ethers::core::abi::AbiEncode::encode(element)
                 }
                 Self::Pairs(element) => ::ethers::core::abi::AbiEncode::encode(element),
                 Self::Pools(element) => ::ethers::core::abi::AbiEncode::encode(element),
-                Self::Positions(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
+                Self::Positions(element) => ::ethers::core::abi::AbiEncode::encode(element),
             }
         }
     }
@@ -29509,9 +29263,7 @@ pub mod i_portfolio_getters {
                 Self::Weth(element) => ::core::fmt::Display::fmt(element, f),
                 Self::GetAmountOut(element) => ::core::fmt::Display::fmt(element, f),
                 Self::GetBalance(element) => ::core::fmt::Display::fmt(element, f),
-                Self::GetLiquidityDeltas(element) => {
-                    ::core::fmt::Display::fmt(element, f)
-                }
+                Self::GetLiquidityDeltas(element) => ::core::fmt::Display::fmt(element, f),
                 Self::GetMaxLiquidity(element) => ::core::fmt::Display::fmt(element, f),
                 Self::GetNetBalance(element) => ::core::fmt::Display::fmt(element, f),
                 Self::GetPairId(element) => ::core::fmt::Display::fmt(element, f),
@@ -29599,8 +29351,7 @@ pub mod i_portfolio_getters {
             Self::GetVirtualPrice(value)
         }
     }
-    impl ::core::convert::From<GetVirtualReservesPerLiquidityCall>
-    for IPortfolioGettersCalls {
+    impl ::core::convert::From<GetVirtualReservesPerLiquidityCall> for IPortfolioGettersCalls {
         fn from(value: GetVirtualReservesPerLiquidityCall) -> Self {
             Self::GetVirtualReservesPerLiquidity(value)
         }
@@ -29629,7 +29380,7 @@ pub mod i_portfolio_getters {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     pub struct RegistryReturn(pub ::ethers::core::types::Address);
     ///Container type for all return fields from the `VERSION` function with signature `VERSION()` and selector `0xffa1ad74`
@@ -29641,7 +29392,7 @@ pub mod i_portfolio_getters {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     pub struct VersionReturn(pub ::std::string::String);
     ///Container type for all return fields from the `WETH` function with signature `WETH()` and selector `0xad5c4648`
@@ -29653,7 +29404,7 @@ pub mod i_portfolio_getters {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     pub struct WethReturn(pub ::ethers::core::types::Address);
     ///Container type for all return fields from the `getAmountOut` function with signature `getAmountOut(uint64,bool,uint256)` and selector `0x7dae4890`
@@ -29665,7 +29416,7 @@ pub mod i_portfolio_getters {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     pub struct GetAmountOutReturn(pub ::ethers::core::types::U256);
     ///Container type for all return fields from the `getBalance` function with signature `getBalance(address,address)` and selector `0xd4fac45d`
@@ -29677,7 +29428,7 @@ pub mod i_portfolio_getters {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     pub struct GetBalanceReturn(pub ::ethers::core::types::U256);
     ///Container type for all return fields from the `getLiquidityDeltas` function with signature `getLiquidityDeltas(uint64,int128)` and selector `0x8992f20a`
@@ -29689,7 +29440,7 @@ pub mod i_portfolio_getters {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     pub struct GetLiquidityDeltasReturn {
         pub delta_asset: u128,
@@ -29704,7 +29455,7 @@ pub mod i_portfolio_getters {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     pub struct GetMaxLiquidityReturn {
         pub delta_liquidity: u128,
@@ -29718,7 +29469,7 @@ pub mod i_portfolio_getters {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     pub struct GetNetBalanceReturn(pub ::ethers::core::types::I256);
     ///Container type for all return fields from the `getPairId` function with signature `getPairId(address,address)` and selector `0x3f92a339`
@@ -29730,7 +29481,7 @@ pub mod i_portfolio_getters {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     pub struct GetPairIdReturn {
         pub pair_id: u32,
@@ -29744,7 +29495,7 @@ pub mod i_portfolio_getters {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     pub struct GetPairNonceReturn(pub u32);
     ///Container type for all return fields from the `getPoolNonce` function with signature `getPoolNonce(uint24)` and selector `0xa5cd8a49`
@@ -29756,7 +29507,7 @@ pub mod i_portfolio_getters {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     pub struct GetPoolNonceReturn(pub u32);
     ///Container type for all return fields from the `getPoolReserves` function with signature `getPoolReserves(uint64)` and selector `0x2afb9df8`
@@ -29768,7 +29519,7 @@ pub mod i_portfolio_getters {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     pub struct GetPoolReservesReturn {
         pub delta_asset: ::ethers::core::types::U256,
@@ -29783,7 +29534,7 @@ pub mod i_portfolio_getters {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     pub struct GetReserveReturn(pub ::ethers::core::types::U256);
     ///Container type for all return fields from the `getVirtualPrice` function with signature `getVirtualPrice(uint64)` and selector `0x61b7ea6a`
@@ -29795,7 +29546,7 @@ pub mod i_portfolio_getters {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     pub struct GetVirtualPriceReturn {
         pub price: ::ethers::core::types::U256,
@@ -29809,7 +29560,7 @@ pub mod i_portfolio_getters {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     pub struct GetVirtualReservesPerLiquidityReturn {
         pub delta_asset: u128,
@@ -29824,7 +29575,7 @@ pub mod i_portfolio_getters {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     pub struct PairsReturn {
         pub token_asset: ::ethers::core::types::Address,
@@ -29841,7 +29592,7 @@ pub mod i_portfolio_getters {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     pub struct PoolsReturn {
         pub virtual_x: u128,
@@ -29864,7 +29615,7 @@ pub mod i_portfolio_getters {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     pub struct PositionsReturn {
         pub free_liquidity: u128,
@@ -29886,18 +29637,16 @@ pub use i_portfolio_registry::*;
     clippy::upper_case_acronyms,
     clippy::type_complexity,
     dead_code,
-    non_camel_case_types,
+    non_camel_case_types
 )]
 pub mod i_portfolio_registry {
     #[rustfmt::skip]
     const __ABI: &str = "[{\"inputs\":[],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"controller\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\",\"components\":[]}]}]";
     ///The parsed JSON ABI of the contract.
-    pub static IPORTFOLIOREGISTRY_ABI: ::ethers::contract::Lazy<
-        ::ethers::core::abi::Abi,
-    > = ::ethers::contract::Lazy::new(|| {
-        ::ethers::core::utils::__serde_json::from_str(__ABI)
-            .expect("ABI is always valid")
-    });
+    pub static IPORTFOLIOREGISTRY_ABI: ::ethers::contract::Lazy<::ethers::core::abi::Abi> =
+        ::ethers::contract::Lazy::new(|| {
+            ::ethers::core::utils::__serde_json::from_str(__ABI).expect("ABI is always valid")
+        });
     pub struct IPortfolioRegistry<M>(::ethers::contract::Contract<M>);
     impl<M> ::core::clone::Clone for IPortfolioRegistry<M> {
         fn clone(&self) -> Self {
@@ -29917,7 +29666,9 @@ pub mod i_portfolio_registry {
     }
     impl<M> ::core::fmt::Debug for IPortfolioRegistry<M> {
         fn fmt(&self, f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
-            f.debug_tuple(stringify!(IPortfolioRegistry)).field(&self.address()).finish()
+            f.debug_tuple(stringify!(IPortfolioRegistry))
+                .field(&self.address())
+                .finish()
         }
     }
     impl<M: ::ethers::providers::Middleware> IPortfolioRegistry<M> {
@@ -29927,28 +29678,24 @@ pub mod i_portfolio_registry {
             address: T,
             client: ::std::sync::Arc<M>,
         ) -> Self {
-            Self(
-                ::ethers::contract::Contract::new(
-                    address.into(),
-                    IPORTFOLIOREGISTRY_ABI.clone(),
-                    client,
-                ),
-            )
+            Self(::ethers::contract::Contract::new(
+                address.into(),
+                IPORTFOLIOREGISTRY_ABI.clone(),
+                client,
+            ))
         }
         ///Calls the contract's `controller` (0xf77c4791) function
         pub fn controller(
             &self,
-        ) -> ::ethers::contract::builders::ContractCall<
-            M,
-            ::ethers::core::types::Address,
-        > {
+        ) -> ::ethers::contract::builders::ContractCall<M, ::ethers::core::types::Address> {
             self.0
                 .method_hash([247, 124, 71, 145], ())
                 .expect("method not found (this should never happen)")
         }
     }
     impl<M: ::ethers::providers::Middleware> From<::ethers::contract::Contract<M>>
-    for IPortfolioRegistry<M> {
+        for IPortfolioRegistry<M>
+    {
         fn from(contract: ::ethers::contract::Contract<M>) -> Self {
             Self::new(contract.address(), contract.client())
         }
@@ -29962,7 +29709,7 @@ pub mod i_portfolio_registry {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "controller", abi = "controller()")]
     pub struct ControllerCall;
@@ -29975,7 +29722,7 @@ pub mod i_portfolio_registry {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     pub struct ControllerReturn(pub ::ethers::core::types::Address);
 }
@@ -29988,14 +29735,16 @@ pub use iweth::*;
     clippy::upper_case_acronyms,
     clippy::type_complexity,
     dead_code,
-    non_camel_case_types,
+    non_camel_case_types
 )]
 pub mod iweth {
     #[rustfmt::skip]
     const __ABI: &str = "[{\"inputs\":[],\"stateMutability\":\"payable\",\"type\":\"function\",\"name\":\"deposit\",\"outputs\":[]},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"wad\",\"type\":\"uint256\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"function\",\"name\":\"withdraw\",\"outputs\":[]}]";
     ///The parsed JSON ABI of the contract.
-    pub static IWETH_ABI: ::ethers::contract::Lazy<::ethers::core::abi::Abi> = ::ethers::contract::Lazy::new(||
-    ::ethers::core::utils::__serde_json::from_str(__ABI).expect("ABI is always valid"));
+    pub static IWETH_ABI: ::ethers::contract::Lazy<::ethers::core::abi::Abi> =
+        ::ethers::contract::Lazy::new(|| {
+            ::ethers::core::utils::__serde_json::from_str(__ABI).expect("ABI is always valid")
+        });
     pub struct IWETH<M>(::ethers::contract::Contract<M>);
     impl<M> ::core::clone::Clone for IWETH<M> {
         fn clone(&self) -> Self {
@@ -30015,7 +29764,9 @@ pub mod iweth {
     }
     impl<M> ::core::fmt::Debug for IWETH<M> {
         fn fmt(&self, f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
-            f.debug_tuple(stringify!(IWETH)).field(&self.address()).finish()
+            f.debug_tuple(stringify!(IWETH))
+                .field(&self.address())
+                .finish()
         }
     }
     impl<M: ::ethers::providers::Middleware> IWETH<M> {
@@ -30025,13 +29776,11 @@ pub mod iweth {
             address: T,
             client: ::std::sync::Arc<M>,
         ) -> Self {
-            Self(
-                ::ethers::contract::Contract::new(
-                    address.into(),
-                    IWETH_ABI.clone(),
-                    client,
-                ),
-            )
+            Self(::ethers::contract::Contract::new(
+                address.into(),
+                IWETH_ABI.clone(),
+                client,
+            ))
         }
         ///Calls the contract's `deposit` (0xd0e30db0) function
         pub fn deposit(&self) -> ::ethers::contract::builders::ContractCall<M, ()> {
@@ -30049,8 +29798,7 @@ pub mod iweth {
                 .expect("method not found (this should never happen)")
         }
     }
-    impl<M: ::ethers::providers::Middleware> From<::ethers::contract::Contract<M>>
-    for IWETH<M> {
+    impl<M: ::ethers::providers::Middleware> From<::ethers::contract::Contract<M>> for IWETH<M> {
         fn from(contract: ::ethers::contract::Contract<M>) -> Self {
             Self::new(contract.address(), contract.client())
         }
@@ -30064,7 +29812,7 @@ pub mod iweth {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "deposit", abi = "deposit()")]
     pub struct DepositCall;
@@ -30077,7 +29825,7 @@ pub mod iweth {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "withdraw", abi = "withdraw(uint256)")]
     pub struct WithdrawCall {
@@ -30094,12 +29842,10 @@ pub mod iweth {
             data: impl AsRef<[u8]>,
         ) -> ::core::result::Result<Self, ::ethers::core::abi::AbiError> {
             let data = data.as_ref();
-            if let Ok(decoded)
-                = <DepositCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <DepositCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::Deposit(decoded));
             }
-            if let Ok(decoded)
-                = <WithdrawCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <WithdrawCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::Withdraw(decoded));
             }
             Err(::ethers::core::abi::Error::InvalidData.into())
@@ -30109,9 +29855,7 @@ pub mod iweth {
         fn encode(self) -> Vec<u8> {
             match self {
                 Self::Deposit(element) => ::ethers::core::abi::AbiEncode::encode(element),
-                Self::Withdraw(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
+                Self::Withdraw(element) => ::ethers::core::abi::AbiEncode::encode(element),
             }
         }
     }
@@ -30143,18 +29887,16 @@ pub use infinitely_liquid_market::*;
     clippy::upper_case_acronyms,
     clippy::type_complexity,
     dead_code,
-    non_camel_case_types,
+    non_camel_case_types
 )]
 pub mod infinitely_liquid_market {
     #[rustfmt::skip]
     const __ABI: &str = "[{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"price\",\"type\":\"uint256\",\"components\":[],\"indexed\":false}],\"type\":\"event\",\"name\":\"PriceChange\",\"outputs\":[],\"anonymous\":false},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"price\",\"type\":\"uint256\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"function\",\"name\":\"setPrice\",\"outputs\":[]}]";
     ///The parsed JSON ABI of the contract.
-    pub static INFINITELYLIQUIDMARKET_ABI: ::ethers::contract::Lazy<
-        ::ethers::core::abi::Abi,
-    > = ::ethers::contract::Lazy::new(|| {
-        ::ethers::core::utils::__serde_json::from_str(__ABI)
-            .expect("ABI is always valid")
-    });
+    pub static INFINITELYLIQUIDMARKET_ABI: ::ethers::contract::Lazy<::ethers::core::abi::Abi> =
+        ::ethers::contract::Lazy::new(|| {
+            ::ethers::core::utils::__serde_json::from_str(__ABI).expect("ABI is always valid")
+        });
     #[rustfmt::skip]
     const __BYTECODE: &[u8] = &[
         96,
@@ -30389,9 +30131,8 @@ pub mod infinitely_liquid_market {
         51,
     ];
     ///The bytecode of the contract.
-    pub static INFINITELYLIQUIDMARKET_BYTECODE: ::ethers::core::types::Bytes = ::ethers::core::types::Bytes::from_static(
-        __BYTECODE,
-    );
+    pub static INFINITELYLIQUIDMARKET_BYTECODE: ::ethers::core::types::Bytes =
+        ::ethers::core::types::Bytes::from_static(__BYTECODE);
     #[rustfmt::skip]
     const __DEPLOYED_BYTECODE: &[u8] = &[
         96,
@@ -30595,9 +30336,8 @@ pub mod infinitely_liquid_market {
         51,
     ];
     ///The deployed bytecode of the contract.
-    pub static INFINITELYLIQUIDMARKET_DEPLOYED_BYTECODE: ::ethers::core::types::Bytes = ::ethers::core::types::Bytes::from_static(
-        __DEPLOYED_BYTECODE,
-    );
+    pub static INFINITELYLIQUIDMARKET_DEPLOYED_BYTECODE: ::ethers::core::types::Bytes =
+        ::ethers::core::types::Bytes::from_static(__DEPLOYED_BYTECODE);
     pub struct InfinitelyLiquidMarket<M>(::ethers::contract::Contract<M>);
     impl<M> ::core::clone::Clone for InfinitelyLiquidMarket<M> {
         fn clone(&self) -> Self {
@@ -30629,13 +30369,11 @@ pub mod infinitely_liquid_market {
             address: T,
             client: ::std::sync::Arc<M>,
         ) -> Self {
-            Self(
-                ::ethers::contract::Contract::new(
-                    address.into(),
-                    INFINITELYLIQUIDMARKET_ABI.clone(),
-                    client,
-                ),
-            )
+            Self(::ethers::contract::Contract::new(
+                address.into(),
+                INFINITELYLIQUIDMARKET_ABI.clone(),
+                client,
+            ))
         }
         /// Constructs the general purpose `Deployer` instance based on the provided constructor arguments and sends it.
         /// Returns a new instance of a deployer that returns an instance of this contract after sending the transaction
@@ -30688,26 +30426,22 @@ pub mod infinitely_liquid_market {
         ///Gets the contract's `PriceChange` event
         pub fn price_change_filter(
             &self,
-        ) -> ::ethers::contract::builders::Event<
-            ::std::sync::Arc<M>,
-            M,
-            PriceChangeFilter,
-        > {
+        ) -> ::ethers::contract::builders::Event<::std::sync::Arc<M>, M, PriceChangeFilter>
+        {
             self.0.event()
         }
         /// Returns an `Event` builder for all the events of this contract.
         pub fn events(
             &self,
-        ) -> ::ethers::contract::builders::Event<
-            ::std::sync::Arc<M>,
-            M,
-            PriceChangeFilter,
-        > {
-            self.0.event_with_filter(::core::default::Default::default())
+        ) -> ::ethers::contract::builders::Event<::std::sync::Arc<M>, M, PriceChangeFilter>
+        {
+            self.0
+                .event_with_filter(::core::default::Default::default())
         }
     }
     impl<M: ::ethers::providers::Middleware> From<::ethers::contract::Contract<M>>
-    for InfinitelyLiquidMarket<M> {
+        for InfinitelyLiquidMarket<M>
+    {
         fn from(contract: ::ethers::contract::Contract<M>) -> Self {
             Self::new(contract.address(), contract.client())
         }
@@ -30720,7 +30454,7 @@ pub mod infinitely_liquid_market {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethevent(name = "PriceChange", abi = "PriceChange(uint256)")]
     pub struct PriceChangeFilter {
@@ -30735,7 +30469,7 @@ pub mod infinitely_liquid_market {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "setPrice", abi = "setPrice(uint256)")]
     pub struct SetPriceCall {
@@ -30751,14 +30485,16 @@ pub use invariant::*;
     clippy::upper_case_acronyms,
     clippy::type_complexity,
     dead_code,
-    non_camel_case_types,
+    non_camel_case_types
 )]
 pub mod invariant {
     #[rustfmt::skip]
     const __ABI: &str = "[{\"inputs\":[],\"type\":\"error\",\"name\":\"OOB\",\"outputs\":[]}]";
     ///The parsed JSON ABI of the contract.
-    pub static INVARIANT_ABI: ::ethers::contract::Lazy<::ethers::core::abi::Abi> = ::ethers::contract::Lazy::new(||
-    ::ethers::core::utils::__serde_json::from_str(__ABI).expect("ABI is always valid"));
+    pub static INVARIANT_ABI: ::ethers::contract::Lazy<::ethers::core::abi::Abi> =
+        ::ethers::contract::Lazy::new(|| {
+            ::ethers::core::utils::__serde_json::from_str(__ABI).expect("ABI is always valid")
+        });
     #[rustfmt::skip]
     const __BYTECODE: &[u8] = &[
         96,
@@ -30904,9 +30640,8 @@ pub mod invariant {
         51,
     ];
     ///The bytecode of the contract.
-    pub static INVARIANT_BYTECODE: ::ethers::core::types::Bytes = ::ethers::core::types::Bytes::from_static(
-        __BYTECODE,
-    );
+    pub static INVARIANT_BYTECODE: ::ethers::core::types::Bytes =
+        ::ethers::core::types::Bytes::from_static(__BYTECODE);
     #[rustfmt::skip]
     const __DEPLOYED_BYTECODE: &[u8] = &[
         115,
@@ -30997,9 +30732,8 @@ pub mod invariant {
         51,
     ];
     ///The deployed bytecode of the contract.
-    pub static INVARIANT_DEPLOYED_BYTECODE: ::ethers::core::types::Bytes = ::ethers::core::types::Bytes::from_static(
-        __DEPLOYED_BYTECODE,
-    );
+    pub static INVARIANT_DEPLOYED_BYTECODE: ::ethers::core::types::Bytes =
+        ::ethers::core::types::Bytes::from_static(__DEPLOYED_BYTECODE);
     pub struct Invariant<M>(::ethers::contract::Contract<M>);
     impl<M> ::core::clone::Clone for Invariant<M> {
         fn clone(&self) -> Self {
@@ -31019,7 +30753,9 @@ pub mod invariant {
     }
     impl<M> ::core::fmt::Debug for Invariant<M> {
         fn fmt(&self, f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
-            f.debug_tuple(stringify!(Invariant)).field(&self.address()).finish()
+            f.debug_tuple(stringify!(Invariant))
+                .field(&self.address())
+                .finish()
         }
     }
     impl<M: ::ethers::providers::Middleware> Invariant<M> {
@@ -31029,13 +30765,11 @@ pub mod invariant {
             address: T,
             client: ::std::sync::Arc<M>,
         ) -> Self {
-            Self(
-                ::ethers::contract::Contract::new(
-                    address.into(),
-                    INVARIANT_ABI.clone(),
-                    client,
-                ),
-            )
+            Self(::ethers::contract::Contract::new(
+                address.into(),
+                INVARIANT_ABI.clone(),
+                client,
+            ))
         }
         /// Constructs the general purpose `Deployer` instance based on the provided constructor arguments and sends it.
         /// Returns a new instance of a deployer that returns an instance of this contract after sending the transaction
@@ -31077,8 +30811,7 @@ pub mod invariant {
             Ok(deployer)
         }
     }
-    impl<M: ::ethers::providers::Middleware> From<::ethers::contract::Contract<M>>
-    for Invariant<M> {
+    impl<M: ::ethers::providers::Middleware> From<::ethers::contract::Contract<M>> for Invariant<M> {
         fn from(contract: ::ethers::contract::Contract<M>) -> Self {
             Self::new(contract.address(), contract.client())
         }
@@ -31092,10 +30825,2590 @@ pub mod invariant {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[etherror(name = "OOB", abi = "OOB()")]
     pub struct OOB;
+}
+pub use liquid_exchange::*;
+/// This module was auto-generated with ethers-rs Abigen.
+/// More information at: <https://github.com/gakonst/ethers-rs>
+#[allow(
+    clippy::enum_variant_names,
+    clippy::too_many_arguments,
+    clippy::upper_case_acronyms,
+    clippy::type_complexity,
+    dead_code,
+    non_camel_case_types
+)]
+pub mod liquid_exchange {
+    #[rustfmt::skip]
+    const __ABI: &str = "[{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_arbiter_token_x\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"address\",\"name\":\"_arbiter_token_y\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"_price\",\"type\":\"uint256\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"constructor\",\"outputs\":[]},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"price\",\"type\":\"uint256\",\"components\":[],\"indexed\":false}],\"type\":\"event\",\"name\":\"PriceChange\",\"outputs\":[],\"anonymous\":false},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"token_in\",\"type\":\"address\",\"components\":[],\"indexed\":false},{\"internalType\":\"uint256\",\"name\":\"amount_in\",\"type\":\"uint256\",\"components\":[],\"indexed\":false},{\"internalType\":\"address\",\"name\":\"token_out\",\"type\":\"address\",\"components\":[],\"indexed\":false},{\"internalType\":\"uint256\",\"name\":\"amount_out\",\"type\":\"uint256\",\"components\":[],\"indexed\":false}],\"type\":\"event\",\"name\":\"SwapOccured\",\"outputs\":[],\"anonymous\":false},{\"inputs\":[],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"admin\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\",\"components\":[]}]},{\"inputs\":[],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"arbiter_token_x\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\",\"components\":[]}]},{\"inputs\":[],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"arbiter_token_y\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\",\"components\":[]}]},{\"inputs\":[],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"getPrice\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\",\"components\":[]}]},{\"inputs\":[],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"price\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"_price\",\"type\":\"uint256\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"function\",\"name\":\"setPrice\",\"outputs\":[]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_token_in\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"_amount_in\",\"type\":\"uint256\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"function\",\"name\":\"swap\",\"outputs\":[]}]";
+    ///The parsed JSON ABI of the contract.
+    pub static LIQUIDEXCHANGE_ABI: ::ethers::contract::Lazy<::ethers::core::abi::Abi> =
+        ::ethers::contract::Lazy::new(|| {
+            ::ethers::core::utils::__serde_json::from_str(__ABI).expect("ABI is always valid")
+        });
+    #[rustfmt::skip]
+    const __BYTECODE: &[u8] = &[
+        96,
+        128,
+        96,
+        64,
+        82,
+        52,
+        128,
+        21,
+        97,
+        0,
+        16,
+        87,
+        96,
+        0,
+        128,
+        253,
+        91,
+        80,
+        96,
+        64,
+        81,
+        97,
+        4,
+        111,
+        56,
+        3,
+        128,
+        97,
+        4,
+        111,
+        131,
+        57,
+        129,
+        1,
+        96,
+        64,
+        129,
+        144,
+        82,
+        97,
+        0,
+        47,
+        145,
+        97,
+        0,
+        142,
+        86,
+        91,
+        96,
+        0,
+        128,
+        84,
+        96,
+        1,
+        96,
+        1,
+        96,
+        160,
+        27,
+        3,
+        25,
+        144,
+        129,
+        22,
+        51,
+        23,
+        144,
+        145,
+        85,
+        96,
+        1,
+        128,
+        84,
+        96,
+        1,
+        96,
+        1,
+        96,
+        160,
+        27,
+        3,
+        149,
+        134,
+        22,
+        144,
+        131,
+        22,
+        23,
+        144,
+        85,
+        96,
+        2,
+        128,
+        84,
+        147,
+        144,
+        148,
+        22,
+        146,
+        22,
+        145,
+        144,
+        145,
+        23,
+        144,
+        145,
+        85,
+        96,
+        3,
+        85,
+        97,
+        0,
+        202,
+        86,
+        91,
+        128,
+        81,
+        96,
+        1,
+        96,
+        1,
+        96,
+        160,
+        27,
+        3,
+        129,
+        22,
+        129,
+        20,
+        97,
+        0,
+        137,
+        87,
+        96,
+        0,
+        128,
+        253,
+        91,
+        145,
+        144,
+        80,
+        86,
+        91,
+        96,
+        0,
+        128,
+        96,
+        0,
+        96,
+        96,
+        132,
+        134,
+        3,
+        18,
+        21,
+        97,
+        0,
+        163,
+        87,
+        96,
+        0,
+        128,
+        253,
+        91,
+        97,
+        0,
+        172,
+        132,
+        97,
+        0,
+        114,
+        86,
+        91,
+        146,
+        80,
+        97,
+        0,
+        186,
+        96,
+        32,
+        133,
+        1,
+        97,
+        0,
+        114,
+        86,
+        91,
+        145,
+        80,
+        96,
+        64,
+        132,
+        1,
+        81,
+        144,
+        80,
+        146,
+        80,
+        146,
+        80,
+        146,
+        86,
+        91,
+        97,
+        3,
+        150,
+        128,
+        97,
+        0,
+        217,
+        96,
+        0,
+        57,
+        96,
+        0,
+        243,
+        254,
+        96,
+        128,
+        96,
+        64,
+        82,
+        52,
+        128,
+        21,
+        97,
+        0,
+        16,
+        87,
+        96,
+        0,
+        128,
+        253,
+        91,
+        80,
+        96,
+        4,
+        54,
+        16,
+        97,
+        0,
+        125,
+        87,
+        96,
+        0,
+        53,
+        96,
+        224,
+        28,
+        128,
+        99,
+        160,
+        53,
+        177,
+        254,
+        17,
+        97,
+        0,
+        91,
+        87,
+        128,
+        99,
+        160,
+        53,
+        177,
+        254,
+        20,
+        97,
+        0,
+        217,
+        87,
+        128,
+        99,
+        208,
+        4,
+        240,
+        247,
+        20,
+        97,
+        0,
+        226,
+        87,
+        128,
+        99,
+        229,
+        90,
+        236,
+        252,
+        20,
+        97,
+        0,
+        245,
+        87,
+        128,
+        99,
+        248,
+        81,
+        164,
+        64,
+        20,
+        97,
+        1,
+        8,
+        87,
+        96,
+        0,
+        128,
+        253,
+        91,
+        128,
+        99,
+        145,
+        183,
+        245,
+        237,
+        20,
+        97,
+        0,
+        130,
+        87,
+        128,
+        99,
+        152,
+        213,
+        253,
+        202,
+        20,
+        97,
+        0,
+        151,
+        87,
+        128,
+        99,
+        158,
+        23,
+        19,
+        98,
+        20,
+        97,
+        0,
+        174,
+        87,
+        91,
+        96,
+        0,
+        128,
+        253,
+        91,
+        97,
+        0,
+        149,
+        97,
+        0,
+        144,
+        54,
+        96,
+        4,
+        97,
+        3,
+        15,
+        86,
+        91,
+        97,
+        1,
+        27,
+        86,
+        91,
+        0,
+        91,
+        96,
+        3,
+        84,
+        91,
+        96,
+        64,
+        81,
+        144,
+        129,
+        82,
+        96,
+        32,
+        1,
+        91,
+        96,
+        64,
+        81,
+        128,
+        145,
+        3,
+        144,
+        243,
+        91,
+        96,
+        2,
+        84,
+        97,
+        0,
+        193,
+        144,
+        96,
+        1,
+        96,
+        1,
+        96,
+        160,
+        27,
+        3,
+        22,
+        129,
+        86,
+        91,
+        96,
+        64,
+        81,
+        96,
+        1,
+        96,
+        1,
+        96,
+        160,
+        27,
+        3,
+        144,
+        145,
+        22,
+        129,
+        82,
+        96,
+        32,
+        1,
+        97,
+        0,
+        165,
+        86,
+        91,
+        97,
+        0,
+        155,
+        96,
+        3,
+        84,
+        129,
+        86,
+        91,
+        97,
+        0,
+        149,
+        97,
+        0,
+        240,
+        54,
+        96,
+        4,
+        97,
+        3,
+        40,
+        86,
+        91,
+        97,
+        1,
+        191,
+        86,
+        91,
+        96,
+        1,
+        84,
+        97,
+        0,
+        193,
+        144,
+        96,
+        1,
+        96,
+        1,
+        96,
+        160,
+        27,
+        3,
+        22,
+        129,
+        86,
+        91,
+        96,
+        0,
+        84,
+        97,
+        0,
+        193,
+        144,
+        96,
+        1,
+        96,
+        1,
+        96,
+        160,
+        27,
+        3,
+        22,
+        129,
+        86,
+        91,
+        96,
+        0,
+        84,
+        96,
+        1,
+        96,
+        1,
+        96,
+        160,
+        27,
+        3,
+        22,
+        51,
+        20,
+        97,
+        1,
+        132,
+        87,
+        96,
+        64,
+        81,
+        98,
+        70,
+        27,
+        205,
+        96,
+        229,
+        27,
+        129,
+        82,
+        96,
+        32,
+        96,
+        4,
+        130,
+        1,
+        82,
+        96,
+        33,
+        96,
+        36,
+        130,
+        1,
+        82,
+        127,
+        79,
+        110,
+        108,
+        121,
+        32,
+        97,
+        100,
+        109,
+        105,
+        110,
+        32,
+        99,
+        97,
+        110,
+        32,
+        99,
+        97,
+        108,
+        108,
+        32,
+        116,
+        104,
+        105,
+        115,
+        32,
+        102,
+        117,
+        110,
+        99,
+        116,
+        105,
+        111,
+        96,
+        68,
+        130,
+        1,
+        82,
+        96,
+        55,
+        96,
+        249,
+        27,
+        96,
+        100,
+        130,
+        1,
+        82,
+        96,
+        132,
+        1,
+        91,
+        96,
+        64,
+        81,
+        128,
+        145,
+        3,
+        144,
+        253,
+        91,
+        96,
+        3,
+        129,
+        144,
+        85,
+        96,
+        64,
+        81,
+        129,
+        129,
+        82,
+        127,
+        243,
+        71,
+        238,
+        153,
+        80,
+        59,
+        241,
+        156,
+        2,
+        139,
+        214,
+        177,
+        143,
+        60,
+        103,
+        110,
+        130,
+        169,
+        187,
+        91,
+        43,
+        181,
+        34,
+        90,
+        235,
+        224,
+        253,
+        98,
+        253,
+        106,
+        13,
+        25,
+        144,
+        96,
+        32,
+        1,
+        96,
+        64,
+        81,
+        128,
+        145,
+        3,
+        144,
+        161,
+        80,
+        86,
+        91,
+        96,
+        1,
+        84,
+        96,
+        0,
+        144,
+        129,
+        144,
+        96,
+        1,
+        96,
+        1,
+        96,
+        160,
+        27,
+        3,
+        144,
+        129,
+        22,
+        144,
+        133,
+        22,
+        3,
+        97,
+        1,
+        252,
+        87,
+        97,
+        1,
+        230,
+        131,
+        96,
+        3,
+        84,
+        97,
+        2,
+        195,
+        86,
+        91,
+        96,
+        2,
+        84,
+        144,
+        146,
+        80,
+        96,
+        1,
+        96,
+        1,
+        96,
+        160,
+        27,
+        3,
+        22,
+        144,
+        80,
+        97,
+        2,
+        108,
+        86,
+        91,
+        96,
+        2,
+        84,
+        96,
+        1,
+        96,
+        1,
+        96,
+        160,
+        27,
+        3,
+        144,
+        129,
+        22,
+        144,
+        133,
+        22,
+        3,
+        97,
+        2,
+        52,
+        87,
+        97,
+        2,
+        30,
+        131,
+        96,
+        3,
+        84,
+        97,
+        2,
+        223,
+        86,
+        91,
+        96,
+        1,
+        84,
+        144,
+        146,
+        80,
+        96,
+        1,
+        96,
+        1,
+        96,
+        160,
+        27,
+        3,
+        22,
+        144,
+        80,
+        97,
+        2,
+        108,
+        86,
+        91,
+        96,
+        64,
+        81,
+        98,
+        70,
+        27,
+        205,
+        96,
+        229,
+        27,
+        129,
+        82,
+        96,
+        32,
+        96,
+        4,
+        130,
+        1,
+        82,
+        96,
+        13,
+        96,
+        36,
+        130,
+        1,
+        82,
+        108,
+        36,
+        183,
+        59,
+        48,
+        182,
+        52,
+        178,
+        16,
+        58,
+        55,
+        181,
+        178,
+        183,
+        96,
+        153,
+        27,
+        96,
+        68,
+        130,
+        1,
+        82,
+        96,
+        100,
+        1,
+        97,
+        1,
+        123,
+        86,
+        91,
+        96,
+        64,
+        128,
+        81,
+        96,
+        1,
+        96,
+        1,
+        96,
+        160,
+        27,
+        3,
+        134,
+        129,
+        22,
+        130,
+        82,
+        96,
+        32,
+        130,
+        1,
+        134,
+        144,
+        82,
+        131,
+        22,
+        129,
+        131,
+        1,
+        82,
+        96,
+        96,
+        129,
+        1,
+        132,
+        144,
+        82,
+        144,
+        81,
+        127,
+        157,
+        20,
+        88,
+        241,
+        224,
+        86,
+        177,
+        248,
+        153,
+        220,
+        244,
+        164,
+        245,
+        244,
+        161,
+        94,
+        90,
+        139,
+        70,
+        229,
+        119,
+        202,
+        221,
+        175,
+        45,
+        238,
+        100,
+        2,
+        54,
+        205,
+        249,
+        3,
+        145,
+        129,
+        144,
+        3,
+        96,
+        128,
+        1,
+        144,
+        161,
+        80,
+        80,
+        80,
+        80,
+        86,
+        91,
+        96,
+        0,
+        97,
+        2,
+        216,
+        131,
+        131,
+        103,
+        13,
+        224,
+        182,
+        179,
+        167,
+        100,
+        0,
+        0,
+        97,
+        2,
+        240,
+        86,
+        91,
+        147,
+        146,
+        80,
+        80,
+        80,
+        86,
+        91,
+        96,
+        0,
+        97,
+        2,
+        216,
+        131,
+        103,
+        13,
+        224,
+        182,
+        179,
+        167,
+        100,
+        0,
+        0,
+        132,
+        91,
+        130,
+        130,
+        2,
+        129,
+        21,
+        21,
+        132,
+        21,
+        133,
+        131,
+        4,
+        133,
+        20,
+        23,
+        22,
+        97,
+        3,
+        8,
+        87,
+        96,
+        0,
+        128,
+        253,
+        91,
+        4,
+        146,
+        145,
+        80,
+        80,
+        86,
+        91,
+        96,
+        0,
+        96,
+        32,
+        130,
+        132,
+        3,
+        18,
+        21,
+        97,
+        3,
+        33,
+        87,
+        96,
+        0,
+        128,
+        253,
+        91,
+        80,
+        53,
+        145,
+        144,
+        80,
+        86,
+        91,
+        96,
+        0,
+        128,
+        96,
+        64,
+        131,
+        133,
+        3,
+        18,
+        21,
+        97,
+        3,
+        59,
+        87,
+        96,
+        0,
+        128,
+        253,
+        91,
+        130,
+        53,
+        96,
+        1,
+        96,
+        1,
+        96,
+        160,
+        27,
+        3,
+        129,
+        22,
+        129,
+        20,
+        97,
+        3,
+        82,
+        87,
+        96,
+        0,
+        128,
+        253,
+        91,
+        148,
+        96,
+        32,
+        147,
+        144,
+        147,
+        1,
+        53,
+        147,
+        80,
+        80,
+        80,
+        86,
+        254,
+        162,
+        100,
+        105,
+        112,
+        102,
+        115,
+        88,
+        34,
+        18,
+        32,
+        5,
+        35,
+        63,
+        46,
+        236,
+        74,
+        83,
+        154,
+        148,
+        255,
+        231,
+        67,
+        181,
+        45,
+        8,
+        133,
+        6,
+        184,
+        101,
+        56,
+        164,
+        76,
+        184,
+        75,
+        134,
+        250,
+        175,
+        242,
+        45,
+        242,
+        128,
+        96,
+        100,
+        115,
+        111,
+        108,
+        99,
+        67,
+        0,
+        8,
+        19,
+        0,
+        51,
+    ];
+    ///The bytecode of the contract.
+    pub static LIQUIDEXCHANGE_BYTECODE: ::ethers::core::types::Bytes =
+        ::ethers::core::types::Bytes::from_static(__BYTECODE);
+    #[rustfmt::skip]
+    const __DEPLOYED_BYTECODE: &[u8] = &[
+        96,
+        128,
+        96,
+        64,
+        82,
+        52,
+        128,
+        21,
+        97,
+        0,
+        16,
+        87,
+        96,
+        0,
+        128,
+        253,
+        91,
+        80,
+        96,
+        4,
+        54,
+        16,
+        97,
+        0,
+        125,
+        87,
+        96,
+        0,
+        53,
+        96,
+        224,
+        28,
+        128,
+        99,
+        160,
+        53,
+        177,
+        254,
+        17,
+        97,
+        0,
+        91,
+        87,
+        128,
+        99,
+        160,
+        53,
+        177,
+        254,
+        20,
+        97,
+        0,
+        217,
+        87,
+        128,
+        99,
+        208,
+        4,
+        240,
+        247,
+        20,
+        97,
+        0,
+        226,
+        87,
+        128,
+        99,
+        229,
+        90,
+        236,
+        252,
+        20,
+        97,
+        0,
+        245,
+        87,
+        128,
+        99,
+        248,
+        81,
+        164,
+        64,
+        20,
+        97,
+        1,
+        8,
+        87,
+        96,
+        0,
+        128,
+        253,
+        91,
+        128,
+        99,
+        145,
+        183,
+        245,
+        237,
+        20,
+        97,
+        0,
+        130,
+        87,
+        128,
+        99,
+        152,
+        213,
+        253,
+        202,
+        20,
+        97,
+        0,
+        151,
+        87,
+        128,
+        99,
+        158,
+        23,
+        19,
+        98,
+        20,
+        97,
+        0,
+        174,
+        87,
+        91,
+        96,
+        0,
+        128,
+        253,
+        91,
+        97,
+        0,
+        149,
+        97,
+        0,
+        144,
+        54,
+        96,
+        4,
+        97,
+        3,
+        15,
+        86,
+        91,
+        97,
+        1,
+        27,
+        86,
+        91,
+        0,
+        91,
+        96,
+        3,
+        84,
+        91,
+        96,
+        64,
+        81,
+        144,
+        129,
+        82,
+        96,
+        32,
+        1,
+        91,
+        96,
+        64,
+        81,
+        128,
+        145,
+        3,
+        144,
+        243,
+        91,
+        96,
+        2,
+        84,
+        97,
+        0,
+        193,
+        144,
+        96,
+        1,
+        96,
+        1,
+        96,
+        160,
+        27,
+        3,
+        22,
+        129,
+        86,
+        91,
+        96,
+        64,
+        81,
+        96,
+        1,
+        96,
+        1,
+        96,
+        160,
+        27,
+        3,
+        144,
+        145,
+        22,
+        129,
+        82,
+        96,
+        32,
+        1,
+        97,
+        0,
+        165,
+        86,
+        91,
+        97,
+        0,
+        155,
+        96,
+        3,
+        84,
+        129,
+        86,
+        91,
+        97,
+        0,
+        149,
+        97,
+        0,
+        240,
+        54,
+        96,
+        4,
+        97,
+        3,
+        40,
+        86,
+        91,
+        97,
+        1,
+        191,
+        86,
+        91,
+        96,
+        1,
+        84,
+        97,
+        0,
+        193,
+        144,
+        96,
+        1,
+        96,
+        1,
+        96,
+        160,
+        27,
+        3,
+        22,
+        129,
+        86,
+        91,
+        96,
+        0,
+        84,
+        97,
+        0,
+        193,
+        144,
+        96,
+        1,
+        96,
+        1,
+        96,
+        160,
+        27,
+        3,
+        22,
+        129,
+        86,
+        91,
+        96,
+        0,
+        84,
+        96,
+        1,
+        96,
+        1,
+        96,
+        160,
+        27,
+        3,
+        22,
+        51,
+        20,
+        97,
+        1,
+        132,
+        87,
+        96,
+        64,
+        81,
+        98,
+        70,
+        27,
+        205,
+        96,
+        229,
+        27,
+        129,
+        82,
+        96,
+        32,
+        96,
+        4,
+        130,
+        1,
+        82,
+        96,
+        33,
+        96,
+        36,
+        130,
+        1,
+        82,
+        127,
+        79,
+        110,
+        108,
+        121,
+        32,
+        97,
+        100,
+        109,
+        105,
+        110,
+        32,
+        99,
+        97,
+        110,
+        32,
+        99,
+        97,
+        108,
+        108,
+        32,
+        116,
+        104,
+        105,
+        115,
+        32,
+        102,
+        117,
+        110,
+        99,
+        116,
+        105,
+        111,
+        96,
+        68,
+        130,
+        1,
+        82,
+        96,
+        55,
+        96,
+        249,
+        27,
+        96,
+        100,
+        130,
+        1,
+        82,
+        96,
+        132,
+        1,
+        91,
+        96,
+        64,
+        81,
+        128,
+        145,
+        3,
+        144,
+        253,
+        91,
+        96,
+        3,
+        129,
+        144,
+        85,
+        96,
+        64,
+        81,
+        129,
+        129,
+        82,
+        127,
+        243,
+        71,
+        238,
+        153,
+        80,
+        59,
+        241,
+        156,
+        2,
+        139,
+        214,
+        177,
+        143,
+        60,
+        103,
+        110,
+        130,
+        169,
+        187,
+        91,
+        43,
+        181,
+        34,
+        90,
+        235,
+        224,
+        253,
+        98,
+        253,
+        106,
+        13,
+        25,
+        144,
+        96,
+        32,
+        1,
+        96,
+        64,
+        81,
+        128,
+        145,
+        3,
+        144,
+        161,
+        80,
+        86,
+        91,
+        96,
+        1,
+        84,
+        96,
+        0,
+        144,
+        129,
+        144,
+        96,
+        1,
+        96,
+        1,
+        96,
+        160,
+        27,
+        3,
+        144,
+        129,
+        22,
+        144,
+        133,
+        22,
+        3,
+        97,
+        1,
+        252,
+        87,
+        97,
+        1,
+        230,
+        131,
+        96,
+        3,
+        84,
+        97,
+        2,
+        195,
+        86,
+        91,
+        96,
+        2,
+        84,
+        144,
+        146,
+        80,
+        96,
+        1,
+        96,
+        1,
+        96,
+        160,
+        27,
+        3,
+        22,
+        144,
+        80,
+        97,
+        2,
+        108,
+        86,
+        91,
+        96,
+        2,
+        84,
+        96,
+        1,
+        96,
+        1,
+        96,
+        160,
+        27,
+        3,
+        144,
+        129,
+        22,
+        144,
+        133,
+        22,
+        3,
+        97,
+        2,
+        52,
+        87,
+        97,
+        2,
+        30,
+        131,
+        96,
+        3,
+        84,
+        97,
+        2,
+        223,
+        86,
+        91,
+        96,
+        1,
+        84,
+        144,
+        146,
+        80,
+        96,
+        1,
+        96,
+        1,
+        96,
+        160,
+        27,
+        3,
+        22,
+        144,
+        80,
+        97,
+        2,
+        108,
+        86,
+        91,
+        96,
+        64,
+        81,
+        98,
+        70,
+        27,
+        205,
+        96,
+        229,
+        27,
+        129,
+        82,
+        96,
+        32,
+        96,
+        4,
+        130,
+        1,
+        82,
+        96,
+        13,
+        96,
+        36,
+        130,
+        1,
+        82,
+        108,
+        36,
+        183,
+        59,
+        48,
+        182,
+        52,
+        178,
+        16,
+        58,
+        55,
+        181,
+        178,
+        183,
+        96,
+        153,
+        27,
+        96,
+        68,
+        130,
+        1,
+        82,
+        96,
+        100,
+        1,
+        97,
+        1,
+        123,
+        86,
+        91,
+        96,
+        64,
+        128,
+        81,
+        96,
+        1,
+        96,
+        1,
+        96,
+        160,
+        27,
+        3,
+        134,
+        129,
+        22,
+        130,
+        82,
+        96,
+        32,
+        130,
+        1,
+        134,
+        144,
+        82,
+        131,
+        22,
+        129,
+        131,
+        1,
+        82,
+        96,
+        96,
+        129,
+        1,
+        132,
+        144,
+        82,
+        144,
+        81,
+        127,
+        157,
+        20,
+        88,
+        241,
+        224,
+        86,
+        177,
+        248,
+        153,
+        220,
+        244,
+        164,
+        245,
+        244,
+        161,
+        94,
+        90,
+        139,
+        70,
+        229,
+        119,
+        202,
+        221,
+        175,
+        45,
+        238,
+        100,
+        2,
+        54,
+        205,
+        249,
+        3,
+        145,
+        129,
+        144,
+        3,
+        96,
+        128,
+        1,
+        144,
+        161,
+        80,
+        80,
+        80,
+        80,
+        86,
+        91,
+        96,
+        0,
+        97,
+        2,
+        216,
+        131,
+        131,
+        103,
+        13,
+        224,
+        182,
+        179,
+        167,
+        100,
+        0,
+        0,
+        97,
+        2,
+        240,
+        86,
+        91,
+        147,
+        146,
+        80,
+        80,
+        80,
+        86,
+        91,
+        96,
+        0,
+        97,
+        2,
+        216,
+        131,
+        103,
+        13,
+        224,
+        182,
+        179,
+        167,
+        100,
+        0,
+        0,
+        132,
+        91,
+        130,
+        130,
+        2,
+        129,
+        21,
+        21,
+        132,
+        21,
+        133,
+        131,
+        4,
+        133,
+        20,
+        23,
+        22,
+        97,
+        3,
+        8,
+        87,
+        96,
+        0,
+        128,
+        253,
+        91,
+        4,
+        146,
+        145,
+        80,
+        80,
+        86,
+        91,
+        96,
+        0,
+        96,
+        32,
+        130,
+        132,
+        3,
+        18,
+        21,
+        97,
+        3,
+        33,
+        87,
+        96,
+        0,
+        128,
+        253,
+        91,
+        80,
+        53,
+        145,
+        144,
+        80,
+        86,
+        91,
+        96,
+        0,
+        128,
+        96,
+        64,
+        131,
+        133,
+        3,
+        18,
+        21,
+        97,
+        3,
+        59,
+        87,
+        96,
+        0,
+        128,
+        253,
+        91,
+        130,
+        53,
+        96,
+        1,
+        96,
+        1,
+        96,
+        160,
+        27,
+        3,
+        129,
+        22,
+        129,
+        20,
+        97,
+        3,
+        82,
+        87,
+        96,
+        0,
+        128,
+        253,
+        91,
+        148,
+        96,
+        32,
+        147,
+        144,
+        147,
+        1,
+        53,
+        147,
+        80,
+        80,
+        80,
+        86,
+        254,
+        162,
+        100,
+        105,
+        112,
+        102,
+        115,
+        88,
+        34,
+        18,
+        32,
+        5,
+        35,
+        63,
+        46,
+        236,
+        74,
+        83,
+        154,
+        148,
+        255,
+        231,
+        67,
+        181,
+        45,
+        8,
+        133,
+        6,
+        184,
+        101,
+        56,
+        164,
+        76,
+        184,
+        75,
+        134,
+        250,
+        175,
+        242,
+        45,
+        242,
+        128,
+        96,
+        100,
+        115,
+        111,
+        108,
+        99,
+        67,
+        0,
+        8,
+        19,
+        0,
+        51,
+    ];
+    ///The deployed bytecode of the contract.
+    pub static LIQUIDEXCHANGE_DEPLOYED_BYTECODE: ::ethers::core::types::Bytes =
+        ::ethers::core::types::Bytes::from_static(__DEPLOYED_BYTECODE);
+    pub struct LiquidExchange<M>(::ethers::contract::Contract<M>);
+    impl<M> ::core::clone::Clone for LiquidExchange<M> {
+        fn clone(&self) -> Self {
+            Self(::core::clone::Clone::clone(&self.0))
+        }
+    }
+    impl<M> ::core::ops::Deref for LiquidExchange<M> {
+        type Target = ::ethers::contract::Contract<M>;
+        fn deref(&self) -> &Self::Target {
+            &self.0
+        }
+    }
+    impl<M> ::core::ops::DerefMut for LiquidExchange<M> {
+        fn deref_mut(&mut self) -> &mut Self::Target {
+            &mut self.0
+        }
+    }
+    impl<M> ::core::fmt::Debug for LiquidExchange<M> {
+        fn fmt(&self, f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
+            f.debug_tuple(stringify!(LiquidExchange))
+                .field(&self.address())
+                .finish()
+        }
+    }
+    impl<M: ::ethers::providers::Middleware> LiquidExchange<M> {
+        /// Creates a new contract instance with the specified `ethers` client at
+        /// `address`. The contract derefs to a `ethers::Contract` object.
+        pub fn new<T: Into<::ethers::core::types::Address>>(
+            address: T,
+            client: ::std::sync::Arc<M>,
+        ) -> Self {
+            Self(::ethers::contract::Contract::new(
+                address.into(),
+                LIQUIDEXCHANGE_ABI.clone(),
+                client,
+            ))
+        }
+        /// Constructs the general purpose `Deployer` instance based on the provided constructor arguments and sends it.
+        /// Returns a new instance of a deployer that returns an instance of this contract after sending the transaction
+        ///
+        /// Notes:
+        /// - If there are no constructor arguments, you should pass `()` as the argument.
+        /// - The default poll duration is 7 seconds.
+        /// - The default number of confirmations is 1 block.
+        ///
+        ///
+        /// # Example
+        ///
+        /// Generate contract bindings with `abigen!` and deploy a new contract instance.
+        ///
+        /// *Note*: this requires a `bytecode` and `abi` object in the `greeter.json` artifact.
+        ///
+        /// ```ignore
+        /// # async fn deploy<M: ethers::providers::Middleware>(client: ::std::sync::Arc<M>) {
+        ///     abigen!(Greeter, "../greeter.json");
+        ///
+        ///    let greeter_contract = Greeter::deploy(client, "Hello world!".to_string()).unwrap().send().await.unwrap();
+        ///    let msg = greeter_contract.greet().call().await.unwrap();
+        /// # }
+        /// ```
+        pub fn deploy<T: ::ethers::core::abi::Tokenize>(
+            client: ::std::sync::Arc<M>,
+            constructor_args: T,
+        ) -> ::core::result::Result<
+            ::ethers::contract::builders::ContractDeployer<M, Self>,
+            ::ethers::contract::ContractError<M>,
+        > {
+            let factory = ::ethers::contract::ContractFactory::new(
+                LIQUIDEXCHANGE_ABI.clone(),
+                LIQUIDEXCHANGE_BYTECODE.clone().into(),
+                client,
+            );
+            let deployer = factory.deploy(constructor_args)?;
+            let deployer = ::ethers::contract::ContractDeployer::new(deployer);
+            Ok(deployer)
+        }
+        ///Calls the contract's `admin` (0xf851a440) function
+        pub fn admin(
+            &self,
+        ) -> ::ethers::contract::builders::ContractCall<M, ::ethers::core::types::Address> {
+            self.0
+                .method_hash([248, 81, 164, 64], ())
+                .expect("method not found (this should never happen)")
+        }
+        ///Calls the contract's `arbiter_token_x` (0xe55aecfc) function
+        pub fn arbiter_token_x(
+            &self,
+        ) -> ::ethers::contract::builders::ContractCall<M, ::ethers::core::types::Address> {
+            self.0
+                .method_hash([229, 90, 236, 252], ())
+                .expect("method not found (this should never happen)")
+        }
+        ///Calls the contract's `arbiter_token_y` (0x9e171362) function
+        pub fn arbiter_token_y(
+            &self,
+        ) -> ::ethers::contract::builders::ContractCall<M, ::ethers::core::types::Address> {
+            self.0
+                .method_hash([158, 23, 19, 98], ())
+                .expect("method not found (this should never happen)")
+        }
+        ///Calls the contract's `getPrice` (0x98d5fdca) function
+        pub fn get_price(
+            &self,
+        ) -> ::ethers::contract::builders::ContractCall<M, ::ethers::core::types::U256> {
+            self.0
+                .method_hash([152, 213, 253, 202], ())
+                .expect("method not found (this should never happen)")
+        }
+        ///Calls the contract's `price` (0xa035b1fe) function
+        pub fn price(
+            &self,
+        ) -> ::ethers::contract::builders::ContractCall<M, ::ethers::core::types::U256> {
+            self.0
+                .method_hash([160, 53, 177, 254], ())
+                .expect("method not found (this should never happen)")
+        }
+        ///Calls the contract's `setPrice` (0x91b7f5ed) function
+        pub fn set_price(
+            &self,
+            price: ::ethers::core::types::U256,
+        ) -> ::ethers::contract::builders::ContractCall<M, ()> {
+            self.0
+                .method_hash([145, 183, 245, 237], price)
+                .expect("method not found (this should never happen)")
+        }
+        ///Calls the contract's `swap` (0xd004f0f7) function
+        pub fn swap(
+            &self,
+            token_in: ::ethers::core::types::Address,
+            amount_in: ::ethers::core::types::U256,
+        ) -> ::ethers::contract::builders::ContractCall<M, ()> {
+            self.0
+                .method_hash([208, 4, 240, 247], (token_in, amount_in))
+                .expect("method not found (this should never happen)")
+        }
+        ///Gets the contract's `PriceChange` event
+        pub fn price_change_filter(
+            &self,
+        ) -> ::ethers::contract::builders::Event<::std::sync::Arc<M>, M, PriceChangeFilter>
+        {
+            self.0.event()
+        }
+        ///Gets the contract's `SwapOccured` event
+        pub fn swap_occured_filter(
+            &self,
+        ) -> ::ethers::contract::builders::Event<::std::sync::Arc<M>, M, SwapOccuredFilter>
+        {
+            self.0.event()
+        }
+        /// Returns an `Event` builder for all the events of this contract.
+        pub fn events(
+            &self,
+        ) -> ::ethers::contract::builders::Event<::std::sync::Arc<M>, M, LiquidExchangeEvents>
+        {
+            self.0
+                .event_with_filter(::core::default::Default::default())
+        }
+    }
+    impl<M: ::ethers::providers::Middleware> From<::ethers::contract::Contract<M>>
+        for LiquidExchange<M>
+    {
+        fn from(contract: ::ethers::contract::Contract<M>) -> Self {
+            Self::new(contract.address(), contract.client())
+        }
+    }
+    #[derive(
+        Clone,
+        ::ethers::contract::EthEvent,
+        ::ethers::contract::EthDisplay,
+        Default,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash,
+    )]
+    #[ethevent(name = "PriceChange", abi = "PriceChange(uint256)")]
+    pub struct PriceChangeFilter {
+        pub price: ::ethers::core::types::U256,
+    }
+    #[derive(
+        Clone,
+        ::ethers::contract::EthEvent,
+        ::ethers::contract::EthDisplay,
+        Default,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash,
+    )]
+    #[ethevent(
+        name = "SwapOccured",
+        abi = "SwapOccured(address,uint256,address,uint256)"
+    )]
+    pub struct SwapOccuredFilter {
+        pub token_in: ::ethers::core::types::Address,
+        pub amount_in: ::ethers::core::types::U256,
+        pub token_out: ::ethers::core::types::Address,
+        pub amount_out: ::ethers::core::types::U256,
+    }
+    ///Container type for all of the contract's events
+    #[derive(Clone, ::ethers::contract::EthAbiType, Debug, PartialEq, Eq, Hash)]
+    pub enum LiquidExchangeEvents {
+        PriceChangeFilter(PriceChangeFilter),
+        SwapOccuredFilter(SwapOccuredFilter),
+    }
+    impl ::ethers::contract::EthLogDecode for LiquidExchangeEvents {
+        fn decode_log(
+            log: &::ethers::core::abi::RawLog,
+        ) -> ::core::result::Result<Self, ::ethers::core::abi::Error> {
+            if let Ok(decoded) = PriceChangeFilter::decode_log(log) {
+                return Ok(LiquidExchangeEvents::PriceChangeFilter(decoded));
+            }
+            if let Ok(decoded) = SwapOccuredFilter::decode_log(log) {
+                return Ok(LiquidExchangeEvents::SwapOccuredFilter(decoded));
+            }
+            Err(::ethers::core::abi::Error::InvalidData)
+        }
+    }
+    impl ::core::fmt::Display for LiquidExchangeEvents {
+        fn fmt(&self, f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
+            match self {
+                Self::PriceChangeFilter(element) => ::core::fmt::Display::fmt(element, f),
+                Self::SwapOccuredFilter(element) => ::core::fmt::Display::fmt(element, f),
+            }
+        }
+    }
+    impl ::core::convert::From<PriceChangeFilter> for LiquidExchangeEvents {
+        fn from(value: PriceChangeFilter) -> Self {
+            Self::PriceChangeFilter(value)
+        }
+    }
+    impl ::core::convert::From<SwapOccuredFilter> for LiquidExchangeEvents {
+        fn from(value: SwapOccuredFilter) -> Self {
+            Self::SwapOccuredFilter(value)
+        }
+    }
+    ///Container type for all input parameters for the `admin` function with signature `admin()` and selector `0xf851a440`
+    #[derive(
+        Clone,
+        ::ethers::contract::EthCall,
+        ::ethers::contract::EthDisplay,
+        Default,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash,
+    )]
+    #[ethcall(name = "admin", abi = "admin()")]
+    pub struct AdminCall;
+    ///Container type for all input parameters for the `arbiter_token_x` function with signature `arbiter_token_x()` and selector `0xe55aecfc`
+    #[derive(
+        Clone,
+        ::ethers::contract::EthCall,
+        ::ethers::contract::EthDisplay,
+        Default,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash,
+    )]
+    #[ethcall(name = "arbiter_token_x", abi = "arbiter_token_x()")]
+    pub struct ArbiterTokenXCall;
+    ///Container type for all input parameters for the `arbiter_token_y` function with signature `arbiter_token_y()` and selector `0x9e171362`
+    #[derive(
+        Clone,
+        ::ethers::contract::EthCall,
+        ::ethers::contract::EthDisplay,
+        Default,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash,
+    )]
+    #[ethcall(name = "arbiter_token_y", abi = "arbiter_token_y()")]
+    pub struct ArbiterTokenYCall;
+    ///Container type for all input parameters for the `getPrice` function with signature `getPrice()` and selector `0x98d5fdca`
+    #[derive(
+        Clone,
+        ::ethers::contract::EthCall,
+        ::ethers::contract::EthDisplay,
+        Default,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash,
+    )]
+    #[ethcall(name = "getPrice", abi = "getPrice()")]
+    pub struct GetPriceCall;
+    ///Container type for all input parameters for the `price` function with signature `price()` and selector `0xa035b1fe`
+    #[derive(
+        Clone,
+        ::ethers::contract::EthCall,
+        ::ethers::contract::EthDisplay,
+        Default,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash,
+    )]
+    #[ethcall(name = "price", abi = "price()")]
+    pub struct PriceCall;
+    ///Container type for all input parameters for the `setPrice` function with signature `setPrice(uint256)` and selector `0x91b7f5ed`
+    #[derive(
+        Clone,
+        ::ethers::contract::EthCall,
+        ::ethers::contract::EthDisplay,
+        Default,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash,
+    )]
+    #[ethcall(name = "setPrice", abi = "setPrice(uint256)")]
+    pub struct SetPriceCall {
+        pub price: ::ethers::core::types::U256,
+    }
+    ///Container type for all input parameters for the `swap` function with signature `swap(address,uint256)` and selector `0xd004f0f7`
+    #[derive(
+        Clone,
+        ::ethers::contract::EthCall,
+        ::ethers::contract::EthDisplay,
+        Default,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash,
+    )]
+    #[ethcall(name = "swap", abi = "swap(address,uint256)")]
+    pub struct SwapCall {
+        pub token_in: ::ethers::core::types::Address,
+        pub amount_in: ::ethers::core::types::U256,
+    }
+    ///Container type for all of the contract's call
+    #[derive(Clone, ::ethers::contract::EthAbiType, Debug, PartialEq, Eq, Hash)]
+    pub enum LiquidExchangeCalls {
+        Admin(AdminCall),
+        ArbiterTokenX(ArbiterTokenXCall),
+        ArbiterTokenY(ArbiterTokenYCall),
+        GetPrice(GetPriceCall),
+        Price(PriceCall),
+        SetPrice(SetPriceCall),
+        Swap(SwapCall),
+    }
+    impl ::ethers::core::abi::AbiDecode for LiquidExchangeCalls {
+        fn decode(
+            data: impl AsRef<[u8]>,
+        ) -> ::core::result::Result<Self, ::ethers::core::abi::AbiError> {
+            let data = data.as_ref();
+            if let Ok(decoded) = <AdminCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+                return Ok(Self::Admin(decoded));
+            }
+            if let Ok(decoded) = <ArbiterTokenXCall as ::ethers::core::abi::AbiDecode>::decode(data)
+            {
+                return Ok(Self::ArbiterTokenX(decoded));
+            }
+            if let Ok(decoded) = <ArbiterTokenYCall as ::ethers::core::abi::AbiDecode>::decode(data)
+            {
+                return Ok(Self::ArbiterTokenY(decoded));
+            }
+            if let Ok(decoded) = <GetPriceCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+                return Ok(Self::GetPrice(decoded));
+            }
+            if let Ok(decoded) = <PriceCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+                return Ok(Self::Price(decoded));
+            }
+            if let Ok(decoded) = <SetPriceCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+                return Ok(Self::SetPrice(decoded));
+            }
+            if let Ok(decoded) = <SwapCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+                return Ok(Self::Swap(decoded));
+            }
+            Err(::ethers::core::abi::Error::InvalidData.into())
+        }
+    }
+    impl ::ethers::core::abi::AbiEncode for LiquidExchangeCalls {
+        fn encode(self) -> Vec<u8> {
+            match self {
+                Self::Admin(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::ArbiterTokenX(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::ArbiterTokenY(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::GetPrice(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::Price(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::SetPrice(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::Swap(element) => ::ethers::core::abi::AbiEncode::encode(element),
+            }
+        }
+    }
+    impl ::core::fmt::Display for LiquidExchangeCalls {
+        fn fmt(&self, f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
+            match self {
+                Self::Admin(element) => ::core::fmt::Display::fmt(element, f),
+                Self::ArbiterTokenX(element) => ::core::fmt::Display::fmt(element, f),
+                Self::ArbiterTokenY(element) => ::core::fmt::Display::fmt(element, f),
+                Self::GetPrice(element) => ::core::fmt::Display::fmt(element, f),
+                Self::Price(element) => ::core::fmt::Display::fmt(element, f),
+                Self::SetPrice(element) => ::core::fmt::Display::fmt(element, f),
+                Self::Swap(element) => ::core::fmt::Display::fmt(element, f),
+            }
+        }
+    }
+    impl ::core::convert::From<AdminCall> for LiquidExchangeCalls {
+        fn from(value: AdminCall) -> Self {
+            Self::Admin(value)
+        }
+    }
+    impl ::core::convert::From<ArbiterTokenXCall> for LiquidExchangeCalls {
+        fn from(value: ArbiterTokenXCall) -> Self {
+            Self::ArbiterTokenX(value)
+        }
+    }
+    impl ::core::convert::From<ArbiterTokenYCall> for LiquidExchangeCalls {
+        fn from(value: ArbiterTokenYCall) -> Self {
+            Self::ArbiterTokenY(value)
+        }
+    }
+    impl ::core::convert::From<GetPriceCall> for LiquidExchangeCalls {
+        fn from(value: GetPriceCall) -> Self {
+            Self::GetPrice(value)
+        }
+    }
+    impl ::core::convert::From<PriceCall> for LiquidExchangeCalls {
+        fn from(value: PriceCall) -> Self {
+            Self::Price(value)
+        }
+    }
+    impl ::core::convert::From<SetPriceCall> for LiquidExchangeCalls {
+        fn from(value: SetPriceCall) -> Self {
+            Self::SetPrice(value)
+        }
+    }
+    impl ::core::convert::From<SwapCall> for LiquidExchangeCalls {
+        fn from(value: SwapCall) -> Self {
+            Self::Swap(value)
+        }
+    }
+    ///Container type for all return fields from the `admin` function with signature `admin()` and selector `0xf851a440`
+    #[derive(
+        Clone,
+        ::ethers::contract::EthAbiType,
+        ::ethers::contract::EthAbiCodec,
+        Default,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash,
+    )]
+    pub struct AdminReturn(pub ::ethers::core::types::Address);
+    ///Container type for all return fields from the `arbiter_token_x` function with signature `arbiter_token_x()` and selector `0xe55aecfc`
+    #[derive(
+        Clone,
+        ::ethers::contract::EthAbiType,
+        ::ethers::contract::EthAbiCodec,
+        Default,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash,
+    )]
+    pub struct ArbiterTokenXReturn(pub ::ethers::core::types::Address);
+    ///Container type for all return fields from the `arbiter_token_y` function with signature `arbiter_token_y()` and selector `0x9e171362`
+    #[derive(
+        Clone,
+        ::ethers::contract::EthAbiType,
+        ::ethers::contract::EthAbiCodec,
+        Default,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash,
+    )]
+    pub struct ArbiterTokenYReturn(pub ::ethers::core::types::Address);
+    ///Container type for all return fields from the `getPrice` function with signature `getPrice()` and selector `0x98d5fdca`
+    #[derive(
+        Clone,
+        ::ethers::contract::EthAbiType,
+        ::ethers::contract::EthAbiCodec,
+        Default,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash,
+    )]
+    pub struct GetPriceReturn(pub ::ethers::core::types::U256);
+    ///Container type for all return fields from the `price` function with signature `price()` and selector `0xa035b1fe`
+    #[derive(
+        Clone,
+        ::ethers::contract::EthAbiType,
+        ::ethers::contract::EthAbiCodec,
+        Default,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash,
+    )]
+    pub struct PriceReturn(pub ::ethers::core::types::U256);
 }
 pub use mock_erc20::*;
 /// This module was auto-generated with ethers-rs Abigen.
@@ -31106,14 +33419,16 @@ pub use mock_erc20::*;
     clippy::upper_case_acronyms,
     clippy::type_complexity,
     dead_code,
-    non_camel_case_types,
+    non_camel_case_types
 )]
 pub mod mock_erc20 {
     #[rustfmt::skip]
     const __ABI: &str = "[{\"inputs\":[{\"internalType\":\"string\",\"name\":\"_name\",\"type\":\"string\",\"components\":[]},{\"internalType\":\"string\",\"name\":\"_symbol\",\"type\":\"string\",\"components\":[]},{\"internalType\":\"uint8\",\"name\":\"_decimals\",\"type\":\"uint8\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"constructor\",\"outputs\":[]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"owner\",\"type\":\"address\",\"components\":[],\"indexed\":true},{\"internalType\":\"address\",\"name\":\"spender\",\"type\":\"address\",\"components\":[],\"indexed\":true},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\",\"components\":[],\"indexed\":false}],\"type\":\"event\",\"name\":\"Approval\",\"outputs\":[],\"anonymous\":false},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"from\",\"type\":\"address\",\"components\":[],\"indexed\":true},{\"internalType\":\"address\",\"name\":\"to\",\"type\":\"address\",\"components\":[],\"indexed\":true},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\",\"components\":[],\"indexed\":false}],\"type\":\"event\",\"name\":\"Transfer\",\"outputs\":[],\"anonymous\":false},{\"inputs\":[],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"DOMAIN_SEPARATOR\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\",\"components\":[]}],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"allowance\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"spender\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"function\",\"name\":\"approve\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\",\"components\":[]}],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"balanceOf\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"from\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"value\",\"type\":\"uint256\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"function\",\"name\":\"burn\",\"outputs\":[]},{\"inputs\":[],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"decimals\",\"outputs\":[{\"internalType\":\"uint8\",\"name\":\"\",\"type\":\"uint8\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"to\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"value\",\"type\":\"uint256\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"function\",\"name\":\"mint\",\"outputs\":[]},{\"inputs\":[],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"name\",\"outputs\":[{\"internalType\":\"string\",\"name\":\"\",\"type\":\"string\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\",\"components\":[]}],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"nonces\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"owner\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"address\",\"name\":\"spender\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"value\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"deadline\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"uint8\",\"name\":\"v\",\"type\":\"uint8\",\"components\":[]},{\"internalType\":\"bytes32\",\"name\":\"r\",\"type\":\"bytes32\",\"components\":[]},{\"internalType\":\"bytes32\",\"name\":\"s\",\"type\":\"bytes32\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"function\",\"name\":\"permit\",\"outputs\":[]},{\"inputs\":[],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"symbol\",\"outputs\":[{\"internalType\":\"string\",\"name\":\"\",\"type\":\"string\",\"components\":[]}]},{\"inputs\":[],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"totalSupply\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"to\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"function\",\"name\":\"transfer\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"from\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"address\",\"name\":\"to\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"function\",\"name\":\"transferFrom\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\",\"components\":[]}]}]";
     ///The parsed JSON ABI of the contract.
-    pub static MOCKERC20_ABI: ::ethers::contract::Lazy<::ethers::core::abi::Abi> = ::ethers::contract::Lazy::new(||
-    ::ethers::core::utils::__serde_json::from_str(__ABI).expect("ABI is always valid"));
+    pub static MOCKERC20_ABI: ::ethers::contract::Lazy<::ethers::core::abi::Abi> =
+        ::ethers::contract::Lazy::new(|| {
+            ::ethers::core::utils::__serde_json::from_str(__ABI).expect("ABI is always valid")
+        });
     #[rustfmt::skip]
     const __BYTECODE: &[u8] = &[
         96,
@@ -35206,9 +37521,8 @@ pub mod mock_erc20 {
         51,
     ];
     ///The bytecode of the contract.
-    pub static MOCKERC20_BYTECODE: ::ethers::core::types::Bytes = ::ethers::core::types::Bytes::from_static(
-        __BYTECODE,
-    );
+    pub static MOCKERC20_BYTECODE: ::ethers::core::types::Bytes =
+        ::ethers::core::types::Bytes::from_static(__BYTECODE);
     #[rustfmt::skip]
     const __DEPLOYED_BYTECODE: &[u8] = &[
         96,
@@ -38231,9 +40545,8 @@ pub mod mock_erc20 {
         51,
     ];
     ///The deployed bytecode of the contract.
-    pub static MOCKERC20_DEPLOYED_BYTECODE: ::ethers::core::types::Bytes = ::ethers::core::types::Bytes::from_static(
-        __DEPLOYED_BYTECODE,
-    );
+    pub static MOCKERC20_DEPLOYED_BYTECODE: ::ethers::core::types::Bytes =
+        ::ethers::core::types::Bytes::from_static(__DEPLOYED_BYTECODE);
     pub struct MockERC20<M>(::ethers::contract::Contract<M>);
     impl<M> ::core::clone::Clone for MockERC20<M> {
         fn clone(&self) -> Self {
@@ -38253,7 +40566,9 @@ pub mod mock_erc20 {
     }
     impl<M> ::core::fmt::Debug for MockERC20<M> {
         fn fmt(&self, f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
-            f.debug_tuple(stringify!(MockERC20)).field(&self.address()).finish()
+            f.debug_tuple(stringify!(MockERC20))
+                .field(&self.address())
+                .finish()
         }
     }
     impl<M: ::ethers::providers::Middleware> MockERC20<M> {
@@ -38263,13 +40578,11 @@ pub mod mock_erc20 {
             address: T,
             client: ::std::sync::Arc<M>,
         ) -> Self {
-            Self(
-                ::ethers::contract::Contract::new(
-                    address.into(),
-                    MOCKERC20_ABI.clone(),
-                    client,
-                ),
-            )
+            Self(::ethers::contract::Contract::new(
+                address.into(),
+                MOCKERC20_ABI.clone(),
+                client,
+            ))
         }
         /// Constructs the general purpose `Deployer` instance based on the provided constructor arguments and sends it.
         /// Returns a new instance of a deployer that returns an instance of this contract after sending the transaction
@@ -38311,9 +40624,7 @@ pub mod mock_erc20 {
             Ok(deployer)
         }
         ///Calls the contract's `DOMAIN_SEPARATOR` (0x3644e515) function
-        pub fn domain_separator(
-            &self,
-        ) -> ::ethers::contract::builders::ContractCall<M, [u8; 32]> {
+        pub fn domain_separator(&self) -> ::ethers::contract::builders::ContractCall<M, [u8; 32]> {
             self.0
                 .method_hash([54, 68, 229, 21], ())
                 .expect("method not found (this should never happen)")
@@ -38374,9 +40685,7 @@ pub mod mock_erc20 {
                 .expect("method not found (this should never happen)")
         }
         ///Calls the contract's `name` (0x06fdde03) function
-        pub fn name(
-            &self,
-        ) -> ::ethers::contract::builders::ContractCall<M, ::std::string::String> {
+        pub fn name(&self) -> ::ethers::contract::builders::ContractCall<M, ::std::string::String> {
             self.0
                 .method_hash([6, 253, 222, 3], ())
                 .expect("method not found (this should never happen)")
@@ -38448,36 +40757,24 @@ pub mod mock_erc20 {
         ///Gets the contract's `Approval` event
         pub fn approval_filter(
             &self,
-        ) -> ::ethers::contract::builders::Event<
-            ::std::sync::Arc<M>,
-            M,
-            ApprovalFilter,
-        > {
+        ) -> ::ethers::contract::builders::Event<::std::sync::Arc<M>, M, ApprovalFilter> {
             self.0.event()
         }
         ///Gets the contract's `Transfer` event
         pub fn transfer_filter(
             &self,
-        ) -> ::ethers::contract::builders::Event<
-            ::std::sync::Arc<M>,
-            M,
-            TransferFilter,
-        > {
+        ) -> ::ethers::contract::builders::Event<::std::sync::Arc<M>, M, TransferFilter> {
             self.0.event()
         }
         /// Returns an `Event` builder for all the events of this contract.
         pub fn events(
             &self,
-        ) -> ::ethers::contract::builders::Event<
-            ::std::sync::Arc<M>,
-            M,
-            MockERC20Events,
-        > {
-            self.0.event_with_filter(::core::default::Default::default())
+        ) -> ::ethers::contract::builders::Event<::std::sync::Arc<M>, M, MockERC20Events> {
+            self.0
+                .event_with_filter(::core::default::Default::default())
         }
     }
-    impl<M: ::ethers::providers::Middleware> From<::ethers::contract::Contract<M>>
-    for MockERC20<M> {
+    impl<M: ::ethers::providers::Middleware> From<::ethers::contract::Contract<M>> for MockERC20<M> {
         fn from(contract: ::ethers::contract::Contract<M>) -> Self {
             Self::new(contract.address(), contract.client())
         }
@@ -38490,7 +40787,7 @@ pub mod mock_erc20 {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethevent(name = "Approval", abi = "Approval(address,address,uint256)")]
     pub struct ApprovalFilter {
@@ -38508,7 +40805,7 @@ pub mod mock_erc20 {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethevent(name = "Transfer", abi = "Transfer(address,address,uint256)")]
     pub struct TransferFilter {
@@ -38564,7 +40861,7 @@ pub mod mock_erc20 {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "DOMAIN_SEPARATOR", abi = "DOMAIN_SEPARATOR()")]
     pub struct DomainSeparatorCall;
@@ -38577,7 +40874,7 @@ pub mod mock_erc20 {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "allowance", abi = "allowance(address,address)")]
     pub struct AllowanceCall(
@@ -38593,7 +40890,7 @@ pub mod mock_erc20 {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "approve", abi = "approve(address,uint256)")]
     pub struct ApproveCall {
@@ -38609,7 +40906,7 @@ pub mod mock_erc20 {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "balanceOf", abi = "balanceOf(address)")]
     pub struct BalanceOfCall(pub ::ethers::core::types::Address);
@@ -38622,7 +40919,7 @@ pub mod mock_erc20 {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "burn", abi = "burn(address,uint256)")]
     pub struct BurnCall {
@@ -38638,7 +40935,7 @@ pub mod mock_erc20 {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "decimals", abi = "decimals()")]
     pub struct DecimalsCall;
@@ -38651,7 +40948,7 @@ pub mod mock_erc20 {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "mint", abi = "mint(address,uint256)")]
     pub struct MintCall {
@@ -38667,7 +40964,7 @@ pub mod mock_erc20 {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "name", abi = "name()")]
     pub struct NameCall;
@@ -38680,7 +40977,7 @@ pub mod mock_erc20 {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "nonces", abi = "nonces(address)")]
     pub struct NoncesCall(pub ::ethers::core::types::Address);
@@ -38693,7 +40990,7 @@ pub mod mock_erc20 {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(
         name = "permit",
@@ -38717,7 +41014,7 @@ pub mod mock_erc20 {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "symbol", abi = "symbol()")]
     pub struct SymbolCall;
@@ -38730,7 +41027,7 @@ pub mod mock_erc20 {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "totalSupply", abi = "totalSupply()")]
     pub struct TotalSupplyCall;
@@ -38743,7 +41040,7 @@ pub mod mock_erc20 {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "transfer", abi = "transfer(address,uint256)")]
     pub struct TransferCall {
@@ -38759,7 +41056,7 @@ pub mod mock_erc20 {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "transferFrom", abi = "transferFrom(address,address,uint256)")]
     pub struct TransferFromCall {
@@ -38790,60 +41087,49 @@ pub mod mock_erc20 {
             data: impl AsRef<[u8]>,
         ) -> ::core::result::Result<Self, ::ethers::core::abi::AbiError> {
             let data = data.as_ref();
-            if let Ok(decoded)
-                = <DomainSeparatorCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) =
+                <DomainSeparatorCall as ::ethers::core::abi::AbiDecode>::decode(data)
+            {
                 return Ok(Self::DomainSeparator(decoded));
             }
-            if let Ok(decoded)
-                = <AllowanceCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <AllowanceCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::Allowance(decoded));
             }
-            if let Ok(decoded)
-                = <ApproveCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <ApproveCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::Approve(decoded));
             }
-            if let Ok(decoded)
-                = <BalanceOfCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <BalanceOfCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::BalanceOf(decoded));
             }
-            if let Ok(decoded)
-                = <BurnCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <BurnCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::Burn(decoded));
             }
-            if let Ok(decoded)
-                = <DecimalsCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <DecimalsCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::Decimals(decoded));
             }
-            if let Ok(decoded)
-                = <MintCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <MintCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::Mint(decoded));
             }
-            if let Ok(decoded)
-                = <NameCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <NameCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::Name(decoded));
             }
-            if let Ok(decoded)
-                = <NoncesCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <NoncesCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::Nonces(decoded));
             }
-            if let Ok(decoded)
-                = <PermitCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <PermitCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::Permit(decoded));
             }
-            if let Ok(decoded)
-                = <SymbolCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <SymbolCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::Symbol(decoded));
             }
-            if let Ok(decoded)
-                = <TotalSupplyCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <TotalSupplyCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::TotalSupply(decoded));
             }
-            if let Ok(decoded)
-                = <TransferCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <TransferCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::Transfer(decoded));
             }
-            if let Ok(decoded)
-                = <TransferFromCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <TransferFromCall as ::ethers::core::abi::AbiDecode>::decode(data)
+            {
                 return Ok(Self::TransferFrom(decoded));
             }
             Err(::ethers::core::abi::Error::InvalidData.into())
@@ -38852,34 +41138,20 @@ pub mod mock_erc20 {
     impl ::ethers::core::abi::AbiEncode for MockERC20Calls {
         fn encode(self) -> Vec<u8> {
             match self {
-                Self::DomainSeparator(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
-                Self::Allowance(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
+                Self::DomainSeparator(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::Allowance(element) => ::ethers::core::abi::AbiEncode::encode(element),
                 Self::Approve(element) => ::ethers::core::abi::AbiEncode::encode(element),
-                Self::BalanceOf(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
+                Self::BalanceOf(element) => ::ethers::core::abi::AbiEncode::encode(element),
                 Self::Burn(element) => ::ethers::core::abi::AbiEncode::encode(element),
-                Self::Decimals(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
+                Self::Decimals(element) => ::ethers::core::abi::AbiEncode::encode(element),
                 Self::Mint(element) => ::ethers::core::abi::AbiEncode::encode(element),
                 Self::Name(element) => ::ethers::core::abi::AbiEncode::encode(element),
                 Self::Nonces(element) => ::ethers::core::abi::AbiEncode::encode(element),
                 Self::Permit(element) => ::ethers::core::abi::AbiEncode::encode(element),
                 Self::Symbol(element) => ::ethers::core::abi::AbiEncode::encode(element),
-                Self::TotalSupply(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
-                Self::Transfer(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
-                Self::TransferFrom(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
+                Self::TotalSupply(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::Transfer(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::TransferFrom(element) => ::ethers::core::abi::AbiEncode::encode(element),
             }
         }
     }
@@ -38982,7 +41254,7 @@ pub mod mock_erc20 {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     pub struct DomainSeparatorReturn(pub [u8; 32]);
     ///Container type for all return fields from the `allowance` function with signature `allowance(address,address)` and selector `0xdd62ed3e`
@@ -38994,7 +41266,7 @@ pub mod mock_erc20 {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     pub struct AllowanceReturn(pub ::ethers::core::types::U256);
     ///Container type for all return fields from the `approve` function with signature `approve(address,uint256)` and selector `0x095ea7b3`
@@ -39006,7 +41278,7 @@ pub mod mock_erc20 {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     pub struct ApproveReturn(pub bool);
     ///Container type for all return fields from the `balanceOf` function with signature `balanceOf(address)` and selector `0x70a08231`
@@ -39018,7 +41290,7 @@ pub mod mock_erc20 {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     pub struct BalanceOfReturn(pub ::ethers::core::types::U256);
     ///Container type for all return fields from the `decimals` function with signature `decimals()` and selector `0x313ce567`
@@ -39030,7 +41302,7 @@ pub mod mock_erc20 {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     pub struct DecimalsReturn(pub u8);
     ///Container type for all return fields from the `name` function with signature `name()` and selector `0x06fdde03`
@@ -39042,7 +41314,7 @@ pub mod mock_erc20 {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     pub struct NameReturn(pub ::std::string::String);
     ///Container type for all return fields from the `nonces` function with signature `nonces(address)` and selector `0x7ecebe00`
@@ -39054,7 +41326,7 @@ pub mod mock_erc20 {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     pub struct NoncesReturn(pub ::ethers::core::types::U256);
     ///Container type for all return fields from the `symbol` function with signature `symbol()` and selector `0x95d89b41`
@@ -39066,7 +41338,7 @@ pub mod mock_erc20 {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     pub struct SymbolReturn(pub ::std::string::String);
     ///Container type for all return fields from the `totalSupply` function with signature `totalSupply()` and selector `0x18160ddd`
@@ -39078,7 +41350,7 @@ pub mod mock_erc20 {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     pub struct TotalSupplyReturn(pub ::ethers::core::types::U256);
     ///Container type for all return fields from the `transfer` function with signature `transfer(address,uint256)` and selector `0xa9059cbb`
@@ -39090,7 +41362,7 @@ pub mod mock_erc20 {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     pub struct TransferReturn(pub bool);
     ///Container type for all return fields from the `transferFrom` function with signature `transferFrom(address,address,uint256)` and selector `0x23b872dd`
@@ -39102,7 +41374,7 @@ pub mod mock_erc20 {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     pub struct TransferFromReturn(pub bool);
 }
@@ -39115,15 +41387,17 @@ pub use objective::*;
     clippy::upper_case_acronyms,
     clippy::type_complexity,
     dead_code,
-    non_camel_case_types,
+    non_camel_case_types
 )]
 pub mod objective {
     pub use super::__shared_types::*;
     #[rustfmt::skip]
     const __ABI: &str = "[{\"inputs\":[{\"internalType\":\"uint64\",\"name\":\"poolId\",\"type\":\"uint64\",\"components\":[],\"indexed\":true},{\"internalType\":\"address\",\"name\":\"asset\",\"type\":\"address\",\"components\":[],\"indexed\":true},{\"internalType\":\"address\",\"name\":\"quote\",\"type\":\"address\",\"components\":[],\"indexed\":true},{\"internalType\":\"uint256\",\"name\":\"deltaAsset\",\"type\":\"uint256\",\"components\":[],\"indexed\":false},{\"internalType\":\"uint256\",\"name\":\"deltaQuote\",\"type\":\"uint256\",\"components\":[],\"indexed\":false},{\"internalType\":\"uint256\",\"name\":\"deltaLiquidity\",\"type\":\"uint256\",\"components\":[],\"indexed\":false}],\"type\":\"event\",\"name\":\"Allocate\",\"outputs\":[],\"anonymous\":false},{\"inputs\":[{\"internalType\":\"uint64\",\"name\":\"poolId\",\"type\":\"uint64\",\"components\":[],\"indexed\":true},{\"internalType\":\"uint16\",\"name\":\"priorityFee\",\"type\":\"uint16\",\"components\":[],\"indexed\":true},{\"internalType\":\"uint16\",\"name\":\"fee\",\"type\":\"uint16\",\"components\":[],\"indexed\":true},{\"internalType\":\"uint16\",\"name\":\"jit\",\"type\":\"uint16\",\"components\":[],\"indexed\":false}],\"type\":\"event\",\"name\":\"ChangeParameters\",\"outputs\":[],\"anonymous\":false},{\"inputs\":[{\"internalType\":\"uint64\",\"name\":\"poolId\",\"type\":\"uint64\",\"components\":[],\"indexed\":false},{\"internalType\":\"address\",\"name\":\"account\",\"type\":\"address\",\"components\":[],\"indexed\":true},{\"internalType\":\"uint256\",\"name\":\"feeAssetDec\",\"type\":\"uint256\",\"components\":[],\"indexed\":false},{\"internalType\":\"address\",\"name\":\"asset\",\"type\":\"address\",\"components\":[],\"indexed\":true},{\"internalType\":\"uint256\",\"name\":\"feeQuoteDec\",\"type\":\"uint256\",\"components\":[],\"indexed\":false},{\"internalType\":\"address\",\"name\":\"quote\",\"type\":\"address\",\"components\":[],\"indexed\":true}],\"type\":\"event\",\"name\":\"Collect\",\"outputs\":[],\"anonymous\":false},{\"inputs\":[{\"internalType\":\"uint24\",\"name\":\"pairId\",\"type\":\"uint24\",\"components\":[],\"indexed\":true},{\"internalType\":\"address\",\"name\":\"asset\",\"type\":\"address\",\"components\":[],\"indexed\":true},{\"internalType\":\"address\",\"name\":\"quote\",\"type\":\"address\",\"components\":[],\"indexed\":true},{\"internalType\":\"uint8\",\"name\":\"decimalsAsset\",\"type\":\"uint8\",\"components\":[],\"indexed\":false},{\"internalType\":\"uint8\",\"name\":\"decimalsQuote\",\"type\":\"uint8\",\"components\":[],\"indexed\":false}],\"type\":\"event\",\"name\":\"CreatePair\",\"outputs\":[],\"anonymous\":false},{\"inputs\":[{\"internalType\":\"uint64\",\"name\":\"poolId\",\"type\":\"uint64\",\"components\":[],\"indexed\":true},{\"internalType\":\"bool\",\"name\":\"isMutable\",\"type\":\"bool\",\"components\":[],\"indexed\":false},{\"internalType\":\"address\",\"name\":\"asset\",\"type\":\"address\",\"components\":[],\"indexed\":true},{\"internalType\":\"address\",\"name\":\"quote\",\"type\":\"address\",\"components\":[],\"indexed\":true},{\"internalType\":\"uint256\",\"name\":\"price\",\"type\":\"uint256\",\"components\":[],\"indexed\":false}],\"type\":\"event\",\"name\":\"CreatePool\",\"outputs\":[],\"anonymous\":false},{\"inputs\":[{\"internalType\":\"uint64\",\"name\":\"poolId\",\"type\":\"uint64\",\"components\":[],\"indexed\":true},{\"internalType\":\"address\",\"name\":\"asset\",\"type\":\"address\",\"components\":[],\"indexed\":true},{\"internalType\":\"address\",\"name\":\"quote\",\"type\":\"address\",\"components\":[],\"indexed\":true},{\"internalType\":\"uint256\",\"name\":\"deltaAsset\",\"type\":\"uint256\",\"components\":[],\"indexed\":false},{\"internalType\":\"uint256\",\"name\":\"deltaQuote\",\"type\":\"uint256\",\"components\":[],\"indexed\":false},{\"internalType\":\"uint256\",\"name\":\"deltaLiquidity\",\"type\":\"uint256\",\"components\":[],\"indexed\":false}],\"type\":\"event\",\"name\":\"Deallocate\",\"outputs\":[],\"anonymous\":false},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"token\",\"type\":\"address\",\"components\":[],\"indexed\":true},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\",\"components\":[],\"indexed\":false}],\"type\":\"event\",\"name\":\"DecreaseReserveBalance\",\"outputs\":[],\"anonymous\":false},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"account\",\"type\":\"address\",\"components\":[],\"indexed\":true},{\"internalType\":\"address\",\"name\":\"token\",\"type\":\"address\",\"components\":[],\"indexed\":true},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\",\"components\":[],\"indexed\":false}],\"type\":\"event\",\"name\":\"DecreaseUserBalance\",\"outputs\":[],\"anonymous\":false},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"account\",\"type\":\"address\",\"components\":[],\"indexed\":true},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\",\"components\":[],\"indexed\":false}],\"type\":\"event\",\"name\":\"Deposit\",\"outputs\":[],\"anonymous\":false},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"token\",\"type\":\"address\",\"components\":[],\"indexed\":true},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\",\"components\":[],\"indexed\":false}],\"type\":\"event\",\"name\":\"IncreaseReserveBalance\",\"outputs\":[],\"anonymous\":false},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"account\",\"type\":\"address\",\"components\":[],\"indexed\":true},{\"internalType\":\"address\",\"name\":\"token\",\"type\":\"address\",\"components\":[],\"indexed\":true},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\",\"components\":[],\"indexed\":false}],\"type\":\"event\",\"name\":\"IncreaseUserBalance\",\"outputs\":[],\"anonymous\":false},{\"inputs\":[{\"internalType\":\"uint64\",\"name\":\"poolId\",\"type\":\"uint64\",\"components\":[],\"indexed\":true},{\"internalType\":\"uint256\",\"name\":\"price\",\"type\":\"uint256\",\"components\":[],\"indexed\":false},{\"internalType\":\"address\",\"name\":\"sellAsset\",\"type\":\"address\",\"components\":[],\"indexed\":true},{\"internalType\":\"uint256\",\"name\":\"input\",\"type\":\"uint256\",\"components\":[],\"indexed\":false},{\"internalType\":\"address\",\"name\":\"tokenOut\",\"type\":\"address\",\"components\":[],\"indexed\":true},{\"internalType\":\"uint256\",\"name\":\"output\",\"type\":\"uint256\",\"components\":[],\"indexed\":false},{\"internalType\":\"uint256\",\"name\":\"feeAmountDec\",\"type\":\"uint256\",\"components\":[],\"indexed\":false},{\"internalType\":\"int256\",\"name\":\"invariantWad\",\"type\":\"int256\",\"components\":[],\"indexed\":false}],\"type\":\"event\",\"name\":\"Swap\",\"outputs\":[],\"anonymous\":false},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"prevFee\",\"type\":\"uint256\",\"components\":[],\"indexed\":false},{\"internalType\":\"uint256\",\"name\":\"nextFee\",\"type\":\"uint256\",\"components\":[],\"indexed\":false}],\"type\":\"event\",\"name\":\"UpdateProtocolFee\",\"outputs\":[],\"anonymous\":false},{\"inputs\":[],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"REGISTRY\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\",\"components\":[]}]},{\"inputs\":[],\"stateMutability\":\"pure\",\"type\":\"function\",\"name\":\"VERSION\",\"outputs\":[{\"internalType\":\"string\",\"name\":\"\",\"type\":\"string\",\"components\":[]}]},{\"inputs\":[],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"WETH\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"uint64\",\"name\":\"poolId\",\"type\":\"uint64\",\"components\":[]},{\"internalType\":\"uint16\",\"name\":\"priorityFee\",\"type\":\"uint16\",\"components\":[]},{\"internalType\":\"uint16\",\"name\":\"fee\",\"type\":\"uint16\",\"components\":[]},{\"internalType\":\"uint16\",\"name\":\"jit\",\"type\":\"uint16\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"function\",\"name\":\"changeParameters\",\"outputs\":[]},{\"inputs\":[{\"internalType\":\"uint64\",\"name\":\"poolId\",\"type\":\"uint64\",\"components\":[]},{\"internalType\":\"int256\",\"name\":\"invariant\",\"type\":\"int256\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"reserveX\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"reserveY\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"timestamp\",\"type\":\"uint256\",\"components\":[]}],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"checkInvariant\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"success\",\"type\":\"bool\",\"components\":[]},{\"internalType\":\"int256\",\"name\":\"nextInvariant\",\"type\":\"int256\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"uint64\",\"name\":\"poolId\",\"type\":\"uint64\",\"components\":[]}],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"checkPool\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"uint64\",\"name\":\"poolId\",\"type\":\"uint64\",\"components\":[]},{\"internalType\":\"address\",\"name\":\"owner\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"int256\",\"name\":\"delta\",\"type\":\"int256\",\"components\":[]}],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"checkPosition\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"uint64\",\"name\":\"poolId\",\"type\":\"uint64\",\"components\":[]},{\"internalType\":\"bool\",\"name\":\"sellAsset\",\"type\":\"bool\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"reserveIn\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"liquidity\",\"type\":\"uint256\",\"components\":[]}],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"computeMaxInput\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"uint64\",\"name\":\"poolId\",\"type\":\"uint64\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"price\",\"type\":\"uint256\",\"components\":[]}],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"computeReservesFromPrice\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"reserveX\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"reserveY\",\"type\":\"uint256\",\"components\":[]}]},{\"inputs\":[],\"stateMutability\":\"payable\",\"type\":\"function\",\"name\":\"deposit\",\"outputs\":[]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"token\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"address\",\"name\":\"to\",\"type\":\"address\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"function\",\"name\":\"draw\",\"outputs\":[]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"token\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"function\",\"name\":\"fund\",\"outputs\":[]},{\"inputs\":[{\"internalType\":\"uint64\",\"name\":\"poolId\",\"type\":\"uint64\",\"components\":[]},{\"internalType\":\"bool\",\"name\":\"sellAsset\",\"type\":\"bool\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"amountIn\",\"type\":\"uint256\",\"components\":[]}],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"getAmountOut\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"output\",\"type\":\"uint256\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"owner\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"address\",\"name\":\"token\",\"type\":\"address\",\"components\":[]}],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"getBalance\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"uint64\",\"name\":\"poolId\",\"type\":\"uint64\",\"components\":[]},{\"internalType\":\"int128\",\"name\":\"deltaLiquidity\",\"type\":\"int128\",\"components\":[]}],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"getLiquidityDeltas\",\"outputs\":[{\"internalType\":\"uint128\",\"name\":\"deltaAsset\",\"type\":\"uint128\",\"components\":[]},{\"internalType\":\"uint128\",\"name\":\"deltaQuote\",\"type\":\"uint128\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"uint64\",\"name\":\"poolId\",\"type\":\"uint64\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"deltaAsset\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"deltaQuote\",\"type\":\"uint256\",\"components\":[]}],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"getMaxLiquidity\",\"outputs\":[{\"internalType\":\"uint128\",\"name\":\"deltaLiquidity\",\"type\":\"uint128\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"token\",\"type\":\"address\",\"components\":[]}],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"getNetBalance\",\"outputs\":[{\"internalType\":\"int256\",\"name\":\"\",\"type\":\"int256\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"asset\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"address\",\"name\":\"quote\",\"type\":\"address\",\"components\":[]}],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"getPairId\",\"outputs\":[{\"internalType\":\"uint24\",\"name\":\"pairId\",\"type\":\"uint24\",\"components\":[]}]},{\"inputs\":[],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"getPairNonce\",\"outputs\":[{\"internalType\":\"uint24\",\"name\":\"\",\"type\":\"uint24\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"uint24\",\"name\":\"pairNonce\",\"type\":\"uint24\",\"components\":[]}],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"getPoolNonce\",\"outputs\":[{\"internalType\":\"uint32\",\"name\":\"\",\"type\":\"uint32\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"uint64\",\"name\":\"poolId\",\"type\":\"uint64\",\"components\":[]}],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"getPoolReserves\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"deltaAsset\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"deltaQuote\",\"type\":\"uint256\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"token\",\"type\":\"address\",\"components\":[]}],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"getReserve\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"uint64\",\"name\":\"poolId\",\"type\":\"uint64\",\"components\":[]}],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"getVirtualPrice\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"price\",\"type\":\"uint256\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"uint64\",\"name\":\"poolId\",\"type\":\"uint64\",\"components\":[]}],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"getVirtualReservesPerLiquidity\",\"outputs\":[{\"internalType\":\"uint128\",\"name\":\"deltaAsset\",\"type\":\"uint128\",\"components\":[]},{\"internalType\":\"uint128\",\"name\":\"deltaQuote\",\"type\":\"uint128\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"bytes\",\"name\":\"data\",\"type\":\"bytes\",\"components\":[]}],\"stateMutability\":\"payable\",\"type\":\"function\",\"name\":\"multiprocess\",\"outputs\":[]},{\"inputs\":[{\"internalType\":\"uint24\",\"name\":\"pairId\",\"type\":\"uint24\",\"components\":[]}],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"pairs\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"tokenAsset\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint8\",\"name\":\"decimalsAsset\",\"type\":\"uint8\",\"components\":[]},{\"internalType\":\"address\",\"name\":\"tokenQuote\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint8\",\"name\":\"decimalsQuote\",\"type\":\"uint8\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"uint64\",\"name\":\"poolId\",\"type\":\"uint64\",\"components\":[]}],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"pools\",\"outputs\":[{\"internalType\":\"uint128\",\"name\":\"virtualX\",\"type\":\"uint128\",\"components\":[]},{\"internalType\":\"uint128\",\"name\":\"virtualY\",\"type\":\"uint128\",\"components\":[]},{\"internalType\":\"uint128\",\"name\":\"liquidity\",\"type\":\"uint128\",\"components\":[]},{\"internalType\":\"uint32\",\"name\":\"lastTimestamp\",\"type\":\"uint32\",\"components\":[]},{\"internalType\":\"address\",\"name\":\"controller\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"invariantGrowthGlobal\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"feeGrowthGlobalAsset\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"feeGrowthGlobalQuote\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"struct PortfolioCurve\",\"name\":\"\",\"type\":\"tuple\",\"components\":[{\"internalType\":\"uint128\",\"name\":\"maxPrice\",\"type\":\"uint128\",\"components\":[]},{\"internalType\":\"uint16\",\"name\":\"jit\",\"type\":\"uint16\",\"components\":[]},{\"internalType\":\"uint16\",\"name\":\"fee\",\"type\":\"uint16\",\"components\":[]},{\"internalType\":\"uint16\",\"name\":\"duration\",\"type\":\"uint16\",\"components\":[]},{\"internalType\":\"uint16\",\"name\":\"volatility\",\"type\":\"uint16\",\"components\":[]},{\"internalType\":\"uint16\",\"name\":\"priorityFee\",\"type\":\"uint16\",\"components\":[]},{\"internalType\":\"uint32\",\"name\":\"createdAt\",\"type\":\"uint32\",\"components\":[]},{\"internalType\":\"bool\",\"name\":\"perpetual\",\"type\":\"bool\",\"components\":[]}]},{\"internalType\":\"struct PortfolioPair\",\"name\":\"\",\"type\":\"tuple\",\"components\":[{\"internalType\":\"address\",\"name\":\"tokenAsset\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint8\",\"name\":\"decimalsAsset\",\"type\":\"uint8\",\"components\":[]},{\"internalType\":\"address\",\"name\":\"tokenQuote\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint8\",\"name\":\"decimalsQuote\",\"type\":\"uint8\",\"components\":[]}]}]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"owner\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint64\",\"name\":\"poolId\",\"type\":\"uint64\",\"components\":[]}],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"positions\",\"outputs\":[{\"internalType\":\"uint128\",\"name\":\"freeLiquidity\",\"type\":\"uint128\",\"components\":[]},{\"internalType\":\"uint32\",\"name\":\"lastTimestamp\",\"type\":\"uint32\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"invariantGrowthLast\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"feeGrowthAssetLast\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"feeGrowthQuoteLast\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"uint128\",\"name\":\"tokensOwedAsset\",\"type\":\"uint128\",\"components\":[]},{\"internalType\":\"uint128\",\"name\":\"tokensOwedQuote\",\"type\":\"uint128\",\"components\":[]},{\"internalType\":\"uint128\",\"name\":\"invariantOwed\",\"type\":\"uint128\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"fee\",\"type\":\"uint256\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"function\",\"name\":\"setProtocolFee\",\"outputs\":[]}]";
     ///The parsed JSON ABI of the contract.
-    pub static OBJECTIVE_ABI: ::ethers::contract::Lazy<::ethers::core::abi::Abi> = ::ethers::contract::Lazy::new(||
-    ::ethers::core::utils::__serde_json::from_str(__ABI).expect("ABI is always valid"));
+    pub static OBJECTIVE_ABI: ::ethers::contract::Lazy<::ethers::core::abi::Abi> =
+        ::ethers::contract::Lazy::new(|| {
+            ::ethers::core::utils::__serde_json::from_str(__ABI).expect("ABI is always valid")
+        });
     pub struct Objective<M>(::ethers::contract::Contract<M>);
     impl<M> ::core::clone::Clone for Objective<M> {
         fn clone(&self) -> Self {
@@ -39143,7 +41417,9 @@ pub mod objective {
     }
     impl<M> ::core::fmt::Debug for Objective<M> {
         fn fmt(&self, f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
-            f.debug_tuple(stringify!(Objective)).field(&self.address()).finish()
+            f.debug_tuple(stringify!(Objective))
+                .field(&self.address())
+                .finish()
         }
     }
     impl<M: ::ethers::providers::Middleware> Objective<M> {
@@ -39153,21 +41429,16 @@ pub mod objective {
             address: T,
             client: ::std::sync::Arc<M>,
         ) -> Self {
-            Self(
-                ::ethers::contract::Contract::new(
-                    address.into(),
-                    OBJECTIVE_ABI.clone(),
-                    client,
-                ),
-            )
+            Self(::ethers::contract::Contract::new(
+                address.into(),
+                OBJECTIVE_ABI.clone(),
+                client,
+            ))
         }
         ///Calls the contract's `REGISTRY` (0x06433b1b) function
         pub fn registry(
             &self,
-        ) -> ::ethers::contract::builders::ContractCall<
-            M,
-            ::ethers::core::types::Address,
-        > {
+        ) -> ::ethers::contract::builders::ContractCall<M, ::ethers::core::types::Address> {
             self.0
                 .method_hash([6, 67, 59, 27], ())
                 .expect("method not found (this should never happen)")
@@ -39183,10 +41454,7 @@ pub mod objective {
         ///Calls the contract's `WETH` (0xad5c4648) function
         pub fn weth(
             &self,
-        ) -> ::ethers::contract::builders::ContractCall<
-            M,
-            ::ethers::core::types::Address,
-        > {
+        ) -> ::ethers::contract::builders::ContractCall<M, ::ethers::core::types::Address> {
             self.0
                 .method_hash([173, 92, 70, 72], ())
                 .expect("method not found (this should never happen)")
@@ -39211,10 +41479,8 @@ pub mod objective {
             reserve_x: ::ethers::core::types::U256,
             reserve_y: ::ethers::core::types::U256,
             timestamp: ::ethers::core::types::U256,
-        ) -> ::ethers::contract::builders::ContractCall<
-            M,
-            (bool, ::ethers::core::types::I256),
-        > {
+        ) -> ::ethers::contract::builders::ContractCall<M, (bool, ::ethers::core::types::I256)>
+        {
             self.0
                 .method_hash(
                     [47, 51, 125, 165],
@@ -39359,9 +41625,7 @@ pub mod objective {
                 .expect("method not found (this should never happen)")
         }
         ///Calls the contract's `getPairNonce` (0x078888d6) function
-        pub fn get_pair_nonce(
-            &self,
-        ) -> ::ethers::contract::builders::ContractCall<M, u32> {
+        pub fn get_pair_nonce(&self) -> ::ethers::contract::builders::ContractCall<M, u32> {
             self.0
                 .method_hash([7, 136, 136, 214], ())
                 .expect("method not found (this should never happen)")
@@ -39429,7 +41693,12 @@ pub mod objective {
             pair_id: u32,
         ) -> ::ethers::contract::builders::ContractCall<
             M,
-            (::ethers::core::types::Address, u8, ::ethers::core::types::Address, u8),
+            (
+                ::ethers::core::types::Address,
+                u8,
+                ::ethers::core::types::Address,
+                u8,
+            ),
         > {
             self.0
                 .method_hash([94, 71, 102, 60], pair_id)
@@ -39492,21 +41761,14 @@ pub mod objective {
         ///Gets the contract's `Allocate` event
         pub fn allocate_filter(
             &self,
-        ) -> ::ethers::contract::builders::Event<
-            ::std::sync::Arc<M>,
-            M,
-            AllocateFilter,
-        > {
+        ) -> ::ethers::contract::builders::Event<::std::sync::Arc<M>, M, AllocateFilter> {
             self.0.event()
         }
         ///Gets the contract's `ChangeParameters` event
         pub fn change_parameters_filter(
             &self,
-        ) -> ::ethers::contract::builders::Event<
-            ::std::sync::Arc<M>,
-            M,
-            ChangeParametersFilter,
-        > {
+        ) -> ::ethers::contract::builders::Event<::std::sync::Arc<M>, M, ChangeParametersFilter>
+        {
             self.0.event()
         }
         ///Gets the contract's `Collect` event
@@ -39518,51 +41780,33 @@ pub mod objective {
         ///Gets the contract's `CreatePair` event
         pub fn create_pair_filter(
             &self,
-        ) -> ::ethers::contract::builders::Event<
-            ::std::sync::Arc<M>,
-            M,
-            CreatePairFilter,
-        > {
+        ) -> ::ethers::contract::builders::Event<::std::sync::Arc<M>, M, CreatePairFilter> {
             self.0.event()
         }
         ///Gets the contract's `CreatePool` event
         pub fn create_pool_filter(
             &self,
-        ) -> ::ethers::contract::builders::Event<
-            ::std::sync::Arc<M>,
-            M,
-            CreatePoolFilter,
-        > {
+        ) -> ::ethers::contract::builders::Event<::std::sync::Arc<M>, M, CreatePoolFilter> {
             self.0.event()
         }
         ///Gets the contract's `Deallocate` event
         pub fn deallocate_filter(
             &self,
-        ) -> ::ethers::contract::builders::Event<
-            ::std::sync::Arc<M>,
-            M,
-            DeallocateFilter,
-        > {
+        ) -> ::ethers::contract::builders::Event<::std::sync::Arc<M>, M, DeallocateFilter> {
             self.0.event()
         }
         ///Gets the contract's `DecreaseReserveBalance` event
         pub fn decrease_reserve_balance_filter(
             &self,
-        ) -> ::ethers::contract::builders::Event<
-            ::std::sync::Arc<M>,
-            M,
-            DecreaseReserveBalanceFilter,
-        > {
+        ) -> ::ethers::contract::builders::Event<::std::sync::Arc<M>, M, DecreaseReserveBalanceFilter>
+        {
             self.0.event()
         }
         ///Gets the contract's `DecreaseUserBalance` event
         pub fn decrease_user_balance_filter(
             &self,
-        ) -> ::ethers::contract::builders::Event<
-            ::std::sync::Arc<M>,
-            M,
-            DecreaseUserBalanceFilter,
-        > {
+        ) -> ::ethers::contract::builders::Event<::std::sync::Arc<M>, M, DecreaseUserBalanceFilter>
+        {
             self.0.event()
         }
         ///Gets the contract's `Deposit` event
@@ -39574,21 +41818,15 @@ pub mod objective {
         ///Gets the contract's `IncreaseReserveBalance` event
         pub fn increase_reserve_balance_filter(
             &self,
-        ) -> ::ethers::contract::builders::Event<
-            ::std::sync::Arc<M>,
-            M,
-            IncreaseReserveBalanceFilter,
-        > {
+        ) -> ::ethers::contract::builders::Event<::std::sync::Arc<M>, M, IncreaseReserveBalanceFilter>
+        {
             self.0.event()
         }
         ///Gets the contract's `IncreaseUserBalance` event
         pub fn increase_user_balance_filter(
             &self,
-        ) -> ::ethers::contract::builders::Event<
-            ::std::sync::Arc<M>,
-            M,
-            IncreaseUserBalanceFilter,
-        > {
+        ) -> ::ethers::contract::builders::Event<::std::sync::Arc<M>, M, IncreaseUserBalanceFilter>
+        {
             self.0.event()
         }
         ///Gets the contract's `Swap` event
@@ -39600,26 +41838,19 @@ pub mod objective {
         ///Gets the contract's `UpdateProtocolFee` event
         pub fn update_protocol_fee_filter(
             &self,
-        ) -> ::ethers::contract::builders::Event<
-            ::std::sync::Arc<M>,
-            M,
-            UpdateProtocolFeeFilter,
-        > {
+        ) -> ::ethers::contract::builders::Event<::std::sync::Arc<M>, M, UpdateProtocolFeeFilter>
+        {
             self.0.event()
         }
         /// Returns an `Event` builder for all the events of this contract.
         pub fn events(
             &self,
-        ) -> ::ethers::contract::builders::Event<
-            ::std::sync::Arc<M>,
-            M,
-            ObjectiveEvents,
-        > {
-            self.0.event_with_filter(::core::default::Default::default())
+        ) -> ::ethers::contract::builders::Event<::std::sync::Arc<M>, M, ObjectiveEvents> {
+            self.0
+                .event_with_filter(::core::default::Default::default())
         }
     }
-    impl<M: ::ethers::providers::Middleware> From<::ethers::contract::Contract<M>>
-    for Objective<M> {
+    impl<M: ::ethers::providers::Middleware> From<::ethers::contract::Contract<M>> for Objective<M> {
         fn from(contract: ::ethers::contract::Contract<M>) -> Self {
             Self::new(contract.address(), contract.client())
         }
@@ -39632,7 +41863,7 @@ pub mod objective {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethevent(
         name = "Allocate",
@@ -39657,7 +41888,7 @@ pub mod objective {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethevent(
         name = "ChangeParameters",
@@ -39680,7 +41911,7 @@ pub mod objective {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethevent(
         name = "Collect",
@@ -39705,7 +41936,7 @@ pub mod objective {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethevent(
         name = "CreatePair",
@@ -39729,7 +41960,7 @@ pub mod objective {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethevent(
         name = "CreatePool",
@@ -39753,7 +41984,7 @@ pub mod objective {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethevent(
         name = "Deallocate",
@@ -39778,7 +42009,7 @@ pub mod objective {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethevent(
         name = "DecreaseReserveBalance",
@@ -39797,7 +42028,7 @@ pub mod objective {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethevent(
         name = "DecreaseUserBalance",
@@ -39818,7 +42049,7 @@ pub mod objective {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethevent(name = "Deposit", abi = "Deposit(address,uint256)")]
     pub struct DepositFilter {
@@ -39834,7 +42065,7 @@ pub mod objective {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethevent(
         name = "IncreaseReserveBalance",
@@ -39853,7 +42084,7 @@ pub mod objective {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethevent(
         name = "IncreaseUserBalance",
@@ -39874,7 +42105,7 @@ pub mod objective {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethevent(
         name = "Swap",
@@ -39901,7 +42132,7 @@ pub mod objective {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethevent(name = "UpdateProtocolFee", abi = "UpdateProtocolFee(uint256,uint256)")]
     pub struct UpdateProtocolFeeFilter {
@@ -39975,9 +42206,7 @@ pub mod objective {
         fn fmt(&self, f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
             match self {
                 Self::AllocateFilter(element) => ::core::fmt::Display::fmt(element, f),
-                Self::ChangeParametersFilter(element) => {
-                    ::core::fmt::Display::fmt(element, f)
-                }
+                Self::ChangeParametersFilter(element) => ::core::fmt::Display::fmt(element, f),
                 Self::CollectFilter(element) => ::core::fmt::Display::fmt(element, f),
                 Self::CreatePairFilter(element) => ::core::fmt::Display::fmt(element, f),
                 Self::CreatePoolFilter(element) => ::core::fmt::Display::fmt(element, f),
@@ -39985,20 +42214,14 @@ pub mod objective {
                 Self::DecreaseReserveBalanceFilter(element) => {
                     ::core::fmt::Display::fmt(element, f)
                 }
-                Self::DecreaseUserBalanceFilter(element) => {
-                    ::core::fmt::Display::fmt(element, f)
-                }
+                Self::DecreaseUserBalanceFilter(element) => ::core::fmt::Display::fmt(element, f),
                 Self::DepositFilter(element) => ::core::fmt::Display::fmt(element, f),
                 Self::IncreaseReserveBalanceFilter(element) => {
                     ::core::fmt::Display::fmt(element, f)
                 }
-                Self::IncreaseUserBalanceFilter(element) => {
-                    ::core::fmt::Display::fmt(element, f)
-                }
+                Self::IncreaseUserBalanceFilter(element) => ::core::fmt::Display::fmt(element, f),
                 Self::SwapFilter(element) => ::core::fmt::Display::fmt(element, f),
-                Self::UpdateProtocolFeeFilter(element) => {
-                    ::core::fmt::Display::fmt(element, f)
-                }
+                Self::UpdateProtocolFeeFilter(element) => ::core::fmt::Display::fmt(element, f),
             }
         }
     }
@@ -40076,7 +42299,7 @@ pub mod objective {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "REGISTRY", abi = "REGISTRY()")]
     pub struct RegistryCall;
@@ -40089,7 +42312,7 @@ pub mod objective {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "VERSION", abi = "VERSION()")]
     pub struct VersionCall;
@@ -40102,7 +42325,7 @@ pub mod objective {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "WETH", abi = "WETH()")]
     pub struct WethCall;
@@ -40115,7 +42338,7 @@ pub mod objective {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(
         name = "changeParameters",
@@ -40136,7 +42359,7 @@ pub mod objective {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(
         name = "checkInvariant",
@@ -40158,7 +42381,7 @@ pub mod objective {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "checkPool", abi = "checkPool(uint64)")]
     pub struct CheckPoolCall {
@@ -40173,7 +42396,7 @@ pub mod objective {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "checkPosition", abi = "checkPosition(uint64,address,int256)")]
     pub struct CheckPositionCall {
@@ -40190,7 +42413,7 @@ pub mod objective {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(
         name = "computeMaxInput",
@@ -40211,7 +42434,7 @@ pub mod objective {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(
         name = "computeReservesFromPrice",
@@ -40230,7 +42453,7 @@ pub mod objective {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "deposit", abi = "deposit()")]
     pub struct DepositCall;
@@ -40243,7 +42466,7 @@ pub mod objective {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "draw", abi = "draw(address,uint256,address)")]
     pub struct DrawCall {
@@ -40260,7 +42483,7 @@ pub mod objective {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "fund", abi = "fund(address,uint256)")]
     pub struct FundCall {
@@ -40276,7 +42499,7 @@ pub mod objective {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "getAmountOut", abi = "getAmountOut(uint64,bool,uint256)")]
     pub struct GetAmountOutCall {
@@ -40293,7 +42516,7 @@ pub mod objective {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "getBalance", abi = "getBalance(address,address)")]
     pub struct GetBalanceCall {
@@ -40309,7 +42532,7 @@ pub mod objective {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "getLiquidityDeltas", abi = "getLiquidityDeltas(uint64,int128)")]
     pub struct GetLiquidityDeltasCall {
@@ -40325,9 +42548,12 @@ pub mod objective {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
-    #[ethcall(name = "getMaxLiquidity", abi = "getMaxLiquidity(uint64,uint256,uint256)")]
+    #[ethcall(
+        name = "getMaxLiquidity",
+        abi = "getMaxLiquidity(uint64,uint256,uint256)"
+    )]
     pub struct GetMaxLiquidityCall {
         pub pool_id: u64,
         pub delta_asset: ::ethers::core::types::U256,
@@ -40342,7 +42568,7 @@ pub mod objective {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "getNetBalance", abi = "getNetBalance(address)")]
     pub struct GetNetBalanceCall {
@@ -40357,7 +42583,7 @@ pub mod objective {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "getPairId", abi = "getPairId(address,address)")]
     pub struct GetPairIdCall {
@@ -40373,7 +42599,7 @@ pub mod objective {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "getPairNonce", abi = "getPairNonce()")]
     pub struct GetPairNonceCall;
@@ -40386,7 +42612,7 @@ pub mod objective {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "getPoolNonce", abi = "getPoolNonce(uint24)")]
     pub struct GetPoolNonceCall {
@@ -40401,7 +42627,7 @@ pub mod objective {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "getPoolReserves", abi = "getPoolReserves(uint64)")]
     pub struct GetPoolReservesCall {
@@ -40416,7 +42642,7 @@ pub mod objective {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "getReserve", abi = "getReserve(address)")]
     pub struct GetReserveCall {
@@ -40431,7 +42657,7 @@ pub mod objective {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "getVirtualPrice", abi = "getVirtualPrice(uint64)")]
     pub struct GetVirtualPriceCall {
@@ -40446,7 +42672,7 @@ pub mod objective {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(
         name = "getVirtualReservesPerLiquidity",
@@ -40464,7 +42690,7 @@ pub mod objective {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "multiprocess", abi = "multiprocess(bytes)")]
     pub struct MultiprocessCall {
@@ -40479,7 +42705,7 @@ pub mod objective {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "pairs", abi = "pairs(uint24)")]
     pub struct PairsCall {
@@ -40494,7 +42720,7 @@ pub mod objective {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "pools", abi = "pools(uint64)")]
     pub struct PoolsCall {
@@ -40509,7 +42735,7 @@ pub mod objective {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "positions", abi = "positions(address,uint64)")]
     pub struct PositionsCall {
@@ -40525,7 +42751,7 @@ pub mod objective {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "setProtocolFee", abi = "setProtocolFee(uint256)")]
     pub struct SetProtocolFeeCall {
@@ -40569,128 +42795,117 @@ pub mod objective {
             data: impl AsRef<[u8]>,
         ) -> ::core::result::Result<Self, ::ethers::core::abi::AbiError> {
             let data = data.as_ref();
-            if let Ok(decoded)
-                = <RegistryCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <RegistryCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::Registry(decoded));
             }
-            if let Ok(decoded)
-                = <VersionCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <VersionCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::Version(decoded));
             }
-            if let Ok(decoded)
-                = <WethCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <WethCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::Weth(decoded));
             }
-            if let Ok(decoded)
-                = <ChangeParametersCall as ::ethers::core::abi::AbiDecode>::decode(
-                    data,
-                ) {
+            if let Ok(decoded) =
+                <ChangeParametersCall as ::ethers::core::abi::AbiDecode>::decode(data)
+            {
                 return Ok(Self::ChangeParameters(decoded));
             }
-            if let Ok(decoded)
-                = <CheckInvariantCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) =
+                <CheckInvariantCall as ::ethers::core::abi::AbiDecode>::decode(data)
+            {
                 return Ok(Self::CheckInvariant(decoded));
             }
-            if let Ok(decoded)
-                = <CheckPoolCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <CheckPoolCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::CheckPool(decoded));
             }
-            if let Ok(decoded)
-                = <CheckPositionCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <CheckPositionCall as ::ethers::core::abi::AbiDecode>::decode(data)
+            {
                 return Ok(Self::CheckPosition(decoded));
             }
-            if let Ok(decoded)
-                = <ComputeMaxInputCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) =
+                <ComputeMaxInputCall as ::ethers::core::abi::AbiDecode>::decode(data)
+            {
                 return Ok(Self::ComputeMaxInput(decoded));
             }
-            if let Ok(decoded)
-                = <ComputeReservesFromPriceCall as ::ethers::core::abi::AbiDecode>::decode(
-                    data,
-                ) {
+            if let Ok(decoded) =
+                <ComputeReservesFromPriceCall as ::ethers::core::abi::AbiDecode>::decode(data)
+            {
                 return Ok(Self::ComputeReservesFromPrice(decoded));
             }
-            if let Ok(decoded)
-                = <DepositCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <DepositCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::Deposit(decoded));
             }
-            if let Ok(decoded)
-                = <DrawCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <DrawCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::Draw(decoded));
             }
-            if let Ok(decoded)
-                = <FundCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <FundCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::Fund(decoded));
             }
-            if let Ok(decoded)
-                = <GetAmountOutCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <GetAmountOutCall as ::ethers::core::abi::AbiDecode>::decode(data)
+            {
                 return Ok(Self::GetAmountOut(decoded));
             }
-            if let Ok(decoded)
-                = <GetBalanceCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <GetBalanceCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::GetBalance(decoded));
             }
-            if let Ok(decoded)
-                = <GetLiquidityDeltasCall as ::ethers::core::abi::AbiDecode>::decode(
-                    data,
-                ) {
+            if let Ok(decoded) =
+                <GetLiquidityDeltasCall as ::ethers::core::abi::AbiDecode>::decode(data)
+            {
                 return Ok(Self::GetLiquidityDeltas(decoded));
             }
-            if let Ok(decoded)
-                = <GetMaxLiquidityCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) =
+                <GetMaxLiquidityCall as ::ethers::core::abi::AbiDecode>::decode(data)
+            {
                 return Ok(Self::GetMaxLiquidity(decoded));
             }
-            if let Ok(decoded)
-                = <GetNetBalanceCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <GetNetBalanceCall as ::ethers::core::abi::AbiDecode>::decode(data)
+            {
                 return Ok(Self::GetNetBalance(decoded));
             }
-            if let Ok(decoded)
-                = <GetPairIdCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <GetPairIdCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::GetPairId(decoded));
             }
-            if let Ok(decoded)
-                = <GetPairNonceCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <GetPairNonceCall as ::ethers::core::abi::AbiDecode>::decode(data)
+            {
                 return Ok(Self::GetPairNonce(decoded));
             }
-            if let Ok(decoded)
-                = <GetPoolNonceCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <GetPoolNonceCall as ::ethers::core::abi::AbiDecode>::decode(data)
+            {
                 return Ok(Self::GetPoolNonce(decoded));
             }
-            if let Ok(decoded)
-                = <GetPoolReservesCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) =
+                <GetPoolReservesCall as ::ethers::core::abi::AbiDecode>::decode(data)
+            {
                 return Ok(Self::GetPoolReserves(decoded));
             }
-            if let Ok(decoded)
-                = <GetReserveCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <GetReserveCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::GetReserve(decoded));
             }
-            if let Ok(decoded)
-                = <GetVirtualPriceCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) =
+                <GetVirtualPriceCall as ::ethers::core::abi::AbiDecode>::decode(data)
+            {
                 return Ok(Self::GetVirtualPrice(decoded));
             }
-            if let Ok(decoded)
-                = <GetVirtualReservesPerLiquidityCall as ::ethers::core::abi::AbiDecode>::decode(
-                    data,
-                ) {
+            if let Ok(decoded) =
+                <GetVirtualReservesPerLiquidityCall as ::ethers::core::abi::AbiDecode>::decode(data)
+            {
                 return Ok(Self::GetVirtualReservesPerLiquidity(decoded));
             }
-            if let Ok(decoded)
-                = <MultiprocessCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <MultiprocessCall as ::ethers::core::abi::AbiDecode>::decode(data)
+            {
                 return Ok(Self::Multiprocess(decoded));
             }
-            if let Ok(decoded)
-                = <PairsCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <PairsCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::Pairs(decoded));
             }
-            if let Ok(decoded)
-                = <PoolsCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <PoolsCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::Pools(decoded));
             }
-            if let Ok(decoded)
-                = <PositionsCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <PositionsCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::Positions(decoded));
             }
-            if let Ok(decoded)
-                = <SetProtocolFeeCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) =
+                <SetProtocolFeeCall as ::ethers::core::abi::AbiDecode>::decode(data)
+            {
                 return Ok(Self::SetProtocolFee(decoded));
             }
             Err(::ethers::core::abi::Error::InvalidData.into())
@@ -40699,79 +42914,41 @@ pub mod objective {
     impl ::ethers::core::abi::AbiEncode for ObjectiveCalls {
         fn encode(self) -> Vec<u8> {
             match self {
-                Self::Registry(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
+                Self::Registry(element) => ::ethers::core::abi::AbiEncode::encode(element),
                 Self::Version(element) => ::ethers::core::abi::AbiEncode::encode(element),
                 Self::Weth(element) => ::ethers::core::abi::AbiEncode::encode(element),
-                Self::ChangeParameters(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
-                Self::CheckInvariant(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
-                Self::CheckPool(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
-                Self::CheckPosition(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
-                Self::ComputeMaxInput(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
+                Self::ChangeParameters(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::CheckInvariant(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::CheckPool(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::CheckPosition(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::ComputeMaxInput(element) => ::ethers::core::abi::AbiEncode::encode(element),
                 Self::ComputeReservesFromPrice(element) => {
                     ::ethers::core::abi::AbiEncode::encode(element)
                 }
                 Self::Deposit(element) => ::ethers::core::abi::AbiEncode::encode(element),
                 Self::Draw(element) => ::ethers::core::abi::AbiEncode::encode(element),
                 Self::Fund(element) => ::ethers::core::abi::AbiEncode::encode(element),
-                Self::GetAmountOut(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
-                Self::GetBalance(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
+                Self::GetAmountOut(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::GetBalance(element) => ::ethers::core::abi::AbiEncode::encode(element),
                 Self::GetLiquidityDeltas(element) => {
                     ::ethers::core::abi::AbiEncode::encode(element)
                 }
-                Self::GetMaxLiquidity(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
-                Self::GetNetBalance(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
-                Self::GetPairId(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
-                Self::GetPairNonce(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
-                Self::GetPoolNonce(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
-                Self::GetPoolReserves(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
-                Self::GetReserve(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
-                Self::GetVirtualPrice(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
+                Self::GetMaxLiquidity(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::GetNetBalance(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::GetPairId(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::GetPairNonce(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::GetPoolNonce(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::GetPoolReserves(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::GetReserve(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::GetVirtualPrice(element) => ::ethers::core::abi::AbiEncode::encode(element),
                 Self::GetVirtualReservesPerLiquidity(element) => {
                     ::ethers::core::abi::AbiEncode::encode(element)
                 }
-                Self::Multiprocess(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
+                Self::Multiprocess(element) => ::ethers::core::abi::AbiEncode::encode(element),
                 Self::Pairs(element) => ::ethers::core::abi::AbiEncode::encode(element),
                 Self::Pools(element) => ::ethers::core::abi::AbiEncode::encode(element),
-                Self::Positions(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
-                Self::SetProtocolFee(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
+                Self::Positions(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::SetProtocolFee(element) => ::ethers::core::abi::AbiEncode::encode(element),
             }
         }
     }
@@ -40786,17 +42963,13 @@ pub mod objective {
                 Self::CheckPool(element) => ::core::fmt::Display::fmt(element, f),
                 Self::CheckPosition(element) => ::core::fmt::Display::fmt(element, f),
                 Self::ComputeMaxInput(element) => ::core::fmt::Display::fmt(element, f),
-                Self::ComputeReservesFromPrice(element) => {
-                    ::core::fmt::Display::fmt(element, f)
-                }
+                Self::ComputeReservesFromPrice(element) => ::core::fmt::Display::fmt(element, f),
                 Self::Deposit(element) => ::core::fmt::Display::fmt(element, f),
                 Self::Draw(element) => ::core::fmt::Display::fmt(element, f),
                 Self::Fund(element) => ::core::fmt::Display::fmt(element, f),
                 Self::GetAmountOut(element) => ::core::fmt::Display::fmt(element, f),
                 Self::GetBalance(element) => ::core::fmt::Display::fmt(element, f),
-                Self::GetLiquidityDeltas(element) => {
-                    ::core::fmt::Display::fmt(element, f)
-                }
+                Self::GetLiquidityDeltas(element) => ::core::fmt::Display::fmt(element, f),
                 Self::GetMaxLiquidity(element) => ::core::fmt::Display::fmt(element, f),
                 Self::GetNetBalance(element) => ::core::fmt::Display::fmt(element, f),
                 Self::GetPairId(element) => ::core::fmt::Display::fmt(element, f),
@@ -40970,7 +43143,7 @@ pub mod objective {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     pub struct RegistryReturn(pub ::ethers::core::types::Address);
     ///Container type for all return fields from the `VERSION` function with signature `VERSION()` and selector `0xffa1ad74`
@@ -40982,7 +43155,7 @@ pub mod objective {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     pub struct VersionReturn(pub ::std::string::String);
     ///Container type for all return fields from the `WETH` function with signature `WETH()` and selector `0xad5c4648`
@@ -40994,7 +43167,7 @@ pub mod objective {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     pub struct WethReturn(pub ::ethers::core::types::Address);
     ///Container type for all return fields from the `checkInvariant` function with signature `checkInvariant(uint64,int256,uint256,uint256,uint256)` and selector `0x2f337da5`
@@ -41006,7 +43179,7 @@ pub mod objective {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     pub struct CheckInvariantReturn {
         pub success: bool,
@@ -41021,7 +43194,7 @@ pub mod objective {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     pub struct CheckPoolReturn(pub bool);
     ///Container type for all return fields from the `checkPosition` function with signature `checkPosition(uint64,address,int256)` and selector `0x2cc6641e`
@@ -41033,7 +43206,7 @@ pub mod objective {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     pub struct CheckPositionReturn(pub bool);
     ///Container type for all return fields from the `computeMaxInput` function with signature `computeMaxInput(uint64,bool,uint256,uint256)` and selector `0x989bafba`
@@ -41045,7 +43218,7 @@ pub mod objective {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     pub struct ComputeMaxInputReturn(pub ::ethers::core::types::U256);
     ///Container type for all return fields from the `computeReservesFromPrice` function with signature `computeReservesFromPrice(uint64,uint256)` and selector `0xc48d887a`
@@ -41057,7 +43230,7 @@ pub mod objective {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     pub struct ComputeReservesFromPriceReturn {
         pub reserve_x: ::ethers::core::types::U256,
@@ -41072,7 +43245,7 @@ pub mod objective {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     pub struct GetAmountOutReturn {
         pub output: ::ethers::core::types::U256,
@@ -41086,7 +43259,7 @@ pub mod objective {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     pub struct GetBalanceReturn(pub ::ethers::core::types::U256);
     ///Container type for all return fields from the `getLiquidityDeltas` function with signature `getLiquidityDeltas(uint64,int128)` and selector `0x8992f20a`
@@ -41098,7 +43271,7 @@ pub mod objective {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     pub struct GetLiquidityDeltasReturn {
         pub delta_asset: u128,
@@ -41113,7 +43286,7 @@ pub mod objective {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     pub struct GetMaxLiquidityReturn {
         pub delta_liquidity: u128,
@@ -41127,7 +43300,7 @@ pub mod objective {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     pub struct GetNetBalanceReturn(pub ::ethers::core::types::I256);
     ///Container type for all return fields from the `getPairId` function with signature `getPairId(address,address)` and selector `0x3f92a339`
@@ -41139,7 +43312,7 @@ pub mod objective {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     pub struct GetPairIdReturn {
         pub pair_id: u32,
@@ -41153,7 +43326,7 @@ pub mod objective {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     pub struct GetPairNonceReturn(pub u32);
     ///Container type for all return fields from the `getPoolNonce` function with signature `getPoolNonce(uint24)` and selector `0xa5cd8a49`
@@ -41165,7 +43338,7 @@ pub mod objective {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     pub struct GetPoolNonceReturn(pub u32);
     ///Container type for all return fields from the `getPoolReserves` function with signature `getPoolReserves(uint64)` and selector `0x2afb9df8`
@@ -41177,7 +43350,7 @@ pub mod objective {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     pub struct GetPoolReservesReturn {
         pub delta_asset: ::ethers::core::types::U256,
@@ -41192,7 +43365,7 @@ pub mod objective {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     pub struct GetReserveReturn(pub ::ethers::core::types::U256);
     ///Container type for all return fields from the `getVirtualPrice` function with signature `getVirtualPrice(uint64)` and selector `0x61b7ea6a`
@@ -41204,7 +43377,7 @@ pub mod objective {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     pub struct GetVirtualPriceReturn {
         pub price: ::ethers::core::types::U256,
@@ -41218,7 +43391,7 @@ pub mod objective {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     pub struct GetVirtualReservesPerLiquidityReturn {
         pub delta_asset: u128,
@@ -41233,7 +43406,7 @@ pub mod objective {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     pub struct PairsReturn {
         pub token_asset: ::ethers::core::types::Address,
@@ -41250,7 +43423,7 @@ pub mod objective {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     pub struct PoolsReturn {
         pub virtual_x: u128,
@@ -41273,7 +43446,7 @@ pub mod objective {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     pub struct PositionsReturn {
         pub free_liquidity: u128,
@@ -41295,14 +43468,16 @@ pub use portfolio_lib::*;
     clippy::upper_case_acronyms,
     clippy::type_complexity,
     dead_code,
-    non_camel_case_types,
+    non_camel_case_types
 )]
 pub mod portfolio_lib {
     #[rustfmt::skip]
     const __ABI: &str = "[]";
     ///The parsed JSON ABI of the contract.
-    pub static PORTFOLIOLIB_ABI: ::ethers::contract::Lazy<::ethers::core::abi::Abi> = ::ethers::contract::Lazy::new(||
-    ::ethers::core::utils::__serde_json::from_str(__ABI).expect("ABI is always valid"));
+    pub static PORTFOLIOLIB_ABI: ::ethers::contract::Lazy<::ethers::core::abi::Abi> =
+        ::ethers::contract::Lazy::new(|| {
+            ::ethers::core::utils::__serde_json::from_str(__ABI).expect("ABI is always valid")
+        });
     pub struct PortfolioLib<M>(::ethers::contract::Contract<M>);
     impl<M> ::core::clone::Clone for PortfolioLib<M> {
         fn clone(&self) -> Self {
@@ -41322,7 +43497,9 @@ pub mod portfolio_lib {
     }
     impl<M> ::core::fmt::Debug for PortfolioLib<M> {
         fn fmt(&self, f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
-            f.debug_tuple(stringify!(PortfolioLib)).field(&self.address()).finish()
+            f.debug_tuple(stringify!(PortfolioLib))
+                .field(&self.address())
+                .finish()
         }
     }
     impl<M: ::ethers::providers::Middleware> PortfolioLib<M> {
@@ -41332,17 +43509,14 @@ pub mod portfolio_lib {
             address: T,
             client: ::std::sync::Arc<M>,
         ) -> Self {
-            Self(
-                ::ethers::contract::Contract::new(
-                    address.into(),
-                    PORTFOLIOLIB_ABI.clone(),
-                    client,
-                ),
-            )
+            Self(::ethers::contract::Contract::new(
+                address.into(),
+                PORTFOLIOLIB_ABI.clone(),
+                client,
+            ))
         }
     }
-    impl<M: ::ethers::providers::Middleware> From<::ethers::contract::Contract<M>>
-    for PortfolioLib<M> {
+    impl<M: ::ethers::providers::Middleware> From<::ethers::contract::Contract<M>> for PortfolioLib<M> {
         fn from(contract: ::ethers::contract::Contract<M>) -> Self {
             Self::new(contract.address(), contract.client())
         }
@@ -41357,14 +43531,16 @@ pub use portfolio_like::*;
     clippy::upper_case_acronyms,
     clippy::type_complexity,
     dead_code,
-    non_camel_case_types,
+    non_camel_case_types
 )]
 pub mod portfolio_like {
     #[rustfmt::skip]
     const __ABI: &str = "[{\"inputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"function\",\"name\":\"draw\",\"outputs\":[]},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"function\",\"name\":\"setProtocolFee\",\"outputs\":[]}]";
     ///The parsed JSON ABI of the contract.
-    pub static PORTFOLIOLIKE_ABI: ::ethers::contract::Lazy<::ethers::core::abi::Abi> = ::ethers::contract::Lazy::new(||
-    ::ethers::core::utils::__serde_json::from_str(__ABI).expect("ABI is always valid"));
+    pub static PORTFOLIOLIKE_ABI: ::ethers::contract::Lazy<::ethers::core::abi::Abi> =
+        ::ethers::contract::Lazy::new(|| {
+            ::ethers::core::utils::__serde_json::from_str(__ABI).expect("ABI is always valid")
+        });
     pub struct PortfolioLike<M>(::ethers::contract::Contract<M>);
     impl<M> ::core::clone::Clone for PortfolioLike<M> {
         fn clone(&self) -> Self {
@@ -41384,7 +43560,9 @@ pub mod portfolio_like {
     }
     impl<M> ::core::fmt::Debug for PortfolioLike<M> {
         fn fmt(&self, f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
-            f.debug_tuple(stringify!(PortfolioLike)).field(&self.address()).finish()
+            f.debug_tuple(stringify!(PortfolioLike))
+                .field(&self.address())
+                .finish()
         }
     }
     impl<M: ::ethers::providers::Middleware> PortfolioLike<M> {
@@ -41394,13 +43572,11 @@ pub mod portfolio_like {
             address: T,
             client: ::std::sync::Arc<M>,
         ) -> Self {
-            Self(
-                ::ethers::contract::Contract::new(
-                    address.into(),
-                    PORTFOLIOLIKE_ABI.clone(),
-                    client,
-                ),
-            )
+            Self(::ethers::contract::Contract::new(
+                address.into(),
+                PORTFOLIOLIKE_ABI.clone(),
+                client,
+            ))
         }
         ///Calls the contract's `draw` (0xad24d6a0) function
         pub fn draw(
@@ -41424,7 +43600,8 @@ pub mod portfolio_like {
         }
     }
     impl<M: ::ethers::providers::Middleware> From<::ethers::contract::Contract<M>>
-    for PortfolioLike<M> {
+        for PortfolioLike<M>
+    {
         fn from(contract: ::ethers::contract::Contract<M>) -> Self {
             Self::new(contract.address(), contract.client())
         }
@@ -41438,7 +43615,7 @@ pub mod portfolio_like {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "draw", abi = "draw(address,uint256,address)")]
     pub struct DrawCall(
@@ -41455,7 +43632,7 @@ pub mod portfolio_like {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "setProtocolFee", abi = "setProtocolFee(uint256)")]
     pub struct SetProtocolFeeCall(pub ::ethers::core::types::U256);
@@ -41470,12 +43647,12 @@ pub mod portfolio_like {
             data: impl AsRef<[u8]>,
         ) -> ::core::result::Result<Self, ::ethers::core::abi::AbiError> {
             let data = data.as_ref();
-            if let Ok(decoded)
-                = <DrawCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <DrawCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::Draw(decoded));
             }
-            if let Ok(decoded)
-                = <SetProtocolFeeCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) =
+                <SetProtocolFeeCall as ::ethers::core::abi::AbiDecode>::decode(data)
+            {
                 return Ok(Self::SetProtocolFee(decoded));
             }
             Err(::ethers::core::abi::Error::InvalidData.into())
@@ -41485,9 +43662,7 @@ pub mod portfolio_like {
         fn encode(self) -> Vec<u8> {
             match self {
                 Self::Draw(element) => ::ethers::core::abi::AbiEncode::encode(element),
-                Self::SetProtocolFee(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
+                Self::SetProtocolFee(element) => ::ethers::core::abi::AbiEncode::encode(element),
             }
         }
     }
@@ -41519,19 +43694,17 @@ pub use portfolio_virtual::*;
     clippy::upper_case_acronyms,
     clippy::type_complexity,
     dead_code,
-    non_camel_case_types,
+    non_camel_case_types
 )]
 pub mod portfolio_virtual {
     pub use super::__shared_types::*;
     #[rustfmt::skip]
     const __ABI: &str = "[{\"inputs\":[],\"type\":\"error\",\"name\":\"DrawBalance\",\"outputs\":[]},{\"inputs\":[],\"type\":\"error\",\"name\":\"EtherTransferFail\",\"outputs\":[]},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"delta\",\"type\":\"uint256\",\"components\":[]}],\"type\":\"error\",\"name\":\"InsufficientReserve\",\"outputs\":[]},{\"inputs\":[],\"type\":\"error\",\"name\":\"InvalidBalance\",\"outputs\":[]},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"expected\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"length\",\"type\":\"uint256\",\"components\":[]}],\"type\":\"error\",\"name\":\"InvalidBytesLength\",\"outputs\":[]},{\"inputs\":[{\"internalType\":\"uint8\",\"name\":\"decimals\",\"type\":\"uint8\",\"components\":[]}],\"type\":\"error\",\"name\":\"InvalidDecimals\",\"outputs\":[]},{\"inputs\":[{\"internalType\":\"uint16\",\"name\":\"fee\",\"type\":\"uint16\",\"components\":[]}],\"type\":\"error\",\"name\":\"InvalidFee\",\"outputs\":[]},{\"inputs\":[],\"type\":\"error\",\"name\":\"InvalidInstruction\",\"outputs\":[]},{\"inputs\":[{\"internalType\":\"int256\",\"name\":\"prev\",\"type\":\"int256\",\"components\":[]},{\"internalType\":\"int256\",\"name\":\"next\",\"type\":\"int256\",\"components\":[]}],\"type\":\"error\",\"name\":\"InvalidInvariant\",\"outputs\":[]},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"pointer\",\"type\":\"uint256\",\"components\":[]}],\"type\":\"error\",\"name\":\"InvalidJump\",\"outputs\":[]},{\"inputs\":[],\"type\":\"error\",\"name\":\"InvalidPair\",\"outputs\":[]},{\"inputs\":[],\"type\":\"error\",\"name\":\"InvalidReentrancy\",\"outputs\":[]},{\"inputs\":[],\"type\":\"error\",\"name\":\"InvalidSettlement\",\"outputs\":[]},{\"inputs\":[],\"type\":\"error\",\"name\":\"InvalidTransfer\",\"outputs\":[]},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"distance\",\"type\":\"uint256\",\"components\":[]}],\"type\":\"error\",\"name\":\"JitLiquidity\",\"outputs\":[]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"token\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"int256\",\"name\":\"net\",\"type\":\"int256\",\"components\":[]}],\"type\":\"error\",\"name\":\"NegativeBalance\",\"outputs\":[]},{\"inputs\":[{\"internalType\":\"uint64\",\"name\":\"poolId\",\"type\":\"uint64\",\"components\":[]}],\"type\":\"error\",\"name\":\"NonExistentPool\",\"outputs\":[]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"owner\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint64\",\"name\":\"poolId\",\"type\":\"uint64\",\"components\":[]}],\"type\":\"error\",\"name\":\"NonExistentPosition\",\"outputs\":[]},{\"inputs\":[],\"type\":\"error\",\"name\":\"NotController\",\"outputs\":[]},{\"inputs\":[{\"internalType\":\"uint24\",\"name\":\"pairId\",\"type\":\"uint24\",\"components\":[]}],\"type\":\"error\",\"name\":\"PairExists\",\"outputs\":[]},{\"inputs\":[],\"type\":\"error\",\"name\":\"PoolExpired\",\"outputs\":[]},{\"inputs\":[],\"type\":\"error\",\"name\":\"SameTokenError\",\"outputs\":[]},{\"inputs\":[],\"type\":\"error\",\"name\":\"ZeroAmounts\",\"outputs\":[]},{\"inputs\":[],\"type\":\"error\",\"name\":\"ZeroInput\",\"outputs\":[]},{\"inputs\":[],\"type\":\"error\",\"name\":\"ZeroLiquidity\",\"outputs\":[]},{\"inputs\":[],\"type\":\"error\",\"name\":\"ZeroOutput\",\"outputs\":[]},{\"inputs\":[],\"type\":\"error\",\"name\":\"ZeroPrice\",\"outputs\":[]},{\"inputs\":[],\"type\":\"error\",\"name\":\"ZeroValue\",\"outputs\":[]},{\"inputs\":[{\"internalType\":\"uint64\",\"name\":\"poolId\",\"type\":\"uint64\",\"components\":[],\"indexed\":true},{\"internalType\":\"address\",\"name\":\"asset\",\"type\":\"address\",\"components\":[],\"indexed\":true},{\"internalType\":\"address\",\"name\":\"quote\",\"type\":\"address\",\"components\":[],\"indexed\":true},{\"internalType\":\"uint256\",\"name\":\"deltaAsset\",\"type\":\"uint256\",\"components\":[],\"indexed\":false},{\"internalType\":\"uint256\",\"name\":\"deltaQuote\",\"type\":\"uint256\",\"components\":[],\"indexed\":false},{\"internalType\":\"uint256\",\"name\":\"deltaLiquidity\",\"type\":\"uint256\",\"components\":[],\"indexed\":false}],\"type\":\"event\",\"name\":\"Allocate\",\"outputs\":[],\"anonymous\":false},{\"inputs\":[{\"internalType\":\"uint64\",\"name\":\"poolId\",\"type\":\"uint64\",\"components\":[],\"indexed\":true},{\"internalType\":\"uint16\",\"name\":\"priorityFee\",\"type\":\"uint16\",\"components\":[],\"indexed\":true},{\"internalType\":\"uint16\",\"name\":\"fee\",\"type\":\"uint16\",\"components\":[],\"indexed\":true},{\"internalType\":\"uint16\",\"name\":\"jit\",\"type\":\"uint16\",\"components\":[],\"indexed\":false}],\"type\":\"event\",\"name\":\"ChangeParameters\",\"outputs\":[],\"anonymous\":false},{\"inputs\":[{\"internalType\":\"uint64\",\"name\":\"poolId\",\"type\":\"uint64\",\"components\":[],\"indexed\":false},{\"internalType\":\"address\",\"name\":\"account\",\"type\":\"address\",\"components\":[],\"indexed\":true},{\"internalType\":\"uint256\",\"name\":\"feeAssetDec\",\"type\":\"uint256\",\"components\":[],\"indexed\":false},{\"internalType\":\"address\",\"name\":\"asset\",\"type\":\"address\",\"components\":[],\"indexed\":true},{\"internalType\":\"uint256\",\"name\":\"feeQuoteDec\",\"type\":\"uint256\",\"components\":[],\"indexed\":false},{\"internalType\":\"address\",\"name\":\"quote\",\"type\":\"address\",\"components\":[],\"indexed\":true}],\"type\":\"event\",\"name\":\"Collect\",\"outputs\":[],\"anonymous\":false},{\"inputs\":[{\"internalType\":\"uint24\",\"name\":\"pairId\",\"type\":\"uint24\",\"components\":[],\"indexed\":true},{\"internalType\":\"address\",\"name\":\"asset\",\"type\":\"address\",\"components\":[],\"indexed\":true},{\"internalType\":\"address\",\"name\":\"quote\",\"type\":\"address\",\"components\":[],\"indexed\":true},{\"internalType\":\"uint8\",\"name\":\"decimalsAsset\",\"type\":\"uint8\",\"components\":[],\"indexed\":false},{\"internalType\":\"uint8\",\"name\":\"decimalsQuote\",\"type\":\"uint8\",\"components\":[],\"indexed\":false}],\"type\":\"event\",\"name\":\"CreatePair\",\"outputs\":[],\"anonymous\":false},{\"inputs\":[{\"internalType\":\"uint64\",\"name\":\"poolId\",\"type\":\"uint64\",\"components\":[],\"indexed\":true},{\"internalType\":\"bool\",\"name\":\"isMutable\",\"type\":\"bool\",\"components\":[],\"indexed\":false},{\"internalType\":\"address\",\"name\":\"asset\",\"type\":\"address\",\"components\":[],\"indexed\":true},{\"internalType\":\"address\",\"name\":\"quote\",\"type\":\"address\",\"components\":[],\"indexed\":true},{\"internalType\":\"uint256\",\"name\":\"price\",\"type\":\"uint256\",\"components\":[],\"indexed\":false}],\"type\":\"event\",\"name\":\"CreatePool\",\"outputs\":[],\"anonymous\":false},{\"inputs\":[{\"internalType\":\"uint64\",\"name\":\"poolId\",\"type\":\"uint64\",\"components\":[],\"indexed\":true},{\"internalType\":\"address\",\"name\":\"asset\",\"type\":\"address\",\"components\":[],\"indexed\":true},{\"internalType\":\"address\",\"name\":\"quote\",\"type\":\"address\",\"components\":[],\"indexed\":true},{\"internalType\":\"uint256\",\"name\":\"deltaAsset\",\"type\":\"uint256\",\"components\":[],\"indexed\":false},{\"internalType\":\"uint256\",\"name\":\"deltaQuote\",\"type\":\"uint256\",\"components\":[],\"indexed\":false},{\"internalType\":\"uint256\",\"name\":\"deltaLiquidity\",\"type\":\"uint256\",\"components\":[],\"indexed\":false}],\"type\":\"event\",\"name\":\"Deallocate\",\"outputs\":[],\"anonymous\":false},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"token\",\"type\":\"address\",\"components\":[],\"indexed\":true},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\",\"components\":[],\"indexed\":false}],\"type\":\"event\",\"name\":\"DecreaseReserveBalance\",\"outputs\":[],\"anonymous\":false},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"account\",\"type\":\"address\",\"components\":[],\"indexed\":true},{\"internalType\":\"address\",\"name\":\"token\",\"type\":\"address\",\"components\":[],\"indexed\":true},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\",\"components\":[],\"indexed\":false}],\"type\":\"event\",\"name\":\"DecreaseUserBalance\",\"outputs\":[],\"anonymous\":false},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"account\",\"type\":\"address\",\"components\":[],\"indexed\":true},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\",\"components\":[],\"indexed\":false}],\"type\":\"event\",\"name\":\"Deposit\",\"outputs\":[],\"anonymous\":false},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"token\",\"type\":\"address\",\"components\":[],\"indexed\":true},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\",\"components\":[],\"indexed\":false}],\"type\":\"event\",\"name\":\"IncreaseReserveBalance\",\"outputs\":[],\"anonymous\":false},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"account\",\"type\":\"address\",\"components\":[],\"indexed\":true},{\"internalType\":\"address\",\"name\":\"token\",\"type\":\"address\",\"components\":[],\"indexed\":true},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\",\"components\":[],\"indexed\":false}],\"type\":\"event\",\"name\":\"IncreaseUserBalance\",\"outputs\":[],\"anonymous\":false},{\"inputs\":[{\"internalType\":\"uint64\",\"name\":\"poolId\",\"type\":\"uint64\",\"components\":[],\"indexed\":true},{\"internalType\":\"uint256\",\"name\":\"price\",\"type\":\"uint256\",\"components\":[],\"indexed\":false},{\"internalType\":\"address\",\"name\":\"sellAsset\",\"type\":\"address\",\"components\":[],\"indexed\":true},{\"internalType\":\"uint256\",\"name\":\"input\",\"type\":\"uint256\",\"components\":[],\"indexed\":false},{\"internalType\":\"address\",\"name\":\"tokenOut\",\"type\":\"address\",\"components\":[],\"indexed\":true},{\"internalType\":\"uint256\",\"name\":\"output\",\"type\":\"uint256\",\"components\":[],\"indexed\":false},{\"internalType\":\"uint256\",\"name\":\"feeAmountDec\",\"type\":\"uint256\",\"components\":[],\"indexed\":false},{\"internalType\":\"int256\",\"name\":\"invariantWad\",\"type\":\"int256\",\"components\":[],\"indexed\":false}],\"type\":\"event\",\"name\":\"Swap\",\"outputs\":[],\"anonymous\":false},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"prevFee\",\"type\":\"uint256\",\"components\":[],\"indexed\":false},{\"internalType\":\"uint256\",\"name\":\"nextFee\",\"type\":\"uint256\",\"components\":[],\"indexed\":false}],\"type\":\"event\",\"name\":\"UpdateProtocolFee\",\"outputs\":[],\"anonymous\":false},{\"inputs\":[],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"REGISTRY\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\",\"components\":[]}]},{\"inputs\":[],\"stateMutability\":\"pure\",\"type\":\"function\",\"name\":\"VERSION\",\"outputs\":[{\"internalType\":\"string\",\"name\":\"\",\"type\":\"string\",\"components\":[]}]},{\"inputs\":[],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"WETH\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\",\"components\":[]}]},{\"inputs\":[],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"__account__\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"settled\",\"type\":\"bool\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"uint64\",\"name\":\"poolId\",\"type\":\"uint64\",\"components\":[]},{\"internalType\":\"uint16\",\"name\":\"priorityFee\",\"type\":\"uint16\",\"components\":[]},{\"internalType\":\"uint16\",\"name\":\"fee\",\"type\":\"uint16\",\"components\":[]},{\"internalType\":\"uint16\",\"name\":\"jit\",\"type\":\"uint16\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"function\",\"name\":\"changeParameters\",\"outputs\":[]},{\"inputs\":[{\"internalType\":\"uint64\",\"name\":\"poolId\",\"type\":\"uint64\",\"components\":[]},{\"internalType\":\"int256\",\"name\":\"invariant\",\"type\":\"int256\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"reserveX\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"reserveY\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"timestamp\",\"type\":\"uint256\",\"components\":[]}],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"checkInvariant\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"success\",\"type\":\"bool\",\"components\":[]},{\"internalType\":\"int256\",\"name\":\"nextInvariant\",\"type\":\"int256\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"uint64\",\"name\":\"poolId\",\"type\":\"uint64\",\"components\":[]}],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"checkPool\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"uint64\",\"name\":\"poolId\",\"type\":\"uint64\",\"components\":[]},{\"internalType\":\"address\",\"name\":\"owner\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"int256\",\"name\":\"delta\",\"type\":\"int256\",\"components\":[]}],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"checkPosition\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"uint64\",\"name\":\"poolId\",\"type\":\"uint64\",\"components\":[]},{\"internalType\":\"bool\",\"name\":\"sellAsset\",\"type\":\"bool\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"reserveIn\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"liquidity\",\"type\":\"uint256\",\"components\":[]}],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"computeMaxInput\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"uint64\",\"name\":\"poolId\",\"type\":\"uint64\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"price\",\"type\":\"uint256\",\"components\":[]}],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"computeReservesFromPrice\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"reserveX\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"reserveY\",\"type\":\"uint256\",\"components\":[]}]},{\"inputs\":[],\"stateMutability\":\"payable\",\"type\":\"function\",\"name\":\"deposit\",\"outputs\":[]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"token\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"address\",\"name\":\"to\",\"type\":\"address\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"function\",\"name\":\"draw\",\"outputs\":[]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"token\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"function\",\"name\":\"fund\",\"outputs\":[]},{\"inputs\":[{\"internalType\":\"uint64\",\"name\":\"poolId\",\"type\":\"uint64\",\"components\":[]},{\"internalType\":\"bool\",\"name\":\"sellAsset\",\"type\":\"bool\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"amountIn\",\"type\":\"uint256\",\"components\":[]}],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"getAmountOut\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"output\",\"type\":\"uint256\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"owner\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"address\",\"name\":\"token\",\"type\":\"address\",\"components\":[]}],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"getBalance\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"uint64\",\"name\":\"poolId\",\"type\":\"uint64\",\"components\":[]},{\"internalType\":\"int128\",\"name\":\"deltaLiquidity\",\"type\":\"int128\",\"components\":[]}],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"getLiquidityDeltas\",\"outputs\":[{\"internalType\":\"uint128\",\"name\":\"deltaAsset\",\"type\":\"uint128\",\"components\":[]},{\"internalType\":\"uint128\",\"name\":\"deltaQuote\",\"type\":\"uint128\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"uint64\",\"name\":\"poolId\",\"type\":\"uint64\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"amount0\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"amount1\",\"type\":\"uint256\",\"components\":[]}],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"getMaxLiquidity\",\"outputs\":[{\"internalType\":\"uint128\",\"name\":\"deltaLiquidity\",\"type\":\"uint128\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"token\",\"type\":\"address\",\"components\":[]}],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"getNetBalance\",\"outputs\":[{\"internalType\":\"int256\",\"name\":\"\",\"type\":\"int256\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\",\"components\":[]}],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"getPairId\",\"outputs\":[{\"internalType\":\"uint24\",\"name\":\"\",\"type\":\"uint24\",\"components\":[]}]},{\"inputs\":[],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"getPairNonce\",\"outputs\":[{\"internalType\":\"uint24\",\"name\":\"\",\"type\":\"uint24\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"uint24\",\"name\":\"\",\"type\":\"uint24\",\"components\":[]}],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"getPoolNonce\",\"outputs\":[{\"internalType\":\"uint32\",\"name\":\"\",\"type\":\"uint32\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"uint64\",\"name\":\"poolId\",\"type\":\"uint64\",\"components\":[]}],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"getPoolReserves\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"deltaAsset\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"deltaQuote\",\"type\":\"uint256\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"token\",\"type\":\"address\",\"components\":[]}],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"getReserve\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"uint64\",\"name\":\"poolId\",\"type\":\"uint64\",\"components\":[]}],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"getVirtualPrice\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"price\",\"type\":\"uint256\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"uint64\",\"name\":\"poolId\",\"type\":\"uint64\",\"components\":[]}],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"getVirtualReservesPerLiquidity\",\"outputs\":[{\"internalType\":\"uint128\",\"name\":\"deltaAsset\",\"type\":\"uint128\",\"components\":[]},{\"internalType\":\"uint128\",\"name\":\"deltaQuote\",\"type\":\"uint128\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"bytes\",\"name\":\"data\",\"type\":\"bytes\",\"components\":[]}],\"stateMutability\":\"payable\",\"type\":\"function\",\"name\":\"multiprocess\",\"outputs\":[]},{\"inputs\":[{\"internalType\":\"uint24\",\"name\":\"\",\"type\":\"uint24\",\"components\":[]}],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"pairs\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"tokenAsset\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint8\",\"name\":\"decimalsAsset\",\"type\":\"uint8\",\"components\":[]},{\"internalType\":\"address\",\"name\":\"tokenQuote\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint8\",\"name\":\"decimalsQuote\",\"type\":\"uint8\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"uint64\",\"name\":\"\",\"type\":\"uint64\",\"components\":[]}],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"pools\",\"outputs\":[{\"internalType\":\"uint128\",\"name\":\"virtualX\",\"type\":\"uint128\",\"components\":[]},{\"internalType\":\"uint128\",\"name\":\"virtualY\",\"type\":\"uint128\",\"components\":[]},{\"internalType\":\"uint128\",\"name\":\"liquidity\",\"type\":\"uint128\",\"components\":[]},{\"internalType\":\"uint32\",\"name\":\"lastTimestamp\",\"type\":\"uint32\",\"components\":[]},{\"internalType\":\"address\",\"name\":\"controller\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"invariantGrowthGlobal\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"feeGrowthGlobalAsset\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"feeGrowthGlobalQuote\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"struct PortfolioCurve\",\"name\":\"params\",\"type\":\"tuple\",\"components\":[{\"internalType\":\"uint128\",\"name\":\"maxPrice\",\"type\":\"uint128\",\"components\":[]},{\"internalType\":\"uint16\",\"name\":\"jit\",\"type\":\"uint16\",\"components\":[]},{\"internalType\":\"uint16\",\"name\":\"fee\",\"type\":\"uint16\",\"components\":[]},{\"internalType\":\"uint16\",\"name\":\"duration\",\"type\":\"uint16\",\"components\":[]},{\"internalType\":\"uint16\",\"name\":\"volatility\",\"type\":\"uint16\",\"components\":[]},{\"internalType\":\"uint16\",\"name\":\"priorityFee\",\"type\":\"uint16\",\"components\":[]},{\"internalType\":\"uint32\",\"name\":\"createdAt\",\"type\":\"uint32\",\"components\":[]},{\"internalType\":\"bool\",\"name\":\"perpetual\",\"type\":\"bool\",\"components\":[]}]},{\"internalType\":\"struct PortfolioPair\",\"name\":\"pair\",\"type\":\"tuple\",\"components\":[{\"internalType\":\"address\",\"name\":\"tokenAsset\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint8\",\"name\":\"decimalsAsset\",\"type\":\"uint8\",\"components\":[]},{\"internalType\":\"address\",\"name\":\"tokenQuote\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint8\",\"name\":\"decimalsQuote\",\"type\":\"uint8\",\"components\":[]}]}]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint64\",\"name\":\"\",\"type\":\"uint64\",\"components\":[]}],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"positions\",\"outputs\":[{\"internalType\":\"uint128\",\"name\":\"freeLiquidity\",\"type\":\"uint128\",\"components\":[]},{\"internalType\":\"uint32\",\"name\":\"lastTimestamp\",\"type\":\"uint32\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"invariantGrowthLast\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"feeGrowthAssetLast\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"feeGrowthQuoteLast\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"uint128\",\"name\":\"tokensOwedAsset\",\"type\":\"uint128\",\"components\":[]},{\"internalType\":\"uint128\",\"name\":\"tokensOwedQuote\",\"type\":\"uint128\",\"components\":[]},{\"internalType\":\"uint128\",\"name\":\"invariantOwed\",\"type\":\"uint128\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"fee\",\"type\":\"uint256\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"function\",\"name\":\"setProtocolFee\",\"outputs\":[]},{\"inputs\":[],\"stateMutability\":\"payable\",\"type\":\"receive\",\"outputs\":[]}]";
     ///The parsed JSON ABI of the contract.
-    pub static PORTFOLIOVIRTUAL_ABI: ::ethers::contract::Lazy<
-        ::ethers::core::abi::Abi,
-    > = ::ethers::contract::Lazy::new(|| {
-        ::ethers::core::utils::__serde_json::from_str(__ABI)
-            .expect("ABI is always valid")
-    });
+    pub static PORTFOLIOVIRTUAL_ABI: ::ethers::contract::Lazy<::ethers::core::abi::Abi> =
+        ::ethers::contract::Lazy::new(|| {
+            ::ethers::core::utils::__serde_json::from_str(__ABI).expect("ABI is always valid")
+        });
     pub struct PortfolioVirtual<M>(::ethers::contract::Contract<M>);
     impl<M> ::core::clone::Clone for PortfolioVirtual<M> {
         fn clone(&self) -> Self {
@@ -41551,7 +43724,9 @@ pub mod portfolio_virtual {
     }
     impl<M> ::core::fmt::Debug for PortfolioVirtual<M> {
         fn fmt(&self, f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
-            f.debug_tuple(stringify!(PortfolioVirtual)).field(&self.address()).finish()
+            f.debug_tuple(stringify!(PortfolioVirtual))
+                .field(&self.address())
+                .finish()
         }
     }
     impl<M: ::ethers::providers::Middleware> PortfolioVirtual<M> {
@@ -41561,21 +43736,16 @@ pub mod portfolio_virtual {
             address: T,
             client: ::std::sync::Arc<M>,
         ) -> Self {
-            Self(
-                ::ethers::contract::Contract::new(
-                    address.into(),
-                    PORTFOLIOVIRTUAL_ABI.clone(),
-                    client,
-                ),
-            )
+            Self(::ethers::contract::Contract::new(
+                address.into(),
+                PORTFOLIOVIRTUAL_ABI.clone(),
+                client,
+            ))
         }
         ///Calls the contract's `REGISTRY` (0x06433b1b) function
         pub fn registry(
             &self,
-        ) -> ::ethers::contract::builders::ContractCall<
-            M,
-            ::ethers::core::types::Address,
-        > {
+        ) -> ::ethers::contract::builders::ContractCall<M, ::ethers::core::types::Address> {
             self.0
                 .method_hash([6, 67, 59, 27], ())
                 .expect("method not found (this should never happen)")
@@ -41591,10 +43761,7 @@ pub mod portfolio_virtual {
         ///Calls the contract's `WETH` (0xad5c4648) function
         pub fn weth(
             &self,
-        ) -> ::ethers::contract::builders::ContractCall<
-            M,
-            ::ethers::core::types::Address,
-        > {
+        ) -> ::ethers::contract::builders::ContractCall<M, ::ethers::core::types::Address> {
             self.0
                 .method_hash([173, 92, 70, 72], ())
                 .expect("method not found (this should never happen)")
@@ -41625,10 +43792,8 @@ pub mod portfolio_virtual {
             reserve_x: ::ethers::core::types::U256,
             reserve_y: ::ethers::core::types::U256,
             timestamp: ::ethers::core::types::U256,
-        ) -> ::ethers::contract::builders::ContractCall<
-            M,
-            (bool, ::ethers::core::types::I256),
-        > {
+        ) -> ::ethers::contract::builders::ContractCall<M, (bool, ::ethers::core::types::I256)>
+        {
             self.0
                 .method_hash(
                     [47, 51, 125, 165],
@@ -41773,9 +43938,7 @@ pub mod portfolio_virtual {
                 .expect("method not found (this should never happen)")
         }
         ///Calls the contract's `getPairNonce` (0x078888d6) function
-        pub fn get_pair_nonce(
-            &self,
-        ) -> ::ethers::contract::builders::ContractCall<M, u32> {
+        pub fn get_pair_nonce(&self) -> ::ethers::contract::builders::ContractCall<M, u32> {
             self.0
                 .method_hash([7, 136, 136, 214], ())
                 .expect("method not found (this should never happen)")
@@ -41843,7 +44006,12 @@ pub mod portfolio_virtual {
             p0: u32,
         ) -> ::ethers::contract::builders::ContractCall<
             M,
-            (::ethers::core::types::Address, u8, ::ethers::core::types::Address, u8),
+            (
+                ::ethers::core::types::Address,
+                u8,
+                ::ethers::core::types::Address,
+                u8,
+            ),
         > {
             self.0
                 .method_hash([94, 71, 102, 60], p0)
@@ -41906,21 +44074,14 @@ pub mod portfolio_virtual {
         ///Gets the contract's `Allocate` event
         pub fn allocate_filter(
             &self,
-        ) -> ::ethers::contract::builders::Event<
-            ::std::sync::Arc<M>,
-            M,
-            AllocateFilter,
-        > {
+        ) -> ::ethers::contract::builders::Event<::std::sync::Arc<M>, M, AllocateFilter> {
             self.0.event()
         }
         ///Gets the contract's `ChangeParameters` event
         pub fn change_parameters_filter(
             &self,
-        ) -> ::ethers::contract::builders::Event<
-            ::std::sync::Arc<M>,
-            M,
-            ChangeParametersFilter,
-        > {
+        ) -> ::ethers::contract::builders::Event<::std::sync::Arc<M>, M, ChangeParametersFilter>
+        {
             self.0.event()
         }
         ///Gets the contract's `Collect` event
@@ -41932,51 +44093,33 @@ pub mod portfolio_virtual {
         ///Gets the contract's `CreatePair` event
         pub fn create_pair_filter(
             &self,
-        ) -> ::ethers::contract::builders::Event<
-            ::std::sync::Arc<M>,
-            M,
-            CreatePairFilter,
-        > {
+        ) -> ::ethers::contract::builders::Event<::std::sync::Arc<M>, M, CreatePairFilter> {
             self.0.event()
         }
         ///Gets the contract's `CreatePool` event
         pub fn create_pool_filter(
             &self,
-        ) -> ::ethers::contract::builders::Event<
-            ::std::sync::Arc<M>,
-            M,
-            CreatePoolFilter,
-        > {
+        ) -> ::ethers::contract::builders::Event<::std::sync::Arc<M>, M, CreatePoolFilter> {
             self.0.event()
         }
         ///Gets the contract's `Deallocate` event
         pub fn deallocate_filter(
             &self,
-        ) -> ::ethers::contract::builders::Event<
-            ::std::sync::Arc<M>,
-            M,
-            DeallocateFilter,
-        > {
+        ) -> ::ethers::contract::builders::Event<::std::sync::Arc<M>, M, DeallocateFilter> {
             self.0.event()
         }
         ///Gets the contract's `DecreaseReserveBalance` event
         pub fn decrease_reserve_balance_filter(
             &self,
-        ) -> ::ethers::contract::builders::Event<
-            ::std::sync::Arc<M>,
-            M,
-            DecreaseReserveBalanceFilter,
-        > {
+        ) -> ::ethers::contract::builders::Event<::std::sync::Arc<M>, M, DecreaseReserveBalanceFilter>
+        {
             self.0.event()
         }
         ///Gets the contract's `DecreaseUserBalance` event
         pub fn decrease_user_balance_filter(
             &self,
-        ) -> ::ethers::contract::builders::Event<
-            ::std::sync::Arc<M>,
-            M,
-            DecreaseUserBalanceFilter,
-        > {
+        ) -> ::ethers::contract::builders::Event<::std::sync::Arc<M>, M, DecreaseUserBalanceFilter>
+        {
             self.0.event()
         }
         ///Gets the contract's `Deposit` event
@@ -41988,21 +44131,15 @@ pub mod portfolio_virtual {
         ///Gets the contract's `IncreaseReserveBalance` event
         pub fn increase_reserve_balance_filter(
             &self,
-        ) -> ::ethers::contract::builders::Event<
-            ::std::sync::Arc<M>,
-            M,
-            IncreaseReserveBalanceFilter,
-        > {
+        ) -> ::ethers::contract::builders::Event<::std::sync::Arc<M>, M, IncreaseReserveBalanceFilter>
+        {
             self.0.event()
         }
         ///Gets the contract's `IncreaseUserBalance` event
         pub fn increase_user_balance_filter(
             &self,
-        ) -> ::ethers::contract::builders::Event<
-            ::std::sync::Arc<M>,
-            M,
-            IncreaseUserBalanceFilter,
-        > {
+        ) -> ::ethers::contract::builders::Event<::std::sync::Arc<M>, M, IncreaseUserBalanceFilter>
+        {
             self.0.event()
         }
         ///Gets the contract's `Swap` event
@@ -42014,26 +44151,22 @@ pub mod portfolio_virtual {
         ///Gets the contract's `UpdateProtocolFee` event
         pub fn update_protocol_fee_filter(
             &self,
-        ) -> ::ethers::contract::builders::Event<
-            ::std::sync::Arc<M>,
-            M,
-            UpdateProtocolFeeFilter,
-        > {
+        ) -> ::ethers::contract::builders::Event<::std::sync::Arc<M>, M, UpdateProtocolFeeFilter>
+        {
             self.0.event()
         }
         /// Returns an `Event` builder for all the events of this contract.
         pub fn events(
             &self,
-        ) -> ::ethers::contract::builders::Event<
-            ::std::sync::Arc<M>,
-            M,
-            PortfolioVirtualEvents,
-        > {
-            self.0.event_with_filter(::core::default::Default::default())
+        ) -> ::ethers::contract::builders::Event<::std::sync::Arc<M>, M, PortfolioVirtualEvents>
+        {
+            self.0
+                .event_with_filter(::core::default::Default::default())
         }
     }
     impl<M: ::ethers::providers::Middleware> From<::ethers::contract::Contract<M>>
-    for PortfolioVirtual<M> {
+        for PortfolioVirtual<M>
+    {
         fn from(contract: ::ethers::contract::Contract<M>) -> Self {
             Self::new(contract.address(), contract.client())
         }
@@ -42047,7 +44180,7 @@ pub mod portfolio_virtual {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[etherror(name = "DrawBalance", abi = "DrawBalance()")]
     pub struct DrawBalance;
@@ -42060,7 +44193,7 @@ pub mod portfolio_virtual {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[etherror(name = "EtherTransferFail", abi = "EtherTransferFail()")]
     pub struct EtherTransferFail;
@@ -42073,7 +44206,7 @@ pub mod portfolio_virtual {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[etherror(
         name = "InsufficientReserve",
@@ -42092,7 +44225,7 @@ pub mod portfolio_virtual {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[etherror(name = "InvalidBalance", abi = "InvalidBalance()")]
     pub struct InvalidBalance;
@@ -42105,9 +44238,12 @@ pub mod portfolio_virtual {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
-    #[etherror(name = "InvalidBytesLength", abi = "InvalidBytesLength(uint256,uint256)")]
+    #[etherror(
+        name = "InvalidBytesLength",
+        abi = "InvalidBytesLength(uint256,uint256)"
+    )]
     pub struct InvalidBytesLength {
         pub expected: ::ethers::core::types::U256,
         pub length: ::ethers::core::types::U256,
@@ -42121,7 +44257,7 @@ pub mod portfolio_virtual {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[etherror(name = "InvalidDecimals", abi = "InvalidDecimals(uint8)")]
     pub struct InvalidDecimals {
@@ -42136,7 +44272,7 @@ pub mod portfolio_virtual {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[etherror(name = "InvalidFee", abi = "InvalidFee(uint16)")]
     pub struct InvalidFee {
@@ -42151,7 +44287,7 @@ pub mod portfolio_virtual {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[etherror(name = "InvalidInstruction", abi = "InvalidInstruction()")]
     pub struct InvalidInstruction;
@@ -42164,7 +44300,7 @@ pub mod portfolio_virtual {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[etherror(name = "InvalidInvariant", abi = "InvalidInvariant(int256,int256)")]
     pub struct InvalidInvariant {
@@ -42180,7 +44316,7 @@ pub mod portfolio_virtual {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[etherror(name = "InvalidJump", abi = "InvalidJump(uint256)")]
     pub struct InvalidJump {
@@ -42195,7 +44331,7 @@ pub mod portfolio_virtual {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[etherror(name = "InvalidPair", abi = "InvalidPair()")]
     pub struct InvalidPair;
@@ -42208,7 +44344,7 @@ pub mod portfolio_virtual {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[etherror(name = "InvalidReentrancy", abi = "InvalidReentrancy()")]
     pub struct InvalidReentrancy;
@@ -42221,7 +44357,7 @@ pub mod portfolio_virtual {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[etherror(name = "InvalidSettlement", abi = "InvalidSettlement()")]
     pub struct InvalidSettlement;
@@ -42234,7 +44370,7 @@ pub mod portfolio_virtual {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[etherror(name = "InvalidTransfer", abi = "InvalidTransfer()")]
     pub struct InvalidTransfer;
@@ -42247,7 +44383,7 @@ pub mod portfolio_virtual {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[etherror(name = "JitLiquidity", abi = "JitLiquidity(uint256)")]
     pub struct JitLiquidity {
@@ -42262,7 +44398,7 @@ pub mod portfolio_virtual {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[etherror(name = "NegativeBalance", abi = "NegativeBalance(address,int256)")]
     pub struct NegativeBalance {
@@ -42278,7 +44414,7 @@ pub mod portfolio_virtual {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[etherror(name = "NonExistentPool", abi = "NonExistentPool(uint64)")]
     pub struct NonExistentPool {
@@ -42293,7 +44429,7 @@ pub mod portfolio_virtual {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[etherror(
         name = "NonExistentPosition",
@@ -42312,7 +44448,7 @@ pub mod portfolio_virtual {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[etherror(name = "NotController", abi = "NotController()")]
     pub struct NotController;
@@ -42325,7 +44461,7 @@ pub mod portfolio_virtual {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[etherror(name = "PairExists", abi = "PairExists(uint24)")]
     pub struct PairExists {
@@ -42340,7 +44476,7 @@ pub mod portfolio_virtual {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[etherror(name = "PoolExpired", abi = "PoolExpired()")]
     pub struct PoolExpired;
@@ -42353,7 +44489,7 @@ pub mod portfolio_virtual {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[etherror(name = "SameTokenError", abi = "SameTokenError()")]
     pub struct SameTokenError;
@@ -42366,7 +44502,7 @@ pub mod portfolio_virtual {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[etherror(name = "ZeroAmounts", abi = "ZeroAmounts()")]
     pub struct ZeroAmounts;
@@ -42379,7 +44515,7 @@ pub mod portfolio_virtual {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[etherror(name = "ZeroInput", abi = "ZeroInput()")]
     pub struct ZeroInput;
@@ -42392,7 +44528,7 @@ pub mod portfolio_virtual {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[etherror(name = "ZeroLiquidity", abi = "ZeroLiquidity()")]
     pub struct ZeroLiquidity;
@@ -42405,7 +44541,7 @@ pub mod portfolio_virtual {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[etherror(name = "ZeroOutput", abi = "ZeroOutput()")]
     pub struct ZeroOutput;
@@ -42418,7 +44554,7 @@ pub mod portfolio_virtual {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[etherror(name = "ZeroPrice", abi = "ZeroPrice()")]
     pub struct ZeroPrice;
@@ -42431,7 +44567,7 @@ pub mod portfolio_virtual {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[etherror(name = "ZeroValue", abi = "ZeroValue()")]
     pub struct ZeroValue;
@@ -42475,122 +44611,105 @@ pub mod portfolio_virtual {
             data: impl AsRef<[u8]>,
         ) -> ::core::result::Result<Self, ::ethers::core::abi::AbiError> {
             let data = data.as_ref();
-            if let Ok(decoded)
-                = <::std::string::String as ::ethers::core::abi::AbiDecode>::decode(
-                    data,
-                ) {
+            if let Ok(decoded) =
+                <::std::string::String as ::ethers::core::abi::AbiDecode>::decode(data)
+            {
                 return Ok(Self::RevertString(decoded));
             }
-            if let Ok(decoded)
-                = <DrawBalance as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <DrawBalance as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::DrawBalance(decoded));
             }
-            if let Ok(decoded)
-                = <EtherTransferFail as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <EtherTransferFail as ::ethers::core::abi::AbiDecode>::decode(data)
+            {
                 return Ok(Self::EtherTransferFail(decoded));
             }
-            if let Ok(decoded)
-                = <InsufficientReserve as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) =
+                <InsufficientReserve as ::ethers::core::abi::AbiDecode>::decode(data)
+            {
                 return Ok(Self::InsufficientReserve(decoded));
             }
-            if let Ok(decoded)
-                = <InvalidBalance as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <InvalidBalance as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::InvalidBalance(decoded));
             }
-            if let Ok(decoded)
-                = <InvalidBytesLength as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) =
+                <InvalidBytesLength as ::ethers::core::abi::AbiDecode>::decode(data)
+            {
                 return Ok(Self::InvalidBytesLength(decoded));
             }
-            if let Ok(decoded)
-                = <InvalidDecimals as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <InvalidDecimals as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::InvalidDecimals(decoded));
             }
-            if let Ok(decoded)
-                = <InvalidFee as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <InvalidFee as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::InvalidFee(decoded));
             }
-            if let Ok(decoded)
-                = <InvalidInstruction as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) =
+                <InvalidInstruction as ::ethers::core::abi::AbiDecode>::decode(data)
+            {
                 return Ok(Self::InvalidInstruction(decoded));
             }
-            if let Ok(decoded)
-                = <InvalidInvariant as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <InvalidInvariant as ::ethers::core::abi::AbiDecode>::decode(data)
+            {
                 return Ok(Self::InvalidInvariant(decoded));
             }
-            if let Ok(decoded)
-                = <InvalidJump as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <InvalidJump as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::InvalidJump(decoded));
             }
-            if let Ok(decoded)
-                = <InvalidPair as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <InvalidPair as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::InvalidPair(decoded));
             }
-            if let Ok(decoded)
-                = <InvalidReentrancy as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <InvalidReentrancy as ::ethers::core::abi::AbiDecode>::decode(data)
+            {
                 return Ok(Self::InvalidReentrancy(decoded));
             }
-            if let Ok(decoded)
-                = <InvalidSettlement as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <InvalidSettlement as ::ethers::core::abi::AbiDecode>::decode(data)
+            {
                 return Ok(Self::InvalidSettlement(decoded));
             }
-            if let Ok(decoded)
-                = <InvalidTransfer as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <InvalidTransfer as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::InvalidTransfer(decoded));
             }
-            if let Ok(decoded)
-                = <JitLiquidity as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <JitLiquidity as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::JitLiquidity(decoded));
             }
-            if let Ok(decoded)
-                = <NegativeBalance as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <NegativeBalance as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::NegativeBalance(decoded));
             }
-            if let Ok(decoded)
-                = <NonExistentPool as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <NonExistentPool as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::NonExistentPool(decoded));
             }
-            if let Ok(decoded)
-                = <NonExistentPosition as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) =
+                <NonExistentPosition as ::ethers::core::abi::AbiDecode>::decode(data)
+            {
                 return Ok(Self::NonExistentPosition(decoded));
             }
-            if let Ok(decoded)
-                = <NotController as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <NotController as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::NotController(decoded));
             }
-            if let Ok(decoded)
-                = <PairExists as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <PairExists as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::PairExists(decoded));
             }
-            if let Ok(decoded)
-                = <PoolExpired as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <PoolExpired as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::PoolExpired(decoded));
             }
-            if let Ok(decoded)
-                = <SameTokenError as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <SameTokenError as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::SameTokenError(decoded));
             }
-            if let Ok(decoded)
-                = <ZeroAmounts as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <ZeroAmounts as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::ZeroAmounts(decoded));
             }
-            if let Ok(decoded)
-                = <ZeroInput as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <ZeroInput as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::ZeroInput(decoded));
             }
-            if let Ok(decoded)
-                = <ZeroLiquidity as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <ZeroLiquidity as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::ZeroLiquidity(decoded));
             }
-            if let Ok(decoded)
-                = <ZeroOutput as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <ZeroOutput as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::ZeroOutput(decoded));
             }
-            if let Ok(decoded)
-                = <ZeroPrice as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <ZeroPrice as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::ZeroPrice(decoded));
             }
-            if let Ok(decoded)
-                = <ZeroValue as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <ZeroValue as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::ZeroValue(decoded));
             }
             Err(::ethers::core::abi::Error::InvalidData.into())
@@ -42599,90 +44718,42 @@ pub mod portfolio_virtual {
     impl ::ethers::core::abi::AbiEncode for PortfolioVirtualErrors {
         fn encode(self) -> ::std::vec::Vec<u8> {
             match self {
-                Self::DrawBalance(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
-                Self::EtherTransferFail(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
+                Self::DrawBalance(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::EtherTransferFail(element) => ::ethers::core::abi::AbiEncode::encode(element),
                 Self::InsufficientReserve(element) => {
                     ::ethers::core::abi::AbiEncode::encode(element)
                 }
-                Self::InvalidBalance(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
+                Self::InvalidBalance(element) => ::ethers::core::abi::AbiEncode::encode(element),
                 Self::InvalidBytesLength(element) => {
                     ::ethers::core::abi::AbiEncode::encode(element)
                 }
-                Self::InvalidDecimals(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
-                Self::InvalidFee(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
+                Self::InvalidDecimals(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::InvalidFee(element) => ::ethers::core::abi::AbiEncode::encode(element),
                 Self::InvalidInstruction(element) => {
                     ::ethers::core::abi::AbiEncode::encode(element)
                 }
-                Self::InvalidInvariant(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
-                Self::InvalidJump(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
-                Self::InvalidPair(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
-                Self::InvalidReentrancy(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
-                Self::InvalidSettlement(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
-                Self::InvalidTransfer(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
-                Self::JitLiquidity(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
-                Self::NegativeBalance(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
-                Self::NonExistentPool(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
+                Self::InvalidInvariant(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::InvalidJump(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::InvalidPair(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::InvalidReentrancy(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::InvalidSettlement(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::InvalidTransfer(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::JitLiquidity(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::NegativeBalance(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::NonExistentPool(element) => ::ethers::core::abi::AbiEncode::encode(element),
                 Self::NonExistentPosition(element) => {
                     ::ethers::core::abi::AbiEncode::encode(element)
                 }
-                Self::NotController(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
-                Self::PairExists(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
-                Self::PoolExpired(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
-                Self::SameTokenError(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
-                Self::ZeroAmounts(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
-                Self::ZeroInput(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
-                Self::ZeroLiquidity(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
-                Self::ZeroOutput(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
-                Self::ZeroPrice(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
-                Self::ZeroValue(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
+                Self::NotController(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::PairExists(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::PoolExpired(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::SameTokenError(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::ZeroAmounts(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::ZeroInput(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::ZeroLiquidity(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::ZeroOutput(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::ZeroPrice(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::ZeroValue(element) => ::ethers::core::abi::AbiEncode::encode(element),
                 Self::RevertString(s) => ::ethers::core::abi::AbiEncode::encode(s),
             }
         }
@@ -42691,94 +44762,80 @@ pub mod portfolio_virtual {
         fn valid_selector(selector: [u8; 4]) -> bool {
             match selector {
                 [0x08, 0xc3, 0x79, 0xa0] => true,
+                _ if selector == <DrawBalance as ::ethers::contract::EthError>::selector() => true,
                 _ if selector
-                    == <DrawBalance as ::ethers::contract::EthError>::selector() => true,
-                _ if selector
-                    == <EtherTransferFail as ::ethers::contract::EthError>::selector() => {
+                    == <EtherTransferFail as ::ethers::contract::EthError>::selector() =>
+                {
                     true
                 }
                 _ if selector
-                    == <InsufficientReserve as ::ethers::contract::EthError>::selector() => {
+                    == <InsufficientReserve as ::ethers::contract::EthError>::selector() =>
+                {
+                    true
+                }
+                _ if selector == <InvalidBalance as ::ethers::contract::EthError>::selector() => {
                     true
                 }
                 _ if selector
-                    == <InvalidBalance as ::ethers::contract::EthError>::selector() => {
+                    == <InvalidBytesLength as ::ethers::contract::EthError>::selector() =>
+                {
+                    true
+                }
+                _ if selector == <InvalidDecimals as ::ethers::contract::EthError>::selector() => {
+                    true
+                }
+                _ if selector == <InvalidFee as ::ethers::contract::EthError>::selector() => true,
+                _ if selector
+                    == <InvalidInstruction as ::ethers::contract::EthError>::selector() =>
+                {
+                    true
+                }
+                _ if selector == <InvalidInvariant as ::ethers::contract::EthError>::selector() => {
+                    true
+                }
+                _ if selector == <InvalidJump as ::ethers::contract::EthError>::selector() => true,
+                _ if selector == <InvalidPair as ::ethers::contract::EthError>::selector() => true,
+                _ if selector
+                    == <InvalidReentrancy as ::ethers::contract::EthError>::selector() =>
+                {
                     true
                 }
                 _ if selector
-                    == <InvalidBytesLength as ::ethers::contract::EthError>::selector() => {
+                    == <InvalidSettlement as ::ethers::contract::EthError>::selector() =>
+                {
+                    true
+                }
+                _ if selector == <InvalidTransfer as ::ethers::contract::EthError>::selector() => {
+                    true
+                }
+                _ if selector == <JitLiquidity as ::ethers::contract::EthError>::selector() => true,
+                _ if selector == <NegativeBalance as ::ethers::contract::EthError>::selector() => {
+                    true
+                }
+                _ if selector == <NonExistentPool as ::ethers::contract::EthError>::selector() => {
                     true
                 }
                 _ if selector
-                    == <InvalidDecimals as ::ethers::contract::EthError>::selector() => {
+                    == <NonExistentPosition as ::ethers::contract::EthError>::selector() =>
+                {
                     true
                 }
-                _ if selector
-                    == <InvalidFee as ::ethers::contract::EthError>::selector() => true,
-                _ if selector
-                    == <InvalidInstruction as ::ethers::contract::EthError>::selector() => {
+                _ if selector == <NotController as ::ethers::contract::EthError>::selector() => {
                     true
                 }
-                _ if selector
-                    == <InvalidInvariant as ::ethers::contract::EthError>::selector() => {
+                _ if selector == <PairExists as ::ethers::contract::EthError>::selector() => true,
+                _ if selector == <PoolExpired as ::ethers::contract::EthError>::selector() => true,
+                _ if selector == <SameTokenError as ::ethers::contract::EthError>::selector() => {
                     true
                 }
-                _ if selector
-                    == <InvalidJump as ::ethers::contract::EthError>::selector() => true,
-                _ if selector
-                    == <InvalidPair as ::ethers::contract::EthError>::selector() => true,
-                _ if selector
-                    == <InvalidReentrancy as ::ethers::contract::EthError>::selector() => {
+                _ if selector == <ZeroAmounts as ::ethers::contract::EthError>::selector() => true,
+                _ if selector == <ZeroInput as ::ethers::contract::EthError>::selector() => true,
+                _ if selector == <ZeroLiquidity as ::ethers::contract::EthError>::selector() => {
                     true
                 }
-                _ if selector
-                    == <InvalidSettlement as ::ethers::contract::EthError>::selector() => {
-                    true
-                }
-                _ if selector
-                    == <InvalidTransfer as ::ethers::contract::EthError>::selector() => {
-                    true
-                }
-                _ if selector
-                    == <JitLiquidity as ::ethers::contract::EthError>::selector() => true,
-                _ if selector
-                    == <NegativeBalance as ::ethers::contract::EthError>::selector() => {
-                    true
-                }
-                _ if selector
-                    == <NonExistentPool as ::ethers::contract::EthError>::selector() => {
-                    true
-                }
-                _ if selector
-                    == <NonExistentPosition as ::ethers::contract::EthError>::selector() => {
-                    true
-                }
-                _ if selector
-                    == <NotController as ::ethers::contract::EthError>::selector() => {
-                    true
-                }
-                _ if selector
-                    == <PairExists as ::ethers::contract::EthError>::selector() => true,
-                _ if selector
-                    == <PoolExpired as ::ethers::contract::EthError>::selector() => true,
-                _ if selector
-                    == <SameTokenError as ::ethers::contract::EthError>::selector() => {
-                    true
-                }
-                _ if selector
-                    == <ZeroAmounts as ::ethers::contract::EthError>::selector() => true,
-                _ if selector
-                    == <ZeroInput as ::ethers::contract::EthError>::selector() => true,
-                _ if selector
-                    == <ZeroLiquidity as ::ethers::contract::EthError>::selector() => {
-                    true
-                }
-                _ if selector
-                    == <ZeroOutput as ::ethers::contract::EthError>::selector() => true,
-                _ if selector
-                    == <ZeroPrice as ::ethers::contract::EthError>::selector() => true,
-                _ if selector
-                    == <ZeroValue as ::ethers::contract::EthError>::selector() => true,
+                _ if selector == <ZeroOutput as ::ethers::contract::EthError>::selector() => true,
+                _ if selector == <ZeroPrice as ::ethers::contract::EthError>::selector() => true,
+                _ if selector == <ZeroValue as ::ethers::contract::EthError>::selector() => true,
                 _ => false,
             }
         }
@@ -42788,18 +44845,12 @@ pub mod portfolio_virtual {
             match self {
                 Self::DrawBalance(element) => ::core::fmt::Display::fmt(element, f),
                 Self::EtherTransferFail(element) => ::core::fmt::Display::fmt(element, f),
-                Self::InsufficientReserve(element) => {
-                    ::core::fmt::Display::fmt(element, f)
-                }
+                Self::InsufficientReserve(element) => ::core::fmt::Display::fmt(element, f),
                 Self::InvalidBalance(element) => ::core::fmt::Display::fmt(element, f),
-                Self::InvalidBytesLength(element) => {
-                    ::core::fmt::Display::fmt(element, f)
-                }
+                Self::InvalidBytesLength(element) => ::core::fmt::Display::fmt(element, f),
                 Self::InvalidDecimals(element) => ::core::fmt::Display::fmt(element, f),
                 Self::InvalidFee(element) => ::core::fmt::Display::fmt(element, f),
-                Self::InvalidInstruction(element) => {
-                    ::core::fmt::Display::fmt(element, f)
-                }
+                Self::InvalidInstruction(element) => ::core::fmt::Display::fmt(element, f),
                 Self::InvalidInvariant(element) => ::core::fmt::Display::fmt(element, f),
                 Self::InvalidJump(element) => ::core::fmt::Display::fmt(element, f),
                 Self::InvalidPair(element) => ::core::fmt::Display::fmt(element, f),
@@ -42809,9 +44860,7 @@ pub mod portfolio_virtual {
                 Self::JitLiquidity(element) => ::core::fmt::Display::fmt(element, f),
                 Self::NegativeBalance(element) => ::core::fmt::Display::fmt(element, f),
                 Self::NonExistentPool(element) => ::core::fmt::Display::fmt(element, f),
-                Self::NonExistentPosition(element) => {
-                    ::core::fmt::Display::fmt(element, f)
-                }
+                Self::NonExistentPosition(element) => ::core::fmt::Display::fmt(element, f),
                 Self::NotController(element) => ::core::fmt::Display::fmt(element, f),
                 Self::PairExists(element) => ::core::fmt::Display::fmt(element, f),
                 Self::PoolExpired(element) => ::core::fmt::Display::fmt(element, f),
@@ -42979,7 +45028,7 @@ pub mod portfolio_virtual {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethevent(
         name = "Allocate",
@@ -43004,7 +45053,7 @@ pub mod portfolio_virtual {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethevent(
         name = "ChangeParameters",
@@ -43027,7 +45076,7 @@ pub mod portfolio_virtual {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethevent(
         name = "Collect",
@@ -43052,7 +45101,7 @@ pub mod portfolio_virtual {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethevent(
         name = "CreatePair",
@@ -43076,7 +45125,7 @@ pub mod portfolio_virtual {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethevent(
         name = "CreatePool",
@@ -43100,7 +45149,7 @@ pub mod portfolio_virtual {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethevent(
         name = "Deallocate",
@@ -43125,7 +45174,7 @@ pub mod portfolio_virtual {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethevent(
         name = "DecreaseReserveBalance",
@@ -43144,7 +45193,7 @@ pub mod portfolio_virtual {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethevent(
         name = "DecreaseUserBalance",
@@ -43165,7 +45214,7 @@ pub mod portfolio_virtual {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethevent(name = "Deposit", abi = "Deposit(address,uint256)")]
     pub struct DepositFilter {
@@ -43181,7 +45230,7 @@ pub mod portfolio_virtual {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethevent(
         name = "IncreaseReserveBalance",
@@ -43200,7 +45249,7 @@ pub mod portfolio_virtual {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethevent(
         name = "IncreaseUserBalance",
@@ -43221,7 +45270,7 @@ pub mod portfolio_virtual {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethevent(
         name = "Swap",
@@ -43248,7 +45297,7 @@ pub mod portfolio_virtual {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethevent(name = "UpdateProtocolFee", abi = "UpdateProtocolFee(uint256,uint256)")]
     pub struct UpdateProtocolFeeFilter {
@@ -43295,7 +45344,9 @@ pub mod portfolio_virtual {
                 return Ok(PortfolioVirtualEvents::DeallocateFilter(decoded));
             }
             if let Ok(decoded) = DecreaseReserveBalanceFilter::decode_log(log) {
-                return Ok(PortfolioVirtualEvents::DecreaseReserveBalanceFilter(decoded));
+                return Ok(PortfolioVirtualEvents::DecreaseReserveBalanceFilter(
+                    decoded,
+                ));
             }
             if let Ok(decoded) = DecreaseUserBalanceFilter::decode_log(log) {
                 return Ok(PortfolioVirtualEvents::DecreaseUserBalanceFilter(decoded));
@@ -43304,7 +45355,9 @@ pub mod portfolio_virtual {
                 return Ok(PortfolioVirtualEvents::DepositFilter(decoded));
             }
             if let Ok(decoded) = IncreaseReserveBalanceFilter::decode_log(log) {
-                return Ok(PortfolioVirtualEvents::IncreaseReserveBalanceFilter(decoded));
+                return Ok(PortfolioVirtualEvents::IncreaseReserveBalanceFilter(
+                    decoded,
+                ));
             }
             if let Ok(decoded) = IncreaseUserBalanceFilter::decode_log(log) {
                 return Ok(PortfolioVirtualEvents::IncreaseUserBalanceFilter(decoded));
@@ -43322,9 +45375,7 @@ pub mod portfolio_virtual {
         fn fmt(&self, f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
             match self {
                 Self::AllocateFilter(element) => ::core::fmt::Display::fmt(element, f),
-                Self::ChangeParametersFilter(element) => {
-                    ::core::fmt::Display::fmt(element, f)
-                }
+                Self::ChangeParametersFilter(element) => ::core::fmt::Display::fmt(element, f),
                 Self::CollectFilter(element) => ::core::fmt::Display::fmt(element, f),
                 Self::CreatePairFilter(element) => ::core::fmt::Display::fmt(element, f),
                 Self::CreatePoolFilter(element) => ::core::fmt::Display::fmt(element, f),
@@ -43332,20 +45383,14 @@ pub mod portfolio_virtual {
                 Self::DecreaseReserveBalanceFilter(element) => {
                     ::core::fmt::Display::fmt(element, f)
                 }
-                Self::DecreaseUserBalanceFilter(element) => {
-                    ::core::fmt::Display::fmt(element, f)
-                }
+                Self::DecreaseUserBalanceFilter(element) => ::core::fmt::Display::fmt(element, f),
                 Self::DepositFilter(element) => ::core::fmt::Display::fmt(element, f),
                 Self::IncreaseReserveBalanceFilter(element) => {
                     ::core::fmt::Display::fmt(element, f)
                 }
-                Self::IncreaseUserBalanceFilter(element) => {
-                    ::core::fmt::Display::fmt(element, f)
-                }
+                Self::IncreaseUserBalanceFilter(element) => ::core::fmt::Display::fmt(element, f),
                 Self::SwapFilter(element) => ::core::fmt::Display::fmt(element, f),
-                Self::UpdateProtocolFeeFilter(element) => {
-                    ::core::fmt::Display::fmt(element, f)
-                }
+                Self::UpdateProtocolFeeFilter(element) => ::core::fmt::Display::fmt(element, f),
             }
         }
     }
@@ -43423,7 +45468,7 @@ pub mod portfolio_virtual {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "REGISTRY", abi = "REGISTRY()")]
     pub struct RegistryCall;
@@ -43436,7 +45481,7 @@ pub mod portfolio_virtual {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "VERSION", abi = "VERSION()")]
     pub struct VersionCall;
@@ -43449,7 +45494,7 @@ pub mod portfolio_virtual {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "WETH", abi = "WETH()")]
     pub struct WethCall;
@@ -43462,7 +45507,7 @@ pub mod portfolio_virtual {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "__account__", abi = "__account__()")]
     pub struct AccountCall;
@@ -43475,7 +45520,7 @@ pub mod portfolio_virtual {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(
         name = "changeParameters",
@@ -43496,7 +45541,7 @@ pub mod portfolio_virtual {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(
         name = "checkInvariant",
@@ -43518,7 +45563,7 @@ pub mod portfolio_virtual {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "checkPool", abi = "checkPool(uint64)")]
     pub struct CheckPoolCall {
@@ -43533,7 +45578,7 @@ pub mod portfolio_virtual {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "checkPosition", abi = "checkPosition(uint64,address,int256)")]
     pub struct CheckPositionCall {
@@ -43550,7 +45595,7 @@ pub mod portfolio_virtual {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(
         name = "computeMaxInput",
@@ -43571,7 +45616,7 @@ pub mod portfolio_virtual {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(
         name = "computeReservesFromPrice",
@@ -43590,7 +45635,7 @@ pub mod portfolio_virtual {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "deposit", abi = "deposit()")]
     pub struct DepositCall;
@@ -43603,7 +45648,7 @@ pub mod portfolio_virtual {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "draw", abi = "draw(address,uint256,address)")]
     pub struct DrawCall {
@@ -43620,7 +45665,7 @@ pub mod portfolio_virtual {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "fund", abi = "fund(address,uint256)")]
     pub struct FundCall {
@@ -43636,7 +45681,7 @@ pub mod portfolio_virtual {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "getAmountOut", abi = "getAmountOut(uint64,bool,uint256)")]
     pub struct GetAmountOutCall {
@@ -43653,7 +45698,7 @@ pub mod portfolio_virtual {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "getBalance", abi = "getBalance(address,address)")]
     pub struct GetBalanceCall {
@@ -43669,7 +45714,7 @@ pub mod portfolio_virtual {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "getLiquidityDeltas", abi = "getLiquidityDeltas(uint64,int128)")]
     pub struct GetLiquidityDeltasCall {
@@ -43685,9 +45730,12 @@ pub mod portfolio_virtual {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
-    #[ethcall(name = "getMaxLiquidity", abi = "getMaxLiquidity(uint64,uint256,uint256)")]
+    #[ethcall(
+        name = "getMaxLiquidity",
+        abi = "getMaxLiquidity(uint64,uint256,uint256)"
+    )]
     pub struct GetMaxLiquidityCall {
         pub pool_id: u64,
         pub amount_0: ::ethers::core::types::U256,
@@ -43702,7 +45750,7 @@ pub mod portfolio_virtual {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "getNetBalance", abi = "getNetBalance(address)")]
     pub struct GetNetBalanceCall {
@@ -43717,7 +45765,7 @@ pub mod portfolio_virtual {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "getPairId", abi = "getPairId(address,address)")]
     pub struct GetPairIdCall(
@@ -43733,7 +45781,7 @@ pub mod portfolio_virtual {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "getPairNonce", abi = "getPairNonce()")]
     pub struct GetPairNonceCall;
@@ -43746,7 +45794,7 @@ pub mod portfolio_virtual {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "getPoolNonce", abi = "getPoolNonce(uint24)")]
     pub struct GetPoolNonceCall(pub u32);
@@ -43759,7 +45807,7 @@ pub mod portfolio_virtual {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "getPoolReserves", abi = "getPoolReserves(uint64)")]
     pub struct GetPoolReservesCall {
@@ -43774,7 +45822,7 @@ pub mod portfolio_virtual {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "getReserve", abi = "getReserve(address)")]
     pub struct GetReserveCall {
@@ -43789,7 +45837,7 @@ pub mod portfolio_virtual {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "getVirtualPrice", abi = "getVirtualPrice(uint64)")]
     pub struct GetVirtualPriceCall {
@@ -43804,7 +45852,7 @@ pub mod portfolio_virtual {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(
         name = "getVirtualReservesPerLiquidity",
@@ -43822,7 +45870,7 @@ pub mod portfolio_virtual {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "multiprocess", abi = "multiprocess(bytes)")]
     pub struct MultiprocessCall {
@@ -43837,7 +45885,7 @@ pub mod portfolio_virtual {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "pairs", abi = "pairs(uint24)")]
     pub struct PairsCall(pub u32);
@@ -43850,7 +45898,7 @@ pub mod portfolio_virtual {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "pools", abi = "pools(uint64)")]
     pub struct PoolsCall(pub u64);
@@ -43863,7 +45911,7 @@ pub mod portfolio_virtual {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "positions", abi = "positions(address,uint64)")]
     pub struct PositionsCall(pub ::ethers::core::types::Address, pub u64);
@@ -43876,7 +45924,7 @@ pub mod portfolio_virtual {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "setProtocolFee", abi = "setProtocolFee(uint256)")]
     pub struct SetProtocolFeeCall {
@@ -43921,132 +45969,120 @@ pub mod portfolio_virtual {
             data: impl AsRef<[u8]>,
         ) -> ::core::result::Result<Self, ::ethers::core::abi::AbiError> {
             let data = data.as_ref();
-            if let Ok(decoded)
-                = <RegistryCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <RegistryCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::Registry(decoded));
             }
-            if let Ok(decoded)
-                = <VersionCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <VersionCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::Version(decoded));
             }
-            if let Ok(decoded)
-                = <WethCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <WethCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::Weth(decoded));
             }
-            if let Ok(decoded)
-                = <AccountCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <AccountCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::Account(decoded));
             }
-            if let Ok(decoded)
-                = <ChangeParametersCall as ::ethers::core::abi::AbiDecode>::decode(
-                    data,
-                ) {
+            if let Ok(decoded) =
+                <ChangeParametersCall as ::ethers::core::abi::AbiDecode>::decode(data)
+            {
                 return Ok(Self::ChangeParameters(decoded));
             }
-            if let Ok(decoded)
-                = <CheckInvariantCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) =
+                <CheckInvariantCall as ::ethers::core::abi::AbiDecode>::decode(data)
+            {
                 return Ok(Self::CheckInvariant(decoded));
             }
-            if let Ok(decoded)
-                = <CheckPoolCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <CheckPoolCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::CheckPool(decoded));
             }
-            if let Ok(decoded)
-                = <CheckPositionCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <CheckPositionCall as ::ethers::core::abi::AbiDecode>::decode(data)
+            {
                 return Ok(Self::CheckPosition(decoded));
             }
-            if let Ok(decoded)
-                = <ComputeMaxInputCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) =
+                <ComputeMaxInputCall as ::ethers::core::abi::AbiDecode>::decode(data)
+            {
                 return Ok(Self::ComputeMaxInput(decoded));
             }
-            if let Ok(decoded)
-                = <ComputeReservesFromPriceCall as ::ethers::core::abi::AbiDecode>::decode(
-                    data,
-                ) {
+            if let Ok(decoded) =
+                <ComputeReservesFromPriceCall as ::ethers::core::abi::AbiDecode>::decode(data)
+            {
                 return Ok(Self::ComputeReservesFromPrice(decoded));
             }
-            if let Ok(decoded)
-                = <DepositCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <DepositCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::Deposit(decoded));
             }
-            if let Ok(decoded)
-                = <DrawCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <DrawCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::Draw(decoded));
             }
-            if let Ok(decoded)
-                = <FundCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <FundCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::Fund(decoded));
             }
-            if let Ok(decoded)
-                = <GetAmountOutCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <GetAmountOutCall as ::ethers::core::abi::AbiDecode>::decode(data)
+            {
                 return Ok(Self::GetAmountOut(decoded));
             }
-            if let Ok(decoded)
-                = <GetBalanceCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <GetBalanceCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::GetBalance(decoded));
             }
-            if let Ok(decoded)
-                = <GetLiquidityDeltasCall as ::ethers::core::abi::AbiDecode>::decode(
-                    data,
-                ) {
+            if let Ok(decoded) =
+                <GetLiquidityDeltasCall as ::ethers::core::abi::AbiDecode>::decode(data)
+            {
                 return Ok(Self::GetLiquidityDeltas(decoded));
             }
-            if let Ok(decoded)
-                = <GetMaxLiquidityCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) =
+                <GetMaxLiquidityCall as ::ethers::core::abi::AbiDecode>::decode(data)
+            {
                 return Ok(Self::GetMaxLiquidity(decoded));
             }
-            if let Ok(decoded)
-                = <GetNetBalanceCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <GetNetBalanceCall as ::ethers::core::abi::AbiDecode>::decode(data)
+            {
                 return Ok(Self::GetNetBalance(decoded));
             }
-            if let Ok(decoded)
-                = <GetPairIdCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <GetPairIdCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::GetPairId(decoded));
             }
-            if let Ok(decoded)
-                = <GetPairNonceCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <GetPairNonceCall as ::ethers::core::abi::AbiDecode>::decode(data)
+            {
                 return Ok(Self::GetPairNonce(decoded));
             }
-            if let Ok(decoded)
-                = <GetPoolNonceCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <GetPoolNonceCall as ::ethers::core::abi::AbiDecode>::decode(data)
+            {
                 return Ok(Self::GetPoolNonce(decoded));
             }
-            if let Ok(decoded)
-                = <GetPoolReservesCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) =
+                <GetPoolReservesCall as ::ethers::core::abi::AbiDecode>::decode(data)
+            {
                 return Ok(Self::GetPoolReserves(decoded));
             }
-            if let Ok(decoded)
-                = <GetReserveCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <GetReserveCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::GetReserve(decoded));
             }
-            if let Ok(decoded)
-                = <GetVirtualPriceCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) =
+                <GetVirtualPriceCall as ::ethers::core::abi::AbiDecode>::decode(data)
+            {
                 return Ok(Self::GetVirtualPrice(decoded));
             }
-            if let Ok(decoded)
-                = <GetVirtualReservesPerLiquidityCall as ::ethers::core::abi::AbiDecode>::decode(
-                    data,
-                ) {
+            if let Ok(decoded) =
+                <GetVirtualReservesPerLiquidityCall as ::ethers::core::abi::AbiDecode>::decode(data)
+            {
                 return Ok(Self::GetVirtualReservesPerLiquidity(decoded));
             }
-            if let Ok(decoded)
-                = <MultiprocessCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <MultiprocessCall as ::ethers::core::abi::AbiDecode>::decode(data)
+            {
                 return Ok(Self::Multiprocess(decoded));
             }
-            if let Ok(decoded)
-                = <PairsCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <PairsCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::Pairs(decoded));
             }
-            if let Ok(decoded)
-                = <PoolsCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <PoolsCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::Pools(decoded));
             }
-            if let Ok(decoded)
-                = <PositionsCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <PositionsCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::Positions(decoded));
             }
-            if let Ok(decoded)
-                = <SetProtocolFeeCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) =
+                <SetProtocolFeeCall as ::ethers::core::abi::AbiDecode>::decode(data)
+            {
                 return Ok(Self::SetProtocolFee(decoded));
             }
             Err(::ethers::core::abi::Error::InvalidData.into())
@@ -44055,80 +46091,42 @@ pub mod portfolio_virtual {
     impl ::ethers::core::abi::AbiEncode for PortfolioVirtualCalls {
         fn encode(self) -> Vec<u8> {
             match self {
-                Self::Registry(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
+                Self::Registry(element) => ::ethers::core::abi::AbiEncode::encode(element),
                 Self::Version(element) => ::ethers::core::abi::AbiEncode::encode(element),
                 Self::Weth(element) => ::ethers::core::abi::AbiEncode::encode(element),
                 Self::Account(element) => ::ethers::core::abi::AbiEncode::encode(element),
-                Self::ChangeParameters(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
-                Self::CheckInvariant(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
-                Self::CheckPool(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
-                Self::CheckPosition(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
-                Self::ComputeMaxInput(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
+                Self::ChangeParameters(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::CheckInvariant(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::CheckPool(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::CheckPosition(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::ComputeMaxInput(element) => ::ethers::core::abi::AbiEncode::encode(element),
                 Self::ComputeReservesFromPrice(element) => {
                     ::ethers::core::abi::AbiEncode::encode(element)
                 }
                 Self::Deposit(element) => ::ethers::core::abi::AbiEncode::encode(element),
                 Self::Draw(element) => ::ethers::core::abi::AbiEncode::encode(element),
                 Self::Fund(element) => ::ethers::core::abi::AbiEncode::encode(element),
-                Self::GetAmountOut(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
-                Self::GetBalance(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
+                Self::GetAmountOut(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::GetBalance(element) => ::ethers::core::abi::AbiEncode::encode(element),
                 Self::GetLiquidityDeltas(element) => {
                     ::ethers::core::abi::AbiEncode::encode(element)
                 }
-                Self::GetMaxLiquidity(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
-                Self::GetNetBalance(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
-                Self::GetPairId(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
-                Self::GetPairNonce(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
-                Self::GetPoolNonce(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
-                Self::GetPoolReserves(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
-                Self::GetReserve(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
-                Self::GetVirtualPrice(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
+                Self::GetMaxLiquidity(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::GetNetBalance(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::GetPairId(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::GetPairNonce(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::GetPoolNonce(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::GetPoolReserves(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::GetReserve(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::GetVirtualPrice(element) => ::ethers::core::abi::AbiEncode::encode(element),
                 Self::GetVirtualReservesPerLiquidity(element) => {
                     ::ethers::core::abi::AbiEncode::encode(element)
                 }
-                Self::Multiprocess(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
+                Self::Multiprocess(element) => ::ethers::core::abi::AbiEncode::encode(element),
                 Self::Pairs(element) => ::ethers::core::abi::AbiEncode::encode(element),
                 Self::Pools(element) => ::ethers::core::abi::AbiEncode::encode(element),
-                Self::Positions(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
-                Self::SetProtocolFee(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
+                Self::Positions(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::SetProtocolFee(element) => ::ethers::core::abi::AbiEncode::encode(element),
             }
         }
     }
@@ -44144,17 +46142,13 @@ pub mod portfolio_virtual {
                 Self::CheckPool(element) => ::core::fmt::Display::fmt(element, f),
                 Self::CheckPosition(element) => ::core::fmt::Display::fmt(element, f),
                 Self::ComputeMaxInput(element) => ::core::fmt::Display::fmt(element, f),
-                Self::ComputeReservesFromPrice(element) => {
-                    ::core::fmt::Display::fmt(element, f)
-                }
+                Self::ComputeReservesFromPrice(element) => ::core::fmt::Display::fmt(element, f),
                 Self::Deposit(element) => ::core::fmt::Display::fmt(element, f),
                 Self::Draw(element) => ::core::fmt::Display::fmt(element, f),
                 Self::Fund(element) => ::core::fmt::Display::fmt(element, f),
                 Self::GetAmountOut(element) => ::core::fmt::Display::fmt(element, f),
                 Self::GetBalance(element) => ::core::fmt::Display::fmt(element, f),
-                Self::GetLiquidityDeltas(element) => {
-                    ::core::fmt::Display::fmt(element, f)
-                }
+                Self::GetLiquidityDeltas(element) => ::core::fmt::Display::fmt(element, f),
                 Self::GetMaxLiquidity(element) => ::core::fmt::Display::fmt(element, f),
                 Self::GetNetBalance(element) => ::core::fmt::Display::fmt(element, f),
                 Self::GetPairId(element) => ::core::fmt::Display::fmt(element, f),
@@ -44294,8 +46288,7 @@ pub mod portfolio_virtual {
             Self::GetVirtualPrice(value)
         }
     }
-    impl ::core::convert::From<GetVirtualReservesPerLiquidityCall>
-    for PortfolioVirtualCalls {
+    impl ::core::convert::From<GetVirtualReservesPerLiquidityCall> for PortfolioVirtualCalls {
         fn from(value: GetVirtualReservesPerLiquidityCall) -> Self {
             Self::GetVirtualReservesPerLiquidity(value)
         }
@@ -44334,7 +46327,7 @@ pub mod portfolio_virtual {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     pub struct RegistryReturn(pub ::ethers::core::types::Address);
     ///Container type for all return fields from the `VERSION` function with signature `VERSION()` and selector `0xffa1ad74`
@@ -44346,7 +46339,7 @@ pub mod portfolio_virtual {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     pub struct VersionReturn(pub ::std::string::String);
     ///Container type for all return fields from the `WETH` function with signature `WETH()` and selector `0xad5c4648`
@@ -44358,7 +46351,7 @@ pub mod portfolio_virtual {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     pub struct WethReturn(pub ::ethers::core::types::Address);
     ///Container type for all return fields from the `__account__` function with signature `__account__()` and selector `0xda31ee54`
@@ -44370,7 +46363,7 @@ pub mod portfolio_virtual {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     pub struct AccountReturn {
         pub settled: bool,
@@ -44384,7 +46377,7 @@ pub mod portfolio_virtual {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     pub struct CheckInvariantReturn {
         pub success: bool,
@@ -44399,7 +46392,7 @@ pub mod portfolio_virtual {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     pub struct CheckPoolReturn(pub bool);
     ///Container type for all return fields from the `checkPosition` function with signature `checkPosition(uint64,address,int256)` and selector `0x2cc6641e`
@@ -44411,7 +46404,7 @@ pub mod portfolio_virtual {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     pub struct CheckPositionReturn(pub bool);
     ///Container type for all return fields from the `computeMaxInput` function with signature `computeMaxInput(uint64,bool,uint256,uint256)` and selector `0x989bafba`
@@ -44423,7 +46416,7 @@ pub mod portfolio_virtual {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     pub struct ComputeMaxInputReturn(pub ::ethers::core::types::U256);
     ///Container type for all return fields from the `computeReservesFromPrice` function with signature `computeReservesFromPrice(uint64,uint256)` and selector `0xc48d887a`
@@ -44435,7 +46428,7 @@ pub mod portfolio_virtual {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     pub struct ComputeReservesFromPriceReturn {
         pub reserve_x: ::ethers::core::types::U256,
@@ -44450,7 +46443,7 @@ pub mod portfolio_virtual {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     pub struct GetAmountOutReturn {
         pub output: ::ethers::core::types::U256,
@@ -44464,7 +46457,7 @@ pub mod portfolio_virtual {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     pub struct GetBalanceReturn(pub ::ethers::core::types::U256);
     ///Container type for all return fields from the `getLiquidityDeltas` function with signature `getLiquidityDeltas(uint64,int128)` and selector `0x8992f20a`
@@ -44476,7 +46469,7 @@ pub mod portfolio_virtual {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     pub struct GetLiquidityDeltasReturn {
         pub delta_asset: u128,
@@ -44491,7 +46484,7 @@ pub mod portfolio_virtual {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     pub struct GetMaxLiquidityReturn {
         pub delta_liquidity: u128,
@@ -44505,7 +46498,7 @@ pub mod portfolio_virtual {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     pub struct GetNetBalanceReturn(pub ::ethers::core::types::I256);
     ///Container type for all return fields from the `getPairId` function with signature `getPairId(address,address)` and selector `0x3f92a339`
@@ -44517,7 +46510,7 @@ pub mod portfolio_virtual {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     pub struct GetPairIdReturn(pub u32);
     ///Container type for all return fields from the `getPairNonce` function with signature `getPairNonce()` and selector `0x078888d6`
@@ -44529,7 +46522,7 @@ pub mod portfolio_virtual {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     pub struct GetPairNonceReturn(pub u32);
     ///Container type for all return fields from the `getPoolNonce` function with signature `getPoolNonce(uint24)` and selector `0xa5cd8a49`
@@ -44541,7 +46534,7 @@ pub mod portfolio_virtual {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     pub struct GetPoolNonceReturn(pub u32);
     ///Container type for all return fields from the `getPoolReserves` function with signature `getPoolReserves(uint64)` and selector `0x2afb9df8`
@@ -44553,7 +46546,7 @@ pub mod portfolio_virtual {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     pub struct GetPoolReservesReturn {
         pub delta_asset: ::ethers::core::types::U256,
@@ -44568,7 +46561,7 @@ pub mod portfolio_virtual {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     pub struct GetReserveReturn(pub ::ethers::core::types::U256);
     ///Container type for all return fields from the `getVirtualPrice` function with signature `getVirtualPrice(uint64)` and selector `0x61b7ea6a`
@@ -44580,7 +46573,7 @@ pub mod portfolio_virtual {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     pub struct GetVirtualPriceReturn {
         pub price: ::ethers::core::types::U256,
@@ -44594,7 +46587,7 @@ pub mod portfolio_virtual {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     pub struct GetVirtualReservesPerLiquidityReturn {
         pub delta_asset: u128,
@@ -44609,7 +46602,7 @@ pub mod portfolio_virtual {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     pub struct PairsReturn {
         pub token_asset: ::ethers::core::types::Address,
@@ -44626,7 +46619,7 @@ pub mod portfolio_virtual {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     pub struct PoolsReturn {
         pub virtual_x: u128,
@@ -44649,7 +46642,7 @@ pub mod portfolio_virtual {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     pub struct PositionsReturn {
         pub free_liquidity: u128,
@@ -44671,18 +46664,16 @@ pub use rmm01_extended_lib::*;
     clippy::upper_case_acronyms,
     clippy::type_complexity,
     dead_code,
-    non_camel_case_types,
+    non_camel_case_types
 )]
 pub mod rmm01_extended_lib {
     #[rustfmt::skip]
     const __ABI: &str = "[]";
     ///The parsed JSON ABI of the contract.
-    pub static RMM01EXTENDEDLIB_ABI: ::ethers::contract::Lazy<
-        ::ethers::core::abi::Abi,
-    > = ::ethers::contract::Lazy::new(|| {
-        ::ethers::core::utils::__serde_json::from_str(__ABI)
-            .expect("ABI is always valid")
-    });
+    pub static RMM01EXTENDEDLIB_ABI: ::ethers::contract::Lazy<::ethers::core::abi::Abi> =
+        ::ethers::contract::Lazy::new(|| {
+            ::ethers::core::utils::__serde_json::from_str(__ABI).expect("ABI is always valid")
+        });
     #[rustfmt::skip]
     const __BYTECODE: &[u8] = &[
         96,
@@ -44828,9 +46819,8 @@ pub mod rmm01_extended_lib {
         51,
     ];
     ///The bytecode of the contract.
-    pub static RMM01EXTENDEDLIB_BYTECODE: ::ethers::core::types::Bytes = ::ethers::core::types::Bytes::from_static(
-        __BYTECODE,
-    );
+    pub static RMM01EXTENDEDLIB_BYTECODE: ::ethers::core::types::Bytes =
+        ::ethers::core::types::Bytes::from_static(__BYTECODE);
     #[rustfmt::skip]
     const __DEPLOYED_BYTECODE: &[u8] = &[
         115,
@@ -44921,9 +46911,8 @@ pub mod rmm01_extended_lib {
         51,
     ];
     ///The deployed bytecode of the contract.
-    pub static RMM01EXTENDEDLIB_DEPLOYED_BYTECODE: ::ethers::core::types::Bytes = ::ethers::core::types::Bytes::from_static(
-        __DEPLOYED_BYTECODE,
-    );
+    pub static RMM01EXTENDEDLIB_DEPLOYED_BYTECODE: ::ethers::core::types::Bytes =
+        ::ethers::core::types::Bytes::from_static(__DEPLOYED_BYTECODE);
     pub struct RMM01ExtendedLib<M>(::ethers::contract::Contract<M>);
     impl<M> ::core::clone::Clone for RMM01ExtendedLib<M> {
         fn clone(&self) -> Self {
@@ -44943,7 +46932,9 @@ pub mod rmm01_extended_lib {
     }
     impl<M> ::core::fmt::Debug for RMM01ExtendedLib<M> {
         fn fmt(&self, f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
-            f.debug_tuple(stringify!(RMM01ExtendedLib)).field(&self.address()).finish()
+            f.debug_tuple(stringify!(RMM01ExtendedLib))
+                .field(&self.address())
+                .finish()
         }
     }
     impl<M: ::ethers::providers::Middleware> RMM01ExtendedLib<M> {
@@ -44953,13 +46944,11 @@ pub mod rmm01_extended_lib {
             address: T,
             client: ::std::sync::Arc<M>,
         ) -> Self {
-            Self(
-                ::ethers::contract::Contract::new(
-                    address.into(),
-                    RMM01EXTENDEDLIB_ABI.clone(),
-                    client,
-                ),
-            )
+            Self(::ethers::contract::Contract::new(
+                address.into(),
+                RMM01EXTENDEDLIB_ABI.clone(),
+                client,
+            ))
         }
         /// Constructs the general purpose `Deployer` instance based on the provided constructor arguments and sends it.
         /// Returns a new instance of a deployer that returns an instance of this contract after sending the transaction
@@ -45002,7 +46991,8 @@ pub mod rmm01_extended_lib {
         }
     }
     impl<M: ::ethers::providers::Middleware> From<::ethers::contract::Contract<M>>
-    for RMM01ExtendedLib<M> {
+        for RMM01ExtendedLib<M>
+    {
         fn from(contract: ::ethers::contract::Contract<M>) -> Self {
             Self::new(contract.address(), contract.client())
         }
@@ -45017,14 +47007,16 @@ pub use rmm01_lib::*;
     clippy::upper_case_acronyms,
     clippy::type_complexity,
     dead_code,
-    non_camel_case_types,
+    non_camel_case_types
 )]
 pub mod rmm01_lib {
     #[rustfmt::skip]
     const __ABI: &str = "[{\"inputs\":[{\"internalType\":\"int256\",\"name\":\"wad\",\"type\":\"int256\",\"components\":[]}],\"type\":\"error\",\"name\":\"OverflowWad\",\"outputs\":[]},{\"inputs\":[],\"type\":\"error\",\"name\":\"UndefinedPrice\",\"outputs\":[]}]";
     ///The parsed JSON ABI of the contract.
-    pub static RMM01LIB_ABI: ::ethers::contract::Lazy<::ethers::core::abi::Abi> = ::ethers::contract::Lazy::new(||
-    ::ethers::core::utils::__serde_json::from_str(__ABI).expect("ABI is always valid"));
+    pub static RMM01LIB_ABI: ::ethers::contract::Lazy<::ethers::core::abi::Abi> =
+        ::ethers::contract::Lazy::new(|| {
+            ::ethers::core::utils::__serde_json::from_str(__ABI).expect("ABI is always valid")
+        });
     #[rustfmt::skip]
     const __BYTECODE: &[u8] = &[
         96,
@@ -45170,9 +47162,8 @@ pub mod rmm01_lib {
         51,
     ];
     ///The bytecode of the contract.
-    pub static RMM01LIB_BYTECODE: ::ethers::core::types::Bytes = ::ethers::core::types::Bytes::from_static(
-        __BYTECODE,
-    );
+    pub static RMM01LIB_BYTECODE: ::ethers::core::types::Bytes =
+        ::ethers::core::types::Bytes::from_static(__BYTECODE);
     #[rustfmt::skip]
     const __DEPLOYED_BYTECODE: &[u8] = &[
         115,
@@ -45263,9 +47254,8 @@ pub mod rmm01_lib {
         51,
     ];
     ///The deployed bytecode of the contract.
-    pub static RMM01LIB_DEPLOYED_BYTECODE: ::ethers::core::types::Bytes = ::ethers::core::types::Bytes::from_static(
-        __DEPLOYED_BYTECODE,
-    );
+    pub static RMM01LIB_DEPLOYED_BYTECODE: ::ethers::core::types::Bytes =
+        ::ethers::core::types::Bytes::from_static(__DEPLOYED_BYTECODE);
     pub struct RMM01Lib<M>(::ethers::contract::Contract<M>);
     impl<M> ::core::clone::Clone for RMM01Lib<M> {
         fn clone(&self) -> Self {
@@ -45285,7 +47275,9 @@ pub mod rmm01_lib {
     }
     impl<M> ::core::fmt::Debug for RMM01Lib<M> {
         fn fmt(&self, f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
-            f.debug_tuple(stringify!(RMM01Lib)).field(&self.address()).finish()
+            f.debug_tuple(stringify!(RMM01Lib))
+                .field(&self.address())
+                .finish()
         }
     }
     impl<M: ::ethers::providers::Middleware> RMM01Lib<M> {
@@ -45295,13 +47287,11 @@ pub mod rmm01_lib {
             address: T,
             client: ::std::sync::Arc<M>,
         ) -> Self {
-            Self(
-                ::ethers::contract::Contract::new(
-                    address.into(),
-                    RMM01LIB_ABI.clone(),
-                    client,
-                ),
-            )
+            Self(::ethers::contract::Contract::new(
+                address.into(),
+                RMM01LIB_ABI.clone(),
+                client,
+            ))
         }
         /// Constructs the general purpose `Deployer` instance based on the provided constructor arguments and sends it.
         /// Returns a new instance of a deployer that returns an instance of this contract after sending the transaction
@@ -45343,8 +47333,7 @@ pub mod rmm01_lib {
             Ok(deployer)
         }
     }
-    impl<M: ::ethers::providers::Middleware> From<::ethers::contract::Contract<M>>
-    for RMM01Lib<M> {
+    impl<M: ::ethers::providers::Middleware> From<::ethers::contract::Contract<M>> for RMM01Lib<M> {
         fn from(contract: ::ethers::contract::Contract<M>) -> Self {
             Self::new(contract.address(), contract.client())
         }
@@ -45358,7 +47347,7 @@ pub mod rmm01_lib {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[etherror(name = "OverflowWad", abi = "OverflowWad(int256)")]
     pub struct OverflowWad {
@@ -45373,7 +47362,7 @@ pub mod rmm01_lib {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[etherror(name = "UndefinedPrice", abi = "UndefinedPrice()")]
     pub struct UndefinedPrice;
@@ -45391,18 +47380,15 @@ pub mod rmm01_lib {
             data: impl AsRef<[u8]>,
         ) -> ::core::result::Result<Self, ::ethers::core::abi::AbiError> {
             let data = data.as_ref();
-            if let Ok(decoded)
-                = <::std::string::String as ::ethers::core::abi::AbiDecode>::decode(
-                    data,
-                ) {
+            if let Ok(decoded) =
+                <::std::string::String as ::ethers::core::abi::AbiDecode>::decode(data)
+            {
                 return Ok(Self::RevertString(decoded));
             }
-            if let Ok(decoded)
-                = <OverflowWad as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <OverflowWad as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::OverflowWad(decoded));
             }
-            if let Ok(decoded)
-                = <UndefinedPrice as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <UndefinedPrice as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::UndefinedPrice(decoded));
             }
             Err(::ethers::core::abi::Error::InvalidData.into())
@@ -45411,12 +47397,8 @@ pub mod rmm01_lib {
     impl ::ethers::core::abi::AbiEncode for RMM01LibErrors {
         fn encode(self) -> ::std::vec::Vec<u8> {
             match self {
-                Self::OverflowWad(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
-                Self::UndefinedPrice(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
+                Self::OverflowWad(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::UndefinedPrice(element) => ::ethers::core::abi::AbiEncode::encode(element),
                 Self::RevertString(s) => ::ethers::core::abi::AbiEncode::encode(s),
             }
         }
@@ -45425,10 +47407,8 @@ pub mod rmm01_lib {
         fn valid_selector(selector: [u8; 4]) -> bool {
             match selector {
                 [0x08, 0xc3, 0x79, 0xa0] => true,
-                _ if selector
-                    == <OverflowWad as ::ethers::contract::EthError>::selector() => true,
-                _ if selector
-                    == <UndefinedPrice as ::ethers::contract::EthError>::selector() => {
+                _ if selector == <OverflowWad as ::ethers::contract::EthError>::selector() => true,
+                _ if selector == <UndefinedPrice as ::ethers::contract::EthError>::selector() => {
                     true
                 }
                 _ => false,
@@ -45469,15 +47449,17 @@ pub use rmm01_portfolio::*;
     clippy::upper_case_acronyms,
     clippy::type_complexity,
     dead_code,
-    non_camel_case_types,
+    non_camel_case_types
 )]
 pub mod rmm01_portfolio {
     pub use super::__shared_types::*;
     #[rustfmt::skip]
     const __ABI: &str = "[{\"inputs\":[{\"internalType\":\"address\",\"name\":\"weth\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"address\",\"name\":\"registry\",\"type\":\"address\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"constructor\",\"outputs\":[]},{\"inputs\":[],\"type\":\"error\",\"name\":\"DrawBalance\",\"outputs\":[]},{\"inputs\":[],\"type\":\"error\",\"name\":\"EtherTransferFail\",\"outputs\":[]},{\"inputs\":[],\"type\":\"error\",\"name\":\"Infinity\",\"outputs\":[]},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"delta\",\"type\":\"uint256\",\"components\":[]}],\"type\":\"error\",\"name\":\"InsufficientReserve\",\"outputs\":[]},{\"inputs\":[],\"type\":\"error\",\"name\":\"InvalidBalance\",\"outputs\":[]},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"expected\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"length\",\"type\":\"uint256\",\"components\":[]}],\"type\":\"error\",\"name\":\"InvalidBytesLength\",\"outputs\":[]},{\"inputs\":[{\"internalType\":\"uint8\",\"name\":\"decimals\",\"type\":\"uint8\",\"components\":[]}],\"type\":\"error\",\"name\":\"InvalidDecimals\",\"outputs\":[]},{\"inputs\":[{\"internalType\":\"uint16\",\"name\":\"fee\",\"type\":\"uint16\",\"components\":[]}],\"type\":\"error\",\"name\":\"InvalidFee\",\"outputs\":[]},{\"inputs\":[],\"type\":\"error\",\"name\":\"InvalidInstruction\",\"outputs\":[]},{\"inputs\":[{\"internalType\":\"int256\",\"name\":\"prev\",\"type\":\"int256\",\"components\":[]},{\"internalType\":\"int256\",\"name\":\"next\",\"type\":\"int256\",\"components\":[]}],\"type\":\"error\",\"name\":\"InvalidInvariant\",\"outputs\":[]},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"pointer\",\"type\":\"uint256\",\"components\":[]}],\"type\":\"error\",\"name\":\"InvalidJump\",\"outputs\":[]},{\"inputs\":[],\"type\":\"error\",\"name\":\"InvalidPair\",\"outputs\":[]},{\"inputs\":[],\"type\":\"error\",\"name\":\"InvalidReentrancy\",\"outputs\":[]},{\"inputs\":[],\"type\":\"error\",\"name\":\"InvalidSettlement\",\"outputs\":[]},{\"inputs\":[],\"type\":\"error\",\"name\":\"InvalidTransfer\",\"outputs\":[]},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"distance\",\"type\":\"uint256\",\"components\":[]}],\"type\":\"error\",\"name\":\"JitLiquidity\",\"outputs\":[]},{\"inputs\":[],\"type\":\"error\",\"name\":\"Min\",\"outputs\":[]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"token\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"int256\",\"name\":\"net\",\"type\":\"int256\",\"components\":[]}],\"type\":\"error\",\"name\":\"NegativeBalance\",\"outputs\":[]},{\"inputs\":[],\"type\":\"error\",\"name\":\"NegativeInfinity\",\"outputs\":[]},{\"inputs\":[{\"internalType\":\"uint64\",\"name\":\"poolId\",\"type\":\"uint64\",\"components\":[]}],\"type\":\"error\",\"name\":\"NonExistentPool\",\"outputs\":[]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"owner\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint64\",\"name\":\"poolId\",\"type\":\"uint64\",\"components\":[]}],\"type\":\"error\",\"name\":\"NonExistentPosition\",\"outputs\":[]},{\"inputs\":[],\"type\":\"error\",\"name\":\"NotController\",\"outputs\":[]},{\"inputs\":[],\"type\":\"error\",\"name\":\"OOB\",\"outputs\":[]},{\"inputs\":[],\"type\":\"error\",\"name\":\"OutOfBounds\",\"outputs\":[]},{\"inputs\":[{\"internalType\":\"int256\",\"name\":\"wad\",\"type\":\"int256\",\"components\":[]}],\"type\":\"error\",\"name\":\"OverflowWad\",\"outputs\":[]},{\"inputs\":[{\"internalType\":\"uint24\",\"name\":\"pairId\",\"type\":\"uint24\",\"components\":[]}],\"type\":\"error\",\"name\":\"PairExists\",\"outputs\":[]},{\"inputs\":[],\"type\":\"error\",\"name\":\"PoolExpired\",\"outputs\":[]},{\"inputs\":[],\"type\":\"error\",\"name\":\"SameTokenError\",\"outputs\":[]},{\"inputs\":[],\"type\":\"error\",\"name\":\"SwapInputTooSmall\",\"outputs\":[]},{\"inputs\":[],\"type\":\"error\",\"name\":\"UndefinedPrice\",\"outputs\":[]},{\"inputs\":[],\"type\":\"error\",\"name\":\"ZeroAmounts\",\"outputs\":[]},{\"inputs\":[],\"type\":\"error\",\"name\":\"ZeroInput\",\"outputs\":[]},{\"inputs\":[],\"type\":\"error\",\"name\":\"ZeroLiquidity\",\"outputs\":[]},{\"inputs\":[],\"type\":\"error\",\"name\":\"ZeroOutput\",\"outputs\":[]},{\"inputs\":[],\"type\":\"error\",\"name\":\"ZeroPrice\",\"outputs\":[]},{\"inputs\":[],\"type\":\"error\",\"name\":\"ZeroValue\",\"outputs\":[]},{\"inputs\":[{\"internalType\":\"uint64\",\"name\":\"poolId\",\"type\":\"uint64\",\"components\":[],\"indexed\":true},{\"internalType\":\"address\",\"name\":\"asset\",\"type\":\"address\",\"components\":[],\"indexed\":true},{\"internalType\":\"address\",\"name\":\"quote\",\"type\":\"address\",\"components\":[],\"indexed\":true},{\"internalType\":\"uint256\",\"name\":\"deltaAsset\",\"type\":\"uint256\",\"components\":[],\"indexed\":false},{\"internalType\":\"uint256\",\"name\":\"deltaQuote\",\"type\":\"uint256\",\"components\":[],\"indexed\":false},{\"internalType\":\"uint256\",\"name\":\"deltaLiquidity\",\"type\":\"uint256\",\"components\":[],\"indexed\":false}],\"type\":\"event\",\"name\":\"Allocate\",\"outputs\":[],\"anonymous\":false},{\"inputs\":[{\"internalType\":\"uint64\",\"name\":\"poolId\",\"type\":\"uint64\",\"components\":[],\"indexed\":true},{\"internalType\":\"uint16\",\"name\":\"priorityFee\",\"type\":\"uint16\",\"components\":[],\"indexed\":true},{\"internalType\":\"uint16\",\"name\":\"fee\",\"type\":\"uint16\",\"components\":[],\"indexed\":true},{\"internalType\":\"uint16\",\"name\":\"jit\",\"type\":\"uint16\",\"components\":[],\"indexed\":false}],\"type\":\"event\",\"name\":\"ChangeParameters\",\"outputs\":[],\"anonymous\":false},{\"inputs\":[{\"internalType\":\"uint64\",\"name\":\"poolId\",\"type\":\"uint64\",\"components\":[],\"indexed\":false},{\"internalType\":\"address\",\"name\":\"account\",\"type\":\"address\",\"components\":[],\"indexed\":true},{\"internalType\":\"uint256\",\"name\":\"feeAssetDec\",\"type\":\"uint256\",\"components\":[],\"indexed\":false},{\"internalType\":\"address\",\"name\":\"asset\",\"type\":\"address\",\"components\":[],\"indexed\":true},{\"internalType\":\"uint256\",\"name\":\"feeQuoteDec\",\"type\":\"uint256\",\"components\":[],\"indexed\":false},{\"internalType\":\"address\",\"name\":\"quote\",\"type\":\"address\",\"components\":[],\"indexed\":true}],\"type\":\"event\",\"name\":\"Collect\",\"outputs\":[],\"anonymous\":false},{\"inputs\":[{\"internalType\":\"uint24\",\"name\":\"pairId\",\"type\":\"uint24\",\"components\":[],\"indexed\":true},{\"internalType\":\"address\",\"name\":\"asset\",\"type\":\"address\",\"components\":[],\"indexed\":true},{\"internalType\":\"address\",\"name\":\"quote\",\"type\":\"address\",\"components\":[],\"indexed\":true},{\"internalType\":\"uint8\",\"name\":\"decimalsAsset\",\"type\":\"uint8\",\"components\":[],\"indexed\":false},{\"internalType\":\"uint8\",\"name\":\"decimalsQuote\",\"type\":\"uint8\",\"components\":[],\"indexed\":false}],\"type\":\"event\",\"name\":\"CreatePair\",\"outputs\":[],\"anonymous\":false},{\"inputs\":[{\"internalType\":\"uint64\",\"name\":\"poolId\",\"type\":\"uint64\",\"components\":[],\"indexed\":true},{\"internalType\":\"bool\",\"name\":\"isMutable\",\"type\":\"bool\",\"components\":[],\"indexed\":false},{\"internalType\":\"address\",\"name\":\"asset\",\"type\":\"address\",\"components\":[],\"indexed\":true},{\"internalType\":\"address\",\"name\":\"quote\",\"type\":\"address\",\"components\":[],\"indexed\":true},{\"internalType\":\"uint256\",\"name\":\"price\",\"type\":\"uint256\",\"components\":[],\"indexed\":false}],\"type\":\"event\",\"name\":\"CreatePool\",\"outputs\":[],\"anonymous\":false},{\"inputs\":[{\"internalType\":\"uint64\",\"name\":\"poolId\",\"type\":\"uint64\",\"components\":[],\"indexed\":true},{\"internalType\":\"address\",\"name\":\"asset\",\"type\":\"address\",\"components\":[],\"indexed\":true},{\"internalType\":\"address\",\"name\":\"quote\",\"type\":\"address\",\"components\":[],\"indexed\":true},{\"internalType\":\"uint256\",\"name\":\"deltaAsset\",\"type\":\"uint256\",\"components\":[],\"indexed\":false},{\"internalType\":\"uint256\",\"name\":\"deltaQuote\",\"type\":\"uint256\",\"components\":[],\"indexed\":false},{\"internalType\":\"uint256\",\"name\":\"deltaLiquidity\",\"type\":\"uint256\",\"components\":[],\"indexed\":false}],\"type\":\"event\",\"name\":\"Deallocate\",\"outputs\":[],\"anonymous\":false},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"token\",\"type\":\"address\",\"components\":[],\"indexed\":true},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\",\"components\":[],\"indexed\":false}],\"type\":\"event\",\"name\":\"DecreaseReserveBalance\",\"outputs\":[],\"anonymous\":false},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"account\",\"type\":\"address\",\"components\":[],\"indexed\":true},{\"internalType\":\"address\",\"name\":\"token\",\"type\":\"address\",\"components\":[],\"indexed\":true},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\",\"components\":[],\"indexed\":false}],\"type\":\"event\",\"name\":\"DecreaseUserBalance\",\"outputs\":[],\"anonymous\":false},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"account\",\"type\":\"address\",\"components\":[],\"indexed\":true},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\",\"components\":[],\"indexed\":false}],\"type\":\"event\",\"name\":\"Deposit\",\"outputs\":[],\"anonymous\":false},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"token\",\"type\":\"address\",\"components\":[],\"indexed\":true},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\",\"components\":[],\"indexed\":false}],\"type\":\"event\",\"name\":\"IncreaseReserveBalance\",\"outputs\":[],\"anonymous\":false},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"account\",\"type\":\"address\",\"components\":[],\"indexed\":true},{\"internalType\":\"address\",\"name\":\"token\",\"type\":\"address\",\"components\":[],\"indexed\":true},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\",\"components\":[],\"indexed\":false}],\"type\":\"event\",\"name\":\"IncreaseUserBalance\",\"outputs\":[],\"anonymous\":false},{\"inputs\":[{\"internalType\":\"uint64\",\"name\":\"poolId\",\"type\":\"uint64\",\"components\":[],\"indexed\":true},{\"internalType\":\"uint256\",\"name\":\"price\",\"type\":\"uint256\",\"components\":[],\"indexed\":false},{\"internalType\":\"address\",\"name\":\"sellAsset\",\"type\":\"address\",\"components\":[],\"indexed\":true},{\"internalType\":\"uint256\",\"name\":\"input\",\"type\":\"uint256\",\"components\":[],\"indexed\":false},{\"internalType\":\"address\",\"name\":\"tokenOut\",\"type\":\"address\",\"components\":[],\"indexed\":true},{\"internalType\":\"uint256\",\"name\":\"output\",\"type\":\"uint256\",\"components\":[],\"indexed\":false},{\"internalType\":\"uint256\",\"name\":\"feeAmountDec\",\"type\":\"uint256\",\"components\":[],\"indexed\":false},{\"internalType\":\"int256\",\"name\":\"invariantWad\",\"type\":\"int256\",\"components\":[],\"indexed\":false}],\"type\":\"event\",\"name\":\"Swap\",\"outputs\":[],\"anonymous\":false},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"prevFee\",\"type\":\"uint256\",\"components\":[],\"indexed\":false},{\"internalType\":\"uint256\",\"name\":\"nextFee\",\"type\":\"uint256\",\"components\":[],\"indexed\":false}],\"type\":\"event\",\"name\":\"UpdateProtocolFee\",\"outputs\":[],\"anonymous\":false},{\"inputs\":[],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"REGISTRY\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\",\"components\":[]}]},{\"inputs\":[],\"stateMutability\":\"pure\",\"type\":\"function\",\"name\":\"VERSION\",\"outputs\":[{\"internalType\":\"string\",\"name\":\"\",\"type\":\"string\",\"components\":[]}]},{\"inputs\":[],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"WETH\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\",\"components\":[]}]},{\"inputs\":[],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"__account__\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"settled\",\"type\":\"bool\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"uint64\",\"name\":\"poolId\",\"type\":\"uint64\",\"components\":[]},{\"internalType\":\"uint16\",\"name\":\"priorityFee\",\"type\":\"uint16\",\"components\":[]},{\"internalType\":\"uint16\",\"name\":\"fee\",\"type\":\"uint16\",\"components\":[]},{\"internalType\":\"uint16\",\"name\":\"jit\",\"type\":\"uint16\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"function\",\"name\":\"changeParameters\",\"outputs\":[]},{\"inputs\":[{\"internalType\":\"uint64\",\"name\":\"poolId\",\"type\":\"uint64\",\"components\":[]},{\"internalType\":\"int256\",\"name\":\"invariant\",\"type\":\"int256\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"reserveX\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"reserveY\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"timestamp\",\"type\":\"uint256\",\"components\":[]}],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"checkInvariant\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\",\"components\":[]},{\"internalType\":\"int256\",\"name\":\"nextInvariant\",\"type\":\"int256\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"uint64\",\"name\":\"poolId\",\"type\":\"uint64\",\"components\":[]}],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"checkPool\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"uint64\",\"name\":\"poolId\",\"type\":\"uint64\",\"components\":[]},{\"internalType\":\"address\",\"name\":\"owner\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"int256\",\"name\":\"delta\",\"type\":\"int256\",\"components\":[]}],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"checkPosition\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"uint64\",\"name\":\"poolId\",\"type\":\"uint64\",\"components\":[]},{\"internalType\":\"bool\",\"name\":\"sellAsset\",\"type\":\"bool\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"reserveIn\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"liquidity\",\"type\":\"uint256\",\"components\":[]}],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"computeMaxInput\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"uint64\",\"name\":\"poolId\",\"type\":\"uint64\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"price\",\"type\":\"uint256\",\"components\":[]}],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"computeReservesFromPrice\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"reserveX\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"reserveY\",\"type\":\"uint256\",\"components\":[]}]},{\"inputs\":[],\"stateMutability\":\"payable\",\"type\":\"function\",\"name\":\"deposit\",\"outputs\":[]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"token\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"address\",\"name\":\"to\",\"type\":\"address\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"function\",\"name\":\"draw\",\"outputs\":[]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"token\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"function\",\"name\":\"fund\",\"outputs\":[]},{\"inputs\":[{\"internalType\":\"uint64\",\"name\":\"poolId\",\"type\":\"uint64\",\"components\":[]},{\"internalType\":\"bool\",\"name\":\"sellAsset\",\"type\":\"bool\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"amountIn\",\"type\":\"uint256\",\"components\":[]}],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"getAmountOut\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"output\",\"type\":\"uint256\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"owner\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"address\",\"name\":\"token\",\"type\":\"address\",\"components\":[]}],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"getBalance\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"uint64\",\"name\":\"poolId\",\"type\":\"uint64\",\"components\":[]},{\"internalType\":\"int128\",\"name\":\"deltaLiquidity\",\"type\":\"int128\",\"components\":[]}],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"getLiquidityDeltas\",\"outputs\":[{\"internalType\":\"uint128\",\"name\":\"deltaAsset\",\"type\":\"uint128\",\"components\":[]},{\"internalType\":\"uint128\",\"name\":\"deltaQuote\",\"type\":\"uint128\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"uint64\",\"name\":\"poolId\",\"type\":\"uint64\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"amount0\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"amount1\",\"type\":\"uint256\",\"components\":[]}],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"getMaxLiquidity\",\"outputs\":[{\"internalType\":\"uint128\",\"name\":\"deltaLiquidity\",\"type\":\"uint128\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"token\",\"type\":\"address\",\"components\":[]}],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"getNetBalance\",\"outputs\":[{\"internalType\":\"int256\",\"name\":\"\",\"type\":\"int256\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\",\"components\":[]}],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"getPairId\",\"outputs\":[{\"internalType\":\"uint24\",\"name\":\"\",\"type\":\"uint24\",\"components\":[]}]},{\"inputs\":[],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"getPairNonce\",\"outputs\":[{\"internalType\":\"uint24\",\"name\":\"\",\"type\":\"uint24\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"uint24\",\"name\":\"\",\"type\":\"uint24\",\"components\":[]}],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"getPoolNonce\",\"outputs\":[{\"internalType\":\"uint32\",\"name\":\"\",\"type\":\"uint32\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"uint64\",\"name\":\"poolId\",\"type\":\"uint64\",\"components\":[]}],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"getPoolReserves\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"deltaAsset\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"deltaQuote\",\"type\":\"uint256\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"token\",\"type\":\"address\",\"components\":[]}],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"getReserve\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"uint64\",\"name\":\"poolId\",\"type\":\"uint64\",\"components\":[]}],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"getVirtualPrice\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"price\",\"type\":\"uint256\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"uint64\",\"name\":\"poolId\",\"type\":\"uint64\",\"components\":[]}],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"getVirtualReservesPerLiquidity\",\"outputs\":[{\"internalType\":\"uint128\",\"name\":\"deltaAsset\",\"type\":\"uint128\",\"components\":[]},{\"internalType\":\"uint128\",\"name\":\"deltaQuote\",\"type\":\"uint128\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"bytes\",\"name\":\"data\",\"type\":\"bytes\",\"components\":[]}],\"stateMutability\":\"payable\",\"type\":\"function\",\"name\":\"multiprocess\",\"outputs\":[]},{\"inputs\":[{\"internalType\":\"uint24\",\"name\":\"\",\"type\":\"uint24\",\"components\":[]}],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"pairs\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"tokenAsset\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint8\",\"name\":\"decimalsAsset\",\"type\":\"uint8\",\"components\":[]},{\"internalType\":\"address\",\"name\":\"tokenQuote\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint8\",\"name\":\"decimalsQuote\",\"type\":\"uint8\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"uint64\",\"name\":\"\",\"type\":\"uint64\",\"components\":[]}],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"pools\",\"outputs\":[{\"internalType\":\"uint128\",\"name\":\"virtualX\",\"type\":\"uint128\",\"components\":[]},{\"internalType\":\"uint128\",\"name\":\"virtualY\",\"type\":\"uint128\",\"components\":[]},{\"internalType\":\"uint128\",\"name\":\"liquidity\",\"type\":\"uint128\",\"components\":[]},{\"internalType\":\"uint32\",\"name\":\"lastTimestamp\",\"type\":\"uint32\",\"components\":[]},{\"internalType\":\"address\",\"name\":\"controller\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"invariantGrowthGlobal\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"feeGrowthGlobalAsset\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"feeGrowthGlobalQuote\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"struct PortfolioCurve\",\"name\":\"params\",\"type\":\"tuple\",\"components\":[{\"internalType\":\"uint128\",\"name\":\"maxPrice\",\"type\":\"uint128\",\"components\":[]},{\"internalType\":\"uint16\",\"name\":\"jit\",\"type\":\"uint16\",\"components\":[]},{\"internalType\":\"uint16\",\"name\":\"fee\",\"type\":\"uint16\",\"components\":[]},{\"internalType\":\"uint16\",\"name\":\"duration\",\"type\":\"uint16\",\"components\":[]},{\"internalType\":\"uint16\",\"name\":\"volatility\",\"type\":\"uint16\",\"components\":[]},{\"internalType\":\"uint16\",\"name\":\"priorityFee\",\"type\":\"uint16\",\"components\":[]},{\"internalType\":\"uint32\",\"name\":\"createdAt\",\"type\":\"uint32\",\"components\":[]},{\"internalType\":\"bool\",\"name\":\"perpetual\",\"type\":\"bool\",\"components\":[]}]},{\"internalType\":\"struct PortfolioPair\",\"name\":\"pair\",\"type\":\"tuple\",\"components\":[{\"internalType\":\"address\",\"name\":\"tokenAsset\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint8\",\"name\":\"decimalsAsset\",\"type\":\"uint8\",\"components\":[]},{\"internalType\":\"address\",\"name\":\"tokenQuote\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint8\",\"name\":\"decimalsQuote\",\"type\":\"uint8\",\"components\":[]}]}]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint64\",\"name\":\"\",\"type\":\"uint64\",\"components\":[]}],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"positions\",\"outputs\":[{\"internalType\":\"uint128\",\"name\":\"freeLiquidity\",\"type\":\"uint128\",\"components\":[]},{\"internalType\":\"uint32\",\"name\":\"lastTimestamp\",\"type\":\"uint32\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"invariantGrowthLast\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"feeGrowthAssetLast\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"feeGrowthQuoteLast\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"uint128\",\"name\":\"tokensOwedAsset\",\"type\":\"uint128\",\"components\":[]},{\"internalType\":\"uint128\",\"name\":\"tokensOwedQuote\",\"type\":\"uint128\",\"components\":[]},{\"internalType\":\"uint128\",\"name\":\"invariantOwed\",\"type\":\"uint128\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"fee\",\"type\":\"uint256\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"function\",\"name\":\"setProtocolFee\",\"outputs\":[]},{\"inputs\":[],\"stateMutability\":\"payable\",\"type\":\"receive\",\"outputs\":[]}]";
     ///The parsed JSON ABI of the contract.
-    pub static RMM01PORTFOLIO_ABI: ::ethers::contract::Lazy<::ethers::core::abi::Abi> = ::ethers::contract::Lazy::new(||
-    ::ethers::core::utils::__serde_json::from_str(__ABI).expect("ABI is always valid"));
+    pub static RMM01PORTFOLIO_ABI: ::ethers::contract::Lazy<::ethers::core::abi::Abi> =
+        ::ethers::contract::Lazy::new(|| {
+            ::ethers::core::utils::__serde_json::from_str(__ABI).expect("ABI is always valid")
+        });
     #[rustfmt::skip]
     const __BYTECODE: &[u8] = &[
         96,
@@ -81794,9 +83776,8 @@ pub mod rmm01_portfolio {
         51,
     ];
     ///The bytecode of the contract.
-    pub static RMM01PORTFOLIO_BYTECODE: ::ethers::core::types::Bytes = ::ethers::core::types::Bytes::from_static(
-        __BYTECODE,
-    );
+    pub static RMM01PORTFOLIO_BYTECODE: ::ethers::core::types::Bytes =
+        ::ethers::core::types::Bytes::from_static(__BYTECODE);
     #[rustfmt::skip]
     const __DEPLOYED_BYTECODE: &[u8] = &[
         96,
@@ -117849,9 +119830,8 @@ pub mod rmm01_portfolio {
         51,
     ];
     ///The deployed bytecode of the contract.
-    pub static RMM01PORTFOLIO_DEPLOYED_BYTECODE: ::ethers::core::types::Bytes = ::ethers::core::types::Bytes::from_static(
-        __DEPLOYED_BYTECODE,
-    );
+    pub static RMM01PORTFOLIO_DEPLOYED_BYTECODE: ::ethers::core::types::Bytes =
+        ::ethers::core::types::Bytes::from_static(__DEPLOYED_BYTECODE);
     pub struct RMM01Portfolio<M>(::ethers::contract::Contract<M>);
     impl<M> ::core::clone::Clone for RMM01Portfolio<M> {
         fn clone(&self) -> Self {
@@ -117871,7 +119851,9 @@ pub mod rmm01_portfolio {
     }
     impl<M> ::core::fmt::Debug for RMM01Portfolio<M> {
         fn fmt(&self, f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
-            f.debug_tuple(stringify!(RMM01Portfolio)).field(&self.address()).finish()
+            f.debug_tuple(stringify!(RMM01Portfolio))
+                .field(&self.address())
+                .finish()
         }
     }
     impl<M: ::ethers::providers::Middleware> RMM01Portfolio<M> {
@@ -117881,13 +119863,11 @@ pub mod rmm01_portfolio {
             address: T,
             client: ::std::sync::Arc<M>,
         ) -> Self {
-            Self(
-                ::ethers::contract::Contract::new(
-                    address.into(),
-                    RMM01PORTFOLIO_ABI.clone(),
-                    client,
-                ),
-            )
+            Self(::ethers::contract::Contract::new(
+                address.into(),
+                RMM01PORTFOLIO_ABI.clone(),
+                client,
+            ))
         }
         /// Constructs the general purpose `Deployer` instance based on the provided constructor arguments and sends it.
         /// Returns a new instance of a deployer that returns an instance of this contract after sending the transaction
@@ -117931,10 +119911,7 @@ pub mod rmm01_portfolio {
         ///Calls the contract's `REGISTRY` (0x06433b1b) function
         pub fn registry(
             &self,
-        ) -> ::ethers::contract::builders::ContractCall<
-            M,
-            ::ethers::core::types::Address,
-        > {
+        ) -> ::ethers::contract::builders::ContractCall<M, ::ethers::core::types::Address> {
             self.0
                 .method_hash([6, 67, 59, 27], ())
                 .expect("method not found (this should never happen)")
@@ -117950,10 +119927,7 @@ pub mod rmm01_portfolio {
         ///Calls the contract's `WETH` (0xad5c4648) function
         pub fn weth(
             &self,
-        ) -> ::ethers::contract::builders::ContractCall<
-            M,
-            ::ethers::core::types::Address,
-        > {
+        ) -> ::ethers::contract::builders::ContractCall<M, ::ethers::core::types::Address> {
             self.0
                 .method_hash([173, 92, 70, 72], ())
                 .expect("method not found (this should never happen)")
@@ -117984,10 +119958,8 @@ pub mod rmm01_portfolio {
             reserve_x: ::ethers::core::types::U256,
             reserve_y: ::ethers::core::types::U256,
             timestamp: ::ethers::core::types::U256,
-        ) -> ::ethers::contract::builders::ContractCall<
-            M,
-            (bool, ::ethers::core::types::I256),
-        > {
+        ) -> ::ethers::contract::builders::ContractCall<M, (bool, ::ethers::core::types::I256)>
+        {
             self.0
                 .method_hash(
                     [47, 51, 125, 165],
@@ -118132,9 +120104,7 @@ pub mod rmm01_portfolio {
                 .expect("method not found (this should never happen)")
         }
         ///Calls the contract's `getPairNonce` (0x078888d6) function
-        pub fn get_pair_nonce(
-            &self,
-        ) -> ::ethers::contract::builders::ContractCall<M, u32> {
+        pub fn get_pair_nonce(&self) -> ::ethers::contract::builders::ContractCall<M, u32> {
             self.0
                 .method_hash([7, 136, 136, 214], ())
                 .expect("method not found (this should never happen)")
@@ -118202,7 +120172,12 @@ pub mod rmm01_portfolio {
             p0: u32,
         ) -> ::ethers::contract::builders::ContractCall<
             M,
-            (::ethers::core::types::Address, u8, ::ethers::core::types::Address, u8),
+            (
+                ::ethers::core::types::Address,
+                u8,
+                ::ethers::core::types::Address,
+                u8,
+            ),
         > {
             self.0
                 .method_hash([94, 71, 102, 60], p0)
@@ -118265,21 +120240,14 @@ pub mod rmm01_portfolio {
         ///Gets the contract's `Allocate` event
         pub fn allocate_filter(
             &self,
-        ) -> ::ethers::contract::builders::Event<
-            ::std::sync::Arc<M>,
-            M,
-            AllocateFilter,
-        > {
+        ) -> ::ethers::contract::builders::Event<::std::sync::Arc<M>, M, AllocateFilter> {
             self.0.event()
         }
         ///Gets the contract's `ChangeParameters` event
         pub fn change_parameters_filter(
             &self,
-        ) -> ::ethers::contract::builders::Event<
-            ::std::sync::Arc<M>,
-            M,
-            ChangeParametersFilter,
-        > {
+        ) -> ::ethers::contract::builders::Event<::std::sync::Arc<M>, M, ChangeParametersFilter>
+        {
             self.0.event()
         }
         ///Gets the contract's `Collect` event
@@ -118291,51 +120259,33 @@ pub mod rmm01_portfolio {
         ///Gets the contract's `CreatePair` event
         pub fn create_pair_filter(
             &self,
-        ) -> ::ethers::contract::builders::Event<
-            ::std::sync::Arc<M>,
-            M,
-            CreatePairFilter,
-        > {
+        ) -> ::ethers::contract::builders::Event<::std::sync::Arc<M>, M, CreatePairFilter> {
             self.0.event()
         }
         ///Gets the contract's `CreatePool` event
         pub fn create_pool_filter(
             &self,
-        ) -> ::ethers::contract::builders::Event<
-            ::std::sync::Arc<M>,
-            M,
-            CreatePoolFilter,
-        > {
+        ) -> ::ethers::contract::builders::Event<::std::sync::Arc<M>, M, CreatePoolFilter> {
             self.0.event()
         }
         ///Gets the contract's `Deallocate` event
         pub fn deallocate_filter(
             &self,
-        ) -> ::ethers::contract::builders::Event<
-            ::std::sync::Arc<M>,
-            M,
-            DeallocateFilter,
-        > {
+        ) -> ::ethers::contract::builders::Event<::std::sync::Arc<M>, M, DeallocateFilter> {
             self.0.event()
         }
         ///Gets the contract's `DecreaseReserveBalance` event
         pub fn decrease_reserve_balance_filter(
             &self,
-        ) -> ::ethers::contract::builders::Event<
-            ::std::sync::Arc<M>,
-            M,
-            DecreaseReserveBalanceFilter,
-        > {
+        ) -> ::ethers::contract::builders::Event<::std::sync::Arc<M>, M, DecreaseReserveBalanceFilter>
+        {
             self.0.event()
         }
         ///Gets the contract's `DecreaseUserBalance` event
         pub fn decrease_user_balance_filter(
             &self,
-        ) -> ::ethers::contract::builders::Event<
-            ::std::sync::Arc<M>,
-            M,
-            DecreaseUserBalanceFilter,
-        > {
+        ) -> ::ethers::contract::builders::Event<::std::sync::Arc<M>, M, DecreaseUserBalanceFilter>
+        {
             self.0.event()
         }
         ///Gets the contract's `Deposit` event
@@ -118347,21 +120297,15 @@ pub mod rmm01_portfolio {
         ///Gets the contract's `IncreaseReserveBalance` event
         pub fn increase_reserve_balance_filter(
             &self,
-        ) -> ::ethers::contract::builders::Event<
-            ::std::sync::Arc<M>,
-            M,
-            IncreaseReserveBalanceFilter,
-        > {
+        ) -> ::ethers::contract::builders::Event<::std::sync::Arc<M>, M, IncreaseReserveBalanceFilter>
+        {
             self.0.event()
         }
         ///Gets the contract's `IncreaseUserBalance` event
         pub fn increase_user_balance_filter(
             &self,
-        ) -> ::ethers::contract::builders::Event<
-            ::std::sync::Arc<M>,
-            M,
-            IncreaseUserBalanceFilter,
-        > {
+        ) -> ::ethers::contract::builders::Event<::std::sync::Arc<M>, M, IncreaseUserBalanceFilter>
+        {
             self.0.event()
         }
         ///Gets the contract's `Swap` event
@@ -118373,26 +120317,22 @@ pub mod rmm01_portfolio {
         ///Gets the contract's `UpdateProtocolFee` event
         pub fn update_protocol_fee_filter(
             &self,
-        ) -> ::ethers::contract::builders::Event<
-            ::std::sync::Arc<M>,
-            M,
-            UpdateProtocolFeeFilter,
-        > {
+        ) -> ::ethers::contract::builders::Event<::std::sync::Arc<M>, M, UpdateProtocolFeeFilter>
+        {
             self.0.event()
         }
         /// Returns an `Event` builder for all the events of this contract.
         pub fn events(
             &self,
-        ) -> ::ethers::contract::builders::Event<
-            ::std::sync::Arc<M>,
-            M,
-            RMM01PortfolioEvents,
-        > {
-            self.0.event_with_filter(::core::default::Default::default())
+        ) -> ::ethers::contract::builders::Event<::std::sync::Arc<M>, M, RMM01PortfolioEvents>
+        {
+            self.0
+                .event_with_filter(::core::default::Default::default())
         }
     }
     impl<M: ::ethers::providers::Middleware> From<::ethers::contract::Contract<M>>
-    for RMM01Portfolio<M> {
+        for RMM01Portfolio<M>
+    {
         fn from(contract: ::ethers::contract::Contract<M>) -> Self {
             Self::new(contract.address(), contract.client())
         }
@@ -118406,7 +120346,7 @@ pub mod rmm01_portfolio {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[etherror(name = "DrawBalance", abi = "DrawBalance()")]
     pub struct DrawBalance;
@@ -118419,7 +120359,7 @@ pub mod rmm01_portfolio {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[etherror(name = "EtherTransferFail", abi = "EtherTransferFail()")]
     pub struct EtherTransferFail;
@@ -118432,7 +120372,7 @@ pub mod rmm01_portfolio {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[etherror(name = "Infinity", abi = "Infinity()")]
     pub struct Infinity;
@@ -118445,7 +120385,7 @@ pub mod rmm01_portfolio {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[etherror(
         name = "InsufficientReserve",
@@ -118464,7 +120404,7 @@ pub mod rmm01_portfolio {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[etherror(name = "InvalidBalance", abi = "InvalidBalance()")]
     pub struct InvalidBalance;
@@ -118477,9 +120417,12 @@ pub mod rmm01_portfolio {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
-    #[etherror(name = "InvalidBytesLength", abi = "InvalidBytesLength(uint256,uint256)")]
+    #[etherror(
+        name = "InvalidBytesLength",
+        abi = "InvalidBytesLength(uint256,uint256)"
+    )]
     pub struct InvalidBytesLength {
         pub expected: ::ethers::core::types::U256,
         pub length: ::ethers::core::types::U256,
@@ -118493,7 +120436,7 @@ pub mod rmm01_portfolio {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[etherror(name = "InvalidDecimals", abi = "InvalidDecimals(uint8)")]
     pub struct InvalidDecimals {
@@ -118508,7 +120451,7 @@ pub mod rmm01_portfolio {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[etherror(name = "InvalidFee", abi = "InvalidFee(uint16)")]
     pub struct InvalidFee {
@@ -118523,7 +120466,7 @@ pub mod rmm01_portfolio {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[etherror(name = "InvalidInstruction", abi = "InvalidInstruction()")]
     pub struct InvalidInstruction;
@@ -118536,7 +120479,7 @@ pub mod rmm01_portfolio {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[etherror(name = "InvalidInvariant", abi = "InvalidInvariant(int256,int256)")]
     pub struct InvalidInvariant {
@@ -118552,7 +120495,7 @@ pub mod rmm01_portfolio {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[etherror(name = "InvalidJump", abi = "InvalidJump(uint256)")]
     pub struct InvalidJump {
@@ -118567,7 +120510,7 @@ pub mod rmm01_portfolio {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[etherror(name = "InvalidPair", abi = "InvalidPair()")]
     pub struct InvalidPair;
@@ -118580,7 +120523,7 @@ pub mod rmm01_portfolio {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[etherror(name = "InvalidReentrancy", abi = "InvalidReentrancy()")]
     pub struct InvalidReentrancy;
@@ -118593,7 +120536,7 @@ pub mod rmm01_portfolio {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[etherror(name = "InvalidSettlement", abi = "InvalidSettlement()")]
     pub struct InvalidSettlement;
@@ -118606,7 +120549,7 @@ pub mod rmm01_portfolio {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[etherror(name = "InvalidTransfer", abi = "InvalidTransfer()")]
     pub struct InvalidTransfer;
@@ -118619,7 +120562,7 @@ pub mod rmm01_portfolio {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[etherror(name = "JitLiquidity", abi = "JitLiquidity(uint256)")]
     pub struct JitLiquidity {
@@ -118634,7 +120577,7 @@ pub mod rmm01_portfolio {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[etherror(name = "Min", abi = "Min()")]
     pub struct Min;
@@ -118647,7 +120590,7 @@ pub mod rmm01_portfolio {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[etherror(name = "NegativeBalance", abi = "NegativeBalance(address,int256)")]
     pub struct NegativeBalance {
@@ -118663,7 +120606,7 @@ pub mod rmm01_portfolio {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[etherror(name = "NegativeInfinity", abi = "NegativeInfinity()")]
     pub struct NegativeInfinity;
@@ -118676,7 +120619,7 @@ pub mod rmm01_portfolio {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[etherror(name = "NonExistentPool", abi = "NonExistentPool(uint64)")]
     pub struct NonExistentPool {
@@ -118691,7 +120634,7 @@ pub mod rmm01_portfolio {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[etherror(
         name = "NonExistentPosition",
@@ -118710,7 +120653,7 @@ pub mod rmm01_portfolio {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[etherror(name = "NotController", abi = "NotController()")]
     pub struct NotController;
@@ -118723,7 +120666,7 @@ pub mod rmm01_portfolio {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[etherror(name = "OOB", abi = "OOB()")]
     pub struct OOB;
@@ -118736,7 +120679,7 @@ pub mod rmm01_portfolio {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[etherror(name = "OutOfBounds", abi = "OutOfBounds()")]
     pub struct OutOfBounds;
@@ -118749,7 +120692,7 @@ pub mod rmm01_portfolio {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[etherror(name = "OverflowWad", abi = "OverflowWad(int256)")]
     pub struct OverflowWad {
@@ -118764,7 +120707,7 @@ pub mod rmm01_portfolio {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[etherror(name = "PairExists", abi = "PairExists(uint24)")]
     pub struct PairExists {
@@ -118779,7 +120722,7 @@ pub mod rmm01_portfolio {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[etherror(name = "PoolExpired", abi = "PoolExpired()")]
     pub struct PoolExpired;
@@ -118792,7 +120735,7 @@ pub mod rmm01_portfolio {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[etherror(name = "SameTokenError", abi = "SameTokenError()")]
     pub struct SameTokenError;
@@ -118805,7 +120748,7 @@ pub mod rmm01_portfolio {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[etherror(name = "SwapInputTooSmall", abi = "SwapInputTooSmall()")]
     pub struct SwapInputTooSmall;
@@ -118818,7 +120761,7 @@ pub mod rmm01_portfolio {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[etherror(name = "UndefinedPrice", abi = "UndefinedPrice()")]
     pub struct UndefinedPrice;
@@ -118831,7 +120774,7 @@ pub mod rmm01_portfolio {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[etherror(name = "ZeroAmounts", abi = "ZeroAmounts()")]
     pub struct ZeroAmounts;
@@ -118844,7 +120787,7 @@ pub mod rmm01_portfolio {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[etherror(name = "ZeroInput", abi = "ZeroInput()")]
     pub struct ZeroInput;
@@ -118857,7 +120800,7 @@ pub mod rmm01_portfolio {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[etherror(name = "ZeroLiquidity", abi = "ZeroLiquidity()")]
     pub struct ZeroLiquidity;
@@ -118870,7 +120813,7 @@ pub mod rmm01_portfolio {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[etherror(name = "ZeroOutput", abi = "ZeroOutput()")]
     pub struct ZeroOutput;
@@ -118883,7 +120826,7 @@ pub mod rmm01_portfolio {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[etherror(name = "ZeroPrice", abi = "ZeroPrice()")]
     pub struct ZeroPrice;
@@ -118896,7 +120839,7 @@ pub mod rmm01_portfolio {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[etherror(name = "ZeroValue", abi = "ZeroValue()")]
     pub struct ZeroValue;
@@ -118948,152 +120891,131 @@ pub mod rmm01_portfolio {
             data: impl AsRef<[u8]>,
         ) -> ::core::result::Result<Self, ::ethers::core::abi::AbiError> {
             let data = data.as_ref();
-            if let Ok(decoded)
-                = <::std::string::String as ::ethers::core::abi::AbiDecode>::decode(
-                    data,
-                ) {
+            if let Ok(decoded) =
+                <::std::string::String as ::ethers::core::abi::AbiDecode>::decode(data)
+            {
                 return Ok(Self::RevertString(decoded));
             }
-            if let Ok(decoded)
-                = <DrawBalance as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <DrawBalance as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::DrawBalance(decoded));
             }
-            if let Ok(decoded)
-                = <EtherTransferFail as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <EtherTransferFail as ::ethers::core::abi::AbiDecode>::decode(data)
+            {
                 return Ok(Self::EtherTransferFail(decoded));
             }
-            if let Ok(decoded)
-                = <Infinity as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <Infinity as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::Infinity(decoded));
             }
-            if let Ok(decoded)
-                = <InsufficientReserve as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) =
+                <InsufficientReserve as ::ethers::core::abi::AbiDecode>::decode(data)
+            {
                 return Ok(Self::InsufficientReserve(decoded));
             }
-            if let Ok(decoded)
-                = <InvalidBalance as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <InvalidBalance as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::InvalidBalance(decoded));
             }
-            if let Ok(decoded)
-                = <InvalidBytesLength as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) =
+                <InvalidBytesLength as ::ethers::core::abi::AbiDecode>::decode(data)
+            {
                 return Ok(Self::InvalidBytesLength(decoded));
             }
-            if let Ok(decoded)
-                = <InvalidDecimals as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <InvalidDecimals as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::InvalidDecimals(decoded));
             }
-            if let Ok(decoded)
-                = <InvalidFee as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <InvalidFee as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::InvalidFee(decoded));
             }
-            if let Ok(decoded)
-                = <InvalidInstruction as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) =
+                <InvalidInstruction as ::ethers::core::abi::AbiDecode>::decode(data)
+            {
                 return Ok(Self::InvalidInstruction(decoded));
             }
-            if let Ok(decoded)
-                = <InvalidInvariant as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <InvalidInvariant as ::ethers::core::abi::AbiDecode>::decode(data)
+            {
                 return Ok(Self::InvalidInvariant(decoded));
             }
-            if let Ok(decoded)
-                = <InvalidJump as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <InvalidJump as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::InvalidJump(decoded));
             }
-            if let Ok(decoded)
-                = <InvalidPair as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <InvalidPair as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::InvalidPair(decoded));
             }
-            if let Ok(decoded)
-                = <InvalidReentrancy as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <InvalidReentrancy as ::ethers::core::abi::AbiDecode>::decode(data)
+            {
                 return Ok(Self::InvalidReentrancy(decoded));
             }
-            if let Ok(decoded)
-                = <InvalidSettlement as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <InvalidSettlement as ::ethers::core::abi::AbiDecode>::decode(data)
+            {
                 return Ok(Self::InvalidSettlement(decoded));
             }
-            if let Ok(decoded)
-                = <InvalidTransfer as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <InvalidTransfer as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::InvalidTransfer(decoded));
             }
-            if let Ok(decoded)
-                = <JitLiquidity as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <JitLiquidity as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::JitLiquidity(decoded));
             }
             if let Ok(decoded) = <Min as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::Min(decoded));
             }
-            if let Ok(decoded)
-                = <NegativeBalance as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <NegativeBalance as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::NegativeBalance(decoded));
             }
-            if let Ok(decoded)
-                = <NegativeInfinity as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <NegativeInfinity as ::ethers::core::abi::AbiDecode>::decode(data)
+            {
                 return Ok(Self::NegativeInfinity(decoded));
             }
-            if let Ok(decoded)
-                = <NonExistentPool as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <NonExistentPool as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::NonExistentPool(decoded));
             }
-            if let Ok(decoded)
-                = <NonExistentPosition as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) =
+                <NonExistentPosition as ::ethers::core::abi::AbiDecode>::decode(data)
+            {
                 return Ok(Self::NonExistentPosition(decoded));
             }
-            if let Ok(decoded)
-                = <NotController as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <NotController as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::NotController(decoded));
             }
             if let Ok(decoded) = <OOB as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::OOB(decoded));
             }
-            if let Ok(decoded)
-                = <OutOfBounds as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <OutOfBounds as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::OutOfBounds(decoded));
             }
-            if let Ok(decoded)
-                = <OverflowWad as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <OverflowWad as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::OverflowWad(decoded));
             }
-            if let Ok(decoded)
-                = <PairExists as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <PairExists as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::PairExists(decoded));
             }
-            if let Ok(decoded)
-                = <PoolExpired as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <PoolExpired as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::PoolExpired(decoded));
             }
-            if let Ok(decoded)
-                = <SameTokenError as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <SameTokenError as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::SameTokenError(decoded));
             }
-            if let Ok(decoded)
-                = <SwapInputTooSmall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <SwapInputTooSmall as ::ethers::core::abi::AbiDecode>::decode(data)
+            {
                 return Ok(Self::SwapInputTooSmall(decoded));
             }
-            if let Ok(decoded)
-                = <UndefinedPrice as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <UndefinedPrice as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::UndefinedPrice(decoded));
             }
-            if let Ok(decoded)
-                = <ZeroAmounts as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <ZeroAmounts as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::ZeroAmounts(decoded));
             }
-            if let Ok(decoded)
-                = <ZeroInput as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <ZeroInput as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::ZeroInput(decoded));
             }
-            if let Ok(decoded)
-                = <ZeroLiquidity as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <ZeroLiquidity as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::ZeroLiquidity(decoded));
             }
-            if let Ok(decoded)
-                = <ZeroOutput as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <ZeroOutput as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::ZeroOutput(decoded));
             }
-            if let Ok(decoded)
-                = <ZeroPrice as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <ZeroPrice as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::ZeroPrice(decoded));
             }
-            if let Ok(decoded)
-                = <ZeroValue as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <ZeroValue as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::ZeroValue(decoded));
             }
             Err(::ethers::core::abi::Error::InvalidData.into())
@@ -119102,110 +121024,50 @@ pub mod rmm01_portfolio {
     impl ::ethers::core::abi::AbiEncode for RMM01PortfolioErrors {
         fn encode(self) -> ::std::vec::Vec<u8> {
             match self {
-                Self::DrawBalance(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
-                Self::EtherTransferFail(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
-                Self::Infinity(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
+                Self::DrawBalance(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::EtherTransferFail(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::Infinity(element) => ::ethers::core::abi::AbiEncode::encode(element),
                 Self::InsufficientReserve(element) => {
                     ::ethers::core::abi::AbiEncode::encode(element)
                 }
-                Self::InvalidBalance(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
+                Self::InvalidBalance(element) => ::ethers::core::abi::AbiEncode::encode(element),
                 Self::InvalidBytesLength(element) => {
                     ::ethers::core::abi::AbiEncode::encode(element)
                 }
-                Self::InvalidDecimals(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
-                Self::InvalidFee(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
+                Self::InvalidDecimals(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::InvalidFee(element) => ::ethers::core::abi::AbiEncode::encode(element),
                 Self::InvalidInstruction(element) => {
                     ::ethers::core::abi::AbiEncode::encode(element)
                 }
-                Self::InvalidInvariant(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
-                Self::InvalidJump(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
-                Self::InvalidPair(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
-                Self::InvalidReentrancy(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
-                Self::InvalidSettlement(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
-                Self::InvalidTransfer(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
-                Self::JitLiquidity(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
+                Self::InvalidInvariant(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::InvalidJump(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::InvalidPair(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::InvalidReentrancy(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::InvalidSettlement(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::InvalidTransfer(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::JitLiquidity(element) => ::ethers::core::abi::AbiEncode::encode(element),
                 Self::Min(element) => ::ethers::core::abi::AbiEncode::encode(element),
-                Self::NegativeBalance(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
-                Self::NegativeInfinity(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
-                Self::NonExistentPool(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
+                Self::NegativeBalance(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::NegativeInfinity(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::NonExistentPool(element) => ::ethers::core::abi::AbiEncode::encode(element),
                 Self::NonExistentPosition(element) => {
                     ::ethers::core::abi::AbiEncode::encode(element)
                 }
-                Self::NotController(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
+                Self::NotController(element) => ::ethers::core::abi::AbiEncode::encode(element),
                 Self::OOB(element) => ::ethers::core::abi::AbiEncode::encode(element),
-                Self::OutOfBounds(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
-                Self::OverflowWad(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
-                Self::PairExists(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
-                Self::PoolExpired(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
-                Self::SameTokenError(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
-                Self::SwapInputTooSmall(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
-                Self::UndefinedPrice(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
-                Self::ZeroAmounts(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
-                Self::ZeroInput(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
-                Self::ZeroLiquidity(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
-                Self::ZeroOutput(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
-                Self::ZeroPrice(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
-                Self::ZeroValue(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
+                Self::OutOfBounds(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::OverflowWad(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::PairExists(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::PoolExpired(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::SameTokenError(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::SwapInputTooSmall(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::UndefinedPrice(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::ZeroAmounts(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::ZeroInput(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::ZeroLiquidity(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::ZeroOutput(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::ZeroPrice(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::ZeroValue(element) => ::ethers::core::abi::AbiEncode::encode(element),
                 Self::RevertString(s) => ::ethers::core::abi::AbiEncode::encode(s),
             }
         }
@@ -119214,118 +121076,96 @@ pub mod rmm01_portfolio {
         fn valid_selector(selector: [u8; 4]) -> bool {
             match selector {
                 [0x08, 0xc3, 0x79, 0xa0] => true,
+                _ if selector == <DrawBalance as ::ethers::contract::EthError>::selector() => true,
                 _ if selector
-                    == <DrawBalance as ::ethers::contract::EthError>::selector() => true,
+                    == <EtherTransferFail as ::ethers::contract::EthError>::selector() =>
+                {
+                    true
+                }
+                _ if selector == <Infinity as ::ethers::contract::EthError>::selector() => true,
                 _ if selector
-                    == <EtherTransferFail as ::ethers::contract::EthError>::selector() => {
+                    == <InsufficientReserve as ::ethers::contract::EthError>::selector() =>
+                {
+                    true
+                }
+                _ if selector == <InvalidBalance as ::ethers::contract::EthError>::selector() => {
                     true
                 }
                 _ if selector
-                    == <Infinity as ::ethers::contract::EthError>::selector() => true,
+                    == <InvalidBytesLength as ::ethers::contract::EthError>::selector() =>
+                {
+                    true
+                }
+                _ if selector == <InvalidDecimals as ::ethers::contract::EthError>::selector() => {
+                    true
+                }
+                _ if selector == <InvalidFee as ::ethers::contract::EthError>::selector() => true,
                 _ if selector
-                    == <InsufficientReserve as ::ethers::contract::EthError>::selector() => {
+                    == <InvalidInstruction as ::ethers::contract::EthError>::selector() =>
+                {
+                    true
+                }
+                _ if selector == <InvalidInvariant as ::ethers::contract::EthError>::selector() => {
+                    true
+                }
+                _ if selector == <InvalidJump as ::ethers::contract::EthError>::selector() => true,
+                _ if selector == <InvalidPair as ::ethers::contract::EthError>::selector() => true,
+                _ if selector
+                    == <InvalidReentrancy as ::ethers::contract::EthError>::selector() =>
+                {
                     true
                 }
                 _ if selector
-                    == <InvalidBalance as ::ethers::contract::EthError>::selector() => {
+                    == <InvalidSettlement as ::ethers::contract::EthError>::selector() =>
+                {
+                    true
+                }
+                _ if selector == <InvalidTransfer as ::ethers::contract::EthError>::selector() => {
+                    true
+                }
+                _ if selector == <JitLiquidity as ::ethers::contract::EthError>::selector() => true,
+                _ if selector == <Min as ::ethers::contract::EthError>::selector() => true,
+                _ if selector == <NegativeBalance as ::ethers::contract::EthError>::selector() => {
+                    true
+                }
+                _ if selector == <NegativeInfinity as ::ethers::contract::EthError>::selector() => {
+                    true
+                }
+                _ if selector == <NonExistentPool as ::ethers::contract::EthError>::selector() => {
                     true
                 }
                 _ if selector
-                    == <InvalidBytesLength as ::ethers::contract::EthError>::selector() => {
+                    == <NonExistentPosition as ::ethers::contract::EthError>::selector() =>
+                {
+                    true
+                }
+                _ if selector == <NotController as ::ethers::contract::EthError>::selector() => {
+                    true
+                }
+                _ if selector == <OOB as ::ethers::contract::EthError>::selector() => true,
+                _ if selector == <OutOfBounds as ::ethers::contract::EthError>::selector() => true,
+                _ if selector == <OverflowWad as ::ethers::contract::EthError>::selector() => true,
+                _ if selector == <PairExists as ::ethers::contract::EthError>::selector() => true,
+                _ if selector == <PoolExpired as ::ethers::contract::EthError>::selector() => true,
+                _ if selector == <SameTokenError as ::ethers::contract::EthError>::selector() => {
                     true
                 }
                 _ if selector
-                    == <InvalidDecimals as ::ethers::contract::EthError>::selector() => {
+                    == <SwapInputTooSmall as ::ethers::contract::EthError>::selector() =>
+                {
                     true
                 }
-                _ if selector
-                    == <InvalidFee as ::ethers::contract::EthError>::selector() => true,
-                _ if selector
-                    == <InvalidInstruction as ::ethers::contract::EthError>::selector() => {
+                _ if selector == <UndefinedPrice as ::ethers::contract::EthError>::selector() => {
                     true
                 }
-                _ if selector
-                    == <InvalidInvariant as ::ethers::contract::EthError>::selector() => {
+                _ if selector == <ZeroAmounts as ::ethers::contract::EthError>::selector() => true,
+                _ if selector == <ZeroInput as ::ethers::contract::EthError>::selector() => true,
+                _ if selector == <ZeroLiquidity as ::ethers::contract::EthError>::selector() => {
                     true
                 }
-                _ if selector
-                    == <InvalidJump as ::ethers::contract::EthError>::selector() => true,
-                _ if selector
-                    == <InvalidPair as ::ethers::contract::EthError>::selector() => true,
-                _ if selector
-                    == <InvalidReentrancy as ::ethers::contract::EthError>::selector() => {
-                    true
-                }
-                _ if selector
-                    == <InvalidSettlement as ::ethers::contract::EthError>::selector() => {
-                    true
-                }
-                _ if selector
-                    == <InvalidTransfer as ::ethers::contract::EthError>::selector() => {
-                    true
-                }
-                _ if selector
-                    == <JitLiquidity as ::ethers::contract::EthError>::selector() => true,
-                _ if selector == <Min as ::ethers::contract::EthError>::selector() => {
-                    true
-                }
-                _ if selector
-                    == <NegativeBalance as ::ethers::contract::EthError>::selector() => {
-                    true
-                }
-                _ if selector
-                    == <NegativeInfinity as ::ethers::contract::EthError>::selector() => {
-                    true
-                }
-                _ if selector
-                    == <NonExistentPool as ::ethers::contract::EthError>::selector() => {
-                    true
-                }
-                _ if selector
-                    == <NonExistentPosition as ::ethers::contract::EthError>::selector() => {
-                    true
-                }
-                _ if selector
-                    == <NotController as ::ethers::contract::EthError>::selector() => {
-                    true
-                }
-                _ if selector == <OOB as ::ethers::contract::EthError>::selector() => {
-                    true
-                }
-                _ if selector
-                    == <OutOfBounds as ::ethers::contract::EthError>::selector() => true,
-                _ if selector
-                    == <OverflowWad as ::ethers::contract::EthError>::selector() => true,
-                _ if selector
-                    == <PairExists as ::ethers::contract::EthError>::selector() => true,
-                _ if selector
-                    == <PoolExpired as ::ethers::contract::EthError>::selector() => true,
-                _ if selector
-                    == <SameTokenError as ::ethers::contract::EthError>::selector() => {
-                    true
-                }
-                _ if selector
-                    == <SwapInputTooSmall as ::ethers::contract::EthError>::selector() => {
-                    true
-                }
-                _ if selector
-                    == <UndefinedPrice as ::ethers::contract::EthError>::selector() => {
-                    true
-                }
-                _ if selector
-                    == <ZeroAmounts as ::ethers::contract::EthError>::selector() => true,
-                _ if selector
-                    == <ZeroInput as ::ethers::contract::EthError>::selector() => true,
-                _ if selector
-                    == <ZeroLiquidity as ::ethers::contract::EthError>::selector() => {
-                    true
-                }
-                _ if selector
-                    == <ZeroOutput as ::ethers::contract::EthError>::selector() => true,
-                _ if selector
-                    == <ZeroPrice as ::ethers::contract::EthError>::selector() => true,
-                _ if selector
-                    == <ZeroValue as ::ethers::contract::EthError>::selector() => true,
+                _ if selector == <ZeroOutput as ::ethers::contract::EthError>::selector() => true,
+                _ if selector == <ZeroPrice as ::ethers::contract::EthError>::selector() => true,
+                _ if selector == <ZeroValue as ::ethers::contract::EthError>::selector() => true,
                 _ => false,
             }
         }
@@ -119336,18 +121176,12 @@ pub mod rmm01_portfolio {
                 Self::DrawBalance(element) => ::core::fmt::Display::fmt(element, f),
                 Self::EtherTransferFail(element) => ::core::fmt::Display::fmt(element, f),
                 Self::Infinity(element) => ::core::fmt::Display::fmt(element, f),
-                Self::InsufficientReserve(element) => {
-                    ::core::fmt::Display::fmt(element, f)
-                }
+                Self::InsufficientReserve(element) => ::core::fmt::Display::fmt(element, f),
                 Self::InvalidBalance(element) => ::core::fmt::Display::fmt(element, f),
-                Self::InvalidBytesLength(element) => {
-                    ::core::fmt::Display::fmt(element, f)
-                }
+                Self::InvalidBytesLength(element) => ::core::fmt::Display::fmt(element, f),
                 Self::InvalidDecimals(element) => ::core::fmt::Display::fmt(element, f),
                 Self::InvalidFee(element) => ::core::fmt::Display::fmt(element, f),
-                Self::InvalidInstruction(element) => {
-                    ::core::fmt::Display::fmt(element, f)
-                }
+                Self::InvalidInstruction(element) => ::core::fmt::Display::fmt(element, f),
                 Self::InvalidInvariant(element) => ::core::fmt::Display::fmt(element, f),
                 Self::InvalidJump(element) => ::core::fmt::Display::fmt(element, f),
                 Self::InvalidPair(element) => ::core::fmt::Display::fmt(element, f),
@@ -119359,9 +121193,7 @@ pub mod rmm01_portfolio {
                 Self::NegativeBalance(element) => ::core::fmt::Display::fmt(element, f),
                 Self::NegativeInfinity(element) => ::core::fmt::Display::fmt(element, f),
                 Self::NonExistentPool(element) => ::core::fmt::Display::fmt(element, f),
-                Self::NonExistentPosition(element) => {
-                    ::core::fmt::Display::fmt(element, f)
-                }
+                Self::NonExistentPosition(element) => ::core::fmt::Display::fmt(element, f),
                 Self::NotController(element) => ::core::fmt::Display::fmt(element, f),
                 Self::OOB(element) => ::core::fmt::Display::fmt(element, f),
                 Self::OutOfBounds(element) => ::core::fmt::Display::fmt(element, f),
@@ -119574,7 +121406,7 @@ pub mod rmm01_portfolio {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethevent(
         name = "Allocate",
@@ -119599,7 +121431,7 @@ pub mod rmm01_portfolio {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethevent(
         name = "ChangeParameters",
@@ -119622,7 +121454,7 @@ pub mod rmm01_portfolio {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethevent(
         name = "Collect",
@@ -119647,7 +121479,7 @@ pub mod rmm01_portfolio {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethevent(
         name = "CreatePair",
@@ -119671,7 +121503,7 @@ pub mod rmm01_portfolio {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethevent(
         name = "CreatePool",
@@ -119695,7 +121527,7 @@ pub mod rmm01_portfolio {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethevent(
         name = "Deallocate",
@@ -119720,7 +121552,7 @@ pub mod rmm01_portfolio {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethevent(
         name = "DecreaseReserveBalance",
@@ -119739,7 +121571,7 @@ pub mod rmm01_portfolio {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethevent(
         name = "DecreaseUserBalance",
@@ -119760,7 +121592,7 @@ pub mod rmm01_portfolio {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethevent(name = "Deposit", abi = "Deposit(address,uint256)")]
     pub struct DepositFilter {
@@ -119776,7 +121608,7 @@ pub mod rmm01_portfolio {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethevent(
         name = "IncreaseReserveBalance",
@@ -119795,7 +121627,7 @@ pub mod rmm01_portfolio {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethevent(
         name = "IncreaseUserBalance",
@@ -119816,7 +121648,7 @@ pub mod rmm01_portfolio {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethevent(
         name = "Swap",
@@ -119843,7 +121675,7 @@ pub mod rmm01_portfolio {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethevent(name = "UpdateProtocolFee", abi = "UpdateProtocolFee(uint256,uint256)")]
     pub struct UpdateProtocolFeeFilter {
@@ -119917,9 +121749,7 @@ pub mod rmm01_portfolio {
         fn fmt(&self, f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
             match self {
                 Self::AllocateFilter(element) => ::core::fmt::Display::fmt(element, f),
-                Self::ChangeParametersFilter(element) => {
-                    ::core::fmt::Display::fmt(element, f)
-                }
+                Self::ChangeParametersFilter(element) => ::core::fmt::Display::fmt(element, f),
                 Self::CollectFilter(element) => ::core::fmt::Display::fmt(element, f),
                 Self::CreatePairFilter(element) => ::core::fmt::Display::fmt(element, f),
                 Self::CreatePoolFilter(element) => ::core::fmt::Display::fmt(element, f),
@@ -119927,20 +121757,14 @@ pub mod rmm01_portfolio {
                 Self::DecreaseReserveBalanceFilter(element) => {
                     ::core::fmt::Display::fmt(element, f)
                 }
-                Self::DecreaseUserBalanceFilter(element) => {
-                    ::core::fmt::Display::fmt(element, f)
-                }
+                Self::DecreaseUserBalanceFilter(element) => ::core::fmt::Display::fmt(element, f),
                 Self::DepositFilter(element) => ::core::fmt::Display::fmt(element, f),
                 Self::IncreaseReserveBalanceFilter(element) => {
                     ::core::fmt::Display::fmt(element, f)
                 }
-                Self::IncreaseUserBalanceFilter(element) => {
-                    ::core::fmt::Display::fmt(element, f)
-                }
+                Self::IncreaseUserBalanceFilter(element) => ::core::fmt::Display::fmt(element, f),
                 Self::SwapFilter(element) => ::core::fmt::Display::fmt(element, f),
-                Self::UpdateProtocolFeeFilter(element) => {
-                    ::core::fmt::Display::fmt(element, f)
-                }
+                Self::UpdateProtocolFeeFilter(element) => ::core::fmt::Display::fmt(element, f),
             }
         }
     }
@@ -120018,7 +121842,7 @@ pub mod rmm01_portfolio {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "REGISTRY", abi = "REGISTRY()")]
     pub struct RegistryCall;
@@ -120031,7 +121855,7 @@ pub mod rmm01_portfolio {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "VERSION", abi = "VERSION()")]
     pub struct VersionCall;
@@ -120044,7 +121868,7 @@ pub mod rmm01_portfolio {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "WETH", abi = "WETH()")]
     pub struct WethCall;
@@ -120057,7 +121881,7 @@ pub mod rmm01_portfolio {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "__account__", abi = "__account__()")]
     pub struct AccountCall;
@@ -120070,7 +121894,7 @@ pub mod rmm01_portfolio {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(
         name = "changeParameters",
@@ -120091,7 +121915,7 @@ pub mod rmm01_portfolio {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(
         name = "checkInvariant",
@@ -120113,7 +121937,7 @@ pub mod rmm01_portfolio {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "checkPool", abi = "checkPool(uint64)")]
     pub struct CheckPoolCall {
@@ -120128,7 +121952,7 @@ pub mod rmm01_portfolio {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "checkPosition", abi = "checkPosition(uint64,address,int256)")]
     pub struct CheckPositionCall {
@@ -120145,7 +121969,7 @@ pub mod rmm01_portfolio {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(
         name = "computeMaxInput",
@@ -120166,7 +121990,7 @@ pub mod rmm01_portfolio {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(
         name = "computeReservesFromPrice",
@@ -120185,7 +122009,7 @@ pub mod rmm01_portfolio {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "deposit", abi = "deposit()")]
     pub struct DepositCall;
@@ -120198,7 +122022,7 @@ pub mod rmm01_portfolio {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "draw", abi = "draw(address,uint256,address)")]
     pub struct DrawCall {
@@ -120215,7 +122039,7 @@ pub mod rmm01_portfolio {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "fund", abi = "fund(address,uint256)")]
     pub struct FundCall {
@@ -120231,7 +122055,7 @@ pub mod rmm01_portfolio {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "getAmountOut", abi = "getAmountOut(uint64,bool,uint256)")]
     pub struct GetAmountOutCall {
@@ -120248,7 +122072,7 @@ pub mod rmm01_portfolio {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "getBalance", abi = "getBalance(address,address)")]
     pub struct GetBalanceCall {
@@ -120264,7 +122088,7 @@ pub mod rmm01_portfolio {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "getLiquidityDeltas", abi = "getLiquidityDeltas(uint64,int128)")]
     pub struct GetLiquidityDeltasCall {
@@ -120280,9 +122104,12 @@ pub mod rmm01_portfolio {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
-    #[ethcall(name = "getMaxLiquidity", abi = "getMaxLiquidity(uint64,uint256,uint256)")]
+    #[ethcall(
+        name = "getMaxLiquidity",
+        abi = "getMaxLiquidity(uint64,uint256,uint256)"
+    )]
     pub struct GetMaxLiquidityCall {
         pub pool_id: u64,
         pub amount_0: ::ethers::core::types::U256,
@@ -120297,7 +122124,7 @@ pub mod rmm01_portfolio {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "getNetBalance", abi = "getNetBalance(address)")]
     pub struct GetNetBalanceCall {
@@ -120312,7 +122139,7 @@ pub mod rmm01_portfolio {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "getPairId", abi = "getPairId(address,address)")]
     pub struct GetPairIdCall(
@@ -120328,7 +122155,7 @@ pub mod rmm01_portfolio {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "getPairNonce", abi = "getPairNonce()")]
     pub struct GetPairNonceCall;
@@ -120341,7 +122168,7 @@ pub mod rmm01_portfolio {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "getPoolNonce", abi = "getPoolNonce(uint24)")]
     pub struct GetPoolNonceCall(pub u32);
@@ -120354,7 +122181,7 @@ pub mod rmm01_portfolio {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "getPoolReserves", abi = "getPoolReserves(uint64)")]
     pub struct GetPoolReservesCall {
@@ -120369,7 +122196,7 @@ pub mod rmm01_portfolio {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "getReserve", abi = "getReserve(address)")]
     pub struct GetReserveCall {
@@ -120384,7 +122211,7 @@ pub mod rmm01_portfolio {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "getVirtualPrice", abi = "getVirtualPrice(uint64)")]
     pub struct GetVirtualPriceCall {
@@ -120399,7 +122226,7 @@ pub mod rmm01_portfolio {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(
         name = "getVirtualReservesPerLiquidity",
@@ -120417,7 +122244,7 @@ pub mod rmm01_portfolio {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "multiprocess", abi = "multiprocess(bytes)")]
     pub struct MultiprocessCall {
@@ -120432,7 +122259,7 @@ pub mod rmm01_portfolio {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "pairs", abi = "pairs(uint24)")]
     pub struct PairsCall(pub u32);
@@ -120445,7 +122272,7 @@ pub mod rmm01_portfolio {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "pools", abi = "pools(uint64)")]
     pub struct PoolsCall(pub u64);
@@ -120458,7 +122285,7 @@ pub mod rmm01_portfolio {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "positions", abi = "positions(address,uint64)")]
     pub struct PositionsCall(pub ::ethers::core::types::Address, pub u64);
@@ -120471,7 +122298,7 @@ pub mod rmm01_portfolio {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "setProtocolFee", abi = "setProtocolFee(uint256)")]
     pub struct SetProtocolFeeCall {
@@ -120516,132 +122343,120 @@ pub mod rmm01_portfolio {
             data: impl AsRef<[u8]>,
         ) -> ::core::result::Result<Self, ::ethers::core::abi::AbiError> {
             let data = data.as_ref();
-            if let Ok(decoded)
-                = <RegistryCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <RegistryCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::Registry(decoded));
             }
-            if let Ok(decoded)
-                = <VersionCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <VersionCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::Version(decoded));
             }
-            if let Ok(decoded)
-                = <WethCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <WethCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::Weth(decoded));
             }
-            if let Ok(decoded)
-                = <AccountCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <AccountCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::Account(decoded));
             }
-            if let Ok(decoded)
-                = <ChangeParametersCall as ::ethers::core::abi::AbiDecode>::decode(
-                    data,
-                ) {
+            if let Ok(decoded) =
+                <ChangeParametersCall as ::ethers::core::abi::AbiDecode>::decode(data)
+            {
                 return Ok(Self::ChangeParameters(decoded));
             }
-            if let Ok(decoded)
-                = <CheckInvariantCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) =
+                <CheckInvariantCall as ::ethers::core::abi::AbiDecode>::decode(data)
+            {
                 return Ok(Self::CheckInvariant(decoded));
             }
-            if let Ok(decoded)
-                = <CheckPoolCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <CheckPoolCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::CheckPool(decoded));
             }
-            if let Ok(decoded)
-                = <CheckPositionCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <CheckPositionCall as ::ethers::core::abi::AbiDecode>::decode(data)
+            {
                 return Ok(Self::CheckPosition(decoded));
             }
-            if let Ok(decoded)
-                = <ComputeMaxInputCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) =
+                <ComputeMaxInputCall as ::ethers::core::abi::AbiDecode>::decode(data)
+            {
                 return Ok(Self::ComputeMaxInput(decoded));
             }
-            if let Ok(decoded)
-                = <ComputeReservesFromPriceCall as ::ethers::core::abi::AbiDecode>::decode(
-                    data,
-                ) {
+            if let Ok(decoded) =
+                <ComputeReservesFromPriceCall as ::ethers::core::abi::AbiDecode>::decode(data)
+            {
                 return Ok(Self::ComputeReservesFromPrice(decoded));
             }
-            if let Ok(decoded)
-                = <DepositCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <DepositCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::Deposit(decoded));
             }
-            if let Ok(decoded)
-                = <DrawCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <DrawCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::Draw(decoded));
             }
-            if let Ok(decoded)
-                = <FundCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <FundCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::Fund(decoded));
             }
-            if let Ok(decoded)
-                = <GetAmountOutCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <GetAmountOutCall as ::ethers::core::abi::AbiDecode>::decode(data)
+            {
                 return Ok(Self::GetAmountOut(decoded));
             }
-            if let Ok(decoded)
-                = <GetBalanceCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <GetBalanceCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::GetBalance(decoded));
             }
-            if let Ok(decoded)
-                = <GetLiquidityDeltasCall as ::ethers::core::abi::AbiDecode>::decode(
-                    data,
-                ) {
+            if let Ok(decoded) =
+                <GetLiquidityDeltasCall as ::ethers::core::abi::AbiDecode>::decode(data)
+            {
                 return Ok(Self::GetLiquidityDeltas(decoded));
             }
-            if let Ok(decoded)
-                = <GetMaxLiquidityCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) =
+                <GetMaxLiquidityCall as ::ethers::core::abi::AbiDecode>::decode(data)
+            {
                 return Ok(Self::GetMaxLiquidity(decoded));
             }
-            if let Ok(decoded)
-                = <GetNetBalanceCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <GetNetBalanceCall as ::ethers::core::abi::AbiDecode>::decode(data)
+            {
                 return Ok(Self::GetNetBalance(decoded));
             }
-            if let Ok(decoded)
-                = <GetPairIdCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <GetPairIdCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::GetPairId(decoded));
             }
-            if let Ok(decoded)
-                = <GetPairNonceCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <GetPairNonceCall as ::ethers::core::abi::AbiDecode>::decode(data)
+            {
                 return Ok(Self::GetPairNonce(decoded));
             }
-            if let Ok(decoded)
-                = <GetPoolNonceCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <GetPoolNonceCall as ::ethers::core::abi::AbiDecode>::decode(data)
+            {
                 return Ok(Self::GetPoolNonce(decoded));
             }
-            if let Ok(decoded)
-                = <GetPoolReservesCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) =
+                <GetPoolReservesCall as ::ethers::core::abi::AbiDecode>::decode(data)
+            {
                 return Ok(Self::GetPoolReserves(decoded));
             }
-            if let Ok(decoded)
-                = <GetReserveCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <GetReserveCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::GetReserve(decoded));
             }
-            if let Ok(decoded)
-                = <GetVirtualPriceCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) =
+                <GetVirtualPriceCall as ::ethers::core::abi::AbiDecode>::decode(data)
+            {
                 return Ok(Self::GetVirtualPrice(decoded));
             }
-            if let Ok(decoded)
-                = <GetVirtualReservesPerLiquidityCall as ::ethers::core::abi::AbiDecode>::decode(
-                    data,
-                ) {
+            if let Ok(decoded) =
+                <GetVirtualReservesPerLiquidityCall as ::ethers::core::abi::AbiDecode>::decode(data)
+            {
                 return Ok(Self::GetVirtualReservesPerLiquidity(decoded));
             }
-            if let Ok(decoded)
-                = <MultiprocessCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <MultiprocessCall as ::ethers::core::abi::AbiDecode>::decode(data)
+            {
                 return Ok(Self::Multiprocess(decoded));
             }
-            if let Ok(decoded)
-                = <PairsCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <PairsCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::Pairs(decoded));
             }
-            if let Ok(decoded)
-                = <PoolsCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <PoolsCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::Pools(decoded));
             }
-            if let Ok(decoded)
-                = <PositionsCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <PositionsCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::Positions(decoded));
             }
-            if let Ok(decoded)
-                = <SetProtocolFeeCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) =
+                <SetProtocolFeeCall as ::ethers::core::abi::AbiDecode>::decode(data)
+            {
                 return Ok(Self::SetProtocolFee(decoded));
             }
             Err(::ethers::core::abi::Error::InvalidData.into())
@@ -120650,80 +122465,42 @@ pub mod rmm01_portfolio {
     impl ::ethers::core::abi::AbiEncode for RMM01PortfolioCalls {
         fn encode(self) -> Vec<u8> {
             match self {
-                Self::Registry(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
+                Self::Registry(element) => ::ethers::core::abi::AbiEncode::encode(element),
                 Self::Version(element) => ::ethers::core::abi::AbiEncode::encode(element),
                 Self::Weth(element) => ::ethers::core::abi::AbiEncode::encode(element),
                 Self::Account(element) => ::ethers::core::abi::AbiEncode::encode(element),
-                Self::ChangeParameters(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
-                Self::CheckInvariant(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
-                Self::CheckPool(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
-                Self::CheckPosition(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
-                Self::ComputeMaxInput(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
+                Self::ChangeParameters(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::CheckInvariant(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::CheckPool(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::CheckPosition(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::ComputeMaxInput(element) => ::ethers::core::abi::AbiEncode::encode(element),
                 Self::ComputeReservesFromPrice(element) => {
                     ::ethers::core::abi::AbiEncode::encode(element)
                 }
                 Self::Deposit(element) => ::ethers::core::abi::AbiEncode::encode(element),
                 Self::Draw(element) => ::ethers::core::abi::AbiEncode::encode(element),
                 Self::Fund(element) => ::ethers::core::abi::AbiEncode::encode(element),
-                Self::GetAmountOut(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
-                Self::GetBalance(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
+                Self::GetAmountOut(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::GetBalance(element) => ::ethers::core::abi::AbiEncode::encode(element),
                 Self::GetLiquidityDeltas(element) => {
                     ::ethers::core::abi::AbiEncode::encode(element)
                 }
-                Self::GetMaxLiquidity(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
-                Self::GetNetBalance(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
-                Self::GetPairId(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
-                Self::GetPairNonce(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
-                Self::GetPoolNonce(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
-                Self::GetPoolReserves(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
-                Self::GetReserve(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
-                Self::GetVirtualPrice(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
+                Self::GetMaxLiquidity(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::GetNetBalance(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::GetPairId(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::GetPairNonce(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::GetPoolNonce(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::GetPoolReserves(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::GetReserve(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::GetVirtualPrice(element) => ::ethers::core::abi::AbiEncode::encode(element),
                 Self::GetVirtualReservesPerLiquidity(element) => {
                     ::ethers::core::abi::AbiEncode::encode(element)
                 }
-                Self::Multiprocess(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
+                Self::Multiprocess(element) => ::ethers::core::abi::AbiEncode::encode(element),
                 Self::Pairs(element) => ::ethers::core::abi::AbiEncode::encode(element),
                 Self::Pools(element) => ::ethers::core::abi::AbiEncode::encode(element),
-                Self::Positions(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
-                Self::SetProtocolFee(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
+                Self::Positions(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::SetProtocolFee(element) => ::ethers::core::abi::AbiEncode::encode(element),
             }
         }
     }
@@ -120739,17 +122516,13 @@ pub mod rmm01_portfolio {
                 Self::CheckPool(element) => ::core::fmt::Display::fmt(element, f),
                 Self::CheckPosition(element) => ::core::fmt::Display::fmt(element, f),
                 Self::ComputeMaxInput(element) => ::core::fmt::Display::fmt(element, f),
-                Self::ComputeReservesFromPrice(element) => {
-                    ::core::fmt::Display::fmt(element, f)
-                }
+                Self::ComputeReservesFromPrice(element) => ::core::fmt::Display::fmt(element, f),
                 Self::Deposit(element) => ::core::fmt::Display::fmt(element, f),
                 Self::Draw(element) => ::core::fmt::Display::fmt(element, f),
                 Self::Fund(element) => ::core::fmt::Display::fmt(element, f),
                 Self::GetAmountOut(element) => ::core::fmt::Display::fmt(element, f),
                 Self::GetBalance(element) => ::core::fmt::Display::fmt(element, f),
-                Self::GetLiquidityDeltas(element) => {
-                    ::core::fmt::Display::fmt(element, f)
-                }
+                Self::GetLiquidityDeltas(element) => ::core::fmt::Display::fmt(element, f),
                 Self::GetMaxLiquidity(element) => ::core::fmt::Display::fmt(element, f),
                 Self::GetNetBalance(element) => ::core::fmt::Display::fmt(element, f),
                 Self::GetPairId(element) => ::core::fmt::Display::fmt(element, f),
@@ -120889,8 +122662,7 @@ pub mod rmm01_portfolio {
             Self::GetVirtualPrice(value)
         }
     }
-    impl ::core::convert::From<GetVirtualReservesPerLiquidityCall>
-    for RMM01PortfolioCalls {
+    impl ::core::convert::From<GetVirtualReservesPerLiquidityCall> for RMM01PortfolioCalls {
         fn from(value: GetVirtualReservesPerLiquidityCall) -> Self {
             Self::GetVirtualReservesPerLiquidity(value)
         }
@@ -120929,7 +122701,7 @@ pub mod rmm01_portfolio {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     pub struct RegistryReturn(pub ::ethers::core::types::Address);
     ///Container type for all return fields from the `VERSION` function with signature `VERSION()` and selector `0xffa1ad74`
@@ -120941,7 +122713,7 @@ pub mod rmm01_portfolio {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     pub struct VersionReturn(pub ::std::string::String);
     ///Container type for all return fields from the `WETH` function with signature `WETH()` and selector `0xad5c4648`
@@ -120953,7 +122725,7 @@ pub mod rmm01_portfolio {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     pub struct WethReturn(pub ::ethers::core::types::Address);
     ///Container type for all return fields from the `__account__` function with signature `__account__()` and selector `0xda31ee54`
@@ -120965,7 +122737,7 @@ pub mod rmm01_portfolio {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     pub struct AccountReturn {
         pub settled: bool,
@@ -120979,7 +122751,7 @@ pub mod rmm01_portfolio {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     pub struct CheckInvariantReturn {
         pub p0: bool,
@@ -120994,7 +122766,7 @@ pub mod rmm01_portfolio {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     pub struct CheckPoolReturn(pub bool);
     ///Container type for all return fields from the `checkPosition` function with signature `checkPosition(uint64,address,int256)` and selector `0x2cc6641e`
@@ -121006,7 +122778,7 @@ pub mod rmm01_portfolio {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     pub struct CheckPositionReturn(pub bool);
     ///Container type for all return fields from the `computeMaxInput` function with signature `computeMaxInput(uint64,bool,uint256,uint256)` and selector `0x989bafba`
@@ -121018,7 +122790,7 @@ pub mod rmm01_portfolio {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     pub struct ComputeMaxInputReturn(pub ::ethers::core::types::U256);
     ///Container type for all return fields from the `computeReservesFromPrice` function with signature `computeReservesFromPrice(uint64,uint256)` and selector `0xc48d887a`
@@ -121030,7 +122802,7 @@ pub mod rmm01_portfolio {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     pub struct ComputeReservesFromPriceReturn {
         pub reserve_x: ::ethers::core::types::U256,
@@ -121045,7 +122817,7 @@ pub mod rmm01_portfolio {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     pub struct GetAmountOutReturn {
         pub output: ::ethers::core::types::U256,
@@ -121059,7 +122831,7 @@ pub mod rmm01_portfolio {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     pub struct GetBalanceReturn(pub ::ethers::core::types::U256);
     ///Container type for all return fields from the `getLiquidityDeltas` function with signature `getLiquidityDeltas(uint64,int128)` and selector `0x8992f20a`
@@ -121071,7 +122843,7 @@ pub mod rmm01_portfolio {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     pub struct GetLiquidityDeltasReturn {
         pub delta_asset: u128,
@@ -121086,7 +122858,7 @@ pub mod rmm01_portfolio {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     pub struct GetMaxLiquidityReturn {
         pub delta_liquidity: u128,
@@ -121100,7 +122872,7 @@ pub mod rmm01_portfolio {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     pub struct GetNetBalanceReturn(pub ::ethers::core::types::I256);
     ///Container type for all return fields from the `getPairId` function with signature `getPairId(address,address)` and selector `0x3f92a339`
@@ -121112,7 +122884,7 @@ pub mod rmm01_portfolio {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     pub struct GetPairIdReturn(pub u32);
     ///Container type for all return fields from the `getPairNonce` function with signature `getPairNonce()` and selector `0x078888d6`
@@ -121124,7 +122896,7 @@ pub mod rmm01_portfolio {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     pub struct GetPairNonceReturn(pub u32);
     ///Container type for all return fields from the `getPoolNonce` function with signature `getPoolNonce(uint24)` and selector `0xa5cd8a49`
@@ -121136,7 +122908,7 @@ pub mod rmm01_portfolio {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     pub struct GetPoolNonceReturn(pub u32);
     ///Container type for all return fields from the `getPoolReserves` function with signature `getPoolReserves(uint64)` and selector `0x2afb9df8`
@@ -121148,7 +122920,7 @@ pub mod rmm01_portfolio {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     pub struct GetPoolReservesReturn {
         pub delta_asset: ::ethers::core::types::U256,
@@ -121163,7 +122935,7 @@ pub mod rmm01_portfolio {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     pub struct GetReserveReturn(pub ::ethers::core::types::U256);
     ///Container type for all return fields from the `getVirtualPrice` function with signature `getVirtualPrice(uint64)` and selector `0x61b7ea6a`
@@ -121175,7 +122947,7 @@ pub mod rmm01_portfolio {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     pub struct GetVirtualPriceReturn {
         pub price: ::ethers::core::types::U256,
@@ -121189,7 +122961,7 @@ pub mod rmm01_portfolio {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     pub struct GetVirtualReservesPerLiquidityReturn {
         pub delta_asset: u128,
@@ -121204,7 +122976,7 @@ pub mod rmm01_portfolio {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     pub struct PairsReturn {
         pub token_asset: ::ethers::core::types::Address,
@@ -121221,7 +122993,7 @@ pub mod rmm01_portfolio {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     pub struct PoolsReturn {
         pub virtual_x: u128,
@@ -121244,7 +123016,7 @@ pub mod rmm01_portfolio {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     pub struct PositionsReturn {
         pub free_liquidity: u128,
@@ -121266,14 +123038,16 @@ pub use safe_cast_lib::*;
     clippy::upper_case_acronyms,
     clippy::type_complexity,
     dead_code,
-    non_camel_case_types,
+    non_camel_case_types
 )]
 pub mod safe_cast_lib {
     #[rustfmt::skip]
     const __ABI: &str = "[]";
     ///The parsed JSON ABI of the contract.
-    pub static SAFECASTLIB_ABI: ::ethers::contract::Lazy<::ethers::core::abi::Abi> = ::ethers::contract::Lazy::new(||
-    ::ethers::core::utils::__serde_json::from_str(__ABI).expect("ABI is always valid"));
+    pub static SAFECASTLIB_ABI: ::ethers::contract::Lazy<::ethers::core::abi::Abi> =
+        ::ethers::contract::Lazy::new(|| {
+            ::ethers::core::utils::__serde_json::from_str(__ABI).expect("ABI is always valid")
+        });
     #[rustfmt::skip]
     const __BYTECODE: &[u8] = &[
         96,
@@ -121419,9 +123193,8 @@ pub mod safe_cast_lib {
         51,
     ];
     ///The bytecode of the contract.
-    pub static SAFECASTLIB_BYTECODE: ::ethers::core::types::Bytes = ::ethers::core::types::Bytes::from_static(
-        __BYTECODE,
-    );
+    pub static SAFECASTLIB_BYTECODE: ::ethers::core::types::Bytes =
+        ::ethers::core::types::Bytes::from_static(__BYTECODE);
     #[rustfmt::skip]
     const __DEPLOYED_BYTECODE: &[u8] = &[
         115,
@@ -121512,9 +123285,8 @@ pub mod safe_cast_lib {
         51,
     ];
     ///The deployed bytecode of the contract.
-    pub static SAFECASTLIB_DEPLOYED_BYTECODE: ::ethers::core::types::Bytes = ::ethers::core::types::Bytes::from_static(
-        __DEPLOYED_BYTECODE,
-    );
+    pub static SAFECASTLIB_DEPLOYED_BYTECODE: ::ethers::core::types::Bytes =
+        ::ethers::core::types::Bytes::from_static(__DEPLOYED_BYTECODE);
     pub struct SafeCastLib<M>(::ethers::contract::Contract<M>);
     impl<M> ::core::clone::Clone for SafeCastLib<M> {
         fn clone(&self) -> Self {
@@ -121534,7 +123306,9 @@ pub mod safe_cast_lib {
     }
     impl<M> ::core::fmt::Debug for SafeCastLib<M> {
         fn fmt(&self, f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
-            f.debug_tuple(stringify!(SafeCastLib)).field(&self.address()).finish()
+            f.debug_tuple(stringify!(SafeCastLib))
+                .field(&self.address())
+                .finish()
         }
     }
     impl<M: ::ethers::providers::Middleware> SafeCastLib<M> {
@@ -121544,13 +123318,11 @@ pub mod safe_cast_lib {
             address: T,
             client: ::std::sync::Arc<M>,
         ) -> Self {
-            Self(
-                ::ethers::contract::Contract::new(
-                    address.into(),
-                    SAFECASTLIB_ABI.clone(),
-                    client,
-                ),
-            )
+            Self(::ethers::contract::Contract::new(
+                address.into(),
+                SAFECASTLIB_ABI.clone(),
+                client,
+            ))
         }
         /// Constructs the general purpose `Deployer` instance based on the provided constructor arguments and sends it.
         /// Returns a new instance of a deployer that returns an instance of this contract after sending the transaction
@@ -121592,8 +123364,7 @@ pub mod safe_cast_lib {
             Ok(deployer)
         }
     }
-    impl<M: ::ethers::providers::Middleware> From<::ethers::contract::Contract<M>>
-    for SafeCastLib<M> {
+    impl<M: ::ethers::providers::Middleware> From<::ethers::contract::Contract<M>> for SafeCastLib<M> {
         fn from(contract: ::ethers::contract::Contract<M>) -> Self {
             Self::new(contract.address(), contract.client())
         }
@@ -121608,14 +123379,16 @@ pub use safe_transfer_lib::*;
     clippy::upper_case_acronyms,
     clippy::type_complexity,
     dead_code,
-    non_camel_case_types,
+    non_camel_case_types
 )]
 pub mod safe_transfer_lib {
     #[rustfmt::skip]
     const __ABI: &str = "[]";
     ///The parsed JSON ABI of the contract.
-    pub static SAFETRANSFERLIB_ABI: ::ethers::contract::Lazy<::ethers::core::abi::Abi> = ::ethers::contract::Lazy::new(||
-    ::ethers::core::utils::__serde_json::from_str(__ABI).expect("ABI is always valid"));
+    pub static SAFETRANSFERLIB_ABI: ::ethers::contract::Lazy<::ethers::core::abi::Abi> =
+        ::ethers::contract::Lazy::new(|| {
+            ::ethers::core::utils::__serde_json::from_str(__ABI).expect("ABI is always valid")
+        });
     #[rustfmt::skip]
     const __BYTECODE: &[u8] = &[
         96,
@@ -121761,9 +123534,8 @@ pub mod safe_transfer_lib {
         51,
     ];
     ///The bytecode of the contract.
-    pub static SAFETRANSFERLIB_BYTECODE: ::ethers::core::types::Bytes = ::ethers::core::types::Bytes::from_static(
-        __BYTECODE,
-    );
+    pub static SAFETRANSFERLIB_BYTECODE: ::ethers::core::types::Bytes =
+        ::ethers::core::types::Bytes::from_static(__BYTECODE);
     #[rustfmt::skip]
     const __DEPLOYED_BYTECODE: &[u8] = &[
         115,
@@ -121854,9 +123626,8 @@ pub mod safe_transfer_lib {
         51,
     ];
     ///The deployed bytecode of the contract.
-    pub static SAFETRANSFERLIB_DEPLOYED_BYTECODE: ::ethers::core::types::Bytes = ::ethers::core::types::Bytes::from_static(
-        __DEPLOYED_BYTECODE,
-    );
+    pub static SAFETRANSFERLIB_DEPLOYED_BYTECODE: ::ethers::core::types::Bytes =
+        ::ethers::core::types::Bytes::from_static(__DEPLOYED_BYTECODE);
     pub struct SafeTransferLib<M>(::ethers::contract::Contract<M>);
     impl<M> ::core::clone::Clone for SafeTransferLib<M> {
         fn clone(&self) -> Self {
@@ -121876,7 +123647,9 @@ pub mod safe_transfer_lib {
     }
     impl<M> ::core::fmt::Debug for SafeTransferLib<M> {
         fn fmt(&self, f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
-            f.debug_tuple(stringify!(SafeTransferLib)).field(&self.address()).finish()
+            f.debug_tuple(stringify!(SafeTransferLib))
+                .field(&self.address())
+                .finish()
         }
     }
     impl<M: ::ethers::providers::Middleware> SafeTransferLib<M> {
@@ -121886,13 +123659,11 @@ pub mod safe_transfer_lib {
             address: T,
             client: ::std::sync::Arc<M>,
         ) -> Self {
-            Self(
-                ::ethers::contract::Contract::new(
-                    address.into(),
-                    SAFETRANSFERLIB_ABI.clone(),
-                    client,
-                ),
-            )
+            Self(::ethers::contract::Contract::new(
+                address.into(),
+                SAFETRANSFERLIB_ABI.clone(),
+                client,
+            ))
         }
         /// Constructs the general purpose `Deployer` instance based on the provided constructor arguments and sends it.
         /// Returns a new instance of a deployer that returns an instance of this contract after sending the transaction
@@ -121935,7 +123706,8 @@ pub mod safe_transfer_lib {
         }
     }
     impl<M: ::ethers::providers::Middleware> From<::ethers::contract::Contract<M>>
-    for SafeTransferLib<M> {
+        for SafeTransferLib<M>
+    {
         fn from(contract: ::ethers::contract::Contract<M>) -> Self {
             Self::new(contract.address(), contract.client())
         }
@@ -121950,14 +123722,16 @@ pub use simple_registry::*;
     clippy::upper_case_acronyms,
     clippy::type_complexity,
     dead_code,
-    non_camel_case_types,
+    non_camel_case_types
 )]
 pub mod simple_registry {
     #[rustfmt::skip]
     const __ABI: &str = "[{\"inputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"constructor\",\"outputs\":[]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"portfolio\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"address\",\"name\":\"token\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"address\",\"name\":\"to\",\"type\":\"address\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"function\",\"name\":\"claimFee\",\"outputs\":[]},{\"inputs\":[],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"controller\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"portfolio\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"fee\",\"type\":\"uint256\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"function\",\"name\":\"setFee\",\"outputs\":[]}]";
     ///The parsed JSON ABI of the contract.
-    pub static SIMPLEREGISTRY_ABI: ::ethers::contract::Lazy<::ethers::core::abi::Abi> = ::ethers::contract::Lazy::new(||
-    ::ethers::core::utils::__serde_json::from_str(__ABI).expect("ABI is always valid"));
+    pub static SIMPLEREGISTRY_ABI: ::ethers::contract::Lazy<::ethers::core::abi::Abi> =
+        ::ethers::contract::Lazy::new(|| {
+            ::ethers::core::utils::__serde_json::from_str(__ABI).expect("ABI is always valid")
+        });
     #[rustfmt::skip]
     const __BYTECODE: &[u8] = &[
         96,
@@ -122690,9 +124464,8 @@ pub mod simple_registry {
         51,
     ];
     ///The bytecode of the contract.
-    pub static SIMPLEREGISTRY_BYTECODE: ::ethers::core::types::Bytes = ::ethers::core::types::Bytes::from_static(
-        __BYTECODE,
-    );
+    pub static SIMPLEREGISTRY_BYTECODE: ::ethers::core::types::Bytes =
+        ::ethers::core::types::Bytes::from_static(__BYTECODE);
     #[rustfmt::skip]
     const __DEPLOYED_BYTECODE: &[u8] = &[
         96,
@@ -123375,9 +125148,8 @@ pub mod simple_registry {
         51,
     ];
     ///The deployed bytecode of the contract.
-    pub static SIMPLEREGISTRY_DEPLOYED_BYTECODE: ::ethers::core::types::Bytes = ::ethers::core::types::Bytes::from_static(
-        __DEPLOYED_BYTECODE,
-    );
+    pub static SIMPLEREGISTRY_DEPLOYED_BYTECODE: ::ethers::core::types::Bytes =
+        ::ethers::core::types::Bytes::from_static(__DEPLOYED_BYTECODE);
     pub struct SimpleRegistry<M>(::ethers::contract::Contract<M>);
     impl<M> ::core::clone::Clone for SimpleRegistry<M> {
         fn clone(&self) -> Self {
@@ -123397,7 +125169,9 @@ pub mod simple_registry {
     }
     impl<M> ::core::fmt::Debug for SimpleRegistry<M> {
         fn fmt(&self, f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
-            f.debug_tuple(stringify!(SimpleRegistry)).field(&self.address()).finish()
+            f.debug_tuple(stringify!(SimpleRegistry))
+                .field(&self.address())
+                .finish()
         }
     }
     impl<M: ::ethers::providers::Middleware> SimpleRegistry<M> {
@@ -123407,13 +125181,11 @@ pub mod simple_registry {
             address: T,
             client: ::std::sync::Arc<M>,
         ) -> Self {
-            Self(
-                ::ethers::contract::Contract::new(
-                    address.into(),
-                    SIMPLEREGISTRY_ABI.clone(),
-                    client,
-                ),
-            )
+            Self(::ethers::contract::Contract::new(
+                address.into(),
+                SIMPLEREGISTRY_ABI.clone(),
+                client,
+            ))
         }
         /// Constructs the general purpose `Deployer` instance based on the provided constructor arguments and sends it.
         /// Returns a new instance of a deployer that returns an instance of this contract after sending the transaction
@@ -123469,10 +125241,7 @@ pub mod simple_registry {
         ///Calls the contract's `controller` (0xf77c4791) function
         pub fn controller(
             &self,
-        ) -> ::ethers::contract::builders::ContractCall<
-            M,
-            ::ethers::core::types::Address,
-        > {
+        ) -> ::ethers::contract::builders::ContractCall<M, ::ethers::core::types::Address> {
             self.0
                 .method_hash([247, 124, 71, 145], ())
                 .expect("method not found (this should never happen)")
@@ -123489,7 +125258,8 @@ pub mod simple_registry {
         }
     }
     impl<M: ::ethers::providers::Middleware> From<::ethers::contract::Contract<M>>
-    for SimpleRegistry<M> {
+        for SimpleRegistry<M>
+    {
         fn from(contract: ::ethers::contract::Contract<M>) -> Self {
             Self::new(contract.address(), contract.client())
         }
@@ -123503,7 +125273,7 @@ pub mod simple_registry {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "claimFee", abi = "claimFee(address,address,uint256,address)")]
     pub struct ClaimFeeCall {
@@ -123521,7 +125291,7 @@ pub mod simple_registry {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "controller", abi = "controller()")]
     pub struct ControllerCall;
@@ -123534,7 +125304,7 @@ pub mod simple_registry {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "setFee", abi = "setFee(address,uint256)")]
     pub struct SetFeeCall {
@@ -123553,16 +125323,13 @@ pub mod simple_registry {
             data: impl AsRef<[u8]>,
         ) -> ::core::result::Result<Self, ::ethers::core::abi::AbiError> {
             let data = data.as_ref();
-            if let Ok(decoded)
-                = <ClaimFeeCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <ClaimFeeCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::ClaimFee(decoded));
             }
-            if let Ok(decoded)
-                = <ControllerCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <ControllerCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::Controller(decoded));
             }
-            if let Ok(decoded)
-                = <SetFeeCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <SetFeeCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::SetFee(decoded));
             }
             Err(::ethers::core::abi::Error::InvalidData.into())
@@ -123571,12 +125338,8 @@ pub mod simple_registry {
     impl ::ethers::core::abi::AbiEncode for SimpleRegistryCalls {
         fn encode(self) -> Vec<u8> {
             match self {
-                Self::ClaimFee(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
-                Self::Controller(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
+                Self::ClaimFee(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::Controller(element) => ::ethers::core::abi::AbiEncode::encode(element),
                 Self::SetFee(element) => ::ethers::core::abi::AbiEncode::encode(element),
             }
         }
@@ -123614,7 +125377,7 @@ pub mod simple_registry {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     pub struct ControllerReturn(pub ::ethers::core::types::Address);
 }
@@ -123627,14 +125390,16 @@ pub use units::*;
     clippy::upper_case_acronyms,
     clippy::type_complexity,
     dead_code,
-    non_camel_case_types,
+    non_camel_case_types
 )]
 pub mod units {
     #[rustfmt::skip]
     const __ABI: &str = "[]";
     ///The parsed JSON ABI of the contract.
-    pub static UNITS_ABI: ::ethers::contract::Lazy<::ethers::core::abi::Abi> = ::ethers::contract::Lazy::new(||
-    ::ethers::core::utils::__serde_json::from_str(__ABI).expect("ABI is always valid"));
+    pub static UNITS_ABI: ::ethers::contract::Lazy<::ethers::core::abi::Abi> =
+        ::ethers::contract::Lazy::new(|| {
+            ::ethers::core::utils::__serde_json::from_str(__ABI).expect("ABI is always valid")
+        });
     pub struct Units<M>(::ethers::contract::Contract<M>);
     impl<M> ::core::clone::Clone for Units<M> {
         fn clone(&self) -> Self {
@@ -123654,7 +125419,9 @@ pub mod units {
     }
     impl<M> ::core::fmt::Debug for Units<M> {
         fn fmt(&self, f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
-            f.debug_tuple(stringify!(Units)).field(&self.address()).finish()
+            f.debug_tuple(stringify!(Units))
+                .field(&self.address())
+                .finish()
         }
     }
     impl<M: ::ethers::providers::Middleware> Units<M> {
@@ -123664,17 +125431,14 @@ pub mod units {
             address: T,
             client: ::std::sync::Arc<M>,
         ) -> Self {
-            Self(
-                ::ethers::contract::Contract::new(
-                    address.into(),
-                    UNITS_ABI.clone(),
-                    client,
-                ),
-            )
+            Self(::ethers::contract::Contract::new(
+                address.into(),
+                UNITS_ABI.clone(),
+                client,
+            ))
         }
     }
-    impl<M: ::ethers::providers::Middleware> From<::ethers::contract::Contract<M>>
-    for Units<M> {
+    impl<M: ::ethers::providers::Middleware> From<::ethers::contract::Contract<M>> for Units<M> {
         fn from(contract: ::ethers::contract::Contract<M>) -> Self {
             Self::new(contract.address(), contract.client())
         }
@@ -123689,14 +125453,16 @@ pub use weth9::*;
     clippy::upper_case_acronyms,
     clippy::type_complexity,
     dead_code,
-    non_camel_case_types,
+    non_camel_case_types
 )]
 pub mod weth9 {
     #[rustfmt::skip]
     const __ABI: &str = "[{\"inputs\":[],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"name\",\"outputs\":[{\"name\":\"\",\"type\":\"string\",\"components\":[]}]},{\"inputs\":[{\"name\":\"guy\",\"type\":\"address\",\"components\":[]},{\"name\":\"wad\",\"type\":\"uint256\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"function\",\"name\":\"approve\",\"outputs\":[{\"name\":\"\",\"type\":\"bool\",\"components\":[]}]},{\"inputs\":[],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"totalSupply\",\"outputs\":[{\"name\":\"\",\"type\":\"uint256\",\"components\":[]}]},{\"inputs\":[{\"name\":\"src\",\"type\":\"address\",\"components\":[]},{\"name\":\"dst\",\"type\":\"address\",\"components\":[]},{\"name\":\"wad\",\"type\":\"uint256\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"function\",\"name\":\"transferFrom\",\"outputs\":[{\"name\":\"\",\"type\":\"bool\",\"components\":[]}]},{\"inputs\":[{\"name\":\"wad\",\"type\":\"uint256\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"function\",\"name\":\"withdraw\",\"outputs\":[]},{\"inputs\":[],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"decimals\",\"outputs\":[{\"name\":\"\",\"type\":\"uint8\",\"components\":[]}]},{\"inputs\":[{\"name\":\"\",\"type\":\"address\",\"components\":[]}],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"balanceOf\",\"outputs\":[{\"name\":\"\",\"type\":\"uint256\",\"components\":[]}]},{\"inputs\":[],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"symbol\",\"outputs\":[{\"name\":\"\",\"type\":\"string\",\"components\":[]}]},{\"inputs\":[{\"name\":\"dst\",\"type\":\"address\",\"components\":[]},{\"name\":\"wad\",\"type\":\"uint256\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"function\",\"name\":\"transfer\",\"outputs\":[{\"name\":\"\",\"type\":\"bool\",\"components\":[]}]},{\"inputs\":[],\"stateMutability\":\"payable\",\"type\":\"function\",\"name\":\"deposit\",\"outputs\":[]},{\"inputs\":[{\"name\":\"\",\"type\":\"address\",\"components\":[]},{\"name\":\"\",\"type\":\"address\",\"components\":[]}],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"allowance\",\"outputs\":[{\"name\":\"\",\"type\":\"uint256\",\"components\":[]}]},{\"inputs\":[],\"stateMutability\":\"payable\",\"type\":\"fallback\",\"outputs\":[]},{\"inputs\":[{\"name\":\"src\",\"type\":\"address\",\"components\":[],\"indexed\":true},{\"name\":\"guy\",\"type\":\"address\",\"components\":[],\"indexed\":true},{\"name\":\"wad\",\"type\":\"uint256\",\"components\":[],\"indexed\":false}],\"type\":\"event\",\"name\":\"Approval\",\"outputs\":[],\"anonymous\":false},{\"inputs\":[{\"name\":\"src\",\"type\":\"address\",\"components\":[],\"indexed\":true},{\"name\":\"dst\",\"type\":\"address\",\"components\":[],\"indexed\":true},{\"name\":\"wad\",\"type\":\"uint256\",\"components\":[],\"indexed\":false}],\"type\":\"event\",\"name\":\"Transfer\",\"outputs\":[],\"anonymous\":false},{\"inputs\":[{\"name\":\"dst\",\"type\":\"address\",\"components\":[],\"indexed\":true},{\"name\":\"wad\",\"type\":\"uint256\",\"components\":[],\"indexed\":false}],\"type\":\"event\",\"name\":\"Deposit\",\"outputs\":[],\"anonymous\":false},{\"inputs\":[{\"name\":\"src\",\"type\":\"address\",\"components\":[],\"indexed\":true},{\"name\":\"wad\",\"type\":\"uint256\",\"components\":[],\"indexed\":false}],\"type\":\"event\",\"name\":\"Withdrawal\",\"outputs\":[],\"anonymous\":false}]";
     ///The parsed JSON ABI of the contract.
-    pub static WETH9_ABI: ::ethers::contract::Lazy<::ethers::core::abi::Abi> = ::ethers::contract::Lazy::new(||
-    ::ethers::core::utils::__serde_json::from_str(__ABI).expect("ABI is always valid"));
+    pub static WETH9_ABI: ::ethers::contract::Lazy<::ethers::core::abi::Abi> =
+        ::ethers::contract::Lazy::new(|| {
+            ::ethers::core::utils::__serde_json::from_str(__ABI).expect("ABI is always valid")
+        });
     #[rustfmt::skip]
     const __BYTECODE: &[u8] = &[
         96,
@@ -125656,9 +127422,8 @@ pub mod weth9 {
         41,
     ];
     ///The bytecode of the contract.
-    pub static WETH9_BYTECODE: ::ethers::core::types::Bytes = ::ethers::core::types::Bytes::from_static(
-        __BYTECODE,
-    );
+    pub static WETH9_BYTECODE: ::ethers::core::types::Bytes =
+        ::ethers::core::types::Bytes::from_static(__BYTECODE);
     #[rustfmt::skip]
     const __DEPLOYED_BYTECODE: &[u8] = &[
         96,
@@ -127285,9 +129050,8 @@ pub mod weth9 {
         41,
     ];
     ///The deployed bytecode of the contract.
-    pub static WETH9_DEPLOYED_BYTECODE: ::ethers::core::types::Bytes = ::ethers::core::types::Bytes::from_static(
-        __DEPLOYED_BYTECODE,
-    );
+    pub static WETH9_DEPLOYED_BYTECODE: ::ethers::core::types::Bytes =
+        ::ethers::core::types::Bytes::from_static(__DEPLOYED_BYTECODE);
     pub struct WETH9<M>(::ethers::contract::Contract<M>);
     impl<M> ::core::clone::Clone for WETH9<M> {
         fn clone(&self) -> Self {
@@ -127307,7 +129071,9 @@ pub mod weth9 {
     }
     impl<M> ::core::fmt::Debug for WETH9<M> {
         fn fmt(&self, f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
-            f.debug_tuple(stringify!(WETH9)).field(&self.address()).finish()
+            f.debug_tuple(stringify!(WETH9))
+                .field(&self.address())
+                .finish()
         }
     }
     impl<M: ::ethers::providers::Middleware> WETH9<M> {
@@ -127317,13 +129083,11 @@ pub mod weth9 {
             address: T,
             client: ::std::sync::Arc<M>,
         ) -> Self {
-            Self(
-                ::ethers::contract::Contract::new(
-                    address.into(),
-                    WETH9_ABI.clone(),
-                    client,
-                ),
-            )
+            Self(::ethers::contract::Contract::new(
+                address.into(),
+                WETH9_ABI.clone(),
+                client,
+            ))
         }
         /// Constructs the general purpose `Deployer` instance based on the provided constructor arguments and sends it.
         /// Returns a new instance of a deployer that returns an instance of this contract after sending the transaction
@@ -127406,9 +129170,7 @@ pub mod weth9 {
                 .expect("method not found (this should never happen)")
         }
         ///Calls the contract's `name` (0x06fdde03) function
-        pub fn name(
-            &self,
-        ) -> ::ethers::contract::builders::ContractCall<M, ::std::string::String> {
+        pub fn name(&self) -> ::ethers::contract::builders::ContractCall<M, ::std::string::String> {
             self.0
                 .method_hash([6, 253, 222, 3], ())
                 .expect("method not found (this should never happen)")
@@ -127462,11 +129224,7 @@ pub mod weth9 {
         ///Gets the contract's `Approval` event
         pub fn approval_filter(
             &self,
-        ) -> ::ethers::contract::builders::Event<
-            ::std::sync::Arc<M>,
-            M,
-            ApprovalFilter,
-        > {
+        ) -> ::ethers::contract::builders::Event<::std::sync::Arc<M>, M, ApprovalFilter> {
             self.0.event()
         }
         ///Gets the contract's `Deposit` event
@@ -127478,32 +129236,24 @@ pub mod weth9 {
         ///Gets the contract's `Transfer` event
         pub fn transfer_filter(
             &self,
-        ) -> ::ethers::contract::builders::Event<
-            ::std::sync::Arc<M>,
-            M,
-            TransferFilter,
-        > {
+        ) -> ::ethers::contract::builders::Event<::std::sync::Arc<M>, M, TransferFilter> {
             self.0.event()
         }
         ///Gets the contract's `Withdrawal` event
         pub fn withdrawal_filter(
             &self,
-        ) -> ::ethers::contract::builders::Event<
-            ::std::sync::Arc<M>,
-            M,
-            WithdrawalFilter,
-        > {
+        ) -> ::ethers::contract::builders::Event<::std::sync::Arc<M>, M, WithdrawalFilter> {
             self.0.event()
         }
         /// Returns an `Event` builder for all the events of this contract.
         pub fn events(
             &self,
         ) -> ::ethers::contract::builders::Event<::std::sync::Arc<M>, M, WETH9Events> {
-            self.0.event_with_filter(::core::default::Default::default())
+            self.0
+                .event_with_filter(::core::default::Default::default())
         }
     }
-    impl<M: ::ethers::providers::Middleware> From<::ethers::contract::Contract<M>>
-    for WETH9<M> {
+    impl<M: ::ethers::providers::Middleware> From<::ethers::contract::Contract<M>> for WETH9<M> {
         fn from(contract: ::ethers::contract::Contract<M>) -> Self {
             Self::new(contract.address(), contract.client())
         }
@@ -127516,7 +129266,7 @@ pub mod weth9 {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethevent(name = "Approval", abi = "Approval(address,address,uint256)")]
     pub struct ApprovalFilter {
@@ -127534,7 +129284,7 @@ pub mod weth9 {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethevent(name = "Deposit", abi = "Deposit(address,uint256)")]
     pub struct DepositFilter {
@@ -127550,7 +129300,7 @@ pub mod weth9 {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethevent(name = "Transfer", abi = "Transfer(address,address,uint256)")]
     pub struct TransferFilter {
@@ -127568,7 +129318,7 @@ pub mod weth9 {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethevent(name = "Withdrawal", abi = "Withdrawal(address,uint256)")]
     pub struct WithdrawalFilter {
@@ -127642,7 +129392,7 @@ pub mod weth9 {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "allowance", abi = "allowance(address,address)")]
     pub struct AllowanceCall(
@@ -127658,7 +129408,7 @@ pub mod weth9 {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "approve", abi = "approve(address,uint256)")]
     pub struct ApproveCall {
@@ -127674,7 +129424,7 @@ pub mod weth9 {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "balanceOf", abi = "balanceOf(address)")]
     pub struct BalanceOfCall(pub ::ethers::core::types::Address);
@@ -127687,7 +129437,7 @@ pub mod weth9 {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "decimals", abi = "decimals()")]
     pub struct DecimalsCall;
@@ -127700,7 +129450,7 @@ pub mod weth9 {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "deposit", abi = "deposit()")]
     pub struct DepositCall;
@@ -127713,7 +129463,7 @@ pub mod weth9 {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "name", abi = "name()")]
     pub struct NameCall;
@@ -127726,7 +129476,7 @@ pub mod weth9 {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "symbol", abi = "symbol()")]
     pub struct SymbolCall;
@@ -127739,7 +129489,7 @@ pub mod weth9 {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "totalSupply", abi = "totalSupply()")]
     pub struct TotalSupplyCall;
@@ -127752,7 +129502,7 @@ pub mod weth9 {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "transfer", abi = "transfer(address,uint256)")]
     pub struct TransferCall {
@@ -127768,7 +129518,7 @@ pub mod weth9 {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "transferFrom", abi = "transferFrom(address,address,uint256)")]
     pub struct TransferFromCall {
@@ -127785,7 +129535,7 @@ pub mod weth9 {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "withdraw", abi = "withdraw(uint256)")]
     pub struct WithdrawCall {
@@ -127811,48 +129561,38 @@ pub mod weth9 {
             data: impl AsRef<[u8]>,
         ) -> ::core::result::Result<Self, ::ethers::core::abi::AbiError> {
             let data = data.as_ref();
-            if let Ok(decoded)
-                = <AllowanceCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <AllowanceCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::Allowance(decoded));
             }
-            if let Ok(decoded)
-                = <ApproveCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <ApproveCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::Approve(decoded));
             }
-            if let Ok(decoded)
-                = <BalanceOfCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <BalanceOfCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::BalanceOf(decoded));
             }
-            if let Ok(decoded)
-                = <DecimalsCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <DecimalsCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::Decimals(decoded));
             }
-            if let Ok(decoded)
-                = <DepositCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <DepositCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::Deposit(decoded));
             }
-            if let Ok(decoded)
-                = <NameCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <NameCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::Name(decoded));
             }
-            if let Ok(decoded)
-                = <SymbolCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <SymbolCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::Symbol(decoded));
             }
-            if let Ok(decoded)
-                = <TotalSupplyCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <TotalSupplyCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::TotalSupply(decoded));
             }
-            if let Ok(decoded)
-                = <TransferCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <TransferCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::Transfer(decoded));
             }
-            if let Ok(decoded)
-                = <TransferFromCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <TransferFromCall as ::ethers::core::abi::AbiDecode>::decode(data)
+            {
                 return Ok(Self::TransferFrom(decoded));
             }
-            if let Ok(decoded)
-                = <WithdrawCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <WithdrawCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::Withdraw(decoded));
             }
             Err(::ethers::core::abi::Error::InvalidData.into())
@@ -127861,31 +129601,17 @@ pub mod weth9 {
     impl ::ethers::core::abi::AbiEncode for WETH9Calls {
         fn encode(self) -> Vec<u8> {
             match self {
-                Self::Allowance(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
+                Self::Allowance(element) => ::ethers::core::abi::AbiEncode::encode(element),
                 Self::Approve(element) => ::ethers::core::abi::AbiEncode::encode(element),
-                Self::BalanceOf(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
-                Self::Decimals(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
+                Self::BalanceOf(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::Decimals(element) => ::ethers::core::abi::AbiEncode::encode(element),
                 Self::Deposit(element) => ::ethers::core::abi::AbiEncode::encode(element),
                 Self::Name(element) => ::ethers::core::abi::AbiEncode::encode(element),
                 Self::Symbol(element) => ::ethers::core::abi::AbiEncode::encode(element),
-                Self::TotalSupply(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
-                Self::Transfer(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
-                Self::TransferFrom(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
-                Self::Withdraw(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
+                Self::TotalSupply(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::Transfer(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::TransferFrom(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::Withdraw(element) => ::ethers::core::abi::AbiEncode::encode(element),
             }
         }
     }
@@ -127970,7 +129696,7 @@ pub mod weth9 {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     pub struct AllowanceReturn(pub ::ethers::core::types::U256);
     ///Container type for all return fields from the `approve` function with signature `approve(address,uint256)` and selector `0x095ea7b3`
@@ -127982,7 +129708,7 @@ pub mod weth9 {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     pub struct ApproveReturn(pub bool);
     ///Container type for all return fields from the `balanceOf` function with signature `balanceOf(address)` and selector `0x70a08231`
@@ -127994,7 +129720,7 @@ pub mod weth9 {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     pub struct BalanceOfReturn(pub ::ethers::core::types::U256);
     ///Container type for all return fields from the `decimals` function with signature `decimals()` and selector `0x313ce567`
@@ -128006,7 +129732,7 @@ pub mod weth9 {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     pub struct DecimalsReturn(pub u8);
     ///Container type for all return fields from the `name` function with signature `name()` and selector `0x06fdde03`
@@ -128018,7 +129744,7 @@ pub mod weth9 {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     pub struct NameReturn(pub ::std::string::String);
     ///Container type for all return fields from the `symbol` function with signature `symbol()` and selector `0x95d89b41`
@@ -128030,7 +129756,7 @@ pub mod weth9 {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     pub struct SymbolReturn(pub ::std::string::String);
     ///Container type for all return fields from the `totalSupply` function with signature `totalSupply()` and selector `0x18160ddd`
@@ -128042,7 +129768,7 @@ pub mod weth9 {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     pub struct TotalSupplyReturn(pub ::ethers::core::types::U256);
     ///Container type for all return fields from the `transfer` function with signature `transfer(address,uint256)` and selector `0xa9059cbb`
@@ -128054,7 +129780,7 @@ pub mod weth9 {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     pub struct TransferReturn(pub bool);
     ///Container type for all return fields from the `transferFrom` function with signature `transferFrom(address,address,uint256)` and selector `0x23b872dd`
@@ -128066,7 +129792,7 @@ pub mod weth9 {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     pub struct TransferFromReturn(pub bool);
 }
@@ -128079,14 +129805,16 @@ pub use writer::*;
     clippy::upper_case_acronyms,
     clippy::type_complexity,
     dead_code,
-    non_camel_case_types,
+    non_camel_case_types
 )]
 pub mod writer {
     #[rustfmt::skip]
     const __ABI: &str = "[{\"inputs\":[{\"internalType\":\"string\",\"name\":\"test_string\",\"type\":\"string\",\"components\":[],\"indexed\":false}],\"type\":\"event\",\"name\":\"WasWritten\",\"outputs\":[],\"anonymous\":false},{\"inputs\":[{\"internalType\":\"string\",\"name\":\"test_string\",\"type\":\"string\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"function\",\"name\":\"echoString\",\"outputs\":[{\"internalType\":\"string\",\"name\":\"\",\"type\":\"string\",\"components\":[]}]}]";
     ///The parsed JSON ABI of the contract.
-    pub static WRITER_ABI: ::ethers::contract::Lazy<::ethers::core::abi::Abi> = ::ethers::contract::Lazy::new(||
-    ::ethers::core::utils::__serde_json::from_str(__ABI).expect("ABI is always valid"));
+    pub static WRITER_ABI: ::ethers::contract::Lazy<::ethers::core::abi::Abi> =
+        ::ethers::contract::Lazy::new(|| {
+            ::ethers::core::utils::__serde_json::from_str(__ABI).expect("ABI is always valid")
+        });
     #[rustfmt::skip]
     const __BYTECODE: &[u8] = &[
         96,
@@ -129088,9 +130816,8 @@ pub mod writer {
         51,
     ];
     ///The bytecode of the contract.
-    pub static WRITER_BYTECODE: ::ethers::core::types::Bytes = ::ethers::core::types::Bytes::from_static(
-        __BYTECODE,
-    );
+    pub static WRITER_BYTECODE: ::ethers::core::types::Bytes =
+        ::ethers::core::types::Bytes::from_static(__BYTECODE);
     #[rustfmt::skip]
     const __DEPLOYED_BYTECODE: &[u8] = &[
         96,
@@ -130060,9 +131787,8 @@ pub mod writer {
         51,
     ];
     ///The deployed bytecode of the contract.
-    pub static WRITER_DEPLOYED_BYTECODE: ::ethers::core::types::Bytes = ::ethers::core::types::Bytes::from_static(
-        __DEPLOYED_BYTECODE,
-    );
+    pub static WRITER_DEPLOYED_BYTECODE: ::ethers::core::types::Bytes =
+        ::ethers::core::types::Bytes::from_static(__DEPLOYED_BYTECODE);
     pub struct Writer<M>(::ethers::contract::Contract<M>);
     impl<M> ::core::clone::Clone for Writer<M> {
         fn clone(&self) -> Self {
@@ -130082,7 +131808,9 @@ pub mod writer {
     }
     impl<M> ::core::fmt::Debug for Writer<M> {
         fn fmt(&self, f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
-            f.debug_tuple(stringify!(Writer)).field(&self.address()).finish()
+            f.debug_tuple(stringify!(Writer))
+                .field(&self.address())
+                .finish()
         }
     }
     impl<M: ::ethers::providers::Middleware> Writer<M> {
@@ -130092,13 +131820,11 @@ pub mod writer {
             address: T,
             client: ::std::sync::Arc<M>,
         ) -> Self {
-            Self(
-                ::ethers::contract::Contract::new(
-                    address.into(),
-                    WRITER_ABI.clone(),
-                    client,
-                ),
-            )
+            Self(::ethers::contract::Contract::new(
+                address.into(),
+                WRITER_ABI.clone(),
+                client,
+            ))
         }
         /// Constructs the general purpose `Deployer` instance based on the provided constructor arguments and sends it.
         /// Returns a new instance of a deployer that returns an instance of this contract after sending the transaction
@@ -130151,26 +131877,18 @@ pub mod writer {
         ///Gets the contract's `WasWritten` event
         pub fn was_written_filter(
             &self,
-        ) -> ::ethers::contract::builders::Event<
-            ::std::sync::Arc<M>,
-            M,
-            WasWrittenFilter,
-        > {
+        ) -> ::ethers::contract::builders::Event<::std::sync::Arc<M>, M, WasWrittenFilter> {
             self.0.event()
         }
         /// Returns an `Event` builder for all the events of this contract.
         pub fn events(
             &self,
-        ) -> ::ethers::contract::builders::Event<
-            ::std::sync::Arc<M>,
-            M,
-            WasWrittenFilter,
-        > {
-            self.0.event_with_filter(::core::default::Default::default())
+        ) -> ::ethers::contract::builders::Event<::std::sync::Arc<M>, M, WasWrittenFilter> {
+            self.0
+                .event_with_filter(::core::default::Default::default())
         }
     }
-    impl<M: ::ethers::providers::Middleware> From<::ethers::contract::Contract<M>>
-    for Writer<M> {
+    impl<M: ::ethers::providers::Middleware> From<::ethers::contract::Contract<M>> for Writer<M> {
         fn from(contract: ::ethers::contract::Contract<M>) -> Self {
             Self::new(contract.address(), contract.client())
         }
@@ -130183,7 +131901,7 @@ pub mod writer {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethevent(name = "WasWritten", abi = "WasWritten(string)")]
     pub struct WasWrittenFilter {
@@ -130198,7 +131916,7 @@ pub mod writer {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "echoString", abi = "echoString(string)")]
     pub struct EchoStringCall {
@@ -130213,7 +131931,7 @@ pub mod writer {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     pub struct EchoStringReturn(pub ::std::string::String);
 }

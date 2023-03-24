@@ -35,7 +35,7 @@ mod tests {
         );
 
         // Deploy the writer contract.
-        let writer = manager.deploy(writer, ());
+        let writer = manager.deploy(&writer, ());
 
         // Generate calldata for the 'echoString' function
         let test_string = "Hello, world!";
@@ -80,7 +80,7 @@ mod tests {
         let args = (name.to_string(), symbol.to_string());
 
         // Call the contract deployer and receive a IsDeployed version of SimulationContract that now has an address.
-        let arbiter_token = manager.deploy(arbiter_token, args);
+        let arbiter_token = manager.deploy(&arbiter_token, args);
         println!(
             "Arbiter Token deployed at: {}",
             arbiter_token.address.unwrap()
@@ -159,7 +159,7 @@ mod tests {
         );
 
         // Deploy the writer contract.
-        let writer = manager.deploy(writer, ()); // TODO: Probably worth saying this is deployed under a specific manager.
+        let writer = manager.deploy(&writer, ()); // TODO: Probably worth saying this is deployed under a specific manager.
 
         // Generate calldata for the 'echoString' function
         let test_string = "Hello, world!";
