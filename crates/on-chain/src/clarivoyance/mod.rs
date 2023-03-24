@@ -1,7 +1,7 @@
 #![allow(clippy::useless_attribute)]
 use std::sync::Arc;
 
-use ethers::{providers::{Http, Provider}, contract::BaseContract};
+use ethers::{providers::{Http, Provider}, contract::{BaseContract, Contract}, abi::Address};
 
 #[allow(warnings)]
 pub mod error;
@@ -17,7 +17,9 @@ impl Clairvoyance {
         let provider = utils::get_provider().await;
         Self { provider }
     }
-    pub async fn monitor_events(contract: BaseContract) -> Self {
+    pub async fn monitor_events(&self, contract: BaseContract, address: Address) -> Self {
+        let thing: ethers::contract::Contract<Provider<ethers::providers::Http>> = contract.into_contract(address, self.provider.clone());
+        // still meditating on the right way to abstract this
         todo!()
     }
 }
