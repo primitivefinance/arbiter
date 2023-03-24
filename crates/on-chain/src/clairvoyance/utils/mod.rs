@@ -1,3 +1,6 @@
+#![allow(deprecated)]
+// #![warn(missing_docs)]
+#![warn(unsafe_code)]
 use std::collections::HashMap;
 
 use ethers::types::{Address, H160};

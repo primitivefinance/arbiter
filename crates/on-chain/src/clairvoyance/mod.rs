@@ -1,3 +1,6 @@
+#![allow(deprecated)]
+// #![warn(missing_docs)]
+#![warn(unsafe_code)]
 #![allow(clippy::useless_attribute)]
 use std::sync::Arc;
 
