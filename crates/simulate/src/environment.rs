@@ -25,21 +25,19 @@ use revm::{
 
 use crate::agent::{Agent, TransactSettings};
 
-/// The `SimulationEnvironment` struct controls the execution environment (EVM), has an associated set of agents, and provides an event (ETH log) buffer.
+/// Controls the execution environment (EVM), has an associated set of agents, and provides an event (ETH log) buffer.
 struct SimulationEnvironment {
-    evm: EVM<CacheDB<EmptyDB>>,
     _agents: HashMap<String, Box<dyn Agent>>,
     event_buffer: Arc<RwLock<Vec<Log>>>, // TODO: This should probably just store head
     writer_thread: Option<thread::JoinHandle<()>>,
+
+    evm: EVM<CacheDB<EmptyDB>>,
 }
 
 impl SimulationEnvironment {
-    /**
-    Public default constructor function to instantiate an `ExecutionManager`.
-    Private and can only be called by the `SimulationManager` struct.
-    This prevents a user from creating an `ExecutionManager` without a `SimulationManager` which will not function well.
-    */
-    fn default() -> Self {
+    /// Private and can only be called by the `SimulationManager` struct.
+    /// This prevents a user from creating an `ExecutionManager` without a `SimulationManager` which will not function well.
+    fn new() -> Self {
         let mut evm = EVM::new();
         let db = CacheDB::new(EmptyDB {});
         evm.env.cfg.limit_contract_code_size = Some(0x100000); // This is a large contract size limit, beware!
@@ -47,9 +45,9 @@ impl SimulationEnvironment {
 
         Self {
             evm,
-            _agents: HashMap::new(), // This will only store agents that aren't the manager.
             event_buffer: Arc::new(RwLock::new(Vec::<Log>::new())),
             writer_thread: Some(thread::spawn(|| {})),
+            _agents: HashMap::new(), // This will only store agents that aren't the manager.
         }
     }
 }
@@ -69,6 +67,7 @@ impl SimulationEnvironment {
         self.echo_logs(logs);
         execution_result
     }
+    
     /// `echo_logs` is a private function that takes a vector of logs and writes them to the event buffer that all agents can read.
     fn echo_logs(&mut self, logs: Vec<Log>) {
         // let writer_thread = self.writer_thread.take();

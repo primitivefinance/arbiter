@@ -18,6 +18,7 @@ mod tests {
         agent::Agent,
         environment::{recast_address, SimulationContract, SimulationManager},
     };
+    
     #[test]
     /// Test that the writer contract can echo a string.
     /// The writer contract takes in no args.
