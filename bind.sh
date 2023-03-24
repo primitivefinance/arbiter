@@ -1,8 +1,8 @@
 #!/bin/bash
 
-forge bind -C lib/arbmod/contracts -b crates/bindings/ --crate-name bindings --overwrite --single-file
+forge bind -c lib/arbmod/contracts -b crates/bindings/ --crate-name bindings --overwrite --single-file
 echo "Generated bindings for arbmod" 
-forge bind -C lib/portfolio/contracts -b crates/bindings/ --crate-name bindings --overwrite --single-file
+forge bind -c lib/portfolio/contracts -b crates/bindings/ --crate-name bindings --overwrite --single-file
 echo "Generated bindings for portfolio"
 
 #!/bin/bash
