@@ -56,6 +56,7 @@ async fn main() -> Result<()> {
                     .into_iter()
                     .collect(),
             );
+
             let weth = manager.deploy(weth, ());
             println!("WETH deployed at: {}", weth.address.unwrap());
 
@@ -67,6 +68,7 @@ async fn main() -> Result<()> {
                     .into_iter()
                     .collect(),
             );
+            
             let registry = manager.deploy(registry, ());
             println!("Simple registry deployed at: {}", registry.address.unwrap());
 
