@@ -5,7 +5,8 @@ use clap::{CommandFactory, Parser, Subcommand};
 use ethers::prelude::BaseContract;
 use eyre::Result;
 use simulate::{
-    environment::{recast_address, SimulationContract, SimulationManager},
+    manager::{recast_address, SimulationManager},
+    environment::SimulationContract,
     price_simulation::PriceSimulation,
 };
 use bindings::{weth9, simple_registry, rmm01_portfolio};
@@ -46,7 +47,7 @@ async fn main() -> Result<()> {
         Some(Commands::Sim { config: _ }) => {
             // Create a `SimulationManager` that runs simulations in their `SimulationEnvironment`.
             // This will create an EVM instance along with an admin user account.
-            let mut manager = SimulationManager::default();
+            let mut manager = SimulationManager::new();
 
             // Deploy the WETH contract.
             let weth = SimulationContract::new(

@@ -1,14 +1,57 @@
-struct SimulationEnvironment<'a> {
-    evm: EVM<CacheDB<EmptyDB>>,
-    event_buffer: Arc<RwLock<Vec<Log>>>, // TODO: This should probably just store head
-    writer_thread: Option<thread::JoinHandle<()>>,
-    agents: HashMap<&'a str, Box<dyn Agent>>,
+use std::{
+    collections::HashMap,
+    str::FromStr,
+    sync::{Arc, RwLock},
+    thread,
+};
+
+use bytes::Bytes;
+use ethers::{
+    abi::Tokenize,
+    prelude::{Address, BaseContract},
+};
+use revm::{
+    db::{CacheDB, EmptyDB},
+    primitives::{
+        Account, AccountInfo, ExecutionResult, Log, Output, TransactTo, TxEnv, B160, U256,
+    },
+    EVM,
+};
+
+use crate::agent::{Agent, TransactSettings};
+
+pub(crate) struct SimulationEnvironment<'a> {
+    pub(crate) evm: EVM<CacheDB<EmptyDB>>,
+    pub(crate) event_buffer: Arc<RwLock<Vec<Log>>>, // TODO: This should probably just store head
+    pub(crate) writer_thread: Option<thread::JoinHandle<()>>,
+    pub(crate) agents: HashMap<&'a str, Box<dyn Agent>>,
 }
 
-struct SimulationContract {}
+#[derive(Debug)]
+/// A struct use for `PhantomData` to indicate a lock on contracts that are not deployed.
+pub struct NotDeployed;
+#[derive(Debug)]
+// TODO: It would be good to also allow the `IsDeployed` to also mention which `SimulationManager` has deployed it (when we have multiple managers).
+/// A struct use for `PhantomData` to indicate an unlocked contract that is deployed.
+pub struct IsDeployed;
 
-impl SimulationEnvironment {
-    fn new() -> Self {
+#[derive(Debug)]
+/// A struct that wraps around the ethers `BaseContract` and adds some additional information relevant for revm and the simulation.
+pub struct SimulationContract<Deployed> {
+    /// The ethers `BaseContract` that holds the ABI.
+    pub base_contract: BaseContract,
+    // TODO: Bytecode is really only used for deployment. Maybe we don't need to store it like this.
+    /// The contract's deployed bytecode.
+    pub bytecode: Vec<u8>,
+    //TODO: Options are not great here. We want an address for the deployment to some `SimulationEnvironment`.
+    /// The address of the contract within the relevant `SimulationEnvironment`.
+    pub address: Option<B160>,
+    /// A `PhantomData` marker to indicate whether the contract is deployed or not.
+    pub deployed: std::marker::PhantomData<Deployed>,
+}
+
+impl<'a> SimulationEnvironment<'a> {
+    pub(crate) fn new() -> Self {
         let mut evm = EVM::new();
         let db = CacheDB::new(EmptyDB {});
         evm.env.cfg.limit_contract_code_size = Some(0x100000); // This is a large contract size limit, beware!
@@ -22,7 +65,7 @@ impl SimulationEnvironment {
         }        
     }
 
-    fn execute(&mut self, tx: TxEnv) -> ExecutionResult {
+    pub(crate) fn execute(&mut self, tx: TxEnv) -> ExecutionResult {
         self.evm.env.tx = tx;
 
         let execution_result = match self.evm.transact_commit() {
@@ -35,8 +78,8 @@ impl SimulationEnvironment {
 
         execution_result
     }
-    
-    fn echo_logs(&mut self, logs: Vec<Log>) {
+
+    pub(crate) fn echo_logs(&mut self, logs: Vec<Log>) {
         if let Some(handle) = self.writer_thread.take() {
             handle.join().unwrap();
         }
@@ -46,5 +89,27 @@ impl SimulationEnvironment {
         logs.into_iter().for_each(|log| {
             self.event_buffer.write().unwrap().push(log);
         });
+    }
+}
+
+impl SimulationContract<NotDeployed> {
+    /// A constructor function for `SimulationContract` that takes a `BaseContract` and the deployment bytecode.
+    pub fn new(base_contract: BaseContract, bytecode: Vec<u8>) -> Self {
+        Self {
+            base_contract,
+            bytecode,
+            address: None,
+            deployed: std::marker::PhantomData,
+        }
+    }
+    /// Creates a new `SimulationContract` that is marked as deployed.
+    /// This is only called by implicitly by the `SimulationManager` inside of the `deploy` function.
+    pub fn to_deployed(&self, address: B160) -> SimulationContract<IsDeployed> {
+        SimulationContract {
+            base_contract: self.base_contract.clone(),
+            bytecode: self.bytecode.clone(),
+            address: Some(address),
+            deployed: std::marker::PhantomData,
+        }
     }
 }

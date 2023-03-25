@@ -3,6 +3,7 @@
 
 pub mod agent;
 pub mod environment;
+pub mod manager;
 pub mod price_simulation;
 
 #[cfg(test)]
