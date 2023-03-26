@@ -112,3 +112,27 @@ fn generate_gbm(
     }
     price_path
 }
+
+fn generate_ou_process(
+    initial_price: f64,
+    timestep: f64,
+    mean: f64,
+    volatility: f64,
+    num_steps: usize,
+    seed: u64,
+    theta: f64,
+) -> Vec<f64> {
+    let mut price_path: Vec<f64> = Vec::new();
+    let mut rng: ChaCha8Rng = ChaCha8Rng::seed_from_u64(seed);
+    let mut ou: f64 = initial_price;
+    price_path.push(ou);
+    for index in 1..num_steps {
+        let scale: f64 = 1.0 - f64::exp(-2.0 * theta * timestep * index as f64);
+        let normal_sample: f64 = StandardNormal.sample(&mut rng);
+        let scaled_weiner: f64 = normal_sample * scale.sqrt();
+        let temp_term: f64 = f64::exp(-theta * timestep * index as f64);
+        ou = ou * temp_term + mean * (1.0 - temp_term) + volatility * (timestep / (2.0 * theta.sqrt())).sqrt() * scaled_weiner;
+        price_path.push(ou);
+    }
+    price_path
+}

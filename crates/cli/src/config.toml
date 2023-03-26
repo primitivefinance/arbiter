@@ -9,8 +9,9 @@ bp = "30"
 timestep = 0.0027397
 timescale = "years"
 num_steps = 365
-initial_price = 1196.54
+initial_price = 4
 drift = 0.1
 volatility = 0.7
 seed = 887
-
+mean = 1
+theta = 0.4
