@@ -105,9 +105,10 @@ fn generate_gbm(
     let mut rng = ChaCha8Rng::seed_from_u64(seed);
     for index in 1..num_steps {
         let normal_sample: f64 = StandardNormal.sample(&mut rng);
+        let weiner: f64 = normal_sample * timestep.sqrt() * volatility.sqrt();
         let geometric_sample =
-            f64::exp((drift - volatility.powi(2) / 2.) * timestep + volatility * normal_sample);
-        price_path.push(geometric_sample * price_path[index - 1]);
+            f64::exp((drift - volatility.powi(2) / 2.) * timestep * index as f64 + weiner);
+        price_path.push(geometric_sample * initial_price);
     }
     price_path
 }
