@@ -6,11 +6,11 @@ token1 = "USDC"
 bp = "30"
 
 [sim]
-timestep = 1.0
-timescale = "day"
+timestep = 0.0027397
+timescale = "years"
 num_steps = 365
 initial_price = 1196.54
 drift = 0.1
-volatility = 2.0
-seed = 888
+volatility = 0.7
+seed = 887
 
