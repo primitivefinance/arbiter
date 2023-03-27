@@ -1,6 +1,4 @@
-#![allow(deprecated)]
-// #![warn(missing_docs)]
-#![warn(unsafe_code)]
+#![warn(missing_docs)]
 
 pub mod executor;
 pub mod monitor;
