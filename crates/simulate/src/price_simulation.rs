@@ -1,4 +1,5 @@
 #![warn(missing_docs)]
+#![warn(unsafe_code)]
 //! Used to generate price paths for a simulation.
 //! Managers will be able to read from this data to change prices of for infinitely liquid pools.
 

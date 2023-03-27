@@ -1,6 +1,8 @@
 #![allow(deprecated)]
-// #![warn(missing_docs)]
+#![warn(missing_docs)]
 #![warn(unsafe_code)]
+//! Utility functions for the on-chain crate.
+
 use std::collections::HashMap;
 
 use ethers::types::{Address, H160};
@@ -215,12 +217,12 @@ pub async fn get_provider() -> Arc<Provider<Http>> {
     )
 }
 
-/// Take in a U256 structured as a q64_96 fixed point from UniswapV3 and converts this to a BigFloat.
 #[deprecated(
     since = "0.0.1",
     note = "will be useful for agents in the future; realistically we should just use on chain fixed point math for this"
 )]
 #[allow(warnings)]
+/// Converts from UniswapV3 fixed point q64_96 to BigFloat for handling in Rust.
 pub fn convert_q64_96(q64_96: U256) -> BigFloat {
     let least_sig = q64_96.0[0];
     let second_sig = q64_96.0[1];
