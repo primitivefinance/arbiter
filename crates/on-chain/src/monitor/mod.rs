@@ -4,14 +4,14 @@
 use std::sync::Arc;
 
 use ethers::{
-    abi::{Abi},
+    abi::Abi,
     contract::Contract,
-    providers::{Http, Middleware},
     prelude::Provider,
+    providers::{Http, Middleware},
     types::{Address, Filter},
 };
-use futures::stream::StreamExt;
 use eyre::Result;
+use futures::stream::StreamExt;
 
 pub mod utils;
 
@@ -27,8 +27,7 @@ impl EventMonitor {
         Self { provider }
     }
     /// Monitors events for a given contract from a given provider.
-    pub async fn monitor_events(self, contract_address: &str, contract_abi: Abi ) -> Result<()> {
-        
+    pub async fn monitor_events(self, contract_address: &str, contract_abi: Abi) -> Result<()> {
         let contract_address: Address = contract_address.parse()?;
         let i_portfolio = Contract::new(contract_address, contract_abi, self.provider.clone());
 
@@ -39,12 +38,13 @@ impl EventMonitor {
             topics: [None, None, None, None], // None for all topics
             ..Default::default()
         };
-    
-        let mut event_stream = self.provider
+
+        let mut event_stream = self
+            .provider
             .watch(&event_filter)
             .await
             .expect("Failed to create event stream");
-    
+
         while let Some(log) = event_stream.next().await {
             println!("Event data: {:?}", log);
         }
