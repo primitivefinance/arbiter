@@ -45,7 +45,7 @@ impl Token {
     }
 }
 
-// return hashmap, name = key, value = token object
+/// return hashmap, name = key, value = token object
 pub fn get_tokens() -> HashMap<String, Token> {
     let mut tokens = HashMap::new();
 

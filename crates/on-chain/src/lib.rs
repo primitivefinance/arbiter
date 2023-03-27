@@ -1,4 +1,2 @@
-#![warn(missing_docs)]
-
-pub mod executor;
+// pub mod executor; TODO Work on executor next
 pub mod monitor;
