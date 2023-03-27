@@ -1,3 +1,6 @@
+#![allow(deprecated)]
+// #![warn(missing_docs)]
+#![warn(unsafe_code)]
 //! Error handling for clairvoyance.
 
 use ethers::{prelude::*, providers::Provider};
