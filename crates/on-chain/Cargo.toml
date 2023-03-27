@@ -6,6 +6,10 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+# Internal
+
+bindings = { path = "../bindings" }
+
 # External
 serde = {version = "1.0.145", features= ["derive"]}
 tokio = { version = "1.17.0", features = ["macros"] }
