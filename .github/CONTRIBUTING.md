@@ -51,6 +51,8 @@ Commit the changes once you are happy with them with descriptive comments:zap:.
 ### Pull Request
 
 When you're finished with the changes, create a pull request, also known as a PR.
+- Check to see your pull request passes our continuous integration (CI). If you cannot get a certain integration test to pass, let us know. We can assist you in fixing these issues or approve a merge manually.
+- Make sure your additions are properly documented! You can see the [Rust book](https://doc.rust-lang.org/rustdoc/how-to-write-documentation.html) for documentation guidelines. Each module uses the diagnostic attribute `#![warn(missing_docs)]` which will trigger clippy in our CI.
 - Don't forget to [link PR to issue](https://docs.github.com/en/issues/tracking-your-work-with-issues/linking-a-pull-request-to-an-issue) if you are solving one.
 - Enable the checkbox to [allow maintainer edits](https://docs.github.com/en/github/collaborating-with-issues-and-pull-requests/allowing-changes-to-a-pull-request-branch-created-from-a-fork) so the branch can be updated for a merge.
 Once you submit your PR, a Arbiter team member will review your proposal. We may ask questions or request additional information.
