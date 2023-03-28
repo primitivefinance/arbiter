@@ -1,9 +1,14 @@
 #!/bin/bash
 
-forge bind -C lib/arbmod/contracts -b crates/bindings/ --crate-name bindings --overwrite --single-file
+forge clean
+forge bind -C lib/arbmod/contracts -b crates/bindings/ --crate-name bindings --overwrite
 echo "Generated bindings for arbmod" 
-forge bind -C lib/portfolio/contracts -b crates/bindings/ --crate-name bindings --overwrite --single-file
+forge bind -C lib/portfolio/contracts -b crates/bindings/ --crate-name bindings --overwrite
 echo "Generated bindings for portfolio"
+forge bind -C lib/canonical-weth/contracts -b crates/bindings/ --crate-name bindings --overwrite
+echo "Generated bindings for canonical-weth"
+forge bind -C lib/openzeppelin-contracts/contracts/token/ERC20 -b crates/bindings/ --crate-name bindings --overwrite --crate-version 0.1.0
+echo "Generated bindings for openzeppelin-contracts"
 
 #!/bin/bash
 
@@ -193,19 +198,6 @@ echo "                                 Apache License
       of your accepting any such warranty or additional liability.
 
    END OF TERMS AND CONDITIONS
-
-   APPENDIX: How to apply the Apache License to your work.
-
-      To apply the Apache License to your work, attach the following
-      boilerplate notice, with the fields enclosed by brackets "[]"
-      replaced with your own identifying information. (Don't include
-      the brackets!)  The text should be enclosed in the appropriate
-      comment syntax for the file format. We also recommend that a
-      file or class name and description of purpose be included on the
-      same "printed page" as the copyright notice for easier
-      identification within third-party archives.
-
-   Copyright [yyyy] [name of copyright owner]
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
