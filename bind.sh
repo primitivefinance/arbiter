@@ -1,5 +1,6 @@
 #!/bin/bash
 
+forge install
 forge clean
 forge bind -C lib/arbmod/contracts -b crates/bindings/ --crate-name bindings --overwrite
 echo "Generated bindings for arbmod" 

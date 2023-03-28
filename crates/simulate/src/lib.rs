@@ -3,7 +3,9 @@
 
 pub mod agent;
 pub mod environment;
+pub mod manager;
 pub mod price_simulation;
+pub mod utils;
 
 #[cfg(test)]
 mod tests {
@@ -15,9 +17,9 @@ mod tests {
     use revm::primitives::{ruint::Uint, B160};
 
     use crate::{
-        agent::Agent,
-        environment::{recast_address, SimulationContract, SimulationManager},
+        environment::SimulationContract, manager::SimulationManager, utils::recast_address,
     };
+
     #[test]
     /// Test that the writer contract can echo a string.
     /// The writer contract takes in no args.

@@ -7,14 +7,16 @@ pub use access_control::*;
     clippy::upper_case_acronyms,
     clippy::type_complexity,
     dead_code,
-    non_camel_case_types,
+    non_camel_case_types
 )]
 pub mod access_control {
     #[rustfmt::skip]
     const __ABI: &str = "[{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"role\",\"type\":\"bytes32\",\"components\":[],\"indexed\":true},{\"internalType\":\"bytes32\",\"name\":\"previousAdminRole\",\"type\":\"bytes32\",\"components\":[],\"indexed\":true},{\"internalType\":\"bytes32\",\"name\":\"newAdminRole\",\"type\":\"bytes32\",\"components\":[],\"indexed\":true}],\"type\":\"event\",\"name\":\"RoleAdminChanged\",\"outputs\":[],\"anonymous\":false},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"role\",\"type\":\"bytes32\",\"components\":[],\"indexed\":true},{\"internalType\":\"address\",\"name\":\"account\",\"type\":\"address\",\"components\":[],\"indexed\":true},{\"internalType\":\"address\",\"name\":\"sender\",\"type\":\"address\",\"components\":[],\"indexed\":true}],\"type\":\"event\",\"name\":\"RoleGranted\",\"outputs\":[],\"anonymous\":false},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"role\",\"type\":\"bytes32\",\"components\":[],\"indexed\":true},{\"internalType\":\"address\",\"name\":\"account\",\"type\":\"address\",\"components\":[],\"indexed\":true},{\"internalType\":\"address\",\"name\":\"sender\",\"type\":\"address\",\"components\":[],\"indexed\":true}],\"type\":\"event\",\"name\":\"RoleRevoked\",\"outputs\":[],\"anonymous\":false},{\"inputs\":[],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"DEFAULT_ADMIN_ROLE\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"role\",\"type\":\"bytes32\",\"components\":[]}],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"getRoleAdmin\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"role\",\"type\":\"bytes32\",\"components\":[]},{\"internalType\":\"address\",\"name\":\"account\",\"type\":\"address\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"function\",\"name\":\"grantRole\",\"outputs\":[]},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"role\",\"type\":\"bytes32\",\"components\":[]},{\"internalType\":\"address\",\"name\":\"account\",\"type\":\"address\",\"components\":[]}],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"hasRole\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"role\",\"type\":\"bytes32\",\"components\":[]},{\"internalType\":\"address\",\"name\":\"account\",\"type\":\"address\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"function\",\"name\":\"renounceRole\",\"outputs\":[]},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"role\",\"type\":\"bytes32\",\"components\":[]},{\"internalType\":\"address\",\"name\":\"account\",\"type\":\"address\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"function\",\"name\":\"revokeRole\",\"outputs\":[]},{\"inputs\":[{\"internalType\":\"bytes4\",\"name\":\"interfaceId\",\"type\":\"bytes4\",\"components\":[]}],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"supportsInterface\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\",\"components\":[]}]}]";
     ///The parsed JSON ABI of the contract.
-    pub static ACCESSCONTROL_ABI: ::ethers::contract::Lazy<::ethers::core::abi::Abi> = ::ethers::contract::Lazy::new(||
-    ::ethers::core::utils::__serde_json::from_str(__ABI).expect("ABI is always valid"));
+    pub static ACCESSCONTROL_ABI: ::ethers::contract::Lazy<::ethers::core::abi::Abi> =
+        ::ethers::contract::Lazy::new(|| {
+            ::ethers::core::utils::__serde_json::from_str(__ABI).expect("ABI is always valid")
+        });
     pub struct AccessControl<M>(::ethers::contract::Contract<M>);
     impl<M> ::core::clone::Clone for AccessControl<M> {
         fn clone(&self) -> Self {
@@ -34,7 +36,9 @@ pub mod access_control {
     }
     impl<M> ::core::fmt::Debug for AccessControl<M> {
         fn fmt(&self, f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
-            f.debug_tuple(stringify!(AccessControl)).field(&self.address()).finish()
+            f.debug_tuple(stringify!(AccessControl))
+                .field(&self.address())
+                .finish()
         }
     }
     impl<M: ::ethers::providers::Middleware> AccessControl<M> {
@@ -44,13 +48,11 @@ pub mod access_control {
             address: T,
             client: ::std::sync::Arc<M>,
         ) -> Self {
-            Self(
-                ::ethers::contract::Contract::new(
-                    address.into(),
-                    ACCESSCONTROL_ABI.clone(),
-                    client,
-                ),
-            )
+            Self(::ethers::contract::Contract::new(
+                address.into(),
+                ACCESSCONTROL_ABI.clone(),
+                client,
+            ))
         }
         ///Calls the contract's `DEFAULT_ADMIN_ROLE` (0xa217fddf) function
         pub fn default_admin_role(
@@ -121,46 +123,36 @@ pub mod access_control {
         ///Gets the contract's `RoleAdminChanged` event
         pub fn role_admin_changed_filter(
             &self,
-        ) -> ::ethers::contract::builders::Event<
-            ::std::sync::Arc<M>,
-            M,
-            RoleAdminChangedFilter,
-        > {
+        ) -> ::ethers::contract::builders::Event<::std::sync::Arc<M>, M, RoleAdminChangedFilter>
+        {
             self.0.event()
         }
         ///Gets the contract's `RoleGranted` event
         pub fn role_granted_filter(
             &self,
-        ) -> ::ethers::contract::builders::Event<
-            ::std::sync::Arc<M>,
-            M,
-            RoleGrantedFilter,
-        > {
+        ) -> ::ethers::contract::builders::Event<::std::sync::Arc<M>, M, RoleGrantedFilter>
+        {
             self.0.event()
         }
         ///Gets the contract's `RoleRevoked` event
         pub fn role_revoked_filter(
             &self,
-        ) -> ::ethers::contract::builders::Event<
-            ::std::sync::Arc<M>,
-            M,
-            RoleRevokedFilter,
-        > {
+        ) -> ::ethers::contract::builders::Event<::std::sync::Arc<M>, M, RoleRevokedFilter>
+        {
             self.0.event()
         }
         /// Returns an `Event` builder for all the events of this contract.
         pub fn events(
             &self,
-        ) -> ::ethers::contract::builders::Event<
-            ::std::sync::Arc<M>,
-            M,
-            AccessControlEvents,
-        > {
-            self.0.event_with_filter(::core::default::Default::default())
+        ) -> ::ethers::contract::builders::Event<::std::sync::Arc<M>, M, AccessControlEvents>
+        {
+            self.0
+                .event_with_filter(::core::default::Default::default())
         }
     }
     impl<M: ::ethers::providers::Middleware> From<::ethers::contract::Contract<M>>
-    for AccessControl<M> {
+        for AccessControl<M>
+    {
         fn from(contract: ::ethers::contract::Contract<M>) -> Self {
             Self::new(contract.address(), contract.client())
         }
@@ -173,7 +165,7 @@ pub mod access_control {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethevent(
         name = "RoleAdminChanged",
@@ -195,7 +187,7 @@ pub mod access_control {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethevent(name = "RoleGranted", abi = "RoleGranted(bytes32,address,address)")]
     pub struct RoleGrantedFilter {
@@ -214,7 +206,7 @@ pub mod access_control {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethevent(name = "RoleRevoked", abi = "RoleRevoked(bytes32,address,address)")]
     pub struct RoleRevokedFilter {
@@ -251,9 +243,7 @@ pub mod access_control {
     impl ::core::fmt::Display for AccessControlEvents {
         fn fmt(&self, f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
             match self {
-                Self::RoleAdminChangedFilter(element) => {
-                    ::core::fmt::Display::fmt(element, f)
-                }
+                Self::RoleAdminChangedFilter(element) => ::core::fmt::Display::fmt(element, f),
                 Self::RoleGrantedFilter(element) => ::core::fmt::Display::fmt(element, f),
                 Self::RoleRevokedFilter(element) => ::core::fmt::Display::fmt(element, f),
             }
@@ -283,7 +273,7 @@ pub mod access_control {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "DEFAULT_ADMIN_ROLE", abi = "DEFAULT_ADMIN_ROLE()")]
     pub struct DefaultAdminRoleCall;
@@ -296,7 +286,7 @@ pub mod access_control {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "getRoleAdmin", abi = "getRoleAdmin(bytes32)")]
     pub struct GetRoleAdminCall {
@@ -311,7 +301,7 @@ pub mod access_control {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "grantRole", abi = "grantRole(bytes32,address)")]
     pub struct GrantRoleCall {
@@ -327,7 +317,7 @@ pub mod access_control {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "hasRole", abi = "hasRole(bytes32,address)")]
     pub struct HasRoleCall {
@@ -343,7 +333,7 @@ pub mod access_control {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "renounceRole", abi = "renounceRole(bytes32,address)")]
     pub struct RenounceRoleCall {
@@ -359,7 +349,7 @@ pub mod access_control {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "revokeRole", abi = "revokeRole(bytes32,address)")]
     pub struct RevokeRoleCall {
@@ -375,7 +365,7 @@ pub mod access_control {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "supportsInterface", abi = "supportsInterface(bytes4)")]
     pub struct SupportsInterfaceCall {
@@ -397,36 +387,31 @@ pub mod access_control {
             data: impl AsRef<[u8]>,
         ) -> ::core::result::Result<Self, ::ethers::core::abi::AbiError> {
             let data = data.as_ref();
-            if let Ok(decoded)
-                = <DefaultAdminRoleCall as ::ethers::core::abi::AbiDecode>::decode(
-                    data,
-                ) {
+            if let Ok(decoded) =
+                <DefaultAdminRoleCall as ::ethers::core::abi::AbiDecode>::decode(data)
+            {
                 return Ok(Self::DefaultAdminRole(decoded));
             }
-            if let Ok(decoded)
-                = <GetRoleAdminCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <GetRoleAdminCall as ::ethers::core::abi::AbiDecode>::decode(data)
+            {
                 return Ok(Self::GetRoleAdmin(decoded));
             }
-            if let Ok(decoded)
-                = <GrantRoleCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <GrantRoleCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::GrantRole(decoded));
             }
-            if let Ok(decoded)
-                = <HasRoleCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <HasRoleCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::HasRole(decoded));
             }
-            if let Ok(decoded)
-                = <RenounceRoleCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <RenounceRoleCall as ::ethers::core::abi::AbiDecode>::decode(data)
+            {
                 return Ok(Self::RenounceRole(decoded));
             }
-            if let Ok(decoded)
-                = <RevokeRoleCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <RevokeRoleCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::RevokeRole(decoded));
             }
-            if let Ok(decoded)
-                = <SupportsInterfaceCall as ::ethers::core::abi::AbiDecode>::decode(
-                    data,
-                ) {
+            if let Ok(decoded) =
+                <SupportsInterfaceCall as ::ethers::core::abi::AbiDecode>::decode(data)
+            {
                 return Ok(Self::SupportsInterface(decoded));
             }
             Err(::ethers::core::abi::Error::InvalidData.into())
@@ -435,25 +420,13 @@ pub mod access_control {
     impl ::ethers::core::abi::AbiEncode for AccessControlCalls {
         fn encode(self) -> Vec<u8> {
             match self {
-                Self::DefaultAdminRole(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
-                Self::GetRoleAdmin(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
-                Self::GrantRole(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
+                Self::DefaultAdminRole(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::GetRoleAdmin(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::GrantRole(element) => ::ethers::core::abi::AbiEncode::encode(element),
                 Self::HasRole(element) => ::ethers::core::abi::AbiEncode::encode(element),
-                Self::RenounceRole(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
-                Self::RevokeRole(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
-                Self::SupportsInterface(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
+                Self::RenounceRole(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::RevokeRole(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::SupportsInterface(element) => ::ethers::core::abi::AbiEncode::encode(element),
             }
         }
     }
@@ -514,7 +487,7 @@ pub mod access_control {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     pub struct DefaultAdminRoleReturn(pub [u8; 32]);
     ///Container type for all return fields from the `getRoleAdmin` function with signature `getRoleAdmin(bytes32)` and selector `0x248a9ca3`
@@ -526,7 +499,7 @@ pub mod access_control {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     pub struct GetRoleAdminReturn(pub [u8; 32]);
     ///Container type for all return fields from the `hasRole` function with signature `hasRole(bytes32,address)` and selector `0x91d14854`
@@ -538,7 +511,7 @@ pub mod access_control {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     pub struct HasRoleReturn(pub bool);
     ///Container type for all return fields from the `supportsInterface` function with signature `supportsInterface(bytes4)` and selector `0x01ffc9a7`
@@ -550,7 +523,7 @@ pub mod access_control {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     pub struct SupportsInterfaceReturn(pub bool);
 }
