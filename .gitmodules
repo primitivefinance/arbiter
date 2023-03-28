@@ -11,3 +11,6 @@
 	path = lib/openzeppelin-contracts
 	url = https://github.com/OpenZeppelin/openzeppelin-contracts
 	branch = v4.8.2
+[submodule "lib/canonical-weth"]
+	path = lib/canonical-weth
+	url = https://github.com/gnosis/canonical-weth
