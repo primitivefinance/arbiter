@@ -2,7 +2,7 @@
 #![warn(unsafe_code)]
 //! Main lives in the `cli` crate so that we can do our input parsing.
 
-use bindings::{rmm01_portfolio, simple_registry, weth9};
+use bindings::{rmm01_portfolio, simple_registry, weth9, uniswap_v3_pool};
 use clap::{CommandFactory, Parser, Subcommand};
 use ethers::prelude::BaseContract;
 use eyre::Result;
@@ -10,6 +10,7 @@ use simulate::{
     environment::{recast_address, SimulationContract, SimulationManager},
     price_simulation::PriceSimulation,
 };
+use on_chain::monitor::EventMonitor;
 mod config;
 
 #[derive(Parser)]
@@ -38,7 +39,7 @@ enum Commands {
         config: String,
     },
 
-    chain {
+    Chain {
         /// Path to config.toml containing simulation parameterization (optional)
         #[arg(short, long, default_value = "./crates/cli/src/config.toml", num_args = 0..=1)]
         config: String,
@@ -114,12 +115,13 @@ async fn main() -> Result<()> {
 
             test_sim.plot();
         }
-        Some(Commands::chain { config }) => {
+        Some(Commands::Chain { config: _ }) => {
+
             // Parse the contract address
-            let config::Config {
-                contract_address,
-                ..
-            } = config::Config::new(config).unwrap();
+            let contract_address = "0x88e6A0c2dDD26FEEb64F039a2c41296FcB3f5640";
+            let event_monitor = EventMonitor::new(on_chain::monitor::utils::RpcTypes::Mainnet).await;
+            let contract_abi = uniswap_v3_pool::UNISWAPV3POOL_ABI.clone();
+            let _ = event_monitor.monitor_events(contract_address, contract_abi).await;
             
         }
         None => {
