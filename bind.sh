@@ -1,9 +1,14 @@
 #!/bin/bash
 
-forge bind -c lib/arbmod/contracts -b crates/bindings/ --crate-name bindings --overwrite --single-file
+forge clean
+forge bind -C lib/arbmod/contracts -b crates/bindings/ --crate-name bindings --overwrite
 echo "Generated bindings for arbmod" 
-forge bind -c lib/portfolio/contracts -b crates/bindings/ --crate-name bindings --overwrite --single-file
+forge bind -C lib/portfolio/contracts -b crates/bindings/ --crate-name bindings --overwrite
 echo "Generated bindings for portfolio"
+forge bind -C lib/canonical-weth/contracts -b crates/bindings/ --crate-name bindings --overwrite
+echo "Generated bindings for canonical-weth"
+forge bind -C lib/openzeppelin-contracts/contracts/token/ERC20 -b crates/bindings/ --crate-name bindings --overwrite --crate-version 0.1.0
+echo "Generated bindings for openzeppelin-contracts"
 
 #!/bin/bash
 
