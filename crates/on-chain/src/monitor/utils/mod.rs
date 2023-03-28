@@ -200,7 +200,6 @@ use std::sync::Arc;
 
 use ethers::{prelude::*, providers::Provider};
 
-
 // pub async fn get_provider(RPCType) -> Arc<Provider<Http>> {
 //     match RPCType {
 //         RPCType::Mainnet => Arc::new(
@@ -225,11 +224,17 @@ pub enum RpcTypes {
 /// Get a specified provider.
 pub async fn get_provider(rpc_type: RpcTypes) -> Arc<Provider<Http>> {
     match rpc_type {
-        RpcTypes::Mainnet => 
-            Arc::new(Provider::try_from("https://eth-mainnet.g.alchemy.com/v2/I93POQk49QE9O-NuOz7nj7sbiluW76it").unwrap()),
-        RpcTypes::Default =>
-            Arc::new(Provider::try_from(var_os("RPC_URL").unwrap().into_string().unwrap()).unwrap()),
-        RpcTypes::Goerli => 
-            Arc::new(Provider::try_from("https://rpc.ankr.com/eth_goerli").unwrap()),
+        RpcTypes::Mainnet => Arc::new(
+            Provider::try_from(
+                "https://eth-mainnet.g.alchemy.com/v2/I93POQk49QE9O-NuOz7nj7sbiluW76it",
+            )
+            .unwrap(),
+        ),
+        RpcTypes::Default => {
+            Arc::new(Provider::try_from(var_os("RPC_URL").unwrap().into_string().unwrap()).unwrap())
+        }
+        RpcTypes::Goerli => {
+            Arc::new(Provider::try_from("https://rpc.ankr.com/eth_goerli").unwrap())
+        }
     }
 }

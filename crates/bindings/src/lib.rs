@@ -67,7 +67,7 @@ pub mod simple_registry;
 pub mod storage_slot;
 pub mod strings;
 pub mod token_timelock;
+pub mod uniswap_v3_pool;
 pub mod units;
 pub mod weth9;
 pub mod writer;
-pub mod uniswap_v3_pool;

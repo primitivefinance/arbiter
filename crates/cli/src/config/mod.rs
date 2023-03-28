@@ -29,7 +29,6 @@ struct ConfigToml {
     chain: ConfigTomlChain,
 }
 
-
 #[derive(Serialize, Deserialize, Debug)]
 struct ConfigTomlSim {
     /// Numerical timestep for the simulation (typically `1`)
