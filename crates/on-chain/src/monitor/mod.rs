@@ -11,7 +11,15 @@ use ethers::{
     types::{Address, Filter},
 };
 use eyre::Result;
-use futures::stream::StreamExt;
+use futures::{stream::StreamExt};
+use tokio::sync::oneshot;
+use futures::future::Fuse;
+use futures::task::noop_waker_ref;
+use std::pin::Pin;
+use std::task::{Context, Poll};
+use std::future::Future;
+
+
 
 pub mod utils;
 
@@ -27,7 +35,7 @@ impl EventMonitor {
         Self { provider }
     }
     /// Monitors events for a given contract from a given provider.
-    pub async fn monitor_events(self, contract_address: &str, contract_abi: Abi) -> Result<()> {
+    pub async fn monitor_events(&self, contract_address: &str, contract_abi: Abi) -> Result<(), Box<dyn std::error::Error>> {
         let contract_address: Address = contract_address.parse()?;
         let i_portfolio = Contract::new(contract_address, contract_abi, self.provider.clone());
 

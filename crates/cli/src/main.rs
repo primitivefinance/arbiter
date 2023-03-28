@@ -37,6 +37,12 @@ enum Commands {
         #[arg(short, long, default_value = "./crates/cli/src/config.toml", num_args = 0..=1)]
         config: String,
     },
+
+    chain {
+        /// Path to config.toml containing simulation parameterization (optional)
+        #[arg(short, long, default_value = "./crates/cli/src/config.toml", num_args = 0..=1)]
+        config: String,
+    },
 }
 
 #[tokio::main]
@@ -107,6 +113,14 @@ async fn main() -> Result<()> {
             );
 
             test_sim.plot();
+        }
+        Some(Commands::chain { config }) => {
+            // Parse the contract address
+            let config::Config {
+                contract_address,
+                ..
+            } = config::Config::new(config).unwrap();
+            
         }
         None => {
             Args::command()

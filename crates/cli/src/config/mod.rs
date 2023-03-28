@@ -23,22 +23,12 @@ pub enum ConfigError {
 struct ConfigToml {
     /// RPC url.
     rpc_url: String,
-    /// Parameters for the `clairvoyance` module of arbiter.
-    see: ConfigTomlSee,
     /// Parameters for the `sim` module of arbiter.
     sim: ConfigTomlSim,
+    /// Parameters for chain interactions
+    chain: ConfigTomlChain,
 }
 
-/// Representation of the `see` section of the config file.
-#[derive(Serialize, Deserialize, Debug)]
-struct ConfigTomlSee {
-    /// Token 0 symbol.
-    token0: String,
-    /// Token 1 symbol.
-    token1: String,
-    /// Basis points of the pool.
-    bp: String,
-}
 
 #[derive(Serialize, Deserialize, Debug)]
 struct ConfigTomlSim {
@@ -57,19 +47,17 @@ struct ConfigTomlSim {
     /// Seed for varying price path
     seed: u64,
 }
-
+/// Config object for chian
+#[derive(Serialize, Deserialize, Debug)]
+pub struct ConfigTomlChain {
+    pub contract: String,
+}
 /// Representation of the config file that other modules have access to.
 /// This is in contrast to the internal deserialization types above.
 #[derive(Debug)]
 pub struct Config {
     /// RPC provider URL.
     pub rpc_url: String,
-    /// Pool token 0.
-    pub token0: String,
-    /// Pool token 1.
-    pub token1: String,
-    /// Pool basis points.
-    pub bp: String,
     /// Numerical timestep for the simulation (typically `1`)
     pub timestep: f64,
     /// Time in string interpretation
@@ -84,6 +72,8 @@ pub struct Config {
     pub volatility: f64,
     /// Seed for varying price path
     pub seed: u64,
+    /// Contract address
+    pub contract: String,
 }
 
 impl Config {
@@ -102,9 +92,6 @@ impl Config {
 
         Ok(Config {
             rpc_url: config_toml.rpc_url,
-            token0: config_toml.see.token0,
-            token1: config_toml.see.token1,
-            bp: config_toml.see.bp,
             timestep: config_toml.sim.timestep,
             timescale: config_toml.sim.timescale,
             num_steps: config_toml.sim.num_steps,
@@ -112,6 +99,7 @@ impl Config {
             drift: config_toml.sim.drift,
             volatility: config_toml.sim.volatility,
             seed: config_toml.sim.seed,
+            contract: config_toml.chain.contract,
         })
     }
 }
