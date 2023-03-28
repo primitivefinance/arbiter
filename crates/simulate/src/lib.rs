@@ -4,6 +4,7 @@
 pub mod agent;
 pub mod environment;
 pub mod price_simulation;
+pub mod exchange;
 
 #[cfg(test)]
 mod tests {
@@ -23,6 +24,7 @@ mod tests {
     /// The writer contract takes in no args.
     fn test_string_write() {
         // Set up the execution manager and a user address.
+        // The manager will act like a "bank" and hold lots of funds that a user can swap against using the LiquidExchange.
         let mut manager = SimulationManager::default();
 
         // Get bytecode and abi for the writer contract.
