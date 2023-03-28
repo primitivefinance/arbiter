@@ -7,7 +7,7 @@
     Debug,
     PartialEq,
     Eq,
-    Hash
+    Hash,
 )]
 pub struct Checkpoint {
     pub from_block: u32,
@@ -22,7 +22,7 @@ pub struct Checkpoint {
     Debug,
     PartialEq,
     Eq,
-    Hash
+    Hash,
 )]
 pub struct PortfolioCurve {
     pub max_price: u128,
@@ -43,7 +43,7 @@ pub struct PortfolioCurve {
     Debug,
     PartialEq,
     Eq,
-    Hash
+    Hash,
 )]
 pub struct PortfolioPair {
     pub token_asset: ::ethers::core::types::Address,

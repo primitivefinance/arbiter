@@ -7,14 +7,16 @@ pub use ierc165::*;
     clippy::upper_case_acronyms,
     clippy::type_complexity,
     dead_code,
-    non_camel_case_types,
+    non_camel_case_types
 )]
 pub mod ierc165 {
     #[rustfmt::skip]
     const __ABI: &str = "[{\"inputs\":[{\"internalType\":\"bytes4\",\"name\":\"interfaceId\",\"type\":\"bytes4\",\"components\":[]}],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"supportsInterface\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\",\"components\":[]}]}]";
     ///The parsed JSON ABI of the contract.
-    pub static IERC165_ABI: ::ethers::contract::Lazy<::ethers::core::abi::Abi> = ::ethers::contract::Lazy::new(||
-    ::ethers::core::utils::__serde_json::from_str(__ABI).expect("ABI is always valid"));
+    pub static IERC165_ABI: ::ethers::contract::Lazy<::ethers::core::abi::Abi> =
+        ::ethers::contract::Lazy::new(|| {
+            ::ethers::core::utils::__serde_json::from_str(__ABI).expect("ABI is always valid")
+        });
     pub struct IERC165<M>(::ethers::contract::Contract<M>);
     impl<M> ::core::clone::Clone for IERC165<M> {
         fn clone(&self) -> Self {
@@ -34,7 +36,9 @@ pub mod ierc165 {
     }
     impl<M> ::core::fmt::Debug for IERC165<M> {
         fn fmt(&self, f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
-            f.debug_tuple(stringify!(IERC165)).field(&self.address()).finish()
+            f.debug_tuple(stringify!(IERC165))
+                .field(&self.address())
+                .finish()
         }
     }
     impl<M: ::ethers::providers::Middleware> IERC165<M> {
@@ -44,13 +48,11 @@ pub mod ierc165 {
             address: T,
             client: ::std::sync::Arc<M>,
         ) -> Self {
-            Self(
-                ::ethers::contract::Contract::new(
-                    address.into(),
-                    IERC165_ABI.clone(),
-                    client,
-                ),
-            )
+            Self(::ethers::contract::Contract::new(
+                address.into(),
+                IERC165_ABI.clone(),
+                client,
+            ))
         }
         ///Calls the contract's `supportsInterface` (0x01ffc9a7) function
         pub fn supports_interface(
@@ -62,8 +64,7 @@ pub mod ierc165 {
                 .expect("method not found (this should never happen)")
         }
     }
-    impl<M: ::ethers::providers::Middleware> From<::ethers::contract::Contract<M>>
-    for IERC165<M> {
+    impl<M: ::ethers::providers::Middleware> From<::ethers::contract::Contract<M>> for IERC165<M> {
         fn from(contract: ::ethers::contract::Contract<M>) -> Self {
             Self::new(contract.address(), contract.client())
         }
@@ -77,7 +78,7 @@ pub mod ierc165 {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "supportsInterface", abi = "supportsInterface(bytes4)")]
     pub struct SupportsInterfaceCall {
@@ -92,7 +93,7 @@ pub mod ierc165 {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     pub struct SupportsInterfaceReturn(pub bool);
 }

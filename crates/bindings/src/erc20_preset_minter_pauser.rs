@@ -7,18 +7,16 @@ pub use erc20_preset_minter_pauser::*;
     clippy::upper_case_acronyms,
     clippy::type_complexity,
     dead_code,
-    non_camel_case_types,
+    non_camel_case_types
 )]
 pub mod erc20_preset_minter_pauser {
     #[rustfmt::skip]
     const __ABI: &str = "[{\"inputs\":[{\"internalType\":\"string\",\"name\":\"name\",\"type\":\"string\",\"components\":[]},{\"internalType\":\"string\",\"name\":\"symbol\",\"type\":\"string\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"constructor\",\"outputs\":[]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"owner\",\"type\":\"address\",\"components\":[],\"indexed\":true},{\"internalType\":\"address\",\"name\":\"spender\",\"type\":\"address\",\"components\":[],\"indexed\":true},{\"internalType\":\"uint256\",\"name\":\"value\",\"type\":\"uint256\",\"components\":[],\"indexed\":false}],\"type\":\"event\",\"name\":\"Approval\",\"outputs\":[],\"anonymous\":false},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"account\",\"type\":\"address\",\"components\":[],\"indexed\":false}],\"type\":\"event\",\"name\":\"Paused\",\"outputs\":[],\"anonymous\":false},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"role\",\"type\":\"bytes32\",\"components\":[],\"indexed\":true},{\"internalType\":\"bytes32\",\"name\":\"previousAdminRole\",\"type\":\"bytes32\",\"components\":[],\"indexed\":true},{\"internalType\":\"bytes32\",\"name\":\"newAdminRole\",\"type\":\"bytes32\",\"components\":[],\"indexed\":true}],\"type\":\"event\",\"name\":\"RoleAdminChanged\",\"outputs\":[],\"anonymous\":false},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"role\",\"type\":\"bytes32\",\"components\":[],\"indexed\":true},{\"internalType\":\"address\",\"name\":\"account\",\"type\":\"address\",\"components\":[],\"indexed\":true},{\"internalType\":\"address\",\"name\":\"sender\",\"type\":\"address\",\"components\":[],\"indexed\":true}],\"type\":\"event\",\"name\":\"RoleGranted\",\"outputs\":[],\"anonymous\":false},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"role\",\"type\":\"bytes32\",\"components\":[],\"indexed\":true},{\"internalType\":\"address\",\"name\":\"account\",\"type\":\"address\",\"components\":[],\"indexed\":true},{\"internalType\":\"address\",\"name\":\"sender\",\"type\":\"address\",\"components\":[],\"indexed\":true}],\"type\":\"event\",\"name\":\"RoleRevoked\",\"outputs\":[],\"anonymous\":false},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"from\",\"type\":\"address\",\"components\":[],\"indexed\":true},{\"internalType\":\"address\",\"name\":\"to\",\"type\":\"address\",\"components\":[],\"indexed\":true},{\"internalType\":\"uint256\",\"name\":\"value\",\"type\":\"uint256\",\"components\":[],\"indexed\":false}],\"type\":\"event\",\"name\":\"Transfer\",\"outputs\":[],\"anonymous\":false},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"account\",\"type\":\"address\",\"components\":[],\"indexed\":false}],\"type\":\"event\",\"name\":\"Unpaused\",\"outputs\":[],\"anonymous\":false},{\"inputs\":[],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"DEFAULT_ADMIN_ROLE\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\",\"components\":[]}]},{\"inputs\":[],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"MINTER_ROLE\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\",\"components\":[]}]},{\"inputs\":[],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"PAUSER_ROLE\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"owner\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"address\",\"name\":\"spender\",\"type\":\"address\",\"components\":[]}],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"allowance\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"spender\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"function\",\"name\":\"approve\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"account\",\"type\":\"address\",\"components\":[]}],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"balanceOf\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"function\",\"name\":\"burn\",\"outputs\":[]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"account\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"function\",\"name\":\"burnFrom\",\"outputs\":[]},{\"inputs\":[],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"decimals\",\"outputs\":[{\"internalType\":\"uint8\",\"name\":\"\",\"type\":\"uint8\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"spender\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"subtractedValue\",\"type\":\"uint256\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"function\",\"name\":\"decreaseAllowance\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"role\",\"type\":\"bytes32\",\"components\":[]}],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"getRoleAdmin\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"role\",\"type\":\"bytes32\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"index\",\"type\":\"uint256\",\"components\":[]}],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"getRoleMember\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"role\",\"type\":\"bytes32\",\"components\":[]}],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"getRoleMemberCount\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"role\",\"type\":\"bytes32\",\"components\":[]},{\"internalType\":\"address\",\"name\":\"account\",\"type\":\"address\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"function\",\"name\":\"grantRole\",\"outputs\":[]},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"role\",\"type\":\"bytes32\",\"components\":[]},{\"internalType\":\"address\",\"name\":\"account\",\"type\":\"address\",\"components\":[]}],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"hasRole\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"spender\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"addedValue\",\"type\":\"uint256\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"function\",\"name\":\"increaseAllowance\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"to\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"function\",\"name\":\"mint\",\"outputs\":[]},{\"inputs\":[],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"name\",\"outputs\":[{\"internalType\":\"string\",\"name\":\"\",\"type\":\"string\",\"components\":[]}]},{\"inputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\",\"name\":\"pause\",\"outputs\":[]},{\"inputs\":[],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"paused\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"role\",\"type\":\"bytes32\",\"components\":[]},{\"internalType\":\"address\",\"name\":\"account\",\"type\":\"address\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"function\",\"name\":\"renounceRole\",\"outputs\":[]},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"role\",\"type\":\"bytes32\",\"components\":[]},{\"internalType\":\"address\",\"name\":\"account\",\"type\":\"address\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"function\",\"name\":\"revokeRole\",\"outputs\":[]},{\"inputs\":[{\"internalType\":\"bytes4\",\"name\":\"interfaceId\",\"type\":\"bytes4\",\"components\":[]}],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"supportsInterface\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\",\"components\":[]}]},{\"inputs\":[],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"symbol\",\"outputs\":[{\"internalType\":\"string\",\"name\":\"\",\"type\":\"string\",\"components\":[]}]},{\"inputs\":[],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"totalSupply\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"to\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"function\",\"name\":\"transfer\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"from\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"address\",\"name\":\"to\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"function\",\"name\":\"transferFrom\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\",\"components\":[]}]},{\"inputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\",\"name\":\"unpause\",\"outputs\":[]}]";
     ///The parsed JSON ABI of the contract.
-    pub static ERC20PRESETMINTERPAUSER_ABI: ::ethers::contract::Lazy<
-        ::ethers::core::abi::Abi,
-    > = ::ethers::contract::Lazy::new(|| {
-        ::ethers::core::utils::__serde_json::from_str(__ABI)
-            .expect("ABI is always valid")
-    });
+    pub static ERC20PRESETMINTERPAUSER_ABI: ::ethers::contract::Lazy<::ethers::core::abi::Abi> =
+        ::ethers::contract::Lazy::new(|| {
+            ::ethers::core::utils::__serde_json::from_str(__ABI).expect("ABI is always valid")
+        });
     #[rustfmt::skip]
     const __BYTECODE: &[u8] = &[
         96,
@@ -7510,9 +7508,8 @@ pub mod erc20_preset_minter_pauser {
         51,
     ];
     ///The bytecode of the contract.
-    pub static ERC20PRESETMINTERPAUSER_BYTECODE: ::ethers::core::types::Bytes = ::ethers::core::types::Bytes::from_static(
-        __BYTECODE,
-    );
+    pub static ERC20PRESETMINTERPAUSER_BYTECODE: ::ethers::core::types::Bytes =
+        ::ethers::core::types::Bytes::from_static(__BYTECODE);
     #[rustfmt::skip]
     const __DEPLOYED_BYTECODE: &[u8] = &[
         96,
@@ -13801,9 +13798,8 @@ pub mod erc20_preset_minter_pauser {
         51,
     ];
     ///The deployed bytecode of the contract.
-    pub static ERC20PRESETMINTERPAUSER_DEPLOYED_BYTECODE: ::ethers::core::types::Bytes = ::ethers::core::types::Bytes::from_static(
-        __DEPLOYED_BYTECODE,
-    );
+    pub static ERC20PRESETMINTERPAUSER_DEPLOYED_BYTECODE: ::ethers::core::types::Bytes =
+        ::ethers::core::types::Bytes::from_static(__DEPLOYED_BYTECODE);
     pub struct ERC20PresetMinterPauser<M>(::ethers::contract::Contract<M>);
     impl<M> ::core::clone::Clone for ERC20PresetMinterPauser<M> {
         fn clone(&self) -> Self {
@@ -13835,13 +13831,11 @@ pub mod erc20_preset_minter_pauser {
             address: T,
             client: ::std::sync::Arc<M>,
         ) -> Self {
-            Self(
-                ::ethers::contract::Contract::new(
-                    address.into(),
-                    ERC20PRESETMINTERPAUSER_ABI.clone(),
-                    client,
-                ),
-            )
+            Self(::ethers::contract::Contract::new(
+                address.into(),
+                ERC20PRESETMINTERPAUSER_ABI.clone(),
+                client,
+            ))
         }
         /// Constructs the general purpose `Deployer` instance based on the provided constructor arguments and sends it.
         /// Returns a new instance of a deployer that returns an instance of this contract after sending the transaction
@@ -13891,17 +13885,13 @@ pub mod erc20_preset_minter_pauser {
                 .expect("method not found (this should never happen)")
         }
         ///Calls the contract's `MINTER_ROLE` (0xd5391393) function
-        pub fn minter_role(
-            &self,
-        ) -> ::ethers::contract::builders::ContractCall<M, [u8; 32]> {
+        pub fn minter_role(&self) -> ::ethers::contract::builders::ContractCall<M, [u8; 32]> {
             self.0
                 .method_hash([213, 57, 19, 147], ())
                 .expect("method not found (this should never happen)")
         }
         ///Calls the contract's `PAUSER_ROLE` (0xe63ab1e9) function
-        pub fn pauser_role(
-            &self,
-        ) -> ::ethers::contract::builders::ContractCall<M, [u8; 32]> {
+        pub fn pauser_role(&self) -> ::ethers::contract::builders::ContractCall<M, [u8; 32]> {
             self.0
                 .method_hash([230, 58, 177, 233], ())
                 .expect("method not found (this should never happen)")
@@ -13984,10 +13974,7 @@ pub mod erc20_preset_minter_pauser {
             &self,
             role: [u8; 32],
             index: ::ethers::core::types::U256,
-        ) -> ::ethers::contract::builders::ContractCall<
-            M,
-            ::ethers::core::types::Address,
-        > {
+        ) -> ::ethers::contract::builders::ContractCall<M, ::ethers::core::types::Address> {
             self.0
                 .method_hash([144, 16, 208, 124], (role, index))
                 .expect("method not found (this should never happen)")
@@ -14042,9 +14029,7 @@ pub mod erc20_preset_minter_pauser {
                 .expect("method not found (this should never happen)")
         }
         ///Calls the contract's `name` (0x06fdde03) function
-        pub fn name(
-            &self,
-        ) -> ::ethers::contract::builders::ContractCall<M, ::std::string::String> {
+        pub fn name(&self) -> ::ethers::contract::builders::ContractCall<M, ::std::string::String> {
             self.0
                 .method_hash([6, 253, 222, 3], ())
                 .expect("method not found (this should never happen)")
@@ -14136,11 +14121,7 @@ pub mod erc20_preset_minter_pauser {
         ///Gets the contract's `Approval` event
         pub fn approval_filter(
             &self,
-        ) -> ::ethers::contract::builders::Event<
-            ::std::sync::Arc<M>,
-            M,
-            ApprovalFilter,
-        > {
+        ) -> ::ethers::contract::builders::Event<::std::sync::Arc<M>, M, ApprovalFilter> {
             self.0.event()
         }
         ///Gets the contract's `Paused` event
@@ -14152,51 +14133,34 @@ pub mod erc20_preset_minter_pauser {
         ///Gets the contract's `RoleAdminChanged` event
         pub fn role_admin_changed_filter(
             &self,
-        ) -> ::ethers::contract::builders::Event<
-            ::std::sync::Arc<M>,
-            M,
-            RoleAdminChangedFilter,
-        > {
+        ) -> ::ethers::contract::builders::Event<::std::sync::Arc<M>, M, RoleAdminChangedFilter>
+        {
             self.0.event()
         }
         ///Gets the contract's `RoleGranted` event
         pub fn role_granted_filter(
             &self,
-        ) -> ::ethers::contract::builders::Event<
-            ::std::sync::Arc<M>,
-            M,
-            RoleGrantedFilter,
-        > {
+        ) -> ::ethers::contract::builders::Event<::std::sync::Arc<M>, M, RoleGrantedFilter>
+        {
             self.0.event()
         }
         ///Gets the contract's `RoleRevoked` event
         pub fn role_revoked_filter(
             &self,
-        ) -> ::ethers::contract::builders::Event<
-            ::std::sync::Arc<M>,
-            M,
-            RoleRevokedFilter,
-        > {
+        ) -> ::ethers::contract::builders::Event<::std::sync::Arc<M>, M, RoleRevokedFilter>
+        {
             self.0.event()
         }
         ///Gets the contract's `Transfer` event
         pub fn transfer_filter(
             &self,
-        ) -> ::ethers::contract::builders::Event<
-            ::std::sync::Arc<M>,
-            M,
-            TransferFilter,
-        > {
+        ) -> ::ethers::contract::builders::Event<::std::sync::Arc<M>, M, TransferFilter> {
             self.0.event()
         }
         ///Gets the contract's `Unpaused` event
         pub fn unpaused_filter(
             &self,
-        ) -> ::ethers::contract::builders::Event<
-            ::std::sync::Arc<M>,
-            M,
-            UnpausedFilter,
-        > {
+        ) -> ::ethers::contract::builders::Event<::std::sync::Arc<M>, M, UnpausedFilter> {
             self.0.event()
         }
         /// Returns an `Event` builder for all the events of this contract.
@@ -14207,11 +14171,13 @@ pub mod erc20_preset_minter_pauser {
             M,
             ERC20PresetMinterPauserEvents,
         > {
-            self.0.event_with_filter(::core::default::Default::default())
+            self.0
+                .event_with_filter(::core::default::Default::default())
         }
     }
     impl<M: ::ethers::providers::Middleware> From<::ethers::contract::Contract<M>>
-    for ERC20PresetMinterPauser<M> {
+        for ERC20PresetMinterPauser<M>
+    {
         fn from(contract: ::ethers::contract::Contract<M>) -> Self {
             Self::new(contract.address(), contract.client())
         }
@@ -14224,7 +14190,7 @@ pub mod erc20_preset_minter_pauser {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethevent(name = "Approval", abi = "Approval(address,address,uint256)")]
     pub struct ApprovalFilter {
@@ -14242,7 +14208,7 @@ pub mod erc20_preset_minter_pauser {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethevent(name = "Paused", abi = "Paused(address)")]
     pub struct PausedFilter {
@@ -14256,7 +14222,7 @@ pub mod erc20_preset_minter_pauser {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethevent(
         name = "RoleAdminChanged",
@@ -14278,7 +14244,7 @@ pub mod erc20_preset_minter_pauser {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethevent(name = "RoleGranted", abi = "RoleGranted(bytes32,address,address)")]
     pub struct RoleGrantedFilter {
@@ -14297,7 +14263,7 @@ pub mod erc20_preset_minter_pauser {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethevent(name = "RoleRevoked", abi = "RoleRevoked(bytes32,address,address)")]
     pub struct RoleRevokedFilter {
@@ -14316,7 +14282,7 @@ pub mod erc20_preset_minter_pauser {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethevent(name = "Transfer", abi = "Transfer(address,address,uint256)")]
     pub struct TransferFilter {
@@ -14334,7 +14300,7 @@ pub mod erc20_preset_minter_pauser {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethevent(name = "Unpaused", abi = "Unpaused(address)")]
     pub struct UnpausedFilter {
@@ -14362,9 +14328,9 @@ pub mod erc20_preset_minter_pauser {
                 return Ok(ERC20PresetMinterPauserEvents::PausedFilter(decoded));
             }
             if let Ok(decoded) = RoleAdminChangedFilter::decode_log(log) {
-                return Ok(
-                    ERC20PresetMinterPauserEvents::RoleAdminChangedFilter(decoded),
-                );
+                return Ok(ERC20PresetMinterPauserEvents::RoleAdminChangedFilter(
+                    decoded,
+                ));
             }
             if let Ok(decoded) = RoleGrantedFilter::decode_log(log) {
                 return Ok(ERC20PresetMinterPauserEvents::RoleGrantedFilter(decoded));
@@ -14386,9 +14352,7 @@ pub mod erc20_preset_minter_pauser {
             match self {
                 Self::ApprovalFilter(element) => ::core::fmt::Display::fmt(element, f),
                 Self::PausedFilter(element) => ::core::fmt::Display::fmt(element, f),
-                Self::RoleAdminChangedFilter(element) => {
-                    ::core::fmt::Display::fmt(element, f)
-                }
+                Self::RoleAdminChangedFilter(element) => ::core::fmt::Display::fmt(element, f),
                 Self::RoleGrantedFilter(element) => ::core::fmt::Display::fmt(element, f),
                 Self::RoleRevokedFilter(element) => ::core::fmt::Display::fmt(element, f),
                 Self::TransferFilter(element) => ::core::fmt::Display::fmt(element, f),
@@ -14406,8 +14370,7 @@ pub mod erc20_preset_minter_pauser {
             Self::PausedFilter(value)
         }
     }
-    impl ::core::convert::From<RoleAdminChangedFilter>
-    for ERC20PresetMinterPauserEvents {
+    impl ::core::convert::From<RoleAdminChangedFilter> for ERC20PresetMinterPauserEvents {
         fn from(value: RoleAdminChangedFilter) -> Self {
             Self::RoleAdminChangedFilter(value)
         }
@@ -14441,7 +14404,7 @@ pub mod erc20_preset_minter_pauser {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "DEFAULT_ADMIN_ROLE", abi = "DEFAULT_ADMIN_ROLE()")]
     pub struct DefaultAdminRoleCall;
@@ -14454,7 +14417,7 @@ pub mod erc20_preset_minter_pauser {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "MINTER_ROLE", abi = "MINTER_ROLE()")]
     pub struct MinterRoleCall;
@@ -14467,7 +14430,7 @@ pub mod erc20_preset_minter_pauser {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "PAUSER_ROLE", abi = "PAUSER_ROLE()")]
     pub struct PauserRoleCall;
@@ -14480,7 +14443,7 @@ pub mod erc20_preset_minter_pauser {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "allowance", abi = "allowance(address,address)")]
     pub struct AllowanceCall {
@@ -14496,7 +14459,7 @@ pub mod erc20_preset_minter_pauser {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "approve", abi = "approve(address,uint256)")]
     pub struct ApproveCall {
@@ -14512,7 +14475,7 @@ pub mod erc20_preset_minter_pauser {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "balanceOf", abi = "balanceOf(address)")]
     pub struct BalanceOfCall {
@@ -14527,7 +14490,7 @@ pub mod erc20_preset_minter_pauser {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "burn", abi = "burn(uint256)")]
     pub struct BurnCall {
@@ -14542,7 +14505,7 @@ pub mod erc20_preset_minter_pauser {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "burnFrom", abi = "burnFrom(address,uint256)")]
     pub struct BurnFromCall {
@@ -14558,7 +14521,7 @@ pub mod erc20_preset_minter_pauser {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "decimals", abi = "decimals()")]
     pub struct DecimalsCall;
@@ -14571,7 +14534,7 @@ pub mod erc20_preset_minter_pauser {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "decreaseAllowance", abi = "decreaseAllowance(address,uint256)")]
     pub struct DecreaseAllowanceCall {
@@ -14587,7 +14550,7 @@ pub mod erc20_preset_minter_pauser {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "getRoleAdmin", abi = "getRoleAdmin(bytes32)")]
     pub struct GetRoleAdminCall {
@@ -14602,7 +14565,7 @@ pub mod erc20_preset_minter_pauser {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "getRoleMember", abi = "getRoleMember(bytes32,uint256)")]
     pub struct GetRoleMemberCall {
@@ -14618,7 +14581,7 @@ pub mod erc20_preset_minter_pauser {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "getRoleMemberCount", abi = "getRoleMemberCount(bytes32)")]
     pub struct GetRoleMemberCountCall {
@@ -14633,7 +14596,7 @@ pub mod erc20_preset_minter_pauser {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "grantRole", abi = "grantRole(bytes32,address)")]
     pub struct GrantRoleCall {
@@ -14649,7 +14612,7 @@ pub mod erc20_preset_minter_pauser {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "hasRole", abi = "hasRole(bytes32,address)")]
     pub struct HasRoleCall {
@@ -14665,7 +14628,7 @@ pub mod erc20_preset_minter_pauser {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "increaseAllowance", abi = "increaseAllowance(address,uint256)")]
     pub struct IncreaseAllowanceCall {
@@ -14681,7 +14644,7 @@ pub mod erc20_preset_minter_pauser {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "mint", abi = "mint(address,uint256)")]
     pub struct MintCall {
@@ -14697,7 +14660,7 @@ pub mod erc20_preset_minter_pauser {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "name", abi = "name()")]
     pub struct NameCall;
@@ -14710,7 +14673,7 @@ pub mod erc20_preset_minter_pauser {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "pause", abi = "pause()")]
     pub struct PauseCall;
@@ -14723,7 +14686,7 @@ pub mod erc20_preset_minter_pauser {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "paused", abi = "paused()")]
     pub struct PausedCall;
@@ -14736,7 +14699,7 @@ pub mod erc20_preset_minter_pauser {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "renounceRole", abi = "renounceRole(bytes32,address)")]
     pub struct RenounceRoleCall {
@@ -14752,7 +14715,7 @@ pub mod erc20_preset_minter_pauser {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "revokeRole", abi = "revokeRole(bytes32,address)")]
     pub struct RevokeRoleCall {
@@ -14768,7 +14731,7 @@ pub mod erc20_preset_minter_pauser {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "supportsInterface", abi = "supportsInterface(bytes4)")]
     pub struct SupportsInterfaceCall {
@@ -14783,7 +14746,7 @@ pub mod erc20_preset_minter_pauser {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "symbol", abi = "symbol()")]
     pub struct SymbolCall;
@@ -14796,7 +14759,7 @@ pub mod erc20_preset_minter_pauser {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "totalSupply", abi = "totalSupply()")]
     pub struct TotalSupplyCall;
@@ -14809,7 +14772,7 @@ pub mod erc20_preset_minter_pauser {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "transfer", abi = "transfer(address,uint256)")]
     pub struct TransferCall {
@@ -14825,7 +14788,7 @@ pub mod erc20_preset_minter_pauser {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "transferFrom", abi = "transferFrom(address,address,uint256)")]
     pub struct TransferFromCall {
@@ -14842,7 +14805,7 @@ pub mod erc20_preset_minter_pauser {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "unpause", abi = "unpause()")]
     pub struct UnpauseCall;
@@ -14883,126 +14846,102 @@ pub mod erc20_preset_minter_pauser {
             data: impl AsRef<[u8]>,
         ) -> ::core::result::Result<Self, ::ethers::core::abi::AbiError> {
             let data = data.as_ref();
-            if let Ok(decoded)
-                = <DefaultAdminRoleCall as ::ethers::core::abi::AbiDecode>::decode(
-                    data,
-                ) {
+            if let Ok(decoded) =
+                <DefaultAdminRoleCall as ::ethers::core::abi::AbiDecode>::decode(data)
+            {
                 return Ok(Self::DefaultAdminRole(decoded));
             }
-            if let Ok(decoded)
-                = <MinterRoleCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <MinterRoleCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::MinterRole(decoded));
             }
-            if let Ok(decoded)
-                = <PauserRoleCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <PauserRoleCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::PauserRole(decoded));
             }
-            if let Ok(decoded)
-                = <AllowanceCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <AllowanceCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::Allowance(decoded));
             }
-            if let Ok(decoded)
-                = <ApproveCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <ApproveCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::Approve(decoded));
             }
-            if let Ok(decoded)
-                = <BalanceOfCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <BalanceOfCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::BalanceOf(decoded));
             }
-            if let Ok(decoded)
-                = <BurnCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <BurnCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::Burn(decoded));
             }
-            if let Ok(decoded)
-                = <BurnFromCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <BurnFromCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::BurnFrom(decoded));
             }
-            if let Ok(decoded)
-                = <DecimalsCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <DecimalsCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::Decimals(decoded));
             }
-            if let Ok(decoded)
-                = <DecreaseAllowanceCall as ::ethers::core::abi::AbiDecode>::decode(
-                    data,
-                ) {
+            if let Ok(decoded) =
+                <DecreaseAllowanceCall as ::ethers::core::abi::AbiDecode>::decode(data)
+            {
                 return Ok(Self::DecreaseAllowance(decoded));
             }
-            if let Ok(decoded)
-                = <GetRoleAdminCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <GetRoleAdminCall as ::ethers::core::abi::AbiDecode>::decode(data)
+            {
                 return Ok(Self::GetRoleAdmin(decoded));
             }
-            if let Ok(decoded)
-                = <GetRoleMemberCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <GetRoleMemberCall as ::ethers::core::abi::AbiDecode>::decode(data)
+            {
                 return Ok(Self::GetRoleMember(decoded));
             }
-            if let Ok(decoded)
-                = <GetRoleMemberCountCall as ::ethers::core::abi::AbiDecode>::decode(
-                    data,
-                ) {
+            if let Ok(decoded) =
+                <GetRoleMemberCountCall as ::ethers::core::abi::AbiDecode>::decode(data)
+            {
                 return Ok(Self::GetRoleMemberCount(decoded));
             }
-            if let Ok(decoded)
-                = <GrantRoleCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <GrantRoleCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::GrantRole(decoded));
             }
-            if let Ok(decoded)
-                = <HasRoleCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <HasRoleCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::HasRole(decoded));
             }
-            if let Ok(decoded)
-                = <IncreaseAllowanceCall as ::ethers::core::abi::AbiDecode>::decode(
-                    data,
-                ) {
+            if let Ok(decoded) =
+                <IncreaseAllowanceCall as ::ethers::core::abi::AbiDecode>::decode(data)
+            {
                 return Ok(Self::IncreaseAllowance(decoded));
             }
-            if let Ok(decoded)
-                = <MintCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <MintCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::Mint(decoded));
             }
-            if let Ok(decoded)
-                = <NameCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <NameCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::Name(decoded));
             }
-            if let Ok(decoded)
-                = <PauseCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <PauseCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::Pause(decoded));
             }
-            if let Ok(decoded)
-                = <PausedCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <PausedCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::Paused(decoded));
             }
-            if let Ok(decoded)
-                = <RenounceRoleCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <RenounceRoleCall as ::ethers::core::abi::AbiDecode>::decode(data)
+            {
                 return Ok(Self::RenounceRole(decoded));
             }
-            if let Ok(decoded)
-                = <RevokeRoleCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <RevokeRoleCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::RevokeRole(decoded));
             }
-            if let Ok(decoded)
-                = <SupportsInterfaceCall as ::ethers::core::abi::AbiDecode>::decode(
-                    data,
-                ) {
+            if let Ok(decoded) =
+                <SupportsInterfaceCall as ::ethers::core::abi::AbiDecode>::decode(data)
+            {
                 return Ok(Self::SupportsInterface(decoded));
             }
-            if let Ok(decoded)
-                = <SymbolCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <SymbolCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::Symbol(decoded));
             }
-            if let Ok(decoded)
-                = <TotalSupplyCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <TotalSupplyCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::TotalSupply(decoded));
             }
-            if let Ok(decoded)
-                = <TransferCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <TransferCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::Transfer(decoded));
             }
-            if let Ok(decoded)
-                = <TransferFromCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <TransferFromCall as ::ethers::core::abi::AbiDecode>::decode(data)
+            {
                 return Ok(Self::TransferFrom(decoded));
             }
-            if let Ok(decoded)
-                = <UnpauseCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <UnpauseCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::Unpause(decoded));
             }
             Err(::ethers::core::abi::Error::InvalidData.into())
@@ -15011,71 +14950,35 @@ pub mod erc20_preset_minter_pauser {
     impl ::ethers::core::abi::AbiEncode for ERC20PresetMinterPauserCalls {
         fn encode(self) -> Vec<u8> {
             match self {
-                Self::DefaultAdminRole(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
-                Self::MinterRole(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
-                Self::PauserRole(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
-                Self::Allowance(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
+                Self::DefaultAdminRole(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::MinterRole(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::PauserRole(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::Allowance(element) => ::ethers::core::abi::AbiEncode::encode(element),
                 Self::Approve(element) => ::ethers::core::abi::AbiEncode::encode(element),
-                Self::BalanceOf(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
+                Self::BalanceOf(element) => ::ethers::core::abi::AbiEncode::encode(element),
                 Self::Burn(element) => ::ethers::core::abi::AbiEncode::encode(element),
-                Self::BurnFrom(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
-                Self::Decimals(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
-                Self::DecreaseAllowance(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
-                Self::GetRoleAdmin(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
-                Self::GetRoleMember(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
+                Self::BurnFrom(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::Decimals(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::DecreaseAllowance(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::GetRoleAdmin(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::GetRoleMember(element) => ::ethers::core::abi::AbiEncode::encode(element),
                 Self::GetRoleMemberCount(element) => {
                     ::ethers::core::abi::AbiEncode::encode(element)
                 }
-                Self::GrantRole(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
+                Self::GrantRole(element) => ::ethers::core::abi::AbiEncode::encode(element),
                 Self::HasRole(element) => ::ethers::core::abi::AbiEncode::encode(element),
-                Self::IncreaseAllowance(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
+                Self::IncreaseAllowance(element) => ::ethers::core::abi::AbiEncode::encode(element),
                 Self::Mint(element) => ::ethers::core::abi::AbiEncode::encode(element),
                 Self::Name(element) => ::ethers::core::abi::AbiEncode::encode(element),
                 Self::Pause(element) => ::ethers::core::abi::AbiEncode::encode(element),
                 Self::Paused(element) => ::ethers::core::abi::AbiEncode::encode(element),
-                Self::RenounceRole(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
-                Self::RevokeRole(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
-                Self::SupportsInterface(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
+                Self::RenounceRole(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::RevokeRole(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::SupportsInterface(element) => ::ethers::core::abi::AbiEncode::encode(element),
                 Self::Symbol(element) => ::ethers::core::abi::AbiEncode::encode(element),
-                Self::TotalSupply(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
-                Self::Transfer(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
-                Self::TransferFrom(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
+                Self::TotalSupply(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::Transfer(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::TransferFrom(element) => ::ethers::core::abi::AbiEncode::encode(element),
                 Self::Unpause(element) => ::ethers::core::abi::AbiEncode::encode(element),
             }
         }
@@ -15095,9 +14998,7 @@ pub mod erc20_preset_minter_pauser {
                 Self::DecreaseAllowance(element) => ::core::fmt::Display::fmt(element, f),
                 Self::GetRoleAdmin(element) => ::core::fmt::Display::fmt(element, f),
                 Self::GetRoleMember(element) => ::core::fmt::Display::fmt(element, f),
-                Self::GetRoleMemberCount(element) => {
-                    ::core::fmt::Display::fmt(element, f)
-                }
+                Self::GetRoleMemberCount(element) => ::core::fmt::Display::fmt(element, f),
                 Self::GrantRole(element) => ::core::fmt::Display::fmt(element, f),
                 Self::HasRole(element) => ::core::fmt::Display::fmt(element, f),
                 Self::IncreaseAllowance(element) => ::core::fmt::Display::fmt(element, f),
@@ -15265,7 +15166,7 @@ pub mod erc20_preset_minter_pauser {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     pub struct DefaultAdminRoleReturn(pub [u8; 32]);
     ///Container type for all return fields from the `MINTER_ROLE` function with signature `MINTER_ROLE()` and selector `0xd5391393`
@@ -15277,7 +15178,7 @@ pub mod erc20_preset_minter_pauser {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     pub struct MinterRoleReturn(pub [u8; 32]);
     ///Container type for all return fields from the `PAUSER_ROLE` function with signature `PAUSER_ROLE()` and selector `0xe63ab1e9`
@@ -15289,7 +15190,7 @@ pub mod erc20_preset_minter_pauser {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     pub struct PauserRoleReturn(pub [u8; 32]);
     ///Container type for all return fields from the `allowance` function with signature `allowance(address,address)` and selector `0xdd62ed3e`
@@ -15301,7 +15202,7 @@ pub mod erc20_preset_minter_pauser {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     pub struct AllowanceReturn(pub ::ethers::core::types::U256);
     ///Container type for all return fields from the `approve` function with signature `approve(address,uint256)` and selector `0x095ea7b3`
@@ -15313,7 +15214,7 @@ pub mod erc20_preset_minter_pauser {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     pub struct ApproveReturn(pub bool);
     ///Container type for all return fields from the `balanceOf` function with signature `balanceOf(address)` and selector `0x70a08231`
@@ -15325,7 +15226,7 @@ pub mod erc20_preset_minter_pauser {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     pub struct BalanceOfReturn(pub ::ethers::core::types::U256);
     ///Container type for all return fields from the `decimals` function with signature `decimals()` and selector `0x313ce567`
@@ -15337,7 +15238,7 @@ pub mod erc20_preset_minter_pauser {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     pub struct DecimalsReturn(pub u8);
     ///Container type for all return fields from the `decreaseAllowance` function with signature `decreaseAllowance(address,uint256)` and selector `0xa457c2d7`
@@ -15349,7 +15250,7 @@ pub mod erc20_preset_minter_pauser {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     pub struct DecreaseAllowanceReturn(pub bool);
     ///Container type for all return fields from the `getRoleAdmin` function with signature `getRoleAdmin(bytes32)` and selector `0x248a9ca3`
@@ -15361,7 +15262,7 @@ pub mod erc20_preset_minter_pauser {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     pub struct GetRoleAdminReturn(pub [u8; 32]);
     ///Container type for all return fields from the `getRoleMember` function with signature `getRoleMember(bytes32,uint256)` and selector `0x9010d07c`
@@ -15373,7 +15274,7 @@ pub mod erc20_preset_minter_pauser {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     pub struct GetRoleMemberReturn(pub ::ethers::core::types::Address);
     ///Container type for all return fields from the `getRoleMemberCount` function with signature `getRoleMemberCount(bytes32)` and selector `0xca15c873`
@@ -15385,7 +15286,7 @@ pub mod erc20_preset_minter_pauser {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     pub struct GetRoleMemberCountReturn(pub ::ethers::core::types::U256);
     ///Container type for all return fields from the `hasRole` function with signature `hasRole(bytes32,address)` and selector `0x91d14854`
@@ -15397,7 +15298,7 @@ pub mod erc20_preset_minter_pauser {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     pub struct HasRoleReturn(pub bool);
     ///Container type for all return fields from the `increaseAllowance` function with signature `increaseAllowance(address,uint256)` and selector `0x39509351`
@@ -15409,7 +15310,7 @@ pub mod erc20_preset_minter_pauser {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     pub struct IncreaseAllowanceReturn(pub bool);
     ///Container type for all return fields from the `name` function with signature `name()` and selector `0x06fdde03`
@@ -15421,7 +15322,7 @@ pub mod erc20_preset_minter_pauser {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     pub struct NameReturn(pub ::std::string::String);
     ///Container type for all return fields from the `paused` function with signature `paused()` and selector `0x5c975abb`
@@ -15433,7 +15334,7 @@ pub mod erc20_preset_minter_pauser {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     pub struct PausedReturn(pub bool);
     ///Container type for all return fields from the `supportsInterface` function with signature `supportsInterface(bytes4)` and selector `0x01ffc9a7`
@@ -15445,7 +15346,7 @@ pub mod erc20_preset_minter_pauser {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     pub struct SupportsInterfaceReturn(pub bool);
     ///Container type for all return fields from the `symbol` function with signature `symbol()` and selector `0x95d89b41`
@@ -15457,7 +15358,7 @@ pub mod erc20_preset_minter_pauser {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     pub struct SymbolReturn(pub ::std::string::String);
     ///Container type for all return fields from the `totalSupply` function with signature `totalSupply()` and selector `0x18160ddd`
@@ -15469,7 +15370,7 @@ pub mod erc20_preset_minter_pauser {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     pub struct TotalSupplyReturn(pub ::ethers::core::types::U256);
     ///Container type for all return fields from the `transfer` function with signature `transfer(address,uint256)` and selector `0xa9059cbb`
@@ -15481,7 +15382,7 @@ pub mod erc20_preset_minter_pauser {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     pub struct TransferReturn(pub bool);
     ///Container type for all return fields from the `transferFrom` function with signature `transferFrom(address,address,uint256)` and selector `0x23b872dd`
@@ -15493,7 +15394,7 @@ pub mod erc20_preset_minter_pauser {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     pub struct TransferFromReturn(pub bool);
 }

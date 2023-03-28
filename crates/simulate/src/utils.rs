@@ -1,6 +1,7 @@
 #![warn(missing_docs)]
 //! Module for utility functionality.
-use revm::primitives::{Address, B160};
+use ethers::prelude::Address;
+use revm::primitives::B160;
 
 /// Recast a B160 into an Address type
 pub fn recast_address(address: B160) -> Address {

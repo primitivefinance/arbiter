@@ -7,18 +7,16 @@ pub use infinitely_liquid_market::*;
     clippy::upper_case_acronyms,
     clippy::type_complexity,
     dead_code,
-    non_camel_case_types,
+    non_camel_case_types
 )]
 pub mod infinitely_liquid_market {
     #[rustfmt::skip]
     const __ABI: &str = "[{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"price\",\"type\":\"uint256\",\"components\":[],\"indexed\":false}],\"type\":\"event\",\"name\":\"PriceChange\",\"outputs\":[],\"anonymous\":false},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"price\",\"type\":\"uint256\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"function\",\"name\":\"setPrice\",\"outputs\":[]}]";
     ///The parsed JSON ABI of the contract.
-    pub static INFINITELYLIQUIDMARKET_ABI: ::ethers::contract::Lazy<
-        ::ethers::core::abi::Abi,
-    > = ::ethers::contract::Lazy::new(|| {
-        ::ethers::core::utils::__serde_json::from_str(__ABI)
-            .expect("ABI is always valid")
-    });
+    pub static INFINITELYLIQUIDMARKET_ABI: ::ethers::contract::Lazy<::ethers::core::abi::Abi> =
+        ::ethers::contract::Lazy::new(|| {
+            ::ethers::core::utils::__serde_json::from_str(__ABI).expect("ABI is always valid")
+        });
     #[rustfmt::skip]
     const __BYTECODE: &[u8] = &[
         96,
@@ -253,9 +251,8 @@ pub mod infinitely_liquid_market {
         51,
     ];
     ///The bytecode of the contract.
-    pub static INFINITELYLIQUIDMARKET_BYTECODE: ::ethers::core::types::Bytes = ::ethers::core::types::Bytes::from_static(
-        __BYTECODE,
-    );
+    pub static INFINITELYLIQUIDMARKET_BYTECODE: ::ethers::core::types::Bytes =
+        ::ethers::core::types::Bytes::from_static(__BYTECODE);
     #[rustfmt::skip]
     const __DEPLOYED_BYTECODE: &[u8] = &[
         96,
@@ -459,9 +456,8 @@ pub mod infinitely_liquid_market {
         51,
     ];
     ///The deployed bytecode of the contract.
-    pub static INFINITELYLIQUIDMARKET_DEPLOYED_BYTECODE: ::ethers::core::types::Bytes = ::ethers::core::types::Bytes::from_static(
-        __DEPLOYED_BYTECODE,
-    );
+    pub static INFINITELYLIQUIDMARKET_DEPLOYED_BYTECODE: ::ethers::core::types::Bytes =
+        ::ethers::core::types::Bytes::from_static(__DEPLOYED_BYTECODE);
     pub struct InfinitelyLiquidMarket<M>(::ethers::contract::Contract<M>);
     impl<M> ::core::clone::Clone for InfinitelyLiquidMarket<M> {
         fn clone(&self) -> Self {
@@ -493,13 +489,11 @@ pub mod infinitely_liquid_market {
             address: T,
             client: ::std::sync::Arc<M>,
         ) -> Self {
-            Self(
-                ::ethers::contract::Contract::new(
-                    address.into(),
-                    INFINITELYLIQUIDMARKET_ABI.clone(),
-                    client,
-                ),
-            )
+            Self(::ethers::contract::Contract::new(
+                address.into(),
+                INFINITELYLIQUIDMARKET_ABI.clone(),
+                client,
+            ))
         }
         /// Constructs the general purpose `Deployer` instance based on the provided constructor arguments and sends it.
         /// Returns a new instance of a deployer that returns an instance of this contract after sending the transaction
@@ -552,26 +546,22 @@ pub mod infinitely_liquid_market {
         ///Gets the contract's `PriceChange` event
         pub fn price_change_filter(
             &self,
-        ) -> ::ethers::contract::builders::Event<
-            ::std::sync::Arc<M>,
-            M,
-            PriceChangeFilter,
-        > {
+        ) -> ::ethers::contract::builders::Event<::std::sync::Arc<M>, M, PriceChangeFilter>
+        {
             self.0.event()
         }
         /// Returns an `Event` builder for all the events of this contract.
         pub fn events(
             &self,
-        ) -> ::ethers::contract::builders::Event<
-            ::std::sync::Arc<M>,
-            M,
-            PriceChangeFilter,
-        > {
-            self.0.event_with_filter(::core::default::Default::default())
+        ) -> ::ethers::contract::builders::Event<::std::sync::Arc<M>, M, PriceChangeFilter>
+        {
+            self.0
+                .event_with_filter(::core::default::Default::default())
         }
     }
     impl<M: ::ethers::providers::Middleware> From<::ethers::contract::Contract<M>>
-    for InfinitelyLiquidMarket<M> {
+        for InfinitelyLiquidMarket<M>
+    {
         fn from(contract: ::ethers::contract::Contract<M>) -> Self {
             Self::new(contract.address(), contract.client())
         }
@@ -584,7 +574,7 @@ pub mod infinitely_liquid_market {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethevent(name = "PriceChange", abi = "PriceChange(uint256)")]
     pub struct PriceChangeFilter {
@@ -599,7 +589,7 @@ pub mod infinitely_liquid_market {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "setPrice", abi = "setPrice(uint256)")]
     pub struct SetPriceCall {

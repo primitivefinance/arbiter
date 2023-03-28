@@ -4,21 +4,16 @@
 
 use std::str::FromStr;
 
-use crate::environment::IsDeployed;
-use crate::environment::NotDeployed;
-use crate::environment::SimulationContract;
-use crate::environment::SimulationEnvironment;
 use bytes::Bytes;
-use ethers::{
-    abi::Tokenize,
-};
-use revm::{
-    primitives::{
-        Account, AccountInfo, ExecutionResult, Log, Output, TransactTo, TxEnv, B160, U256,
-    },
+use ethers::abi::Tokenize;
+use revm::primitives::{
+    Account, AccountInfo, ExecutionResult, Log, Output, TransactTo, TxEnv, B160, U256,
 };
 
-use crate::agent::{Agent, TransactSettings};
+use crate::{
+    agent::{Agent, TransactSettings},
+    environment::{IsDeployed, NotDeployed, SimulationContract, SimulationEnvironment},
+};
 
 /// Manages simulations.
 pub struct SimulationManager<'a> {
@@ -28,9 +23,14 @@ pub struct SimulationManager<'a> {
     pub account: Account,
     /// Contains the default transaction options for revm such as gas limit and gas price.
     pub transact_settings: TransactSettings,
-
     /// `SimulationEnvironment` that the simulation manager controls.
     environment: SimulationEnvironment<'a>,
+}
+
+impl<'a> Default for SimulationManager<'a> {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl<'a> SimulationManager<'a> {
@@ -45,6 +45,15 @@ impl<'a> SimulationManager<'a> {
                 gas_price: U256::ZERO,
             },
         }
+    }
+    // TODO: This should only be temporary now. We should create a user agent.
+    /// Create a new user
+    pub fn create_user(&mut self, address: B160) {
+        self.environment
+            .evm
+            .db()
+            .unwrap()
+            .insert_account_info(address, AccountInfo::default());
     }
 
     /// Run all agents concurrently in the current simulation environment.
@@ -93,7 +102,8 @@ impl<'a> SimulationManager<'a> {
         contract.to_deployed(contract_address)
     }
 
-    fn call_contract(
+    /// Call a contract in the current simulation environment associated to the manager.
+    pub fn call_contract(
         &mut self,
         contract: &SimulationContract<IsDeployed>,
         call_data: Bytes,
@@ -105,7 +115,7 @@ impl<'a> SimulationManager<'a> {
 
     // TODO: Handle the output of the execution result and decode?
     /// Gets the most current event (which is all that is stored in the event buffer).
-    fn read_logs(&mut self) -> Vec<Log> {
+    pub fn read_logs(&mut self) -> Vec<Log> {
         self.environment.event_buffer.read().unwrap().to_vec()
     }
 

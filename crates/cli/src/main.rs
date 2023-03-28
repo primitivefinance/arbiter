@@ -7,9 +7,8 @@ use clap::{CommandFactory, Parser, Subcommand};
 use ethers::prelude::BaseContract;
 use eyre::Result;
 use simulate::{
-    environment::SimulationContract,
-    manager::{recast_address, SimulationManager},
-    price_simulation::PriceSimulation,
+    environment::SimulationContract, manager::SimulationManager, price_simulation::PriceSimulation,
+    utils::recast_address,
 };
 mod config;
 

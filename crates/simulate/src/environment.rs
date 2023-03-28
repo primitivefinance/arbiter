@@ -1,17 +1,16 @@
+#![warn(missing_docs)]
+//! The environment that constitutes a simulation is handled here.
+
 use std::{
     collections::HashMap,
     sync::{Arc, RwLock},
     thread,
 };
 
-use ethers::{
-    prelude::BaseContract,
-};
+use ethers::prelude::BaseContract;
 use revm::{
     db::{CacheDB, EmptyDB},
-    primitives::{
-        ExecutionResult, Log, TxEnv, B160, U256,
-    },
+    primitives::{ExecutionResult, Log, TxEnv, B160},
     EVM,
 };
 
@@ -19,7 +18,7 @@ use crate::agent::Agent;
 
 pub(crate) struct SimulationEnvironment<'a> {
     pub(crate) evm: EVM<CacheDB<EmptyDB>>,
-    pub(crate) event_buffer: Arc<RwLock<Vec<Log>>>, // TODO: This should probably just store head
+    pub(crate) event_buffer: Arc<RwLock<Vec<Log>>>,
     pub(crate) writer_thread: Option<thread::JoinHandle<()>>,
     pub(crate) agents: HashMap<&'a str, Box<dyn Agent>>,
 }

@@ -7,14 +7,16 @@ pub use pausable::*;
     clippy::upper_case_acronyms,
     clippy::type_complexity,
     dead_code,
-    non_camel_case_types,
+    non_camel_case_types
 )]
 pub mod pausable {
     #[rustfmt::skip]
     const __ABI: &str = "[{\"inputs\":[{\"internalType\":\"address\",\"name\":\"account\",\"type\":\"address\",\"components\":[],\"indexed\":false}],\"type\":\"event\",\"name\":\"Paused\",\"outputs\":[],\"anonymous\":false},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"account\",\"type\":\"address\",\"components\":[],\"indexed\":false}],\"type\":\"event\",\"name\":\"Unpaused\",\"outputs\":[],\"anonymous\":false},{\"inputs\":[],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"paused\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\",\"components\":[]}]}]";
     ///The parsed JSON ABI of the contract.
-    pub static PAUSABLE_ABI: ::ethers::contract::Lazy<::ethers::core::abi::Abi> = ::ethers::contract::Lazy::new(||
-    ::ethers::core::utils::__serde_json::from_str(__ABI).expect("ABI is always valid"));
+    pub static PAUSABLE_ABI: ::ethers::contract::Lazy<::ethers::core::abi::Abi> =
+        ::ethers::contract::Lazy::new(|| {
+            ::ethers::core::utils::__serde_json::from_str(__ABI).expect("ABI is always valid")
+        });
     pub struct Pausable<M>(::ethers::contract::Contract<M>);
     impl<M> ::core::clone::Clone for Pausable<M> {
         fn clone(&self) -> Self {
@@ -34,7 +36,9 @@ pub mod pausable {
     }
     impl<M> ::core::fmt::Debug for Pausable<M> {
         fn fmt(&self, f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
-            f.debug_tuple(stringify!(Pausable)).field(&self.address()).finish()
+            f.debug_tuple(stringify!(Pausable))
+                .field(&self.address())
+                .finish()
         }
     }
     impl<M: ::ethers::providers::Middleware> Pausable<M> {
@@ -44,13 +48,11 @@ pub mod pausable {
             address: T,
             client: ::std::sync::Arc<M>,
         ) -> Self {
-            Self(
-                ::ethers::contract::Contract::new(
-                    address.into(),
-                    PAUSABLE_ABI.clone(),
-                    client,
-                ),
-            )
+            Self(::ethers::contract::Contract::new(
+                address.into(),
+                PAUSABLE_ABI.clone(),
+                client,
+            ))
         }
         ///Calls the contract's `paused` (0x5c975abb) function
         pub fn paused(&self) -> ::ethers::contract::builders::ContractCall<M, bool> {
@@ -67,26 +69,18 @@ pub mod pausable {
         ///Gets the contract's `Unpaused` event
         pub fn unpaused_filter(
             &self,
-        ) -> ::ethers::contract::builders::Event<
-            ::std::sync::Arc<M>,
-            M,
-            UnpausedFilter,
-        > {
+        ) -> ::ethers::contract::builders::Event<::std::sync::Arc<M>, M, UnpausedFilter> {
             self.0.event()
         }
         /// Returns an `Event` builder for all the events of this contract.
         pub fn events(
             &self,
-        ) -> ::ethers::contract::builders::Event<
-            ::std::sync::Arc<M>,
-            M,
-            PausableEvents,
-        > {
-            self.0.event_with_filter(::core::default::Default::default())
+        ) -> ::ethers::contract::builders::Event<::std::sync::Arc<M>, M, PausableEvents> {
+            self.0
+                .event_with_filter(::core::default::Default::default())
         }
     }
-    impl<M: ::ethers::providers::Middleware> From<::ethers::contract::Contract<M>>
-    for Pausable<M> {
+    impl<M: ::ethers::providers::Middleware> From<::ethers::contract::Contract<M>> for Pausable<M> {
         fn from(contract: ::ethers::contract::Contract<M>) -> Self {
             Self::new(contract.address(), contract.client())
         }
@@ -99,7 +93,7 @@ pub mod pausable {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethevent(name = "Paused", abi = "Paused(address)")]
     pub struct PausedFilter {
@@ -113,7 +107,7 @@ pub mod pausable {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethevent(name = "Unpaused", abi = "Unpaused(address)")]
     pub struct UnpausedFilter {
@@ -165,7 +159,7 @@ pub mod pausable {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "paused", abi = "paused()")]
     pub struct PausedCall;
@@ -178,7 +172,7 @@ pub mod pausable {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     pub struct PausedReturn(pub bool);
 }

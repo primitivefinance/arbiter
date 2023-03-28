@@ -17,8 +17,7 @@ mod tests {
     use revm::primitives::{ruint::Uint, B160};
 
     use crate::{
-        agent::Agent,
-        environment::{recast_address, SimulationContract, SimulationManager},
+        environment::SimulationContract, manager::SimulationManager, utils::recast_address,
     };
 
     #[test]
