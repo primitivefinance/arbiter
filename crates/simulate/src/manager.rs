@@ -1,25 +1,21 @@
-use std::{
-    collections::HashMap,
-    str::FromStr,
-    sync::{Arc, RwLock},
-    thread,
-};
+#![warn(missing_docs)]
+//! Simulation managers are used to manage the environments for a simulation.
+//! Managers are responsible for adding agents, running agents, deploying contracts, calling contracts, and reading logs.
 
-use bytes::Bytes;
-use ethers::{
-    abi::Tokenize,
-    prelude::{Address, BaseContract},
-};
+use std::str::FromStr;
+
 use crate::environment::IsDeployed;
 use crate::environment::NotDeployed;
 use crate::environment::SimulationContract;
 use crate::environment::SimulationEnvironment;
+use bytes::Bytes;
+use ethers::{
+    abi::Tokenize,
+};
 use revm::{
-    db::{CacheDB, EmptyDB},
     primitives::{
         Account, AccountInfo, ExecutionResult, Log, Output, TransactTo, TxEnv, B160, U256,
     },
-    EVM,
 };
 
 use crate::agent::{Agent, TransactSettings};
@@ -37,14 +33,8 @@ pub struct SimulationManager<'a> {
     environment: SimulationEnvironment<'a>,
 }
 
-/// Recast a B160 into an Address type (perhaps this should be in utils?)
-pub fn recast_address(address: B160) -> Address {
-    let temp: [u8; 20] = address.as_bytes().try_into().unwrap();
-    Address::from(temp)
-}
-
 impl<'a> SimulationManager<'a> {
-    /// Constructor function to instantiate a 
+    /// Constructor function to instantiate a
     pub fn new() -> Self {
         Self {
             address: B160::from_str("0x0000000000000000000000000000000000000001").unwrap(),
@@ -120,12 +110,7 @@ impl<'a> SimulationManager<'a> {
     }
 
     /// Build a `TxEnv` which the EVM uses natively.
-    fn build_transaction(
-        &self,
-        receiver_address: B160,
-        call_data: Bytes,
-        value: U256,
-    ) -> TxEnv {
+    fn build_transaction(&self, receiver_address: B160, call_data: Bytes, value: U256) -> TxEnv {
         TxEnv {
             caller: self.address,
             gas_limit: self.transact_settings.gas_limit,

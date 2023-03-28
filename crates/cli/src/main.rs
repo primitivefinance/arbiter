@@ -7,8 +7,8 @@ use clap::{CommandFactory, Parser, Subcommand};
 use ethers::prelude::BaseContract;
 use eyre::Result;
 use simulate::{
-    manager::{recast_address, SimulationManager},
     environment::SimulationContract,
+    manager::{recast_address, SimulationManager},
     price_simulation::PriceSimulation,
 };
 mod config;
@@ -67,7 +67,7 @@ async fn main() -> Result<()> {
                     .into_iter()
                     .collect(),
             );
-            
+
             let registry = manager.deploy(registry, ());
             println!("Simple registry deployed at: {}", registry.address.unwrap());
 

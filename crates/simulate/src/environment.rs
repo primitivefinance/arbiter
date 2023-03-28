@@ -1,24 +1,21 @@
 use std::{
     collections::HashMap,
-    str::FromStr,
     sync::{Arc, RwLock},
     thread,
 };
 
-use bytes::Bytes;
 use ethers::{
-    abi::Tokenize,
-    prelude::{Address, BaseContract},
+    prelude::BaseContract,
 };
 use revm::{
     db::{CacheDB, EmptyDB},
     primitives::{
-        Account, AccountInfo, ExecutionResult, Log, Output, TransactTo, TxEnv, B160, U256,
+        ExecutionResult, Log, TxEnv, B160, U256,
     },
     EVM,
 };
 
-use crate::agent::{Agent, TransactSettings};
+use crate::agent::Agent;
 
 pub(crate) struct SimulationEnvironment<'a> {
     pub(crate) evm: EVM<CacheDB<EmptyDB>>,
@@ -62,7 +59,7 @@ impl<'a> SimulationEnvironment<'a> {
             event_buffer: Arc::new(RwLock::new(Vec::<Log>::new())),
             writer_thread: Some(thread::spawn(|| {})),
             agents: HashMap::new(),
-        }        
+        }
     }
 
     pub(crate) fn execute(&mut self, tx: TxEnv) -> ExecutionResult {
