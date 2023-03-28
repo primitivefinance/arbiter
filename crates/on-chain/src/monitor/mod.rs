@@ -22,8 +22,8 @@ pub struct EventMonitor {
 }
 impl EventMonitor {
     /// Public builder function that instantiates a default implementation of `event_monitor`.
-    pub async fn default() -> Self {
-        let provider = utils::get_provider(utils::RpcTypes::Mainnet).await;
+    pub async fn new(rpc_type: utils::RpcTypes) -> Self {
+        let provider = utils::get_provider(rpc_type).await;
         Self { provider }
     }
     /// Monitors events for a given contract from a given provider.

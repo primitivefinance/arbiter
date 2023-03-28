@@ -215,11 +215,14 @@ use ethers::{prelude::*, providers::Provider};
 /// Get a default provider.
 #[derive(Debug, PartialEq)]
 pub enum RpcTypes {
+    /// Mainet rpc
     Mainnet,
+    /// Default rpc
     Default,
+    /// Goerli rpc
     Goerli,
 }
-
+/// Get a specified provider.
 pub async fn get_provider(rpc_type: RpcTypes) -> Arc<Provider<Http>> {
     match rpc_type {
         RpcTypes::Mainnet => 
