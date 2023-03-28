@@ -1,4 +1,5 @@
 #![warn(missing_docs)]
+#![warn(unsafe_code)]
 //! Main lives in the `cli` crate so that we can do our input parsing.
 
 use bindings::{rmm01_portfolio, simple_registry, weth9};
