@@ -24,6 +24,7 @@ use revm::{
 
 use crate::agent::{Agent, TransactSettings};
 
+/// Manages simulations.
 pub struct SimulationManager<'a> {
     /// Public address of the simulation manager.
     pub address: B160, //TODO: Consider using Address=H160 instead of B160, or wait for ruints.
@@ -36,6 +37,7 @@ pub struct SimulationManager<'a> {
     environment: SimulationEnvironment<'a>,
 }
 
+/// Recast a B160 into an Address type (perhaps this should be in utils?)
 pub fn recast_address(address: B160) -> Address {
     let temp: [u8; 20] = address.as_bytes().try_into().unwrap();
     Address::from(temp)
