@@ -1,10 +1,7 @@
-#![allow(deprecated)]
 #![warn(missing_docs)]
-#![warn(unsafe_code)]
-
-//! ## Architect
+//! ## Executor
 //!
-//! Architect is the bundling, simulation and execution module of Arbiter.
+//! Executor is the bundling, simulation and execution module of Arbiter.
 
 use ethers::{
     core::{rand::thread_rng, types::transaction::eip2718::TypedTransaction},
@@ -12,15 +9,12 @@ use ethers::{
     signers::Signer,
 };
 use ethers_flashbots::*;
-use thiserror::Error;
 use url::Url;
 
-/// Type that represents an `Architect`, a transaction executor designed to
-/// execute, simulate and bundle arbitrage opportunities.
-#[allow(warnings)]
-#[deprecated(since = "0.0.1", note = "will be useful for actors in the future")]
+/// Type that represents an `Executor`, a transaction executor designed to
+/// execute transactions.
 #[derive(Debug)]
-pub struct Architect<S>
+pub struct Executor<S>
 where
     S: Signer,
 {
@@ -31,10 +25,9 @@ where
 }
 
 /// Errors for bundle construction or execution.
-#[derive(Error, Debug)]
-#[deprecated(since = "0.0.1", note = "will be useful for actors in the future")]
-#[allow(warnings)]
-pub enum ArchitectError {
+#[derive(Debug)]
+
+pub enum Executor {
     /// Error with parsing the Flashbots relay URL.
     #[error(transparent)]
     RelayParseError(#[from] url::ParseError),

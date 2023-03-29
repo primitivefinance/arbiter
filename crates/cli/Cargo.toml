@@ -9,6 +9,7 @@ edition = "2021"
 # Local
 simulate = { path = "../simulate" }
 bindings = {path = "../bindings"}
+on-chain = {path = "../on-chain"}
 
 # External
 tokio = { version = "1.23", features = [
