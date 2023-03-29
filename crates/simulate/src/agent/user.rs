@@ -12,7 +12,7 @@ use crate::{
     environment::SimulationEnvironment,
 };
 
-pub struct Admin {
+pub struct User {
     /// Public address of the simulation manager.
     pub address: B160,
     /// revm-primitive account of the simulation manager.
@@ -23,7 +23,7 @@ pub struct Admin {
     environment: Arc<RwLock<SimulationEnvironment>>,
 }
 
-impl Agent for Admin {
+impl Agent for User {
     fn address(&self) -> Address {
         self.address
     }
@@ -35,15 +35,15 @@ impl Agent for Admin {
     }
 }
 
-impl Admin {
+impl User {
     /// Constructor function to instantiate a
-    pub fn new(environment: Arc<RwLock<SimulationEnvironment>>) -> Self {
+    pub fn new(environment: Arc<RwLock<SimulationEnvironment>>, address: B160) -> Self {
         Self {
-            address: B160::from_str("0x0000000000000000000000000000000000000001").unwrap(),
+            address,
             account: Account::from(AccountInfo::default()),
             transact_settings: TransactSettings {
                 gas_limit: u64::MAX,
-                gas_price: U256::ZERO, // This should stay zero for the admin so we don't have to fund it.
+                gas_price: U256::ZERO, // TODO: Users should have an associated gas price.
             },
             environment,
         }

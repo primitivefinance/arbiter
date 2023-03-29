@@ -14,10 +14,10 @@ use revm::{
 };
 
 // use crate::agent::Agent;
-
+// #[derive(DerefMut)]
 pub struct SimulationEnvironment {
     /// The EVM that is used for the simulation.
-    evm: EVM<CacheDB<EmptyDB>>,
+    pub(crate) evm: EVM<CacheDB<EmptyDB>>, //TODO: change back to pub(crate)
     /// The buffer agents can read from.
     pub(crate) event_buffer: Arc<RwLock<Vec<Log>>>,
     /// Thread that is used to write to the event buffer.
@@ -69,7 +69,9 @@ impl SimulationEnvironment {
             // URGENT: change this to a custom error
             Err(_) => panic!("failed"),
         };
-
+        // TODO: REMOVE THIS
+        let thing = self.evm.db().unwrap().contracts.keys().clone();
+        println!("evmdb: {:#?}", thing);
         self.echo_logs(execution_result.logs());
 
         execution_result

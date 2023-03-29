@@ -9,14 +9,15 @@ use bytes::Bytes;
 use ethers::abi::Tokenize;
 use revm::primitives::{Address, ExecutionResult, Log, Output, TransactTo, TxEnv, B160, U256};
 use std::{
-    cell::{RefCell, RefMut},
-    rc::Rc,
+    cell::{RefCell, RefMut, Cell},
+    rc::Rc, borrow::BorrowMut,  sync::{RwLock,Arc, RwLockWriteGuard},
 };
 use ethers::abi::Token;
 
 use crate::environment::{IsDeployed, NotDeployed, SimulationContract, SimulationEnvironment};
 
 pub mod admin;
+pub mod user;
 /// Describes the gas settings for a transaction.
 pub struct TransactSettings {
     /// Gas limit for the transaction for a simulation.
@@ -29,11 +30,11 @@ pub struct TransactSettings {
 pub trait Agent {
     fn address(&self) -> Address;
     fn transact_settings(&self) -> &TransactSettings;
-    fn simulation_environment(&self) -> RefMut<SimulationEnvironment>;
+    fn simulation_environment(&self) -> RwLockWriteGuard<'_, SimulationEnvironment>;
 
     /// Used to allow agents to make a generic call a specific smart contract.
     fn call_contract(
-        &mut self,
+        &self,
         contract: &SimulationContract<IsDeployed>,
         call_data: Bytes,
         value: U256,

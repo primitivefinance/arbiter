@@ -8,7 +8,7 @@ use ethers::{prelude::BaseContract, abi::Tokenize};
 use eyre::Result;
 use on_chain::monitor::EventMonitor;
 use simulate::{
-    environment::SimulationContract, manager::SimulationManager, price_simulation::PriceSimulation,
+    environment::{SimulationContract, SimulationEnvironment}, manager::SimulationManager, price_simulation::PriceSimulation,
     utils::recast_address,
 };
 mod config;
@@ -55,6 +55,7 @@ async fn main() -> Result<()> {
             // Create a `SimulationManager` that runs simulations in their `SimulationEnvironment`.
             // This will create an EVM instance along with an admin user account.
             let manager = SimulationManager::new();
+            let admin = manager.admin();
 
             // Deploy the WETH contract.
             let weth = SimulationContract::new(
@@ -62,7 +63,7 @@ async fn main() -> Result<()> {
                 weth9::WETH9_BYTECODE.clone().into_iter().collect(),
             );
 
-            let weth = manager.agents["admin"].deploy(weth, ().into_tokens());
+            let weth = admin.deploy(weth, ().into_tokens());
             println!("WETH deployed at: {}", weth.address.unwrap());
 
             // Deploy the registry contract.
@@ -74,7 +75,7 @@ async fn main() -> Result<()> {
                     .collect(),
             );
 
-            let registry = manager.agents["admin"].deploy(registry, ().into_tokens());
+            let registry = admin.deploy(registry, ().into_tokens());
             println!("Simple registry deployed at: {}", registry.address.unwrap());
 
             // Deploy the portfolio contract.
@@ -90,7 +91,7 @@ async fn main() -> Result<()> {
                 recast_address(weth.address.unwrap()),
                 recast_address(registry.address.unwrap()),
             );
-            let portfolio = manager.agents["admin"].deploy(portfolio, portfolio_args.into_tokens());
+            let portfolio = admin.deploy(portfolio, portfolio_args.into_tokens());
             println!("Portfolio deployed at: {}", portfolio.address.unwrap());
         }
         Some(Commands::Gbm { config }) => {

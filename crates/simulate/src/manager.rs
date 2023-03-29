@@ -2,14 +2,15 @@
 //! Simulation managers are used to manage the environments for a simulation.
 //! Managers are responsible for adding agents, running agents, deploying contracts, calling contracts, and reading logs.
 
-use std::{cell::RefCell, collections::HashMap, rc::Rc};
+// use core::slice::SlicePattern;
+use std::{cell::{Cell, RefCell}, collections::HashMap, rc::Rc, sync::{Arc, RwLock}};
 
 use bytes::Bytes;
-use revm::primitives::{ExecutionResult, Output};
+use revm::primitives::{ExecutionResult, Output, AccountInfo, B160};
 
 use crate::{
     agent::{admin::Admin, Agent},
-    environment::SimulationEnvironment,
+    environment::{SimulationEnvironment, self},
 };
 
 // TODO: Maybe need a `SimulationAccount`?
@@ -17,7 +18,7 @@ use crate::{
 /// Manages simulations.
 pub struct SimulationManager<'a> {
     /// `SimulationEnvironment` that the simulation manager controls.
-    pub environment: Rc<RefCell<SimulationEnvironment>>,
+    pub environment: Arc<RwLock<SimulationEnvironment>>,
     pub agents: HashMap<&'a str, Box<dyn Agent>>,
 }
 
@@ -31,12 +32,16 @@ impl<'a> SimulationManager<'a> {
     /// Constructor function to instantiate a
     pub fn new() -> Self {
         let mut simulation_manager = Self {
-            environment: Rc::new(RefCell::new(SimulationEnvironment::new())),
+            environment: Arc::new(RwLock::new(SimulationEnvironment::new())),
             agents: HashMap::new(),
         };
-        let admin = Box::new(Admin::new(&simulation_manager.environment));
+        let admin = Box::new(Admin::new(Arc::clone(&simulation_manager.environment)));
         simulation_manager.add_agent("admin", admin);
         simulation_manager
+    }
+
+    pub fn admin(&self) -> &Box<dyn Agent> {
+        self.agents.get("admin").unwrap()
     }
 
     /// Run all agents concurrently in the current simulation environment.
@@ -49,7 +54,20 @@ impl<'a> SimulationManager<'a> {
         self.agents.insert(name, agent);
     }
 
-    /// Takes an `ExecutionResult` and returns the raw bytes of the output that can then be decoded.
+    // TODO: maybe should make the name optional here, but I struggled with this.
+    /// Allow the manager to create a dummy user account.
+    pub fn create_user(&mut self, address: B160, name: &'a str) {
+        self.
+            environment.write().unwrap()
+                .evm
+                .db()
+                .unwrap()
+                .insert_account_info(address.clone(), AccountInfo::default());
+            let user = Box::new(Admin::new(Arc::clone(&self.environment)));
+            self.add_agent(name, user);
+        }
+
+            /// Takes an `ExecutionResult` and returns the raw bytes of the output that can then be decoded.
     pub fn unpack_execution(&self, execution_result: ExecutionResult) -> Bytes {
         match execution_result {
             ExecutionResult::Success { output, .. } => match output {
@@ -62,14 +80,5 @@ impl<'a> SimulationManager<'a> {
             _ => panic!("This call generated no execution result. This should not happen."),
         }
     }
-}
+    }
 
-// // TODO: This should only be temporary now. We should create a user agent.
-// /// Create a new user
-// pub fn create_user(&mut self, address: B160) {
-//     self.environment
-//         .evm
-//         .db()
-//         .unwrap()
-//         .insert_account_info(address, AccountInfo::default());
-// }
