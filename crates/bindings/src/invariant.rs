@@ -325,7 +325,7 @@ pub mod invariant {
         > {
             let factory = ::ethers::contract::ContractFactory::new(
                 INVARIANT_ABI.clone(),
-                INVARIANT_BYTECODE.clone().into(),
+                INVARIANT_BYTECODE.clone(),
                 client,
             );
             let deployer = factory.deploy(constructor_args)?;

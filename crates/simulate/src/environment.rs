@@ -1,10 +1,7 @@
 #![warn(missing_docs)]
 //! The environment that constitutes a simulation is handled here.
 
-use std::{
-    sync::{Arc, RwLock},
-    thread,
-};
+use std::thread;
 
 use ethers::prelude::BaseContract;
 use revm::{
@@ -13,8 +10,7 @@ use revm::{
     EVM,
 };
 
-// use crate::agent::Agent;
-// #[derive(DerefMut)]
+/// The simulation environment that houses the execution environment and event logs.
 pub struct SimulationEnvironment {
     /// The EVM that is used for the simulation.
     pub(crate) evm: EVM<CacheDB<EmptyDB>>, //TODO: change back to pub(crate)

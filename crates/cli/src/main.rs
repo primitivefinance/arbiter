@@ -8,9 +8,7 @@ use ethers::{abi::Tokenize, prelude::BaseContract};
 use eyre::Result;
 use on_chain::monitor::EventMonitor;
 use simulate::{
-    environment::{SimulationContract},
-    manager::SimulationManager,
-    price_simulation::PriceSimulation,
+    environment::SimulationContract, manager::SimulationManager, price_simulation::PriceSimulation,
     utils::recast_address,
 };
 mod config;

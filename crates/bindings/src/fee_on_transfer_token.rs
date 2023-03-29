@@ -7540,7 +7540,7 @@ pub mod fee_on_transfer_token {
         > {
             let factory = ::ethers::contract::ContractFactory::new(
                 FEEONTRANSFERTOKEN_ABI.clone(),
-                FEEONTRANSFERTOKEN_BYTECODE.clone().into(),
+                FEEONTRANSFERTOKEN_BYTECODE.clone(),
                 client,
             );
             let deployer = factory.deploy(constructor_args)?;

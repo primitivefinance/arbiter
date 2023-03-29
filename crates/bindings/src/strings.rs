@@ -325,7 +325,7 @@ pub mod strings {
         > {
             let factory = ::ethers::contract::ContractFactory::new(
                 STRINGS_ABI.clone(),
-                STRINGS_BYTECODE.clone().into(),
+                STRINGS_BYTECODE.clone(),
                 client,
             );
             let deployer = factory.deploy(constructor_args)?;

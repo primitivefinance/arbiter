@@ -170,7 +170,7 @@ mod tests {
     #[test]
     fn test_event_logging() {
         // Set up the execution manager and a user address.
-        let mut manager = SimulationManager::default();
+        let manager = SimulationManager::default();
         let admin = manager.admin();
 
         // Get bytecode and abi for the writer contract.

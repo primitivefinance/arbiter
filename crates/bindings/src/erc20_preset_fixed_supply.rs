@@ -6303,7 +6303,7 @@ pub mod erc20_preset_fixed_supply {
         > {
             let factory = ::ethers::contract::ContractFactory::new(
                 ERC20PRESETFIXEDSUPPLY_ABI.clone(),
-                ERC20PRESETFIXEDSUPPLY_BYTECODE.clone().into(),
+                ERC20PRESETFIXEDSUPPLY_BYTECODE.clone(),
                 client,
             );
             let deployer = factory.deploy(constructor_args)?;

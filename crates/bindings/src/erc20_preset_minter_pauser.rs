@@ -13869,7 +13869,7 @@ pub mod erc20_preset_minter_pauser {
         > {
             let factory = ::ethers::contract::ContractFactory::new(
                 ERC20PRESETMINTERPAUSER_ABI.clone(),
-                ERC20PRESETMINTERPAUSER_BYTECODE.clone().into(),
+                ERC20PRESETMINTERPAUSER_BYTECODE.clone(),
                 client,
             );
             let deployer = factory.deploy(constructor_args)?;

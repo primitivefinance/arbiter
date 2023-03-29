@@ -1,4 +1,5 @@
 #![warn(missing_docs)]
+//! Describes the agent that will always come alongside any simulation.
 use std::{
     str::FromStr,
     sync::{Arc, RwLock, RwLockReadGuard, RwLockWriteGuard},

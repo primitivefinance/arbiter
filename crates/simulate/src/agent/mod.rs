@@ -108,7 +108,7 @@ pub trait Agent {
 
         contract.to_deployed(contract_address)
     }
-
+    /// Helper function to build a deploy transaction.
     fn build_deploy_transaction(&self, bytecode: Bytes) -> TxEnv {
         TxEnv {
             caller: self.address(),

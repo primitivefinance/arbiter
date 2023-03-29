@@ -325,7 +325,7 @@ pub mod enumerable_set {
         > {
             let factory = ::ethers::contract::ContractFactory::new(
                 ENUMERABLESET_ABI.clone(),
-                ENUMERABLESET_BYTECODE.clone().into(),
+                ENUMERABLESET_BYTECODE.clone(),
                 client,
             );
             let deployer = factory.deploy(constructor_args)?;

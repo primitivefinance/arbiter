@@ -325,7 +325,7 @@ pub mod address {
         > {
             let factory = ::ethers::contract::ContractFactory::new(
                 ADDRESS_ABI.clone(),
-                ADDRESS_BYTECODE.clone().into(),
+                ADDRESS_BYTECODE.clone(),
                 client,
             );
             let deployer = factory.deploy(constructor_args)?;

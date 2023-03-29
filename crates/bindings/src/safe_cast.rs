@@ -325,7 +325,7 @@ pub mod safe_cast {
         > {
             let factory = ::ethers::contract::ContractFactory::new(
                 SAFECAST_ABI.clone(),
-                SAFECAST_BYTECODE.clone().into(),
+                SAFECAST_BYTECODE.clone(),
                 client,
             );
             let deployer = factory.deploy(constructor_args)?;

@@ -325,7 +325,7 @@ pub mod storage_slot {
         > {
             let factory = ::ethers::contract::ContractFactory::new(
                 STORAGESLOT_ABI.clone(),
-                STORAGESLOT_BYTECODE.clone().into(),
+                STORAGESLOT_BYTECODE.clone(),
                 client,
             );
             let deployer = factory.deploy(constructor_args)?;

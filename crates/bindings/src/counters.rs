@@ -325,7 +325,7 @@ pub mod counters {
         > {
             let factory = ::ethers::contract::ContractFactory::new(
                 COUNTERS_ABI.clone(),
-                COUNTERS_BYTECODE.clone().into(),
+                COUNTERS_BYTECODE.clone(),
                 client,
             );
             let deployer = factory.deploy(constructor_args)?;

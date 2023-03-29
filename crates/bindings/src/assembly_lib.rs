@@ -325,7 +325,7 @@ pub mod assembly_lib {
         > {
             let factory = ::ethers::contract::ContractFactory::new(
                 ASSEMBLYLIB_ABI.clone(),
-                ASSEMBLYLIB_BYTECODE.clone().into(),
+                ASSEMBLYLIB_BYTECODE.clone(),
                 client,
             );
             let deployer = factory.deploy(constructor_args)?;

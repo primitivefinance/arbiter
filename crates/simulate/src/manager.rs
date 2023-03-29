@@ -44,8 +44,8 @@ impl<'a> SimulationManager<'a> {
         simulation_manager
     }
     /// Returns a reference to the admin agent.
-    pub fn admin(&self) -> &Box<dyn Agent> {
-        self.agents.get("admin").unwrap()
+    pub fn admin(&self) -> &dyn Agent {
+        self.agents.get("admin").unwrap().as_ref()
     }
 
     /// Run all agents concurrently in the current simulation environment.
