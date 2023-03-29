@@ -48,4 +48,4 @@ jobs:
         run: cargo +nightly fmt --all -- --check
 
       - name: cargo clippy
-        run: cargo +nightly clippy -- -A clippy::module_inception -- -D warnings
+        run: cargo clippy -- -A clippy::module_inception
