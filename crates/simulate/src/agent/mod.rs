@@ -64,13 +64,11 @@ pub trait Agent {
         }
     }
 
+    // TODO: this should become some kind of async function so agents can await certain logs.
     /// Gets the most current event (which is all that is stored in the event buffer).
     fn read_logs(&self) -> Vec<Log> {
         self.simulation_environment()
-            .event_buffer
-            .read()
-            .unwrap()
-            .to_vec()
+            .event_buffer.clone()
     }
     /// Deploy a contract to the current simulation environment.
     fn deploy(
@@ -123,33 +121,3 @@ pub trait Agent {
         }
     }
 }
-
-// / Call a contract in the current simulation environment associated to the manager.
-// pub fn call_contract(
-//     &mut self,
-//     contract: &SimulationContract<IsDeployed>,
-//     call_data: Bytes,
-//     value: U256,
-// ) -> ExecutionResult {
-// }
-
-// TODO: Handle the output of the execution result and decode?
-// pub fn read_logs(&mut self) -> Vec<Log> {
-//     self.environment.event_buffer.read().unwrap().to_vec()
-// }
-
-// / Build a `TxEnv` which the EVM uses natively.
-// fn build_transaction(&self, receiver_address: B160, call_data: Bytes, value: U256) -> TxEnv {
-//     TxEnv {
-//         caller: self.address,
-//         gas_limit: self.transact_settings.gas_limit,
-//         gas_price: self.transact_settings.gas_price,
-//         gas_priority_fee: None,
-//         transact_to: TransactTo::Call(receiver_address),
-//         value,
-//         data: call_data,
-//         chain_id: None,
-//         nonce: None,
-//         access_list: Vec::new(),
-//     }
-// }

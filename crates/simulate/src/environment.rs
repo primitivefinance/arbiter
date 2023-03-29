@@ -19,9 +19,9 @@ pub struct SimulationEnvironment {
     /// The EVM that is used for the simulation.
     pub(crate) evm: EVM<CacheDB<EmptyDB>>, //TODO: change back to pub(crate)
     /// The buffer agents can read from.
-    pub(crate) event_buffer: Arc<RwLock<Vec<Log>>>,
+    pub(crate) event_buffer: Vec<Log>, //TODO: Just make a cell?
     /// Thread that is used to write to the event buffer.
-    pub(crate) writer_thread: Option<thread::JoinHandle<()>>,
+    pub(crate) writer_thread: Option<thread::JoinHandle<()>>, //TODO: Move this thread out?
 }
 
 #[derive(Debug)]
@@ -56,12 +56,16 @@ impl SimulationEnvironment {
 
         Self {
             evm,
-            event_buffer: Arc::new(RwLock::new(Vec::<Log>::new())),
+            event_buffer: Vec::<Log>::new(),
             writer_thread: Some(thread::spawn(|| {})),
         }
     }
 
     pub(crate) fn execute(&mut self, tx: TxEnv) -> ExecutionResult {
+        if let Some(handle) = self.writer_thread.take() {
+            handle.join().unwrap();
+        }
+        
         self.evm.env.tx = tx;
 
         let execution_result = match self.evm.transact_commit() {
@@ -82,10 +86,10 @@ impl SimulationEnvironment {
             handle.join().unwrap();
         }
 
-        self.event_buffer.write().unwrap().clear();
+        self.event_buffer.clear();
 
         logs.into_iter().for_each(|log| {
-            self.event_buffer.write().unwrap().push(log);
+            self.event_buffer.push(log);
         });
     }
 }

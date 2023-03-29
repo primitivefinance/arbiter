@@ -132,7 +132,7 @@ mod tests {
 
         let call_data = arbiter_token
             .base_contract
-            .encode("balanceOf", recast_address(user_address))
+            .encode("balanceOf", recast_address(manager.agents[user_name].address()))
             .unwrap()
             .into_iter()
             .collect();
