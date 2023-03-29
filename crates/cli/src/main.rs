@@ -55,7 +55,7 @@ async fn main() -> Result<()> {
                 weth9::WETH9_BYTECODE.clone().into_iter().collect(),
             );
 
-            let weth = manager.deploy(weth, ());
+            let weth = manager.agents["admin"].deploy(weth, ());
             println!("WETH deployed at: {}", weth.address.unwrap());
 
             // Deploy the registry contract.
