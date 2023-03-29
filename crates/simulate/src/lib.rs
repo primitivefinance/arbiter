@@ -13,7 +13,10 @@ mod tests {
     use std::str::FromStr;
 
     // use bindings::{self, arbiter_token};
-    use ethers::{prelude::{BaseContract, H256, U256}, abi::Tokenize};
+    use ethers::{
+        abi::Tokenize,
+        prelude::{BaseContract, H256, U256},
+    };
     use revm::primitives::{ruint::Uint, B160};
 
     use crate::{
@@ -68,7 +71,7 @@ mod tests {
         // Create a `SimulationManager` where we can run simulations.
         // This will also create an EVM instance associated to the manager.
         let mut manager = SimulationManager::default(); // TODO: Should manager only have interior mutabability?
-        // Get a SimulationContract for the Arbiter Token ERC-20 instance from the ABI and bytecode.
+                                                        // Get a SimulationContract for the Arbiter Token ERC-20 instance from the ABI and bytecode.
         let arbiter_token = SimulationContract::new(
             BaseContract::from(bindings::arbiter_token::ARBITERTOKEN_ABI.clone()),
             bindings::arbiter_token::ARBITERTOKEN_BYTECODE
@@ -98,7 +101,10 @@ mod tests {
             .collect();
 
         // Execute the call to retrieve the token name as a test.
-        let execution_result = manager.admin().call_contract(&arbiter_token, call_data, Uint::from(0));
+        let execution_result =
+            manager
+                .admin()
+                .call_contract(&arbiter_token, call_data, Uint::from(0));
         let value = manager.unpack_execution(execution_result);
 
         let response: String = arbiter_token
@@ -117,7 +123,10 @@ mod tests {
         let mint_amount = U256::from(1000);
 
         // Set up the calldata for the 'mint' function.
-        let input_arguments = (recast_address(manager.agents[user_name].address()), mint_amount);
+        let input_arguments = (
+            recast_address(manager.agents[user_name].address()),
+            mint_amount,
+        );
 
         let call_data = arbiter_token
             .base_contract
@@ -127,18 +136,27 @@ mod tests {
             .collect();
 
         // Call the 'mint' function.
-        let execution_result = manager.admin().call_contract(&arbiter_token, call_data, Uint::from(0)); // TODO: SOME KIND OF ERROR HANDLING IS NECESSARY FOR THESE TYPES OF CALLS
+        let execution_result =
+            manager
+                .admin()
+                .call_contract(&arbiter_token, call_data, Uint::from(0)); // TODO: SOME KIND OF ERROR HANDLING IS NECESSARY FOR THESE TYPES OF CALLS
         println!("Mint execution result: {:#?}", execution_result);
 
         let call_data = arbiter_token
             .base_contract
-            .encode("balanceOf", recast_address(manager.agents[user_name].address()))
+            .encode(
+                "balanceOf",
+                recast_address(manager.agents[user_name].address()),
+            )
             .unwrap()
             .into_iter()
             .collect();
 
         // Call the 'balanceOf' function.
-        let execution_result = manager.admin().call_contract(&arbiter_token, call_data, Uint::from(0)); // TODO: SOME KIND OF ERROR HANDLING IS NECESSARY FOR THESE TYPES OF CALLS
+        let execution_result =
+            manager
+                .admin()
+                .call_contract(&arbiter_token, call_data, Uint::from(0)); // TODO: SOME KIND OF ERROR HANDLING IS NECESSARY FOR THESE TYPES OF CALLS
         let value = manager.unpack_execution(execution_result);
 
         let response: U256 = arbiter_token

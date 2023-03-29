@@ -4,11 +4,13 @@
 
 use bindings::{rmm01_portfolio, simple_registry, uniswap_v3_pool, weth9};
 use clap::{CommandFactory, Parser, Subcommand};
-use ethers::{prelude::BaseContract, abi::Tokenize};
+use ethers::{abi::Tokenize, prelude::BaseContract};
 use eyre::Result;
 use on_chain::monitor::EventMonitor;
 use simulate::{
-    environment::{SimulationContract, SimulationEnvironment}, manager::SimulationManager, price_simulation::PriceSimulation,
+    environment::{SimulationContract},
+    manager::SimulationManager,
+    price_simulation::PriceSimulation,
     utils::recast_address,
 };
 mod config;

@@ -1,17 +1,17 @@
 #![warn(missing_docs)]
-use std::cell::RefMut;
-use std::str::FromStr;
-use std::{cell::{RefCell,Cell}, rc::Rc,  sync::{Arc, RwLock, RwLockWriteGuard}};
-
-use revm::primitives::{
-    Account, AccountInfo, Address, B160, U256,
+use std::{
+    str::FromStr,
+    sync::{Arc, RwLock, RwLockReadGuard, RwLockWriteGuard},
 };
+
+use revm::primitives::{Account, AccountInfo, Address, B160, U256};
 
 use crate::{
     agent::{Agent, TransactSettings},
     environment::SimulationEnvironment,
 };
 
+/// An agent that is always spawned with any simulation to take control of initial setup, etc.
 pub struct Admin {
     /// Public address of the simulation manager.
     pub address: B160,
@@ -30,8 +30,11 @@ impl Agent for Admin {
     fn transact_settings(&self) -> &TransactSettings {
         &self.transact_settings
     }
-    fn simulation_environment(&self) -> RwLockWriteGuard<'_, SimulationEnvironment> {
+    fn simulation_environment_write(&self) -> RwLockWriteGuard<'_, SimulationEnvironment> {
         self.environment.write().unwrap()
+    }
+    fn simulation_environment_read(&self) -> RwLockReadGuard<'_, SimulationEnvironment> {
+        self.environment.read().unwrap()
     }
 }
 
@@ -43,7 +46,7 @@ impl Admin {
             account: Account::from(AccountInfo::default()),
             transact_settings: TransactSettings {
                 gas_limit: u64::MAX,
-                gas_price: U256::ZERO, // This should stay zero for the admin so we don't have to fund it.
+                gas_price: U256::ZERO, /* This should stay zero for the admin so we don't have to fund it. */
             },
             environment,
         }

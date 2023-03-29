@@ -1,17 +1,16 @@
 #![warn(missing_docs)]
-use std::cell::RefMut;
-use std::str::FromStr;
-use std::{cell::{RefCell,Cell}, rc::Rc,  sync::{Arc, RwLock, RwLockWriteGuard}};
+//! Describes the most basic type of user agent.
 
-use revm::primitives::{
-    Account, AccountInfo, Address, B160, U256,
-};
+use std::sync::{Arc, RwLock, RwLockReadGuard, RwLockWriteGuard};
+
+use revm::primitives::{Account, AccountInfo, Address, B160, U256};
 
 use crate::{
     agent::{Agent, TransactSettings},
     environment::SimulationEnvironment,
 };
 
+/// A user is an agent that can interact with the simulation environment generically.
 pub struct User {
     /// Public address of the simulation manager.
     pub address: B160,
@@ -30,8 +29,11 @@ impl Agent for User {
     fn transact_settings(&self) -> &TransactSettings {
         &self.transact_settings
     }
-    fn simulation_environment(&self) -> RwLockWriteGuard<'_, SimulationEnvironment> {
+    fn simulation_environment_write(&self) -> RwLockWriteGuard<'_, SimulationEnvironment> {
         self.environment.write().unwrap()
+    }
+    fn simulation_environment_read(&self) -> RwLockReadGuard<'_, SimulationEnvironment> {
+        self.environment.read().unwrap()
     }
 }
 

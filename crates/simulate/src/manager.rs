@@ -3,22 +3,26 @@
 //! Managers are responsible for adding agents, running agents, deploying contracts, calling contracts, and reading logs.
 
 // use core::slice::SlicePattern;
-use std::{cell::{Cell, RefCell}, collections::HashMap, rc::Rc, sync::{Arc, RwLock}};
+use std::{
+    collections::HashMap,
+    sync::{Arc, RwLock},
+};
 
 use bytes::Bytes;
-use revm::primitives::{ExecutionResult, Output, AccountInfo, B160};
+use revm::primitives::{AccountInfo, ExecutionResult, Output, B160};
 
 use crate::{
     agent::{admin::Admin, Agent},
-    environment::{SimulationEnvironment, self},
+    environment::SimulationEnvironment,
 };
 
-// TODO: Maybe need a `SimulationAccount`?
+// TODO: Maybe need a `SimulationAccount` that abstracts some of the revm primitives further.
 
 /// Manages simulations.
 pub struct SimulationManager<'a> {
     /// `SimulationEnvironment` that the simulation manager controls.
     pub environment: Arc<RwLock<SimulationEnvironment>>,
+    /// The agents that are currently running in the simulation environment.
     pub agents: HashMap<&'a str, Box<dyn Agent>>,
 }
 
@@ -39,7 +43,7 @@ impl<'a> SimulationManager<'a> {
         simulation_manager.add_agent("admin", admin);
         simulation_manager
     }
-
+    /// Returns a reference to the admin agent.
     pub fn admin(&self) -> &Box<dyn Agent> {
         self.agents.get("admin").unwrap()
     }
@@ -57,17 +61,18 @@ impl<'a> SimulationManager<'a> {
     // TODO: maybe should make the name optional here, but I struggled with this.
     /// Allow the manager to create a dummy user account.
     pub fn create_user(&mut self, address: B160, name: &'a str) {
-        self.
-            environment.write().unwrap()
-                .evm
-                .db()
-                .unwrap()
-                .insert_account_info(address.clone(), AccountInfo::default());
-            let user = Box::new(Admin::new(Arc::clone(&self.environment)));
-            self.add_agent(name, user);
-        }
+        self.environment
+            .write()
+            .unwrap()
+            .evm
+            .db()
+            .unwrap()
+            .insert_account_info(address, AccountInfo::default());
+        let user = Box::new(Admin::new(Arc::clone(&self.environment)));
+        self.add_agent(name, user);
+    }
 
-            /// Takes an `ExecutionResult` and returns the raw bytes of the output that can then be decoded.
+    /// Takes an `ExecutionResult` and returns the raw bytes of the output that can then be decoded.
     pub fn unpack_execution(&self, execution_result: ExecutionResult) -> Bytes {
         match execution_result {
             ExecutionResult::Success { output, .. } => match output {
@@ -80,5 +85,4 @@ impl<'a> SimulationManager<'a> {
             _ => panic!("This call generated no execution result. This should not happen."),
         }
     }
-    }
-
+}

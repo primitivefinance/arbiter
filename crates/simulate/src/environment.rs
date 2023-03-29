@@ -65,7 +65,7 @@ impl SimulationEnvironment {
         if let Some(handle) = self.writer_thread.take() {
             handle.join().unwrap();
         }
-        
+
         self.evm.env.tx = tx;
 
         let execution_result = match self.evm.transact_commit() {
