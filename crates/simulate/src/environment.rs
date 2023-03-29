@@ -14,13 +14,15 @@ use revm::{
     EVM,
 };
 
-use crate::agent::Agent;
+// use crate::agent::Agent;
 
-pub(crate) struct SimulationEnvironment<'a> {
-    pub(crate) evm: EVM<CacheDB<EmptyDB>>,
+pub struct SimulationEnvironment {
+    /// The EVM that is used for the simulation.
+    evm: EVM<CacheDB<EmptyDB>>,
+    /// The buffer agents can read from.
     pub(crate) event_buffer: Arc<RwLock<Vec<Log>>>,
+    /// Thread that is used to write to the event buffer.
     pub(crate) writer_thread: Option<thread::JoinHandle<()>>,
-    pub(crate) agents: HashMap<&'a str, Box<dyn Agent>>,
 }
 
 #[derive(Debug)]
@@ -46,7 +48,7 @@ pub struct SimulationContract<Deployed> {
     pub deployed: std::marker::PhantomData<Deployed>,
 }
 
-impl<'a> SimulationEnvironment<'a> {
+impl SimulationEnvironment {
     pub(crate) fn new() -> Self {
         let mut evm = EVM::new();
         let db = CacheDB::new(EmptyDB {});
@@ -57,7 +59,6 @@ impl<'a> SimulationEnvironment<'a> {
             evm,
             event_buffer: Arc::new(RwLock::new(Vec::<Log>::new())),
             writer_thread: Some(thread::spawn(|| {})),
-            agents: HashMap::new(),
         }
     }
 
