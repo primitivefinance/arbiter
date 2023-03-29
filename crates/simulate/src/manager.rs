@@ -46,7 +46,7 @@ impl<'a> SimulationManager<'a> {
 
     /// Add an [`Agent`] to the current simulation.
     pub fn add_agent(&mut self, name: &'a str, agent: Box<dyn Agent>) {
-        self.agents.insert(name, agent).unwrap();
+        self.agents.insert(name, agent);
     }
 
     /// Takes an `ExecutionResult` and returns the raw bytes of the output that can then be decoded.

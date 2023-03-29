@@ -1,17 +1,15 @@
 #![warn(missing_docs)]
-use bytes::Bytes;
 use std::cell::RefMut;
 use std::str::FromStr;
 use std::{cell::RefCell, rc::Rc};
 
-use ethers::abi::Tokenize;
 use revm::primitives::{
-    Account, AccountInfo, Address, ExecutionResult, Log, Output, TransactTo, TxEnv, B160, U256,
+    Account, AccountInfo, Address, B160, U256,
 };
 
 use crate::{
     agent::{Agent, TransactSettings},
-    environment::{IsDeployed, NotDeployed, SimulationContract, SimulationEnvironment},
+    environment::SimulationEnvironment,
 };
 
 pub struct Admin {
@@ -23,6 +21,9 @@ pub struct Admin {
     transact_settings: TransactSettings,
     // TODO: is this useful? environment: Arc<Mutex<Environment>>,
     environment: Rc<RefCell<SimulationEnvironment>>,
+
+
+    // Cell type, wrap everything in Cell?
 }
 
 impl Agent for Admin {

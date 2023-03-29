@@ -12,6 +12,7 @@ use std::{
     cell::{RefCell, RefMut},
     rc::Rc,
 };
+use ethers::abi::Token;
 
 use crate::environment::{IsDeployed, NotDeployed, SimulationContract, SimulationEnvironment};
 
@@ -71,10 +72,10 @@ pub trait Agent {
             .to_vec()
     }
     /// Deploy a contract to the current simulation environment.
-    fn deploy<T: Tokenize>(
+    fn deploy(
         &self,
         contract: SimulationContract<NotDeployed>,
-        args: T,
+        args: Vec<Token>,
     ) -> SimulationContract<IsDeployed> {
         // Append constructor args (if available) to generate the deploy bytecode.
         let constructor = contract.base_contract.abi().constructor();
@@ -82,7 +83,7 @@ pub trait Agent {
         let bytecode = match constructor {
             Some(constructor) => Bytes::from(
                 constructor
-                    .encode_input(contract.bytecode.clone(), &args.into_tokens())
+                    .encode_input(contract.bytecode.clone(), &args)
                     .unwrap(),
             ),
             None => Bytes::from(contract.bytecode.clone()),

@@ -2,7 +2,6 @@
 //! The environment that constitutes a simulation is handled here.
 
 use std::{
-    collections::HashMap,
     sync::{Arc, RwLock},
     thread,
 };
