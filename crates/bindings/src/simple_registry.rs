@@ -1504,7 +1504,7 @@ pub mod simple_registry {
         > {
             let factory = ::ethers::contract::ContractFactory::new(
                 SIMPLEREGISTRY_ABI.clone(),
-                SIMPLEREGISTRY_BYTECODE.clone().into(),
+                SIMPLEREGISTRY_BYTECODE.clone(),
                 client,
             );
             let deployer = factory.deploy(constructor_args)?;

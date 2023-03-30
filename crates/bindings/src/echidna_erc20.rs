@@ -7105,7 +7105,7 @@ pub mod echidna_erc20 {
         > {
             let factory = ::ethers::contract::ContractFactory::new(
                 ECHIDNAERC20_ABI.clone(),
-                ECHIDNAERC20_BYTECODE.clone().into(),
+                ECHIDNAERC20_BYTECODE.clone(),
                 client,
             );
             let deployer = factory.deploy(constructor_args)?;

@@ -72459,7 +72459,7 @@ pub mod rmm01_portfolio {
         > {
             let factory = ::ethers::contract::ContractFactory::new(
                 RMM01PORTFOLIO_ABI.clone(),
-                RMM01PORTFOLIO_BYTECODE.clone().into(),
+                RMM01PORTFOLIO_BYTECODE.clone(),
                 client,
             );
             let deployer = factory.deploy(constructor_args)?;

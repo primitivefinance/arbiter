@@ -4,7 +4,7 @@
 
 use bindings::{rmm01_portfolio, simple_registry, uniswap_v3_pool, weth9};
 use clap::{CommandFactory, Parser, Subcommand};
-use ethers::prelude::BaseContract;
+use ethers::{abi::Tokenize, prelude::BaseContract};
 use eyre::Result;
 use on_chain::monitor::EventMonitor;
 use simulate::{
@@ -54,7 +54,8 @@ async fn main() -> Result<()> {
         Some(Commands::Sim { config: _ }) => {
             // Create a `SimulationManager` that runs simulations in their `SimulationEnvironment`.
             // This will create an EVM instance along with an admin user account.
-            let mut manager = SimulationManager::new();
+            let manager = SimulationManager::new();
+            let admin = manager.admin();
 
             // Deploy the WETH contract.
             let weth = SimulationContract::new(
@@ -62,7 +63,7 @@ async fn main() -> Result<()> {
                 weth9::WETH9_BYTECODE.clone().into_iter().collect(),
             );
 
-            let weth = manager.deploy(weth, ());
+            let weth = admin.deploy(weth, ().into_tokens());
             println!("WETH deployed at: {}", weth.address.unwrap());
 
             // Deploy the registry contract.
@@ -74,7 +75,7 @@ async fn main() -> Result<()> {
                     .collect(),
             );
 
-            let registry = manager.deploy(registry, ());
+            let registry = admin.deploy(registry, ().into_tokens());
             println!("Simple registry deployed at: {}", registry.address.unwrap());
 
             // Deploy the portfolio contract.
@@ -90,7 +91,7 @@ async fn main() -> Result<()> {
                 recast_address(weth.address.unwrap()),
                 recast_address(registry.address.unwrap()),
             );
-            let portfolio = manager.deploy(portfolio, portfolio_args);
+            let portfolio = admin.deploy(portfolio, portfolio_args.into_tokens());
             println!("Portfolio deployed at: {}", portfolio.address.unwrap());
         }
         Some(Commands::Gbm { config }) => {

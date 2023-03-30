@@ -3716,7 +3716,7 @@ pub mod token_timelock {
         > {
             let factory = ::ethers::contract::ContractFactory::new(
                 TOKENTIMELOCK_ABI.clone(),
-                TOKENTIMELOCK_BYTECODE.clone().into(),
+                TOKENTIMELOCK_BYTECODE.clone(),
                 client,
             );
             let deployer = factory.deploy(constructor_args)?;

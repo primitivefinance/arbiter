@@ -1,11 +1,7 @@
 #![warn(missing_docs)]
 //! The environment that constitutes a simulation is handled here.
 
-use std::{
-    collections::HashMap,
-    sync::{Arc, RwLock},
-    thread,
-};
+use std::thread;
 
 use ethers::prelude::BaseContract;
 use revm::{
@@ -14,13 +10,14 @@ use revm::{
     EVM,
 };
 
-use crate::agent::Agent;
-
-pub(crate) struct SimulationEnvironment<'a> {
-    pub(crate) evm: EVM<CacheDB<EmptyDB>>,
-    pub(crate) event_buffer: Arc<RwLock<Vec<Log>>>,
-    pub(crate) writer_thread: Option<thread::JoinHandle<()>>,
-    pub(crate) agents: HashMap<&'a str, Box<dyn Agent>>,
+/// The simulation environment that houses the execution environment and event logs.
+pub struct SimulationEnvironment {
+    /// The EVM that is used for the simulation.
+    pub(crate) evm: EVM<CacheDB<EmptyDB>>, //TODO: change back to pub(crate)
+    /// The buffer agents can read from.
+    pub(crate) event_buffer: Vec<Log>, //TODO: Just make a cell?
+    /// Thread that is used to write to the event buffer.
+    pub(crate) writer_thread: Option<thread::JoinHandle<()>>, //TODO: Move this thread out?
 }
 
 #[derive(Debug)]
@@ -46,7 +43,7 @@ pub struct SimulationContract<Deployed> {
     pub deployed: std::marker::PhantomData<Deployed>,
 }
 
-impl<'a> SimulationEnvironment<'a> {
+impl SimulationEnvironment {
     pub(crate) fn new() -> Self {
         let mut evm = EVM::new();
         let db = CacheDB::new(EmptyDB {});
@@ -55,13 +52,16 @@ impl<'a> SimulationEnvironment<'a> {
 
         Self {
             evm,
-            event_buffer: Arc::new(RwLock::new(Vec::<Log>::new())),
+            event_buffer: Vec::<Log>::new(),
             writer_thread: Some(thread::spawn(|| {})),
-            agents: HashMap::new(),
         }
     }
 
     pub(crate) fn execute(&mut self, tx: TxEnv) -> ExecutionResult {
+        if let Some(handle) = self.writer_thread.take() {
+            handle.join().unwrap();
+        }
+
         self.evm.env.tx = tx;
 
         let execution_result = match self.evm.transact_commit() {
@@ -69,7 +69,9 @@ impl<'a> SimulationEnvironment<'a> {
             // URGENT: change this to a custom error
             Err(_) => panic!("failed"),
         };
-
+        // TODO: REMOVE THIS
+        let thing = self.evm.db().unwrap().contracts.keys().clone();
+        println!("evmdb: {:#?}", thing);
         self.echo_logs(execution_result.logs());
 
         execution_result
@@ -80,10 +82,10 @@ impl<'a> SimulationEnvironment<'a> {
             handle.join().unwrap();
         }
 
-        self.event_buffer.write().unwrap().clear();
+        self.event_buffer.clear();
 
         logs.into_iter().for_each(|log| {
-            self.event_buffer.write().unwrap().push(log);
+            self.event_buffer.push(log);
         });
     }
 }

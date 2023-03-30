@@ -5114,7 +5114,7 @@ pub mod erc20 {
         > {
             let factory = ::ethers::contract::ContractFactory::new(
                 ERC20_ABI.clone(),
-                ERC20_BYTECODE.clone().into(),
+                ERC20_BYTECODE.clone(),
                 client,
             );
             let deployer = factory.deploy(constructor_args)?;

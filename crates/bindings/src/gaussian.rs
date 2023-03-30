@@ -325,7 +325,7 @@ pub mod gaussian {
         > {
             let factory = ::ethers::contract::ContractFactory::new(
                 GAUSSIAN_ABI.clone(),
-                GAUSSIAN_BYTECODE.clone().into(),
+                GAUSSIAN_BYTECODE.clone(),
                 client,
             );
             let deployer = factory.deploy(constructor_args)?;

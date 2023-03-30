@@ -7204,7 +7204,7 @@ pub mod mock_erc20 {
         > {
             let factory = ::ethers::contract::ContractFactory::new(
                 MOCKERC20_ABI.clone(),
-                MOCKERC20_BYTECODE.clone().into(),
+                MOCKERC20_BYTECODE.clone(),
                 client,
             );
             let deployer = factory.deploy(constructor_args)?;
