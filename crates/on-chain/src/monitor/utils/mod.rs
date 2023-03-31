@@ -1,14 +1,11 @@
-#![allow(deprecated)]
 #![warn(missing_docs)]
-#![warn(unsafe_code)]
 //! Utility functions for the on-chain crate.
 
-use std::collections::HashMap;
+use std::{collections::HashMap, env::var_os};
 
 use ethers::types::{Address, H160};
 
 /// Insert a token to the HashMap.
-#[deprecated(since = "0.0.1", note = "will be useful for actors in the future")]
 macro_rules! token_insert {
     (
         $address:expr,
@@ -25,7 +22,6 @@ macro_rules! token_insert {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
-#[deprecated(since = "0.0.1", note = "will be useful for actors in the future")]
 /// Represents an ERC20 token.
 pub struct Token {
     /// Address of the token.
@@ -37,8 +33,6 @@ pub struct Token {
     /// Whether the token is a stablecoin.
     pub is_stable: bool,
 }
-#[deprecated(since = "0.0.1", note = "will be useful for actors in the future")]
-#[allow(warnings)]
 impl Token {
     /// Public builder function that instantiates a `Token`.
     pub fn new(address: H160, decimals: u16, name: String, is_stable: bool) -> Self {
@@ -51,9 +45,7 @@ impl Token {
     }
 }
 
-// return hashmap, name = key, value = token object
-#[deprecated(since = "0.0.1", note = "will be useful for actors in the future")]
-#[allow(warnings)]
+/// return hashmap, name = key, value = token object
 pub fn get_tokens() -> HashMap<String, Token> {
     let mut tokens = HashMap::new();
 
@@ -207,37 +199,42 @@ pub fn get_tokens() -> HashMap<String, Token> {
 use std::sync::Arc;
 
 use ethers::{prelude::*, providers::Provider};
-use num_bigfloat::BigFloat; // TODO: Best to work with fixed point q64_96 for UniswapV3
 
+// pub async fn get_provider(RPCType) -> Arc<Provider<Http>> {
+//     match RPCType {
+//         RPCType::Mainnet => Arc::new(
+//             Provider::try_from("https://eth-mainnet.g.alchemy.com/v2/I93POQk49QE9O-NuOz7nj7sbiluW76it")
+//                 .unwrap(),
+//         ),
+//         RPCType::Goirlie => Arc::new(
+//             Provider::try_from("https://eth-goerli.alchemyapi.io/v2/I93POQk49QE9O-NuOz7nj7sbiluW76it")
+//                 .unwrap(),
+//         ),
+//     };
 /// Get a default provider.
-pub async fn get_provider() -> Arc<Provider<Http>> {
-    Arc::new(
-        Provider::try_from("https://eth-mainnet.g.alchemy.com/v2/I93POQk49QE9O-NuOz7nj7sbiluW76it")
-            .unwrap(),
-    )
+#[derive(Debug, PartialEq)]
+pub enum RpcTypes {
+    /// Mainet rpc
+    Mainnet,
+    /// Default rpc
+    Default,
+    /// Goerli rpc
+    Goerli,
 }
-
-#[deprecated(
-    since = "0.0.1",
-    note = "will be useful for agents in the future; realistically we should just use on chain fixed point math for this"
-)]
-#[allow(warnings)]
-/// Converts from UniswapV3 fixed point q64_96 to BigFloat for handling in Rust.
-pub fn convert_q64_96(q64_96: U256) -> BigFloat {
-    let least_sig = q64_96.0[0];
-    let second_sig = q64_96.0[1];
-    let third_sig = q64_96.0[2];
-    let most_sig = q64_96.0[3];
-
-    let bf2 = BigFloat::from(2);
-    let bf64 = BigFloat::from(64);
-    let bf128 = BigFloat::from(128);
-    let bf192 = BigFloat::from(192);
-    let bf96 = BigFloat::from(96);
-
-    ((BigFloat::from(most_sig) * bf2.pow(&bf192))
-        + (BigFloat::from(third_sig) * bf2.pow(&bf128))
-        + (BigFloat::from(second_sig) * bf2.pow(&bf64))
-        + BigFloat::from(least_sig))
-        / bf2.pow(&bf96)
+/// Get a specified provider.
+pub async fn get_provider(rpc_type: RpcTypes) -> Arc<Provider<Http>> {
+    match rpc_type {
+        RpcTypes::Mainnet => Arc::new(
+            Provider::try_from(
+                "https://eth-mainnet.g.alchemy.com/v2/I93POQk49QE9O-NuOz7nj7sbiluW76it",
+            )
+            .unwrap(),
+        ),
+        RpcTypes::Default => {
+            Arc::new(Provider::try_from(var_os("RPC_URL").unwrap().into_string().unwrap()).unwrap())
+        }
+        RpcTypes::Goerli => {
+            Arc::new(Provider::try_from("https://rpc.ankr.com/eth_goerli").unwrap())
+        }
+    }
 }

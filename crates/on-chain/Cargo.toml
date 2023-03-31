@@ -6,9 +6,9 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-# Local
-# bindings_old = { path = "../bindings_old" }
-# utils = { path = "../utils" }
+# Internal
+
+bindings = { path = "../bindings" }
 
 # External
 serde = {version = "1.0.145", features= ["derive"]}
@@ -16,7 +16,8 @@ tokio = { version = "1.17.0", features = ["macros"] }
 url = { version = "2.3.1", default-features = false }
 ethers-flashbots = "0.12.1"
 toml = "0.5.10"
-ethers = "=1.0.2"
-thiserror = "1.0.38"
-eyre = "0.6.6"
+ethers = "2.0.0"
 num-bigfloat = "1.6.0"
+futures = "0.3"
+eyre = "0.6.6"
+serde_json = "1.0.68"

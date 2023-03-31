@@ -1,6 +1,9 @@
 #!/bin/bash
 
+forge install
 forge clean
+forge bind -c lib/v3-core/contracts -b crates/bindings/ --crate-name bindings --overwrite
+echo "Generated bindings for v3-core"
 forge bind -C lib/arbmod/contracts -b crates/bindings/ --crate-name bindings --overwrite
 echo "Generated bindings for arbmod" 
 forge bind -C lib/portfolio/contracts -b crates/bindings/ --crate-name bindings --overwrite
@@ -9,6 +12,7 @@ forge bind -C lib/canonical-weth/contracts -b crates/bindings/ --crate-name bind
 echo "Generated bindings for canonical-weth"
 forge bind -C lib/openzeppelin-contracts/contracts/token/ERC20 -b crates/bindings/ --crate-name bindings --overwrite --crate-version 0.1.0
 echo "Generated bindings for openzeppelin-contracts"
+
 
 #!/bin/bash
 

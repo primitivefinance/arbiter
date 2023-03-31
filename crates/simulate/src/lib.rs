@@ -3,8 +3,9 @@
 
 pub mod agent;
 pub mod environment;
+pub mod manager;
 pub mod price_simulation;
-pub mod exchange;
+pub mod utils;
 
 #[cfg(test)]
 mod tests {
@@ -16,15 +17,14 @@ mod tests {
     use revm::primitives::{ruint::Uint, B160};
 
     use crate::{
-        agent::Agent,
-        environment::{recast_address, SimulationContract, SimulationManager},
+        environment::SimulationContract, manager::SimulationManager, utils::recast_address,
     };
+
     #[test]
     /// Test that the writer contract can echo a string.
     /// The writer contract takes in no args.
     fn test_string_write() {
         // Set up the execution manager and a user address.
-        // The manager will act like a "bank" and hold lots of funds that a user can swap against using the LiquidExchange.
         let mut manager = SimulationManager::default();
 
         // Get bytecode and abi for the writer contract.
@@ -37,7 +37,7 @@ mod tests {
         );
 
         // Deploy the writer contract.
-        let writer = manager.deploy(&writer, ());
+        let writer = manager.deploy(writer, ());
 
         // Generate calldata for the 'echoString' function
         let test_string = "Hello, world!";
@@ -82,7 +82,7 @@ mod tests {
         let args = (name.to_string(), symbol.to_string());
 
         // Call the contract deployer and receive a IsDeployed version of SimulationContract that now has an address.
-        let arbiter_token = manager.deploy(&arbiter_token, args);
+        let arbiter_token = manager.deploy(arbiter_token, args);
         println!(
             "Arbiter Token deployed at: {}",
             arbiter_token.address.unwrap()
@@ -161,7 +161,7 @@ mod tests {
         );
 
         // Deploy the writer contract.
-        let writer = manager.deploy(&writer, ()); // TODO: Probably worth saying this is deployed under a specific manager.
+        let writer = manager.deploy(writer, ()); // TODO: Probably worth saying this is deployed under a specific manager.
 
         // Generate calldata for the 'echoString' function
         let test_string = "Hello, world!";

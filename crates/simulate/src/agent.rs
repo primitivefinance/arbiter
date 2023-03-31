@@ -1,6 +1,10 @@
 #![warn(missing_docs)]
-//! The data that describes agents that live in a `SimulationEnvironment`.
-//! All agents must implement the `Agent` trait.
+
+//! ## Agent
+//!
+//! An abstract representation of an agent on the EVM, to be used in simulations.
+//! Some examples of agents are market makers or arbitrageurs.
+//! All agents must implement the [`Agent`] trait.
 
 use bytes::Bytes;
 use revm::primitives::{ExecutionResult, Log, TxEnv, B160, U256};
@@ -14,6 +18,7 @@ pub struct TransactSettings {
     /// Gas limit for the transaction for a simulation.
     pub gas_price: U256,
 }
+
 /// Basic traits that every `Agent` must implement in order to properly interact with an EVM.
 pub trait Agent {
     /// Used to allow agentws to make a generic call a specific smart contract.
@@ -23,6 +28,7 @@ pub trait Agent {
         call_data: Bytes,
         value: U256,
     ) -> ExecutionResult;
+
     /// A constructor to build a `TxEnv` for an agent (uses agent data like `address` and `TransactSettings`).
     fn build_call_transaction(
         &self,
@@ -30,6 +36,7 @@ pub trait Agent {
         call_data: Bytes,
         value: U256,
     ) -> TxEnv;
+
     // TODO: Not sure `read_logs` needs to be mutable self.
     /// Provides the ability to read event logs from the simulation's EVM.
     fn read_logs(&mut self) -> Vec<Log>;

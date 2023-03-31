@@ -7,18 +7,16 @@ pub use ierc3156_flash_borrower::*;
     clippy::upper_case_acronyms,
     clippy::type_complexity,
     dead_code,
-    non_camel_case_types,
+    non_camel_case_types
 )]
 pub mod ierc3156_flash_borrower {
     #[rustfmt::skip]
     const __ABI: &str = "[{\"inputs\":[{\"internalType\":\"address\",\"name\":\"initiator\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"address\",\"name\":\"token\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"fee\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"bytes\",\"name\":\"data\",\"type\":\"bytes\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"function\",\"name\":\"onFlashLoan\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\",\"components\":[]}]}]";
     ///The parsed JSON ABI of the contract.
-    pub static IERC3156FLASHBORROWER_ABI: ::ethers::contract::Lazy<
-        ::ethers::core::abi::Abi,
-    > = ::ethers::contract::Lazy::new(|| {
-        ::ethers::core::utils::__serde_json::from_str(__ABI)
-            .expect("ABI is always valid")
-    });
+    pub static IERC3156FLASHBORROWER_ABI: ::ethers::contract::Lazy<::ethers::core::abi::Abi> =
+        ::ethers::contract::Lazy::new(|| {
+            ::ethers::core::utils::__serde_json::from_str(__ABI).expect("ABI is always valid")
+        });
     pub struct IERC3156FlashBorrower<M>(::ethers::contract::Contract<M>);
     impl<M> ::core::clone::Clone for IERC3156FlashBorrower<M> {
         fn clone(&self) -> Self {
@@ -50,13 +48,11 @@ pub mod ierc3156_flash_borrower {
             address: T,
             client: ::std::sync::Arc<M>,
         ) -> Self {
-            Self(
-                ::ethers::contract::Contract::new(
-                    address.into(),
-                    IERC3156FLASHBORROWER_ABI.clone(),
-                    client,
-                ),
-            )
+            Self(::ethers::contract::Contract::new(
+                address.into(),
+                IERC3156FLASHBORROWER_ABI.clone(),
+                client,
+            ))
         }
         ///Calls the contract's `onFlashLoan` (0x23e30c8b) function
         pub fn on_flash_loan(
@@ -73,7 +69,8 @@ pub mod ierc3156_flash_borrower {
         }
     }
     impl<M: ::ethers::providers::Middleware> From<::ethers::contract::Contract<M>>
-    for IERC3156FlashBorrower<M> {
+        for IERC3156FlashBorrower<M>
+    {
         fn from(contract: ::ethers::contract::Contract<M>) -> Self {
             Self::new(contract.address(), contract.client())
         }
@@ -87,7 +84,7 @@ pub mod ierc3156_flash_borrower {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(
         name = "onFlashLoan",
@@ -109,7 +106,7 @@ pub mod ierc3156_flash_borrower {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     pub struct OnFlashLoanReturn(pub [u8; 32]);
 }
