@@ -12,6 +12,7 @@ use std::{
 };
 
 use tokio::sync::RwLock as AsyncRwLock;
+use tokio_stream::{Stream, StreamExt};
 
 use bytes::Bytes;
 use ethers::abi::Token;
@@ -19,6 +20,7 @@ use revm::primitives::{Address, ExecutionResult, Log, Output, TransactTo, TxEnv,
 use async_trait::async_trait;
 
 use crate::environment::{IsDeployed, NotDeployed, SimulationContract, SimulationEnvironment};
+
 
 pub mod admin;
 pub mod user;
@@ -42,17 +44,18 @@ pub trait Agent: Send + Sync {
     // /// Returns a reader to the simulation environment the agent is acting in.
     // fn simulation_environment_read(&self) -> RwLockReadGuard<'_, SimulationEnvironment>;
     // TODO: Trying this out
-    fn simulation_environment(&self) -> Arc<AsyncRwLock<SimulationEnvironment>>;
+    // fn simulation_environment(&self) -> &SimulationEnvironment;
 
     /// Used to allow agents to make a generic call a specific smart contract.
     async fn call_contract(
         &self,
+        simulation_environment: &mut SimulationEnvironment,
         contract: &SimulationContract<IsDeployed>,
         call_data: Bytes,
         value: U256,
     ) -> ExecutionResult {
         let tx = self.build_call_transaction(contract.address.unwrap(), call_data, value);
-        self.simulation_environment().write().await.execute(tx)
+        simulation_environment.execute(tx).await
     }
 
     /// A constructor to build a `TxEnv` for an agent (uses agent data like `address` and `TransactSettings`).
@@ -76,14 +79,25 @@ pub trait Agent: Send + Sync {
         }
     }
 
-    // TODO: this should become some kind of async function so agents can await certain logs.
     /// Gets the most current event (which is all that is stored in the event buffer).
-    async fn read_logs(&self) -> Vec<Log> {
-        self.simulation_environment().read().await.event_buffer.clone()
+    async fn read_logs(&self, simulation_environment: &mut SimulationEnvironment) -> Vec<Log> {
+        simulation_environment.event_receiver.next().await.unwrap()
     }
+
+    // async fn watch(&self, simulation_environment: SimulationEnvironment) {
+    //     println!("got here?");
+    //     loop {
+    //         let logs = self.read_logs(simulation_environment).await;
+    //         for log in logs {
+    //             println!("Log: {:?}", log);
+    //         }
+    //     }
+    // }
+
     /// Deploy a contract to the current simulation environment.
     async fn deploy(
         &self,
+        simulation_environment: &mut SimulationEnvironment,
         contract: SimulationContract<NotDeployed>,
         args: Vec<Token>,
     ) -> SimulationContract<IsDeployed> {
@@ -103,9 +117,8 @@ pub trait Agent: Send + Sync {
         // Manager address will always be the sender for contract deployments.
 
         let deploy_transaction = self.build_deploy_transaction(bytecode);
-        let execution_result = self
-            .simulation_environment().write().await
-            .execute(deploy_transaction);
+        let execution_result = simulation_environment
+            .execute(deploy_transaction).await;
         let output = match execution_result {
             ExecutionResult::Success { output, .. } => output,
             ExecutionResult::Revert { output, .. } => panic!("Failed due to revert: {:?}", output),

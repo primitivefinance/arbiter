@@ -5,7 +5,7 @@
 // use core::slice::SlicePattern;
 use std::{
     collections::HashMap,
-    sync::{Arc},
+    sync::{Arc, Mutex},
 };
 
 use tokio::sync::RwLock as AsyncRwLock;
@@ -14,7 +14,7 @@ use bytes::Bytes;
 use revm::primitives::{AccountInfo, ExecutionResult, Output, B160};
 
 use crate::{
-    agent::{admin::Admin, Agent},
+    agent::{admin::Admin, Agent, user::User},
     environment::SimulationEnvironment,
 };
 
@@ -23,7 +23,7 @@ use crate::{
 /// Manages simulations.
 pub struct SimulationManager<'a> {
     /// `SimulationEnvironment` that the simulation manager controls.
-    pub environment: Arc<AsyncRwLock<SimulationEnvironment>>,
+    pub environment: SimulationEnvironment,
     /// The agents that are currently running in the simulation environment.
     pub agents: HashMap<&'a str, Box<dyn Agent>>,
 }
@@ -34,22 +34,21 @@ impl<'a> Default for SimulationManager<'a> {
     }
 }
 
-
 impl<'a> SimulationManager<'a> {
     /// Constructor function to instantiate a
     pub fn new() -> Self {
         let mut simulation_manager = Self {
-            environment: Arc::new(AsyncRwLock::new(SimulationEnvironment::new())),
+            environment: SimulationEnvironment::new(),
             agents: HashMap::new(),
         };
-        let admin = Box::new(Admin::new(Arc::clone(&simulation_manager.environment)));
+        let admin = Box::new(Admin::new());
         simulation_manager.add_agent("admin", admin);
         simulation_manager
     }
-    /// Returns a reference to the admin agent.
-    pub fn admin(&self) -> &dyn Agent {
-        self.agents.get("admin").unwrap().as_ref()
-    }
+    // /// Returns a reference to the admin agent.
+    // pub fn admin(&self) -> &Box<dyn Agent> {
+    //     self.agents.get("admin").unwrap()
+    // }
 
     /// Run all agents concurrently in the current simulation environment.
     pub fn run_agents() {
@@ -65,13 +64,13 @@ impl<'a> SimulationManager<'a> {
     /// Allow the manager to create a dummy user account.
     pub async fn create_user(&mut self, address: B160, name: &'a str) {
         self.environment
+            .evm
             .write()
             .await
-            .evm
             .db()
             .unwrap()
             .insert_account_info(address, AccountInfo::default());
-        let user = Box::new(Admin::new(Arc::clone(&self.environment)));
+        let user = Box::new(User::new(address));
         self.add_agent(name, user);
     }
 

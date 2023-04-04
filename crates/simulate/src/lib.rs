@@ -9,8 +9,8 @@ pub mod utils;
 
 #[cfg(test)]
 mod tests {
+    use std::{collections::HashMap, str::FromStr, sync::Arc, thread};
     use tokio::test;
-    use std::str::FromStr;
 
     // use bindings::{self, arbiter_token};
     use ethers::{
@@ -20,8 +20,11 @@ mod tests {
     use revm::primitives::{ruint::Uint, B160};
 
     use crate::{
-        environment::SimulationContract, manager::SimulationManager, utils::recast_address,
+        agent::user::User, environment::SimulationContract, manager::SimulationManager,
+        utils::recast_address,
     };
+
+    use crate::agent::Agent;
 
     #[test]
     /// Test that the writer contract can echo a string.
@@ -29,7 +32,6 @@ mod tests {
     async fn test_string_write() {
         // Set up the execution manager and a user address.
         let mut manager = SimulationManager::default();
-        let admin = manager.admin();
 
         // Get bytecode and abi for the writer contract.
         let writer = SimulationContract::new(
@@ -41,7 +43,7 @@ mod tests {
         );
 
         // Deploy the writer contract.
-        let writer = admin.deploy(writer, ().into_tokens()).await;
+        let writer = manager.agents.get("admin").unwrap().deploy(&mut manager.environment, writer, ().into_tokens()).await;
 
         // Generate calldata for the 'echoString' function
         let test_string = "Hello, world!";
@@ -54,7 +56,7 @@ mod tests {
             .collect();
 
         // Call the 'echoString' function.
-        let execution_result = admin.call_contract(&writer, call_data, Uint::from(0)).await;
+        let execution_result = manager.agents.get("admin").unwrap().call_contract(&mut manager.environment, &writer, call_data, Uint::from(0)).await;
         let value = manager.unpack_execution(execution_result);
 
         let response: String = writer
@@ -70,8 +72,9 @@ mod tests {
     async fn test_token_mint() {
         // Create a `SimulationManager` where we can run simulations.
         // This will also create an EVM instance associated to the manager.
-        let mut manager = SimulationManager::default(); // TODO: Should manager only have interior mutabability?
-                                                        // Get a SimulationContract for the Arbiter Token ERC-20 instance from the ABI and bytecode.
+        let mut manager = SimulationManager::default();
+
+        // Get a SimulationContract for the Arbiter Token ERC-20 instance from the ABI and bytecode.
         let arbiter_token = SimulationContract::new(
             BaseContract::from(bindings::arbiter_token::ARBITERTOKEN_ABI.clone()),
             bindings::arbiter_token::ARBITERTOKEN_BYTECODE
@@ -86,7 +89,9 @@ mod tests {
         let args = (name.to_string(), symbol.to_string());
 
         // Call the contract deployer and receive a IsDeployed version of SimulationContract that now has an address.
-        let arbiter_token = manager.admin().deploy(arbiter_token, args.into_tokens()).await;
+        let arbiter_token = manager.agents.get("admin").unwrap()
+            .deploy(&mut manager.environment,arbiter_token, args.into_tokens())
+            .await;
         println!(
             "Arbiter Token deployed at: {}",
             arbiter_token.address.unwrap()
@@ -101,10 +106,9 @@ mod tests {
             .collect();
 
         // Execute the call to retrieve the token name as a test.
-        let execution_result =
-            manager
-                .admin()
-                .call_contract(&arbiter_token, call_data, Uint::from(0)).await;
+        let execution_result = manager.agents.get("admin").unwrap()
+            .call_contract(&mut manager.environment, &arbiter_token, call_data, Uint::from(0))
+            .await;
         let value = manager.unpack_execution(execution_result);
 
         let response: String = arbiter_token
@@ -136,10 +140,9 @@ mod tests {
             .collect();
 
         // Call the 'mint' function.
-        let execution_result =
-            manager
-                .admin()
-                .call_contract(&arbiter_token, call_data, Uint::from(0)).await; // TODO: SOME KIND OF ERROR HANDLING IS NECESSARY FOR THESE TYPES OF CALLS
+        let execution_result = manager.agents.get("admin").unwrap()
+            .call_contract(&mut manager.environment, &arbiter_token, call_data, Uint::from(0))
+            .await; // TODO: SOME KIND OF ERROR HANDLING IS NECESSARY FOR THESE TYPES OF CALLS
         println!("Mint execution result: {:#?}", execution_result);
 
         let call_data = arbiter_token
@@ -153,10 +156,9 @@ mod tests {
             .collect();
 
         // Call the 'balanceOf' function.
-        let execution_result =
-            manager
-                .admin()
-                .call_contract(&arbiter_token, call_data, Uint::from(0)).await; // TODO: SOME KIND OF ERROR HANDLING IS NECESSARY FOR THESE TYPES OF CALLS
+        let execution_result = manager.agents.get("admin").unwrap()
+            .call_contract(&mut manager.environment, &arbiter_token, call_data, Uint::from(0))
+            .await; // TODO: SOME KIND OF ERROR HANDLING IS NECESSARY FOR THESE TYPES OF CALLS
         let value = manager.unpack_execution(execution_result);
 
         let response: U256 = arbiter_token
@@ -170,8 +172,7 @@ mod tests {
     #[test]
     async fn test_event_logging() {
         // Set up the execution manager and a user address.
-        let manager = SimulationManager::default();
-        let admin = manager.admin();
+        let mut manager = SimulationManager::default();
 
         // Get bytecode and abi for the writer contract.
         let writer = SimulationContract::new(
@@ -183,7 +184,7 @@ mod tests {
         );
 
         // Deploy the writer contract.
-        let writer = admin.deploy(writer, ().into_tokens()).await; // TODO: Probably worth saying this is deployed under a specific manager.
+        let writer = manager.agents.get("admin").unwrap().deploy(&mut manager.environment, writer, ().into_tokens()).await; // TODO: Probably worth saying this is deployed under a specific manager.
 
         // Generate calldata for the 'echoString' function
         let test_string = "Hello, world!";
@@ -196,9 +197,13 @@ mod tests {
             .collect();
 
         // Call the 'echoString' function.
-        let _execution_result = admin.call_contract(&writer, call_data, Uint::from(0)).await;
-        let logs = admin.read_logs().await;
-        // Get the logs from the execution manager.
+        let _execution_result = manager.agents.get("admin").unwrap().call_contract(&mut manager.environment, &writer, call_data, Uint::from(0)).await;
+
+        // Read logs twice since the first time is just the contract creation which gives no log.
+        let _logs = manager.agents.get("admin").unwrap().read_logs(&mut manager.environment).await;
+        let logs = manager.agents.get("admin").unwrap().read_logs(&mut manager.environment).await;
+        
+        // Decode the logs
         let log_topics: Vec<H256> = logs.clone()[0]
             .topics
             .clone()
@@ -213,5 +218,64 @@ mod tests {
         println!("Log Response: {:#?}", log_output);
 
         assert_eq!(log_output, test_string);
+    }
+
+    #[test]
+    async fn test_event_watching() {
+        // Set up the execution manager and a user address.
+        let mut manager = SimulationManager::default();
+        let user_name = "alice";
+        let user_address = B160::from_str("0x0000000000000000000000000000000000000002").unwrap();
+        manager.create_user(user_address, user_name).await;
+
+        // Get bytecode and abi for the writer contract.
+        let writer = SimulationContract::new(
+            BaseContract::from(bindings::writer::WRITER_ABI.clone()),
+            bindings::writer::WRITER_BYTECODE
+                .clone()
+                .into_iter()
+                .collect(),
+        );
+        // let thing = manager.environment.read().await.event_receiver.try_next().unwrap();
+        let admin = manager
+        tokio::spawn(async move {
+            while let Some(log) = manager.agents.get("admin").unwrap().read_logs(&mut manager.environment).await.pop() {
+                println!("{:?}", log);
+            }
+        });
+
+        // Deploy the writer contract.
+        let writer = manager.agents.get("admin").unwrap().deploy(&mut manager.environment, writer, ().into_tokens()).await; // TODO: Probably worth saying this is deployed under a specific manager.
+
+        // Generate calldata for the 'echoString' function
+        let test_string = "Hello, world!";
+        let input_arguments = test_string.to_string();
+        let call_data = writer
+            .base_contract
+            .encode("echoString", input_arguments)
+            .unwrap()
+            .into_iter()
+            .collect();
+
+        // Call the 'echoString' function.
+        let _execution_result = manager.agents.get("admin").unwrap()
+            .call_contract(&mut manager.environment, &writer, call_data, Uint::from(0))
+            .await;
+        // let logs = manager.agents.get("admin").unwrap().read_logs(&mut manager.environment).await;
+        // // Get the logs from the execution manager.
+        // let log_topics: Vec<H256> = logs.clone()[0]
+        //     .topics
+        //     .clone()
+        //     .into_iter()
+        //     .map(|x| H256::from_slice(x.as_slice()))
+        //     .collect();
+        // let log_data = logs[0].data.clone().into();
+        // let log_output = writer
+        //     .base_contract
+        //     .decode_event::<String>("WasWritten", log_topics, log_data)
+        //     .unwrap();
+        // println!("Log Response: {:#?}", log_output);
+
+        // assert_eq!(log_output, test_string);
     }
 }

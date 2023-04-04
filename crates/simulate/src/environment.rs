@@ -3,6 +3,13 @@
 
 use std::thread;
 
+use std::{
+    collections::HashMap,
+    sync::{Arc, Mutex},
+};
+
+use tokio::sync::RwLock as AsyncRwLock;
+
 use ethers::prelude::BaseContract;
 use revm::{
     db::{CacheDB, EmptyDB},
@@ -10,12 +17,17 @@ use revm::{
     EVM,
 };
 
+use futures::{stream::{self, Map, StreamExt}, channel::mpsc::UnboundedReceiver};
+use futures::channel::mpsc::{UnboundedSender, unbounded};
+use tokio::task::JoinHandle;
+
 /// The simulation environment that houses the execution environment and event logs.
 pub struct SimulationEnvironment {
     /// The EVM that is used for the simulation.
-    pub(crate) evm: EVM<CacheDB<EmptyDB>>, 
+    pub(crate) evm: Arc<AsyncRwLock<EVM<CacheDB<EmptyDB>>>>,
     /// The buffer agents can read from.
-    pub(crate) event_buffer: Vec<Log>, 
+    pub(crate) event_sender: UnboundedSender<Vec<Log>>,
+    pub(crate) event_receiver: UnboundedReceiver<Vec<Log>>,
 }
 
 #[derive(Debug)]
@@ -47,40 +59,39 @@ impl SimulationEnvironment {
         let db = CacheDB::new(EmptyDB {});
         evm.env.cfg.limit_contract_code_size = Some(0x100000); // This is a large contract size limit, beware!
         evm.database(db);
+        let (event_sender, mut event_receiver) = unbounded();
 
         Self {
-            evm,
-            event_buffer: Vec::<Log>::new(),
+            evm: Arc::new(AsyncRwLock::new(evm)),
+            // event_buffer: Vec::<Log>::new(),
+            event_sender,
+            event_receiver,
         }
     }
 
-    pub(crate) fn execute(&mut self, tx: TxEnv) -> ExecutionResult {
-        self.evm.env.tx = tx;
+    pub(crate) async fn execute(&mut self, tx: TxEnv) -> ExecutionResult {
+        self.evm.write().await.env.tx = tx;
 
-        let execution_result = match self.evm.transact_commit() {
+        let execution_result = match self.evm.write().await.transact_commit() {
             Ok(val) => val,
             // URGENT: change this to a custom error
             Err(_) => panic!("failed"),
         };
-        // TODO: REMOVE THIS
-        let thing = self.evm.db().unwrap().contracts.keys().clone();
-        println!("evmdb: {:#?}", thing);
         self.echo_logs(execution_result.logs());
 
         execution_result
     }
-
     pub(crate) fn echo_logs(&mut self, logs: Vec<Log>) {
-        // if let Some(handle) = self.writer_thread.take() {
-        //     handle.join().unwrap();
-        // }
-
-        self.event_buffer.clear();
-
-        logs.into_iter().for_each(|log| {
-            self.event_buffer.push(log);
-        });
+        println!("echo_logs: {:?}", logs);
+        self.event_sender.unbounded_send(logs).unwrap(); // TODO: Add error checking?
     }
+    // pub(crate) fn echo_logs(&mut self, logs: Vec<Log>) {
+    //     self.event_buffer.clear();
+
+    //     logs.into_iter().for_each(|log| {
+    //         self.event_buffer.push(log);
+    //     });
+    // }
 }
 
 impl SimulationContract<NotDeployed> {

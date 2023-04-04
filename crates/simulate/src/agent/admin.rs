@@ -22,8 +22,6 @@ pub struct Admin {
     pub account: Account,
     /// Contains the default transaction options for revm such as gas limit and gas price.
     transact_settings: TransactSettings,
-    // TODO: is this useful? environment: Arc<Mutex<Environment>>,
-    environment: Arc<AsyncRwLock<SimulationEnvironment>>,
 }
 
 impl Agent for Admin {
@@ -33,20 +31,14 @@ impl Agent for Admin {
     fn transact_settings(&self) -> &TransactSettings {
         &self.transact_settings
     }
-    // fn simulation_environment_write(&self) -> RwLockWriteGuard<'_, SimulationEnvironment> {
-    //     self.environment.write().unwrap()
+    // fn simulation_environment(&self) -> &'a SimulationEnvironment {
+    //     &self.environment
     // }
-    // fn simulation_environment_read(&self) -> RwLockReadGuard<'_, SimulationEnvironment> {
-    //     self.environment.read().unwrap()
-    // }
-    fn simulation_environment(&self) -> Arc<AsyncRwLock<SimulationEnvironment>> {
-        Arc::clone(&self.environment)
-    }
 }
 
 impl Admin {
     /// Constructor function to instantiate a
-    pub fn new(environment: Arc<AsyncRwLock<SimulationEnvironment>>) -> Self {
+    pub fn new() -> Self {
         Self {
             address: B160::from_str("0x0000000000000000000000000000000000000001").unwrap(),
             account: Account::from(AccountInfo::default()),
@@ -54,7 +46,6 @@ impl Admin {
                 gas_limit: u64::MAX,
                 gas_price: U256::ZERO, /* This should stay zero for the admin so we don't have to fund it. */
             },
-            environment,
         }
     }
 }

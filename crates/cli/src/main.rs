@@ -54,8 +54,7 @@ async fn main() -> Result<()> {
         Some(Commands::Sim { config: _ }) => {
             // Create a `SimulationManager` that runs simulations in their `SimulationEnvironment`.
             // This will create an EVM instance along with an admin user account.
-            let manager = SimulationManager::new();
-            let admin = manager.admin();
+            let mut manager = SimulationManager::new();
 
             // Deploy the WETH contract.
             let weth = SimulationContract::new(
@@ -63,7 +62,7 @@ async fn main() -> Result<()> {
                 weth9::WETH9_BYTECODE.clone().into_iter().collect(),
             );
 
-            let weth = admin.deploy(weth, ().into_tokens()).await;
+            let weth = manager.agents.get("admin").unwrap().deploy(&mut manager.environment, weth, ().into_tokens()).await;
             println!("WETH deployed at: {}", weth.address.unwrap());
 
             // Deploy the registry contract.
@@ -75,7 +74,7 @@ async fn main() -> Result<()> {
                     .collect(),
             );
 
-            let registry = admin.deploy(registry, ().into_tokens()).await;
+            let registry = manager.agents.get("admin").unwrap().deploy(&mut manager.environment, registry, ().into_tokens()).await;
             println!("Simple registry deployed at: {}", registry.address.unwrap());
 
             // Deploy the portfolio contract.
@@ -91,7 +90,7 @@ async fn main() -> Result<()> {
                 recast_address(weth.address.unwrap()),
                 recast_address(registry.address.unwrap()),
             );
-            let portfolio = admin.deploy(portfolio, portfolio_args.into_tokens()).await;
+            let portfolio = manager.agents.get("admin").unwrap().deploy(&mut manager.environment, portfolio, portfolio_args.into_tokens()).await;
             println!("Portfolio deployed at: {}", portfolio.address.unwrap());
         }
         Some(Commands::Gbm { config }) => {
