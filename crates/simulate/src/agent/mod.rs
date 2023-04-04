@@ -8,7 +8,7 @@
 use std::{
     sync::{RwLockReadGuard, RwLockWriteGuard},
     thread,
-    sync::{Arc, RwLock},
+    sync::{Arc},
 };
 
 use tokio::sync::RwLock as AsyncRwLock;
@@ -32,27 +32,27 @@ pub struct TransactSettings {
 
 /// Basic traits that every `Agent` must implement in order to properly interact with an EVM.
 #[async_trait]
-pub trait Agent {
+pub trait Agent: Send + Sync {
     /// Returns the address of the agent.
     fn address(&self) -> Address;
     /// Returns the transaction settings of the agent.
     fn transact_settings(&self) -> &TransactSettings;
-    /// Returns the writer to the simulation environment the agent is acting in.
-    fn simulation_environment_write(&self) -> RwLockWriteGuard<'_, SimulationEnvironment>;
-    /// Returns a reader to the simulation environment the agent is acting in.
-    fn simulation_environment_read(&self) -> RwLockReadGuard<'_, SimulationEnvironment>;
+    // /// Returns the writer to the simulation environment the agent is acting in.
+    // fn simulation_environment_write(&self) -> RwLockWriteGuard<'_, SimulationEnvironment>;
+    // /// Returns a reader to the simulation environment the agent is acting in.
+    // fn simulation_environment_read(&self) -> RwLockReadGuard<'_, SimulationEnvironment>;
     // TODO: Trying this out
-    fn simulation_environment(&self) -> Arc<RwLock<SimulationEnvironment>>;
+    fn simulation_environment(&self) -> Arc<AsyncRwLock<SimulationEnvironment>>;
 
     /// Used to allow agents to make a generic call a specific smart contract.
-    fn call_contract(
+    async fn call_contract(
         &self,
         contract: &SimulationContract<IsDeployed>,
         call_data: Bytes,
         value: U256,
     ) -> ExecutionResult {
         let tx = self.build_call_transaction(contract.address.unwrap(), call_data, value);
-        self.simulation_environment_write().execute(tx)
+        self.simulation_environment().write().await.execute(tx)
     }
 
     /// A constructor to build a `TxEnv` for an agent (uses agent data like `address` and `TransactSettings`).
@@ -79,12 +79,10 @@ pub trait Agent {
     // TODO: this should become some kind of async function so agents can await certain logs.
     /// Gets the most current event (which is all that is stored in the event buffer).
     async fn read_logs(&self) -> Vec<Log> {
-        let async_rwlock = AsyncRwLock::clone(self.simulation_environment());
-        let guard = async_rwlock.read().await;
-        guard.clone()
+        self.simulation_environment().read().await.event_buffer.clone()
     }
     /// Deploy a contract to the current simulation environment.
-    fn deploy(
+    async fn deploy(
         &self,
         contract: SimulationContract<NotDeployed>,
         args: Vec<Token>,
@@ -106,7 +104,7 @@ pub trait Agent {
 
         let deploy_transaction = self.build_deploy_transaction(bytecode);
         let execution_result = self
-            .simulation_environment_write()
+            .simulation_environment().write().await
             .execute(deploy_transaction);
         let output = match execution_result {
             ExecutionResult::Success { output, .. } => output,

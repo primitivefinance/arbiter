@@ -63,7 +63,7 @@ async fn main() -> Result<()> {
                 weth9::WETH9_BYTECODE.clone().into_iter().collect(),
             );
 
-            let weth = admin.deploy(weth, ().into_tokens());
+            let weth = admin.deploy(weth, ().into_tokens()).await;
             println!("WETH deployed at: {}", weth.address.unwrap());
 
             // Deploy the registry contract.
@@ -75,7 +75,7 @@ async fn main() -> Result<()> {
                     .collect(),
             );
 
-            let registry = admin.deploy(registry, ().into_tokens());
+            let registry = admin.deploy(registry, ().into_tokens()).await;
             println!("Simple registry deployed at: {}", registry.address.unwrap());
 
             // Deploy the portfolio contract.
@@ -91,7 +91,7 @@ async fn main() -> Result<()> {
                 recast_address(weth.address.unwrap()),
                 recast_address(registry.address.unwrap()),
             );
-            let portfolio = admin.deploy(portfolio, portfolio_args.into_tokens());
+            let portfolio = admin.deploy(portfolio, portfolio_args.into_tokens()).await;
             println!("Portfolio deployed at: {}", portfolio.address.unwrap());
         }
         Some(Commands::Gbm { config }) => {

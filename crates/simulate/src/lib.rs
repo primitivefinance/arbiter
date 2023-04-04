@@ -9,7 +9,7 @@ pub mod utils;
 
 #[cfg(test)]
 mod tests {
-    // use core::slice::SlicePattern;
+    use tokio::test;
     use std::str::FromStr;
 
     // use bindings::{self, arbiter_token};
@@ -26,7 +26,7 @@ mod tests {
     #[test]
     /// Test that the writer contract can echo a string.
     /// The writer contract takes in no args.
-    fn test_string_write() {
+    async fn test_string_write() {
         // Set up the execution manager and a user address.
         let mut manager = SimulationManager::default();
         let admin = manager.admin();
@@ -41,7 +41,7 @@ mod tests {
         );
 
         // Deploy the writer contract.
-        let writer = admin.deploy(writer, ().into_tokens());
+        let writer = admin.deploy(writer, ().into_tokens()).await;
 
         // Generate calldata for the 'echoString' function
         let test_string = "Hello, world!";
@@ -54,7 +54,7 @@ mod tests {
             .collect();
 
         // Call the 'echoString' function.
-        let execution_result = admin.call_contract(&writer, call_data, Uint::from(0));
+        let execution_result = admin.call_contract(&writer, call_data, Uint::from(0)).await;
         let value = manager.unpack_execution(execution_result);
 
         let response: String = writer
@@ -67,7 +67,7 @@ mod tests {
     }
 
     #[test]
-    fn test_token_mint() {
+    async fn test_token_mint() {
         // Create a `SimulationManager` where we can run simulations.
         // This will also create an EVM instance associated to the manager.
         let mut manager = SimulationManager::default(); // TODO: Should manager only have interior mutabability?
@@ -86,7 +86,7 @@ mod tests {
         let args = (name.to_string(), symbol.to_string());
 
         // Call the contract deployer and receive a IsDeployed version of SimulationContract that now has an address.
-        let arbiter_token = manager.admin().deploy(arbiter_token, args.into_tokens());
+        let arbiter_token = manager.admin().deploy(arbiter_token, args.into_tokens()).await;
         println!(
             "Arbiter Token deployed at: {}",
             arbiter_token.address.unwrap()
@@ -104,7 +104,7 @@ mod tests {
         let execution_result =
             manager
                 .admin()
-                .call_contract(&arbiter_token, call_data, Uint::from(0));
+                .call_contract(&arbiter_token, call_data, Uint::from(0)).await;
         let value = manager.unpack_execution(execution_result);
 
         let response: String = arbiter_token
@@ -117,7 +117,7 @@ mod tests {
         // Create a user to mint tokens to.
         let user_name = "alice";
         let user_address = B160::from_str("0x0000000000000000000000000000000000000002").unwrap();
-        manager.create_user(user_address, user_name); // TODO: This should probably be done by the manager itself. THough it will be something to consider when we have more agents.
+        manager.create_user(user_address, user_name).await; // TODO: This should probably be done by the manager itself. THough it will be something to consider when we have more agents.
 
         // Allocating new tokens to user by calling Arbiter Token's ERC20 'mint' instance.
         let mint_amount = U256::from(1000);
@@ -139,7 +139,7 @@ mod tests {
         let execution_result =
             manager
                 .admin()
-                .call_contract(&arbiter_token, call_data, Uint::from(0)); // TODO: SOME KIND OF ERROR HANDLING IS NECESSARY FOR THESE TYPES OF CALLS
+                .call_contract(&arbiter_token, call_data, Uint::from(0)).await; // TODO: SOME KIND OF ERROR HANDLING IS NECESSARY FOR THESE TYPES OF CALLS
         println!("Mint execution result: {:#?}", execution_result);
 
         let call_data = arbiter_token
@@ -156,7 +156,7 @@ mod tests {
         let execution_result =
             manager
                 .admin()
-                .call_contract(&arbiter_token, call_data, Uint::from(0)); // TODO: SOME KIND OF ERROR HANDLING IS NECESSARY FOR THESE TYPES OF CALLS
+                .call_contract(&arbiter_token, call_data, Uint::from(0)).await; // TODO: SOME KIND OF ERROR HANDLING IS NECESSARY FOR THESE TYPES OF CALLS
         let value = manager.unpack_execution(execution_result);
 
         let response: U256 = arbiter_token
@@ -168,7 +168,7 @@ mod tests {
     }
 
     #[test]
-    fn test_event_logging() {
+    async fn test_event_logging() {
         // Set up the execution manager and a user address.
         let manager = SimulationManager::default();
         let admin = manager.admin();
@@ -183,7 +183,7 @@ mod tests {
         );
 
         // Deploy the writer contract.
-        let writer = admin.deploy(writer, ().into_tokens()); // TODO: Probably worth saying this is deployed under a specific manager.
+        let writer = admin.deploy(writer, ().into_tokens()).await; // TODO: Probably worth saying this is deployed under a specific manager.
 
         // Generate calldata for the 'echoString' function
         let test_string = "Hello, world!";
@@ -196,8 +196,8 @@ mod tests {
             .collect();
 
         // Call the 'echoString' function.
-        let _execution_result = admin.call_contract(&writer, call_data, Uint::from(0));
-        let logs = admin.read_logs();
+        let _execution_result = admin.call_contract(&writer, call_data, Uint::from(0)).await;
+        let logs = admin.read_logs().await;
         // Get the logs from the execution manager.
         let log_topics: Vec<H256> = logs.clone()[0]
             .topics

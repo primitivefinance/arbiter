@@ -1,7 +1,8 @@
 #![warn(missing_docs)]
 //! Describes the most basic type of user agent.
 
-use std::sync::{Arc, RwLock, RwLockReadGuard, RwLockWriteGuard};
+use std::sync::{Arc, RwLockReadGuard, RwLockWriteGuard};
+use tokio::sync::RwLock as AsyncRwLock;
 
 use revm::primitives::{Account, AccountInfo, Address, B160, U256};
 
@@ -19,7 +20,7 @@ pub struct User {
     /// Contains the default transaction options for revm such as gas limit and gas price.
     transact_settings: TransactSettings,
     // TODO: is this useful? environment: Arc<Mutex<Environment>>,
-    environment: Arc<RwLock<SimulationEnvironment>>,
+    environment: Arc<AsyncRwLock<SimulationEnvironment>>,
 }
 
 impl Agent for User {
@@ -29,20 +30,20 @@ impl Agent for User {
     fn transact_settings(&self) -> &TransactSettings {
         &self.transact_settings
     }
-    fn simulation_environment_write(&self) -> RwLockWriteGuard<'_, SimulationEnvironment> {
-        self.environment.write().unwrap()
-    }
-    fn simulation_environment_read(&self) -> RwLockReadGuard<'_, SimulationEnvironment> {
-        self.environment.read().unwrap()
-    }
-    fn simulation_environment(&self) -> Arc<RwLock<SimulationEnvironment>> {
+    // fn simulation_environment_write(&self) -> RwLockWriteGuard<'_, SimulationEnvironment> {
+    //     self.environment.write().unwrap()
+    // }
+    // fn simulation_environment_read(&self) -> RwLockReadGuard<'_, SimulationEnvironment> {
+    //     self.environment.read().unwrap()
+    // }
+    fn simulation_environment(&self) -> Arc<AsyncRwLock<SimulationEnvironment>> {
         Arc::clone(&self.environment)
     }
 }
 
 impl User {
     /// Constructor function to instantiate a
-    pub fn new(environment: Arc<RwLock<SimulationEnvironment>>, address: B160) -> Self {
+    pub fn new(environment: Arc<AsyncRwLock<SimulationEnvironment>>, address: B160) -> Self {
         Self {
             address,
             account: Account::from(AccountInfo::default()),

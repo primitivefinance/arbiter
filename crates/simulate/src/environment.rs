@@ -16,8 +16,8 @@ pub struct SimulationEnvironment {
     pub(crate) evm: EVM<CacheDB<EmptyDB>>, //TODO: change back to pub(crate)
     /// The buffer agents can read from.
     pub(crate) event_buffer: Vec<Log>, //TODO: Just make a cell?
-    /// Thread that is used to write to the event buffer.
-    pub(crate) writer_thread: Option<thread::JoinHandle<()>>, //TODO: Move this thread out?
+    // /// Thread that is used to write to the event buffer.
+    // pub(crate) writer_thread: Option<thread::JoinHandle<()>>, //TODO: Move this thread out?
 }
 
 #[derive(Debug)]
@@ -53,14 +53,13 @@ impl SimulationEnvironment {
         Self {
             evm,
             event_buffer: Vec::<Log>::new(),
-            writer_thread: Some(thread::spawn(|| {})),
         }
     }
 
     pub(crate) fn execute(&mut self, tx: TxEnv) -> ExecutionResult {
-        if let Some(handle) = self.writer_thread.take() {
-            handle.join().unwrap();
-        }
+        // if let Some(handle) = self.writer_thread.take() {
+        //     handle.join().unwrap();
+        // }
 
         self.evm.env.tx = tx;
 
@@ -78,9 +77,9 @@ impl SimulationEnvironment {
     }
 
     pub(crate) fn echo_logs(&mut self, logs: Vec<Log>) {
-        if let Some(handle) = self.writer_thread.take() {
-            handle.join().unwrap();
-        }
+        // if let Some(handle) = self.writer_thread.take() {
+        //     handle.join().unwrap();
+        // }
 
         self.event_buffer.clear();
 

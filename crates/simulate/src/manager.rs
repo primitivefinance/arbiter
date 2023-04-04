@@ -5,8 +5,10 @@
 // use core::slice::SlicePattern;
 use std::{
     collections::HashMap,
-    sync::{Arc, RwLock},
+    sync::{Arc},
 };
+
+use tokio::sync::RwLock as AsyncRwLock;
 
 use bytes::Bytes;
 use revm::primitives::{AccountInfo, ExecutionResult, Output, B160};
@@ -21,7 +23,7 @@ use crate::{
 /// Manages simulations.
 pub struct SimulationManager<'a> {
     /// `SimulationEnvironment` that the simulation manager controls.
-    pub environment: Arc<RwLock<SimulationEnvironment>>,
+    pub environment: Arc<AsyncRwLock<SimulationEnvironment>>,
     /// The agents that are currently running in the simulation environment.
     pub agents: HashMap<&'a str, Box<dyn Agent>>,
 }
@@ -32,11 +34,12 @@ impl<'a> Default for SimulationManager<'a> {
     }
 }
 
+
 impl<'a> SimulationManager<'a> {
     /// Constructor function to instantiate a
     pub fn new() -> Self {
         let mut simulation_manager = Self {
-            environment: Arc::new(RwLock::new(SimulationEnvironment::new())),
+            environment: Arc::new(AsyncRwLock::new(SimulationEnvironment::new())),
             agents: HashMap::new(),
         };
         let admin = Box::new(Admin::new(Arc::clone(&simulation_manager.environment)));
@@ -60,10 +63,10 @@ impl<'a> SimulationManager<'a> {
 
     // TODO: maybe should make the name optional here, but I struggled with this.
     /// Allow the manager to create a dummy user account.
-    pub fn create_user(&mut self, address: B160, name: &'a str) {
+    pub async fn create_user(&mut self, address: B160, name: &'a str) {
         self.environment
             .write()
-            .unwrap()
+            .await
             .evm
             .db()
             .unwrap()
