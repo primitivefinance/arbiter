@@ -35,6 +35,9 @@ impl Agent for User {
     fn simulation_environment_read(&self) -> RwLockReadGuard<'_, SimulationEnvironment> {
         self.environment.read().unwrap()
     }
+    fn simulation_environment(&self) -> Arc<RwLock<SimulationEnvironment>> {
+        Arc::clone(&self.environment)
+    }
 }
 
 impl User {

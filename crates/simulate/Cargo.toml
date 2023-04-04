@@ -9,6 +9,13 @@ edition = "2021"
 # execution
 revm = "3.0.0"
 
+# async
+tokio = { version = "1.23", features = [
+    "macros",
+    "full"
+]}
+async-trait = "0.1.68"
+
 # price_simulation
 rand = "0.8.5"
 rand_chacha = "0.3.1"

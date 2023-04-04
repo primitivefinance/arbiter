@@ -5,11 +5,18 @@
 //! An abstract representation of an agent on the EVM, to be used in simulations.
 //! Some examples of agents are market makers or arbitrageurs.
 //! All agents must implement the [`Agent`] trait.
-use std::sync::{RwLockReadGuard, RwLockWriteGuard};
+use std::{
+    sync::{RwLockReadGuard, RwLockWriteGuard},
+    thread,
+    sync::{Arc, RwLock},
+};
+
+use tokio::sync::RwLock as AsyncRwLock;
 
 use bytes::Bytes;
 use ethers::abi::Token;
 use revm::primitives::{Address, ExecutionResult, Log, Output, TransactTo, TxEnv, B160, U256};
+use async_trait::async_trait;
 
 use crate::environment::{IsDeployed, NotDeployed, SimulationContract, SimulationEnvironment};
 
@@ -24,6 +31,7 @@ pub struct TransactSettings {
 }
 
 /// Basic traits that every `Agent` must implement in order to properly interact with an EVM.
+#[async_trait]
 pub trait Agent {
     /// Returns the address of the agent.
     fn address(&self) -> Address;
@@ -33,6 +41,8 @@ pub trait Agent {
     fn simulation_environment_write(&self) -> RwLockWriteGuard<'_, SimulationEnvironment>;
     /// Returns a reader to the simulation environment the agent is acting in.
     fn simulation_environment_read(&self) -> RwLockReadGuard<'_, SimulationEnvironment>;
+    // TODO: Trying this out
+    fn simulation_environment(&self) -> Arc<RwLock<SimulationEnvironment>>;
 
     /// Used to allow agents to make a generic call a specific smart contract.
     fn call_contract(
@@ -68,8 +78,10 @@ pub trait Agent {
 
     // TODO: this should become some kind of async function so agents can await certain logs.
     /// Gets the most current event (which is all that is stored in the event buffer).
-    fn read_logs(&self) -> Vec<Log> {
-        self.simulation_environment_read().event_buffer.clone()
+    async fn read_logs(&self) -> Vec<Log> {
+        let async_rwlock = AsyncRwLock::clone(self.simulation_environment());
+        let guard = async_rwlock.read().await;
+        guard.clone()
     }
     /// Deploy a contract to the current simulation environment.
     fn deploy(
