@@ -19,6 +19,7 @@ pub struct User {
     pub account: Account,
     /// Contains the default transaction options for revm such as gas limit and gas price.
     transact_settings: TransactSettings,
+    pub receiver: crossbeam_channel::Receiver<Vec<revm::primitives::Log> >,
 }
 
 impl Agent for User {
@@ -28,11 +29,14 @@ impl Agent for User {
     fn transact_settings(&self) -> &TransactSettings {
         &self.transact_settings
     }
+    fn receiver(&self) -> crossbeam_channel::Receiver<Vec<revm::primitives::Log> > {
+        self.receiver.clone()
+    }
 }
 
 impl User {
     /// Constructor function to instantiate a
-    pub fn new(address: B160) -> Self {
+    pub fn new(receiver: crossbeam_channel::Receiver<Vec<revm::primitives::Log> >, address: B160) -> Self {
         Self {
             address,
             account: Account::from(AccountInfo::default()),
@@ -40,6 +44,7 @@ impl User {
                 gas_limit: u64::MAX,
                 gas_price: U256::ZERO, // TODO: Users should have an associated gas price.
             },
+            receiver,
         }
     }
 }

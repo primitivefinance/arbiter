@@ -10,7 +10,7 @@ pub mod utils;
 #[cfg(test)]
 mod tests {
     use std::{collections::HashMap, str::FromStr, sync::Arc, thread};
-    use tokio::test;
+    use tokio::{test,task};
 
     // use bindings::{self, arbiter_token};
     use ethers::{
@@ -237,16 +237,22 @@ mod tests {
                 .collect(),
         );
         // let thing = manager.environment.read().await.event_receiver.try_next().unwrap();
-        let admin = manager
-        tokio::spawn(async move {
-            while let Some(log) = manager.agents.get("admin").unwrap().read_logs(&mut manager.environment).await.pop() {
-                println!("{:?}", log);
-            }
+        let reader =  manager.agents.get("alice").unwrap().receiver();
+        let task = task::spawn(async move {
+            println!("Waiting for logs...");
+            let logs = reader.recv().unwrap();
+            println!("Got logs!");
+            println!("{:?}", logs);
         });
 
+        // tokio::spawn(async move {
+        //     while let Some(log) = manager.agents.get("admin").unwrap().read_logs(&mut manager.environment).await.pop() {
+        //         println!("{:?}", log);
+        //     }
+        // });
         // Deploy the writer contract.
         let writer = manager.agents.get("admin").unwrap().deploy(&mut manager.environment, writer, ().into_tokens()).await; // TODO: Probably worth saying this is deployed under a specific manager.
-
+        task.await; // Read the contract creation log.
         // Generate calldata for the 'echoString' function
         let test_string = "Hello, world!";
         let input_arguments = test_string.to_string();
@@ -261,6 +267,14 @@ mod tests {
         let _execution_result = manager.agents.get("admin").unwrap()
             .call_contract(&mut manager.environment, &writer, call_data, Uint::from(0))
             .await;
+        let reader =  manager.agents.get("alice").unwrap().receiver();
+        let task = task::spawn(async move {
+            println!("Waiting for logs...");
+            let logs = reader.recv().unwrap();
+            println!("Got logs!");
+            println!("{:?}", logs);
+        });
+        task.await;
         // let logs = manager.agents.get("admin").unwrap().read_logs(&mut manager.environment).await;
         // // Get the logs from the execution manager.
         // let log_topics: Vec<H256> = logs.clone()[0]

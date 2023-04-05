@@ -45,7 +45,7 @@ pub trait Agent: Send + Sync {
     // fn simulation_environment_read(&self) -> RwLockReadGuard<'_, SimulationEnvironment>;
     // TODO: Trying this out
     // fn simulation_environment(&self) -> &SimulationEnvironment;
-
+    fn receiver(&self) -> crossbeam_channel::Receiver<Vec<Log>>;
     /// Used to allow agents to make a generic call a specific smart contract.
     async fn call_contract(
         &self,
@@ -81,7 +81,7 @@ pub trait Agent: Send + Sync {
 
     /// Gets the most current event (which is all that is stored in the event buffer).
     async fn read_logs(&self, simulation_environment: &mut SimulationEnvironment) -> Vec<Log> {
-        simulation_environment.event_receiver.next().await.unwrap()
+        self.receiver().recv().unwrap()
     }
 
     // async fn watch(&self, simulation_environment: SimulationEnvironment) {

@@ -16,6 +16,7 @@ tokio = { version = "1.23", features = [
 ]}
 futures = "0.3.28"
 tokio-stream = "0.1.12" # May not be needed
+crossbeam-channel = "0.5.7"
 async-trait = "0.1.68"
 
 # price_simulation

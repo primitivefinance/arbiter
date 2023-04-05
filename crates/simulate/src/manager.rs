@@ -11,7 +11,9 @@ use std::{
 use tokio::sync::RwLock as AsyncRwLock;
 
 use bytes::Bytes;
-use revm::primitives::{AccountInfo, ExecutionResult, Output, B160};
+use revm::primitives::{AccountInfo, ExecutionResult, Output, B160, Log};
+
+use crossbeam_channel::unbounded;
 
 use crate::{
     agent::{admin::Admin, Agent, user::User},
@@ -26,6 +28,7 @@ pub struct SimulationManager<'a> {
     pub environment: SimulationEnvironment,
     /// The agents that are currently running in the simulation environment.
     pub agents: HashMap<&'a str, Box<dyn Agent>>,
+    pub receiver: crossbeam_channel::Receiver<Vec<revm::primitives::Log> >,
 }
 
 impl<'a> Default for SimulationManager<'a> {
@@ -37,11 +40,13 @@ impl<'a> Default for SimulationManager<'a> {
 impl<'a> SimulationManager<'a> {
     /// Constructor function to instantiate a
     pub fn new() -> Self {
+        let (event_sender, event_receiver) = unbounded::<Vec<Log>>();
         let mut simulation_manager = Self {
-            environment: SimulationEnvironment::new(),
+            environment: SimulationEnvironment::new(event_sender),
             agents: HashMap::new(),
+            receiver: event_receiver.clone(),
         };
-        let admin = Box::new(Admin::new());
+        let admin = Box::new(Admin::new(event_receiver.clone()));
         simulation_manager.add_agent("admin", admin);
         simulation_manager
     }
@@ -70,7 +75,7 @@ impl<'a> SimulationManager<'a> {
             .db()
             .unwrap()
             .insert_account_info(address, AccountInfo::default());
-        let user = Box::new(User::new(address));
+        let user = Box::new(User::new(self.receiver.clone(), address));
         self.add_agent(name, user);
     }
 

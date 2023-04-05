@@ -18,16 +18,18 @@ use revm::{
 };
 
 use futures::{stream::{self, Map, StreamExt}, channel::mpsc::UnboundedReceiver};
-use futures::channel::mpsc::{UnboundedSender, unbounded};
+// use futures::channel::mpsc::{UnboundedSender};
 use tokio::task::JoinHandle;
+
+use crossbeam_channel::{unbounded,Sender, Receiver};
 
 /// The simulation environment that houses the execution environment and event logs.
 pub struct SimulationEnvironment {
     /// The EVM that is used for the simulation.
     pub(crate) evm: Arc<AsyncRwLock<EVM<CacheDB<EmptyDB>>>>,
-    /// The buffer agents can read from.
-    pub(crate) event_sender: UnboundedSender<Vec<Log>>,
-    pub(crate) event_receiver: UnboundedReceiver<Vec<Log>>,
+    /// Storage of all events that have been emitted during the simulation.
+    pub(crate) events: Vec<Vec<Log>>,
+    pub(crate) event_sender: Sender<Vec<Log>>,
 }
 
 #[derive(Debug)]
@@ -54,18 +56,16 @@ pub struct SimulationContract<Deployed> {
 }
 
 impl SimulationEnvironment {
-    pub(crate) fn new() -> Self {
+    pub(crate) fn new(event_sender: Sender<Vec<Log>>) -> Self {
         let mut evm = EVM::new();
         let db = CacheDB::new(EmptyDB {});
         evm.env.cfg.limit_contract_code_size = Some(0x100000); // This is a large contract size limit, beware!
         evm.database(db);
-        let (event_sender, mut event_receiver) = unbounded();
 
         Self {
             evm: Arc::new(AsyncRwLock::new(evm)),
-            // event_buffer: Vec::<Log>::new(),
+            events: Vec::<Vec<Log>>::new(),
             event_sender,
-            event_receiver,
         }
     }
 
@@ -83,7 +83,8 @@ impl SimulationEnvironment {
     }
     pub(crate) fn echo_logs(&mut self, logs: Vec<Log>) {
         println!("echo_logs: {:?}", logs);
-        self.event_sender.unbounded_send(logs).unwrap(); // TODO: Add error checking?
+        self.events.push(logs.clone()); // TODO: Add error checking?
+        self.event_sender.send(logs.clone()).unwrap();
     }
     // pub(crate) fn echo_logs(&mut self, logs: Vec<Log>) {
     //     self.event_buffer.clear();
