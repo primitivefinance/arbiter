@@ -8,9 +8,9 @@
 use std::thread;
 
 use bytes::Bytes;
+use crossbeam_channel::Receiver;
 use ethers::abi::Token;
 use revm::primitives::{Address, ExecutionResult, Log, Output, TransactTo, TxEnv, B160, U256};
-use crossbeam_channel::{Receiver, Sender};
 
 use crate::environment::{IsDeployed, NotDeployed, SimulationContract, SimulationEnvironment};
 

@@ -2,10 +2,10 @@
 //! Simulation managers are used to manage the environments for a simulation.
 //! Managers are responsible for adding agents, running agents, deploying contracts, calling contracts, and reading logs.
 
-use std::{thread, collections::HashMap};
+use std::collections::HashMap;
 
 use bytes::Bytes;
-use crossbeam_channel::{Sender, Receiver, unbounded};
+use crossbeam_channel::unbounded;
 use revm::primitives::{AccountInfo, ExecutionResult, Log, Output, B160};
 
 use crate::{
@@ -40,7 +40,9 @@ impl<'a> SimulationManager<'a> {
         };
         let admin = Box::new(Admin::new(event_receiver_admin));
         simulation_manager.add_agent("admin", admin);
-        simulation_manager.environment.add_sender(event_sender_admin);
+        simulation_manager
+            .environment
+            .add_sender(event_sender_admin);
         simulation_manager
     }
 

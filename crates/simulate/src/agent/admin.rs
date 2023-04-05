@@ -2,7 +2,7 @@
 //! Describes the agent that will always come alongside any simulation.
 use std::str::FromStr;
 
-use crossbeam_channel::{Receiver, Sender};
+use crossbeam_channel::Receiver;
 use revm::primitives::{Account, AccountInfo, Address, Log, B160, U256};
 
 use crate::agent::{Agent, TransactSettings};

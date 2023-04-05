@@ -1,8 +1,8 @@
 #![warn(missing_docs)]
 //! Describes the most basic type of user agent.
 
-use revm::primitives::{Account, AccountInfo, Address, B160, U256, Log};
-use crossbeam_channel::{Receiver, Sender};
+use crossbeam_channel::Receiver;
+use revm::primitives::{Account, AccountInfo, Address, Log, B160, U256};
 
 use crate::agent::{Agent, TransactSettings};
 
@@ -35,10 +35,7 @@ impl Agent for User {
 
 impl User {
     /// Constructor function to instantiate a user agent.
-    pub fn new(
-        event_receiver: Receiver<Vec<Log>>,
-        address: B160,
-    ) -> Self {
+    pub fn new(event_receiver: Receiver<Vec<Log>>, address: B160) -> Self {
         Self {
             address,
             account: Account::from(AccountInfo::default()),
@@ -47,7 +44,6 @@ impl User {
                 gas_price: U256::ZERO, // TODO: Users should have an associated gas price.
             },
             event_receiver,
-
         }
     }
 }
