@@ -14,7 +14,8 @@ pub struct SimulationEnvironment {
     /// The EVM that is used for the simulation.
     pub(crate) evm: EVM<CacheDB<EmptyDB>>,
     /// The sender on the event channel that is used to send events to the agents and simulation manager.
-    pub(crate) event_sender: Sender<Vec<Log>>,
+    pub(crate) event_senders: Vec<Sender<Vec<Log>>>,
+    // TODO: Perhaps add the contracts in here?
 }
 
 #[derive(Debug)]
@@ -41,13 +42,13 @@ pub struct SimulationContract<Deployed> {
 }
 
 impl SimulationEnvironment {
-    pub(crate) fn new(event_sender: Sender<Vec<Log>>) -> Self {
+    pub(crate) fn new() -> Self {
         let mut evm = EVM::new();
         let db = CacheDB::new(EmptyDB {});
         evm.env.cfg.limit_contract_code_size = Some(0x100000); // This is a large contract size limit, beware!
         evm.database(db);
-
-        Self { evm, event_sender }
+        let event_senders = vec![];
+        Self { evm, event_senders }
     }
 
     pub(crate) fn execute(&mut self, tx: TxEnv) -> ExecutionResult {
@@ -63,7 +64,13 @@ impl SimulationEnvironment {
         execution_result
     }
     fn echo_logs(&mut self, logs: Vec<Log>) {
-        self.event_sender.send(logs).unwrap();
+        for event_sender in self.event_senders.iter() {
+            event_sender.send(logs.clone()).unwrap();
+        }
+        // self.event_sender.send(logs).unwrap();
+    }
+    pub(crate) fn add_sender(&mut self, sender: Sender<Vec<Log>>) {
+        self.event_senders.push(sender);
     }
 }
 

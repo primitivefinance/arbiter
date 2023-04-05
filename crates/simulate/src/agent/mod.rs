@@ -10,6 +10,7 @@ use std::thread;
 use bytes::Bytes;
 use ethers::abi::Token;
 use revm::primitives::{Address, ExecutionResult, Log, Output, TransactTo, TxEnv, B160, U256};
+use crossbeam_channel::{Receiver, Sender};
 
 use crate::environment::{IsDeployed, NotDeployed, SimulationContract, SimulationEnvironment};
 
@@ -30,7 +31,7 @@ pub trait Agent {
     /// Returns the transaction settings of the agent.
     fn transact_settings(&self) -> &TransactSettings;
     /// The event's channel receiver for the agent.
-    fn receiver(&self) -> crossbeam_channel::Receiver<Vec<Log>>;
+    fn receiver(&self) -> Receiver<Vec<Log>>;
     /// Used to allow agents to filter out the events they choose to monitor.
     fn filter_events(&self);
 

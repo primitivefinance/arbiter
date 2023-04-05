@@ -2,10 +2,10 @@
 //! Simulation managers are used to manage the environments for a simulation.
 //! Managers are responsible for adding agents, running agents, deploying contracts, calling contracts, and reading logs.
 
-use std::collections::HashMap;
+use std::{thread, collections::HashMap};
 
 use bytes::Bytes;
-use crossbeam_channel::unbounded;
+use crossbeam_channel::{Sender, Receiver, unbounded};
 use revm::primitives::{AccountInfo, ExecutionResult, Log, Output, B160};
 
 use crate::{
@@ -14,6 +14,7 @@ use crate::{
 };
 
 // TODO: Maybe need a `SimulationAccount` that abstracts some of the revm primitives further.
+// TODO: We could filter events here to optimize! That is, we can let the manager know the agents' filter so we only send them messages they need. This cuts overhead
 
 /// Manages simulations.
 pub struct SimulationManager<'a> {
@@ -21,9 +22,6 @@ pub struct SimulationManager<'a> {
     pub environment: SimulationEnvironment,
     /// The agents that are currently running in the simulation environment.
     pub agents: HashMap<&'a str, Box<dyn Agent>>,
-    /// The receiver that the simulation manager uses to receive events from the environment.
-    /// Same channel that agents see.
-    pub receiver: crossbeam_channel::Receiver<Vec<revm::primitives::Log>>,
 }
 
 impl<'a> Default for SimulationManager<'a> {
@@ -35,14 +33,14 @@ impl<'a> Default for SimulationManager<'a> {
 impl<'a> SimulationManager<'a> {
     /// Constructor function to instantiate a
     pub fn new() -> Self {
-        let (event_sender, event_receiver) = unbounded::<Vec<Log>>();
+        let (event_sender_admin, event_receiver_admin) = unbounded::<Vec<Log>>();
         let mut simulation_manager = Self {
-            environment: SimulationEnvironment::new(event_sender),
+            environment: SimulationEnvironment::new(),
             agents: HashMap::new(),
-            receiver: event_receiver.clone(),
         };
-        let admin = Box::new(Admin::new(event_receiver));
+        let admin = Box::new(Admin::new(event_receiver_admin));
         simulation_manager.add_agent("admin", admin);
+        simulation_manager.environment.add_sender(event_sender_admin);
         simulation_manager
     }
 
@@ -64,8 +62,10 @@ impl<'a> SimulationManager<'a> {
             .db()
             .unwrap()
             .insert_account_info(address, AccountInfo::default());
-        let user = Box::new(User::new(self.receiver.clone(), address));
+        let (event_sender_user, event_receiver_user) = unbounded::<Vec<Log>>();
+        let user = Box::new(User::new(event_receiver_user, address));
         self.add_agent(name, user);
+        self.environment.add_sender(event_sender_user)
     }
 
     /// Takes an `ExecutionResult` and returns the raw bytes of the output that can then be decoded.

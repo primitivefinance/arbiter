@@ -2,7 +2,7 @@
 //! Describes the agent that will always come alongside any simulation.
 use std::str::FromStr;
 
-use crossbeam_channel::Receiver;
+use crossbeam_channel::{Receiver, Sender};
 use revm::primitives::{Account, AccountInfo, Address, Log, B160, U256};
 
 use crate::agent::{Agent, TransactSettings};
@@ -15,7 +15,7 @@ pub struct Admin {
     pub account: Account,
     /// Contains the default transaction options for revm such as gas limit and gas price.
     pub transact_settings: TransactSettings,
-    /// The receiver for the crossbeam channel that events are sent down.
+    /// The receiver for the crossbeam channel that events are sent down from manager's dispatch.
     pub event_receiver: Receiver<Vec<Log>>,
 }
 

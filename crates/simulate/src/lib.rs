@@ -270,12 +270,12 @@ mod tests {
         let handle = thread::spawn(move || {
             let mut i = 0;
             while let Ok(logs) = reader.recv() {
-                println!("Got logs!");
+                println!("Got logs in alice's thread!");
                 println!("{:?}", logs);
                 match i {
                     0 => {
                         assert_eq!(logs, []);
-                        println!("Got the right log!");
+                        println!("Got the right log in alice's thread!!");
                     }
                     1 => {
                         println!("Decoding logs!");
@@ -290,7 +290,7 @@ mod tests {
                             .decode_event::<String>("WasWritten", log_topics, log_data)
                             .unwrap();
                         assert_eq!(log_output, "Hello, world!".to_string());
-                        println!("Got the right log!")
+                        println!("Got the right log in alice's thread!")
                     }
                     2 => {
                         println!("Decoding logs!");
@@ -306,6 +306,57 @@ mod tests {
                             .unwrap();
                         assert_eq!(log_output, "Hello, world! again...".to_string());
                         println!("Got the right log!")
+                    }
+                    _ => break,
+                }
+                i += 1;
+                if i == 3 {
+                    break;
+                }
+            }
+        });
+
+        let reader_for_admin = manager.agents.get("admin").unwrap().receiver();
+        let writer_base_contract_for_admin = writer.base_contract.clone();
+        let admin_handle = thread::spawn(move || {
+            let mut i = 0;
+            while let Ok(logs) = reader_for_admin.recv() {
+                println!("Got logs in admin's thread!");
+                println!("{:?}", logs);
+                match i {
+                    0 => {
+                        assert_eq!(logs, []);
+                        println!("Got the right log in admin's thread!");
+                    }
+                    1 => {
+                        println!("Decoding logs!");
+                        let log_topics: Vec<H256> = logs.clone()[0]
+                            .topics
+                            .clone()
+                            .into_iter()
+                            .map(|x| H256::from_slice(x.as_slice()))
+                            .collect();
+                        let log_data = logs[0].data.clone().into();
+                        let log_output = writer_base_contract_for_admin
+                            .decode_event::<String>("WasWritten", log_topics, log_data)
+                            .unwrap();
+                        assert_eq!(log_output, "Hello, world!".to_string());
+                        println!("Got the right log in admin's thread!")
+                    }
+                    2 => {
+                        println!("Decoding logs in admin's thread!");
+                        let log_topics: Vec<H256> = logs.clone()[0]
+                            .topics
+                            .clone()
+                            .into_iter()
+                            .map(|x| H256::from_slice(x.as_slice()))
+                            .collect();
+                        let log_data = logs[0].data.clone().into();
+                        let log_output = writer_base_contract_for_admin
+                            .decode_event::<String>("WasWritten", log_topics, log_data)
+                            .unwrap();
+                        assert_eq!(log_output, "Hello, world! again...".to_string());
+                        println!("Got the right log in admin's thread!")
                     }
                     _ => break,
                 }
@@ -358,6 +409,9 @@ mod tests {
         );
 
         if handle.join().is_err() {
+            panic!("Thread panicked!");
+        };
+        if admin_handle.join().is_err() {
             panic!("Thread panicked!");
         };
     }

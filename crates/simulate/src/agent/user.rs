@@ -1,7 +1,8 @@
 #![warn(missing_docs)]
 //! Describes the most basic type of user agent.
 
-use revm::primitives::{Account, AccountInfo, Address, B160, U256};
+use revm::primitives::{Account, AccountInfo, Address, B160, U256, Log};
+use crossbeam_channel::{Receiver, Sender};
 
 use crate::agent::{Agent, TransactSettings};
 
@@ -13,8 +14,8 @@ pub struct User {
     pub account: Account,
     /// Contains the default transaction options for revm such as gas limit and gas price.
     transact_settings: TransactSettings,
-    /// The receiver for the crossbeam channel that events are sent down.
-    pub receiver: crossbeam_channel::Receiver<Vec<revm::primitives::Log>>,
+    /// The receiver for the crossbeam channel that events are sent down from manager's dispatch.
+    pub event_receiver: Receiver<Vec<Log>>,
 }
 
 impl Agent for User {
@@ -24,8 +25,8 @@ impl Agent for User {
     fn transact_settings(&self) -> &TransactSettings {
         &self.transact_settings
     }
-    fn receiver(&self) -> crossbeam_channel::Receiver<Vec<revm::primitives::Log>> {
-        self.receiver.clone()
+    fn receiver(&self) -> Receiver<Vec<Log>> {
+        self.event_receiver.clone()
     }
     fn filter_events(&self) {
         todo!();
@@ -35,7 +36,7 @@ impl Agent for User {
 impl User {
     /// Constructor function to instantiate a user agent.
     pub fn new(
-        receiver: crossbeam_channel::Receiver<Vec<revm::primitives::Log>>,
+        event_receiver: Receiver<Vec<Log>>,
         address: B160,
     ) -> Self {
         Self {
@@ -45,7 +46,8 @@ impl User {
                 gas_limit: u64::MAX,
                 gas_price: U256::ZERO, // TODO: Users should have an associated gas price.
             },
-            receiver,
+            event_receiver,
+
         }
     }
 }
