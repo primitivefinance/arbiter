@@ -58,11 +58,9 @@ impl<'a> SimulationManager<'a> {
 
     // TODO: maybe should make the name optional here, but I struggled with this.
     /// Allow the manager to create a dummy user account.
-    pub async fn create_user(&mut self, address: B160, name: &'a str) {
+    pub fn create_user(&mut self, address: B160, name: &'a str) {
         self.environment
             .evm
-            .write()
-            .await
             .db()
             .unwrap()
             .insert_account_info(address, AccountInfo::default());

@@ -8,23 +8,16 @@ edition = "2021"
 [dependencies]
 # execution
 revm = "3.0.0"
+bytes = "1.4.0"
 
-# async
-tokio = { version = "1.23", features = [
-    "macros",
-    "full"
-]}
+# events
 crossbeam-channel = "0.5.7"
-async-trait = "0.1.68"
 
 # price_simulation
 rand = "0.8.5"
 rand_chacha = "0.3.1"
 rand_distr = "0.4.3"
 plotly = "0.8.3"
-
-bytes = "1.4.0"
-
 
 # added for tests
 bindings = { path = "../bindings" }

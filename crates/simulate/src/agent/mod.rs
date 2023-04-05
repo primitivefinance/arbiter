@@ -7,7 +7,6 @@
 //! All agents must implement the [`Agent`] trait.
 use std::thread;
 
-use async_trait::async_trait;
 use bytes::Bytes;
 use ethers::abi::Token;
 use revm::primitives::{Address, ExecutionResult, Log, Output, TransactTo, TxEnv, B160, U256};
@@ -25,7 +24,6 @@ pub struct TransactSettings {
 }
 
 /// Basic traits that every `Agent` must implement in order to properly interact with an EVM.
-#[async_trait]
 pub trait Agent: Send + Sync {
     /// Returns the address of the agent.
     fn address(&self) -> Address;
@@ -37,7 +35,7 @@ pub trait Agent: Send + Sync {
     fn filter_events(&self);
 
     /// Used to allow agents to make a generic call a specific smart contract.
-    async fn call_contract(
+    fn call_contract(
         &self,
         simulation_environment: &mut SimulationEnvironment,
         contract: &SimulationContract<IsDeployed>,
@@ -45,7 +43,7 @@ pub trait Agent: Send + Sync {
         value: U256,
     ) -> ExecutionResult {
         let tx = self.build_call_transaction(contract.address.unwrap(), call_data, value);
-        simulation_environment.execute(tx).await
+        simulation_environment.execute(tx)
     }
 
     /// A constructor to build a `TxEnv` for an agent (uses agent data like `address` and `TransactSettings`).
@@ -71,13 +69,13 @@ pub trait Agent: Send + Sync {
 
     // TODO: May be defunct to read logs now
     /// Gets the most current event (which is all that is stored in the event buffer).
-    async fn read_logs(&self) -> Vec<Log> {
+    fn read_logs(&self) -> Vec<Log> {
         self.receiver().recv().unwrap()
     }
 
     // TODO: This isn't totally tested yet, but it comes from the `test_event_monitoring()` function
     /// Monitor events for the agent.
-    async fn monitor_events(&self) {
+    fn monitor_events(&self) {
         let receiver = self.receiver();
         thread::spawn(move || {
             while let Ok(_logs) = receiver.recv() {}
@@ -86,7 +84,7 @@ pub trait Agent: Send + Sync {
     }
 
     /// Deploy a contract to the current simulation environment.
-    async fn deploy(
+    fn deploy(
         &self,
         simulation_environment: &mut SimulationEnvironment,
         contract: SimulationContract<NotDeployed>,
@@ -108,7 +106,7 @@ pub trait Agent: Send + Sync {
         // Manager address will always be the sender for contract deployments.
 
         let deploy_transaction = self.build_deploy_transaction(bytecode);
-        let execution_result = simulation_environment.execute(deploy_transaction).await;
+        let execution_result = simulation_environment.execute(deploy_transaction);
         let output = match execution_result {
             ExecutionResult::Success { output, .. } => output,
             ExecutionResult::Revert { output, .. } => panic!("Failed due to revert: {:?}", output),

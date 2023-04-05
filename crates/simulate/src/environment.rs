@@ -1,8 +1,6 @@
 #![warn(missing_docs)]
 //! The environment that constitutes a simulation is handled here.
 
-use std::sync::Arc;
-
 use crossbeam_channel::Sender;
 use ethers::prelude::BaseContract;
 use revm::{
@@ -10,12 +8,11 @@ use revm::{
     primitives::{ExecutionResult, Log, TxEnv, B160},
     EVM,
 };
-use tokio::sync::RwLock as AsyncRwLock;
 
 /// The simulation environment that houses the execution environment and event logs.
 pub struct SimulationEnvironment {
     /// The EVM that is used for the simulation.
-    pub(crate) evm: Arc<AsyncRwLock<EVM<CacheDB<EmptyDB>>>>,
+    pub(crate) evm: EVM<CacheDB<EmptyDB>>,
     /// The sender on the event channel that is used to send events to the agents and simulation manager.
     pub(crate) event_sender: Sender<Vec<Log>>,
 }
@@ -50,16 +47,13 @@ impl SimulationEnvironment {
         evm.env.cfg.limit_contract_code_size = Some(0x100000); // This is a large contract size limit, beware!
         evm.database(db);
 
-        Self {
-            evm: Arc::new(AsyncRwLock::new(evm)),
-            event_sender,
-        }
+        Self { evm, event_sender }
     }
 
-    pub(crate) async fn execute(&mut self, tx: TxEnv) -> ExecutionResult {
-        self.evm.write().await.env.tx = tx;
+    pub(crate) fn execute(&mut self, tx: TxEnv) -> ExecutionResult {
+        self.evm.env.tx = tx;
 
-        let execution_result = match self.evm.write().await.transact_commit() {
+        let execution_result = match self.evm.transact_commit() {
             Ok(val) => val,
             // URGENT: change this to a custom error
             Err(_) => panic!("failed"),
@@ -68,7 +62,7 @@ impl SimulationEnvironment {
 
         execution_result
     }
-    pub(crate) fn echo_logs(&mut self, logs: Vec<Log>) {
+    fn echo_logs(&mut self, logs: Vec<Log>) {
         self.event_sender.send(logs).unwrap();
     }
 }
@@ -83,9 +77,10 @@ impl SimulationContract<NotDeployed> {
             deployed: std::marker::PhantomData,
         }
     }
+    // TODO: This function can probably be made private.
     /// Creates a new `SimulationContract` that is marked as deployed.
     /// This is only called by implicitly by the `SimulationManager` inside of the `deploy` function.
-    pub fn to_deployed(&self, address: B160) -> SimulationContract<IsDeployed> {
+    pub(crate) fn to_deployed(&self, address: B160) -> SimulationContract<IsDeployed> {
         SimulationContract {
             base_contract: self.base_contract.clone(),
             bytecode: self.bytecode.clone(),
