@@ -24,7 +24,7 @@ pub struct TransactSettings {
 }
 
 /// Basic traits that every `Agent` must implement in order to properly interact with an EVM.
-pub trait Agent: Send + Sync {
+pub trait Agent {
     /// Returns the address of the agent.
     fn address(&self) -> Address;
     /// Returns the transaction settings of the agent.
