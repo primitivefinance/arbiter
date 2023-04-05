@@ -82,17 +82,9 @@ impl SimulationEnvironment {
         execution_result
     }
     pub(crate) fn echo_logs(&mut self, logs: Vec<Log>) {
-        println!("echo_logs: {:?}", logs);
         self.events.push(logs.clone()); // TODO: Add error checking?
         self.event_sender.send(logs.clone()).unwrap();
     }
-    // pub(crate) fn echo_logs(&mut self, logs: Vec<Log>) {
-    //     self.event_buffer.clear();
-
-    //     logs.into_iter().for_each(|log| {
-    //         self.event_buffer.push(log);
-    //     });
-    // }
 }
 
 impl SimulationContract<NotDeployed> {
