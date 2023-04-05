@@ -15,6 +15,7 @@ use crate::environment::{IsDeployed, NotDeployed, SimulationContract, Simulation
 
 pub mod admin;
 pub mod user;
+pub mod arbitrage;
 /// Describes the gas settings for a transaction.
 pub struct TransactSettings {
     /// Gas limit for the transaction for a simulation.
