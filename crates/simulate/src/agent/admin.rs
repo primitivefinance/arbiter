@@ -7,7 +7,7 @@ use std::{
 
 use tokio::sync::RwLock as AsyncRwLock;
 
-use revm::primitives::{Account, AccountInfo, Address, B160, U256, Log};
+use revm::primitives::{Account, AccountInfo, Address, Log, B160, U256};
 
 use crate::{
     agent::{Agent, TransactSettings},
@@ -24,7 +24,7 @@ pub struct Admin {
     pub account: Account,
     /// Contains the default transaction options for revm such as gas limit and gas price.
     pub transact_settings: TransactSettings,
-    pub event_receiver:  Receiver<Vec<Log>>,
+    pub event_receiver: Receiver<Vec<Log>>,
 }
 
 impl Agent for Admin {
@@ -34,7 +34,7 @@ impl Agent for Admin {
     fn transact_settings(&self) -> &TransactSettings {
         &self.transact_settings
     }
-    fn receiver(&self) -> crossbeam_channel::Receiver<Vec<Log> > {
+    fn receiver(&self) -> crossbeam_channel::Receiver<Vec<Log>> {
         self.event_receiver.clone()
     }
 }

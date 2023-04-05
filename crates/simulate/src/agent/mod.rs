@@ -6,21 +6,20 @@
 //! Some examples of agents are market makers or arbitrageurs.
 //! All agents must implement the [`Agent`] trait.
 use std::{
+    sync::Arc,
     sync::{RwLockReadGuard, RwLockWriteGuard},
     thread,
-    sync::{Arc},
 };
 
 use tokio::sync::RwLock as AsyncRwLock;
 use tokio_stream::{Stream, StreamExt};
 
+use async_trait::async_trait;
 use bytes::Bytes;
 use ethers::abi::Token;
 use revm::primitives::{Address, ExecutionResult, Log, Output, TransactTo, TxEnv, B160, U256};
-use async_trait::async_trait;
 
 use crate::environment::{IsDeployed, NotDeployed, SimulationContract, SimulationEnvironment};
-
 
 pub mod admin;
 pub mod user;
@@ -117,8 +116,7 @@ pub trait Agent: Send + Sync {
         // Manager address will always be the sender for contract deployments.
 
         let deploy_transaction = self.build_deploy_transaction(bytecode);
-        let execution_result = simulation_environment
-            .execute(deploy_transaction).await;
+        let execution_result = simulation_environment.execute(deploy_transaction).await;
         let output = match execution_result {
             ExecutionResult::Success { output, .. } => output,
             ExecutionResult::Revert { output, .. } => panic!("Failed due to revert: {:?}", output),

@@ -11,12 +11,12 @@ use std::{
 use tokio::sync::RwLock as AsyncRwLock;
 
 use bytes::Bytes;
-use revm::primitives::{AccountInfo, ExecutionResult, Output, B160, Log};
+use revm::primitives::{AccountInfo, ExecutionResult, Log, Output, B160};
 
 use crossbeam_channel::unbounded;
 
 use crate::{
-    agent::{admin::Admin, Agent, user::User},
+    agent::{admin::Admin, user::User, Agent},
     environment::SimulationEnvironment,
 };
 
@@ -28,7 +28,7 @@ pub struct SimulationManager<'a> {
     pub environment: SimulationEnvironment,
     /// The agents that are currently running in the simulation environment.
     pub agents: HashMap<&'a str, Box<dyn Agent>>,
-    pub receiver: crossbeam_channel::Receiver<Vec<revm::primitives::Log> >,
+    pub receiver: crossbeam_channel::Receiver<Vec<revm::primitives::Log>>,
 }
 
 impl<'a> Default for SimulationManager<'a> {

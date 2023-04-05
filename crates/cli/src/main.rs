@@ -62,7 +62,12 @@ async fn main() -> Result<()> {
                 weth9::WETH9_BYTECODE.clone().into_iter().collect(),
             );
 
-            let weth = manager.agents.get("admin").unwrap().deploy(&mut manager.environment, weth, ().into_tokens()).await;
+            let weth = manager
+                .agents
+                .get("admin")
+                .unwrap()
+                .deploy(&mut manager.environment, weth, ().into_tokens())
+                .await;
             println!("WETH deployed at: {}", weth.address.unwrap());
 
             // Deploy the registry contract.
@@ -74,7 +79,12 @@ async fn main() -> Result<()> {
                     .collect(),
             );
 
-            let registry = manager.agents.get("admin").unwrap().deploy(&mut manager.environment, registry, ().into_tokens()).await;
+            let registry = manager
+                .agents
+                .get("admin")
+                .unwrap()
+                .deploy(&mut manager.environment, registry, ().into_tokens())
+                .await;
             println!("Simple registry deployed at: {}", registry.address.unwrap());
 
             // Deploy the portfolio contract.
@@ -90,7 +100,16 @@ async fn main() -> Result<()> {
                 recast_address(weth.address.unwrap()),
                 recast_address(registry.address.unwrap()),
             );
-            let portfolio = manager.agents.get("admin").unwrap().deploy(&mut manager.environment, portfolio, portfolio_args.into_tokens()).await;
+            let portfolio = manager
+                .agents
+                .get("admin")
+                .unwrap()
+                .deploy(
+                    &mut manager.environment,
+                    portfolio,
+                    portfolio_args.into_tokens(),
+                )
+                .await;
             println!("Portfolio deployed at: {}", portfolio.address.unwrap());
         }
         Some(Commands::Gbm { config }) => {

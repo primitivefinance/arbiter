@@ -17,11 +17,14 @@ use revm::{
     EVM,
 };
 
-use futures::{stream::{self, Map, StreamExt}, channel::mpsc::UnboundedReceiver};
+use futures::{
+    channel::mpsc::UnboundedReceiver,
+    stream::{self, Map, StreamExt},
+};
 // use futures::channel::mpsc::{UnboundedSender};
 use tokio::task::JoinHandle;
 
-use crossbeam_channel::{unbounded,Sender, Receiver};
+use crossbeam_channel::{unbounded, Receiver, Sender};
 
 /// The simulation environment that houses the execution environment and event logs.
 pub struct SimulationEnvironment {
