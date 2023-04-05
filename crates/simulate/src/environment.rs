@@ -1,37 +1,22 @@
 #![warn(missing_docs)]
 //! The environment that constitutes a simulation is handled here.
 
-use std::thread;
+use std::sync::Arc;
 
-use std::{
-    collections::HashMap,
-    sync::{Arc, Mutex},
-};
-
-use tokio::sync::RwLock as AsyncRwLock;
-
+use crossbeam_channel::Sender;
 use ethers::prelude::BaseContract;
 use revm::{
     db::{CacheDB, EmptyDB},
     primitives::{ExecutionResult, Log, TxEnv, B160},
     EVM,
 };
-
-use futures::{
-    channel::mpsc::UnboundedReceiver,
-    stream::{self, Map, StreamExt},
-};
-// use futures::channel::mpsc::{UnboundedSender};
-use tokio::task::JoinHandle;
-
-use crossbeam_channel::{unbounded, Receiver, Sender};
+use tokio::sync::RwLock as AsyncRwLock;
 
 /// The simulation environment that houses the execution environment and event logs.
 pub struct SimulationEnvironment {
     /// The EVM that is used for the simulation.
     pub(crate) evm: Arc<AsyncRwLock<EVM<CacheDB<EmptyDB>>>>,
-    /// Storage of all events that have been emitted during the simulation.
-    pub(crate) events: Vec<Vec<Log>>,
+    /// The sender on the event channel that is used to send events to the agents and simulation manager.
     pub(crate) event_sender: Sender<Vec<Log>>,
 }
 
@@ -67,7 +52,6 @@ impl SimulationEnvironment {
 
         Self {
             evm: Arc::new(AsyncRwLock::new(evm)),
-            events: Vec::<Vec<Log>>::new(),
             event_sender,
         }
     }
@@ -85,8 +69,7 @@ impl SimulationEnvironment {
         execution_result
     }
     pub(crate) fn echo_logs(&mut self, logs: Vec<Log>) {
-        self.events.push(logs.clone()); // TODO: Add error checking?
-        self.event_sender.send(logs.clone()).unwrap();
+        self.event_sender.send(logs).unwrap();
     }
 }
 

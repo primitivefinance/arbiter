@@ -5,14 +5,7 @@
 //! An abstract representation of an agent on the EVM, to be used in simulations.
 //! Some examples of agents are market makers or arbitrageurs.
 //! All agents must implement the [`Agent`] trait.
-use std::{
-    sync::Arc,
-    sync::{RwLockReadGuard, RwLockWriteGuard},
-    thread,
-};
-
-use tokio::sync::RwLock as AsyncRwLock;
-use tokio_stream::{Stream, StreamExt};
+use std::thread;
 
 use async_trait::async_trait;
 use bytes::Bytes;
@@ -38,13 +31,11 @@ pub trait Agent: Send + Sync {
     fn address(&self) -> Address;
     /// Returns the transaction settings of the agent.
     fn transact_settings(&self) -> &TransactSettings;
-    // /// Returns the writer to the simulation environment the agent is acting in.
-    // fn simulation_environment_write(&self) -> RwLockWriteGuard<'_, SimulationEnvironment>;
-    // /// Returns a reader to the simulation environment the agent is acting in.
-    // fn simulation_environment_read(&self) -> RwLockReadGuard<'_, SimulationEnvironment>;
-    // TODO: Trying this out
-    // fn simulation_environment(&self) -> &SimulationEnvironment;
+    /// The event's channel receiver for the agent.
     fn receiver(&self) -> crossbeam_channel::Receiver<Vec<Log>>;
+    /// Used to allow agents to filter out the events they choose to monitor.
+    fn filter_events(&self);
+
     /// Used to allow agents to make a generic call a specific smart contract.
     async fn call_contract(
         &self,
@@ -78,20 +69,21 @@ pub trait Agent: Send + Sync {
         }
     }
 
+    // TODO: May be defunct to read logs now
     /// Gets the most current event (which is all that is stored in the event buffer).
-    async fn read_logs(&self, simulation_environment: &mut SimulationEnvironment) -> Vec<Log> {
+    async fn read_logs(&self) -> Vec<Log> {
         self.receiver().recv().unwrap()
     }
 
-    // async fn watch(&self, simulation_environment: SimulationEnvironment) {
-    //     println!("got here?");
-    //     loop {
-    //         let logs = self.read_logs(simulation_environment).await;
-    //         for log in logs {
-    //             println!("Log: {:?}", log);
-    //         }
-    //     }
-    // }
+    // TODO: This isn't totally tested yet, but it comes from the `test_event_monitoring()` function
+    /// Monitor events for the agent.
+    async fn monitor_events(&self) {
+        let receiver = self.receiver();
+        thread::spawn(move || {
+            while let Ok(_logs) = receiver.recv() {}
+            // TODO: Implement a filter / catch for specific events.
+        });
+    }
 
     /// Deploy a contract to the current simulation environment.
     async fn deploy(

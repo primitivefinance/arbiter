@@ -2,18 +2,11 @@
 //! Simulation managers are used to manage the environments for a simulation.
 //! Managers are responsible for adding agents, running agents, deploying contracts, calling contracts, and reading logs.
 
-// use core::slice::SlicePattern;
-use std::{
-    collections::HashMap,
-    sync::{Arc, Mutex},
-};
-
-use tokio::sync::RwLock as AsyncRwLock;
+use std::collections::HashMap;
 
 use bytes::Bytes;
-use revm::primitives::{AccountInfo, ExecutionResult, Log, Output, B160};
-
 use crossbeam_channel::unbounded;
+use revm::primitives::{AccountInfo, ExecutionResult, Log, Output, B160};
 
 use crate::{
     agent::{admin::Admin, user::User, Agent},
@@ -28,6 +21,8 @@ pub struct SimulationManager<'a> {
     pub environment: SimulationEnvironment,
     /// The agents that are currently running in the simulation environment.
     pub agents: HashMap<&'a str, Box<dyn Agent>>,
+    /// The receiver that the simulation manager uses to receive events from the environment.
+    /// Same channel that agents see.
     pub receiver: crossbeam_channel::Receiver<Vec<revm::primitives::Log>>,
 }
 
@@ -46,14 +41,10 @@ impl<'a> SimulationManager<'a> {
             agents: HashMap::new(),
             receiver: event_receiver.clone(),
         };
-        let admin = Box::new(Admin::new(event_receiver.clone()));
+        let admin = Box::new(Admin::new(event_receiver));
         simulation_manager.add_agent("admin", admin);
         simulation_manager
     }
-    // /// Returns a reference to the admin agent.
-    // pub fn admin(&self) -> &Box<dyn Agent> {
-    //     self.agents.get("admin").unwrap()
-    // }
 
     /// Run all agents concurrently in the current simulation environment.
     pub fn run_agents() {

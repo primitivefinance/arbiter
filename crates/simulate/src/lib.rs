@@ -9,26 +9,22 @@ pub mod utils;
 
 #[cfg(test)]
 mod tests {
-    use std::{collections::HashMap, process, str::FromStr, sync::Arc, thread};
-    use tokio::{task, test};
+    use std::{str::FromStr, thread};
 
-    // use bindings::{self, arbiter_token};
     use ethers::{
         abi::Tokenize,
         prelude::{BaseContract, H256, U256},
     };
     use revm::primitives::{ruint::Uint, B160};
+    use tokio::test;
 
     use crate::{
-        agent::user::User, environment::SimulationContract, manager::SimulationManager,
-        utils::recast_address,
+        environment::SimulationContract, manager::SimulationManager, utils::recast_address,
     };
-
-    use crate::agent::Agent;
 
     #[test]
     /// Test that the writer contract can echo a string.
-    /// The writer contract takes in no args.
+    /// The writer contract takes in no constructor args.
     async fn test_string_write() {
         // Set up the execution manager and a user address.
         let mut manager = SimulationManager::default();
@@ -79,6 +75,7 @@ mod tests {
     }
 
     #[test]
+    /// Test to see that we can mint tokens to a user.
     async fn test_token_mint() {
         // Create a `SimulationManager` where we can run simulations.
         // This will also create an EVM instance associated to the manager.
@@ -206,6 +203,7 @@ mod tests {
         assert_eq!(response, mint_amount); // Check that the value minted is correct.
     }
 
+    /// Test to make sure that events are getting logged into the crossbeam channel.
     #[test]
     async fn test_event_logging() {
         // Set up the execution manager and a user address.
@@ -247,18 +245,8 @@ mod tests {
             .await;
 
         // Read logs twice since the first time is just the contract creation which gives no log.
-        let _logs = manager
-            .agents
-            .get("admin")
-            .unwrap()
-            .read_logs(&mut manager.environment)
-            .await;
-        let logs = manager
-            .agents
-            .get("admin")
-            .unwrap()
-            .read_logs(&mut manager.environment)
-            .await;
+        let _logs = manager.agents.get("admin").unwrap().read_logs().await;
+        let logs = manager.agents.get("admin").unwrap().read_logs().await;
 
         // Decode the logs
         let log_topics: Vec<H256> = logs.clone()[0]
@@ -277,9 +265,9 @@ mod tests {
         assert_eq!(log_output, test_string);
     }
 
+    /// Test to make sure events can be streamed from the crossbeam channel on a new thread.
     #[tokio::test]
-    async fn test_event_watching() {
-        let main_thread = thread::current();
+    async fn test_event_monitoring() {
         // Set up the execution manager and a user address.
         let mut manager = SimulationManager::default();
         let user_name = "alice";
@@ -397,8 +385,5 @@ mod tests {
         if handle.join().is_err() {
             panic!("Thread panicked!");
         };
-        // else {
-
-        // };
     }
 }

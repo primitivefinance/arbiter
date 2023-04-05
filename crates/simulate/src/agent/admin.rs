@@ -1,20 +1,11 @@
 #![warn(missing_docs)]
 //! Describes the agent that will always come alongside any simulation.
-use std::{
-    str::FromStr,
-    sync::{Arc, RwLockReadGuard, RwLockWriteGuard},
-};
-
-use tokio::sync::RwLock as AsyncRwLock;
-
-use revm::primitives::{Account, AccountInfo, Address, Log, B160, U256};
-
-use crate::{
-    agent::{Agent, TransactSettings},
-    environment::SimulationEnvironment,
-};
+use std::str::FromStr;
 
 use crossbeam_channel::Receiver;
+use revm::primitives::{Account, AccountInfo, Address, Log, B160, U256};
+
+use crate::agent::{Agent, TransactSettings};
 
 /// An agent that is always spawned with any simulation to take control of initial setup, etc.
 pub struct Admin {
@@ -24,6 +15,7 @@ pub struct Admin {
     pub account: Account,
     /// Contains the default transaction options for revm such as gas limit and gas price.
     pub transact_settings: TransactSettings,
+    /// The receiver for the crossbeam channel that events are sent down.
     pub event_receiver: Receiver<Vec<Log>>,
 }
 
@@ -36,6 +28,9 @@ impl Agent for Admin {
     }
     fn receiver(&self) -> crossbeam_channel::Receiver<Vec<Log>> {
         self.event_receiver.clone()
+    }
+    fn filter_events(&self) {
+        todo!();
     }
 }
 
