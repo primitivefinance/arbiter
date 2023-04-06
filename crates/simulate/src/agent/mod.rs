@@ -5,9 +5,10 @@
 //! An abstract representation of an agent on the EVM, to be used in simulations.
 //! Some examples of agents are market makers or arbitrageurs.
 //! All agents must implement the [`Agent`] trait.
-use std::sync::{RwLockReadGuard, RwLockWriteGuard};
+use std::thread;
 
 use bytes::Bytes;
+use crossbeam_channel::Receiver;
 use ethers::abi::Token;
 use revm::primitives::{Address, ExecutionResult, Log, Output, TransactTo, TxEnv, B160, U256};
 
@@ -30,20 +31,21 @@ pub trait Agent {
     fn address(&self) -> Address;
     /// Returns the transaction settings of the agent.
     fn transact_settings(&self) -> &TransactSettings;
-    /// Returns the writer to the simulation environment the agent is acting in.
-    fn simulation_environment_write(&self) -> RwLockWriteGuard<'_, SimulationEnvironment>;
-    /// Returns a reader to the simulation environment the agent is acting in.
-    fn simulation_environment_read(&self) -> RwLockReadGuard<'_, SimulationEnvironment>;
+    /// The event's channel receiver for the agent.
+    fn receiver(&self) -> Receiver<Vec<Log>>;
+    /// Used to allow agents to filter out the events they choose to monitor.
+    fn filter_events(&self);
 
     /// Used to allow agents to make a generic call a specific smart contract.
     fn call_contract(
         &self,
+        simulation_environment: &mut SimulationEnvironment,
         contract: &SimulationContract<IsDeployed>,
         call_data: Bytes,
         value: U256,
     ) -> ExecutionResult {
         let tx = self.build_call_transaction(contract.address.unwrap(), call_data, value);
-        self.simulation_environment_write().execute(tx)
+        simulation_environment.execute(tx)
     }
 
     /// A constructor to build a `TxEnv` for an agent (uses agent data like `address` and `TransactSettings`).
@@ -67,14 +69,26 @@ pub trait Agent {
         }
     }
 
-    // TODO: this should become some kind of async function so agents can await certain logs.
+    // TODO: May be defunct to read logs now
     /// Gets the most current event (which is all that is stored in the event buffer).
     fn read_logs(&self) -> Vec<Log> {
-        self.simulation_environment_read().event_buffer.clone()
+        self.receiver().recv().unwrap()
     }
+
+    // TODO: This isn't totally tested yet, but it comes from the `test_event_monitoring()` function
+    /// Monitor events for the agent.
+    fn monitor_events(&self) {
+        let receiver = self.receiver();
+        thread::spawn(move || {
+            while let Ok(_logs) = receiver.recv() {}
+            // TODO: Implement a filter / catch for specific events.
+        });
+    }
+
     /// Deploy a contract to the current simulation environment.
     fn deploy(
         &self,
+        simulation_environment: &mut SimulationEnvironment,
         contract: SimulationContract<NotDeployed>,
         args: Vec<Token>,
     ) -> SimulationContract<IsDeployed> {
@@ -94,9 +108,7 @@ pub trait Agent {
         // Manager address will always be the sender for contract deployments.
 
         let deploy_transaction = self.build_deploy_transaction(bytecode);
-        let execution_result = self
-            .simulation_environment_write()
-            .execute(deploy_transaction);
+        let execution_result = simulation_environment.execute(deploy_transaction);
         let output = match execution_result {
             ExecutionResult::Success { output, .. } => output,
             ExecutionResult::Revert { output, .. } => panic!("Failed due to revert: {:?}", output),
