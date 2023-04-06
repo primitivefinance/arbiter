@@ -325,7 +325,7 @@ pub mod rmm01_extended_lib {
         > {
             let factory = ::ethers::contract::ContractFactory::new(
                 RMM01EXTENDEDLIB_ABI.clone(),
-                RMM01EXTENDEDLIB_BYTECODE.clone().into(),
+                RMM01EXTENDEDLIB_BYTECODE.clone(),
                 client,
             );
             let deployer = factory.deploy(constructor_args)?;

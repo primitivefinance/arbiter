@@ -6179,7 +6179,7 @@ pub mod arbiter_token {
         > {
             let factory = ::ethers::contract::ContractFactory::new(
                 ARBITERTOKEN_ABI.clone(),
-                ARBITERTOKEN_BYTECODE.clone().into(),
+                ARBITERTOKEN_BYTECODE.clone(),
                 client,
             );
             let deployer = factory.deploy(constructor_args)?;

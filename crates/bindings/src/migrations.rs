@@ -1180,7 +1180,7 @@ pub mod migrations {
         > {
             let factory = ::ethers::contract::ContractFactory::new(
                 MIGRATIONS_ABI.clone(),
-                MIGRATIONS_BYTECODE.clone().into(),
+                MIGRATIONS_BYTECODE.clone(),
                 client,
             );
             let deployer = factory.deploy(constructor_args)?;

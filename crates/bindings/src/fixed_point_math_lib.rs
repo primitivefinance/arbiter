@@ -325,7 +325,7 @@ pub mod fixed_point_math_lib {
         > {
             let factory = ::ethers::contract::ContractFactory::new(
                 FIXEDPOINTMATHLIB_ABI.clone(),
-                FIXEDPOINTMATHLIB_BYTECODE.clone().into(),
+                FIXEDPOINTMATHLIB_BYTECODE.clone(),
                 client,
             );
             let deployer = factory.deploy(constructor_args)?;

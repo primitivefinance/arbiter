@@ -325,7 +325,7 @@ pub mod safe_transfer_lib {
         > {
             let factory = ::ethers::contract::ContractFactory::new(
                 SAFETRANSFERLIB_ABI.clone(),
-                SAFETRANSFERLIB_BYTECODE.clone().into(),
+                SAFETRANSFERLIB_BYTECODE.clone(),
                 client,
             );
             let deployer = factory.deploy(constructor_args)?;

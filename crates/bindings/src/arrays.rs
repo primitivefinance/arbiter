@@ -325,7 +325,7 @@ pub mod arrays {
         > {
             let factory = ::ethers::contract::ContractFactory::new(
                 ARRAYS_ABI.clone(),
-                ARRAYS_BYTECODE.clone().into(),
+                ARRAYS_BYTECODE.clone(),
                 client,
             );
             let deployer = factory.deploy(constructor_args)?;

@@ -325,7 +325,7 @@ pub mod ecdsa {
         > {
             let factory = ::ethers::contract::ContractFactory::new(
                 ECDSA_ABI.clone(),
-                ECDSA_BYTECODE.clone().into(),
+                ECDSA_BYTECODE.clone(),
                 client,
             );
             let deployer = factory.deploy(constructor_args)?;

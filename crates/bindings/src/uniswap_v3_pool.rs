@@ -44360,7 +44360,7 @@ pub mod uniswap_v3_pool {
         > {
             let factory = ::ethers::contract::ContractFactory::new(
                 UNISWAPV3POOL_ABI.clone(),
-                UNISWAPV3POOL_BYTECODE.clone().into(),
+                UNISWAPV3POOL_BYTECODE.clone(),
                 client,
             );
             let deployer = factory.deploy(constructor_args)?;

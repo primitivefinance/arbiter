@@ -325,7 +325,7 @@ pub mod math {
         > {
             let factory = ::ethers::contract::ContractFactory::new(
                 MATH_ABI.clone(),
-                MATH_BYTECODE.clone().into(),
+                MATH_BYTECODE.clone(),
                 client,
             );
             let deployer = factory.deploy(constructor_args)?;

@@ -2060,7 +2060,7 @@ pub mod writer {
         > {
             let factory = ::ethers::contract::ContractFactory::new(
                 WRITER_ABI.clone(),
-                WRITER_BYTECODE.clone().into(),
+                WRITER_BYTECODE.clone(),
                 client,
             );
             let deployer = factory.deploy(constructor_args)?;
