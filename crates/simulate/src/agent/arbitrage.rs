@@ -1,7 +1,7 @@
 #![warn(missing_docs)]
 //! Describes the most basic type of user agent.
 
-use std::sync::{Arc, RwLock, RwLockReadGuard, RwLockWriteGuard};
+use std::sync::{Arc, RwLock};
 
 use revm::primitives::{Account, AccountInfo, Address, B160, U256};
 
@@ -19,7 +19,7 @@ pub struct Arbitrageur {
     /// Contains the default transaction options for revm such as gas limit and gas price.
     transact_settings: TransactSettings,
     // TODO: is this useful? environment: Arc<Mutex<Environment>>,
-    environment: Arc<RwLock<SimulationEnvironment>>,
+    _environment: Arc<RwLock<SimulationEnvironment>>,
     /// read thread for logs
     _read_thread: Option<std::thread::JoinHandle<()>>,
     /// Write thread for execution of transactions
@@ -55,7 +55,7 @@ impl Arbitrageur {
                 gas_limit: u64::MAX,
                 gas_price: U256::ZERO, // TODO: Users should have an associated gas price.
             },
-            environment,
+            _environment: environment,
             _read_thread: None,
             _write_thread: None,
             _running: false,
