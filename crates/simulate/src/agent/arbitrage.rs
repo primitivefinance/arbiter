@@ -21,11 +21,11 @@ pub struct Arbitrageur {
     // TODO: is this useful? environment: Arc<Mutex<Environment>>,
     environment: Arc<RwLock<SimulationEnvironment>>,
     /// read thread for logs
-    read_thread: Option<std::thread::JoinHandle<()>>,
+    _read_thread: Option<std::thread::JoinHandle<()>>,
     /// Write thread for execution of transactions
-    write_thread: Option<std::thread::JoinHandle<()>>,
+    _write_thread: Option<std::thread::JoinHandle<()>>,
     /// Boolean value to indicate if the agent is currently running
-    running: bool,
+    _running: bool,
 }
 
 impl Agent for Arbitrageur {
@@ -54,13 +54,13 @@ impl Arbitrageur {
                 gas_price: U256::ZERO, // TODO: Users should have an associated gas price.
             },
             environment,
-            read_thread: None,
-            write_thread: None,
-            running: false,
+            _read_thread: None,
+            _write_thread: None,
+            _running: false,
         }
     }
     /// Watch for arbitrage opportunities.
     pub async fn run(&self) {
-        let logs = self.read_logs();
+        let _logs = self.read_logs();
     }
 }
