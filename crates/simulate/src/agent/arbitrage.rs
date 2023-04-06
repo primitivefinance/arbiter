@@ -35,11 +35,13 @@ impl Agent for Arbitrageur {
     fn transact_settings(&self) -> &TransactSettings {
         &self.transact_settings
     }
-    fn simulation_environment_write(&self) -> RwLockWriteGuard<'_, SimulationEnvironment> {
-        self.environment.write().unwrap()
+
+    fn receiver(&self) -> crossbeam_channel::Receiver<Vec<revm::primitives::Log>> {
+        todo!()
     }
-    fn simulation_environment_read(&self) -> RwLockReadGuard<'_, SimulationEnvironment> {
-        self.environment.read().unwrap()
+
+    fn filter_events(&self) {
+        todo!()
     }
 }
 

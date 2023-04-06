@@ -415,4 +415,9 @@ mod tests {
             panic!("Thread panicked!");
         };
     }
+    #[test]
+    fn test_arbitrage () {
+        // depends on the market pr
+        todo!()
+    }
 }
