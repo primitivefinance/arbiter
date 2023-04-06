@@ -2,26 +2,24 @@
 //! Simulation managers are used to manage the environments for a simulation.
 //! Managers are responsible for adding agents, running agents, deploying contracts, calling contracts, and reading logs.
 
-// use core::slice::SlicePattern;
-use std::{
-    collections::HashMap,
-    sync::{Arc, RwLock},
-};
+use std::collections::HashMap;
 
 use bytes::Bytes;
-use revm::primitives::{AccountInfo, ExecutionResult, Output, B160};
+use crossbeam_channel::unbounded;
+use revm::primitives::{AccountInfo, ExecutionResult, Log, Output, B160};
 
 use crate::{
-    agent::{admin::Admin, Agent},
+    agent::{admin::Admin, user::User, Agent},
     environment::SimulationEnvironment,
 };
 
 // TODO: Maybe need a `SimulationAccount` that abstracts some of the revm primitives further.
+// TODO: We could filter events here to optimize! That is, we can let the manager know the agents' filter so we only send them messages they need. This cuts overhead
 
 /// Manages simulations.
 pub struct SimulationManager<'a> {
     /// `SimulationEnvironment` that the simulation manager controls.
-    pub environment: Arc<RwLock<SimulationEnvironment>>,
+    pub environment: SimulationEnvironment,
     /// The agents that are currently running in the simulation environment.
     pub agents: HashMap<&'a str, Box<dyn Agent>>,
 }
@@ -35,17 +33,17 @@ impl<'a> Default for SimulationManager<'a> {
 impl<'a> SimulationManager<'a> {
     /// Constructor function to instantiate a
     pub fn new() -> Self {
+        let (event_sender_admin, event_receiver_admin) = unbounded::<Vec<Log>>();
         let mut simulation_manager = Self {
-            environment: Arc::new(RwLock::new(SimulationEnvironment::new())),
+            environment: SimulationEnvironment::new(),
             agents: HashMap::new(),
         };
-        let admin = Box::new(Admin::new(Arc::clone(&simulation_manager.environment)));
+        let admin = Box::new(Admin::new(event_receiver_admin));
         simulation_manager.add_agent("admin", admin);
         simulation_manager
-    }
-    /// Returns a reference to the admin agent.
-    pub fn admin(&self) -> &dyn Agent {
-        self.agents.get("admin").unwrap().as_ref()
+            .environment
+            .add_sender(event_sender_admin);
+        simulation_manager
     }
 
     /// Run all agents concurrently in the current simulation environment.
@@ -62,14 +60,14 @@ impl<'a> SimulationManager<'a> {
     /// Allow the manager to create a dummy user account.
     pub fn create_user(&mut self, address: B160, name: &'a str) {
         self.environment
-            .write()
-            .unwrap()
             .evm
             .db()
             .unwrap()
             .insert_account_info(address, AccountInfo::default());
-        let user = Box::new(Admin::new(Arc::clone(&self.environment)));
+        let (event_sender_user, event_receiver_user) = unbounded::<Vec<Log>>();
+        let user = Box::new(User::new(event_receiver_user, address));
         self.add_agent(name, user);
+        self.environment.add_sender(event_sender_user)
     }
 
     /// Takes an `ExecutionResult` and returns the raw bytes of the output that can then be decoded.
