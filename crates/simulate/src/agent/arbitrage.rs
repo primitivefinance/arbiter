@@ -65,14 +65,12 @@ impl Arbitrageur {
     /// Watch for arbitrage opportunities.
     pub async fn run(&self, market: SimulationContract<IsDeployed>) {
         let reader = self.receiver();
-        let writer_base_contract = market.base_contract.clone();
+        let market_base_contract = market.base_contract.clone();
 
-        let handle = thread::spawn(move || {
-            let mut i = 0;
+        let _ = thread::spawn(move || {
             while let Ok(logs) = reader.recv() {
-                println!("Got logs in alice's thread!");
+                println!("Got logs");
                 println!("{:?}", logs);
-                println!("Got the right log in alice's thread!!");
                 println!("Decoding logs!");
                 let log_topics: Vec<H256> = logs.clone()[0]
                     .topics
@@ -81,10 +79,9 @@ impl Arbitrageur {
                     .map(|x| H256::from_slice(x.as_slice()))
                     .collect();
                 let log_data = logs[0].data.clone().into();
-                let log_output = writer_base_contract
-                    .decode_event::<String>("WasWritten", log_topics, log_data)
+                let _ = market_base_contract
+                    .decode_event::<String>("REPLACE WITH EVENT NAME", log_topics, log_data)
                     .unwrap();
-                assert_eq!(log_output, "Hello, world!".to_string());
                 println!("Got the right log in alice's thread!");
                 println!("Decoding logs!");
                 let log_topics: Vec<H256> = logs.clone()[0]
@@ -94,10 +91,9 @@ impl Arbitrageur {
                     .map(|x| H256::from_slice(x.as_slice()))
                     .collect();
                 let log_data = logs[0].data.clone().into();
-                let log_output = writer_base_contract
-                    .decode_event::<String>("WasWritten", log_topics, log_data)
+                let _ = market_base_contract
+                    .decode_event::<String>("REPLACE WITH EVENT NAME", log_topics, log_data)
                     .unwrap();
-                assert_eq!(log_output, "Hello, world! again...".to_string());
                 println!("Got the right log!");
             }
         });
