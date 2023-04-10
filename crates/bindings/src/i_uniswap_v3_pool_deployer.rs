@@ -7,18 +7,16 @@ pub use i_uniswap_v3_pool_deployer::*;
     clippy::upper_case_acronyms,
     clippy::type_complexity,
     dead_code,
-    non_camel_case_types,
+    non_camel_case_types
 )]
 pub mod i_uniswap_v3_pool_deployer {
     #[rustfmt::skip]
     const __ABI: &str = "[{\"inputs\":[],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"parameters\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"factory\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"address\",\"name\":\"token0\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"address\",\"name\":\"token1\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint24\",\"name\":\"fee\",\"type\":\"uint24\",\"components\":[]},{\"internalType\":\"int24\",\"name\":\"tickSpacing\",\"type\":\"int24\",\"components\":[]}]}]";
     ///The parsed JSON ABI of the contract.
-    pub static IUNISWAPV3POOLDEPLOYER_ABI: ::ethers::contract::Lazy<
-        ::ethers::core::abi::Abi,
-    > = ::ethers::contract::Lazy::new(|| {
-        ::ethers::core::utils::__serde_json::from_str(__ABI)
-            .expect("ABI is always valid")
-    });
+    pub static IUNISWAPV3POOLDEPLOYER_ABI: ::ethers::contract::Lazy<::ethers::core::abi::Abi> =
+        ::ethers::contract::Lazy::new(|| {
+            ::ethers::core::utils::__serde_json::from_str(__ABI).expect("ABI is always valid")
+        });
     pub struct IUniswapV3PoolDeployer<M>(::ethers::contract::Contract<M>);
     impl<M> ::core::clone::Clone for IUniswapV3PoolDeployer<M> {
         fn clone(&self) -> Self {
@@ -50,13 +48,11 @@ pub mod i_uniswap_v3_pool_deployer {
             address: T,
             client: ::std::sync::Arc<M>,
         ) -> Self {
-            Self(
-                ::ethers::contract::Contract::new(
-                    address.into(),
-                    IUNISWAPV3POOLDEPLOYER_ABI.clone(),
-                    client,
-                ),
-            )
+            Self(::ethers::contract::Contract::new(
+                address.into(),
+                IUNISWAPV3POOLDEPLOYER_ABI.clone(),
+                client,
+            ))
         }
         ///Calls the contract's `parameters` (0x89035730) function
         pub fn parameters(
@@ -77,7 +73,8 @@ pub mod i_uniswap_v3_pool_deployer {
         }
     }
     impl<M: ::ethers::providers::Middleware> From<::ethers::contract::Contract<M>>
-    for IUniswapV3PoolDeployer<M> {
+        for IUniswapV3PoolDeployer<M>
+    {
         fn from(contract: ::ethers::contract::Contract<M>) -> Self {
             Self::new(contract.address(), contract.client())
         }
@@ -91,7 +88,7 @@ pub mod i_uniswap_v3_pool_deployer {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "parameters", abi = "parameters()")]
     pub struct ParametersCall;
@@ -104,7 +101,7 @@ pub mod i_uniswap_v3_pool_deployer {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     pub struct ParametersReturn {
         pub factory: ::ethers::core::types::Address,

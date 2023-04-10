@@ -4,10 +4,6 @@
 [submodule "lib/portfolio"]
 	path = lib/portfolio
 	url = https://github.com/primitivefinance/portfolio
-[submodule "lib/openzeppelin-contracts"]
-	path = lib/openzeppelin-contracts
-	url = https://github.com/OpenZeppelin/openzeppelin-contracts
-	branch = v4.8.2
 [submodule "lib/canonical-weth"]
 	path = lib/canonical-weth
 	url = https://github.com/gnosis/canonical-weth
