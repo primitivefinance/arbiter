@@ -7,18 +7,16 @@ pub use i_uniswap_v3_pool_state::*;
     clippy::upper_case_acronyms,
     clippy::type_complexity,
     dead_code,
-    non_camel_case_types,
+    non_camel_case_types
 )]
 pub mod i_uniswap_v3_pool_state {
     #[rustfmt::skip]
     const __ABI: &str = "[{\"inputs\":[],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"feeGrowthGlobal0X128\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\",\"components\":[]}]},{\"inputs\":[],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"feeGrowthGlobal1X128\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\",\"components\":[]}]},{\"inputs\":[],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"liquidity\",\"outputs\":[{\"internalType\":\"uint128\",\"name\":\"\",\"type\":\"uint128\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"index\",\"type\":\"uint256\",\"components\":[]}],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"observations\",\"outputs\":[{\"internalType\":\"uint32\",\"name\":\"blockTimestamp\",\"type\":\"uint32\",\"components\":[]},{\"internalType\":\"int56\",\"name\":\"tickCumulative\",\"type\":\"int56\",\"components\":[]},{\"internalType\":\"uint160\",\"name\":\"secondsPerLiquidityCumulativeX128\",\"type\":\"uint160\",\"components\":[]},{\"internalType\":\"bool\",\"name\":\"initialized\",\"type\":\"bool\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"key\",\"type\":\"bytes32\",\"components\":[]}],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"positions\",\"outputs\":[{\"internalType\":\"uint128\",\"name\":\"_liquidity\",\"type\":\"uint128\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"feeGrowthInside0LastX128\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"feeGrowthInside1LastX128\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"uint128\",\"name\":\"tokensOwed0\",\"type\":\"uint128\",\"components\":[]},{\"internalType\":\"uint128\",\"name\":\"tokensOwed1\",\"type\":\"uint128\",\"components\":[]}]},{\"inputs\":[],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"protocolFees\",\"outputs\":[{\"internalType\":\"uint128\",\"name\":\"token0\",\"type\":\"uint128\",\"components\":[]},{\"internalType\":\"uint128\",\"name\":\"token1\",\"type\":\"uint128\",\"components\":[]}]},{\"inputs\":[],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"slot0\",\"outputs\":[{\"internalType\":\"uint160\",\"name\":\"sqrtPriceX96\",\"type\":\"uint160\",\"components\":[]},{\"internalType\":\"int24\",\"name\":\"tick\",\"type\":\"int24\",\"components\":[]},{\"internalType\":\"uint16\",\"name\":\"observationIndex\",\"type\":\"uint16\",\"components\":[]},{\"internalType\":\"uint16\",\"name\":\"observationCardinality\",\"type\":\"uint16\",\"components\":[]},{\"internalType\":\"uint16\",\"name\":\"observationCardinalityNext\",\"type\":\"uint16\",\"components\":[]},{\"internalType\":\"uint8\",\"name\":\"feeProtocol\",\"type\":\"uint8\",\"components\":[]},{\"internalType\":\"bool\",\"name\":\"unlocked\",\"type\":\"bool\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"int16\",\"name\":\"wordPosition\",\"type\":\"int16\",\"components\":[]}],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"tickBitmap\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"int24\",\"name\":\"tick\",\"type\":\"int24\",\"components\":[]}],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"ticks\",\"outputs\":[{\"internalType\":\"uint128\",\"name\":\"liquidityGross\",\"type\":\"uint128\",\"components\":[]},{\"internalType\":\"int128\",\"name\":\"liquidityNet\",\"type\":\"int128\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"feeGrowthOutside0X128\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"feeGrowthOutside1X128\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"int56\",\"name\":\"tickCumulativeOutside\",\"type\":\"int56\",\"components\":[]},{\"internalType\":\"uint160\",\"name\":\"secondsPerLiquidityOutsideX128\",\"type\":\"uint160\",\"components\":[]},{\"internalType\":\"uint32\",\"name\":\"secondsOutside\",\"type\":\"uint32\",\"components\":[]},{\"internalType\":\"bool\",\"name\":\"initialized\",\"type\":\"bool\",\"components\":[]}]}]";
     ///The parsed JSON ABI of the contract.
-    pub static IUNISWAPV3POOLSTATE_ABI: ::ethers::contract::Lazy<
-        ::ethers::core::abi::Abi,
-    > = ::ethers::contract::Lazy::new(|| {
-        ::ethers::core::utils::__serde_json::from_str(__ABI)
-            .expect("ABI is always valid")
-    });
+    pub static IUNISWAPV3POOLSTATE_ABI: ::ethers::contract::Lazy<::ethers::core::abi::Abi> =
+        ::ethers::contract::Lazy::new(|| {
+            ::ethers::core::utils::__serde_json::from_str(__ABI).expect("ABI is always valid")
+        });
     pub struct IUniswapV3PoolState<M>(::ethers::contract::Contract<M>);
     impl<M> ::core::clone::Clone for IUniswapV3PoolState<M> {
         fn clone(&self) -> Self {
@@ -50,13 +48,11 @@ pub mod i_uniswap_v3_pool_state {
             address: T,
             client: ::std::sync::Arc<M>,
         ) -> Self {
-            Self(
-                ::ethers::contract::Contract::new(
-                    address.into(),
-                    IUNISWAPV3POOLSTATE_ABI.clone(),
-                    client,
-                ),
-            )
+            Self(::ethers::contract::Contract::new(
+                address.into(),
+                IUNISWAPV3POOLSTATE_ABI.clone(),
+                client,
+            ))
         }
         ///Calls the contract's `feeGrowthGlobal0X128` (0xf3058399) function
         pub fn fee_growth_global_0x128(
@@ -98,16 +94,20 @@ pub mod i_uniswap_v3_pool_state {
             key: [u8; 32],
         ) -> ::ethers::contract::builders::ContractCall<
             M,
-            (u128, ::ethers::core::types::U256, ::ethers::core::types::U256, u128, u128),
+            (
+                u128,
+                ::ethers::core::types::U256,
+                ::ethers::core::types::U256,
+                u128,
+                u128,
+            ),
         > {
             self.0
                 .method_hash([81, 78, 164, 191], key)
                 .expect("method not found (this should never happen)")
         }
         ///Calls the contract's `protocolFees` (0x1ad8b03b) function
-        pub fn protocol_fees(
-            &self,
-        ) -> ::ethers::contract::builders::ContractCall<M, (u128, u128)> {
+        pub fn protocol_fees(&self) -> ::ethers::contract::builders::ContractCall<M, (u128, u128)> {
             self.0
                 .method_hash([26, 216, 176, 59], ())
                 .expect("method not found (this should never happen)")
@@ -155,7 +155,8 @@ pub mod i_uniswap_v3_pool_state {
         }
     }
     impl<M: ::ethers::providers::Middleware> From<::ethers::contract::Contract<M>>
-    for IUniswapV3PoolState<M> {
+        for IUniswapV3PoolState<M>
+    {
         fn from(contract: ::ethers::contract::Contract<M>) -> Self {
             Self::new(contract.address(), contract.client())
         }
@@ -169,7 +170,7 @@ pub mod i_uniswap_v3_pool_state {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "feeGrowthGlobal0X128", abi = "feeGrowthGlobal0X128()")]
     pub struct FeeGrowthGlobal0X128Call;
@@ -182,7 +183,7 @@ pub mod i_uniswap_v3_pool_state {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "feeGrowthGlobal1X128", abi = "feeGrowthGlobal1X128()")]
     pub struct FeeGrowthGlobal1X128Call;
@@ -195,7 +196,7 @@ pub mod i_uniswap_v3_pool_state {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "liquidity", abi = "liquidity()")]
     pub struct LiquidityCall;
@@ -208,7 +209,7 @@ pub mod i_uniswap_v3_pool_state {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "observations", abi = "observations(uint256)")]
     pub struct ObservationsCall {
@@ -223,7 +224,7 @@ pub mod i_uniswap_v3_pool_state {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "positions", abi = "positions(bytes32)")]
     pub struct PositionsCall {
@@ -238,7 +239,7 @@ pub mod i_uniswap_v3_pool_state {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "protocolFees", abi = "protocolFees()")]
     pub struct ProtocolFeesCall;
@@ -251,7 +252,7 @@ pub mod i_uniswap_v3_pool_state {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "slot0", abi = "slot0()")]
     pub struct Slot0Call;
@@ -264,7 +265,7 @@ pub mod i_uniswap_v3_pool_state {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "tickBitmap", abi = "tickBitmap(int16)")]
     pub struct TickBitmapCall {
@@ -279,7 +280,7 @@ pub mod i_uniswap_v3_pool_state {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "ticks", abi = "ticks(int24)")]
     pub struct TicksCall {
@@ -303,44 +304,37 @@ pub mod i_uniswap_v3_pool_state {
             data: impl AsRef<[u8]>,
         ) -> ::core::result::Result<Self, ::ethers::core::abi::AbiError> {
             let data = data.as_ref();
-            if let Ok(decoded)
-                = <FeeGrowthGlobal0X128Call as ::ethers::core::abi::AbiDecode>::decode(
-                    data,
-                ) {
+            if let Ok(decoded) =
+                <FeeGrowthGlobal0X128Call as ::ethers::core::abi::AbiDecode>::decode(data)
+            {
                 return Ok(Self::FeeGrowthGlobal0X128(decoded));
             }
-            if let Ok(decoded)
-                = <FeeGrowthGlobal1X128Call as ::ethers::core::abi::AbiDecode>::decode(
-                    data,
-                ) {
+            if let Ok(decoded) =
+                <FeeGrowthGlobal1X128Call as ::ethers::core::abi::AbiDecode>::decode(data)
+            {
                 return Ok(Self::FeeGrowthGlobal1X128(decoded));
             }
-            if let Ok(decoded)
-                = <LiquidityCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <LiquidityCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::Liquidity(decoded));
             }
-            if let Ok(decoded)
-                = <ObservationsCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <ObservationsCall as ::ethers::core::abi::AbiDecode>::decode(data)
+            {
                 return Ok(Self::Observations(decoded));
             }
-            if let Ok(decoded)
-                = <PositionsCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <PositionsCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::Positions(decoded));
             }
-            if let Ok(decoded)
-                = <ProtocolFeesCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <ProtocolFeesCall as ::ethers::core::abi::AbiDecode>::decode(data)
+            {
                 return Ok(Self::ProtocolFees(decoded));
             }
-            if let Ok(decoded)
-                = <Slot0Call as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <Slot0Call as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::Slot0(decoded));
             }
-            if let Ok(decoded)
-                = <TickBitmapCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <TickBitmapCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::TickBitmap(decoded));
             }
-            if let Ok(decoded)
-                = <TicksCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <TicksCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::Ticks(decoded));
             }
             Err(::ethers::core::abi::Error::InvalidData.into())
@@ -355,22 +349,12 @@ pub mod i_uniswap_v3_pool_state {
                 Self::FeeGrowthGlobal1X128(element) => {
                     ::ethers::core::abi::AbiEncode::encode(element)
                 }
-                Self::Liquidity(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
-                Self::Observations(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
-                Self::Positions(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
-                Self::ProtocolFees(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
+                Self::Liquidity(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::Observations(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::Positions(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::ProtocolFees(element) => ::ethers::core::abi::AbiEncode::encode(element),
                 Self::Slot0(element) => ::ethers::core::abi::AbiEncode::encode(element),
-                Self::TickBitmap(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
+                Self::TickBitmap(element) => ::ethers::core::abi::AbiEncode::encode(element),
                 Self::Ticks(element) => ::ethers::core::abi::AbiEncode::encode(element),
             }
         }
@@ -378,12 +362,8 @@ pub mod i_uniswap_v3_pool_state {
     impl ::core::fmt::Display for IUniswapV3PoolStateCalls {
         fn fmt(&self, f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
             match self {
-                Self::FeeGrowthGlobal0X128(element) => {
-                    ::core::fmt::Display::fmt(element, f)
-                }
-                Self::FeeGrowthGlobal1X128(element) => {
-                    ::core::fmt::Display::fmt(element, f)
-                }
+                Self::FeeGrowthGlobal0X128(element) => ::core::fmt::Display::fmt(element, f),
+                Self::FeeGrowthGlobal1X128(element) => ::core::fmt::Display::fmt(element, f),
                 Self::Liquidity(element) => ::core::fmt::Display::fmt(element, f),
                 Self::Observations(element) => ::core::fmt::Display::fmt(element, f),
                 Self::Positions(element) => ::core::fmt::Display::fmt(element, f),
@@ -448,7 +428,7 @@ pub mod i_uniswap_v3_pool_state {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     pub struct FeeGrowthGlobal0X128Return(pub ::ethers::core::types::U256);
     ///Container type for all return fields from the `feeGrowthGlobal1X128` function with signature `feeGrowthGlobal1X128()` and selector `0x46141319`
@@ -460,7 +440,7 @@ pub mod i_uniswap_v3_pool_state {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     pub struct FeeGrowthGlobal1X128Return(pub ::ethers::core::types::U256);
     ///Container type for all return fields from the `liquidity` function with signature `liquidity()` and selector `0x1a686502`
@@ -472,7 +452,7 @@ pub mod i_uniswap_v3_pool_state {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     pub struct LiquidityReturn(pub u128);
     ///Container type for all return fields from the `observations` function with signature `observations(uint256)` and selector `0x252c09d7`
@@ -484,7 +464,7 @@ pub mod i_uniswap_v3_pool_state {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     pub struct ObservationsReturn {
         pub block_timestamp: u32,
@@ -501,7 +481,7 @@ pub mod i_uniswap_v3_pool_state {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     pub struct PositionsReturn {
         pub liquidity: u128,
@@ -519,7 +499,7 @@ pub mod i_uniswap_v3_pool_state {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     pub struct ProtocolFeesReturn {
         pub token_0: u128,
@@ -534,7 +514,7 @@ pub mod i_uniswap_v3_pool_state {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     pub struct Slot0Return {
         pub sqrt_price_x96: ::ethers::core::types::U256,
@@ -554,7 +534,7 @@ pub mod i_uniswap_v3_pool_state {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     pub struct TickBitmapReturn(pub ::ethers::core::types::U256);
     ///Container type for all return fields from the `ticks` function with signature `ticks(int24)` and selector `0xf30dba93`
@@ -566,7 +546,7 @@ pub mod i_uniswap_v3_pool_state {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     pub struct TicksReturn {
         pub liquidity_gross: u128,
