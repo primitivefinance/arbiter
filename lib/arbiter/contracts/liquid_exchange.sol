@@ -41,17 +41,19 @@ contract LiquidExchange {
     }
 
     // TODO: This function is NOT completed yet. It is just a placeholder for now.
-    function swap(address tokenIn, uint256 amountIn) public {
+    function swap(address tokenIn, uint256 amountIn) public returns (uint256 amountOut){
         uint256 amountOut;
         address tokenOut;
         if (tokenIn == arbiterTokenX) {
-            amountOut = amountIn * price;
+            amountOut = FixedPointMathLib.mulWadDown(amountIn, price);
+            return amountOut;
             // arbiterTokenX.transferFrom(msg.sender, admin, amountIn);
             // arbiterTokenY.transferFrom(admin, msg.sender, amountOut);
         } else if (tokenIn == arbiterTokenY) {
             amountOut = FixedPointMathLib.divWadDown(amountIn, price);
             // arbiterTokenY.transferFrom(msg.sender, admin, amountIn);
             // arbiterTokenX.transferFrom(admin, msg.sender, amountOut);
+            return amountOut;
         } else {
             revert("Invalid token");
         }

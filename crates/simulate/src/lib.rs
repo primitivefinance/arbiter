@@ -3,6 +3,7 @@
 
 pub mod agent;
 pub mod environment;
+pub mod exchange;
 pub mod manager;
 pub mod price_simulation;
 pub mod utils;

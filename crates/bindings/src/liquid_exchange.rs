@@ -7,16 +7,14 @@ pub use liquid_exchange::*;
     clippy::upper_case_acronyms,
     clippy::type_complexity,
     dead_code,
-    non_camel_case_types
+    non_camel_case_types,
 )]
 pub mod liquid_exchange {
     #[rustfmt::skip]
-    const __ABI: &str = "[{\"inputs\":[{\"internalType\":\"address\",\"name\":\"arbiterTokenX_\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"address\",\"name\":\"arbiterTokenY_\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"price_\",\"type\":\"uint256\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"constructor\",\"outputs\":[]},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"price\",\"type\":\"uint256\",\"components\":[],\"indexed\":false}],\"type\":\"event\",\"name\":\"PriceChange\",\"outputs\":[],\"anonymous\":false},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"tokenIn\",\"type\":\"address\",\"components\":[],\"indexed\":false},{\"internalType\":\"address\",\"name\":\"tokenOut\",\"type\":\"address\",\"components\":[],\"indexed\":false},{\"internalType\":\"uint256\",\"name\":\"amountIn\",\"type\":\"uint256\",\"components\":[],\"indexed\":false},{\"internalType\":\"uint256\",\"name\":\"amountOut\",\"type\":\"uint256\",\"components\":[],\"indexed\":false},{\"internalType\":\"address\",\"name\":\"to\",\"type\":\"address\",\"components\":[],\"indexed\":false}],\"type\":\"event\",\"name\":\"Swap\",\"outputs\":[],\"anonymous\":false},{\"inputs\":[],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"WAD\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\",\"components\":[]}]},{\"inputs\":[],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"admin\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\",\"components\":[]}]},{\"inputs\":[],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"arbiterTokenX\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\",\"components\":[]}]},{\"inputs\":[],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"arbiterTokenY\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\",\"components\":[]}]},{\"inputs\":[],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"price\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"_price\",\"type\":\"uint256\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"function\",\"name\":\"setPrice\",\"outputs\":[]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"tokenIn\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"amountIn\",\"type\":\"uint256\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"function\",\"name\":\"swap\",\"outputs\":[]}]";
+    const __ABI: &str = "[{\"inputs\":[{\"internalType\":\"address\",\"name\":\"arbiterTokenX_\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"address\",\"name\":\"arbiterTokenY_\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"price_\",\"type\":\"uint256\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"constructor\",\"outputs\":[]},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"price\",\"type\":\"uint256\",\"components\":[],\"indexed\":false}],\"type\":\"event\",\"name\":\"PriceChange\",\"outputs\":[],\"anonymous\":false},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"tokenIn\",\"type\":\"address\",\"components\":[],\"indexed\":false},{\"internalType\":\"address\",\"name\":\"tokenOut\",\"type\":\"address\",\"components\":[],\"indexed\":false},{\"internalType\":\"uint256\",\"name\":\"amountIn\",\"type\":\"uint256\",\"components\":[],\"indexed\":false},{\"internalType\":\"uint256\",\"name\":\"amountOut\",\"type\":\"uint256\",\"components\":[],\"indexed\":false},{\"internalType\":\"address\",\"name\":\"to\",\"type\":\"address\",\"components\":[],\"indexed\":false}],\"type\":\"event\",\"name\":\"Swap\",\"outputs\":[],\"anonymous\":false},{\"inputs\":[],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"WAD\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\",\"components\":[]}]},{\"inputs\":[],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"admin\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\",\"components\":[]}]},{\"inputs\":[],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"arbiterTokenX\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\",\"components\":[]}]},{\"inputs\":[],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"arbiterTokenY\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\",\"components\":[]}]},{\"inputs\":[],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"price\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"_price\",\"type\":\"uint256\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"function\",\"name\":\"setPrice\",\"outputs\":[]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"tokenIn\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"amountIn\",\"type\":\"uint256\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"function\",\"name\":\"swap\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"amountOut\",\"type\":\"uint256\",\"components\":[]}]}]";
     ///The parsed JSON ABI of the contract.
-    pub static LIQUIDEXCHANGE_ABI: ::ethers::contract::Lazy<::ethers::core::abi::Abi> =
-        ::ethers::contract::Lazy::new(|| {
-            ::ethers::core::utils::__serde_json::from_str(__ABI).expect("ABI is always valid")
-        });
+    pub static LIQUIDEXCHANGE_ABI: ::ethers::contract::Lazy<::ethers::core::abi::Abi> = ::ethers::contract::Lazy::new(||
+    ::ethers::core::utils::__serde_json::from_str(__ABI).expect("ABI is always valid"));
     #[rustfmt::skip]
     const __BYTECODE: &[u8] = &[
         96,
@@ -42,13 +40,13 @@ pub mod liquid_exchange {
         81,
         97,
         4,
-        115,
+        9,
         56,
         3,
         128,
         97,
         4,
-        115,
+        9,
         131,
         57,
         129,
@@ -224,7 +222,7 @@ pub mod liquid_exchange {
         91,
         97,
         3,
-        154,
+        48,
         128,
         97,
         0,
@@ -455,7 +453,7 @@ pub mod liquid_exchange {
         4,
         97,
         2,
-        238,
+        169,
         86,
         91,
         97,
@@ -476,7 +474,7 @@ pub mod liquid_exchange {
         91,
         97,
         0,
-        226,
+        193,
         97,
         0,
         251,
@@ -484,8 +482,8 @@ pub mod liquid_exchange {
         96,
         4,
         97,
-        3,
-        7,
+        2,
+        194,
         86,
         91,
         97,
@@ -703,6 +701,8 @@ pub mod liquid_exchange {
         144,
         129,
         144,
+        129,
+        144,
         96,
         1,
         96,
@@ -715,31 +715,33 @@ pub mod liquid_exchange {
         129,
         22,
         144,
-        133,
+        134,
         22,
         3,
         97,
         1,
-        249,
+        253,
         87,
+        97,
+        1,
+        243,
+        132,
         96,
         3,
         84,
         97,
-        1,
-        242,
-        144,
-        132,
-        97,
-        3,
-        63,
+        2,
+        93,
         86,
         91,
-        145,
+        146,
         80,
         97,
         2,
-        83,
+        87,
+        145,
+        80,
+        80,
         86,
         91,
         96,
@@ -757,23 +759,23 @@ pub mod liquid_exchange {
         129,
         22,
         144,
-        133,
+        134,
         22,
         3,
         97,
         2,
-        27,
+        31,
         87,
         97,
         1,
-        242,
-        131,
+        243,
+        132,
         96,
         3,
         84,
         97,
         2,
-        177,
+        121,
         86,
         91,
         96,
@@ -832,95 +834,35 @@ pub mod liquid_exchange {
         134,
         86,
         91,
-        96,
-        64,
-        128,
-        81,
-        96,
-        1,
-        96,
-        1,
-        96,
-        160,
-        27,
-        3,
-        128,
-        135,
-        22,
-        130,
-        82,
-        131,
-        22,
-        96,
-        32,
-        130,
-        1,
-        82,
-        144,
-        129,
-        1,
-        132,
-        144,
-        82,
-        96,
-        96,
-        129,
-        1,
-        131,
-        144,
-        82,
-        51,
-        96,
-        128,
-        130,
-        1,
-        82,
-        127,
-        179,
-        156,
-        155,
-        196,
-        63,
-        129,
-        30,
-        26,
-        124,
-        225,
-        89,
-        197,
-        241,
-        71,
-        69,
-        143,
-        219,
-        128,
-        38,
-        107,
-        242,
-        60,
-        23,
-        50,
-        32,
-        19,
-        49,
-        110,
-        39,
-        224,
-        134,
-        208,
-        144,
-        96,
-        160,
-        1,
-        96,
-        64,
-        81,
-        128,
+        146,
         145,
-        3,
-        144,
-        161,
         80,
+        80,
+        86,
+        91,
+        96,
+        0,
+        97,
+        2,
+        114,
+        131,
+        131,
+        103,
+        13,
+        224,
+        182,
+        179,
+        167,
+        100,
+        0,
+        0,
+        97,
+        2,
+        138,
+        86,
+        91,
+        147,
+        146,
         80,
         80,
         80,
@@ -930,7 +872,7 @@ pub mod liquid_exchange {
         0,
         97,
         2,
-        198,
+        114,
         131,
         103,
         13,
@@ -942,19 +884,6 @@ pub mod liquid_exchange {
         0,
         0,
         132,
-        97,
-        2,
-        207,
-        86,
-        91,
-        144,
-        80,
-        91,
-        146,
-        145,
-        80,
-        80,
-        86,
         91,
         130,
         130,
@@ -973,7 +902,7 @@ pub mod liquid_exchange {
         22,
         97,
         2,
-        231,
+        162,
         87,
         96,
         0,
@@ -997,8 +926,8 @@ pub mod liquid_exchange {
         18,
         21,
         97,
-        3,
-        0,
+        2,
+        187,
         87,
         96,
         0,
@@ -1023,8 +952,8 @@ pub mod liquid_exchange {
         18,
         21,
         97,
-        3,
-        26,
+        2,
+        213,
         87,
         96,
         0,
@@ -1046,8 +975,8 @@ pub mod liquid_exchange {
         129,
         20,
         97,
-        3,
-        49,
+        2,
+        236,
         87,
         96,
         0,
@@ -1067,43 +996,6 @@ pub mod liquid_exchange {
         80,
         80,
         86,
-        91,
-        128,
-        130,
-        2,
-        129,
-        21,
-        130,
-        130,
-        4,
-        132,
-        20,
-        23,
-        97,
-        2,
-        201,
-        87,
-        99,
-        78,
-        72,
-        123,
-        113,
-        96,
-        224,
-        27,
-        96,
-        0,
-        82,
-        96,
-        17,
-        96,
-        4,
-        82,
-        96,
-        36,
-        96,
-        0,
-        253,
         254,
         162,
         100,
@@ -1115,38 +1007,38 @@ pub mod liquid_exchange {
         34,
         18,
         32,
-        28,
+        59,
+        88,
+        226,
+        23,
+        247,
+        61,
+        114,
+        96,
+        247,
+        34,
+        127,
+        201,
         100,
-        19,
-        82,
-        248,
-        251,
-        7,
-        145,
-        253,
-        48,
-        248,
-        73,
-        68,
-        108,
-        215,
-        157,
-        207,
-        121,
-        80,
-        231,
-        233,
-        65,
-        188,
-        244,
-        10,
-        102,
-        32,
+        6,
+        70,
+        227,
         16,
-        27,
-        58,
-        99,
-        19,
+        177,
+        165,
+        163,
+        216,
+        214,
+        35,
+        18,
+        152,
+        71,
+        220,
+        201,
+        145,
+        254,
+        49,
+        60,
         100,
         115,
         111,
@@ -1160,8 +1052,9 @@ pub mod liquid_exchange {
         51,
     ];
     ///The bytecode of the contract.
-    pub static LIQUIDEXCHANGE_BYTECODE: ::ethers::core::types::Bytes =
-        ::ethers::core::types::Bytes::from_static(__BYTECODE);
+    pub static LIQUIDEXCHANGE_BYTECODE: ::ethers::core::types::Bytes = ::ethers::core::types::Bytes::from_static(
+        __BYTECODE,
+    );
     #[rustfmt::skip]
     const __DEPLOYED_BYTECODE: &[u8] = &[
         96,
@@ -1383,7 +1276,7 @@ pub mod liquid_exchange {
         4,
         97,
         2,
-        238,
+        169,
         86,
         91,
         97,
@@ -1404,7 +1297,7 @@ pub mod liquid_exchange {
         91,
         97,
         0,
-        226,
+        193,
         97,
         0,
         251,
@@ -1412,8 +1305,8 @@ pub mod liquid_exchange {
         96,
         4,
         97,
-        3,
-        7,
+        2,
+        194,
         86,
         91,
         97,
@@ -1631,6 +1524,8 @@ pub mod liquid_exchange {
         144,
         129,
         144,
+        129,
+        144,
         96,
         1,
         96,
@@ -1643,31 +1538,33 @@ pub mod liquid_exchange {
         129,
         22,
         144,
-        133,
+        134,
         22,
         3,
         97,
         1,
-        249,
+        253,
         87,
+        97,
+        1,
+        243,
+        132,
         96,
         3,
         84,
         97,
-        1,
-        242,
-        144,
-        132,
-        97,
-        3,
-        63,
+        2,
+        93,
         86,
         91,
-        145,
+        146,
         80,
         97,
         2,
-        83,
+        87,
+        145,
+        80,
+        80,
         86,
         91,
         96,
@@ -1685,23 +1582,23 @@ pub mod liquid_exchange {
         129,
         22,
         144,
-        133,
+        134,
         22,
         3,
         97,
         2,
-        27,
+        31,
         87,
         97,
         1,
-        242,
-        131,
+        243,
+        132,
         96,
         3,
         84,
         97,
         2,
-        177,
+        121,
         86,
         91,
         96,
@@ -1760,95 +1657,35 @@ pub mod liquid_exchange {
         134,
         86,
         91,
-        96,
-        64,
-        128,
-        81,
-        96,
-        1,
-        96,
-        1,
-        96,
-        160,
-        27,
-        3,
-        128,
-        135,
-        22,
-        130,
-        82,
-        131,
-        22,
-        96,
-        32,
-        130,
-        1,
-        82,
-        144,
-        129,
-        1,
-        132,
-        144,
-        82,
-        96,
-        96,
-        129,
-        1,
-        131,
-        144,
-        82,
-        51,
-        96,
-        128,
-        130,
-        1,
-        82,
-        127,
-        179,
-        156,
-        155,
-        196,
-        63,
-        129,
-        30,
-        26,
-        124,
-        225,
-        89,
-        197,
-        241,
-        71,
-        69,
-        143,
-        219,
-        128,
-        38,
-        107,
-        242,
-        60,
-        23,
-        50,
-        32,
-        19,
-        49,
-        110,
-        39,
-        224,
-        134,
-        208,
-        144,
-        96,
-        160,
-        1,
-        96,
-        64,
-        81,
-        128,
+        146,
         145,
-        3,
-        144,
-        161,
         80,
+        80,
+        86,
+        91,
+        96,
+        0,
+        97,
+        2,
+        114,
+        131,
+        131,
+        103,
+        13,
+        224,
+        182,
+        179,
+        167,
+        100,
+        0,
+        0,
+        97,
+        2,
+        138,
+        86,
+        91,
+        147,
+        146,
         80,
         80,
         80,
@@ -1858,7 +1695,7 @@ pub mod liquid_exchange {
         0,
         97,
         2,
-        198,
+        114,
         131,
         103,
         13,
@@ -1870,19 +1707,6 @@ pub mod liquid_exchange {
         0,
         0,
         132,
-        97,
-        2,
-        207,
-        86,
-        91,
-        144,
-        80,
-        91,
-        146,
-        145,
-        80,
-        80,
-        86,
         91,
         130,
         130,
@@ -1901,7 +1725,7 @@ pub mod liquid_exchange {
         22,
         97,
         2,
-        231,
+        162,
         87,
         96,
         0,
@@ -1925,8 +1749,8 @@ pub mod liquid_exchange {
         18,
         21,
         97,
-        3,
-        0,
+        2,
+        187,
         87,
         96,
         0,
@@ -1951,8 +1775,8 @@ pub mod liquid_exchange {
         18,
         21,
         97,
-        3,
-        26,
+        2,
+        213,
         87,
         96,
         0,
@@ -1974,8 +1798,8 @@ pub mod liquid_exchange {
         129,
         20,
         97,
-        3,
-        49,
+        2,
+        236,
         87,
         96,
         0,
@@ -1995,43 +1819,6 @@ pub mod liquid_exchange {
         80,
         80,
         86,
-        91,
-        128,
-        130,
-        2,
-        129,
-        21,
-        130,
-        130,
-        4,
-        132,
-        20,
-        23,
-        97,
-        2,
-        201,
-        87,
-        99,
-        78,
-        72,
-        123,
-        113,
-        96,
-        224,
-        27,
-        96,
-        0,
-        82,
-        96,
-        17,
-        96,
-        4,
-        82,
-        96,
-        36,
-        96,
-        0,
-        253,
         254,
         162,
         100,
@@ -2043,38 +1830,38 @@ pub mod liquid_exchange {
         34,
         18,
         32,
-        28,
+        59,
+        88,
+        226,
+        23,
+        247,
+        61,
+        114,
+        96,
+        247,
+        34,
+        127,
+        201,
         100,
-        19,
-        82,
-        248,
-        251,
-        7,
-        145,
-        253,
-        48,
-        248,
-        73,
-        68,
-        108,
-        215,
-        157,
-        207,
-        121,
-        80,
-        231,
-        233,
-        65,
-        188,
-        244,
-        10,
-        102,
-        32,
+        6,
+        70,
+        227,
         16,
-        27,
-        58,
-        99,
-        19,
+        177,
+        165,
+        163,
+        216,
+        214,
+        35,
+        18,
+        152,
+        71,
+        220,
+        201,
+        145,
+        254,
+        49,
+        60,
         100,
         115,
         111,
@@ -2088,8 +1875,9 @@ pub mod liquid_exchange {
         51,
     ];
     ///The deployed bytecode of the contract.
-    pub static LIQUIDEXCHANGE_DEPLOYED_BYTECODE: ::ethers::core::types::Bytes =
-        ::ethers::core::types::Bytes::from_static(__DEPLOYED_BYTECODE);
+    pub static LIQUIDEXCHANGE_DEPLOYED_BYTECODE: ::ethers::core::types::Bytes = ::ethers::core::types::Bytes::from_static(
+        __DEPLOYED_BYTECODE,
+    );
     pub struct LiquidExchange<M>(::ethers::contract::Contract<M>);
     impl<M> ::core::clone::Clone for LiquidExchange<M> {
         fn clone(&self) -> Self {
@@ -2109,9 +1897,7 @@ pub mod liquid_exchange {
     }
     impl<M> ::core::fmt::Debug for LiquidExchange<M> {
         fn fmt(&self, f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
-            f.debug_tuple(stringify!(LiquidExchange))
-                .field(&self.address())
-                .finish()
+            f.debug_tuple(stringify!(LiquidExchange)).field(&self.address()).finish()
         }
     }
     impl<M: ::ethers::providers::Middleware> LiquidExchange<M> {
@@ -2121,11 +1907,13 @@ pub mod liquid_exchange {
             address: T,
             client: ::std::sync::Arc<M>,
         ) -> Self {
-            Self(::ethers::contract::Contract::new(
-                address.into(),
-                LIQUIDEXCHANGE_ABI.clone(),
-                client,
-            ))
+            Self(
+                ::ethers::contract::Contract::new(
+                    address.into(),
+                    LIQUIDEXCHANGE_ABI.clone(),
+                    client,
+                ),
+            )
         }
         /// Constructs the general purpose `Deployer` instance based on the provided constructor arguments and sends it.
         /// Returns a new instance of a deployer that returns an instance of this contract after sending the transaction
@@ -2177,7 +1965,10 @@ pub mod liquid_exchange {
         ///Calls the contract's `admin` (0xf851a440) function
         pub fn admin(
             &self,
-        ) -> ::ethers::contract::builders::ContractCall<M, ::ethers::core::types::Address> {
+        ) -> ::ethers::contract::builders::ContractCall<
+            M,
+            ::ethers::core::types::Address,
+        > {
             self.0
                 .method_hash([248, 81, 164, 64], ())
                 .expect("method not found (this should never happen)")
@@ -2185,7 +1976,10 @@ pub mod liquid_exchange {
         ///Calls the contract's `arbiterTokenX` (0x3b204948) function
         pub fn arbiter_token_x(
             &self,
-        ) -> ::ethers::contract::builders::ContractCall<M, ::ethers::core::types::Address> {
+        ) -> ::ethers::contract::builders::ContractCall<
+            M,
+            ::ethers::core::types::Address,
+        > {
             self.0
                 .method_hash([59, 32, 73, 72], ())
                 .expect("method not found (this should never happen)")
@@ -2193,7 +1987,10 @@ pub mod liquid_exchange {
         ///Calls the contract's `arbiterTokenY` (0xd0c472ec) function
         pub fn arbiter_token_y(
             &self,
-        ) -> ::ethers::contract::builders::ContractCall<M, ::ethers::core::types::Address> {
+        ) -> ::ethers::contract::builders::ContractCall<
+            M,
+            ::ethers::core::types::Address,
+        > {
             self.0
                 .method_hash([208, 196, 114, 236], ())
                 .expect("method not found (this should never happen)")
@@ -2220,7 +2017,7 @@ pub mod liquid_exchange {
             &self,
             token_in: ::ethers::core::types::Address,
             amount_in: ::ethers::core::types::U256,
-        ) -> ::ethers::contract::builders::ContractCall<M, ()> {
+        ) -> ::ethers::contract::builders::ContractCall<M, ::ethers::core::types::U256> {
             self.0
                 .method_hash([208, 4, 240, 247], (token_in, amount_in))
                 .expect("method not found (this should never happen)")
@@ -2228,8 +2025,11 @@ pub mod liquid_exchange {
         ///Gets the contract's `PriceChange` event
         pub fn price_change_filter(
             &self,
-        ) -> ::ethers::contract::builders::Event<::std::sync::Arc<M>, M, PriceChangeFilter>
-        {
+        ) -> ::ethers::contract::builders::Event<
+            ::std::sync::Arc<M>,
+            M,
+            PriceChangeFilter,
+        > {
             self.0.event()
         }
         ///Gets the contract's `Swap` event
@@ -2241,15 +2041,16 @@ pub mod liquid_exchange {
         /// Returns an `Event` builder for all the events of this contract.
         pub fn events(
             &self,
-        ) -> ::ethers::contract::builders::Event<::std::sync::Arc<M>, M, LiquidExchangeEvents>
-        {
-            self.0
-                .event_with_filter(::core::default::Default::default())
+        ) -> ::ethers::contract::builders::Event<
+            ::std::sync::Arc<M>,
+            M,
+            LiquidExchangeEvents,
+        > {
+            self.0.event_with_filter(::core::default::Default::default())
         }
     }
     impl<M: ::ethers::providers::Middleware> From<::ethers::contract::Contract<M>>
-        for LiquidExchange<M>
-    {
+    for LiquidExchange<M> {
         fn from(contract: ::ethers::contract::Contract<M>) -> Self {
             Self::new(contract.address(), contract.client())
         }
@@ -2262,7 +2063,7 @@ pub mod liquid_exchange {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethevent(name = "PriceChange", abi = "PriceChange(uint256)")]
     pub struct PriceChangeFilter {
@@ -2276,7 +2077,7 @@ pub mod liquid_exchange {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethevent(name = "Swap", abi = "Swap(address,address,uint256,uint256,address)")]
     pub struct SwapFilter {
@@ -2332,7 +2133,7 @@ pub mod liquid_exchange {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(name = "WAD", abi = "WAD()")]
     pub struct WadCall;
@@ -2345,7 +2146,7 @@ pub mod liquid_exchange {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(name = "admin", abi = "admin()")]
     pub struct AdminCall;
@@ -2358,7 +2159,7 @@ pub mod liquid_exchange {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(name = "arbiterTokenX", abi = "arbiterTokenX()")]
     pub struct ArbiterTokenXCall;
@@ -2371,7 +2172,7 @@ pub mod liquid_exchange {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(name = "arbiterTokenY", abi = "arbiterTokenY()")]
     pub struct ArbiterTokenYCall;
@@ -2384,7 +2185,7 @@ pub mod liquid_exchange {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(name = "price", abi = "price()")]
     pub struct PriceCall;
@@ -2397,7 +2198,7 @@ pub mod liquid_exchange {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(name = "setPrice", abi = "setPrice(uint256)")]
     pub struct SetPriceCall {
@@ -2412,7 +2213,7 @@ pub mod liquid_exchange {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(name = "swap", abi = "swap(address,uint256)")]
     pub struct SwapCall {
@@ -2435,27 +2236,32 @@ pub mod liquid_exchange {
             data: impl AsRef<[u8]>,
         ) -> ::core::result::Result<Self, ::ethers::core::abi::AbiError> {
             let data = data.as_ref();
-            if let Ok(decoded) = <WadCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded)
+                = <WadCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::Wad(decoded));
             }
-            if let Ok(decoded) = <AdminCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded)
+                = <AdminCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::Admin(decoded));
             }
-            if let Ok(decoded) = <ArbiterTokenXCall as ::ethers::core::abi::AbiDecode>::decode(data)
-            {
+            if let Ok(decoded)
+                = <ArbiterTokenXCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::ArbiterTokenX(decoded));
             }
-            if let Ok(decoded) = <ArbiterTokenYCall as ::ethers::core::abi::AbiDecode>::decode(data)
-            {
+            if let Ok(decoded)
+                = <ArbiterTokenYCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::ArbiterTokenY(decoded));
             }
-            if let Ok(decoded) = <PriceCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded)
+                = <PriceCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::Price(decoded));
             }
-            if let Ok(decoded) = <SetPriceCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded)
+                = <SetPriceCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::SetPrice(decoded));
             }
-            if let Ok(decoded) = <SwapCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded)
+                = <SwapCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::Swap(decoded));
             }
             Err(::ethers::core::abi::Error::InvalidData.into())
@@ -2466,10 +2272,16 @@ pub mod liquid_exchange {
             match self {
                 Self::Wad(element) => ::ethers::core::abi::AbiEncode::encode(element),
                 Self::Admin(element) => ::ethers::core::abi::AbiEncode::encode(element),
-                Self::ArbiterTokenX(element) => ::ethers::core::abi::AbiEncode::encode(element),
-                Self::ArbiterTokenY(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::ArbiterTokenX(element) => {
+                    ::ethers::core::abi::AbiEncode::encode(element)
+                }
+                Self::ArbiterTokenY(element) => {
+                    ::ethers::core::abi::AbiEncode::encode(element)
+                }
                 Self::Price(element) => ::ethers::core::abi::AbiEncode::encode(element),
-                Self::SetPrice(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::SetPrice(element) => {
+                    ::ethers::core::abi::AbiEncode::encode(element)
+                }
                 Self::Swap(element) => ::ethers::core::abi::AbiEncode::encode(element),
             }
         }
@@ -2531,7 +2343,7 @@ pub mod liquid_exchange {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     pub struct WadReturn(pub ::ethers::core::types::U256);
     ///Container type for all return fields from the `admin` function with signature `admin()` and selector `0xf851a440`
@@ -2543,7 +2355,7 @@ pub mod liquid_exchange {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     pub struct AdminReturn(pub ::ethers::core::types::Address);
     ///Container type for all return fields from the `arbiterTokenX` function with signature `arbiterTokenX()` and selector `0x3b204948`
@@ -2555,7 +2367,7 @@ pub mod liquid_exchange {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     pub struct ArbiterTokenXReturn(pub ::ethers::core::types::Address);
     ///Container type for all return fields from the `arbiterTokenY` function with signature `arbiterTokenY()` and selector `0xd0c472ec`
@@ -2567,7 +2379,7 @@ pub mod liquid_exchange {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     pub struct ArbiterTokenYReturn(pub ::ethers::core::types::Address);
     ///Container type for all return fields from the `price` function with signature `price()` and selector `0xa035b1fe`
@@ -2579,7 +2391,21 @@ pub mod liquid_exchange {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     pub struct PriceReturn(pub ::ethers::core::types::U256);
+    ///Container type for all return fields from the `swap` function with signature `swap(address,uint256)` and selector `0xd004f0f7`
+    #[derive(
+        Clone,
+        ::ethers::contract::EthAbiType,
+        ::ethers::contract::EthAbiCodec,
+        Default,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash
+    )]
+    pub struct SwapReturn {
+        pub amount_out: ::ethers::core::types::U256,
+    }
 }
