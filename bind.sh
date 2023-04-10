@@ -2,7 +2,7 @@
 
 forge install
 forge clean
-forge bind -c lib/v3-core/contracts -b crates/bindings/ --crate-name bindings --overwrite
+forge bind --skip "^UniswapV3.*" -C lib/v3-core/contracts -b crates/bindings/ --crate-name bindings --overwrite
 echo "Generated bindings for v3-core"
 forge bind -C lib/arbmod/contracts -b crates/bindings/ --crate-name bindings --overwrite
 echo "Generated bindings for arbmod" 
@@ -13,6 +13,8 @@ echo "Generated bindings for canonical-weth"
 forge bind -C lib/openzeppelin-contracts/contracts/token/ERC20 -b crates/bindings/ --crate-name bindings --overwrite --crate-version 0.1.0
 echo "Generated bindings for openzeppelin-contracts"
 
+rm -f crates/bindings/src/mock_time_uniswap_v3_pool_deployer.rs
+
 
 #!/bin/bash
 
@@ -22,6 +24,12 @@ output_file="crates/bindings/Cargo-updated.toml"
 
 # Use sed to search and replace a string in the input file
 sed 's/git = "https:\/\/github.com\/gakonst\/ethers-rs"/version = "=2.0.0"/g' "$input_file" > "$output_file"
+mv "$output_file" "$input_file"
+
+# Use sed to search and replace a string in the input file
+input_file="crates/bindings/src/lib.rs"
+output_file="crates/bindings/lib.rs.tmp"
+sed '78d' "$input_file" > "$output_file" 
 mv "$output_file" "$input_file"
 
 

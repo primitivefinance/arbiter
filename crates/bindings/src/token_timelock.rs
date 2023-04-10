@@ -7,16 +7,14 @@ pub use token_timelock::*;
     clippy::upper_case_acronyms,
     clippy::type_complexity,
     dead_code,
-    non_camel_case_types
+    non_camel_case_types,
 )]
 pub mod token_timelock {
     #[rustfmt::skip]
     const __ABI: &str = "[{\"inputs\":[{\"internalType\":\"contract IERC20\",\"name\":\"token_\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"address\",\"name\":\"beneficiary_\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"releaseTime_\",\"type\":\"uint256\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"constructor\",\"outputs\":[]},{\"inputs\":[],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"beneficiary\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\",\"components\":[]}]},{\"inputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\",\"name\":\"release\",\"outputs\":[]},{\"inputs\":[],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"releaseTime\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\",\"components\":[]}]},{\"inputs\":[],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"token\",\"outputs\":[{\"internalType\":\"contract IERC20\",\"name\":\"\",\"type\":\"address\",\"components\":[]}]}]";
     ///The parsed JSON ABI of the contract.
-    pub static TOKENTIMELOCK_ABI: ::ethers::contract::Lazy<::ethers::core::abi::Abi> =
-        ::ethers::contract::Lazy::new(|| {
-            ::ethers::core::utils::__serde_json::from_str(__ABI).expect("ABI is always valid")
-        });
+    pub static TOKENTIMELOCK_ABI: ::ethers::contract::Lazy<::ethers::core::abi::Abi> = ::ethers::contract::Lazy::new(||
+    ::ethers::core::utils::__serde_json::from_str(__ABI).expect("ABI is always valid"));
     #[rustfmt::skip]
     const __BYTECODE: &[u8] = &[
         96,
@@ -1958,38 +1956,38 @@ pub mod token_timelock {
         34,
         18,
         32,
-        89,
-        58,
-        53,
-        89,
-        216,
-        175,
-        172,
-        221,
-        21,
-        255,
-        150,
-        107,
-        40,
-        229,
-        220,
-        141,
-        40,
-        141,
-        77,
-        128,
-        76,
-        243,
-        224,
-        98,
-        186,
-        104,
-        61,
+        32,
+        90,
+        93,
+        181,
+        180,
+        0,
+        54,
+        214,
+        69,
+        68,
+        127,
+        84,
+        251,
+        3,
+        146,
+        86,
+        156,
+        202,
+        139,
+        34,
+        166,
+        233,
+        203,
+        37,
+        62,
+        247,
+        75,
         153,
-        212,
-        49,
-        95,
-        52,
+        9,
+        77,
+        17,
+        224,
         100,
         115,
         111,
@@ -1998,13 +1996,14 @@ pub mod token_timelock {
         67,
         0,
         8,
-        19,
+        17,
         0,
         51,
     ];
     ///The bytecode of the contract.
-    pub static TOKENTIMELOCK_BYTECODE: ::ethers::core::types::Bytes =
-        ::ethers::core::types::Bytes::from_static(__BYTECODE);
+    pub static TOKENTIMELOCK_BYTECODE: ::ethers::core::types::Bytes = ::ethers::core::types::Bytes::from_static(
+        __BYTECODE,
+    );
     #[rustfmt::skip]
     const __DEPLOYED_BYTECODE: &[u8] = &[
         96,
@@ -3600,38 +3599,38 @@ pub mod token_timelock {
         34,
         18,
         32,
-        89,
-        58,
-        53,
-        89,
-        216,
-        175,
-        172,
-        221,
-        21,
-        255,
-        150,
-        107,
-        40,
-        229,
-        220,
-        141,
-        40,
-        141,
-        77,
-        128,
-        76,
-        243,
-        224,
-        98,
-        186,
-        104,
-        61,
+        32,
+        90,
+        93,
+        181,
+        180,
+        0,
+        54,
+        214,
+        69,
+        68,
+        127,
+        84,
+        251,
+        3,
+        146,
+        86,
+        156,
+        202,
+        139,
+        34,
+        166,
+        233,
+        203,
+        37,
+        62,
+        247,
+        75,
         153,
-        212,
-        49,
-        95,
-        52,
+        9,
+        77,
+        17,
+        224,
         100,
         115,
         111,
@@ -3640,13 +3639,14 @@ pub mod token_timelock {
         67,
         0,
         8,
-        19,
+        17,
         0,
         51,
     ];
     ///The deployed bytecode of the contract.
-    pub static TOKENTIMELOCK_DEPLOYED_BYTECODE: ::ethers::core::types::Bytes =
-        ::ethers::core::types::Bytes::from_static(__DEPLOYED_BYTECODE);
+    pub static TOKENTIMELOCK_DEPLOYED_BYTECODE: ::ethers::core::types::Bytes = ::ethers::core::types::Bytes::from_static(
+        __DEPLOYED_BYTECODE,
+    );
     pub struct TokenTimelock<M>(::ethers::contract::Contract<M>);
     impl<M> ::core::clone::Clone for TokenTimelock<M> {
         fn clone(&self) -> Self {
@@ -3666,9 +3666,7 @@ pub mod token_timelock {
     }
     impl<M> ::core::fmt::Debug for TokenTimelock<M> {
         fn fmt(&self, f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
-            f.debug_tuple(stringify!(TokenTimelock))
-                .field(&self.address())
-                .finish()
+            f.debug_tuple(stringify!(TokenTimelock)).field(&self.address()).finish()
         }
     }
     impl<M: ::ethers::providers::Middleware> TokenTimelock<M> {
@@ -3678,11 +3676,13 @@ pub mod token_timelock {
             address: T,
             client: ::std::sync::Arc<M>,
         ) -> Self {
-            Self(::ethers::contract::Contract::new(
-                address.into(),
-                TOKENTIMELOCK_ABI.clone(),
-                client,
-            ))
+            Self(
+                ::ethers::contract::Contract::new(
+                    address.into(),
+                    TOKENTIMELOCK_ABI.clone(),
+                    client,
+                ),
+            )
         }
         /// Constructs the general purpose `Deployer` instance based on the provided constructor arguments and sends it.
         /// Returns a new instance of a deployer that returns an instance of this contract after sending the transaction
@@ -3716,7 +3716,7 @@ pub mod token_timelock {
         > {
             let factory = ::ethers::contract::ContractFactory::new(
                 TOKENTIMELOCK_ABI.clone(),
-                TOKENTIMELOCK_BYTECODE.clone(),
+                TOKENTIMELOCK_BYTECODE.clone().into(),
                 client,
             );
             let deployer = factory.deploy(constructor_args)?;
@@ -3726,7 +3726,10 @@ pub mod token_timelock {
         ///Calls the contract's `beneficiary` (0x38af3eed) function
         pub fn beneficiary(
             &self,
-        ) -> ::ethers::contract::builders::ContractCall<M, ::ethers::core::types::Address> {
+        ) -> ::ethers::contract::builders::ContractCall<
+            M,
+            ::ethers::core::types::Address,
+        > {
             self.0
                 .method_hash([56, 175, 62, 237], ())
                 .expect("method not found (this should never happen)")
@@ -3748,15 +3751,17 @@ pub mod token_timelock {
         ///Calls the contract's `token` (0xfc0c546a) function
         pub fn token(
             &self,
-        ) -> ::ethers::contract::builders::ContractCall<M, ::ethers::core::types::Address> {
+        ) -> ::ethers::contract::builders::ContractCall<
+            M,
+            ::ethers::core::types::Address,
+        > {
             self.0
                 .method_hash([252, 12, 84, 106], ())
                 .expect("method not found (this should never happen)")
         }
     }
     impl<M: ::ethers::providers::Middleware> From<::ethers::contract::Contract<M>>
-        for TokenTimelock<M>
-    {
+    for TokenTimelock<M> {
         fn from(contract: ::ethers::contract::Contract<M>) -> Self {
             Self::new(contract.address(), contract.client())
         }
@@ -3770,7 +3775,7 @@ pub mod token_timelock {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(name = "beneficiary", abi = "beneficiary()")]
     pub struct BeneficiaryCall;
@@ -3783,7 +3788,7 @@ pub mod token_timelock {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(name = "release", abi = "release()")]
     pub struct ReleaseCall;
@@ -3796,7 +3801,7 @@ pub mod token_timelock {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(name = "releaseTime", abi = "releaseTime()")]
     pub struct ReleaseTimeCall;
@@ -3809,7 +3814,7 @@ pub mod token_timelock {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(name = "token", abi = "token()")]
     pub struct TokenCall;
@@ -3826,16 +3831,20 @@ pub mod token_timelock {
             data: impl AsRef<[u8]>,
         ) -> ::core::result::Result<Self, ::ethers::core::abi::AbiError> {
             let data = data.as_ref();
-            if let Ok(decoded) = <BeneficiaryCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded)
+                = <BeneficiaryCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::Beneficiary(decoded));
             }
-            if let Ok(decoded) = <ReleaseCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded)
+                = <ReleaseCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::Release(decoded));
             }
-            if let Ok(decoded) = <ReleaseTimeCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded)
+                = <ReleaseTimeCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::ReleaseTime(decoded));
             }
-            if let Ok(decoded) = <TokenCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded)
+                = <TokenCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::Token(decoded));
             }
             Err(::ethers::core::abi::Error::InvalidData.into())
@@ -3844,9 +3853,13 @@ pub mod token_timelock {
     impl ::ethers::core::abi::AbiEncode for TokenTimelockCalls {
         fn encode(self) -> Vec<u8> {
             match self {
-                Self::Beneficiary(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::Beneficiary(element) => {
+                    ::ethers::core::abi::AbiEncode::encode(element)
+                }
                 Self::Release(element) => ::ethers::core::abi::AbiEncode::encode(element),
-                Self::ReleaseTime(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::ReleaseTime(element) => {
+                    ::ethers::core::abi::AbiEncode::encode(element)
+                }
                 Self::Token(element) => ::ethers::core::abi::AbiEncode::encode(element),
             }
         }
@@ -3890,7 +3903,7 @@ pub mod token_timelock {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     pub struct BeneficiaryReturn(pub ::ethers::core::types::Address);
     ///Container type for all return fields from the `releaseTime` function with signature `releaseTime()` and selector `0xb91d4001`
@@ -3902,7 +3915,7 @@ pub mod token_timelock {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     pub struct ReleaseTimeReturn(pub ::ethers::core::types::U256);
     ///Container type for all return fields from the `token` function with signature `token()` and selector `0xfc0c546a`
@@ -3914,7 +3927,7 @@ pub mod token_timelock {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     pub struct TokenReturn(pub ::ethers::core::types::Address);
 }

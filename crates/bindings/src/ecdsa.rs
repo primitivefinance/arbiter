@@ -7,16 +7,14 @@ pub use ecdsa::*;
     clippy::upper_case_acronyms,
     clippy::type_complexity,
     dead_code,
-    non_camel_case_types
+    non_camel_case_types,
 )]
 pub mod ecdsa {
     #[rustfmt::skip]
     const __ABI: &str = "[]";
     ///The parsed JSON ABI of the contract.
-    pub static ECDSA_ABI: ::ethers::contract::Lazy<::ethers::core::abi::Abi> =
-        ::ethers::contract::Lazy::new(|| {
-            ::ethers::core::utils::__serde_json::from_str(__ABI).expect("ABI is always valid")
-        });
+    pub static ECDSA_ABI: ::ethers::contract::Lazy<::ethers::core::abi::Abi> = ::ethers::contract::Lazy::new(||
+    ::ethers::core::utils::__serde_json::from_str(__ABI).expect("ABI is always valid"));
     #[rustfmt::skip]
     const __BYTECODE: &[u8] = &[
         96,
@@ -117,38 +115,38 @@ pub mod ecdsa {
         34,
         18,
         32,
-        102,
-        211,
-        104,
-        88,
-        117,
-        55,
-        230,
-        103,
-        142,
-        151,
-        150,
-        226,
-        108,
-        132,
-        198,
-        27,
-        165,
-        131,
-        130,
-        145,
-        123,
-        40,
-        206,
-        35,
-        170,
-        160,
-        103,
-        214,
-        54,
+        44,
+        163,
         164,
+        182,
+        140,
+        117,
+        213,
+        28,
+        5,
+        70,
+        251,
+        167,
+        220,
+        99,
+        51,
+        105,
+        38,
+        49,
         176,
-        130,
+        51,
+        192,
+        61,
+        222,
+        113,
+        203,
+        209,
+        38,
+        175,
+        64,
+        88,
+        90,
+        164,
         100,
         115,
         111,
@@ -157,13 +155,14 @@ pub mod ecdsa {
         67,
         0,
         8,
-        19,
+        17,
         0,
         51,
     ];
     ///The bytecode of the contract.
-    pub static ECDSA_BYTECODE: ::ethers::core::types::Bytes =
-        ::ethers::core::types::Bytes::from_static(__BYTECODE);
+    pub static ECDSA_BYTECODE: ::ethers::core::types::Bytes = ::ethers::core::types::Bytes::from_static(
+        __BYTECODE,
+    );
     #[rustfmt::skip]
     const __DEPLOYED_BYTECODE: &[u8] = &[
         115,
@@ -209,38 +208,38 @@ pub mod ecdsa {
         34,
         18,
         32,
-        102,
-        211,
-        104,
-        88,
-        117,
-        55,
-        230,
-        103,
-        142,
-        151,
-        150,
-        226,
-        108,
-        132,
-        198,
-        27,
-        165,
-        131,
-        130,
-        145,
-        123,
-        40,
-        206,
-        35,
-        170,
-        160,
-        103,
-        214,
-        54,
+        44,
+        163,
         164,
+        182,
+        140,
+        117,
+        213,
+        28,
+        5,
+        70,
+        251,
+        167,
+        220,
+        99,
+        51,
+        105,
+        38,
+        49,
         176,
-        130,
+        51,
+        192,
+        61,
+        222,
+        113,
+        203,
+        209,
+        38,
+        175,
+        64,
+        88,
+        90,
+        164,
         100,
         115,
         111,
@@ -249,13 +248,14 @@ pub mod ecdsa {
         67,
         0,
         8,
-        19,
+        17,
         0,
         51,
     ];
     ///The deployed bytecode of the contract.
-    pub static ECDSA_DEPLOYED_BYTECODE: ::ethers::core::types::Bytes =
-        ::ethers::core::types::Bytes::from_static(__DEPLOYED_BYTECODE);
+    pub static ECDSA_DEPLOYED_BYTECODE: ::ethers::core::types::Bytes = ::ethers::core::types::Bytes::from_static(
+        __DEPLOYED_BYTECODE,
+    );
     pub struct ECDSA<M>(::ethers::contract::Contract<M>);
     impl<M> ::core::clone::Clone for ECDSA<M> {
         fn clone(&self) -> Self {
@@ -275,9 +275,7 @@ pub mod ecdsa {
     }
     impl<M> ::core::fmt::Debug for ECDSA<M> {
         fn fmt(&self, f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
-            f.debug_tuple(stringify!(ECDSA))
-                .field(&self.address())
-                .finish()
+            f.debug_tuple(stringify!(ECDSA)).field(&self.address()).finish()
         }
     }
     impl<M: ::ethers::providers::Middleware> ECDSA<M> {
@@ -287,11 +285,13 @@ pub mod ecdsa {
             address: T,
             client: ::std::sync::Arc<M>,
         ) -> Self {
-            Self(::ethers::contract::Contract::new(
-                address.into(),
-                ECDSA_ABI.clone(),
-                client,
-            ))
+            Self(
+                ::ethers::contract::Contract::new(
+                    address.into(),
+                    ECDSA_ABI.clone(),
+                    client,
+                ),
+            )
         }
         /// Constructs the general purpose `Deployer` instance based on the provided constructor arguments and sends it.
         /// Returns a new instance of a deployer that returns an instance of this contract after sending the transaction
@@ -325,7 +325,7 @@ pub mod ecdsa {
         > {
             let factory = ::ethers::contract::ContractFactory::new(
                 ECDSA_ABI.clone(),
-                ECDSA_BYTECODE.clone(),
+                ECDSA_BYTECODE.clone().into(),
                 client,
             );
             let deployer = factory.deploy(constructor_args)?;
@@ -333,7 +333,8 @@ pub mod ecdsa {
             Ok(deployer)
         }
     }
-    impl<M: ::ethers::providers::Middleware> From<::ethers::contract::Contract<M>> for ECDSA<M> {
+    impl<M: ::ethers::providers::Middleware> From<::ethers::contract::Contract<M>>
+    for ECDSA<M> {
         fn from(contract: ::ethers::contract::Contract<M>) -> Self {
             Self::new(contract.address(), contract.client())
         }
