@@ -7,16 +7,14 @@ pub use i_votes::*;
     clippy::upper_case_acronyms,
     clippy::type_complexity,
     dead_code,
-    non_camel_case_types
+    non_camel_case_types,
 )]
 pub mod i_votes {
     #[rustfmt::skip]
     const __ABI: &str = "[{\"inputs\":[{\"internalType\":\"address\",\"name\":\"delegator\",\"type\":\"address\",\"components\":[],\"indexed\":true},{\"internalType\":\"address\",\"name\":\"fromDelegate\",\"type\":\"address\",\"components\":[],\"indexed\":true},{\"internalType\":\"address\",\"name\":\"toDelegate\",\"type\":\"address\",\"components\":[],\"indexed\":true}],\"type\":\"event\",\"name\":\"DelegateChanged\",\"outputs\":[],\"anonymous\":false},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"delegate\",\"type\":\"address\",\"components\":[],\"indexed\":true},{\"internalType\":\"uint256\",\"name\":\"previousBalance\",\"type\":\"uint256\",\"components\":[],\"indexed\":false},{\"internalType\":\"uint256\",\"name\":\"newBalance\",\"type\":\"uint256\",\"components\":[],\"indexed\":false}],\"type\":\"event\",\"name\":\"DelegateVotesChanged\",\"outputs\":[],\"anonymous\":false},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"delegatee\",\"type\":\"address\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"function\",\"name\":\"delegate\",\"outputs\":[]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"delegatee\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"nonce\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"expiry\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"uint8\",\"name\":\"v\",\"type\":\"uint8\",\"components\":[]},{\"internalType\":\"bytes32\",\"name\":\"r\",\"type\":\"bytes32\",\"components\":[]},{\"internalType\":\"bytes32\",\"name\":\"s\",\"type\":\"bytes32\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"function\",\"name\":\"delegateBySig\",\"outputs\":[]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"account\",\"type\":\"address\",\"components\":[]}],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"delegates\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"blockNumber\",\"type\":\"uint256\",\"components\":[]}],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"getPastTotalSupply\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"account\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"blockNumber\",\"type\":\"uint256\",\"components\":[]}],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"getPastVotes\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"account\",\"type\":\"address\",\"components\":[]}],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"getVotes\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\",\"components\":[]}]}]";
     ///The parsed JSON ABI of the contract.
-    pub static IVOTES_ABI: ::ethers::contract::Lazy<::ethers::core::abi::Abi> =
-        ::ethers::contract::Lazy::new(|| {
-            ::ethers::core::utils::__serde_json::from_str(__ABI).expect("ABI is always valid")
-        });
+    pub static IVOTES_ABI: ::ethers::contract::Lazy<::ethers::core::abi::Abi> = ::ethers::contract::Lazy::new(||
+    ::ethers::core::utils::__serde_json::from_str(__ABI).expect("ABI is always valid"));
     pub struct IVotes<M>(::ethers::contract::Contract<M>);
     impl<M> ::core::clone::Clone for IVotes<M> {
         fn clone(&self) -> Self {
@@ -36,9 +34,7 @@ pub mod i_votes {
     }
     impl<M> ::core::fmt::Debug for IVotes<M> {
         fn fmt(&self, f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
-            f.debug_tuple(stringify!(IVotes))
-                .field(&self.address())
-                .finish()
+            f.debug_tuple(stringify!(IVotes)).field(&self.address()).finish()
         }
     }
     impl<M: ::ethers::providers::Middleware> IVotes<M> {
@@ -48,11 +44,13 @@ pub mod i_votes {
             address: T,
             client: ::std::sync::Arc<M>,
         ) -> Self {
-            Self(::ethers::contract::Contract::new(
-                address.into(),
-                IVOTES_ABI.clone(),
-                client,
-            ))
+            Self(
+                ::ethers::contract::Contract::new(
+                    address.into(),
+                    IVOTES_ABI.clone(),
+                    client,
+                ),
+            )
         }
         ///Calls the contract's `delegate` (0x5c19a95c) function
         pub fn delegate(
@@ -81,7 +79,10 @@ pub mod i_votes {
         pub fn delegates(
             &self,
             account: ::ethers::core::types::Address,
-        ) -> ::ethers::contract::builders::ContractCall<M, ::ethers::core::types::Address> {
+        ) -> ::ethers::contract::builders::ContractCall<
+            M,
+            ::ethers::core::types::Address,
+        > {
             self.0
                 .method_hash([88, 124, 222, 30], account)
                 .expect("method not found (this should never happen)")
@@ -117,26 +118,32 @@ pub mod i_votes {
         ///Gets the contract's `DelegateChanged` event
         pub fn delegate_changed_filter(
             &self,
-        ) -> ::ethers::contract::builders::Event<::std::sync::Arc<M>, M, DelegateChangedFilter>
-        {
+        ) -> ::ethers::contract::builders::Event<
+            ::std::sync::Arc<M>,
+            M,
+            DelegateChangedFilter,
+        > {
             self.0.event()
         }
         ///Gets the contract's `DelegateVotesChanged` event
         pub fn delegate_votes_changed_filter(
             &self,
-        ) -> ::ethers::contract::builders::Event<::std::sync::Arc<M>, M, DelegateVotesChangedFilter>
-        {
+        ) -> ::ethers::contract::builders::Event<
+            ::std::sync::Arc<M>,
+            M,
+            DelegateVotesChangedFilter,
+        > {
             self.0.event()
         }
         /// Returns an `Event` builder for all the events of this contract.
         pub fn events(
             &self,
         ) -> ::ethers::contract::builders::Event<::std::sync::Arc<M>, M, IVotesEvents> {
-            self.0
-                .event_with_filter(::core::default::Default::default())
+            self.0.event_with_filter(::core::default::Default::default())
         }
     }
-    impl<M: ::ethers::providers::Middleware> From<::ethers::contract::Contract<M>> for IVotes<M> {
+    impl<M: ::ethers::providers::Middleware> From<::ethers::contract::Contract<M>>
+    for IVotes<M> {
         fn from(contract: ::ethers::contract::Contract<M>) -> Self {
             Self::new(contract.address(), contract.client())
         }
@@ -149,7 +156,7 @@ pub mod i_votes {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethevent(
         name = "DelegateChanged",
@@ -171,7 +178,7 @@ pub mod i_votes {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethevent(
         name = "DelegateVotesChanged",
@@ -205,8 +212,12 @@ pub mod i_votes {
     impl ::core::fmt::Display for IVotesEvents {
         fn fmt(&self, f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
             match self {
-                Self::DelegateChangedFilter(element) => ::core::fmt::Display::fmt(element, f),
-                Self::DelegateVotesChangedFilter(element) => ::core::fmt::Display::fmt(element, f),
+                Self::DelegateChangedFilter(element) => {
+                    ::core::fmt::Display::fmt(element, f)
+                }
+                Self::DelegateVotesChangedFilter(element) => {
+                    ::core::fmt::Display::fmt(element, f)
+                }
             }
         }
     }
@@ -229,7 +240,7 @@ pub mod i_votes {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(name = "delegate", abi = "delegate(address)")]
     pub struct DelegateCall {
@@ -244,7 +255,7 @@ pub mod i_votes {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(
         name = "delegateBySig",
@@ -267,7 +278,7 @@ pub mod i_votes {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(name = "delegates", abi = "delegates(address)")]
     pub struct DelegatesCall {
@@ -282,7 +293,7 @@ pub mod i_votes {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(name = "getPastTotalSupply", abi = "getPastTotalSupply(uint256)")]
     pub struct GetPastTotalSupplyCall {
@@ -297,7 +308,7 @@ pub mod i_votes {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(name = "getPastVotes", abi = "getPastVotes(address,uint256)")]
     pub struct GetPastVotesCall {
@@ -313,7 +324,7 @@ pub mod i_votes {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(name = "getVotes", abi = "getVotes(address)")]
     pub struct GetVotesCall {
@@ -334,26 +345,30 @@ pub mod i_votes {
             data: impl AsRef<[u8]>,
         ) -> ::core::result::Result<Self, ::ethers::core::abi::AbiError> {
             let data = data.as_ref();
-            if let Ok(decoded) = <DelegateCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded)
+                = <DelegateCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::Delegate(decoded));
             }
-            if let Ok(decoded) = <DelegateBySigCall as ::ethers::core::abi::AbiDecode>::decode(data)
-            {
+            if let Ok(decoded)
+                = <DelegateBySigCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::DelegateBySig(decoded));
             }
-            if let Ok(decoded) = <DelegatesCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded)
+                = <DelegatesCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::Delegates(decoded));
             }
-            if let Ok(decoded) =
-                <GetPastTotalSupplyCall as ::ethers::core::abi::AbiDecode>::decode(data)
-            {
+            if let Ok(decoded)
+                = <GetPastTotalSupplyCall as ::ethers::core::abi::AbiDecode>::decode(
+                    data,
+                ) {
                 return Ok(Self::GetPastTotalSupply(decoded));
             }
-            if let Ok(decoded) = <GetPastVotesCall as ::ethers::core::abi::AbiDecode>::decode(data)
-            {
+            if let Ok(decoded)
+                = <GetPastVotesCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::GetPastVotes(decoded));
             }
-            if let Ok(decoded) = <GetVotesCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded)
+                = <GetVotesCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::GetVotes(decoded));
             }
             Err(::ethers::core::abi::Error::InvalidData.into())
@@ -362,14 +377,24 @@ pub mod i_votes {
     impl ::ethers::core::abi::AbiEncode for IVotesCalls {
         fn encode(self) -> Vec<u8> {
             match self {
-                Self::Delegate(element) => ::ethers::core::abi::AbiEncode::encode(element),
-                Self::DelegateBySig(element) => ::ethers::core::abi::AbiEncode::encode(element),
-                Self::Delegates(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::Delegate(element) => {
+                    ::ethers::core::abi::AbiEncode::encode(element)
+                }
+                Self::DelegateBySig(element) => {
+                    ::ethers::core::abi::AbiEncode::encode(element)
+                }
+                Self::Delegates(element) => {
+                    ::ethers::core::abi::AbiEncode::encode(element)
+                }
                 Self::GetPastTotalSupply(element) => {
                     ::ethers::core::abi::AbiEncode::encode(element)
                 }
-                Self::GetPastVotes(element) => ::ethers::core::abi::AbiEncode::encode(element),
-                Self::GetVotes(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::GetPastVotes(element) => {
+                    ::ethers::core::abi::AbiEncode::encode(element)
+                }
+                Self::GetVotes(element) => {
+                    ::ethers::core::abi::AbiEncode::encode(element)
+                }
             }
         }
     }
@@ -379,7 +404,9 @@ pub mod i_votes {
                 Self::Delegate(element) => ::core::fmt::Display::fmt(element, f),
                 Self::DelegateBySig(element) => ::core::fmt::Display::fmt(element, f),
                 Self::Delegates(element) => ::core::fmt::Display::fmt(element, f),
-                Self::GetPastTotalSupply(element) => ::core::fmt::Display::fmt(element, f),
+                Self::GetPastTotalSupply(element) => {
+                    ::core::fmt::Display::fmt(element, f)
+                }
                 Self::GetPastVotes(element) => ::core::fmt::Display::fmt(element, f),
                 Self::GetVotes(element) => ::core::fmt::Display::fmt(element, f),
             }
@@ -424,7 +451,7 @@ pub mod i_votes {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     pub struct DelegatesReturn(pub ::ethers::core::types::Address);
     ///Container type for all return fields from the `getPastTotalSupply` function with signature `getPastTotalSupply(uint256)` and selector `0x8e539e8c`
@@ -436,7 +463,7 @@ pub mod i_votes {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     pub struct GetPastTotalSupplyReturn(pub ::ethers::core::types::U256);
     ///Container type for all return fields from the `getPastVotes` function with signature `getPastVotes(address,uint256)` and selector `0x3a46b1a8`
@@ -448,7 +475,7 @@ pub mod i_votes {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     pub struct GetPastVotesReturn(pub ::ethers::core::types::U256);
     ///Container type for all return fields from the `getVotes` function with signature `getVotes(address)` and selector `0x9ab24eb0`
@@ -460,7 +487,7 @@ pub mod i_votes {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     pub struct GetVotesReturn(pub ::ethers::core::types::U256);
 }

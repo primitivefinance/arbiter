@@ -7,16 +7,14 @@ pub use strings::*;
     clippy::upper_case_acronyms,
     clippy::type_complexity,
     dead_code,
-    non_camel_case_types
+    non_camel_case_types,
 )]
 pub mod strings {
     #[rustfmt::skip]
     const __ABI: &str = "[]";
     ///The parsed JSON ABI of the contract.
-    pub static STRINGS_ABI: ::ethers::contract::Lazy<::ethers::core::abi::Abi> =
-        ::ethers::contract::Lazy::new(|| {
-            ::ethers::core::utils::__serde_json::from_str(__ABI).expect("ABI is always valid")
-        });
+    pub static STRINGS_ABI: ::ethers::contract::Lazy<::ethers::core::abi::Abi> = ::ethers::contract::Lazy::new(||
+    ::ethers::core::utils::__serde_json::from_str(__ABI).expect("ABI is always valid"));
     #[rustfmt::skip]
     const __BYTECODE: &[u8] = &[
         96,
@@ -117,37 +115,37 @@ pub mod strings {
         34,
         18,
         32,
-        133,
-        229,
         220,
-        72,
-        77,
-        40,
-        74,
-        57,
-        13,
-        121,
-        34,
-        176,
-        31,
-        251,
-        47,
-        84,
-        193,
-        169,
-        14,
-        102,
-        5,
-        241,
-        68,
-        97,
-        24,
-        69,
-        9,
-        189,
-        187,
-        14,
-        241,
+        191,
+        125,
+        93,
+        144,
+        154,
+        33,
+        191,
+        247,
+        220,
+        111,
+        46,
+        66,
+        209,
+        66,
+        73,
+        122,
+        15,
+        105,
+        28,
+        255,
+        138,
+        12,
+        38,
+        66,
+        113,
+        133,
+        54,
+        145,
+        53,
+        112,
         55,
         100,
         115,
@@ -157,13 +155,14 @@ pub mod strings {
         67,
         0,
         8,
-        19,
+        17,
         0,
         51,
     ];
     ///The bytecode of the contract.
-    pub static STRINGS_BYTECODE: ::ethers::core::types::Bytes =
-        ::ethers::core::types::Bytes::from_static(__BYTECODE);
+    pub static STRINGS_BYTECODE: ::ethers::core::types::Bytes = ::ethers::core::types::Bytes::from_static(
+        __BYTECODE,
+    );
     #[rustfmt::skip]
     const __DEPLOYED_BYTECODE: &[u8] = &[
         115,
@@ -209,37 +208,37 @@ pub mod strings {
         34,
         18,
         32,
-        133,
-        229,
         220,
-        72,
-        77,
-        40,
-        74,
-        57,
-        13,
-        121,
-        34,
-        176,
-        31,
-        251,
-        47,
-        84,
-        193,
-        169,
-        14,
-        102,
-        5,
-        241,
-        68,
-        97,
-        24,
-        69,
-        9,
-        189,
-        187,
-        14,
-        241,
+        191,
+        125,
+        93,
+        144,
+        154,
+        33,
+        191,
+        247,
+        220,
+        111,
+        46,
+        66,
+        209,
+        66,
+        73,
+        122,
+        15,
+        105,
+        28,
+        255,
+        138,
+        12,
+        38,
+        66,
+        113,
+        133,
+        54,
+        145,
+        53,
+        112,
         55,
         100,
         115,
@@ -249,13 +248,14 @@ pub mod strings {
         67,
         0,
         8,
-        19,
+        17,
         0,
         51,
     ];
     ///The deployed bytecode of the contract.
-    pub static STRINGS_DEPLOYED_BYTECODE: ::ethers::core::types::Bytes =
-        ::ethers::core::types::Bytes::from_static(__DEPLOYED_BYTECODE);
+    pub static STRINGS_DEPLOYED_BYTECODE: ::ethers::core::types::Bytes = ::ethers::core::types::Bytes::from_static(
+        __DEPLOYED_BYTECODE,
+    );
     pub struct Strings<M>(::ethers::contract::Contract<M>);
     impl<M> ::core::clone::Clone for Strings<M> {
         fn clone(&self) -> Self {
@@ -275,9 +275,7 @@ pub mod strings {
     }
     impl<M> ::core::fmt::Debug for Strings<M> {
         fn fmt(&self, f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
-            f.debug_tuple(stringify!(Strings))
-                .field(&self.address())
-                .finish()
+            f.debug_tuple(stringify!(Strings)).field(&self.address()).finish()
         }
     }
     impl<M: ::ethers::providers::Middleware> Strings<M> {
@@ -287,11 +285,13 @@ pub mod strings {
             address: T,
             client: ::std::sync::Arc<M>,
         ) -> Self {
-            Self(::ethers::contract::Contract::new(
-                address.into(),
-                STRINGS_ABI.clone(),
-                client,
-            ))
+            Self(
+                ::ethers::contract::Contract::new(
+                    address.into(),
+                    STRINGS_ABI.clone(),
+                    client,
+                ),
+            )
         }
         /// Constructs the general purpose `Deployer` instance based on the provided constructor arguments and sends it.
         /// Returns a new instance of a deployer that returns an instance of this contract after sending the transaction
@@ -325,7 +325,7 @@ pub mod strings {
         > {
             let factory = ::ethers::contract::ContractFactory::new(
                 STRINGS_ABI.clone(),
-                STRINGS_BYTECODE.clone(),
+                STRINGS_BYTECODE.clone().into(),
                 client,
             );
             let deployer = factory.deploy(constructor_args)?;
@@ -333,7 +333,8 @@ pub mod strings {
             Ok(deployer)
         }
     }
-    impl<M: ::ethers::providers::Middleware> From<::ethers::contract::Contract<M>> for Strings<M> {
+    impl<M: ::ethers::providers::Middleware> From<::ethers::contract::Contract<M>>
+    for Strings<M> {
         fn from(contract: ::ethers::contract::Contract<M>) -> Self {
             Self::new(contract.address(), contract.client())
         }

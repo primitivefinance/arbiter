@@ -7,16 +7,18 @@ pub use ierc3156_flash_lender::*;
     clippy::upper_case_acronyms,
     clippy::type_complexity,
     dead_code,
-    non_camel_case_types
+    non_camel_case_types,
 )]
 pub mod ierc3156_flash_lender {
     #[rustfmt::skip]
     const __ABI: &str = "[{\"inputs\":[{\"internalType\":\"address\",\"name\":\"token\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\",\"components\":[]}],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"flashFee\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"contract IERC3156FlashBorrower\",\"name\":\"receiver\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"address\",\"name\":\"token\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"bytes\",\"name\":\"data\",\"type\":\"bytes\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"function\",\"name\":\"flashLoan\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"token\",\"type\":\"address\",\"components\":[]}],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"maxFlashLoan\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\",\"components\":[]}]}]";
     ///The parsed JSON ABI of the contract.
-    pub static IERC3156FLASHLENDER_ABI: ::ethers::contract::Lazy<::ethers::core::abi::Abi> =
-        ::ethers::contract::Lazy::new(|| {
-            ::ethers::core::utils::__serde_json::from_str(__ABI).expect("ABI is always valid")
-        });
+    pub static IERC3156FLASHLENDER_ABI: ::ethers::contract::Lazy<
+        ::ethers::core::abi::Abi,
+    > = ::ethers::contract::Lazy::new(|| {
+        ::ethers::core::utils::__serde_json::from_str(__ABI)
+            .expect("ABI is always valid")
+    });
     pub struct IERC3156FlashLender<M>(::ethers::contract::Contract<M>);
     impl<M> ::core::clone::Clone for IERC3156FlashLender<M> {
         fn clone(&self) -> Self {
@@ -48,11 +50,13 @@ pub mod ierc3156_flash_lender {
             address: T,
             client: ::std::sync::Arc<M>,
         ) -> Self {
-            Self(::ethers::contract::Contract::new(
-                address.into(),
-                IERC3156FLASHLENDER_ABI.clone(),
-                client,
-            ))
+            Self(
+                ::ethers::contract::Contract::new(
+                    address.into(),
+                    IERC3156FLASHLENDER_ABI.clone(),
+                    client,
+                ),
+            )
         }
         ///Calls the contract's `flashFee` (0xd9d98ce4) function
         pub fn flash_fee(
@@ -87,8 +91,7 @@ pub mod ierc3156_flash_lender {
         }
     }
     impl<M: ::ethers::providers::Middleware> From<::ethers::contract::Contract<M>>
-        for IERC3156FlashLender<M>
-    {
+    for IERC3156FlashLender<M> {
         fn from(contract: ::ethers::contract::Contract<M>) -> Self {
             Self::new(contract.address(), contract.client())
         }
@@ -102,7 +105,7 @@ pub mod ierc3156_flash_lender {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(name = "flashFee", abi = "flashFee(address,uint256)")]
     pub struct FlashFeeCall {
@@ -118,7 +121,7 @@ pub mod ierc3156_flash_lender {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(name = "flashLoan", abi = "flashLoan(address,address,uint256,bytes)")]
     pub struct FlashLoanCall {
@@ -136,7 +139,7 @@ pub mod ierc3156_flash_lender {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(name = "maxFlashLoan", abi = "maxFlashLoan(address)")]
     pub struct MaxFlashLoanCall {
@@ -154,14 +157,16 @@ pub mod ierc3156_flash_lender {
             data: impl AsRef<[u8]>,
         ) -> ::core::result::Result<Self, ::ethers::core::abi::AbiError> {
             let data = data.as_ref();
-            if let Ok(decoded) = <FlashFeeCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded)
+                = <FlashFeeCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::FlashFee(decoded));
             }
-            if let Ok(decoded) = <FlashLoanCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded)
+                = <FlashLoanCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::FlashLoan(decoded));
             }
-            if let Ok(decoded) = <MaxFlashLoanCall as ::ethers::core::abi::AbiDecode>::decode(data)
-            {
+            if let Ok(decoded)
+                = <MaxFlashLoanCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::MaxFlashLoan(decoded));
             }
             Err(::ethers::core::abi::Error::InvalidData.into())
@@ -170,9 +175,15 @@ pub mod ierc3156_flash_lender {
     impl ::ethers::core::abi::AbiEncode for IERC3156FlashLenderCalls {
         fn encode(self) -> Vec<u8> {
             match self {
-                Self::FlashFee(element) => ::ethers::core::abi::AbiEncode::encode(element),
-                Self::FlashLoan(element) => ::ethers::core::abi::AbiEncode::encode(element),
-                Self::MaxFlashLoan(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::FlashFee(element) => {
+                    ::ethers::core::abi::AbiEncode::encode(element)
+                }
+                Self::FlashLoan(element) => {
+                    ::ethers::core::abi::AbiEncode::encode(element)
+                }
+                Self::MaxFlashLoan(element) => {
+                    ::ethers::core::abi::AbiEncode::encode(element)
+                }
             }
         }
     }
@@ -209,7 +220,7 @@ pub mod ierc3156_flash_lender {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     pub struct FlashFeeReturn(pub ::ethers::core::types::U256);
     ///Container type for all return fields from the `flashLoan` function with signature `flashLoan(address,address,uint256,bytes)` and selector `0x5cffe9de`
@@ -221,7 +232,7 @@ pub mod ierc3156_flash_lender {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     pub struct FlashLoanReturn(pub bool);
     ///Container type for all return fields from the `maxFlashLoan` function with signature `maxFlashLoan(address)` and selector `0x613255ab`
@@ -233,7 +244,7 @@ pub mod ierc3156_flash_lender {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     pub struct MaxFlashLoanReturn(pub ::ethers::core::types::U256);
 }
