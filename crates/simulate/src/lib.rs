@@ -91,7 +91,7 @@ mod tests {
         // Choose name and symbol and combine into the constructor args required by ERC-20 contracts.
         let name = "ArbiterToken";
         let symbol = "ARBT";
-        let args = (name.to_string(), symbol.to_string());
+        let args = (name.to_string(), symbol.to_string(), 18_u8);
 
         // Call the contract deployer and receive a IsDeployed version of SimulationContract that now has an address.
         let arbiter_token = manager.agents.get("admin").unwrap().deploy(

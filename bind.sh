@@ -8,8 +8,8 @@ forge bind -C lib/portfolio/contracts -b crates/bindings/ --crate-name bindings 
 echo "Generated bindings for portfolio"
 forge bind -C lib/canonical-weth/contracts -b crates/bindings/ --crate-name bindings --overwrite
 echo "Generated bindings for canonical-weth"
-forge bind -C lib/openzeppelin-contracts/contracts/token/ERC20 -b crates/bindings/ --crate-name bindings --overwrite --crate-version 0.1.0
-echo "Generated bindings for openzeppelin-contracts"
+forge bind -C lib/arbiter/contracts -b crates/bindings/ --crate-name bindings --overwrite
+echo "Generated bindings for arbiter contracts"
 
 rm -f crates/bindings/src/mock_time_uniswap_v3_pool_deployer.rs
 
@@ -26,9 +26,14 @@ mv "$output_file" "$input_file"
 
 # Use sed to search and replace a string in the input file
 input_file="crates/bindings/src/lib.rs"
-output_file="crates/bindings/lib.rs.tmp"
-sed '78d' "$input_file" > "$output_file" 
+output_file="crates/bindings/src/lib_temp.rs"
+
+# Remove the specified string
+grep -v 'pub mod mock_time_uniswap_v3_pool_deployer;' "$input_file" > "$output_file"
+
+# Replace the original file with the modified one
 mv "$output_file" "$input_file"
+
 
 
 

@@ -1,18 +1,3 @@
-///`Checkpoint(uint32,uint224)`
-#[derive(
-    Clone,
-    ::ethers::contract::EthAbiType,
-    ::ethers::contract::EthAbiCodec,
-    Default,
-    Debug,
-    PartialEq,
-    Eq,
-    Hash
-)]
-pub struct Checkpoint {
-    pub from_block: u32,
-    pub votes: ::ethers::core::types::U256,
-}
 ///`PortfolioCurve(uint128,uint16,uint16,uint16,uint16,uint16,uint32,bool)`
 #[derive(
     Clone,
