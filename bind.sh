@@ -4,8 +4,6 @@ forge install
 forge clean
 forge bind --skip "^UniswapV3.*" -C lib/v3-core/contracts -b crates/bindings/ --crate-name bindings --overwrite
 echo "Generated bindings for v3-core"
-forge bind -C lib/arbmod/contracts -b crates/bindings/ --crate-name bindings --overwrite
-echo "Generated bindings for arbmod" 
 forge bind -C lib/portfolio/contracts -b crates/bindings/ --crate-name bindings --overwrite
 echo "Generated bindings for portfolio"
 forge bind -C lib/canonical-weth/contracts -b crates/bindings/ --crate-name bindings --overwrite
