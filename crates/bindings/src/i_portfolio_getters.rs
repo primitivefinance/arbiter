@@ -7,17 +7,19 @@ pub use i_portfolio_getters::*;
     clippy::upper_case_acronyms,
     clippy::type_complexity,
     dead_code,
-    non_camel_case_types
+    non_camel_case_types,
 )]
 pub mod i_portfolio_getters {
     pub use super::super::shared_types::*;
     #[rustfmt::skip]
     const __ABI: &str = "[{\"inputs\":[],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"REGISTRY\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\",\"components\":[]}]},{\"inputs\":[],\"stateMutability\":\"pure\",\"type\":\"function\",\"name\":\"VERSION\",\"outputs\":[{\"internalType\":\"string\",\"name\":\"\",\"type\":\"string\",\"components\":[]}]},{\"inputs\":[],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"WETH\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"uint64\",\"name\":\"poolId\",\"type\":\"uint64\",\"components\":[]},{\"internalType\":\"bool\",\"name\":\"sellAsset\",\"type\":\"bool\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"amountIn\",\"type\":\"uint256\",\"components\":[]}],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"getAmountOut\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"owner\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"address\",\"name\":\"token\",\"type\":\"address\",\"components\":[]}],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"getBalance\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"uint64\",\"name\":\"poolId\",\"type\":\"uint64\",\"components\":[]},{\"internalType\":\"int128\",\"name\":\"deltaLiquidity\",\"type\":\"int128\",\"components\":[]}],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"getLiquidityDeltas\",\"outputs\":[{\"internalType\":\"uint128\",\"name\":\"deltaAsset\",\"type\":\"uint128\",\"components\":[]},{\"internalType\":\"uint128\",\"name\":\"deltaQuote\",\"type\":\"uint128\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"uint64\",\"name\":\"poolId\",\"type\":\"uint64\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"deltaAsset\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"deltaQuote\",\"type\":\"uint256\",\"components\":[]}],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"getMaxLiquidity\",\"outputs\":[{\"internalType\":\"uint128\",\"name\":\"deltaLiquidity\",\"type\":\"uint128\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"token\",\"type\":\"address\",\"components\":[]}],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"getNetBalance\",\"outputs\":[{\"internalType\":\"int256\",\"name\":\"\",\"type\":\"int256\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"asset\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"address\",\"name\":\"quote\",\"type\":\"address\",\"components\":[]}],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"getPairId\",\"outputs\":[{\"internalType\":\"uint24\",\"name\":\"pairId\",\"type\":\"uint24\",\"components\":[]}]},{\"inputs\":[],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"getPairNonce\",\"outputs\":[{\"internalType\":\"uint24\",\"name\":\"\",\"type\":\"uint24\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"uint24\",\"name\":\"pairNonce\",\"type\":\"uint24\",\"components\":[]}],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"getPoolNonce\",\"outputs\":[{\"internalType\":\"uint32\",\"name\":\"\",\"type\":\"uint32\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"uint64\",\"name\":\"poolId\",\"type\":\"uint64\",\"components\":[]}],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"getPoolReserves\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"deltaAsset\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"deltaQuote\",\"type\":\"uint256\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"token\",\"type\":\"address\",\"components\":[]}],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"getReserve\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"uint64\",\"name\":\"poolId\",\"type\":\"uint64\",\"components\":[]}],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"getVirtualPrice\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"price\",\"type\":\"uint256\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"uint64\",\"name\":\"poolId\",\"type\":\"uint64\",\"components\":[]}],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"getVirtualReservesPerLiquidity\",\"outputs\":[{\"internalType\":\"uint128\",\"name\":\"deltaAsset\",\"type\":\"uint128\",\"components\":[]},{\"internalType\":\"uint128\",\"name\":\"deltaQuote\",\"type\":\"uint128\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"uint24\",\"name\":\"pairId\",\"type\":\"uint24\",\"components\":[]}],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"pairs\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"tokenAsset\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint8\",\"name\":\"decimalsAsset\",\"type\":\"uint8\",\"components\":[]},{\"internalType\":\"address\",\"name\":\"tokenQuote\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint8\",\"name\":\"decimalsQuote\",\"type\":\"uint8\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"uint64\",\"name\":\"poolId\",\"type\":\"uint64\",\"components\":[]}],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"pools\",\"outputs\":[{\"internalType\":\"uint128\",\"name\":\"virtualX\",\"type\":\"uint128\",\"components\":[]},{\"internalType\":\"uint128\",\"name\":\"virtualY\",\"type\":\"uint128\",\"components\":[]},{\"internalType\":\"uint128\",\"name\":\"liquidity\",\"type\":\"uint128\",\"components\":[]},{\"internalType\":\"uint32\",\"name\":\"lastTimestamp\",\"type\":\"uint32\",\"components\":[]},{\"internalType\":\"address\",\"name\":\"controller\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"invariantGrowthGlobal\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"feeGrowthGlobalAsset\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"feeGrowthGlobalQuote\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"struct PortfolioCurve\",\"name\":\"\",\"type\":\"tuple\",\"components\":[{\"internalType\":\"uint128\",\"name\":\"maxPrice\",\"type\":\"uint128\",\"components\":[]},{\"internalType\":\"uint16\",\"name\":\"jit\",\"type\":\"uint16\",\"components\":[]},{\"internalType\":\"uint16\",\"name\":\"fee\",\"type\":\"uint16\",\"components\":[]},{\"internalType\":\"uint16\",\"name\":\"duration\",\"type\":\"uint16\",\"components\":[]},{\"internalType\":\"uint16\",\"name\":\"volatility\",\"type\":\"uint16\",\"components\":[]},{\"internalType\":\"uint16\",\"name\":\"priorityFee\",\"type\":\"uint16\",\"components\":[]},{\"internalType\":\"uint32\",\"name\":\"createdAt\",\"type\":\"uint32\",\"components\":[]},{\"internalType\":\"bool\",\"name\":\"perpetual\",\"type\":\"bool\",\"components\":[]}]},{\"internalType\":\"struct PortfolioPair\",\"name\":\"\",\"type\":\"tuple\",\"components\":[{\"internalType\":\"address\",\"name\":\"tokenAsset\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint8\",\"name\":\"decimalsAsset\",\"type\":\"uint8\",\"components\":[]},{\"internalType\":\"address\",\"name\":\"tokenQuote\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint8\",\"name\":\"decimalsQuote\",\"type\":\"uint8\",\"components\":[]}]}]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"owner\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint64\",\"name\":\"poolId\",\"type\":\"uint64\",\"components\":[]}],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"positions\",\"outputs\":[{\"internalType\":\"uint128\",\"name\":\"freeLiquidity\",\"type\":\"uint128\",\"components\":[]},{\"internalType\":\"uint32\",\"name\":\"lastTimestamp\",\"type\":\"uint32\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"invariantGrowthLast\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"feeGrowthAssetLast\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"feeGrowthQuoteLast\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"uint128\",\"name\":\"tokensOwedAsset\",\"type\":\"uint128\",\"components\":[]},{\"internalType\":\"uint128\",\"name\":\"tokensOwedQuote\",\"type\":\"uint128\",\"components\":[]},{\"internalType\":\"uint128\",\"name\":\"invariantOwed\",\"type\":\"uint128\",\"components\":[]}]}]";
     ///The parsed JSON ABI of the contract.
-    pub static IPORTFOLIOGETTERS_ABI: ::ethers::contract::Lazy<::ethers::core::abi::Abi> =
-        ::ethers::contract::Lazy::new(|| {
-            ::ethers::core::utils::__serde_json::from_str(__ABI).expect("ABI is always valid")
-        });
+    pub static IPORTFOLIOGETTERS_ABI: ::ethers::contract::Lazy<
+        ::ethers::core::abi::Abi,
+    > = ::ethers::contract::Lazy::new(|| {
+        ::ethers::core::utils::__serde_json::from_str(__ABI)
+            .expect("ABI is always valid")
+    });
     pub struct IPortfolioGetters<M>(::ethers::contract::Contract<M>);
     impl<M> ::core::clone::Clone for IPortfolioGetters<M> {
         fn clone(&self) -> Self {
@@ -37,9 +39,7 @@ pub mod i_portfolio_getters {
     }
     impl<M> ::core::fmt::Debug for IPortfolioGetters<M> {
         fn fmt(&self, f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
-            f.debug_tuple(stringify!(IPortfolioGetters))
-                .field(&self.address())
-                .finish()
+            f.debug_tuple(stringify!(IPortfolioGetters)).field(&self.address()).finish()
         }
     }
     impl<M: ::ethers::providers::Middleware> IPortfolioGetters<M> {
@@ -49,16 +49,21 @@ pub mod i_portfolio_getters {
             address: T,
             client: ::std::sync::Arc<M>,
         ) -> Self {
-            Self(::ethers::contract::Contract::new(
-                address.into(),
-                IPORTFOLIOGETTERS_ABI.clone(),
-                client,
-            ))
+            Self(
+                ::ethers::contract::Contract::new(
+                    address.into(),
+                    IPORTFOLIOGETTERS_ABI.clone(),
+                    client,
+                ),
+            )
         }
         ///Calls the contract's `REGISTRY` (0x06433b1b) function
         pub fn registry(
             &self,
-        ) -> ::ethers::contract::builders::ContractCall<M, ::ethers::core::types::Address> {
+        ) -> ::ethers::contract::builders::ContractCall<
+            M,
+            ::ethers::core::types::Address,
+        > {
             self.0
                 .method_hash([6, 67, 59, 27], ())
                 .expect("method not found (this should never happen)")
@@ -74,7 +79,10 @@ pub mod i_portfolio_getters {
         ///Calls the contract's `WETH` (0xad5c4648) function
         pub fn weth(
             &self,
-        ) -> ::ethers::contract::builders::ContractCall<M, ::ethers::core::types::Address> {
+        ) -> ::ethers::contract::builders::ContractCall<
+            M,
+            ::ethers::core::types::Address,
+        > {
             self.0
                 .method_hash([173, 92, 70, 72], ())
                 .expect("method not found (this should never happen)")
@@ -141,7 +149,9 @@ pub mod i_portfolio_getters {
                 .expect("method not found (this should never happen)")
         }
         ///Calls the contract's `getPairNonce` (0x078888d6) function
-        pub fn get_pair_nonce(&self) -> ::ethers::contract::builders::ContractCall<M, u32> {
+        pub fn get_pair_nonce(
+            &self,
+        ) -> ::ethers::contract::builders::ContractCall<M, u32> {
             self.0
                 .method_hash([7, 136, 136, 214], ())
                 .expect("method not found (this should never happen)")
@@ -200,12 +210,7 @@ pub mod i_portfolio_getters {
             pair_id: u32,
         ) -> ::ethers::contract::builders::ContractCall<
             M,
-            (
-                ::ethers::core::types::Address,
-                u8,
-                ::ethers::core::types::Address,
-                u8,
-            ),
+            (::ethers::core::types::Address, u8, ::ethers::core::types::Address, u8),
         > {
             self.0
                 .method_hash([94, 71, 102, 60], pair_id)
@@ -258,8 +263,7 @@ pub mod i_portfolio_getters {
         }
     }
     impl<M: ::ethers::providers::Middleware> From<::ethers::contract::Contract<M>>
-        for IPortfolioGetters<M>
-    {
+    for IPortfolioGetters<M> {
         fn from(contract: ::ethers::contract::Contract<M>) -> Self {
             Self::new(contract.address(), contract.client())
         }
@@ -273,7 +277,7 @@ pub mod i_portfolio_getters {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(name = "REGISTRY", abi = "REGISTRY()")]
     pub struct RegistryCall;
@@ -286,7 +290,7 @@ pub mod i_portfolio_getters {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(name = "VERSION", abi = "VERSION()")]
     pub struct VersionCall;
@@ -299,7 +303,7 @@ pub mod i_portfolio_getters {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(name = "WETH", abi = "WETH()")]
     pub struct WethCall;
@@ -312,7 +316,7 @@ pub mod i_portfolio_getters {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(name = "getAmountOut", abi = "getAmountOut(uint64,bool,uint256)")]
     pub struct GetAmountOutCall {
@@ -329,7 +333,7 @@ pub mod i_portfolio_getters {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(name = "getBalance", abi = "getBalance(address,address)")]
     pub struct GetBalanceCall {
@@ -345,7 +349,7 @@ pub mod i_portfolio_getters {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(name = "getLiquidityDeltas", abi = "getLiquidityDeltas(uint64,int128)")]
     pub struct GetLiquidityDeltasCall {
@@ -361,12 +365,9 @@ pub mod i_portfolio_getters {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
-    #[ethcall(
-        name = "getMaxLiquidity",
-        abi = "getMaxLiquidity(uint64,uint256,uint256)"
-    )]
+    #[ethcall(name = "getMaxLiquidity", abi = "getMaxLiquidity(uint64,uint256,uint256)")]
     pub struct GetMaxLiquidityCall {
         pub pool_id: u64,
         pub delta_asset: ::ethers::core::types::U256,
@@ -381,7 +382,7 @@ pub mod i_portfolio_getters {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(name = "getNetBalance", abi = "getNetBalance(address)")]
     pub struct GetNetBalanceCall {
@@ -396,7 +397,7 @@ pub mod i_portfolio_getters {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(name = "getPairId", abi = "getPairId(address,address)")]
     pub struct GetPairIdCall {
@@ -412,7 +413,7 @@ pub mod i_portfolio_getters {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(name = "getPairNonce", abi = "getPairNonce()")]
     pub struct GetPairNonceCall;
@@ -425,7 +426,7 @@ pub mod i_portfolio_getters {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(name = "getPoolNonce", abi = "getPoolNonce(uint24)")]
     pub struct GetPoolNonceCall {
@@ -440,7 +441,7 @@ pub mod i_portfolio_getters {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(name = "getPoolReserves", abi = "getPoolReserves(uint64)")]
     pub struct GetPoolReservesCall {
@@ -455,7 +456,7 @@ pub mod i_portfolio_getters {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(name = "getReserve", abi = "getReserve(address)")]
     pub struct GetReserveCall {
@@ -470,7 +471,7 @@ pub mod i_portfolio_getters {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(name = "getVirtualPrice", abi = "getVirtualPrice(uint64)")]
     pub struct GetVirtualPriceCall {
@@ -485,7 +486,7 @@ pub mod i_portfolio_getters {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(
         name = "getVirtualReservesPerLiquidity",
@@ -503,7 +504,7 @@ pub mod i_portfolio_getters {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(name = "pairs", abi = "pairs(uint24)")]
     pub struct PairsCall {
@@ -518,7 +519,7 @@ pub mod i_portfolio_getters {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(name = "pools", abi = "pools(uint64)")]
     pub struct PoolsCall {
@@ -533,7 +534,7 @@ pub mod i_portfolio_getters {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(name = "positions", abi = "positions(address,uint64)")]
     pub struct PositionsCall {
@@ -567,72 +568,80 @@ pub mod i_portfolio_getters {
             data: impl AsRef<[u8]>,
         ) -> ::core::result::Result<Self, ::ethers::core::abi::AbiError> {
             let data = data.as_ref();
-            if let Ok(decoded) = <RegistryCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded)
+                = <RegistryCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::Registry(decoded));
             }
-            if let Ok(decoded) = <VersionCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded)
+                = <VersionCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::Version(decoded));
             }
-            if let Ok(decoded) = <WethCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded)
+                = <WethCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::Weth(decoded));
             }
-            if let Ok(decoded) = <GetAmountOutCall as ::ethers::core::abi::AbiDecode>::decode(data)
-            {
+            if let Ok(decoded)
+                = <GetAmountOutCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::GetAmountOut(decoded));
             }
-            if let Ok(decoded) = <GetBalanceCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded)
+                = <GetBalanceCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::GetBalance(decoded));
             }
-            if let Ok(decoded) =
-                <GetLiquidityDeltasCall as ::ethers::core::abi::AbiDecode>::decode(data)
-            {
+            if let Ok(decoded)
+                = <GetLiquidityDeltasCall as ::ethers::core::abi::AbiDecode>::decode(
+                    data,
+                ) {
                 return Ok(Self::GetLiquidityDeltas(decoded));
             }
-            if let Ok(decoded) =
-                <GetMaxLiquidityCall as ::ethers::core::abi::AbiDecode>::decode(data)
-            {
+            if let Ok(decoded)
+                = <GetMaxLiquidityCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::GetMaxLiquidity(decoded));
             }
-            if let Ok(decoded) = <GetNetBalanceCall as ::ethers::core::abi::AbiDecode>::decode(data)
-            {
+            if let Ok(decoded)
+                = <GetNetBalanceCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::GetNetBalance(decoded));
             }
-            if let Ok(decoded) = <GetPairIdCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded)
+                = <GetPairIdCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::GetPairId(decoded));
             }
-            if let Ok(decoded) = <GetPairNonceCall as ::ethers::core::abi::AbiDecode>::decode(data)
-            {
+            if let Ok(decoded)
+                = <GetPairNonceCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::GetPairNonce(decoded));
             }
-            if let Ok(decoded) = <GetPoolNonceCall as ::ethers::core::abi::AbiDecode>::decode(data)
-            {
+            if let Ok(decoded)
+                = <GetPoolNonceCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::GetPoolNonce(decoded));
             }
-            if let Ok(decoded) =
-                <GetPoolReservesCall as ::ethers::core::abi::AbiDecode>::decode(data)
-            {
+            if let Ok(decoded)
+                = <GetPoolReservesCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::GetPoolReserves(decoded));
             }
-            if let Ok(decoded) = <GetReserveCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded)
+                = <GetReserveCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::GetReserve(decoded));
             }
-            if let Ok(decoded) =
-                <GetVirtualPriceCall as ::ethers::core::abi::AbiDecode>::decode(data)
-            {
+            if let Ok(decoded)
+                = <GetVirtualPriceCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::GetVirtualPrice(decoded));
             }
-            if let Ok(decoded) =
-                <GetVirtualReservesPerLiquidityCall as ::ethers::core::abi::AbiDecode>::decode(data)
-            {
+            if let Ok(decoded)
+                = <GetVirtualReservesPerLiquidityCall as ::ethers::core::abi::AbiDecode>::decode(
+                    data,
+                ) {
                 return Ok(Self::GetVirtualReservesPerLiquidity(decoded));
             }
-            if let Ok(decoded) = <PairsCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded)
+                = <PairsCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::Pairs(decoded));
             }
-            if let Ok(decoded) = <PoolsCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded)
+                = <PoolsCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::Pools(decoded));
             }
-            if let Ok(decoded) = <PositionsCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded)
+                = <PositionsCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::Positions(decoded));
             }
             Err(::ethers::core::abi::Error::InvalidData.into())
@@ -641,28 +650,52 @@ pub mod i_portfolio_getters {
     impl ::ethers::core::abi::AbiEncode for IPortfolioGettersCalls {
         fn encode(self) -> Vec<u8> {
             match self {
-                Self::Registry(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::Registry(element) => {
+                    ::ethers::core::abi::AbiEncode::encode(element)
+                }
                 Self::Version(element) => ::ethers::core::abi::AbiEncode::encode(element),
                 Self::Weth(element) => ::ethers::core::abi::AbiEncode::encode(element),
-                Self::GetAmountOut(element) => ::ethers::core::abi::AbiEncode::encode(element),
-                Self::GetBalance(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::GetAmountOut(element) => {
+                    ::ethers::core::abi::AbiEncode::encode(element)
+                }
+                Self::GetBalance(element) => {
+                    ::ethers::core::abi::AbiEncode::encode(element)
+                }
                 Self::GetLiquidityDeltas(element) => {
                     ::ethers::core::abi::AbiEncode::encode(element)
                 }
-                Self::GetMaxLiquidity(element) => ::ethers::core::abi::AbiEncode::encode(element),
-                Self::GetNetBalance(element) => ::ethers::core::abi::AbiEncode::encode(element),
-                Self::GetPairId(element) => ::ethers::core::abi::AbiEncode::encode(element),
-                Self::GetPairNonce(element) => ::ethers::core::abi::AbiEncode::encode(element),
-                Self::GetPoolNonce(element) => ::ethers::core::abi::AbiEncode::encode(element),
-                Self::GetPoolReserves(element) => ::ethers::core::abi::AbiEncode::encode(element),
-                Self::GetReserve(element) => ::ethers::core::abi::AbiEncode::encode(element),
-                Self::GetVirtualPrice(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::GetMaxLiquidity(element) => {
+                    ::ethers::core::abi::AbiEncode::encode(element)
+                }
+                Self::GetNetBalance(element) => {
+                    ::ethers::core::abi::AbiEncode::encode(element)
+                }
+                Self::GetPairId(element) => {
+                    ::ethers::core::abi::AbiEncode::encode(element)
+                }
+                Self::GetPairNonce(element) => {
+                    ::ethers::core::abi::AbiEncode::encode(element)
+                }
+                Self::GetPoolNonce(element) => {
+                    ::ethers::core::abi::AbiEncode::encode(element)
+                }
+                Self::GetPoolReserves(element) => {
+                    ::ethers::core::abi::AbiEncode::encode(element)
+                }
+                Self::GetReserve(element) => {
+                    ::ethers::core::abi::AbiEncode::encode(element)
+                }
+                Self::GetVirtualPrice(element) => {
+                    ::ethers::core::abi::AbiEncode::encode(element)
+                }
                 Self::GetVirtualReservesPerLiquidity(element) => {
                     ::ethers::core::abi::AbiEncode::encode(element)
                 }
                 Self::Pairs(element) => ::ethers::core::abi::AbiEncode::encode(element),
                 Self::Pools(element) => ::ethers::core::abi::AbiEncode::encode(element),
-                Self::Positions(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::Positions(element) => {
+                    ::ethers::core::abi::AbiEncode::encode(element)
+                }
             }
         }
     }
@@ -674,7 +707,9 @@ pub mod i_portfolio_getters {
                 Self::Weth(element) => ::core::fmt::Display::fmt(element, f),
                 Self::GetAmountOut(element) => ::core::fmt::Display::fmt(element, f),
                 Self::GetBalance(element) => ::core::fmt::Display::fmt(element, f),
-                Self::GetLiquidityDeltas(element) => ::core::fmt::Display::fmt(element, f),
+                Self::GetLiquidityDeltas(element) => {
+                    ::core::fmt::Display::fmt(element, f)
+                }
                 Self::GetMaxLiquidity(element) => ::core::fmt::Display::fmt(element, f),
                 Self::GetNetBalance(element) => ::core::fmt::Display::fmt(element, f),
                 Self::GetPairId(element) => ::core::fmt::Display::fmt(element, f),
@@ -762,7 +797,8 @@ pub mod i_portfolio_getters {
             Self::GetVirtualPrice(value)
         }
     }
-    impl ::core::convert::From<GetVirtualReservesPerLiquidityCall> for IPortfolioGettersCalls {
+    impl ::core::convert::From<GetVirtualReservesPerLiquidityCall>
+    for IPortfolioGettersCalls {
         fn from(value: GetVirtualReservesPerLiquidityCall) -> Self {
             Self::GetVirtualReservesPerLiquidity(value)
         }
@@ -791,7 +827,7 @@ pub mod i_portfolio_getters {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     pub struct RegistryReturn(pub ::ethers::core::types::Address);
     ///Container type for all return fields from the `VERSION` function with signature `VERSION()` and selector `0xffa1ad74`
@@ -803,7 +839,7 @@ pub mod i_portfolio_getters {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     pub struct VersionReturn(pub ::std::string::String);
     ///Container type for all return fields from the `WETH` function with signature `WETH()` and selector `0xad5c4648`
@@ -815,7 +851,7 @@ pub mod i_portfolio_getters {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     pub struct WethReturn(pub ::ethers::core::types::Address);
     ///Container type for all return fields from the `getAmountOut` function with signature `getAmountOut(uint64,bool,uint256)` and selector `0x7dae4890`
@@ -827,7 +863,7 @@ pub mod i_portfolio_getters {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     pub struct GetAmountOutReturn(pub ::ethers::core::types::U256);
     ///Container type for all return fields from the `getBalance` function with signature `getBalance(address,address)` and selector `0xd4fac45d`
@@ -839,7 +875,7 @@ pub mod i_portfolio_getters {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     pub struct GetBalanceReturn(pub ::ethers::core::types::U256);
     ///Container type for all return fields from the `getLiquidityDeltas` function with signature `getLiquidityDeltas(uint64,int128)` and selector `0x8992f20a`
@@ -851,7 +887,7 @@ pub mod i_portfolio_getters {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     pub struct GetLiquidityDeltasReturn {
         pub delta_asset: u128,
@@ -866,7 +902,7 @@ pub mod i_portfolio_getters {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     pub struct GetMaxLiquidityReturn {
         pub delta_liquidity: u128,
@@ -880,7 +916,7 @@ pub mod i_portfolio_getters {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     pub struct GetNetBalanceReturn(pub ::ethers::core::types::I256);
     ///Container type for all return fields from the `getPairId` function with signature `getPairId(address,address)` and selector `0x3f92a339`
@@ -892,7 +928,7 @@ pub mod i_portfolio_getters {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     pub struct GetPairIdReturn {
         pub pair_id: u32,
@@ -906,7 +942,7 @@ pub mod i_portfolio_getters {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     pub struct GetPairNonceReturn(pub u32);
     ///Container type for all return fields from the `getPoolNonce` function with signature `getPoolNonce(uint24)` and selector `0xa5cd8a49`
@@ -918,7 +954,7 @@ pub mod i_portfolio_getters {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     pub struct GetPoolNonceReturn(pub u32);
     ///Container type for all return fields from the `getPoolReserves` function with signature `getPoolReserves(uint64)` and selector `0x2afb9df8`
@@ -930,7 +966,7 @@ pub mod i_portfolio_getters {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     pub struct GetPoolReservesReturn {
         pub delta_asset: ::ethers::core::types::U256,
@@ -945,7 +981,7 @@ pub mod i_portfolio_getters {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     pub struct GetReserveReturn(pub ::ethers::core::types::U256);
     ///Container type for all return fields from the `getVirtualPrice` function with signature `getVirtualPrice(uint64)` and selector `0x61b7ea6a`
@@ -957,7 +993,7 @@ pub mod i_portfolio_getters {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     pub struct GetVirtualPriceReturn {
         pub price: ::ethers::core::types::U256,
@@ -971,7 +1007,7 @@ pub mod i_portfolio_getters {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     pub struct GetVirtualReservesPerLiquidityReturn {
         pub delta_asset: u128,
@@ -986,7 +1022,7 @@ pub mod i_portfolio_getters {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     pub struct PairsReturn {
         pub token_asset: ::ethers::core::types::Address,
@@ -1003,7 +1039,7 @@ pub mod i_portfolio_getters {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     pub struct PoolsReturn {
         pub virtual_x: u128,
@@ -1026,7 +1062,7 @@ pub mod i_portfolio_getters {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     pub struct PositionsReturn {
         pub free_liquidity: u128,

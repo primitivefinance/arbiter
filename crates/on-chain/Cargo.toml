@@ -16,7 +16,7 @@ tokio = { version = "1.17.0", features = ["macros"] }
 url = { version = "2.3.1", default-features = false }
 ethers-flashbots = "0.12.1"
 toml = "0.5.10"
-ethers = "2.0.0"
+ethers = "2.0.2"
 num-bigfloat = "1.6.0"
 futures = "0.3"
 eyre = "0.6.6"
