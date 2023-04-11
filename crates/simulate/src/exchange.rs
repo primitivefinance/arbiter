@@ -113,93 +113,111 @@ mod tests {
         let args = (name.to_string(), symbol.to_string(), decimals).into_tokens();
         let token_y = admin.deploy(&mut manager.environment, arbiter_token, args);
 
-            // // Increase the admin's allowance for token_y to max.
-            // let args = (recast_address(admin.address()), U256::MAX);
-            // let call_data = token_y
-            //     .base_contract
-            //     .encode("increaseAllowance", args)
-            //     .unwrap()
-            //     .into_iter()
-            //     .collect();
-            // let execution_result = admin.call_contract(&mut manager.environment, &token_y, call_data, Uint::from(0));
-            // let value = manager.unpack_execution(execution_result);
-            // let value: bool = token_y
-            //     .base_contract
-            //     .decode_output("increaseAllowance", value)
-            //     .unwrap();
-            // println!("output of increaseAllowance for manager: {:#?}", value);
-
-        //             // Increase the user's allowance for token_x.
-        //             let args = (recast_address(user_address), U256::from(mint_amount));
-        //             let call_data = token_x
-        //                 .base_contract
-        //                 .encode("increaseAllowance", args)
-        //                 .unwrap()
-        //                 .into_iter()
-        //                 .collect();
-        //             let execution_result = manager.call_contract(&token_x, call_data, Uint::from(0));
-        //             let value = manager.unpack_execution(execution_result);
-        //             let value: bool = token_x
-        //                 .base_contract
-        //                 .decode_output("increaseAllowance", value)
-        //                 .unwrap();
-        //             println!("output of increaseAllowance for user: {:#?}", value);
-
-            // Deploy LiquidExchange
-            let initial_price = 1000;
-            let liquid_exchange = SimulationContract::new(
-                BaseContract::from(bindings::liquid_exchange::LIQUIDEXCHANGE_ABI.clone()),
-                bindings::liquid_exchange::LIQUIDEXCHANGE_BYTECODE
-                    .clone()
-                    .into_iter()
-                    .collect(),
-            );
-            let args = (
-                recast_address(token_x.address.unwrap()),
-                recast_address(token_y.address.unwrap()),
-                U256::from(initial_price),
-            ).into_tokens();
-            let liquid_exchange_xy = admin.deploy(&mut manager.environment, liquid_exchange, args);
-
-            // Let the user call the swap function where we trade in token x for token y
-            let swap_amount = mint_amount/2; // Swap half of the amount we minted
-            let call_data = liquid_exchange_xy
-                .base_contract
-                .encode(
-                    "swap",
-                    (
-                        recast_address(token_x.address.unwrap()),
-                        U256::from(swap_amount),
-                    ),
-                )
-                .unwrap()
+        // Deploy LiquidExchange
+        let initial_price = 1000;
+        let liquid_exchange = SimulationContract::new(
+            BaseContract::from(bindings::liquid_exchange::LIQUIDEXCHANGE_ABI.clone()),
+            bindings::liquid_exchange::LIQUIDEXCHANGE_BYTECODE
+                .clone()
                 .into_iter()
-                .collect();
-            let execution_result = alice.call_contract(&mut manager.environment, &liquid_exchange_xy, call_data, Uint::from(0));
-            let value = manager.unpack_execution(execution_result);
-            let value: U256 = liquid_exchange_xy
-                .base_contract
-                .decode_output("swap", value)
-                .unwrap();
-            println!("value: {:#?}", value);
+                .collect(),
+        );
+        let args = (
+            recast_address(token_x.address.unwrap()),
+            recast_address(token_y.address.unwrap()),
+            U256::from(initial_price),
+        )
+            .into_tokens();
+        let liquid_exchange_xy = admin.deploy(&mut manager.environment, liquid_exchange, args);
 
-            // Check the event log for the amount_out
-            admin.monitor_events();
-            // println!("logs: {:#?}", logs);
-            // let log_topics: Vec<H256> = logs.clone()[0]
-            //     .topics
-            //     .clone()
-            //     .into_iter()
-            //     .map(|x| H256::from_slice(x.as_slice()))
-            //     .collect();
-            // let log_data = logs[0].data.clone().into();
-            // let log_output = le_xy
-            //     .base_contract
-            //     .decode_event::<(Address, U256, Address, U256)>("SwapOccured", log_topics, log_data)
-            //     .unwrap();
-            // println!("log output: {:#?}", log_output);
-            // println!("log entry for amount_out: {:#?}", log_output.3);
-            // assert_eq!(log_output.3, U256::from(initial_price * swap_amount));
+        // Give the admin max token y
+        let args = (recast_address(admin.address()), U256::MAX);
+        let call_data = token_y
+            .base_contract
+            .encode("mint", args)
+            .unwrap()
+            .into_iter()
+            .collect();
+        admin.call_contract(&mut manager.environment, &token_y, call_data, Uint::from(0));
+
+        // Increase the admin's allowance for token_y to max.
+        let args = (recast_address(alice.address()), U256::MAX);
+        let call_data = token_y
+            .base_contract
+            .encode("approve", args)
+            .unwrap()
+            .into_iter()
+            .collect();
+        let execution_result =
+            admin.call_contract(&mut manager.environment, &token_y, call_data, Uint::from(0));
+        let value = manager.unpack_execution(execution_result);
+        let value: bool = token_y
+            .base_contract
+            .decode_output("approve", value)
+            .unwrap();
+        println!("output of increaseAllowance for admin: {:#?}", value);
+
+        // Increase the user's allowance for token_x.
+        let args = (recast_address(admin.address()), U256::MAX);
+        let call_data = token_y
+            .base_contract
+            .encode("approve", args)
+            .unwrap()
+            .into_iter()
+            .collect();
+        let execution_result =
+            alice.call_contract(&mut manager.environment, &token_y, call_data, Uint::from(0));
+        let value = manager.unpack_execution(execution_result);
+        let value: bool = token_y
+            .base_contract
+            .decode_output("approve", value)
+            .unwrap();
+        println!("output of increaseAllowance for alice: {:#?}", value);
+
+        // Let the user call the swap function where we trade in token x for token y
+        let swap_amount = mint_amount / 2; // Swap half of the amount we minted
+        let call_data = liquid_exchange_xy
+            .base_contract
+            .encode(
+                "swap",
+                (
+                    recast_address(token_x.address.unwrap()),
+                    U256::from(swap_amount),
+                ),
+            )
+            .unwrap()
+            .into_iter()
+            .collect();
+        let execution_result = alice.call_contract(
+            &mut manager.environment,
+            &liquid_exchange_xy,
+            call_data,
+            Uint::from(0),
+        );
+        let value = manager.unpack_execution(execution_result);
+        let value: U256 = liquid_exchange_xy
+            .base_contract
+            .decode_output("swap", value)
+            .unwrap();
+        println!("value: {:#?}", value);
+
+        // Check the event log for the amount_out
+        admin.monitor_events();
+        // println!("logs: {:#?}", logs);
+        // let log_topics: Vec<H256> = logs.clone()[0]
+        //     .topics
+        //     .clone()
+        //     .into_iter()
+        //     .map(|x| H256::from_slice(x.as_slice()))
+        //     .collect();
+        // let log_data = logs[0].data.clone().into();
+        // let log_output = le_xy
+        //     .base_contract
+        //     .decode_event::<(Address, U256, Address, U256)>("SwapOccured", log_topics, log_data)
+        //     .unwrap();
+        // println!("log output: {:#?}", log_output);
+        // println!("log entry for amount_out: {:#?}", log_output.3);
+        // assert_eq!(log_output.3, U256::from(initial_price * swap_amount));
 
         //     // Check that the user received funds in token_y
         //     let call_data = token_y

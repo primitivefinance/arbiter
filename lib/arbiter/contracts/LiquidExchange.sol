@@ -43,29 +43,28 @@ contract LiquidExchange {
         emit PriceChange(price);
     }
 
-    // TODO: This function is NOT completed yet. It is just a placeholder for now.
     function swap(address tokenIn, uint256 amountIn) public returns (uint256 amountOut){
         uint256 amountOut;
         address tokenOut;
         if (tokenIn == arbiterTokenX) {
+            tokenOut = arbiterTokenY;
             amountOut = FixedPointMathLib.mulWadDown(amountIn, price);
-            // arbiterTokenX.approve(msg.sender, amountIn);
-            ERC20(arbiterTokenX).transferFrom(msg.sender, admin, amountIn);
-            ArbiterToken(arbiterTokenY).mint(msg.sender, amountOut);
-            return amountOut;
-            // arbiterTokenX.transferFrom(msg.sender, admin, amountIn);
-            // arbiterTokenY.transferFrom(admin, msg.sender, amountOut);
         } else if (tokenIn == arbiterTokenY) {
+            tokenOut = arbiterTokenX;
             amountOut = FixedPointMathLib.divWadDown(amountIn, price);
-            // arbiterTokenY.approve(msg.sender, amountIn);
-            ERC20(arbiterTokenY).transferFrom(msg.sender, admin, amountIn);
-            ArbiterToken(arbiterTokenX).mint(msg.sender, amountOut);
-            // arbiterTokenY.transferFrom(msg.sender, admin, amountIn);
-            // arbiterTokenX.transferFrom(admin, msg.sender, amountOut);
-            return amountOut;
         } else {
             revert("Invalid token");
         }
+        // require(ArbiterToken(tokenIn).approve(msg.sender, amountIn), "Approval failed");
+        // require(ArbiterToken(tokenOut).approve(admin, amountOut), "Approval failed");
+        require(ERC20(tokenIn).transferFrom(msg.sender, admin, amountIn), "Transfer failed");
+        require(ERC20(tokenOut).transferFrom(admin, msg.sender, amountOut), "Transfer failed");
         emit Swap(tokenIn, tokenOut, amountIn, amountOut, msg.sender);    
+        return amountOut;
+    //         require(ArbiterToken(tokenIn).approve(address(this), amountIn), "Approval failed");
+    // require(ERC20(tokenIn).transferFrom(msg.sender, admin, amountIn), "Transfer failed");
+    // ArbiterToken(tokenOut).mint(msg.sender, amountOut);
+    // emit Swap(tokenIn, tokenOut, amountIn, amountOut, msg.sender);    
+    // return amountOut;
     }
 }

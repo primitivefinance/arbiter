@@ -15,8 +15,9 @@ contract ArbiterToken is ERC20 {
         _;
     }
 
-    function mint(address receiver, uint256 amount) public onlyAdmin {
+    function mint(address receiver, uint256 amount) public onlyAdmin returns (bool) {
         _mint(receiver, amount);
+        return true;
     }
 
     function mintMax(address receiver) public onlyAdmin {

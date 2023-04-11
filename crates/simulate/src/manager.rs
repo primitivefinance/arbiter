@@ -80,8 +80,18 @@ impl<'a> SimulationManager<'a> {
                 }
                 _ => panic!("This call has failed."),
             },
-            ExecutionResult::Halt { reason, gas_used } => panic!("This call halted for {:?} and used {} gas.", reason, gas_used),
-            ExecutionResult::Revert { output, gas_used } => panic!("This call reverted with output {:?} and used {} gas.", output, gas_used),
+            ExecutionResult::Halt { reason, gas_used } => panic!(
+                "This call halted for {:#?} and used {} gas.",
+                reason, gas_used
+            ),
+            // ExecutionResult::Revert { output, gas_used } => panic!(
+            //     "This call reverted with output {:?} and used {} gas.",
+            //     output, gas_used
+            // ),
+            ExecutionResult::Revert { output, .. } => {
+                println!("Revert!");
+                output
+            }
         }
     }
 }
