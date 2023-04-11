@@ -20,12 +20,4 @@ contract ArbiterToken is ERC20 {
         return true;
     }
 
-    function mintMax(address receiver) public onlyAdmin {
-        _mint(receiver, type(uint256).max);
-    }
-
-    function approve(address spender, uint256 amount) public virtual override returns (bool) {
-        super.approve(spender, amount);
-        return true;
-    }
 }

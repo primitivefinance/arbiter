@@ -45,15 +45,14 @@ mod tests {
 
         // Set up a user named alice
         let user_name = "alice";
-        let user_address = B160::from_low_u64_be(1);
+        let user_address = B160::from_low_u64_be(2); // TODO: Prevent address collisions
         manager.create_user(user_address, user_name);
 
         // Pull out the admin and alice
         let admin = manager.agents.get("admin").unwrap();
         let alice = manager.agents.get(user_name).unwrap();
 
-        // First we create arbiter token x and arbiter token y, then deploy LiquidExchange.
-        // Get the general arbiter_token bytecode
+        // Create arbiter token general contract.
         let arbiter_token = SimulationContract::new(
             BaseContract::from(bindings::arbiter_token::ARBITERTOKEN_ABI.clone()),
             bindings::arbiter_token::ARBITERTOKEN_BYTECODE
@@ -62,52 +61,14 @@ mod tests {
                 .collect(),
         );
 
-        // Deploy token_x
+        // Deploy token_x.
         let name = "Token X";
         let symbol = "TKNX";
         let decimals = 18_u8;
         let args = (name.to_string(), symbol.to_string(), decimals).into_tokens();
-        let token_x = admin.deploy(&mut manager.environment, arbiter_token, args);
+        let token_x = admin.deploy(&mut manager.environment, arbiter_token.clone(), args);
 
-        // Mint token_x to the user
-        let mint_amount = wad.checked_mul(U256::from(20)).unwrap(); // in wei units
-        let args = (recast_address(user_address), mint_amount);
-        let call_data = token_x
-            .base_contract
-            .encode("mint", args)
-            .unwrap()
-            .into_iter()
-            .collect();
-        admin.call_contract(&mut manager.environment, &token_x, call_data, Uint::from(0));
-
-        // TODO: REMOVE THIS INTERMEDIARRY TEST ONCE THE WHOLE TEST IS DONE
-        // Check that the user has the right amount of token_x
-        let call_data = token_x
-            .base_contract
-            .encode("balanceOf", recast_address(user_address))
-            .unwrap()
-            .into_iter()
-            .collect();
-        let execution_result =
-            admin.call_contract(&mut manager.environment, &token_x, call_data, Uint::from(0)); // Call the 'balanceOf' function.
-        let value = manager.unpack_execution(execution_result);
-        let response: U256 = token_x
-            .base_contract
-            .decode_output("balanceOf", value)
-            .unwrap();
-        println!("User has {} token_x", response);
-        println!("Mint amount was {}", mint_amount);
-        assert_eq!(response, mint_amount);
-
-        // Deploy token_y
-        // Get the general arbiter_token bytecode
-        let arbiter_token = SimulationContract::new(
-            BaseContract::from(bindings::arbiter_token::ARBITERTOKEN_ABI.clone()),
-            bindings::arbiter_token::ARBITERTOKEN_BYTECODE
-                .clone()
-                .into_iter()
-                .collect(),
-        );
+        // Deploy token_y.
         let name = "Token Y";
         let symbol = "TKNY";
         let args = (name.to_string(), symbol.to_string(), decimals).into_tokens();
@@ -130,8 +91,22 @@ mod tests {
             .into_tokens();
         let liquid_exchange_xy = admin.deploy(&mut manager.environment, liquid_exchange, args);
 
-        // Give the admin max token y
-        let args = (recast_address(admin.address()), U256::MAX);
+        // Mint token_x to the alice.
+        let mint_amount = wad.checked_mul(U256::from(20)).unwrap(); // in wei units
+        let args = (recast_address(alice.address()), mint_amount);
+        let call_data = token_x
+            .base_contract
+            .encode("mint", args)
+            .unwrap()
+            .into_iter()
+            .collect();
+        admin.call_contract(&mut manager.environment, &token_x, call_data, Uint::from(0));
+
+        // Mint max token_y to the liquid_exchange contract.
+        let args = (
+            recast_address(liquid_exchange_xy.address.unwrap()),
+            U256::MAX,
+        );
         let call_data = token_y
             .base_contract
             .encode("mint", args)
@@ -140,41 +115,47 @@ mod tests {
             .collect();
         admin.call_contract(&mut manager.environment, &token_y, call_data, Uint::from(0));
 
-        // Increase the admin's allowance for token_y to max.
-        let args = (recast_address(alice.address()), U256::MAX);
+        // TODO: This check can be removed
+        // Check that the user has the right amount of token_x
         let call_data = token_y
+            .base_contract
+            .encode(
+                "balanceOf",
+                recast_address(liquid_exchange_xy.address.unwrap()),
+            )
+            .unwrap()
+            .into_iter()
+            .collect();
+        let execution_result =
+            admin.call_contract(&mut manager.environment, &token_y, call_data, Uint::from(0)); // Call the 'balanceOf' function.
+        let value = manager.unpack_execution(execution_result);
+        let response: U256 = token_y
+            .base_contract
+            .decode_output("balanceOf", value)
+            .unwrap();
+        println!("LiquidExchange has {} token_y", response);
+
+        // Have alice's approval for token_x to be spent by the liquid_exchange.
+        let args = (
+            recast_address(liquid_exchange_xy.address.unwrap()),
+            U256::MAX,
+        );
+        let call_data = token_x
             .base_contract
             .encode("approve", args)
             .unwrap()
             .into_iter()
             .collect();
         let execution_result =
-            admin.call_contract(&mut manager.environment, &token_y, call_data, Uint::from(0));
+            alice.call_contract(&mut manager.environment, &token_x, call_data, Uint::from(0));
         let value = manager.unpack_execution(execution_result);
-        let value: bool = token_y
+        let value: bool = token_x
             .base_contract
             .decode_output("approve", value)
             .unwrap();
-        println!("output of increaseAllowance for admin: {:#?}", value);
+        println!("output of `approve` for alice: {:#?}", value);
 
-        // Increase the user's allowance for token_x.
-        let args = (recast_address(admin.address()), U256::MAX);
-        let call_data = token_y
-            .base_contract
-            .encode("approve", args)
-            .unwrap()
-            .into_iter()
-            .collect();
-        let execution_result =
-            alice.call_contract(&mut manager.environment, &token_y, call_data, Uint::from(0));
-        let value = manager.unpack_execution(execution_result);
-        let value: bool = token_y
-            .base_contract
-            .decode_output("approve", value)
-            .unwrap();
-        println!("output of increaseAllowance for alice: {:#?}", value);
-
-        // Let the user call the swap function where we trade in token x for token y
+        // Have alice call the swap function to trade token_x for token_y.
         let swap_amount = mint_amount / 2; // Swap half of the amount we minted
         let call_data = liquid_exchange_xy
             .base_contract
@@ -237,3 +218,22 @@ mod tests {
 
     // TODO: Test that only admin can access admin function (change mint function to only admin)
 }
+
+// // TODO: REMOVE THIS INTERMEDIARRY TEST ONCE THE WHOLE TEST IS DONE
+// // Check that the user has the right amount of token_x
+// let call_data = token_x
+//     .base_contract
+//     .encode("balanceOf", recast_address(alice.address()))
+//     .unwrap()
+//     .into_iter()
+//     .collect();
+// let execution_result =
+//     admin.call_contract(&mut manager.environment, &token_x, call_data, Uint::from(0)); // Call the 'balanceOf' function.
+// let value = manager.unpack_execution(execution_result);
+// let response: U256 = token_x
+//     .base_contract
+//     .decode_output("balanceOf", value)
+//     .unwrap();
+// println!("User has {} token_x", response);
+// println!("Mint amount was {}", mint_amount);
+// assert_eq!(response, mint_amount);

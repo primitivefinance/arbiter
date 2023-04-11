@@ -18,7 +18,7 @@ contract LiquidExchange {
     address public arbiterTokenX;
     address public arbiterTokenY;
     uint256 public price;
-    uint256 public constant WAD = 10**18;
+    uint256 constant WAD = 10**18;
 
     // Each LiquidExchange contract will be deployed with a pair of token addresses and an initial price
     constructor(address arbiterTokenX_, address arbiterTokenY_, uint256 price_) {
@@ -44,6 +44,7 @@ contract LiquidExchange {
     }
 
     function swap(address tokenIn, uint256 amountIn) public returns (uint256 amountOut){
+
         uint256 amountOut;
         address tokenOut;
         if (tokenIn == arbiterTokenX) {
@@ -55,10 +56,22 @@ contract LiquidExchange {
         } else {
             revert("Invalid token");
         }
+        // Alice has to approve this contract to move tokens.
+        // 2 transactions. 1 for approval, 1 for swap.
+        // CONTRACT gets approval to access Alice's tokens in some allowance (amountIn)
+
+        // Way to do it with 1 transaction
+            // Instead of alice calling erc20 to approve, they have a function called permit
+            // similar to approve, but it takes a signature from alice
+            // EIP 712? https://eips.ethereum.org/EIPS/eip-712
+
         // require(ArbiterToken(tokenIn).approve(msg.sender, amountIn), "Approval failed");
         // require(ArbiterToken(tokenOut).approve(admin, amountOut), "Approval failed");
-        require(ERC20(tokenIn).transferFrom(msg.sender, admin, amountIn), "Transfer failed");
-        require(ERC20(tokenOut).transferFrom(admin, msg.sender, amountOut), "Transfer failed");
+
+        // Approve contract to move out tokens
+        // require(ERC20(tokenIn).allowance(msg.sender, address(this)), "Approval failed");
+        require(ERC20(tokenIn).transferFrom(msg.sender, address(this), amountIn), "Transfer failed");
+        require(ERC20(tokenOut).transfer(msg.sender, amountOut), "Transfer failed");
         emit Swap(tokenIn, tokenOut, amountIn, amountOut, msg.sender);    
         return amountOut;
     //         require(ArbiterToken(tokenIn).approve(address(this), amountIn), "Approval failed");

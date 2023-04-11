@@ -18,7 +18,7 @@ pub struct SimulationEnvironment {
     // TODO: Perhaps add the contracts in here?
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 /// A struct use for `PhantomData` to indicate a lock on contracts that are not deployed.
 pub struct NotDeployed;
 #[derive(Debug)]
@@ -26,7 +26,7 @@ pub struct NotDeployed;
 /// A struct use for `PhantomData` to indicate an unlocked contract that is deployed.
 pub struct IsDeployed;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 /// A struct that wraps around the ethers `BaseContract` and adds some additional information relevant for revm and the simulation.
 pub struct SimulationContract<Deployed> {
     /// The ethers `BaseContract` that holds the ABI.
