@@ -4,8 +4,8 @@ pragma solidity ^0.8.17;
 // import "solmate/utils/FixedPointMathLib.sol"; // This import is correct given Arbiter's foundry.toml
 // import "solmate/utils/FixedPointMathLib.sol"; // This import goes directly to the contract
 // import "solmate/tokens/ERC20.sol";
-import "../../portfolio/lib/solmate/src/tokens/ERC20.sol";
-import "../../portfolio/lib/solmate/src/utils/FixedPointMathLib.sol";
+import "solmate/tokens/ERC20.sol";
+import "solmate/utils/FixedPointMathLib.sol";
 import "./ArbiterToken.sol";
 
 /**
@@ -43,7 +43,7 @@ contract LiquidExchange {
         emit PriceChange(price);
     }
 
-    function swap(address tokenIn, uint256 amountIn) public returns (uint256 amountOut){
+    function swap(address tokenIn, uint256 amountIn) public{
 
         uint256 amountOut;
         address tokenOut;
@@ -56,28 +56,8 @@ contract LiquidExchange {
         } else {
             revert("Invalid token");
         }
-        // Alice has to approve this contract to move tokens.
-        // 2 transactions. 1 for approval, 1 for swap.
-        // CONTRACT gets approval to access Alice's tokens in some allowance (amountIn)
-
-        // Way to do it with 1 transaction
-            // Instead of alice calling erc20 to approve, they have a function called permit
-            // similar to approve, but it takes a signature from alice
-            // EIP 712? https://eips.ethereum.org/EIPS/eip-712
-
-        // require(ArbiterToken(tokenIn).approve(msg.sender, amountIn), "Approval failed");
-        // require(ArbiterToken(tokenOut).approve(admin, amountOut), "Approval failed");
-
-        // Approve contract to move out tokens
-        // require(ERC20(tokenIn).allowance(msg.sender, address(this)), "Approval failed");
         require(ERC20(tokenIn).transferFrom(msg.sender, address(this), amountIn), "Transfer failed");
         require(ERC20(tokenOut).transfer(msg.sender, amountOut), "Transfer failed");
         emit Swap(tokenIn, tokenOut, amountIn, amountOut, msg.sender);    
-        return amountOut;
-    //         require(ArbiterToken(tokenIn).approve(address(this), amountIn), "Approval failed");
-    // require(ERC20(tokenIn).transferFrom(msg.sender, admin, amountIn), "Transfer failed");
-    // ArbiterToken(tokenOut).mint(msg.sender, amountOut);
-    // emit Swap(tokenIn, tokenOut, amountIn, amountOut, msg.sender);    
-    // return amountOut;
     }
 }
