@@ -8,7 +8,7 @@ use bindings::{arbiter_token, rmm01_portfolio, simple_registry, uniswap_v3_pool,
 use clap::{CommandFactory, Parser, Subcommand};
 use ethers::{
     abi::Tokenize,
-    prelude::{BaseContract, H256, U256},
+    prelude::{BaseContract, U256},
 };
 use eyre::Result;
 use on_chain::monitor::EventMonitor;
