@@ -21,7 +21,7 @@ input_file="crates/bindings/Cargo.toml"
 output_file="crates/bindings/Cargo-updated.toml"
 
 # Use sed to search and replace a string in the input file
-sed 's/git = "https:\/\/github.com\/gakonst\/ethers-rs"/version = "=2.0.0"/g' "$input_file" > "$output_file"
+sed 's/git = "https:\/\/github.com\/gakonst\/ethers-rs"/version = "2.0.2"/g' "$input_file" > "$output_file"
 mv "$output_file" "$input_file"
 
 # Use sed to search and replace a string in the input file
