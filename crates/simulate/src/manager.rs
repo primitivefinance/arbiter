@@ -9,7 +9,7 @@ use crossbeam_channel::unbounded;
 use revm::primitives::{AccountInfo, ExecutionResult, Log, Output, B160};
 
 use crate::{
-    agent::{admin::Admin, user::User, Agent},
+    agent::{user::User, Agent},
     environment::SimulationEnvironment,
 };
 
@@ -31,15 +31,16 @@ impl<'a> Default for SimulationManager<'a> {
 }
 
 impl<'a> SimulationManager<'a> {
-    /// Constructor function to instantiate a
+    /// Constructor function to instantiate a manager that has a default admin user and a simulation environment.
+    /// The admin will always be given the 0x0...1 address.
     pub fn new() -> Self {
         let (event_sender_admin, event_receiver_admin) = unbounded::<Vec<Log>>();
         let mut simulation_manager = Self {
             environment: SimulationEnvironment::new(),
             agents: HashMap::new(),
         };
-        let admin = Box::new(Admin::new(event_receiver_admin));
-        simulation_manager.add_agent("admin", admin);
+        let admin = Box::new(User::new(event_receiver_admin, B160::from_low_u64_be(1)));
+        simulation_manager.add_agent("admin", admin).unwrap();
         simulation_manager
             .environment
             .add_sender(event_sender_admin);
@@ -52,13 +53,22 @@ impl<'a> SimulationManager<'a> {
     }
 
     /// Add an [`Agent`] to the current simulation.
-    pub fn add_agent(&mut self, name: &'a str, agent: Box<dyn Agent>) {
+    pub fn add_agent(&mut self, name: &'a str, agent: Box<dyn Agent>) -> Result<(), String> {
+        if self
+            .agents
+            .values()
+            .into_iter()
+            .any(|agent_in_db| agent_in_db.address() == agent.address())
+        {
+            return Err("Agent already exists in the simulation environment.".to_string());
+        };
         self.agents.insert(name, agent);
+        Ok(())
     }
 
     // TODO: maybe should make the name optional here, but I struggled with this.
     /// Allow the manager to create a dummy user account.
-    pub fn create_user(&mut self, address: B160, name: &'a str) {
+    pub fn create_user(&mut self, address: B160, name: &'a str) -> Result<(), String> {
         self.environment
             .evm
             .db()
@@ -66,8 +76,9 @@ impl<'a> SimulationManager<'a> {
             .insert_account_info(address, AccountInfo::default());
         let (event_sender_user, event_receiver_user) = unbounded::<Vec<Log>>();
         let user = Box::new(User::new(event_receiver_user, address));
-        self.add_agent(name, user);
-        self.environment.add_sender(event_sender_user)
+        self.add_agent(name, user)?;
+        self.environment.add_sender(event_sender_user);
+        Ok(())
     }
 
     /// Takes an `ExecutionResult` and returns the raw bytes of the output that can then be decoded.
@@ -94,4 +105,11 @@ impl<'a> SimulationManager<'a> {
             }
         }
     }
+}
+
+#[test]
+fn test_agent_address_collision() {
+    let mut manager = SimulationManager::default();
+    let result = manager.create_user(B160::from_low_u64_be(1), "alice");
+    assert!(result.is_err());
 }

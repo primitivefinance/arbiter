@@ -132,7 +132,7 @@ mod tests {
         // Create a user to mint tokens to.
         let user_name = "alice";
         let user_address = B160::from_str("0x0000000000000000000000000000000000000002").unwrap();
-        manager.create_user(user_address, user_name); // TODO: This should probably be done by the manager itself. THough it will be something to consider when we have more agents.
+        manager.create_user(user_address, user_name).unwrap(); // TODO: This should probably be done by the manager itself. THough it will be something to consider when we have more agents.
 
         // Allocating new tokens to user by calling Arbiter Token's ERC20 'mint' instance.
         let mint_amount = U256::from(1000);
@@ -254,7 +254,7 @@ mod tests {
         let mut manager = SimulationManager::default();
         let user_name = "alice";
         let user_address = B160::from_str("0x0000000000000000000000000000000000000002").unwrap();
-        manager.create_user(user_address, user_name);
+        manager.create_user(user_address, user_name).unwrap();
 
         // Get bytecode and abi for the writer contract.
         let writer = SimulationContract::new(
