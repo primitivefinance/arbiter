@@ -7,14 +7,16 @@ pub use swap_math::*;
     clippy::upper_case_acronyms,
     clippy::type_complexity,
     dead_code,
-    non_camel_case_types,
+    non_camel_case_types
 )]
 pub mod swap_math {
     #[rustfmt::skip]
     const __ABI: &str = "[]";
     ///The parsed JSON ABI of the contract.
-    pub static SWAPMATH_ABI: ::ethers::contract::Lazy<::ethers::core::abi::Abi> = ::ethers::contract::Lazy::new(||
-    ::ethers::core::utils::__serde_json::from_str(__ABI).expect("ABI is always valid"));
+    pub static SWAPMATH_ABI: ::ethers::contract::Lazy<::ethers::core::abi::Abi> =
+        ::ethers::contract::Lazy::new(|| {
+            ::ethers::core::utils::__serde_json::from_str(__ABI).expect("ABI is always valid")
+        });
     #[rustfmt::skip]
     const __BYTECODE: &[u8] = &[
         96,
@@ -95,38 +97,38 @@ pub mod swap_math {
         34,
         18,
         32,
-        145,
-        253,
-        51,
-        165,
-        68,
-        19,
-        167,
-        249,
-        247,
-        218,
-        129,
-        0,
-        1,
-        195,
-        73,
-        141,
-        208,
-        176,
-        36,
-        1,
-        220,
+        56,
+        49,
+        140,
+        156,
+        98,
+        17,
+        44,
+        139,
+        81,
+        210,
+        57,
+        178,
+        104,
+        56,
+        233,
+        46,
+        230,
+        186,
+        138,
+        244,
         54,
-        255,
-        232,
-        94,
-        187,
-        164,
-        96,
-        45,
-        3,
-        159,
-        167,
+        100,
+        89,
+        241,
+        114,
+        30,
+        112,
+        135,
+        242,
+        238,
+        233,
+        239,
         100,
         115,
         111,
@@ -140,9 +142,8 @@ pub mod swap_math {
         51,
     ];
     ///The bytecode of the contract.
-    pub static SWAPMATH_BYTECODE: ::ethers::core::types::Bytes = ::ethers::core::types::Bytes::from_static(
-        __BYTECODE,
-    );
+    pub static SWAPMATH_BYTECODE: ::ethers::core::types::Bytes =
+        ::ethers::core::types::Bytes::from_static(__BYTECODE);
     #[rustfmt::skip]
     const __DEPLOYED_BYTECODE: &[u8] = &[
         115,
@@ -188,38 +189,38 @@ pub mod swap_math {
         34,
         18,
         32,
-        145,
-        253,
-        51,
-        165,
-        68,
-        19,
-        167,
-        249,
-        247,
-        218,
-        129,
-        0,
-        1,
-        195,
-        73,
-        141,
-        208,
-        176,
-        36,
-        1,
-        220,
+        56,
+        49,
+        140,
+        156,
+        98,
+        17,
+        44,
+        139,
+        81,
+        210,
+        57,
+        178,
+        104,
+        56,
+        233,
+        46,
+        230,
+        186,
+        138,
+        244,
         54,
-        255,
-        232,
-        94,
-        187,
-        164,
-        96,
-        45,
-        3,
-        159,
-        167,
+        100,
+        89,
+        241,
+        114,
+        30,
+        112,
+        135,
+        242,
+        238,
+        233,
+        239,
         100,
         115,
         111,
@@ -233,9 +234,8 @@ pub mod swap_math {
         51,
     ];
     ///The deployed bytecode of the contract.
-    pub static SWAPMATH_DEPLOYED_BYTECODE: ::ethers::core::types::Bytes = ::ethers::core::types::Bytes::from_static(
-        __DEPLOYED_BYTECODE,
-    );
+    pub static SWAPMATH_DEPLOYED_BYTECODE: ::ethers::core::types::Bytes =
+        ::ethers::core::types::Bytes::from_static(__DEPLOYED_BYTECODE);
     pub struct SwapMath<M>(::ethers::contract::Contract<M>);
     impl<M> ::core::clone::Clone for SwapMath<M> {
         fn clone(&self) -> Self {
@@ -255,7 +255,9 @@ pub mod swap_math {
     }
     impl<M> ::core::fmt::Debug for SwapMath<M> {
         fn fmt(&self, f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
-            f.debug_tuple(stringify!(SwapMath)).field(&self.address()).finish()
+            f.debug_tuple(stringify!(SwapMath))
+                .field(&self.address())
+                .finish()
         }
     }
     impl<M: ::ethers::providers::Middleware> SwapMath<M> {
@@ -265,13 +267,11 @@ pub mod swap_math {
             address: T,
             client: ::std::sync::Arc<M>,
         ) -> Self {
-            Self(
-                ::ethers::contract::Contract::new(
-                    address.into(),
-                    SWAPMATH_ABI.clone(),
-                    client,
-                ),
-            )
+            Self(::ethers::contract::Contract::new(
+                address.into(),
+                SWAPMATH_ABI.clone(),
+                client,
+            ))
         }
         /// Constructs the general purpose `Deployer` instance based on the provided constructor arguments and sends it.
         /// Returns a new instance of a deployer that returns an instance of this contract after sending the transaction
@@ -313,8 +313,7 @@ pub mod swap_math {
             Ok(deployer)
         }
     }
-    impl<M: ::ethers::providers::Middleware> From<::ethers::contract::Contract<M>>
-    for SwapMath<M> {
+    impl<M: ::ethers::providers::Middleware> From<::ethers::contract::Contract<M>> for SwapMath<M> {
         fn from(contract: ::ethers::contract::Contract<M>) -> Self {
             Self::new(contract.address(), contract.client())
         }

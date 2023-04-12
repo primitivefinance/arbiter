@@ -2,11 +2,17 @@
 #![warn(unsafe_code)]
 //! Main lives in the `cli` crate so that we can do our input parsing.
 
-use bindings::{rmm01_portfolio, simple_registry, uniswap_v3_pool, weth9};
+use std::str::FromStr;
+
+use bindings::{arbiter_token, rmm01_portfolio, simple_registry, uniswap_v3_pool, weth9};
 use clap::{CommandFactory, Parser, Subcommand};
-use ethers::{abi::Tokenize, prelude::BaseContract};
+use ethers::{
+    abi::Tokenize,
+    prelude::{BaseContract, U256},
+};
 use eyre::Result;
 use on_chain::monitor::EventMonitor;
+use revm::primitives::{ruint::Uint, B160};
 use simulate::{
     environment::SimulationContract, manager::SimulationManager, price_simulation::PriceSimulation,
     utils::recast_address,
@@ -104,6 +110,60 @@ async fn main() -> Result<()> {
                 portfolio_args.into_tokens(),
             );
             println!("Portfolio deployed at: {}", portfolio.address.unwrap());
+
+            let arbiter_token = SimulationContract::new(
+                BaseContract::from(arbiter_token::ARBITERTOKEN_ABI.clone()),
+                arbiter_token::ARBITERTOKEN_BYTECODE
+                    .clone()
+                    .into_iter()
+                    .collect(),
+            );
+
+            // Choose name and symbol and combine into the constructor args required by ERC-20 contracts.
+            let name = "ArbiterToken";
+            let symbol = "ARBT";
+            let args = (name.to_string(), symbol.to_string(), 18_u8);
+
+            // Call the contract deployer and receive a IsDeployed version of SimulationContract that now has an address.
+            let arbiter_token = manager.agents.get("admin").unwrap().deploy(
+                &mut manager.environment,
+                arbiter_token,
+                args.into_tokens(),
+            );
+            println!(
+                "Arbiter Token deployed at: {}",
+                arbiter_token.address.unwrap()
+            );
+
+            // Create a user to mint tokens to.
+            let user_name = "arbitrageur";
+            let user_address =
+                B160::from_str("0x0000000000000000000000000000000000000002").unwrap();
+            manager.create_user(user_address, user_name);
+
+            println!("Arbitraguer created at: {}", user_address);
+
+            // Allocating new tokens to user by calling Arbiter Token's ERC20 'mint' instance.
+            let mint_amount = U256::from(1000);
+            let input_arguments = (
+                recast_address(manager.agents[user_name].address()),
+                mint_amount,
+            );
+            let call_data = arbiter_token
+                .base_contract
+                .encode("mint", input_arguments)
+                .unwrap()
+                .into_iter()
+                .collect();
+
+            // Call the 'mint' function.
+            let execution_result = manager.agents.get("admin").unwrap().call_contract(
+                &mut manager.environment,
+                &arbiter_token,
+                call_data,
+                Uint::from(0),
+            ); // TODO: SOME KIND OF ERROR HANDLING IS NECESSARY FOR THESE TYPES OF CALLS
+            println!("Mint execution result: {:#?}", execution_result);
         }
         Some(Commands::Gbm { config }) => {
             // Plot a GBM price path
