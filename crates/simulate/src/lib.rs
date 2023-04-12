@@ -12,14 +12,15 @@ pub mod utils;
 mod tests {
     use std::{str::FromStr, thread};
 
+    use bindings::liquid_exchange;
     use ethers::{
         abi::Tokenize,
-        prelude::{BaseContract, H256, U256},
+        prelude::{BaseContract, H256, U256, k256::elliptic_curve::consts::U25}, types::Filter,
     };
     use revm::primitives::{ruint::Uint, B160};
 
     use crate::{
-        environment::SimulationContract, manager::SimulationManager, utils::recast_address,
+        environment::SimulationContract, manager::SimulationManager, utils::{recast_address, self},
     };
 
     #[test]
@@ -417,8 +418,167 @@ mod tests {
         };
     }
     #[test]
-    fn test_arbitrage () {
-        // depends on the market pr
-        todo!()
+    fn test_update_price () {
+
+        let decimals = 18_u8;
+        let wad: U256 = U256::from(10_i64.pow(decimals as u32));
+
+        let mut manager = SimulationManager::default();
+        // Set up a user named alice
+        let user_name = "alice";
+        let user_address = B160::from_low_u64_be(2); // TODO: Prevent address collisions
+        manager.create_user(user_address, user_name);
+
+        // Pull out the admin and alice
+        let admin = manager.agents.get("admin").unwrap();
+        let alice = manager.agents.get(user_name).unwrap();
+
+
+        // Create arbiter token general contract.
+        let arbiter_token = SimulationContract::new(
+            BaseContract::from(bindings::arbiter_token::ARBITERTOKEN_ABI.clone()),
+            bindings::arbiter_token::ARBITERTOKEN_BYTECODE
+                .clone()
+                .into_iter()
+                .collect(),
+        );
+
+        // Deploy token_x.
+        let name = "Token X";
+        let symbol = "TKNX";
+        let args = (name.to_string(), symbol.to_string(), decimals).into_tokens();
+        let token_x = admin.deploy(&mut manager.environment, arbiter_token.clone(), args);
+
+        // Deploy token_y.
+        let name = "Token Y";
+        let symbol = "TKNY";
+        let args = (name.to_string(), symbol.to_string(), decimals).into_tokens();
+        let token_y = admin.deploy(&mut manager.environment, arbiter_token, args);
+        
+        // Deploy LiquidExchange
+        let price_to_check = 100;
+        let initial_price = wad.checked_mul(U256::from(price_to_check)).unwrap();
+        let liquid_exchange = SimulationContract::new(
+            BaseContract::from(bindings::liquid_exchange::LIQUIDEXCHANGE_ABI.clone()),
+            bindings::liquid_exchange::LIQUIDEXCHANGE_BYTECODE
+                .clone()
+                .into_iter()
+                .collect(),
+        );
+        let base_abi_liq = liquid_exchange.base_contract.clone();
+        let args = (
+            recast_address(token_x.address.unwrap()),
+            recast_address(token_y.address.unwrap()),
+            U256::from(initial_price),
+        )
+            .into_tokens();
+        let liquid_exchange_xy = admin.deploy(&mut manager.environment, liquid_exchange, args);
+
+        let rec_alice = alice.receiver();
+        let handle = thread::spawn(move || {
+            while let Ok(logs) = rec_alice.recv() {
+                println!("Got logs in alice's thread!");
+                println!("{:?}", logs);
+
+                let event_filter = Filter {
+                    address: Some(ethers::types::ValueOrArray::Array(vec![
+                        utils::recast_address(liquid_exchange_xy.address.unwrap()),
+                    ])),
+                    topics: [None, None, None, None], // None for all topics
+                    ..Default::default()
+                }; // TODO: ACTUALLY USE THIS
+                let log_topics: Vec<H256> = logs.clone()[0]
+                    .topics
+                    .clone()
+                    .into_iter()
+                    .map(|x| H256::from_slice(x.as_slice()))
+                    .collect();
+                let log_data = logs[0].data.clone().into();
+                let log_output = base_abi_liq
+                    .decode_event::<U256>("PriceChange", log_topics, log_data)
+                    .unwrap();
+                assert_eq!(log_output, U256::from(500));
+                
+            }
+        });
+        // Mint token_x to alice.
+        let mint_amount = wad.checked_mul(U256::from(20)).unwrap(); // in wei units
+        let args = (recast_address(alice.address()), mint_amount);
+        let call_data = token_x
+            .base_contract
+            .encode("mint", args)
+            .unwrap()
+            .into_iter()
+            .collect();
+        admin.call_contract(&mut manager.environment, &token_x, call_data, Uint::from(0));
+
+        // Mint max token_y to the liquid_exchange contract.
+        let args = (
+            recast_address(liquid_exchange_xy.address.unwrap()),
+            U256::MAX,
+        );
+        let call_data = token_y
+            .base_contract
+            .encode("mint", args)
+            .unwrap()
+            .into_iter()
+            .collect();
+        admin.call_contract(&mut manager.environment, &token_y, call_data, Uint::from(0));
+
+        // Have alice's approval for token_x to be spent by the liquid_exchange.
+        let args = (
+            recast_address(liquid_exchange_xy.address.unwrap()),
+            U256::MAX,
+        );
+
+        let call_data = token_x
+            .base_contract
+            .encode("approve", args)
+            .unwrap()
+            .into_iter()
+            .collect();
+        alice.call_contract(&mut manager.environment, &token_x, call_data, Uint::from(0));
+
+        let price_update_args = U256::from(500);
+
+        let price_update_call_data = liquid_exchange_xy
+            .base_contract
+            .encode("PriceChange", price_update_args)
+            .unwrap()
+            .into_iter()
+            .collect();
+
+        // Execute the call
+        admin.call_contract(
+            &mut manager.environment,
+            &liquid_exchange_xy,
+            price_update_call_data,
+            Uint::from(0),
+        );
+
+        if handle.join().is_err() {
+            panic!("Thread panicked!");
+        };
+        // // Have alice call the swap function to trade token_x for token_y.
+        // let swap_amount = mint_amount / 2;
+        // let call_data = liquid_exchange_xy
+        //     .base_contract
+        //     .encode(
+        //         "swap",
+        //         (
+        //             recast_address(token_x.address.unwrap()),
+        //             U256::from(swap_amount),
+        //         ),
+        //     )
+        //     .unwrap()
+        //     .into_iter()
+        //     .collect();
+        // alice.call_contract(
+        //     &mut manager.environment,
+        //     &liquid_exchange_xy,
+        //     call_data,
+        //     Uint::from(0),
+        // );
+
     }
 }
