@@ -334,7 +334,7 @@ mod tests {
     }
 
     #[test]
-    fn test_price_simulation_oracle() {      
+    fn test_price_simulation_oracle() {
         // Get a price path from the oracle.
         let timestep = 1.0;
         let timescale = String::from("day");
@@ -402,7 +402,7 @@ mod tests {
             .into_tokens();
         let liquid_exchange_xy = admin.deploy(&mut manager.environment, liquid_exchange, args);
 
-        // Loop over and set prices on the liquid exchange from the oracle. 
+        // Loop over and set prices on the liquid exchange from the oracle.
         for price in price_path {
             println!("Price from price path: {}", price);
             let wad_price = crate::price_simulation::float_to_wad(price);
@@ -426,7 +426,12 @@ mod tests {
                 .unwrap()
                 .into_iter()
                 .collect();
-            let execution_result = admin.call_contract(&mut manager.environment, &liquid_exchange_xy, call_data, Uint::from(0));
+            let execution_result = admin.call_contract(
+                &mut manager.environment,
+                &liquid_exchange_xy,
+                call_data,
+                Uint::from(0),
+            );
             let value = manager.unpack_execution(execution_result);
             let response: U256 = liquid_exchange_xy
                 .base_contract

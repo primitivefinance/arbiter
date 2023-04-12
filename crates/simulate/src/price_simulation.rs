@@ -3,11 +3,11 @@
 //! Used to generate price paths for a simulation.
 //! Managers will be able to read from this data to change prices of for infinitely liquid pools.
 
+use ethers::types::U256;
 use plotly::{Plot, Scatter};
 use rand::prelude::*;
 use rand_chacha::ChaCha8Rng;
 use rand_distr::{Distribution, StandardNormal};
-use ethers::types::U256;
 
 /// Data needed for a Geometric Brownian Motion (GBM) price path generator information.
 #[derive(Debug)]
