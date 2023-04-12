@@ -19,7 +19,8 @@ mod tests {
     use revm::primitives::{ruint::Uint, B160};
 
     use crate::{
-        environment::SimulationContract, manager::SimulationManager, utils::recast_address,
+        environment::SimulationContract, manager::SimulationManager, price_simulation,
+        utils::recast_address,
     };
 
     #[test]
