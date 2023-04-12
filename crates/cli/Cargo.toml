@@ -21,7 +21,7 @@ serde = { version = "1.0.152", features =["derive"] }
 # utils = { path = "../utils" }
 thiserror = "1.0.38"
 eyre = "0.6.6"
-toml = "0.5.10"
+toml = "0.7.3"
 ethers = "2.0.2"
 
 # revm and related
