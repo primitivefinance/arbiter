@@ -7,6 +7,7 @@ use plotly::{Plot, Scatter};
 use rand::prelude::*;
 use rand_chacha::ChaCha8Rng;
 use rand_distr::{Distribution, StandardNormal};
+use ethers::types::U256;
 
 /// Data needed for a Geometric Brownian Motion (GBM) price path generator information.
 #[derive(Debug)]
@@ -112,4 +113,9 @@ fn generate_gbm(
         price_path.push(geometric_sample * initial_price);
     }
     price_path
+}
+
+/// Converts a float to a WAD fixed point prepared U256 number.
+pub fn float_to_wad(x: f64) -> U256 {
+    U256::from((x * 1e18) as u128)
 }
