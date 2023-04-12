@@ -2,8 +2,11 @@
 // compiler version must be greater than or equal to 0.8.17 and less than 0.9.0
 pragma solidity ^0.8.17;
 // import "solmate/utils/FixedPointMathLib.sol"; // This import is correct given Arbiter's foundry.toml
-import "solmate/utils/FixedPointMathLib.sol"; // This import goes directly to the contract
+// import "solmate/utils/FixedPointMathLib.sol"; // This import goes directly to the contract
+// import "solmate/tokens/ERC20.sol";
 import "solmate/tokens/ERC20.sol";
+import "solmate/utils/FixedPointMathLib.sol";
+import "./ArbiterToken.sol";
 
 /**
  * @dev Implementation of the test interface for Arbiter writing contracts.
@@ -15,7 +18,7 @@ contract LiquidExchange {
     address public arbiterTokenX;
     address public arbiterTokenY;
     uint256 public price;
-    uint256 public constant WAD = 10**18;
+    uint256 constant WAD = 10**18;
 
     // Each LiquidExchange contract will be deployed with a pair of token addresses and an initial price
     constructor(address arbiterTokenX_, address arbiterTokenY_, uint256 price_) {
@@ -40,21 +43,21 @@ contract LiquidExchange {
         emit PriceChange(price);
     }
 
-    // TODO: This function is NOT completed yet. It is just a placeholder for now.
-    function swap(address tokenIn, uint256 amountIn) public {
+    function swap(address tokenIn, uint256 amountIn) public{
+
         uint256 amountOut;
         address tokenOut;
         if (tokenIn == arbiterTokenX) {
-            amountOut = amountIn * price;
-            // arbiterTokenX.transferFrom(msg.sender, admin, amountIn);
-            // arbiterTokenY.transferFrom(admin, msg.sender, amountOut);
+            tokenOut = arbiterTokenY;
+            amountOut = FixedPointMathLib.mulWadDown(amountIn, price);
         } else if (tokenIn == arbiterTokenY) {
+            tokenOut = arbiterTokenX;
             amountOut = FixedPointMathLib.divWadDown(amountIn, price);
-            // arbiterTokenY.transferFrom(msg.sender, admin, amountIn);
-            // arbiterTokenX.transferFrom(admin, msg.sender, amountOut);
         } else {
             revert("Invalid token");
         }
+        require(ERC20(tokenIn).transferFrom(msg.sender, address(this), amountIn), "Transfer failed");
+        require(ERC20(tokenOut).transfer(msg.sender, amountOut), "Transfer failed");
         emit Swap(tokenIn, tokenOut, amountIn, amountOut, msg.sender);    
     }
 }

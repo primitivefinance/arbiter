@@ -7,14 +7,16 @@ pub use low_gas_safe_math::*;
     clippy::upper_case_acronyms,
     clippy::type_complexity,
     dead_code,
-    non_camel_case_types,
+    non_camel_case_types
 )]
 pub mod low_gas_safe_math {
     #[rustfmt::skip]
     const __ABI: &str = "[]";
     ///The parsed JSON ABI of the contract.
-    pub static LOWGASSAFEMATH_ABI: ::ethers::contract::Lazy<::ethers::core::abi::Abi> = ::ethers::contract::Lazy::new(||
-    ::ethers::core::utils::__serde_json::from_str(__ABI).expect("ABI is always valid"));
+    pub static LOWGASSAFEMATH_ABI: ::ethers::contract::Lazy<::ethers::core::abi::Abi> =
+        ::ethers::contract::Lazy::new(|| {
+            ::ethers::core::utils::__serde_json::from_str(__ABI).expect("ABI is always valid")
+        });
     #[rustfmt::skip]
     const __BYTECODE: &[u8] = &[
         96,
@@ -95,38 +97,38 @@ pub mod low_gas_safe_math {
         34,
         18,
         32,
-        202,
-        140,
-        233,
-        176,
-        197,
-        226,
-        139,
-        123,
-        244,
-        218,
-        116,
-        244,
-        42,
-        172,
-        159,
-        227,
-        167,
-        196,
-        190,
-        133,
-        82,
-        247,
-        190,
-        168,
-        176,
-        142,
-        235,
+        204,
+        94,
         236,
-        44,
-        111,
-        111,
-        53,
+        148,
+        89,
+        171,
+        33,
+        73,
+        151,
+        181,
+        166,
+        131,
+        192,
+        55,
+        200,
+        98,
+        94,
+        245,
+        191,
+        93,
+        16,
+        37,
+        101,
+        254,
+        0,
+        255,
+        115,
+        147,
+        24,
+        131,
+        199,
+        74,
         100,
         115,
         111,
@@ -140,9 +142,8 @@ pub mod low_gas_safe_math {
         51,
     ];
     ///The bytecode of the contract.
-    pub static LOWGASSAFEMATH_BYTECODE: ::ethers::core::types::Bytes = ::ethers::core::types::Bytes::from_static(
-        __BYTECODE,
-    );
+    pub static LOWGASSAFEMATH_BYTECODE: ::ethers::core::types::Bytes =
+        ::ethers::core::types::Bytes::from_static(__BYTECODE);
     #[rustfmt::skip]
     const __DEPLOYED_BYTECODE: &[u8] = &[
         115,
@@ -188,38 +189,38 @@ pub mod low_gas_safe_math {
         34,
         18,
         32,
-        202,
-        140,
-        233,
-        176,
-        197,
-        226,
-        139,
-        123,
-        244,
-        218,
-        116,
-        244,
-        42,
-        172,
-        159,
-        227,
-        167,
-        196,
-        190,
-        133,
-        82,
-        247,
-        190,
-        168,
-        176,
-        142,
-        235,
+        204,
+        94,
         236,
-        44,
-        111,
-        111,
-        53,
+        148,
+        89,
+        171,
+        33,
+        73,
+        151,
+        181,
+        166,
+        131,
+        192,
+        55,
+        200,
+        98,
+        94,
+        245,
+        191,
+        93,
+        16,
+        37,
+        101,
+        254,
+        0,
+        255,
+        115,
+        147,
+        24,
+        131,
+        199,
+        74,
         100,
         115,
         111,
@@ -233,9 +234,8 @@ pub mod low_gas_safe_math {
         51,
     ];
     ///The deployed bytecode of the contract.
-    pub static LOWGASSAFEMATH_DEPLOYED_BYTECODE: ::ethers::core::types::Bytes = ::ethers::core::types::Bytes::from_static(
-        __DEPLOYED_BYTECODE,
-    );
+    pub static LOWGASSAFEMATH_DEPLOYED_BYTECODE: ::ethers::core::types::Bytes =
+        ::ethers::core::types::Bytes::from_static(__DEPLOYED_BYTECODE);
     pub struct LowGasSafeMath<M>(::ethers::contract::Contract<M>);
     impl<M> ::core::clone::Clone for LowGasSafeMath<M> {
         fn clone(&self) -> Self {
@@ -255,7 +255,9 @@ pub mod low_gas_safe_math {
     }
     impl<M> ::core::fmt::Debug for LowGasSafeMath<M> {
         fn fmt(&self, f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
-            f.debug_tuple(stringify!(LowGasSafeMath)).field(&self.address()).finish()
+            f.debug_tuple(stringify!(LowGasSafeMath))
+                .field(&self.address())
+                .finish()
         }
     }
     impl<M: ::ethers::providers::Middleware> LowGasSafeMath<M> {
@@ -265,13 +267,11 @@ pub mod low_gas_safe_math {
             address: T,
             client: ::std::sync::Arc<M>,
         ) -> Self {
-            Self(
-                ::ethers::contract::Contract::new(
-                    address.into(),
-                    LOWGASSAFEMATH_ABI.clone(),
-                    client,
-                ),
-            )
+            Self(::ethers::contract::Contract::new(
+                address.into(),
+                LOWGASSAFEMATH_ABI.clone(),
+                client,
+            ))
         }
         /// Constructs the general purpose `Deployer` instance based on the provided constructor arguments and sends it.
         /// Returns a new instance of a deployer that returns an instance of this contract after sending the transaction
@@ -314,7 +314,8 @@ pub mod low_gas_safe_math {
         }
     }
     impl<M: ::ethers::providers::Middleware> From<::ethers::contract::Contract<M>>
-    for LowGasSafeMath<M> {
+        for LowGasSafeMath<M>
+    {
         fn from(contract: ::ethers::contract::Contract<M>) -> Self {
             Self::new(contract.address(), contract.client())
         }
