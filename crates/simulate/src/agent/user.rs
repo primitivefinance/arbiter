@@ -40,7 +40,7 @@ impl User {
             address,
             account: Account::from(AccountInfo::default()),
             transact_settings: TransactSettings {
-                gas_limit: u64::MAX,
+                gas_limit: u64::MAX,   // TODO: Users should have a gas limit.
                 gas_price: U256::ZERO, // TODO: Users should have an associated gas price.
             },
             event_receiver,
