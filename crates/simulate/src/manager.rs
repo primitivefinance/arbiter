@@ -53,20 +53,22 @@ impl<'a> SimulationManager<'a> {
     }
 
     /// Add an [`Agent`] to the current simulation.
-    pub fn add_agent(&mut self, name: &'a str, agent: Box<dyn Agent>) -> Result<(), String>{
-        if self.agents
+    pub fn add_agent(&mut self, name: &'a str, agent: Box<dyn Agent>) -> Result<(), String> {
+        if self
+            .agents
             .values()
             .into_iter()
-            .any(|agent_in_db| agent_in_db.address() == agent.address()) {
-                return Err("Agent already exists in the simulation environment.".to_string())
-            };
+            .any(|agent_in_db| agent_in_db.address() == agent.address())
+        {
+            return Err("Agent already exists in the simulation environment.".to_string());
+        };
         self.agents.insert(name, agent);
         Ok(())
     }
 
     // TODO: maybe should make the name optional here, but I struggled with this.
     /// Allow the manager to create a dummy user account.
-    pub fn create_user(&mut self, address: B160, name: &'a str) -> Result<(), String>{
+    pub fn create_user(&mut self, address: B160, name: &'a str) -> Result<(), String> {
         self.environment
             .evm
             .db()

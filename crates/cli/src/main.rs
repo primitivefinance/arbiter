@@ -139,7 +139,7 @@ async fn main() -> Result<()> {
             let user_name = "arbitrageur";
             let user_address =
                 B160::from_str("0x0000000000000000000000000000000000000002").unwrap();
-            manager.create_user(user_address, user_name);
+            manager.create_user(user_address, user_name).unwrap();
 
             println!("Arbitraguer created at: {}", user_address);
 
