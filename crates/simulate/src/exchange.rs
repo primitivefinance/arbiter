@@ -343,6 +343,8 @@ mod tests {
         let drift = 0.5;
         let volatility = 0.1;
         let seed = 123;
+        let ou_mean_reversion_speed = 0.1;
+        let ou_mean_price = 1.0;
         let gbm = crate::price_simulation::PriceSimulation::new(
             timestep,
             timescale,
@@ -350,9 +352,11 @@ mod tests {
             initial_price,
             drift,
             volatility,
+            ou_mean_reversion_speed,
+            ou_mean_price,
             seed,
         );
-        let price_path = gbm.price_data;
+        let (_time, price_path) = gbm.gbm();
 
         // Set up the liquid exchange
         // define the wad constant
