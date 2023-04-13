@@ -8,7 +8,6 @@ use plotly::{Plot, Scatter};
 use rand::prelude::*;
 use rand_distr::{Distribution, Normal};
 
-
 #[derive(Debug)]
 /// Data needed for a Geometric Brownian Motion (GBM) price path generator information.
 pub struct PriceSimulation {
@@ -55,8 +54,8 @@ impl PriceSimulation {
             ou_mean_reversion_speed,
             ou_mean_price,
             seed,
-            }
         }
+    }
 
     /// Generates a GBM price path.    
     pub fn gbm(&self) -> (Vec<f64>, Vec<f64>) {
@@ -64,13 +63,16 @@ impl PriceSimulation {
         let normal = Normal::new(0.0, 1.0).unwrap();
         let mut prices = vec![self.initial_price];
         let mut price = self.initial_price;
-    
+
         for _ in 0..self.num_steps {
             let noise = normal.sample(&mut rng);
-            price *= 1.0 + self.drift * self.timestep + self.volatility * noise * self.timestep.sqrt();
+            price *=
+                1.0 + self.drift * self.timestep + self.volatility * noise * self.timestep.sqrt();
             prices.push(price);
         }
-        let time = (0..self.num_steps).map(|i| i as f64 * self.timestep).collect::<Vec<f64>>();
+        let time = (0..self.num_steps)
+            .map(|i| i as f64 * self.timestep)
+            .collect::<Vec<f64>>();
         (time, prices)
     }
 
@@ -80,13 +82,16 @@ impl PriceSimulation {
         let normal = Normal::new(0.0, 1.0).unwrap();
         let mut prices = vec![self.initial_price];
         let mut price = self.initial_price;
-    
+
         for _ in 0..self.num_steps {
             let noise = normal.sample(&mut rng);
-            price += self.ou_mean_reversion_speed * (self.ou_mean_price - price) * self.timestep + self.volatility * noise * self.timestep.sqrt();
+            price += self.ou_mean_reversion_speed * (self.ou_mean_price - price) * self.timestep
+                + self.volatility * noise * self.timestep.sqrt();
             prices.push(price);
         }
-        let time = (0..self.num_steps).map(|i| i as f64 * self.timestep).collect::<Vec<f64>>();
+        let time = (0..self.num_steps)
+            .map(|i| i as f64 * self.timestep)
+            .collect::<Vec<f64>>();
         (time, prices)
     }
 
@@ -101,7 +106,6 @@ impl PriceSimulation {
 
         plot.write_html(filename) // Produces .html using the identifier in arbiter root directory.
     }
-
 }
 
 /// Converts a float to a WAD fixed point prepared U256 number.

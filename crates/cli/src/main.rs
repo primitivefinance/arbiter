@@ -50,7 +50,7 @@ enum Commands {
         #[arg(short, long, default_value = "./crates/cli/src/config.toml", num_args = 0..=1)]
         config: String,
     },
-    
+
     Chain {
         /// Path to config.toml containing simulation parameterization (optional)
         #[arg(short, long, default_value = "./crates/cli/src/config.toml", num_args = 0..=1)]
@@ -184,7 +184,6 @@ async fn main() -> Result<()> {
                 seed,
                 ou_mean_reversion_speed,
                 ou_mean,
-                
                 ..
             } = config::Config::new(config).unwrap();
             let test_sim = PriceSimulation::new(
@@ -215,7 +214,6 @@ async fn main() -> Result<()> {
                 seed,
                 ou_mean_reversion_speed,
                 ou_mean,
-                
                 ..
             } = config::Config::new(config).unwrap();
             let test_sim = PriceSimulation::new(
@@ -228,7 +226,6 @@ async fn main() -> Result<()> {
                 ou_mean_reversion_speed,
                 ou_mean,
                 seed,
-                
             );
 
             let (time, gbm_path) = test_sim.gbm();
@@ -250,7 +247,6 @@ async fn main() -> Result<()> {
                 .map_err(|err| println!("{:?}", err))
                 .ok();
         }
-
     }
     Ok(())
 }
