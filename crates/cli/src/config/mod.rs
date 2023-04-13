@@ -21,8 +21,6 @@ pub enum ConfigError {
 /// Representation of the arbiter config file.
 #[derive(Serialize, Deserialize, Debug)]
 struct ConfigToml {
-    /// RPC url.
-    rpc_url: String,
     /// Parameters for the `sim` module of arbiter.
     sim: ConfigTomlSim,
     /// Parameters for chain interactions
@@ -54,6 +52,8 @@ struct ConfigTomlSim {
 #[derive(Serialize, Deserialize, Debug)]
 pub struct ConfigTomlChain {
     pub contract: String,
+    // RPC url.
+    pub rpc_url: String,
 }
 /// Representation of the config file that other modules have access to.
 /// This is in contrast to the internal deserialization types above.
@@ -98,7 +98,6 @@ impl Config {
         };
 
         Ok(Config {
-            rpc_url: config_toml.rpc_url,
             timestep: config_toml.sim.timestep,
             timescale: config_toml.sim.timescale,
             num_steps: config_toml.sim.num_steps,
@@ -109,6 +108,7 @@ impl Config {
             ou_mean_reversion_speed: config_toml.sim.ou_mean_reversion_speed,
             ou_mean: config_toml.sim.ou_mean,
             contract: config_toml.chain.contract,
+            rpc_url: config_toml.chain.rpc_url,
         })
     }
 }

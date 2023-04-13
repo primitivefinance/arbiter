@@ -197,7 +197,6 @@ async fn main() -> Result<()> {
                 ou_mean_reversion_speed,
                 ou_mean,
                 seed,
-                
             );
 
             let (time, ou_path) = test_sim.ou();
