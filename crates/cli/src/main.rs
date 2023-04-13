@@ -37,6 +37,11 @@ enum Commands {
         #[arg(short, long, default_value = "./crates/cli/src/config.toml", num_args = 0..=1)]
         config: String,
     },
+    Ou {
+        /// Path to config.toml containing simulation parameterization (optional)
+        #[arg(short, long, default_value = "./crates/cli/src/config.toml", num_args = 0..=1)]
+        config: String,
+    },
 }
 
 #[tokio::main]
@@ -107,19 +112,14 @@ async fn main() -> Result<()> {
                 initial_price,
                 drift,
                 volatility,
-                seed,
                 ou_mean_reversion_speed,
                 ou_mean,
+                seed,
+                
             );
 
-            let (time, gbm_path) = test_sim.generate_ou_path();
-            test_sim.plot(&time, &gbm_path);
-        }
-        None => {
-            Args::command()
-                .print_long_help()
-                .map_err(|err| println!("{:?}", err))
-                .ok();
+            let (time, ou_path) = test_sim.ou();
+            test_sim.plot(&time, &ou_path);
         }
 
         Some(Commands::Gbm { config }) => {
@@ -144,12 +144,13 @@ async fn main() -> Result<()> {
                 initial_price,
                 drift,
                 volatility,
-                seed,
                 ou_mean_reversion_speed,
                 ou_mean,
+                seed,
+                
             );
 
-            let (time, gbm_path) = test_sim.generate_gbm_path();
+            let (time, gbm_path) = test_sim.gbm();
             test_sim.plot(&time, &gbm_path);
         }
         None => {

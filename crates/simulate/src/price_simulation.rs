@@ -3,21 +3,12 @@
 //! Used to generate price paths for a simulation.
 //! Managers will be able to read from this data to change prices of for infinitely liquid pools.
 
-use plotly::{
-    layout::{Axis, BarMode, Layout, Margin, Title},
-    scatter::{Scatter, Style},
-    Plot, PlotData,
-};
+use plotly::{Plot, Scatter};
 use rand::prelude::*;
 use rand_distr::{Distribution, Normal};
 
-/// Sim type indicator.
-#[derive(Debug)]
-pub enum SimulationType {
-    GBM,
-    OU,
-}
 
+#[derive(Debug)]
 /// Data needed for a Geometric Brownian Motion (GBM) price path generator information.
 pub struct PriceSimulation {
     /// Name/identifier for the simulation (will set filenames)
@@ -67,7 +58,7 @@ impl PriceSimulation {
         }
 
     /// Generates a GBM price path.    
-    fn gbm(&self) -> (Vec<f64>, Vec<f64>) {
+    pub fn gbm(&self) -> (Vec<f64>, Vec<f64>) {
         let mut rng = rand::rngs::StdRng::seed_from_u64(self.seed);
         let normal = Normal::new(0.0, 1.0).unwrap();
         let mut prices = vec![self.initial_price];
@@ -83,7 +74,7 @@ impl PriceSimulation {
     }
 
     /// Generates an OU price path.
-    fn ou(&self) -> (Vec<f64>, Vec<f64>) {
+    pub fn ou(&self) -> (Vec<f64>, Vec<f64>) {
         let mut rng = rand::rngs::StdRng::seed_from_u64(self.seed);
         let normal = Normal::new(0.0, 1.0).unwrap();
         let mut prices = vec![self.initial_price];
@@ -98,20 +89,16 @@ impl PriceSimulation {
         (time, prices)
     }
 
+    /// Plots a price path.
     pub fn plot(&self, time: &Vec<f64>, price_path: &Vec<f64>) {
+        let mut filename = String::from("PlottingPrice");
+        filename.push_str(".html");
+
         let mut plot = Plot::new();
-        let mut scatter = Scatter::new(time.clone(), price_path.clone());
-        scatter.style(Style::new().line_dash("solid").line_width(2.0));
-        plot.add_trace(scatter);
+        let trace = Scatter::new(time.clone(), price_path.clone());
+        plot.add_trace(trace);
 
-        let layout = Layout::new()
-            .title(Title::new("Price Path"))
-            .x_axis(Axis::new().title(Title::new("Time")))
-            .y_axis(Axis::new().title(Title::new("Price")))
-            .margin(Margin::new().left(80).top(100).right(80).bottom(80));
-
-        plot.set_layout(layout);
-        plot.show();
+        plot.write_html(filename) // Produces .html using the identifier in arbiter root directory.
     }
 
 }
