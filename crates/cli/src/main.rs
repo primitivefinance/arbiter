@@ -84,7 +84,8 @@ async fn main() -> Result<()> {
             let portfolio = manager.deploy(portfolio, portfolio_args);
             println!("Portfolio deployed at: {}", portfolio.address.unwrap());
         }
-        Some(Commands::Gbm { config }) => {
+
+        Some(Commands::Ou { config }) => {
             // Plot a GBM price path
             let config::Config {
                 timestep,
@@ -94,6 +95,9 @@ async fn main() -> Result<()> {
                 drift,
                 volatility,
                 seed,
+                ou_mean_reversion_speed,
+                ou_mean,
+                
                 ..
             } = config::Config::new(config).unwrap();
             let test_sim = PriceSimulation::new(
@@ -104,9 +108,12 @@ async fn main() -> Result<()> {
                 drift,
                 volatility,
                 seed,
+                ou_mean_reversion_speed,
+                ou_mean,
             );
 
-            test_sim.plot();
+            let (time, gbm_path) = test_sim.generate_ou_path();
+            test_sim.plot(&time, &gbm_path);
         }
         None => {
             Args::command()
@@ -114,6 +121,44 @@ async fn main() -> Result<()> {
                 .map_err(|err| println!("{:?}", err))
                 .ok();
         }
+
+        Some(Commands::Gbm { config }) => {
+            // Plot a GBM price path
+            let config::Config {
+                timestep,
+                timescale,
+                num_steps,
+                initial_price,
+                drift,
+                volatility,
+                seed,
+                ou_mean_reversion_speed,
+                ou_mean,
+                
+                ..
+            } = config::Config::new(config).unwrap();
+            let test_sim = PriceSimulation::new(
+                timestep,
+                timescale,
+                num_steps,
+                initial_price,
+                drift,
+                volatility,
+                seed,
+                ou_mean_reversion_speed,
+                ou_mean,
+            );
+
+            let (time, gbm_path) = test_sim.generate_gbm_path();
+            test_sim.plot(&time, &gbm_path);
+        }
+        None => {
+            Args::command()
+                .print_long_help()
+                .map_err(|err| println!("{:?}", err))
+                .ok();
+        }
+
     }
     Ok(())
 }

@@ -56,6 +56,10 @@ struct ConfigTomlSim {
     volatility: f64,
     /// Seed for varying price path
     seed: u64,
+    /// Theta for Ornstein-Uhlenbeck process
+    ou_mean_reversion_speed: f64,
+    /// Mean Price for Ornstein-Uhlenbeck process
+    ou_mean: f64,
 }
 
 /// Representation of the config file that other modules have access to.
@@ -84,6 +88,10 @@ pub struct Config {
     pub volatility: f64,
     /// Seed for varying price path
     pub seed: u64,
+    /// Theta for Ornstein-Uhlenbeck process
+    pub ou_mean_reversion_speed: f64,
+    /// Mean Price for Ornstein-Uhlenbeck process
+    pub ou_mean: f64,
 }
 
 impl Config {
@@ -112,6 +120,8 @@ impl Config {
             drift: config_toml.sim.drift,
             volatility: config_toml.sim.volatility,
             seed: config_toml.sim.seed,
+            ou_mean_reversion_speed: config_toml.sim.ou_mean_reversion_speed,
+            ou_mean: config_toml.sim.ou_mean,
         })
     }
 }
