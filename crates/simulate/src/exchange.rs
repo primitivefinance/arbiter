@@ -389,7 +389,7 @@ mod tests {
         let token_y = admin.deploy(&mut manager.environment, arbiter_token, args);
 
         // Deploy LiquidExchange
-        let price_to_check = 1000;
+        let price_to_check = 1000; // TODO: this is wrong
         let initial_price = wad.checked_mul(U256::from(price_to_check)).unwrap();
         let liquid_exchange = SimulationContract::new(
             BaseContract::from(bindings::liquid_exchange::LIQUIDEXCHANGE_ABI.clone()),
