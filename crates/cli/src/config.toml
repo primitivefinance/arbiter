@@ -1,11 +1,6 @@
 rpc_url = "https://eth-mainnet.g.alchemy.com/v2/I93POQk49QE9O-NuOz7nj7sbiluW76it"
 
-[see]
-token0 = "ETH"
-token1 = "USDC"
-bp = "30"
-
-[sim]
+[gbm]
 timestep = 0.0027397
 timescale = "years"
 num_steps = 365
@@ -15,3 +10,6 @@ volatility = 0.7
 seed = 887
 ou_mean_reversion_speed = 0.5
 ou_mean = 1
+
+[chain]
+contract_address = "0x8ad599c3a0ff1de082011efddc58f1908eb6e6d8"
