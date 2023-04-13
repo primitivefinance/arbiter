@@ -3,6 +3,7 @@
 //! Used to generate price paths for a simulation.
 //! Managers will be able to read from this data to change prices of for infinitely liquid pools.
 
+use ethers::types::U256;
 use plotly::{Plot, Scatter};
 use rand::prelude::*;
 use rand_distr::{Distribution, Normal};
@@ -101,4 +102,9 @@ impl PriceSimulation {
         plot.write_html(filename) // Produces .html using the identifier in arbiter root directory.
     }
 
+}
+
+/// Converts a float to a WAD fixed point prepared U256 number.
+pub fn float_to_wad(x: f64) -> U256 {
+    U256::from((x * 1e18) as u128)
 }

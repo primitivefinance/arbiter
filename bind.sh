@@ -1,9 +1,18 @@
 #!/bin/bash
 
-forge bind -c lib/arbmod/contracts -b crates/bindings/ --crate-name bindings --overwrite --single-file
-echo "Generated bindings for arbmod" 
-forge bind -c lib/portfolio/contracts -b crates/bindings/ --crate-name bindings --overwrite --single-file
+forge install
+forge clean
+forge bind --skip "^UniswapV3.*" -C lib/v3-core/contracts -b crates/bindings/ --crate-name bindings --overwrite
+echo "Generated bindings for v3-core"
+forge bind -C lib/portfolio/contracts -b crates/bindings/ --crate-name bindings --overwrite
 echo "Generated bindings for portfolio"
+forge bind -C lib/canonical-weth/contracts -b crates/bindings/ --crate-name bindings --overwrite
+echo "Generated bindings for canonical-weth"
+forge bind -C lib/arbiter/contracts -b crates/bindings/ --crate-name bindings --overwrite
+echo "Generated bindings for arbiter contracts"
+
+rm -f crates/bindings/src/mock_time_uniswap_v3_pool_deployer.rs
+
 
 #!/bin/bash
 
@@ -12,8 +21,19 @@ input_file="crates/bindings/Cargo.toml"
 output_file="crates/bindings/Cargo-updated.toml"
 
 # Use sed to search and replace a string in the input file
-sed 's/git = "https:\/\/github.com\/gakonst\/ethers-rs"/version = "=2.0.0"/g' "$input_file" > "$output_file"
+sed 's/git = "https:\/\/github.com\/gakonst\/ethers-rs"/version = "2.0.2"/g' "$input_file" > "$output_file"
 mv "$output_file" "$input_file"
+
+# Use sed to search and replace a string in the input file
+input_file="crates/bindings/src/lib.rs"
+output_file="crates/bindings/src/lib_temp.rs"
+
+# Remove the specified string
+grep -v 'pub mod mock_time_uniswap_v3_pool_deployer;' "$input_file" > "$output_file"
+
+# Replace the original file with the modified one
+mv "$output_file" "$input_file"
+
 
 
 
