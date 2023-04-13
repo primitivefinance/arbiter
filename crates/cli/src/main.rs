@@ -44,6 +44,7 @@ enum Commands {
         #[arg(short, long, default_value = "./crates/cli/src/config.toml", num_args = 0..=1)]
         config: String,
     },
+
     Ou {
         /// Path to config.toml containing simulation parameterization (optional)
         #[arg(short, long, default_value = "./crates/cli/src/config.toml", num_args = 0..=1)]
