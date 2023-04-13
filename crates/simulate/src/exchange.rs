@@ -332,4 +332,117 @@ mod tests {
         println!("alice has {} token_x after swap", response);
         assert_eq!(response, U256::from(10_i64.pow(16)));
     }
+
+    #[test]
+    fn test_price_simulation_oracle() {
+        // Get a price path from the oracle.
+        let timestep = 1.0;
+        let timescale = String::from("day");
+        let num_steps = 7;
+        let initial_price = 100.0;
+        let drift = 0.5;
+        let volatility = 0.1;
+        let seed = 123;
+        let ou_mean_reversion_speed = 0.1;
+        let ou_mean_price = 1.0;
+        let gbm = crate::price_simulation::PriceSimulation::new(
+            timestep,
+            timescale,
+            num_steps,
+            initial_price,
+            drift,
+            volatility,
+            ou_mean_reversion_speed,
+            ou_mean_price,
+            seed,
+        );
+        let (_time, price_path) = gbm.gbm();
+
+        // Set up the liquid exchange
+        // define the wad constant
+        let decimals = 18_u8;
+        let wad: U256 = U256::from(10_i64.pow(decimals as u32));
+
+        // Set up the execution manager and a user address.
+        let mut manager = SimulationManager::default();
+        let admin = manager.agents.get("admin").unwrap();
+
+        // Create arbiter token general contract.
+        let arbiter_token = SimulationContract::new(
+            BaseContract::from(bindings::arbiter_token::ARBITERTOKEN_ABI.clone()),
+            bindings::arbiter_token::ARBITERTOKEN_BYTECODE
+                .clone()
+                .into_iter()
+                .collect(),
+        );
+
+        // Deploy token_x.
+        let name = "Token X";
+        let symbol = "TKNX";
+        let args = (name.to_string(), symbol.to_string(), decimals).into_tokens();
+        let token_x = admin.deploy(&mut manager.environment, arbiter_token.clone(), args);
+
+        // Deploy token_y.
+        let name = "Token Y";
+        let symbol = "TKNY";
+        let args = (name.to_string(), symbol.to_string(), decimals).into_tokens();
+        let token_y = admin.deploy(&mut manager.environment, arbiter_token, args);
+
+        // Deploy LiquidExchange
+        let price_to_check = 1000;
+        let initial_price = wad.checked_mul(U256::from(price_to_check)).unwrap();
+        let liquid_exchange = SimulationContract::new(
+            BaseContract::from(bindings::liquid_exchange::LIQUIDEXCHANGE_ABI.clone()),
+            bindings::liquid_exchange::LIQUIDEXCHANGE_BYTECODE
+                .clone()
+                .into_iter()
+                .collect(),
+        );
+        let args = (
+            recast_address(token_x.address.unwrap()),
+            recast_address(token_y.address.unwrap()),
+            U256::from(initial_price),
+        )
+            .into_tokens();
+        let liquid_exchange_xy = admin.deploy(&mut manager.environment, liquid_exchange, args);
+
+        // Loop over and set prices on the liquid exchange from the oracle.
+        for price in price_path {
+            println!("Price from price path: {}", price);
+            let wad_price = crate::price_simulation::float_to_wad(price);
+            println!("WAD price: {}", wad_price);
+            let call_data = liquid_exchange_xy
+                .base_contract
+                .encode("setPrice", wad_price)
+                .unwrap()
+                .into_iter()
+                .collect();
+            admin.call_contract(
+                &mut manager.environment,
+                &liquid_exchange_xy,
+                call_data,
+                Uint::from(0),
+            );
+            // Check that the price is set correctly
+            let call_data = liquid_exchange_xy
+                .base_contract
+                .encode("price", ())
+                .unwrap()
+                .into_iter()
+                .collect();
+            let execution_result = admin.call_contract(
+                &mut manager.environment,
+                &liquid_exchange_xy,
+                call_data,
+                Uint::from(0),
+            );
+            let value = manager.unpack_execution(execution_result);
+            let response: U256 = liquid_exchange_xy
+                .base_contract
+                .decode_output("price", value)
+                .unwrap();
+            println!("Price from the exchange: {}", response);
+            assert_eq!(response, wad_price);
+        }
+    }
 }

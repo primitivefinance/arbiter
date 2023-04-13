@@ -45,6 +45,12 @@ enum Commands {
         config: String,
     },
 
+    Ou {
+        /// Path to config.toml containing simulation parameterization (optional)
+        #[arg(short, long, default_value = "./crates/cli/src/config.toml", num_args = 0..=1)]
+        config: String,
+    },
+
     Chain {
         /// Path to config.toml containing simulation parameterization (optional)
         #[arg(short, long, default_value = "./crates/cli/src/config.toml", num_args = 0..=1)]
@@ -139,7 +145,7 @@ async fn main() -> Result<()> {
             let user_name = "arbitrageur";
             let user_address =
                 B160::from_str("0x0000000000000000000000000000000000000002").unwrap();
-            manager.create_user(user_address, user_name);
+            manager.create_user(user_address, user_name).unwrap();
 
             println!("Arbitraguer created at: {}", user_address);
 
@@ -165,6 +171,37 @@ async fn main() -> Result<()> {
             ); // TODO: SOME KIND OF ERROR HANDLING IS NECESSARY FOR THESE TYPES OF CALLS
             println!("Mint execution result: {:#?}", execution_result);
         }
+
+        Some(Commands::Ou { config }) => {
+            // Plot a GBM price path
+            let config::Config {
+                timestep,
+                timescale,
+                num_steps,
+                initial_price,
+                drift,
+                volatility,
+                seed,
+                ou_mean_reversion_speed,
+                ou_mean,
+                ..
+            } = config::Config::new(config).unwrap();
+            let test_sim = PriceSimulation::new(
+                timestep,
+                timescale,
+                num_steps,
+                initial_price,
+                drift,
+                volatility,
+                ou_mean_reversion_speed,
+                ou_mean,
+                seed,
+            );
+
+            let (time, ou_path) = test_sim.ou();
+            test_sim.plot(&time, &ou_path);
+        }
+
         Some(Commands::Gbm { config }) => {
             // Plot a GBM price path
             let config::Config {
@@ -175,6 +212,8 @@ async fn main() -> Result<()> {
                 drift,
                 volatility,
                 seed,
+                ou_mean_reversion_speed,
+                ou_mean,
                 ..
             } = config::Config::new(config).unwrap();
             let test_sim = PriceSimulation::new(
@@ -184,10 +223,13 @@ async fn main() -> Result<()> {
                 initial_price,
                 drift,
                 volatility,
+                ou_mean_reversion_speed,
+                ou_mean,
                 seed,
             );
 
-            test_sim.plot();
+            let (time, gbm_path) = test_sim.gbm();
+            test_sim.plot(&time, &gbm_path);
         }
         Some(Commands::Chain { config: _ }) => {
             // Parse the contract address

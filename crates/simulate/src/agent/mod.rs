@@ -14,7 +14,6 @@ use revm::primitives::{Address, ExecutionResult, Log, Output, TransactTo, TxEnv,
 
 use crate::environment::{IsDeployed, NotDeployed, SimulationContract, SimulationEnvironment};
 
-pub mod admin;
 pub mod user;
 pub mod arbitrage;
 /// Describes the gas settings for a transaction.

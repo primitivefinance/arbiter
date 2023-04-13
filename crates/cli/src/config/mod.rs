@@ -21,8 +21,6 @@ pub enum ConfigError {
 /// Representation of the arbiter config file.
 #[derive(Serialize, Deserialize, Debug)]
 struct ConfigToml {
-    /// RPC url.
-    rpc_url: String,
     /// Parameters for the `sim` module of arbiter.
     sim: ConfigTomlSim,
     /// Parameters for chain interactions
@@ -45,11 +43,17 @@ struct ConfigTomlSim {
     volatility: f64,
     /// Seed for varying price path
     seed: u64,
+    /// Theta for Ornstein-Uhlenbeck process
+    ou_mean_reversion_speed: f64,
+    /// Mean Price for Ornstein-Uhlenbeck process
+    ou_mean: f64,
 }
 /// Config object for chian
 #[derive(Serialize, Deserialize, Debug)]
 pub struct ConfigTomlChain {
     pub contract: String,
+    // RPC url.
+    pub rpc_url: String,
 }
 /// Representation of the config file that other modules have access to.
 /// This is in contrast to the internal deserialization types above.
@@ -71,6 +75,10 @@ pub struct Config {
     pub volatility: f64,
     /// Seed for varying price path
     pub seed: u64,
+    /// Theta for Ornstein-Uhlenbeck process
+    pub ou_mean_reversion_speed: f64,
+    /// Mean Price for Ornstein-Uhlenbeck process
+    pub ou_mean: f64,
     /// Contract address
     pub contract: String,
 }
@@ -90,7 +98,6 @@ impl Config {
         };
 
         Ok(Config {
-            rpc_url: config_toml.rpc_url,
             timestep: config_toml.sim.timestep,
             timescale: config_toml.sim.timescale,
             num_steps: config_toml.sim.num_steps,
@@ -98,7 +105,10 @@ impl Config {
             drift: config_toml.sim.drift,
             volatility: config_toml.sim.volatility,
             seed: config_toml.sim.seed,
+            ou_mean_reversion_speed: config_toml.sim.ou_mean_reversion_speed,
+            ou_mean: config_toml.sim.ou_mean,
             contract: config_toml.chain.contract,
+            rpc_url: config_toml.chain.rpc_url,
         })
     }
 }
