@@ -14,4 +14,4 @@ drift = 0.1
 volatility = 0.7
 seed = 887
 ou_mean_reversion_speed = 0.5
-ou_mean = 100
+ou_mean = 1
