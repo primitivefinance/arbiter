@@ -21,6 +21,7 @@ mod tests {
     use revm::primitives::{ruint::Uint, B160};
 
     use crate::{contract::SimulationContract, manager::SimulationManager, utils::recast_address};
+    use bindings::writer;
 
     #[test]
     /// Test that the writer contract can echo a string.
@@ -28,46 +29,38 @@ mod tests {
     fn test_string_write() {
         // Set up the execution manager and a user address.
         let mut manager = SimulationManager::default();
+        let admin = manager.agents.get("admin").unwrap();
 
         // Get bytecode and abi for the writer contract.
         let writer = SimulationContract::new(
-            BaseContract::from(bindings::writer::WRITER_ABI.clone()),
-            bindings::writer::WRITER_BYTECODE
+            BaseContract::from(writer::WRITER_ABI.clone()),
+            writer::WRITER_BYTECODE
                 .clone()
                 .into_iter()
                 .collect(),
         );
 
         // Deploy the writer contract.
-        let writer = manager.agents.get("admin").unwrap().deploy(
+        let writer = admin.deploy(
             &mut manager.environment,
             writer,
             ().into_tokens(),
         );
+        let writer_bindings = writer::Writer::new(writer.address, manager.middleware.clone());
 
         // Generate calldata for the 'echoString' function
         let test_string = "Hello, world!";
-        let input_arguments = test_string.to_string();
-        let call_data = writer
-            .base_contract
-            .encode("echoString", input_arguments)
-            .unwrap()
-            .into_iter()
-            .collect();
+        let call_data = writer_bindings.echo_string(test_string.to_string()).calldata().unwrap().into_iter().collect();
 
         // Call the 'echoString' function.
-        let execution_result = manager.agents.get("admin").unwrap().call_contract(
+        let execution_result = admin.call_contract(
             &mut manager.environment,
             &writer,
             call_data,
             Uint::from(0),
         );
         let value = manager.unpack_execution(execution_result);
-
-        let response: String = writer
-            .base_contract
-            .decode_output("echoString", value)
-            .unwrap();
+        let response: String = writer_bindings.decode_output("echoString", value).unwrap();
 
         println!("Writing Response: {response:#?}");
         assert_eq!(response, test_string);
@@ -79,6 +72,14 @@ mod tests {
         // Create a `SimulationManager` where we can run simulations.
         // This will also create an EVM instance associated to the manager.
         let mut manager = SimulationManager::default();
+        let client = manager.middleware.clone();
+
+        // Create a user to mint tokens to.
+                let user_name = "alice";
+                let user_address = B160::from_low_u64_be(2);
+                manager.create_user(user_address, user_name).unwrap(); 
+                let alice = manager.agents.get("alice").unwrap();
+        let admin = manager.agents.get("admin").unwrap();
 
         // Get a SimulationContract for the Arbiter Token ERC-20 instance from the ABI and bytecode.
         let arbiter_token = SimulationContract::new(
@@ -95,23 +96,22 @@ mod tests {
         let args = (name.to_string(), symbol.to_string(), 18_u8);
 
         // Call the contract deployer and receive a IsDeployed version of SimulationContract that now has an address.
-        let arbiter_token = manager.agents.get("admin").unwrap().deploy(
+        let arbiter_token = admin.deploy(
             &mut manager.environment,
             arbiter_token,
             args.into_tokens(),
         );
         println!("Arbiter Token deployed at: {}", arbiter_token.address);
+        let arbiter_token_bindings = bindings::arbiter_token::ArbiterToken::new(
+            arbiter_token.address,
+            client.clone(),
+        );
 
         // Generate calldata for the 'name' function
-        let call_data = arbiter_token
-            .base_contract
-            .encode("name", ())
-            .unwrap()
-            .into_iter()
-            .collect();
+        let call_data = arbiter_token_bindings.name().calldata().unwrap().into_iter().collect();
 
         // Execute the call to retrieve the token name as a test.
-        let execution_result = manager.agents.get("admin").unwrap().call_contract(
+        let execution_result = admin.call_contract(
             &mut manager.environment,
             &arbiter_token,
             call_data,
@@ -119,36 +119,20 @@ mod tests {
         );
         let value = manager.unpack_execution(execution_result);
 
-        let response: String = arbiter_token
-            .base_contract
+        let response: String = arbiter_token_bindings
             .decode_output("name", value)
             .unwrap();
 
         assert_eq!(response, name); // Quick check that the name is correct.
 
-        // Create a user to mint tokens to.
-        let user_name = "alice";
-        let user_address = B160::from_str("0x0000000000000000000000000000000000000002").unwrap();
-        manager.create_user(user_address, user_name).unwrap(); // TODO: This should probably be done by the manager itself. THough it will be something to consider when we have more agents.
-
         // Allocating new tokens to user by calling Arbiter Token's ERC20 'mint' instance.
         let mint_amount = U256::from(1000);
 
         // Set up the calldata for the 'mint' function.
-        let input_arguments = (
-            recast_address(manager.agents[user_name].address()),
-            mint_amount,
-        );
-
-        let call_data = arbiter_token
-            .base_contract
-            .encode("mint", input_arguments)
-            .unwrap()
-            .into_iter()
-            .collect();
+        let call_data = arbiter_token_bindings.mint(recast_address(alice.address()), mint_amount).calldata().unwrap().into_iter().collect();
 
         // Call the 'mint' function.
-        let execution_result = manager.agents.get("admin").unwrap().call_contract(
+        let execution_result = admin.call_contract(
             &mut manager.environment,
             &arbiter_token,
             call_data,
@@ -156,18 +140,10 @@ mod tests {
         ); // TODO: SOME KIND OF ERROR HANDLING IS NECESSARY FOR THESE TYPES OF CALLS
         println!("Mint execution result: {:#?}", execution_result);
 
-        let call_data = arbiter_token
-            .base_contract
-            .encode(
-                "balanceOf",
-                recast_address(manager.agents[user_name].address()),
-            )
-            .unwrap()
-            .into_iter()
-            .collect();
+        let call_data = arbiter_token_bindings.balance_of(recast_address(alice.address())).calldata().unwrap().into_iter().collect();
 
         // Call the 'balanceOf' function.
-        let execution_result = manager.agents.get("admin").unwrap().call_contract(
+        let execution_result = admin.call_contract(
             &mut manager.environment,
             &arbiter_token,
             call_data,
