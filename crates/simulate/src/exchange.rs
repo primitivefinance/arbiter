@@ -123,10 +123,7 @@ mod tests {
         let swap_amount = mint_amount / 2;
         let call_data = liquid_exchange_xy
             .base_contract
-            .encode(
-                "swap",
-                (recast_address(token_x.address), swap_amount),
-            )
+            .encode("swap", (recast_address(token_x.address), swap_amount))
             .unwrap()
             .into_iter()
             .collect();
@@ -264,10 +261,7 @@ mod tests {
         let swap_amount = mint_amount / 2;
         let call_data = liquid_exchange_xy
             .base_contract
-            .encode(
-                "swap",
-                (recast_address(token_y.address), swap_amount),
-            )
+            .encode("swap", (recast_address(token_y.address), swap_amount))
             .unwrap()
             .into_iter()
             .collect();
