@@ -7,7 +7,7 @@ use std::{
 };
 
 use ethers::types::H256;
-use revm::primitives::{Account, AccountInfo, Address, B160, U256};
+use revm::primitives::{Address, B160, U256};
 
 use crate::{
     agent::{Agent, TransactSettings},
@@ -18,16 +18,8 @@ use crate::{
 pub struct Arbitrageur {
     /// Public address of the simulation manager.
     pub address: B160,
-    /// revm-primitive account of the simulation manager.
-    pub account: Account,
     /// Contains the default transaction options for revm such as gas limit and gas price.
     transact_settings: TransactSettings,
-    // TODO: is this useful? environment: Arc<Mutex<Environment>>,
-    _environment: Arc<RwLock<SimulationEnvironment>>,
-    /// read thread for logs
-    _read_thread: Option<std::thread::JoinHandle<()>>,
-    /// Write thread for execution of transactions
-    _write_thread: Option<std::thread::JoinHandle<()>>,
     /// Boolean value to indicate if the agent is currently running
     _running: bool,
 }
@@ -54,14 +46,10 @@ impl Arbitrageur {
     pub fn new(environment: Arc<RwLock<SimulationEnvironment>>, address: B160) -> Self {
         Self {
             address,
-            account: Account::from(AccountInfo::default()),
             transact_settings: TransactSettings {
                 gas_limit: u64::MAX,
                 gas_price: U256::ZERO,
             },
-            _environment: environment,
-            _read_thread: None,
-            _write_thread: None,
             _running: false,
         }
     }
