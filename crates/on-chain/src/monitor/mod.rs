@@ -8,7 +8,7 @@ use ethers::{
     contract::Contract,
     prelude::Provider,
     providers::{Http, Middleware},
-    types::{Address, Filter, BlockNumber},
+    types::{Address, Filter, FilterBlockOption},
 };
 use eyre::Result;
 use futures::stream::StreamExt;
@@ -82,8 +82,10 @@ impl HistoricalMonitor {
             address: Some(ethers::types::ValueOrArray::Array(vec![
                 contract.address(),
             ])),
-            from_block: Some(ethers::types::BlockNumber::Number(from_block.into())),
-            to_block: Some(ethers::types::BlockNumber::Number(to_block.into())),
+            block_option: Some(ethers::types::FilterBlockOption {
+                from_block: Some(ethers::types::BlockNumber::Number(from_block.into())),
+                to_block: Some(ethers::types::BlockNumber::Number(to_block.into())),
+            }),
             topics: [None, None, None, None], // None for all topics
             ..Default::default()
         };
