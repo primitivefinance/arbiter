@@ -5,6 +5,7 @@
 use std::str::FromStr;
 
 use bindings::{arbiter_token, rmm01_portfolio, simple_registry, uniswap_v3_pool, weth9, fvm_lib::{self, FVMLib}};
+use bytes::Bytes;
 use clap::{CommandFactory, Parser, Subcommand};
 use ethers::{
     abi::{Tokenize, encode_packed, Token},
@@ -179,9 +180,14 @@ async fn main() -> Result<()> {
                 .into_tokens();
             let liquid_exchange_xy = manager.agents.get("admin").unwrap().deploy(&mut manager.environment, liquid_exchange, args);
             
-            // let encoder_contract = SimulationContract::new(BaseContract::from(bindings::encoder_target::E))
-            // let encoder_helper = manager.agents.get("admin").unwrap().deploy(simulation_environment, contract, ())
-            // // Create a user to mint tokens to.
+            let encoder_contract = SimulationContract::new(BaseContract::from(bindings::encoder_target::ENCODERTARGET_ABI.clone()), bindings::encoder_target::ENCODERTARGET_BYTECODE.clone().into_iter().collect());
+            let encoder_target = manager.agents.get("admin").unwrap().deploy(&mut manager.environment, encoder_contract, ().into_tokens());
+
+            println!(
+                "encoder target deployed at: {}",
+                encoder_target.address
+            );
+            // Create a user to mint tokens to.
             let user_name = "arbitrageur";
             let user_address =
                 B160::from_str("0x0000000000000000000000000000000000000002").unwrap();
@@ -295,12 +301,23 @@ async fn main() -> Result<()> {
             let result = manager.agents.get("arbitrageur").unwrap().call_contract(&mut manager.environment, &arbiter_token_x, call_data, Uint::from(0));
             println!("Aproved token_y to portfolio for arber: {:#?}", result.is_success());
 
-            // let call = FVMLib
-            let recasted_address_y = recast_address(arbiter_token_y.address);
-            let recasted_address_x = recast_address(arbiter_token_x.address);
-            let opcode = u8::from_str_radix("0c", 16).unwrap();
-            // let call_data = encode_packed(&[opcode, Token::Address(recasted_address_x.into()), Token::Address(recasted_address_x)]).unwrap().into_iter().collect();
+            let encoder_args = (
+                recast_address(arbiter_token_x.address),
+                recast_address(arbiter_token_y.address),
+            );
+            let encoder_create_pair_call_data = encoder_target.base_contract.encode("createPair", encoder_args).unwrap().into_iter().collect();
+            let encoded_create_pair_result = manager.agents.get("admin").unwrap().call_contract(&mut manager.environment, &encoder_target, encoder_create_pair_call_data, Uint::from(0));
+            let encoded_data = manager.unpack_execution(encoded_create_pair_result);
+            let decoded_encoded_data: Bytes = encoder_target.base_contract.decode_output("createPair", encoded_data.clone()).unwrap();
+            println!("Encoded create pair: {:#?}", encoded_data);
+            println!("Encoded create pair: {:#?}", hex::encode(&encoded_data));
+            println!("address 1: {:#?}", arbiter_token_x.address);
+            println!("address 2: {:#?}", arbiter_token_y.address);
+            println!("Decoded create pair: {:#?}", hex::encode(&decoded_encoded_data));
 
+            let portfolio_create_pair_call_data: Bytes = portfolio.base_contract.encode("multiprocess", decoded_encoded_data).unwrap().into_iter().collect();
+            let encoded_create_pair_result = manager.agents.get("admin").unwrap().call_contract(&mut manager.environment, &portfolio, portfolio_create_pair_call_data, Uint::from(0));
+            println!("Encoded create pair: {:#?}", encoded_create_pair_result.is_success());
         }
 
         Some(Commands::Ou { config }) => {
