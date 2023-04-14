@@ -143,7 +143,7 @@ async fn main() -> Result<()> {
             );
             println!(
                 "Arbiter Token X deployed at: {}",
-                arbiter_token_x.address.unwrap()
+                arbiter_token_x.address
             );
             
             // Choose name and symbol and combine into the constructor args required by ERC-20 contracts.
@@ -159,7 +159,7 @@ async fn main() -> Result<()> {
             );
             println!(
                 "Arbiter Token Y deployed at: {}",
-                arbiter_token_y.address.unwrap()
+                arbiter_token_y.address
             );
             // Deploy LiquidExchange
             let price_to_check = 1000;
@@ -172,8 +172,8 @@ async fn main() -> Result<()> {
                     .collect(),
             );
             let args = (
-                recast_address(arbiter_token_x.address.unwrap()),
-                recast_address(arbiter_token_y.address.unwrap()),
+                recast_address(arbiter_token_x.address),
+                recast_address(arbiter_token_y.address),
                 U256::from(initial_price),
             )
                 .into_tokens();
@@ -230,7 +230,7 @@ async fn main() -> Result<()> {
 
             // Mint max token_y to the liquid_exchange contract.
             let args = (
-                recast_address(liquid_exchange_xy.address.unwrap()),
+                recast_address(liquid_exchange_xy.address),
                 U256::MAX,
             );
             let call_data = arbiter_token_y
@@ -247,7 +247,7 @@ async fn main() -> Result<()> {
             // --------------------------------------------------------------------------------------------
             // aprove the liquid_exchange to spend the arbitrageur's token_x
             let approve_liquid_excahnge_args = (
-                recast_address(liquid_exchange_xy.address.unwrap()),
+                recast_address(liquid_exchange_xy.address),
                 U256::MAX,
             );
             let call_data = arbiter_token_x
@@ -271,7 +271,7 @@ async fn main() -> Result<()> {
 
             // aprove tokens on portfolio for arbitrageur
             let approve_portfolio_args = (
-                recast_address(portfolio.address.unwrap()),
+                recast_address(portfolio.address),
                 U256::MAX,
             );
             // Approve token_y
@@ -294,8 +294,8 @@ async fn main() -> Result<()> {
             println!("Aproved token_y to portfolio for arber: {:#?}", result.is_success());
 
             // let call = FVMLib
-            let recasted_address_y = recast_address(arbiter_token_y.address.unwrap());
-            let recasted_address_x = recast_address(arbiter_token_x.address.unwrap());
+            let recasted_address_y = recast_address(arbiter_token_y.address);
+            let recasted_address_x = recast_address(arbiter_token_x.address);
             let opcode = u8::from_str_radix("0c", 16).unwrap();
             // let call_data = encode_packed(&[opcode, Token::Address(recasted_address_x.into()), Token::Address(recasted_address_x)]).unwrap().into_iter().collect();
 
