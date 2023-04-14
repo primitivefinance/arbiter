@@ -45,7 +45,7 @@ pub trait Agent {
         call_data: Bytes,
         value: U256,
     ) -> ExecutionResult {
-        let tx = self.build_call_transaction(contract.address.unwrap(), call_data, value);
+        let tx = self.build_call_transaction(contract.address, call_data, value);
         simulation_environment.execute(tx)
     }
 

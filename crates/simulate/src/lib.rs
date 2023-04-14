@@ -100,10 +100,7 @@ mod tests {
             arbiter_token,
             args.into_tokens(),
         );
-        println!(
-            "Arbiter Token deployed at: {}",
-            arbiter_token.address.unwrap()
-        );
+        println!("Arbiter Token deployed at: {}", arbiter_token.address);
 
         // Generate calldata for the 'name' function
         let call_data = arbiter_token
