@@ -1,9 +1,9 @@
 #![warn(missing_docs)]
 //! Describes the most basic type of user agent.
 
-use std::thread;
 use ethers::types::H256;
 use revm::primitives::{Address, B160, U256};
+use std::thread;
 
 use crate::{
     agent::{Agent, TransactSettings},
@@ -16,8 +16,6 @@ pub struct Arbitrageur {
     pub address: B160,
     /// Contains the default transaction options for revm such as gas limit and gas price.
     transact_settings: TransactSettings,
-    /// Boolean value to indicate if the agent is currently running
-    _running: bool,
 }
 
 impl Agent for Arbitrageur {
@@ -46,7 +44,6 @@ impl Arbitrageur {
                 gas_limit: u64::MAX,
                 gas_price: U256::ZERO,
             },
-            _running: false,
         }
     }
     /// Watch for arbitrage opportunities.
