@@ -1,14 +1,17 @@
 #![warn(missing_docs)]
 //! Describes the most basic type of user agent.
 
-use std::{sync::{Arc, RwLock}, thread};
+use std::{
+    sync::{Arc, RwLock},
+    thread,
+};
 
 use ethers::types::H256;
 use revm::primitives::{Account, AccountInfo, Address, B160, U256};
 
 use crate::{
     agent::{Agent, TransactSettings},
-    environment::{SimulationEnvironment, SimulationContract, IsDeployed},
+    environment::{IsDeployed, SimulationContract, SimulationEnvironment},
 };
 
 /// A user is an agent that can interact with the simulation environment generically.

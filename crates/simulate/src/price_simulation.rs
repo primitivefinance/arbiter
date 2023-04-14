@@ -96,12 +96,12 @@ impl PriceSimulation {
     }
 
     /// Plots a price path.
-    pub fn plot(&self, time: &Vec<f64>, price_path: &Vec<f64>) {
+    pub fn plot(&self, time: &Vec<f64>, price_path: &[f64]) {
         let mut filename = String::from("PlottingPrice");
         filename.push_str(".html");
 
         let mut plot = Plot::new();
-        let trace = Scatter::new(time.clone(), price_path.clone());
+        let trace = Scatter::new(time.clone(), price_path.to_owned());
         plot.add_trace(trace);
 
         plot.write_html(filename) // Produces .html using the identifier in arbiter root directory.

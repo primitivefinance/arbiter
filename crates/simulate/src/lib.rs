@@ -15,12 +15,15 @@ mod tests {
     use bindings::liquid_exchange;
     use ethers::{
         abi::Tokenize,
-        prelude::{BaseContract, H256, U256, k256::elliptic_curve::consts::U25}, types::Filter,
+        prelude::{k256::elliptic_curve::consts::U25, BaseContract, H256, U256},
+        types::Filter,
     };
     use revm::primitives::{ruint::Uint, B160};
 
     use crate::{
-        environment::SimulationContract, manager::SimulationManager, utils::{recast_address, self},
+        environment::SimulationContract,
+        manager::SimulationManager,
+        utils::{self, recast_address},
     };
 
     #[test]
@@ -418,8 +421,7 @@ mod tests {
         };
     }
     #[test]
-    fn test_update_price () {
-
+    fn test_update_price() {
         let decimals = 18_u8;
         let wad: U256 = U256::from(10_i64.pow(decimals as u32));
 
@@ -432,7 +434,6 @@ mod tests {
         // Pull out the admin and alice
         let admin = manager.agents.get("admin").unwrap();
         let alice = manager.agents.get(user_name).unwrap();
-
 
         // Create arbiter token general contract.
         let arbiter_token = SimulationContract::new(
@@ -454,7 +455,7 @@ mod tests {
         let symbol = "TKNY";
         let args = (name.to_string(), symbol.to_string(), decimals).into_tokens();
         let token_y = admin.deploy(&mut manager.environment, arbiter_token, args);
-        
+
         // Deploy LiquidExchange
         let price_to_check = 100;
         let initial_price = wad.checked_mul(U256::from(price_to_check)).unwrap();
@@ -481,23 +482,11 @@ mod tests {
                 println!("Got logs in alice's thread!");
                 println!("{:?}", logs);
                 println!("i: {}", i);
-                if i < 4 {
+                if i < 6 {
                     i += 1;
                     continue;
                 } else {
                     match i {
-                        2 =>{
-                            println!("HIT");
-                        }
-                        3 => {
-                            println!("HIT");
-                        }
-                        4 => {
-                            println!("HIT");
-                        }
-                        5 => {
-                            println!("HIT");
-                        }
                         6 => {
                             let log_topics: Vec<H256> = logs.clone()[0]
                                 .topics
@@ -509,7 +498,10 @@ mod tests {
                             let log_output = base_abi_liq
                                 .decode_event::<U256>("PriceChange", log_topics, log_data)
                                 .unwrap();
-                            println!("Got the right price event log in Alices's thread!, {}", log_output);
+                            println!(
+                                "Got the right price event log in Alices's thread!, {}",
+                                log_output
+                            );
                             assert_eq!(log_output, U256::from(500));
                         }
                         _ => break,
