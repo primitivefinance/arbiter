@@ -186,7 +186,7 @@ async fn main() -> Result<()> {
             println!("Arbitraguer created at: {}", user_address);
 
             // Allocating new tokens to user by calling Arbiter Token's ERC20 'mint' instance.
-            let mint_amount = U256::from(1000);
+            let mint_amount = U256::from(100000);
             let input_arguments = (
                 recast_address(manager.agents[user_name].address()),
                 mint_amount,
@@ -205,7 +205,50 @@ async fn main() -> Result<()> {
                 call_data,
                 Uint::from(0),
             ); // TODO: SOME KIND OF ERROR HANDLING IS NECESSARY FOR THESE TYPES OF CALLS
-            println!("Mint execution result: {:#?}", execution_result);
+            println!("Mintminted token_x to arber {:#?}", execution_result.is_success());
+
+            let call_data = arbiter_token_y
+                .base_contract
+                .encode("mint", input_arguments)
+                .unwrap()
+                .into_iter()
+                .collect();
+
+            // Call the 'mint' function.
+            let execution_result = manager.agents.get("admin").unwrap().call_contract(
+                &mut manager.environment,
+                &arbiter_token_y,
+                call_data,
+                Uint::from(0),
+            ); // TODO: SOME KIND OF ERROR HANDLING IS NECESSARY FOR THESE TYPES OF CALLS
+            println!("Mintminted token_y to arber: {:#?}", execution_result.is_success());
+
+            // Mint max token_y to the liquid_exchange contract.
+            let args = (
+                recast_address(liquid_exchange_xy.address.unwrap()),
+                U256::MAX,
+            );
+            let call_data = arbiter_token_y
+                .base_contract
+                .encode("mint", args)
+                .unwrap()
+                .into_iter()
+                .collect();
+            manager.agents.get("admin").unwrap().call_contract(&mut manager.environment, &arbiter_token_y, call_data, Uint::from(0));
+
+            // Have approval for token_x to be spent by the liquid_exchange.
+            let args = (
+                recast_address(liquid_exchange_xy.address.unwrap()),
+                U256::MAX,
+            );
+            let call_data = arbiter_token_x
+                .base_contract
+                .encode("approve", args)
+                .unwrap()
+                .into_iter()
+                .collect();
+            manager.agents.get("arbitrageur").unwrap().call_contract(&mut manager.environment, &arbiter_token_x, call_data, Uint::from(0));
+
         }
 
         Some(Commands::Ou { config }) => {
@@ -285,8 +328,4 @@ async fn main() -> Result<()> {
         }
     }
     Ok(())
-}
-
-pub fn deploy_contracts(){
-
 }
