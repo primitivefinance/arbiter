@@ -12,7 +12,10 @@ use crossbeam_channel::Receiver;
 use ethers::abi::Token;
 use revm::primitives::{Address, ExecutionResult, Log, Output, TransactTo, TxEnv, B160, U256};
 
-use crate::environment::{IsDeployed, NotDeployed, SimulationContract, SimulationEnvironment};
+use crate::{
+    contract::{IsDeployed, NotDeployed, SimulationContract},
+    environment::SimulationEnvironment,
+};
 
 pub mod user;
 /// Describes the gas settings for a transaction.
@@ -42,7 +45,7 @@ pub trait Agent {
         call_data: Bytes,
         value: U256,
     ) -> ExecutionResult {
-        let tx = self.build_call_transaction(contract.address.unwrap(), call_data, value);
+        let tx = self.build_call_transaction(contract.address, call_data, value);
         simulation_environment.execute(tx)
     }
 

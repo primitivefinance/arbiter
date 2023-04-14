@@ -30,9 +30,7 @@ mod tests {
     };
     use revm::primitives::{ruint::Uint, B160};
 
-    use crate::{
-        environment::SimulationContract, manager::SimulationManager, utils::recast_address,
-    };
+    use crate::{contract::SimulationContract, manager::SimulationManager, utils::recast_address};
     #[test]
     fn test_swap_x_for_y_liquid_exchange() {
         // define the wad constant
@@ -44,8 +42,8 @@ mod tests {
 
         // Set up a user named alice
         let user_name = "alice";
-        let user_address = B160::from_low_u64_be(2); // TODO: Prevent address collisions
-        manager.create_user(user_address, user_name);
+        let user_address = B160::from_low_u64_be(2);
+        manager.create_user(user_address, user_name).unwrap();
 
         // Pull out the admin and alice
         let admin = manager.agents.get("admin").unwrap();
@@ -83,9 +81,9 @@ mod tests {
                 .collect(),
         );
         let args = (
-            recast_address(token_x.address.unwrap()),
-            recast_address(token_y.address.unwrap()),
-            U256::from(initial_price),
+            recast_address(token_x.address),
+            recast_address(token_y.address),
+            initial_price,
         )
             .into_tokens();
         let liquid_exchange_xy = admin.deploy(&mut manager.environment, liquid_exchange, args);
@@ -102,10 +100,7 @@ mod tests {
         admin.call_contract(&mut manager.environment, &token_x, call_data, Uint::from(0));
 
         // Mint max token_y to the liquid_exchange contract.
-        let args = (
-            recast_address(liquid_exchange_xy.address.unwrap()),
-            U256::MAX,
-        );
+        let args = (recast_address(liquid_exchange_xy.address), U256::MAX);
         let call_data = token_y
             .base_contract
             .encode("mint", args)
@@ -115,10 +110,7 @@ mod tests {
         admin.call_contract(&mut manager.environment, &token_y, call_data, Uint::from(0));
 
         // Have alice's approval for token_x to be spent by the liquid_exchange.
-        let args = (
-            recast_address(liquid_exchange_xy.address.unwrap()),
-            U256::MAX,
-        );
+        let args = (recast_address(liquid_exchange_xy.address), U256::MAX);
         let call_data = token_x
             .base_contract
             .encode("approve", args)
@@ -131,13 +123,7 @@ mod tests {
         let swap_amount = mint_amount / 2;
         let call_data = liquid_exchange_xy
             .base_contract
-            .encode(
-                "swap",
-                (
-                    recast_address(token_x.address.unwrap()),
-                    U256::from(swap_amount),
-                ),
-            )
+            .encode("swap", (recast_address(token_x.address), swap_amount))
             .unwrap()
             .into_iter()
             .collect();
@@ -195,7 +181,7 @@ mod tests {
         // Set up a user named alice
         let user_name = "alice";
         let user_address = B160::from_low_u64_be(2); // TODO: Prevent address collisions
-        manager.create_user(user_address, user_name);
+        manager.create_user(user_address, user_name).unwrap();
 
         // Pull out the admin and alice
         let admin = manager.agents.get("admin").unwrap();
@@ -233,9 +219,9 @@ mod tests {
                 .collect(),
         );
         let args = (
-            recast_address(token_x.address.unwrap()),
-            recast_address(token_y.address.unwrap()),
-            U256::from(initial_price),
+            recast_address(token_x.address),
+            recast_address(token_y.address),
+            initial_price,
         )
             .into_tokens();
         let liquid_exchange_xy = admin.deploy(&mut manager.environment, liquid_exchange, args);
@@ -252,10 +238,7 @@ mod tests {
         admin.call_contract(&mut manager.environment, &token_y, call_data, Uint::from(0));
 
         // Mint max token_x to the liquid_exchange contract.
-        let args = (
-            recast_address(liquid_exchange_xy.address.unwrap()),
-            U256::MAX,
-        );
+        let args = (recast_address(liquid_exchange_xy.address), U256::MAX);
         let call_data = token_x
             .base_contract
             .encode("mint", args)
@@ -265,10 +248,7 @@ mod tests {
         admin.call_contract(&mut manager.environment, &token_x, call_data, Uint::from(0));
 
         // Have alice's approval for token_y to be spent by the liquid_exchange.
-        let args = (
-            recast_address(liquid_exchange_xy.address.unwrap()),
-            U256::MAX,
-        );
+        let args = (recast_address(liquid_exchange_xy.address), U256::MAX);
         let call_data = token_y
             .base_contract
             .encode("approve", args)
@@ -281,13 +261,7 @@ mod tests {
         let swap_amount = mint_amount / 2;
         let call_data = liquid_exchange_xy
             .base_contract
-            .encode(
-                "swap",
-                (
-                    recast_address(token_y.address.unwrap()),
-                    U256::from(swap_amount),
-                ),
-            )
+            .encode("swap", (recast_address(token_y.address), swap_amount))
             .unwrap()
             .into_iter()
             .collect();
@@ -389,7 +363,7 @@ mod tests {
         let token_y = admin.deploy(&mut manager.environment, arbiter_token, args);
 
         // Deploy LiquidExchange
-        let price_to_check = 1000;
+        let price_to_check = 1000; // TODO: this is wrong
         let initial_price = wad.checked_mul(U256::from(price_to_check)).unwrap();
         let liquid_exchange = SimulationContract::new(
             BaseContract::from(bindings::liquid_exchange::LIQUIDEXCHANGE_ABI.clone()),
@@ -399,9 +373,9 @@ mod tests {
                 .collect(),
         );
         let args = (
-            recast_address(token_x.address.unwrap()),
-            recast_address(token_y.address.unwrap()),
-            U256::from(initial_price),
+            recast_address(token_x.address),
+            recast_address(token_y.address),
+            initial_price,
         )
             .into_tokens();
         let liquid_exchange_xy = admin.deploy(&mut manager.environment, liquid_exchange, args);
