@@ -2,18 +2,18 @@
 #![warn(unsafe_code)]
 //! Main lives in the `cli` crate so that we can do our input parsing.
 
-use std::str::FromStr;
+use std::{str::FromStr};
 
-use bindings::{arbiter_token, rmm01_portfolio, simple_registry, uniswap_v3_pool, weth9, fvm_lib::{self, FVMLib}};
+use bindings::{arbiter_token, rmm01_portfolio, simple_registry, uniswap_v3_pool, weth9, fvm_lib::{self, FVMLib}, i_portfolio};
 use bytes::Bytes;
 use clap::{CommandFactory, Parser, Subcommand};
 use ethers::{
     abi::{Tokenize, encode_packed, Token},
-    prelude::{BaseContract, U256},
+    prelude::{BaseContract, U256}, types::H256,
 };
 use eyre::Result;
 use on_chain::monitor::EventMonitor;
-use revm::primitives::{ruint::Uint, B160};
+use revm::primitives::{ruint::Uint, B160, Address};
 use simulate::{
     contract::SimulationContract, manager::SimulationManager, price_simulation::PriceSimulation,
     utils::recast_address,
@@ -393,19 +393,44 @@ fn sim () {
     let encoded_create_pair_result = manager.agents.get("admin").unwrap().call_contract(&mut manager.environment, &encoder_target, encoder_create_pair_call_data, Uint::from(0));
     let encoded_data = manager.unpack_execution(encoded_create_pair_result);
     let decoded_encoded_data: Bytes = encoder_target.base_contract.decode_output("createPair", encoded_data.clone()).unwrap();
-    println!("Encoded create pair: {:#?}", encoded_data);
-    println!("Encoded create pair: {:#?}", hex::encode(&encoded_data));
-    println!("address 1: {:#?}", arbiter_token_x.address);
-    println!("address 2: {:#?}", arbiter_token_y.address);
     println!("Decoded create pair: {:#?}", hex::encode(&decoded_encoded_data));
 
     let portfolio_create_pair_call_data: Bytes = portfolio.base_contract.encode("multiprocess", decoded_encoded_data).unwrap().into_iter().collect();
     let encoded_create_pair_result = manager.agents.get("admin").unwrap().call_contract(&mut manager.environment, &portfolio, portfolio_create_pair_call_data, Uint::from(0));
     println!("Encoded create pair: {:#?}", encoded_create_pair_result.is_success());
     // TODO: Get the paidID and use the Pair id to create new pool
+    print!("result: {:#?}", encoded_create_pair_result.logs()[0]);
+    let topics = encoded_create_pair_result.logs()[0].topics.clone();
 
-    // Create a new pool
-    let _pool_create_pair_call_data: Bytes = encoder_target.base_contract.encode("createPool", (U256::from(0), U256::from(0))).unwrap().into_iter().collect();
+    let h256_vec: Vec<H256> = topics
+        .iter()
+        .map(|b256| H256::from_slice(b256.as_bytes()))
+        .collect();
+    let i_portfolio = SimulationContract::new(
+        BaseContract::from(bindings::i_portfolio::IPORTFOLIO_ABI.clone()),
+        bindings::rmm01_portfolio::RMM01PORTFOLIO_BYTECODE
+            .clone()
+            .into_iter()
+            .collect(),
+    );
+    let data = encoded_create_pair_result.logs()[0].data.clone();
+    let (pair_id, _token_1, _token_2, _dec_1, _dec_2): (Token, Token, Token, Token, Token) = i_portfolio.base_contract.decode_event("CreatePair", h256_vec, ethers::types::Bytes(data)).unwrap();
+
+    println!("Decoded pairID: {:#?}", hex::encode(pair_id.to_string()));
+    // Create a new pool parameters
+    // uint24 pairId,
+    // address controller,
+    // uint16 priorityFee,
+    // uint16 fee,
+    // uint16 vol,
+    // uint16 dur,
+    // uint16 jit,
+    // uint128 maxPrice,
+    // uint128 price
+    // let enocoder_args = (
+
+    // )
+    // let _pool_create_pair_call_data: Bytes = encoder_target.base_contract.encode("createPool", (U256::from(0), U256::from(0))).unwrap().into_iter().collect();
 
 }
 fn _deploy_sim_contracts(){
