@@ -14,7 +14,7 @@ use eyre::Result;
 use on_chain::monitor::EventMonitor;
 use revm::primitives::{ruint::Uint, B160};
 use simulate::{
-    environment::SimulationContract, manager::SimulationManager, price_simulation::PriceSimulation,
+    contract::SimulationContract, manager::SimulationManager, price_simulation::PriceSimulation,
     utils::recast_address,
 };
 mod config;
@@ -79,7 +79,7 @@ async fn main() -> Result<()> {
                 weth,
                 ().into_tokens(),
             );
-            println!("WETH deployed at: {}", weth.address.unwrap());
+            println!("WETH deployed at: {}", weth.address);
 
             // Deploy the registry contract.
             let registry = SimulationContract::new(
@@ -95,7 +95,7 @@ async fn main() -> Result<()> {
                 registry,
                 ().into_tokens(),
             );
-            println!("Simple registry deployed at: {}", registry.address.unwrap());
+            println!("Simple registry deployed at: {}", registry.address);
 
             // Deploy the portfolio contract.
             let portfolio = SimulationContract::new(
@@ -107,15 +107,15 @@ async fn main() -> Result<()> {
             );
 
             let portfolio_args = (
-                recast_address(weth.address.unwrap()),
-                recast_address(registry.address.unwrap()),
+                recast_address(weth.address),
+                recast_address(registry.address),
             );
             let portfolio = manager.agents.get("admin").unwrap().deploy(
                 &mut manager.environment,
                 portfolio,
                 portfolio_args.into_tokens(),
             );
-            println!("Portfolio deployed at: {}", portfolio.address.unwrap());
+            println!("Portfolio deployed at: {}", portfolio.address);
 
             let arbiter_token = SimulationContract::new(
                 BaseContract::from(arbiter_token::ARBITERTOKEN_ABI.clone()),
@@ -136,10 +136,7 @@ async fn main() -> Result<()> {
                 arbiter_token,
                 args.into_tokens(),
             );
-            println!(
-                "Arbiter Token deployed at: {}",
-                arbiter_token.address.unwrap()
-            );
+            println!("Arbiter Token deployed at: {}", arbiter_token.address);
 
             // Create a user to mint tokens to.
             let user_name = "arbitrageur";

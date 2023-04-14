@@ -2,9 +2,11 @@
 //! Lib crate for describing simulations.
 
 pub mod agent;
+pub mod contract;
 pub mod environment;
 pub mod exchange;
 pub mod manager;
+pub mod middleware;
 pub mod price_simulation;
 pub mod utils;
 
@@ -18,9 +20,7 @@ mod tests {
     };
     use revm::primitives::{ruint::Uint, B160};
 
-    use crate::{
-        environment::SimulationContract, manager::SimulationManager, utils::recast_address,
-    };
+    use crate::{contract::SimulationContract, manager::SimulationManager, utils::recast_address};
 
     #[test]
     /// Test that the writer contract can echo a string.
@@ -100,10 +100,7 @@ mod tests {
             arbiter_token,
             args.into_tokens(),
         );
-        println!(
-            "Arbiter Token deployed at: {}",
-            arbiter_token.address.unwrap()
-        );
+        println!("Arbiter Token deployed at: {}", arbiter_token.address);
 
         // Generate calldata for the 'name' function
         let call_data = arbiter_token
@@ -231,7 +228,7 @@ mod tests {
         let logs = manager.agents.get("admin").unwrap().read_logs();
 
         // Decode the logs
-        let log_topics: Vec<H256> = logs.clone()[0]
+        let log_topics: Vec<H256> = logs[0]
             .topics
             .clone()
             .into_iter()
@@ -388,7 +385,7 @@ mod tests {
         let _execution_result = manager.agents.get("admin").unwrap().call_contract(
             &mut manager.environment,
             &writer,
-            call_data.clone(),
+            call_data,
             Uint::from(0),
         );
 
