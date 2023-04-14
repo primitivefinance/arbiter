@@ -1,17 +1,13 @@
 #![warn(missing_docs)]
 //! Describes the most basic type of user agent.
 
-use std::{
-    sync::{Arc, RwLock},
-    thread,
-};
-
+use std::thread;
 use ethers::types::H256;
 use revm::primitives::{Address, B160, U256};
 
 use crate::{
     agent::{Agent, TransactSettings},
-    environment::{IsDeployed, SimulationContract, SimulationEnvironment},
+    environment::{IsDeployed, SimulationContract},
 };
 
 /// A user is an agent that can interact with the simulation environment generically.
@@ -43,7 +39,7 @@ impl Agent for Arbitrageur {
 
 impl Arbitrageur {
     /// Constructor function to instantiate a
-    pub fn new(environment: Arc<RwLock<SimulationEnvironment>>, address: B160) -> Self {
+    pub fn new(address: B160) -> Self {
         Self {
             address,
             transact_settings: TransactSettings {
