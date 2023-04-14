@@ -2,12 +2,13 @@
 //! Lib crate for describing simulations.
 
 pub mod agent;
+pub mod contract;
 pub mod environment;
 pub mod exchange;
 pub mod manager;
+pub mod middleware;
 pub mod price_simulation;
 pub mod utils;
-pub mod middleware;
 
 #[cfg(test)]
 mod tests {
@@ -19,9 +20,7 @@ mod tests {
     };
     use revm::primitives::{ruint::Uint, B160};
 
-    use crate::{
-        environment::SimulationContract, manager::SimulationManager, utils::recast_address,
-    };
+    use crate::{contract::SimulationContract, manager::SimulationManager, utils::recast_address};
 
     #[test]
     /// Test that the writer contract can echo a string.

@@ -14,9 +14,8 @@ use eyre::Result;
 use on_chain::monitor::EventMonitor;
 use revm::primitives::{ruint::Uint, B160};
 use simulate::{
-    environment::SimulationContract, manager::SimulationManager, price_simulation::PriceSimulation,
-    utils::recast_address,
-    middleware::SimulationMiddleware,
+    contract::SimulationContract, manager::SimulationManager, middleware::SimulationMiddleware,
+    price_simulation::PriceSimulation, utils::recast_address,
 };
 mod config;
 

@@ -2,7 +2,7 @@
 //! Simulation managers are used to manage the environments for a simulation.
 //! Managers are responsible for adding agents, running agents, deploying contracts, calling contracts, and reading logs.
 
-use std::collections::HashMap;
+use std::{collections::HashMap, sync::Arc};
 
 use bytes::Bytes;
 use crossbeam_channel::unbounded;
@@ -11,6 +11,7 @@ use revm::primitives::{AccountInfo, ExecutionResult, Log, Output, B160};
 use crate::{
     agent::{user::User, Agent},
     environment::SimulationEnvironment,
+    middleware::SimulationMiddleware,
 };
 
 // TODO: Maybe need a `SimulationAccount` that abstracts some of the revm primitives further.
@@ -22,6 +23,8 @@ pub struct SimulationManager<'a> {
     pub environment: SimulationEnvironment,
     /// The agents that are currently running in the simulation environment.
     pub agents: HashMap<&'a str, Box<dyn Agent>>,
+    /// The middleware that is used to interact with the simulation environment.
+    pub middleware: Arc<SimulationMiddleware>,
 }
 
 impl<'a> Default for SimulationManager<'a> {
@@ -38,6 +41,7 @@ impl<'a> SimulationManager<'a> {
         let mut simulation_manager = Self {
             environment: SimulationEnvironment::new(),
             agents: HashMap::new(),
+            middleware: Arc::new(SimulationMiddleware::default()),
         };
         let admin = Box::new(User::new(event_receiver_admin, B160::from_low_u64_be(1)));
         simulation_manager.add_agent("admin", admin).unwrap();

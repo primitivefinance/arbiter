@@ -12,7 +12,10 @@ use crossbeam_channel::Receiver;
 use ethers::abi::Token;
 use revm::primitives::{Address, ExecutionResult, Log, Output, TransactTo, TxEnv, B160, U256};
 
-use crate::environment::{IsDeployed, NotDeployed, SimulationContract, SimulationEnvironment};
+use crate::{
+    contract::{IsDeployed, NotDeployed, SimulationContract},
+    environment::SimulationEnvironment,
+};
 
 pub mod user;
 /// Describes the gas settings for a transaction.
