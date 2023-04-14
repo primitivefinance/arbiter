@@ -4,10 +4,10 @@
 
 use std::str::FromStr;
 
-use bindings::{arbiter_token, rmm01_portfolio, simple_registry, uniswap_v3_pool, weth9};
+use bindings::{arbiter_token, rmm01_portfolio, simple_registry, uniswap_v3_pool, weth9, fvm_lib::{self, FVMLib}};
 use clap::{CommandFactory, Parser, Subcommand};
 use ethers::{
-    abi::Tokenize,
+    abi::{Tokenize, encode_packed, Token},
     prelude::{BaseContract, U256},
 };
 use eyre::Result;
@@ -292,6 +292,13 @@ async fn main() -> Result<()> {
                 .collect();
             let result = manager.agents.get("arbitrageur").unwrap().call_contract(&mut manager.environment, &arbiter_token_x, call_data, Uint::from(0));
             println!("Aproved token_y to portfolio for arber: {:#?}", result.is_success());
+
+            // let call = FVMLib
+            let recasted_address_y = recast_address(arbiter_token_y.address.unwrap());
+            let recasted_address_x = recast_address(arbiter_token_x.address.unwrap());
+            let opcode = u8::from_str_radix("0c", 16).unwrap();
+            // let call_data = encode_packed(&[opcode, Token::Address(recasted_address_x.into()), Token::Address(recasted_address_x)]).unwrap().into_iter().collect();
+
         }
 
         Some(Commands::Ou { config }) => {
