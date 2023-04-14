@@ -65,6 +65,9 @@ async fn main() -> Result<()> {
     match &args.command {
         Some(Commands::Sim { config: _ }) => {
             // Create a `SimulationManager` that runs simulations in their `SimulationEnvironment`.
+            // define the wad constant
+            let decimals = 18_u8;
+            let wad: U256 = U256::from(10_i64.pow(decimals as u32));
             // This will create an EVM instance along with an admin user account.
             let mut manager = SimulationManager::new();
 
@@ -126,21 +129,54 @@ async fn main() -> Result<()> {
             );
 
             // Choose name and symbol and combine into the constructor args required by ERC-20 contracts.
-            let name = "ArbiterToken";
-            let symbol = "ARBT";
+            let name = "ArbiterTokenX";
+            let symbol = "ARBX";
             let args = (name.to_string(), symbol.to_string(), 18_u8);
 
             // Call the contract deployer and receive a IsDeployed version of SimulationContract that now has an address.
-            let arbiter_token = manager.agents.get("admin").unwrap().deploy(
+            let arbiter_token_x = manager.agents.get("admin").unwrap().deploy(
+                &mut manager.environment,
+                arbiter_token.clone(),
+                args.into_tokens(),
+            );
+            println!(
+                "Arbiter Token X deployed at: {}",
+                arbiter_token_x.address.unwrap()
+            );
+            
+            // Choose name and symbol and combine into the constructor args required by ERC-20 contracts.
+            let name = "ArbiterTokenY";
+            let symbol = "ARBY";
+            let args = (name.to_string(), symbol.to_string(), 18_u8);
+
+            // Call the contract deployer and receive a IsDeployed version of SimulationContract that now has an address.
+            let arbiter_token_y = manager.agents.get("admin").unwrap().deploy(
                 &mut manager.environment,
                 arbiter_token,
                 args.into_tokens(),
             );
             println!(
-                "Arbiter Token deployed at: {}",
-                arbiter_token.address.unwrap()
+                "Arbiter Token Y deployed at: {}",
+                arbiter_token_y.address.unwrap()
             );
-
+            // Deploy LiquidExchange
+            let price_to_check = 1000;
+            let initial_price = wad.checked_mul(U256::from(price_to_check)).unwrap();
+            let liquid_exchange = SimulationContract::new(
+                BaseContract::from(bindings::liquid_exchange::LIQUIDEXCHANGE_ABI.clone()),
+                bindings::liquid_exchange::LIQUIDEXCHANGE_BYTECODE
+                    .clone()
+                    .into_iter()
+                    .collect(),
+            );
+            let args = (
+                recast_address(arbiter_token_x.address.unwrap()),
+                recast_address(arbiter_token_y.address.unwrap()),
+                U256::from(initial_price),
+            )
+                .into_tokens();
+            let liquid_exchange_xy = manager.agents.get("admin").unwrap().deploy(&mut manager.environment, liquid_exchange, args);
+                
             // Create a user to mint tokens to.
             let user_name = "arbitrageur";
             let user_address =
@@ -155,7 +191,7 @@ async fn main() -> Result<()> {
                 recast_address(manager.agents[user_name].address()),
                 mint_amount,
             );
-            let call_data = arbiter_token
+            let call_data = arbiter_token_x
                 .base_contract
                 .encode("mint", input_arguments)
                 .unwrap()
@@ -165,7 +201,7 @@ async fn main() -> Result<()> {
             // Call the 'mint' function.
             let execution_result = manager.agents.get("admin").unwrap().call_contract(
                 &mut manager.environment,
-                &arbiter_token,
+                &arbiter_token_x,
                 call_data,
                 Uint::from(0),
             ); // TODO: SOME KIND OF ERROR HANDLING IS NECESSARY FOR THESE TYPES OF CALLS
@@ -249,4 +285,8 @@ async fn main() -> Result<()> {
         }
     }
     Ok(())
+}
+
+pub fn deploy_contracts(){
+
 }
