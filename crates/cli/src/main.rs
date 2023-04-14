@@ -71,6 +71,8 @@ async fn main() -> Result<()> {
             // This will create an EVM instance along with an admin user account.
             let mut manager = SimulationManager::new();
 
+            // Deploying Contracts
+            // --------------------------------------------------------------------------------------------
             // Deploy the WETH contract.
             let weth = SimulationContract::new(
                 BaseContract::from(weth9::WETH9_ABI.clone()),
@@ -185,6 +187,9 @@ async fn main() -> Result<()> {
 
             println!("Arbitraguer created at: {}", user_address);
 
+
+            // Minting tokens to user
+            // --------------------------------------------------------------------------------------------
             // Allocating new tokens to user by calling Arbiter Token's ERC20 'mint' instance.
             let mint_amount = U256::from(100000);
             let input_arguments = (
@@ -205,7 +210,7 @@ async fn main() -> Result<()> {
                 call_data,
                 Uint::from(0),
             ); // TODO: SOME KIND OF ERROR HANDLING IS NECESSARY FOR THESE TYPES OF CALLS
-            println!("Mintminted token_x to arber {:#?}", execution_result.is_success());
+            println!("Minted token_x to arber {:#?}", execution_result.is_success());
 
             let call_data = arbiter_token_y
                 .base_contract
@@ -221,7 +226,7 @@ async fn main() -> Result<()> {
                 call_data,
                 Uint::from(0),
             ); // TODO: SOME KIND OF ERROR HANDLING IS NECESSARY FOR THESE TYPES OF CALLS
-            println!("Mintminted token_y to arber: {:#?}", execution_result.is_success());
+            println!("Minted token_y to arber: {:#?}", execution_result.is_success());
 
             // Mint max token_y to the liquid_exchange contract.
             let args = (
@@ -234,21 +239,59 @@ async fn main() -> Result<()> {
                 .unwrap()
                 .into_iter()
                 .collect();
-            manager.agents.get("admin").unwrap().call_contract(&mut manager.environment, &arbiter_token_y, call_data, Uint::from(0));
+            let result = manager.agents.get("admin").unwrap().call_contract(&mut manager.environment, &arbiter_token_y, call_data, Uint::from(0));
+            println!("Minted token_y to liquid_excahnge: {:#?}", result.is_success());
 
             // Have approval for token_x to be spent by the liquid_exchange.
-            let args = (
+            // APROVALS
+            // --------------------------------------------------------------------------------------------
+            // aprove the liquid_exchange to spend the arbitrageur's token_x
+            let approve_liquid_excahnge_args = (
                 recast_address(liquid_exchange_xy.address.unwrap()),
                 U256::MAX,
             );
             let call_data = arbiter_token_x
                 .base_contract
-                .encode("approve", args)
+                .encode("approve", approve_liquid_excahnge_args)
                 .unwrap()
                 .into_iter()
                 .collect();
-            manager.agents.get("arbitrageur").unwrap().call_contract(&mut manager.environment, &arbiter_token_x, call_data, Uint::from(0));
+            let result = manager.agents.get("arbitrageur").unwrap().call_contract(&mut manager.environment, &arbiter_token_x, call_data, Uint::from(0));
+            println!("Aproved token_x to liquid_excahnge for arber: {:#?}", result.is_success());
 
+            // aprove the liquid_exchange to spend the arbitrageur's token_y
+            let call_data = arbiter_token_y
+                .base_contract
+                .encode("approve", approve_liquid_excahnge_args)
+                .unwrap()
+                .into_iter()
+                .collect();
+            let result = manager.agents.get("arbitrageur").unwrap().call_contract(&mut manager.environment, &arbiter_token_y, call_data, Uint::from(0));
+            println!("Aproved token_y to liquid_excahnge for arber: {:#?}", result.is_success());
+
+            // aprove tokens on portfolio for arbitrageur
+            let approve_portfolio_args = (
+                recast_address(portfolio.address.unwrap()),
+                U256::MAX,
+            );
+            // Approve token_y
+            let call_data = arbiter_token_y
+                .base_contract
+                .encode("approve", approve_portfolio_args)
+                .unwrap()
+                .into_iter()
+                .collect();
+            let result = manager.agents.get("arbitrageur").unwrap().call_contract(&mut manager.environment, &arbiter_token_y, call_data, Uint::from(0));
+            println!("Aproved token_y to portfolio for arber: {:#?}", result.is_success());
+            // approve token_x
+            let call_data = arbiter_token_x
+                .base_contract
+                .encode("approve", approve_portfolio_args)
+                .unwrap()
+                .into_iter()
+                .collect();
+            let result = manager.agents.get("arbitrageur").unwrap().call_contract(&mut manager.environment, &arbiter_token_x, call_data, Uint::from(0));
+            println!("Aproved token_y to portfolio for arber: {:#?}", result.is_success());
         }
 
         Some(Commands::Ou { config }) => {
