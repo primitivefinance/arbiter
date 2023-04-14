@@ -2,7 +2,7 @@
 #![warn(unsafe_code)]
 //! Main lives in the `cli` crate so that we can do our input parsing.
 
-use std::str::FromStr;
+use std::{str::FromStr, sync::Arc};
 
 use bindings::{arbiter_token, rmm01_portfolio, simple_registry, uniswap_v3_pool, weth9};
 use clap::{CommandFactory, Parser, Subcommand};
@@ -16,6 +16,7 @@ use revm::primitives::{ruint::Uint, B160};
 use simulate::{
     environment::SimulationContract, manager::SimulationManager, price_simulation::PriceSimulation,
     utils::recast_address,
+    middleware::SimulationMiddleware,
 };
 mod config;
 
@@ -67,6 +68,10 @@ async fn main() -> Result<()> {
             // Create a `SimulationManager` that runs simulations in their `SimulationEnvironment`.
             // This will create an EVM instance along with an admin user account.
             let mut manager = SimulationManager::new();
+            let arc_revm_middleware = Arc::new(SimulationMiddleware::default());
+            // weth9::WETH9::deploy(client, constructor_args);
+            // weth9::WETH9::new(address, client)
+            // weth9::WETH9::decimals();
 
             // Deploy the WETH contract.
             let weth = SimulationContract::new(

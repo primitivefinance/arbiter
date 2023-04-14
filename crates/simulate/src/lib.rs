@@ -7,7 +7,7 @@ pub mod exchange;
 pub mod manager;
 pub mod price_simulation;
 pub mod utils;
-pub mod revm_middleware;
+pub mod middleware;
 
 #[cfg(test)]
 mod tests {

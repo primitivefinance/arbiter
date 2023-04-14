@@ -95,14 +95,10 @@ impl<'a> SimulationManager<'a> {
                 "This call halted for {:#?} and used {} gas.",
                 reason, gas_used
             ),
-            // ExecutionResult::Revert { output, gas_used } => panic!(
-            //     "This call reverted with output {:?} and used {} gas.",
-            //     output, gas_used
-            // ),
-            ExecutionResult::Revert { output, .. } => {
-                println!("Revert!");
-                output
-            }
+            ExecutionResult::Revert { output, gas_used } => panic!(
+                "This call reverted with output {:?} and used {} gas.",
+                output, gas_used
+            ),
         }
     }
 }
