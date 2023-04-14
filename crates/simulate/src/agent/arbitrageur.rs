@@ -1,9 +1,10 @@
 #![warn(missing_docs)]
 //! Describes the most basic type of user agent.
 
+use std::thread;
+
 use ethers::types::H256;
 use revm::primitives::{Address, B160, U256};
-use std::thread;
 
 use crate::{
     agent::{Agent, TransactSettings},
