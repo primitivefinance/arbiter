@@ -2,7 +2,7 @@
 #![warn(unsafe_code)]
 //! Main lives in the `cli` crate so that we can do our input parsing.
 
-use std::{str::FromStr, sync::Arc};
+use std::{str::FromStr};
 
 use bindings::{arbiter_token, rmm01_portfolio, simple_registry, uniswap_v3_pool, weth9};
 use clap::{CommandFactory, Parser, Subcommand};
@@ -14,7 +14,7 @@ use eyre::Result;
 use on_chain::monitor::EventMonitor;
 use revm::primitives::{ruint::Uint, B160};
 use simulate::{
-    contract::SimulationContract, manager::SimulationManager, middleware::SimulationMiddleware,
+    contract::SimulationContract, manager::SimulationManager,
     price_simulation::PriceSimulation, utils::recast_address,
 };
 mod config;

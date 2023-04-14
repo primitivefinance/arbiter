@@ -43,7 +43,7 @@ mod tests {
         // Set up a user named alice
         let user_name = "alice";
         let user_address = B160::from_low_u64_be(2);
-        manager.create_user(user_address, user_name);
+        manager.create_user(user_address, user_name).unwrap();
 
         // Pull out the admin and alice
         let admin = manager.agents.get("admin").unwrap();
@@ -83,7 +83,7 @@ mod tests {
         let args = (
             recast_address(token_x.address),
             recast_address(token_y.address),
-            U256::from(initial_price),
+            initial_price,
         )
             .into_tokens();
         let liquid_exchange_xy = admin.deploy(&mut manager.environment, liquid_exchange, args);
@@ -125,7 +125,7 @@ mod tests {
             .base_contract
             .encode(
                 "swap",
-                (recast_address(token_x.address), U256::from(swap_amount)),
+                (recast_address(token_x.address), swap_amount),
             )
             .unwrap()
             .into_iter()
@@ -184,7 +184,7 @@ mod tests {
         // Set up a user named alice
         let user_name = "alice";
         let user_address = B160::from_low_u64_be(2); // TODO: Prevent address collisions
-        manager.create_user(user_address, user_name);
+        manager.create_user(user_address, user_name).unwrap();
 
         // Pull out the admin and alice
         let admin = manager.agents.get("admin").unwrap();
@@ -224,7 +224,7 @@ mod tests {
         let args = (
             recast_address(token_x.address),
             recast_address(token_y.address),
-            U256::from(initial_price),
+            initial_price,
         )
             .into_tokens();
         let liquid_exchange_xy = admin.deploy(&mut manager.environment, liquid_exchange, args);
@@ -266,7 +266,7 @@ mod tests {
             .base_contract
             .encode(
                 "swap",
-                (recast_address(token_y.address), U256::from(swap_amount)),
+                (recast_address(token_y.address), swap_amount),
             )
             .unwrap()
             .into_iter()
@@ -381,7 +381,7 @@ mod tests {
         let args = (
             recast_address(token_x.address),
             recast_address(token_y.address),
-            U256::from(initial_price),
+            initial_price,
         )
             .into_tokens();
         let liquid_exchange_xy = admin.deploy(&mut manager.environment, liquid_exchange, args);

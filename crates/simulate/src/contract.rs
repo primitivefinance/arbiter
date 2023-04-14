@@ -1,3 +1,5 @@
+#![warn(missing_docs)]
+//! This module contains the `SimulationContract` struct that is used to wrap around the ethers `BaseContract` and add some additional information relevant for revm and the simulation.
 use std::marker::PhantomData;
 
 use ethers::prelude::BaseContract;
