@@ -178,8 +178,10 @@ async fn main() -> Result<()> {
             )
                 .into_tokens();
             let liquid_exchange_xy = manager.agents.get("admin").unwrap().deploy(&mut manager.environment, liquid_exchange, args);
-                
-            // Create a user to mint tokens to.
+            
+            // let encoder_contract = SimulationContract::new(BaseContract::from(bindings::encoder_target::E))
+            // let encoder_helper = manager.agents.get("admin").unwrap().deploy(simulation_environment, contract, ())
+            // // Create a user to mint tokens to.
             let user_name = "arbitrageur";
             let user_address =
                 B160::from_str("0x0000000000000000000000000000000000000002").unwrap();
