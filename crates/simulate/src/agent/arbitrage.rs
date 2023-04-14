@@ -68,7 +68,7 @@ impl Arbitrageur {
     /// Watch for arbitrage opportunities.
     pub async fn run(&self, market: SimulationContract<IsDeployed>) {
         let reader = self.receiver();
-        let market_base_contract = market.base_contract.clone();
+        let market_base_contract = market.base_contract;
 
         let _ = thread::spawn(move || {
             while let Ok(logs) = reader.recv() {
