@@ -476,29 +476,49 @@ mod tests {
 
         let rec_alice = alice.receiver();
         let handle = thread::spawn(move || {
+            let mut i = 0;
             while let Ok(logs) = rec_alice.recv() {
                 println!("Got logs in alice's thread!");
                 println!("{:?}", logs);
-
-                let event_filter = Filter {
-                    address: Some(ethers::types::ValueOrArray::Array(vec![
-                        utils::recast_address(liquid_exchange_xy.address.unwrap()),
-                    ])),
-                    topics: [None, None, None, None], // None for all topics
-                    ..Default::default()
-                }; // TODO: ACTUALLY USE THIS
-                let log_topics: Vec<H256> = logs.clone()[0]
-                    .topics
-                    .clone()
-                    .into_iter()
-                    .map(|x| H256::from_slice(x.as_slice()))
-                    .collect();
-                let log_data = logs[0].data.clone().into();
-                let log_output = base_abi_liq
-                    .decode_event::<U256>("PriceChange", log_topics, log_data)
-                    .unwrap();
-                assert_eq!(log_output, U256::from(500));
-                
+                println!("i: {}", i);
+                if i < 4 {
+                    i += 1;
+                    continue;
+                } else {
+                    match i {
+                        2 =>{
+                            println!("HIT");
+                        }
+                        3 => {
+                            println!("HIT");
+                        }
+                        4 => {
+                            println!("HIT");
+                        }
+                        5 => {
+                            println!("HIT");
+                        }
+                        6 => {
+                            let log_topics: Vec<H256> = logs.clone()[0]
+                                .topics
+                                .clone()
+                                .into_iter()
+                                .map(|x| H256::from_slice(x.as_slice()))
+                                .collect();
+                            let log_data = logs[0].data.clone().into();
+                            let log_output = base_abi_liq
+                                .decode_event::<U256>("PriceChange", log_topics, log_data)
+                                .unwrap();
+                            println!("Got the right price event log in Alices's thread!, {}", log_output);
+                            assert_eq!(log_output, U256::from(500));
+                        }
+                        _ => break,
+                    }
+                }
+                i += 1;
+                if i == 7 {
+                    break;
+                }
             }
         });
         // Mint token_x to alice.
@@ -543,7 +563,7 @@ mod tests {
 
         let price_update_call_data = liquid_exchange_xy
             .base_contract
-            .encode("PriceChange", price_update_args)
+            .encode("setPrice", price_update_args)
             .unwrap()
             .into_iter()
             .collect();
@@ -559,26 +579,5 @@ mod tests {
         if handle.join().is_err() {
             panic!("Thread panicked!");
         };
-        // // Have alice call the swap function to trade token_x for token_y.
-        // let swap_amount = mint_amount / 2;
-        // let call_data = liquid_exchange_xy
-        //     .base_contract
-        //     .encode(
-        //         "swap",
-        //         (
-        //             recast_address(token_x.address.unwrap()),
-        //             U256::from(swap_amount),
-        //         ),
-        //     )
-        //     .unwrap()
-        //     .into_iter()
-        //     .collect();
-        // alice.call_contract(
-        //     &mut manager.environment,
-        //     &liquid_exchange_xy,
-        //     call_data,
-        //     Uint::from(0),
-        // );
-
     }
 }
