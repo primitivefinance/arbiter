@@ -100,13 +100,35 @@ impl HistoricalMonitor {
             let log_data = log.data.0
                 .into_iter()
                 .collect();
+            
+                let decoded_swap_event = contract.decode_event(swap_event, log_topics, log_data)?.0;
 
-            let decoded_swap_event = contract.decode_event(&swap_event, log_topics, log_data)?;
+                if let Some(event) = decoded_swap_event {
+                    let sender = event.sender;
+                    let recipient = event.recipient;
+                    let amount0 = event.amount0.as_u128();
+                    let amount1 = event.amount1.as_u128();
+                    let sqrt_price_x96 = event.sqrt_price_x96.as_u128();
 
-            if let Some((sender, recipient, amount0, amount1, sqrt_price_x96)) = decoded_swap_event {
-                println!("sqrt_price_x96: {:?}", sqrt_price_x96);
-            }
+                    let encoded = ethers::abi::Tokenizable::from_tokens(&[
+                        sender.into(),
+                        recipient.into(),
+                        amount0.into(),
+                        amount1.into(),
+                        sqrt_price_x96.into(),
+                    ])
+                    .encode()?;
+                    println!("sqrt_price_x96: {:?}", encoded.sqrt_price_x96);
+                    }
+            
         }
         Ok(())
+    }
+
+    /// Converts sqrt_price_x96 to readable price
+    pub fn sqrt_price_x96_to_price(&self, sqrt_price_x96: u128) -> f64 {
+        let sqrtprice = (sqrt_price_x96 as f64) / (2.0_f64.powi(96) as f64);
+        let price = sqrtprice * sqrtprice;
+        price
     }
 }
