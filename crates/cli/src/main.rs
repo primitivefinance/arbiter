@@ -8,7 +8,7 @@ use bindings::{arbiter_token, rmm01_portfolio, simple_registry, uniswap_v3_pool,
 use bytes::Bytes;
 use clap::{CommandFactory, Parser, Subcommand};
 use ethers::{
-    abi::{Tokenize, encode_packed, Token},
+    abi::{Tokenize, encode_packed, Token, Detokenize},
     prelude::{BaseContract, U256}, types::H256,
 };
 use eyre::Result;
@@ -415,9 +415,10 @@ fn sim () {
     );
     let data = encoded_create_pair_result.logs()[0].data.clone();
     let (pair_id, _token_1, _token_2, _dec_1, _dec_2): (Token, Token, Token, Token, Token) = i_portfolio.base_contract.decode_event("CreatePair", h256_vec, ethers::types::Bytes(data)).unwrap();
-
     println!("Decoded pairID: {:#?}", hex::encode(pair_id.to_string()));
+
     // Create a new pool parameters
+    // --------------------------------------------------------------------------------------------
     // uint24 pairId,
     // address controller,
     // uint16 priorityFee,
@@ -427,10 +428,6 @@ fn sim () {
     // uint16 jit,
     // uint128 maxPrice,
     // uint128 price
-    // let enocoder_args = (
-
-    // )
-    // let _pool_create_pair_call_data: Bytes = encoder_target.base_contract.encode("createPool", (U256::from(0), U256::from(0))).unwrap().into_iter().collect();
 
 }
 fn _deploy_sim_contracts(){
