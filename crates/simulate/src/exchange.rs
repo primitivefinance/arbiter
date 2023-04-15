@@ -25,8 +25,7 @@ pub trait Cfmm: Exchange {
 mod tests {
     use bindings::{arbiter_token, liquid_exchange};
     use ethers::{
-        abi::Tokenize,
-        prelude::{BaseContract, U256},
+        prelude::{U256},
     };
     use revm::primitives::{ruint::Uint, B160};
 

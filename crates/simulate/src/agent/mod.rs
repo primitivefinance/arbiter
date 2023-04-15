@@ -6,14 +6,12 @@
 //! Some examples of agents are market makers or arbitrageurs.
 //! All agents must implement the [`Agent`] trait.
 use std::{
-    error::Error,
-    fmt::{Display, Formatter, Result as FmtResult},
     thread,
 };
 
 use bytes::Bytes;
 use crossbeam_channel::Receiver;
-use ethers::abi::{Token, Tokenizable, Tokenize};
+use ethers::abi::{Tokenize};
 use revm::primitives::{Address, ExecutionResult, Log, Output, TransactTo, TxEnv, B160, U256};
 
 use self::user::User;
@@ -24,7 +22,11 @@ use crate::{
 
 pub mod user;
 
+/// An agent is an entity that can interact with the simulation environment.
+/// Agents can be various entities such as users, market makers, arbitrageurs, etc.
+/// Only the [`User`] agent is currently implemented.
 pub enum AgentType {
+    /// The user agent.
     User(User),
 }
 

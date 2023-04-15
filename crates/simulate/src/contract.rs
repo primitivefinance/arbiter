@@ -4,8 +4,8 @@ use std::marker::PhantomData;
 
 use bytes::Bytes;
 use ethers::{
-    abi::{Constructor, Contract, Detokenize, Token, Tokenize},
-    prelude::{AbiError, BaseContract, Lazy},
+    abi::{Contract, Detokenize, Token, Tokenize},
+    prelude::{BaseContract},
     types::{Bytes as EthersBytes, H256},
 };
 use revm::primitives::{B160, B256};
@@ -22,9 +22,13 @@ pub struct IsDeployed;
 pub trait DeploymentStatus {
     /// The type of the address field.
     type Address;
+    /// The type of the ABI field that is used once deployed.
     type Abi;
+    /// The type of the base contract field that is used before deployment.
     type BaseContract;
+    /// The type of the bytecode field used only before deployment.
     type Bytecode;
+    /// The type of the constructor arguments field used only before deployment.
     type ConstructorArguments;
 }
 
@@ -94,6 +98,7 @@ impl SimulationContract<NotDeployed> {
 }
 
 impl SimulationContract<IsDeployed> {
+    /// Encodes the arguments for a function call for the [`SimulationContract`].
     pub fn encode_function(&self, function_name: &str, args: impl Tokenize) -> Bytes {
         self.abi
             .encode(function_name, args)
@@ -101,9 +106,11 @@ impl SimulationContract<IsDeployed> {
             .into_iter()
             .collect()
     }
+    /// Decodes the output of a function call for the [`SimulationContract`].
     pub fn decode_output<D: Detokenize>(&self, function_name: &str, value: Bytes) -> D {
         self.abi.decode_output(function_name, value).unwrap()
     }
+    /// Decodes the logs for an event with the [`SimulationContract`].
     pub fn decode_event<D: Detokenize>(
         &self,
         function_name: &str,

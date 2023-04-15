@@ -15,13 +15,12 @@ mod tests {
 
     use bindings::{arbiter_token, writer};
     use ethers::{
-        abi::Tokenize,
-        prelude::{BaseContract, H256, U256},
+        prelude::{H256, U256},
     };
     use revm::primitives::{ruint::Uint, B160};
 
     use crate::{
-        agent::Agent, contract::SimulationContract, environment, manager::SimulationManager,
+        agent::Agent, contract::SimulationContract, manager::SimulationManager,
         utils::recast_address,
     };
 
@@ -74,7 +73,7 @@ mod tests {
         let user_address = B160::from_low_u64_be(2);
         manager.create_user(user_address, user_name).unwrap();
         let admin = manager.agents.get("admin").unwrap();
-        let alice = manager.agents.get(user_name).unwrap();
+        let _alice = manager.agents.get(user_name).unwrap();
 
         // Get a SimulationContract for the Arbiter Token ERC-20 instance from the ABI and bytecode.
         let arbiter_token = SimulationContract::new(

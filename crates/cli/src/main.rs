@@ -2,13 +2,12 @@
 #![warn(unsafe_code)]
 //! Main lives in the `cli` crate so that we can do our input parsing.
 
-use std::str::FromStr;
+
 
 use bindings::{arbiter_token, rmm01_portfolio, simple_registry, uniswap_v3_pool, weth9};
 use clap::{CommandFactory, Parser, Subcommand};
 use ethers::{
-    abi::Tokenize,
-    prelude::{BaseContract, U256},
+    prelude::{U256},
 };
 use eyre::Result;
 use on_chain::monitor::EventMonitor;

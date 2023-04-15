@@ -6,7 +6,6 @@ use std::{
     collections::HashMap,
     error::Error,
     fmt::{Display, Formatter, Result as FmtResult},
-    sync::Arc,
 };
 
 use bytes::Bytes;
@@ -22,6 +21,7 @@ use crate::{
 // TODO: We could filter events here to optimize! That is, we can let the manager know the agents' filter so we only send them messages they need. This cuts overhead
 
 #[derive(Debug)]
+/// Error type for the simulation manager.
 pub struct ManagerError(String);
 
 impl Error for ManagerError {}
