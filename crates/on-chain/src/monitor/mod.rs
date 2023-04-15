@@ -77,15 +77,13 @@ impl HistoricalMonitor {
     ) -> Result<(), Box<dyn std::error::Error>> {
         let contract_address: Address = contract_address.parse()?;
         let contract = Contract::new(contract_address, contract_abi, self.provider.clone());
-    
+
         let event_filter = Filter {
-            address: Some(ethers::types::ValueOrArray::Array(vec![
-                contract.address(),
-            ])),
+            address: Some(ethers::types::ValueOrArray::Array(vec![contract.address()])),
             block_option: ethers::types::FilterBlockOption::Range {
-                    from_block: Some(ethers::types::BlockNumber::Number(from_block.into())),
-                    to_block:   Some(ethers::types::BlockNumber::Number(to_block.into())),
-                },
+                from_block: Some(ethers::types::BlockNumber::Number(from_block.into())),
+                to_block: Some(ethers::types::BlockNumber::Number(to_block.into())),
+            },
             topics: [None, None, None, None], // None for all topics
             ..Default::default()
         };
@@ -100,6 +98,5 @@ impl HistoricalMonitor {
         }
 
         Ok(())
-
     }
 }

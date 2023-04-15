@@ -11,8 +11,7 @@ use ethers::{
     prelude::{BaseContract, U256},
 };
 use eyre::Result;
-use on_chain::monitor::EventMonitor;
-use on_chain::monitor::HistoricalMonitor;
+use on_chain::monitor::{EventMonitor, HistoricalMonitor};
 use revm::primitives::{ruint::Uint, B160};
 use simulate::{
     contract::SimulationContract, manager::SimulationManager, price_simulation::PriceSimulation,
@@ -245,21 +244,21 @@ async fn main() -> Result<()> {
                 .monitor_events(contract_address, contract_abi)
                 .await;
         }
-        None => {
-            Args::command()
-                .print_long_help()
-                .map_err(|err| println!("{:?}", err))
-                .ok();
-        }
-        Some(Commands::Historical {config: _ }) => {
+        Some(Commands::Historical { config: _ }) => {
             // Parse the contract address
             let contract_address = "0x88e6A0c2dDD26FEEb64F039a2c41296FcB3f5640";
             let historical_monitor =
                 HistoricalMonitor::new(on_chain::monitor::utils::RpcTypes::Mainnet).await;
             let contract_abi = uniswap_v3_pool::UNISWAPV3POOL_ABI.clone();
             let _ = historical_monitor
-                .historical_monitor(contract_address, contract_abi, 17048760, 17048763)
+                .historical_monitor(contract_address, contract_abi, 17048000, 17048763)
                 .await;
+        }
+        None => {
+            Args::command()
+                .print_long_help()
+                .map_err(|err| println!("{:?}", err))
+                .ok();
         }
     }
 
