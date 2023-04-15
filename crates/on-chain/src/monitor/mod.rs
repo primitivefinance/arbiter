@@ -6,9 +6,9 @@ use std::sync::Arc;
 use ethers::{
     abi::Abi,
     contract::Contract,
-    prelude::Provider,
+    prelude::*,
     providers::{Http, Middleware},
-    types::{Address, Filter},
+    types::{Address, Filter, H256},
 };
 use eyre::Result;
 use futures::stream::StreamExt;
@@ -93,10 +93,20 @@ impl HistoricalMonitor {
             .await
             .expect("Failed to query past logs");
 
-        for log in past_logs {
-            println!("Past event data: {:?}", log);
-        }
+        let swap_event = "Swap";
 
+        for log in past_logs {
+            let log_topics: Vec<H256> = log.topics.clone();
+            let log_data = log.data.0
+                .into_iter()
+                .collect();
+
+            let decoded_swap_event = contract.decode_event(&swap_event, log_topics, log_data)?;
+
+            if let Some((sender, recipient, amount0, amount1, sqrt_price_x96)) = decoded_swap_event {
+                println!("sqrt_price_x96: {:?}", sqrt_price_x96);
+            }
+        }
         Ok(())
     }
 }
