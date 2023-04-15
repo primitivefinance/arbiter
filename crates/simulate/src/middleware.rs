@@ -9,6 +9,7 @@ use ethers::{
     providers::{Middleware, MockProvider},
 };
 
+#[deprecated(since = "0.1.0", note = "It would be useful to create a middleware that can be used in the simulation environment.")]
 /// The [`SimulationMiddleware`] allows for a "dummy" middleware to be used in the simulation environment.
 #[derive(Debug, Default)]
 pub struct SimulationMiddleware;
@@ -23,6 +24,7 @@ impl Middleware for SimulationMiddleware {
     }
 }
 
+#[deprecated(since = "0.1.0", note = "It would be useful to create a middleware that can be used in the simulation environment.")]
 #[cfg(test)]
 mod tests {
     use std::sync::Arc;
@@ -43,11 +45,9 @@ mod tests {
 
         // Get bytecode and abi for the writer contract.
         let writer = SimulationContract::new(
-            BaseContract::from(bindings::writer::WRITER_ABI.clone()),
+            bindings::writer::WRITER_ABI.clone(),
             bindings::writer::WRITER_BYTECODE
                 .clone()
-                .into_iter()
-                .collect(),
         );
 
         // Generate calldata for the 'echoString' function
