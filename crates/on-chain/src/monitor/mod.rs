@@ -2,6 +2,10 @@
 //! The data that describes agents that live in a `SimulationEnvironment`.
 //! All agents must implement the `Agent` trait.
 use std::sync::Arc;
+use std::error::Error;
+use std::fs::File;
+use csv::WriterBuilder;
+
 
 use ethers::{
     abi::Abi,
@@ -130,5 +134,19 @@ impl HistoricalMonitor {
         let sqrtprice = (sqrt_price_x96 as f64) / (2.0_f64.powi(96) as f64);
         let price = sqrtprice * sqrtprice;
         price
+    }
+
+    /// Save historical data to csv
+    fn save_price_to_csv(price_data: &Vec<f64>, file_path: &str) -> Result<(), Box<dyn Error>> {
+        let file = File::create(file_path)?;
+        let mut writer = WriterBuilder::new().from_writer(file);
+    
+        for num in price_data {
+            writer.serialize(num)?;
+        }
+    
+        writer.flush()?;
+    
+        Ok(())
     }
 }
