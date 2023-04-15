@@ -14,9 +14,7 @@ mod tests {
     use std::{str::FromStr, thread};
 
     use bindings::{arbiter_token, writer};
-    use ethers::{
-        prelude::{H256, U256},
-    };
+    use ethers::prelude::{H256, U256};
     use revm::primitives::{ruint::Uint, B160};
 
     use crate::{

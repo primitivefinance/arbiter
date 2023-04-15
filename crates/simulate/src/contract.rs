@@ -5,7 +5,7 @@ use std::marker::PhantomData;
 use bytes::Bytes;
 use ethers::{
     abi::{Contract, Detokenize, Token, Tokenize},
-    prelude::{BaseContract},
+    prelude::BaseContract,
     types::{Bytes as EthersBytes, H256},
 };
 use revm::primitives::{B160, B256};

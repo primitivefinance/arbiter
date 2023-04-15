@@ -5,13 +5,11 @@
 //! An abstract representation of an agent on the EVM, to be used in simulations.
 //! Some examples of agents are market makers or arbitrageurs.
 //! All agents must implement the [`Agent`] trait.
-use std::{
-    thread,
-};
+use std::thread;
 
 use bytes::Bytes;
 use crossbeam_channel::Receiver;
-use ethers::abi::{Tokenize};
+use ethers::abi::Tokenize;
 use revm::primitives::{Address, ExecutionResult, Log, Output, TransactTo, TxEnv, B160, U256};
 
 use self::user::User;

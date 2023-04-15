@@ -24,9 +24,7 @@ pub trait Cfmm: Exchange {
 #[cfg(test)]
 mod tests {
     use bindings::{arbiter_token, liquid_exchange};
-    use ethers::{
-        prelude::{U256},
-    };
+    use ethers::prelude::U256;
     use revm::primitives::{ruint::Uint, B160};
 
     use crate::{
