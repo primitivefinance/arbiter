@@ -12,6 +12,7 @@ use ethers::{
 };
 use eyre::Result;
 use on_chain::monitor::EventMonitor;
+use on_chain::monitor::HistoricalMonitor;
 use revm::primitives::{ruint::Uint, B160};
 use simulate::{
     contract::SimulationContract, manager::SimulationManager, price_simulation::PriceSimulation,
@@ -51,7 +52,13 @@ enum Commands {
         config: String,
     },
 
-    Chain {
+    Live {
+        /// Path to config.toml containing simulation parameterization (optional)
+        #[arg(short, long, default_value = "./crates/cli/src/config.toml", num_args = 0..=1)]
+        config: String,
+    },
+
+    Historical {
         /// Path to config.toml containing simulation parameterization (optional)
         #[arg(short, long, default_value = "./crates/cli/src/config.toml", num_args = 0..=1)]
         config: String,
@@ -228,7 +235,7 @@ async fn main() -> Result<()> {
             let (time, gbm_path) = test_sim.gbm();
             test_sim.plot(&time, &gbm_path);
         }
-        Some(Commands::Chain { config: _ }) => {
+        Some(Commands::Live { config: _ }) => {
             // Parse the contract address
             let contract_address = "0x88e6A0c2dDD26FEEb64F039a2c41296FcB3f5640";
             let event_monitor =
@@ -244,6 +251,17 @@ async fn main() -> Result<()> {
                 .map_err(|err| println!("{:?}", err))
                 .ok();
         }
+        Some(Commands::Historical {config: _ }) => {
+            // Parse the contract address
+            let contract_address = "0x88e6A0c2dDD26FEEb64F039a2c41296FcB3f5640";
+            let historical_monitor =
+                HistoricalMonitor::new(on_chain::monitor::utils::RpcTypes::Mainnet).await;
+            let contract_abi = uniswap_v3_pool::UNISWAPV3POOL_ABI.clone();
+            let _ = historical_monitor
+                .historical_monitor(contract_address, contract_abi, 17048760, 17048763)
+                .await;
+        }
     }
+
     Ok(())
 }
