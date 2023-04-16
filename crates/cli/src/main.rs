@@ -2,6 +2,8 @@
 #![warn(unsafe_code)]
 //! Main lives in the `cli` crate so that we can do our input parsing.
 
+use std::error::Error;
+
 use bindings::{arbiter_token, rmm01_portfolio, simple_registry, uniswap_v3_pool, weth9};
 use clap::{CommandFactory, Parser, Subcommand};
 use ethers::prelude::U256;
@@ -54,7 +56,7 @@ enum Commands {
 }
 
 #[tokio::main]
-async fn main() -> Result<()> {
+async fn main() -> Result<(), Box<dyn Error>> {
     let args = Args::parse();
 
     match &args.command {

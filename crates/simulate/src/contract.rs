@@ -1,14 +1,10 @@
 #![warn(missing_docs)]
 //! This module contains the `SimulationContract` struct that is used to wrap around the ethers `BaseContract` and add some additional information relevant for revm and the simulation.
-use std::{
-    error::Error,
-    fmt::{Display, Formatter, Result as FmtResult},
-    marker::PhantomData,
-};
+use std::marker::PhantomData;
 
 use bytes::Bytes;
 use ethers::{
-    abi::{Contract, Detokenize, Token, Tokenizable, Tokenize},
+    abi::{Contract, Detokenize, Token, Tokenize},
     contract::AbiError,
     prelude::BaseContract,
     types::{Bytes as EthersBytes, H256},
@@ -117,10 +113,7 @@ impl SimulationContract<IsDeployed> {
         function_name: &str,
         value: Bytes,
     ) -> Result<D, AbiError> {
-        match self.abi.decode_output(function_name, value) {
-            Ok(tokens) => Ok(D::from_tokens(tokens).unwrap()),
-            Err(e) => Err(e),
-        }
+        self.abi.decode_output::<D, Bytes>(function_name, value)
     }
     /// Decodes the logs for an event with the [`SimulationContract`].
     pub fn decode_event<D: Detokenize>(
@@ -128,13 +121,12 @@ impl SimulationContract<IsDeployed> {
         function_name: &str,
         log_topics: Vec<B256>,
         log_data: Bytes,
-    ) -> D {
+    ) -> Result<D, AbiError> {
         let log_topics: Vec<H256> = log_topics
             .into_iter()
             .map(|topic| H256::from_slice(&topic.0))
             .collect();
         self.abi
             .decode_event(function_name, log_topics, log_data.into())
-            .unwrap()
     }
 }

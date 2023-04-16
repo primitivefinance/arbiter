@@ -33,7 +33,7 @@ mod tests {
         // Get bytecode and abi for the writer contract.
         let writer = SimulationContract::new(
             writer::WRITER_ABI.clone(),
-            bindings::writer::WRITER_BYTECODE.clone(),
+            writer::WRITER_BYTECODE.clone(),
         );
 
         // Deploy the writer contract.
@@ -51,12 +51,12 @@ mod tests {
             call_data,
             Uint::from(0),
         );
-        let value = manager.unpack_execution(execution_result);
+        let value = manager.unpack_execution(execution_result)?;
 
-        let response = writer.decode_output::<String>("echoString", value)?;
+        let response: String = writer.decode_output("echoString", value)?;
 
         println!("Writing Response: {response:#?}");
-        assert_eq!(response.to_string(), test_string);
+        assert_eq!(response, test_string);
         Ok(())
     }
 
@@ -99,7 +99,7 @@ mod tests {
             call_data,
             Uint::ZERO,
         );
-        let value = manager.unpack_execution(execution_result);
+        let value = manager.unpack_execution(execution_result)?;
 
         let response: String = arbiter_token.decode_output("name", value)?;
         assert_eq!(response, name); // Quick check that the name is correct.
@@ -133,7 +133,7 @@ mod tests {
             call_data,
             Uint::from(0),
         );
-        let value = manager.unpack_execution(execution_result);
+        let value = manager.unpack_execution(execution_result)?;
 
         let response: U256 = arbiter_token.decode_output("balanceOf", value)?;
 
@@ -171,7 +171,7 @@ mod tests {
         // Decode the logs
         let log_topics = logs[0].topics.clone();
         let log_data = logs[0].data.clone();
-        let log_output: String = writer.decode_event("WasWritten", log_topics, log_data);
+        let log_output: String = writer.decode_event("WasWritten", log_topics, log_data)?;
         println!("Log Response: {:#?}", log_output);
 
         assert_eq!(log_output, test_string);
