@@ -31,10 +31,8 @@ mod tests {
         let admin = manager.agents.get("admin").unwrap();
 
         // Get bytecode and abi for the writer contract.
-        let writer = SimulationContract::new(
-            writer::WRITER_ABI.clone(),
-            writer::WRITER_BYTECODE.clone(),
-        );
+        let writer =
+            SimulationContract::new(writer::WRITER_ABI.clone(), writer::WRITER_BYTECODE.clone());
 
         // Deploy the writer contract.
         let writer = admin.deploy(&mut manager.environment, writer, ());

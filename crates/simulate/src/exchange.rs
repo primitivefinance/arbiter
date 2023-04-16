@@ -141,7 +141,7 @@ mod tests {
 
         // Set up a user named alice
         let user_name = "alice";
-        let user_address = B160::from_low_u64_be(2); 
+        let user_address = B160::from_low_u64_be(2);
         manager.create_user(user_address, user_name).unwrap();
 
         // Pull out the admin and alice
