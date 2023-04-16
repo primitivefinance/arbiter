@@ -9,15 +9,45 @@ use std::thread;
 
 use bytes::Bytes;
 use crossbeam_channel::Receiver;
-use ethers::abi::Token;
+use ethers::abi::Tokenize;
 use revm::primitives::{Address, ExecutionResult, Log, Output, TransactTo, TxEnv, B160, U256};
 
+use self::user::User;
 use crate::{
     contract::{IsDeployed, NotDeployed, SimulationContract},
     environment::SimulationEnvironment,
 };
 
 pub mod user;
+
+/// An agent is an entity that can interact with the simulation environment.
+/// Agents can be various entities such as users, market makers, arbitrageurs, etc.
+/// Only the [`User`] agent is currently implemented.
+pub enum AgentType {
+    /// The user agent.
+    User(User),
+}
+
+impl Agent for AgentType {
+    fn address(&self) -> Address {
+        match self {
+            AgentType::User(user) => user.address(),
+        }
+    }
+    fn transact_settings(&self) -> &TransactSettings {
+        match self {
+            AgentType::User(user) => user.transact_settings(),
+        }
+    }
+    fn receiver(&self) -> Receiver<Vec<Log>> {
+        match self {
+            AgentType::User(user) => user.event_receiver.clone(),
+        }
+    }
+    fn filter_events(&self) {
+        todo!();
+    }
+}
 /// Describes the gas settings for a transaction.
 pub struct TransactSettings {
     /// Gas limit for the transaction for a simulation.
@@ -91,23 +121,22 @@ pub trait Agent {
         &self,
         simulation_environment: &mut SimulationEnvironment,
         contract: SimulationContract<NotDeployed>,
-        args: Vec<Token>,
+        constructor_arguments: impl Tokenize + Clone,
     ) -> SimulationContract<IsDeployed> {
         // Append constructor args (if available) to generate the deploy bytecode.
-        let constructor = contract.base_contract.abi().constructor();
-
-        let bytecode = match constructor {
+        let bytecode = match contract.base_contract.abi().constructor.clone() {
             Some(constructor) => Bytes::from(
                 constructor
-                    .encode_input(contract.bytecode.clone(), &args)
+                    .encode_input(
+                        contract.bytecode.clone(),
+                        &constructor_arguments.clone().into_tokens(),
+                    )
                     .unwrap(),
             ),
             None => Bytes::from(contract.bytecode.clone()),
         };
 
         // Take the execution result and extract the contract address.
-        // Manager address will always be the sender for contract deployments.
-
         let deploy_transaction = self.build_deploy_transaction(bytecode);
         let execution_result = simulation_environment.execute(deploy_transaction);
         let output = match execution_result {
@@ -120,7 +149,11 @@ pub trait Agent {
             _ => panic!("failed"),
         };
 
-        contract.to_deployed(contract_address)
+        SimulationContract::to_deployed(
+            contract,
+            contract_address,
+            constructor_arguments.into_tokens(),
+        )
     }
     /// Helper function to build a deploy transaction.
     fn build_deploy_transaction(&self, bytecode: Bytes) -> TxEnv {
