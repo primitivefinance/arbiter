@@ -57,7 +57,12 @@ enum Commands {
         config: String,
     },
 
-    ImportBacktest {
+    Exportbacktest {
+        /// Path to config.toml containing simulation parameterization (optional)
+        #[arg(short, long, default_value = "./crates/cli/src/config.toml", num_args = 0..=1)]
+        config: String,
+    },
+    Importbacktest {
         /// Path to config.toml containing simulation parameterization (optional)
         #[arg(short, long, default_value = "./crates/cli/src/config.toml", num_args = 0..=1)]
         config: String,
@@ -234,6 +239,7 @@ async fn main() -> Result<()> {
             let (time, gbm_path) = test_sim.gbm();
             test_sim.plot(&time, &gbm_path);
         }
+
         Some(Commands::Live { config: _ }) => {
             // Parse the contract address
             let contract_address = "0x88e6A0c2dDD26FEEb64F039a2c41296FcB3f5640";
@@ -244,7 +250,8 @@ async fn main() -> Result<()> {
                 .monitor_events(contract_address, contract_abi)
                 .await;
         }
-        Some(Commands::ImportBacktest { config: _ }) => {
+
+        Some(Commands::Exportbacktest { config: _ }) => {
             // Parse the contract address
             let contract_address = "0x88e6A0c2dDD26FEEb64F039a2c41296FcB3f5640";
             let historical_monitor =
@@ -260,6 +267,16 @@ async fn main() -> Result<()> {
 
             println!("{:?}", price_ref);
         }
+
+        Some(Commands::Importbacktest { config: _ }) => {
+
+            let price_data = simulate::price_simulation::import_price_from_csv("price_data.csv").unwrap();
+            let price_ref = &price_data;
+            let _ = price_ref;
+
+            println!("{:?}", price_ref);
+        }
+
         None => {
             Args::command()
                 .print_long_help()

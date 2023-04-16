@@ -118,7 +118,7 @@ pub fn float_to_wad(x: f64) -> U256 {
 }
 
 /// Import CSV file of price data.
-fn read_csv_to_vec(file_path: &str) -> Result<Vec<f64>, Box<dyn Error>> {
+pub fn import_price_from_csv(file_path: &str) -> Result<Vec<f64>, Box<dyn Error>> {
     let mut price_data: Vec<f64> = Vec::new();
     let file = File::open(file_path)?;
     let mut reader = ReaderBuilder::new().from_reader(file);
