@@ -78,7 +78,7 @@ impl HistoricalMonitor {
         contract_abi: Abi,
         from_block: u64,
         to_block: u64,
-    ) -> Result<(), Box<dyn std::error::Error>> {
+    ) -> Result<Vec<u128>, Box<dyn std::error::Error>> {
         let contract_address: Address = contract_address.parse()?;
         let contract = Contract::new(contract_address, contract_abi, self.provider.clone());
 
@@ -99,45 +99,49 @@ impl HistoricalMonitor {
 
         let swap_event = "Swap";
 
+        pub struct Swap {
+            pub sender: Address,
+            pub recipient: Address,
+            pub amount0: U256,
+            pub amount1: U256,
+            pub sqrt_price_x96: u128,
+        }
+
+        let mut price_data: Vec<u128> = Vec::new();
+
         for log in past_logs {
             let log_topics: Vec<H256> = log.topics.clone();
             let log_data = log.data.0
                 .into_iter()
                 .collect();
             
-                let decoded_swap_event = contract.decode_event(swap_event, log_topics, log_data)?.0;
+                let decoded_swap_event = contract
+                    .decode_event::<(H160,H160,U256,U256,u128)>(swap_event, log_topics, log_data)?;
 
-                if let Some(event) = decoded_swap_event {
-                    let sender = event.sender;
-                    let recipient = event.recipient;
-                    let amount0 = event.amount0.as_u128();
-                    let amount1 = event.amount1.as_u128();
-                    let sqrt_price_x96 = event.sqrt_price_x96.as_u128();
+                let (_sender, _recipient, _amount0, _amount1, _sqrt_price_x96) = decoded_swap_event;
 
-                    let encoded = ethers::abi::Tokenizable::from_tokens(&[
-                        sender.into(),
-                        recipient.into(),
-                        amount0.into(),
-                        amount1.into(),
-                        sqrt_price_x96.into(),
-                    ])
-                    .encode()?;
-                    println!("sqrt_price_x96: {:?}", encoded.sqrt_price_x96);
-                    }
-            
+                price_data.push(_sqrt_price_x96);
+
         }
-        Ok(())
+        Ok(price_data)
     }
-
+    
     /// Converts sqrt_price_x96 to readable price
-    pub fn sqrt_price_x96_to_price(&self, sqrt_price_x96: u128) -> f64 {
-        let sqrtprice = (sqrt_price_x96 as f64) / (2.0_f64.powi(96) as f64);
-        let price = sqrtprice * sqrtprice;
-        price
+    pub fn sqrt_price_x96_to_price(&self, price_data: Vec<u128>) -> Vec<f64> {
+        
+        let mut normalized_price_data: Vec<f64> = Vec::new();
+
+        for price in price_data {
+            let sqrt_price_x96 = price;
+            let sqrtprice = (sqrt_price_x96 as f64) / (2.0_f64.powi(96) as f64);
+            let price = sqrtprice * sqrtprice;
+            normalized_price_data.push(price);
+        }
+        return normalized_price_data;
     }
 
     /// Save historical data to csv
-    fn save_price_to_csv(price_data: &Vec<f64>, file_path: &str) -> Result<(), Box<dyn Error>> {
+    pub fn save_price_to_csv(price_data: &Vec<f64>, file_path: &str) -> Result<(), Box<dyn Error>> {
         let file = File::create(file_path)?;
         let mut writer = WriterBuilder::new().from_writer(file);
     
