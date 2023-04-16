@@ -141,7 +141,7 @@ impl HistoricalMonitor {
     }
 
     /// Save historical data to csv
-    pub fn save_price_to_csv(price_data: &Vec<f64>, file_path: &str) -> Result<(), Box<dyn Error>> {
+    pub fn save_price_to_csv(&self, price_data: &Vec<f64>, file_path: &str) -> Result<(), Box<dyn Error>> {
         let file = File::create(file_path)?;
         let mut writer = WriterBuilder::new().from_writer(file);
     

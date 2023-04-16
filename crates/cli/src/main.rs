@@ -57,7 +57,7 @@ enum Commands {
         config: String,
     },
 
-    Historical {
+    ImportBacktest {
         /// Path to config.toml containing simulation parameterization (optional)
         #[arg(short, long, default_value = "./crates/cli/src/config.toml", num_args = 0..=1)]
         config: String,
@@ -244,15 +244,21 @@ async fn main() -> Result<()> {
                 .monitor_events(contract_address, contract_abi)
                 .await;
         }
-        Some(Commands::Historical { config: _ }) => {
+        Some(Commands::ImportBacktest { config: _ }) => {
             // Parse the contract address
             let contract_address = "0x88e6A0c2dDD26FEEb64F039a2c41296FcB3f5640";
             let historical_monitor =
                 HistoricalMonitor::new(on_chain::monitor::utils::RpcTypes::Mainnet).await;
             let contract_abi = uniswap_v3_pool::UNISWAPV3POOL_ABI.clone();
-            let _ = historical_monitor
-                .historical_monitor(contract_address, contract_abi, 17048000, 17048763)
-                .await;
+            let sqrtpricex96 = historical_monitor.historical_monitor(contract_address, contract_abi, 17048000, 17048763).await.unwrap();
+            
+            let price = historical_monitor.sqrt_price_x96_to_price(sqrtpricex96);
+            let price_ref = &price;
+            let _ = price;
+
+            historical_monitor.save_price_to_csv(price_ref, "price.csv").unwrap();
+
+            println!("{:?}", price_ref);
         }
         None => {
             Args::command()
