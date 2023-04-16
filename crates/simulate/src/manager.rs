@@ -17,9 +17,6 @@ use crate::{
     environment::SimulationEnvironment,
 };
 
-// TODO: Maybe need a `SimulationAccount` that abstracts some of the revm primitives further.
-// TODO: We could filter events here to optimize! That is, we can let the manager know the agents' filter so we only send them messages they need. This cuts overhead
-
 #[derive(Debug)]
 /// Error type for the simulation manager.
 pub struct ManagerError(String);
