@@ -6,7 +6,6 @@ use std::error::Error;
 
 use bindings::uniswap_v3_pool;
 use clap::{CommandFactory, Parser, Subcommand};
-
 use eyre::Result;
 use on_chain::monitor::EventMonitor;
 use simulate::price_simulation::PriceSimulation;

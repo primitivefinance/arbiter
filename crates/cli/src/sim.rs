@@ -1,5 +1,9 @@
-use bindings::{arbiter_token, i_portfolio, rmm01_portfolio, simple_registry, weth9};
-use bindings::{encoder_target, liquid_exchange};
+use std::error::Error;
+
+use bindings::{
+    arbiter_token, encoder_target, i_portfolio, liquid_exchange, rmm01_portfolio, simple_registry,
+    weth9,
+};
 use bytes::Bytes;
 use ethers::{abi::Token, prelude::U256, types::H256};
 use eyre::Result;
@@ -7,7 +11,6 @@ use revm::primitives::{ruint::Uint, B160};
 use simulate::{
     agent::Agent, contract::SimulationContract, manager::SimulationManager, utils::recast_address,
 };
-use std::error::Error;
 
 pub fn sim() -> Result<(), Box<dyn Error>> {
     // Create a `SimulationManager` that runs simulations in their `SimulationEnvironment`.
