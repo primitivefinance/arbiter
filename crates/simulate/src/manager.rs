@@ -17,9 +17,6 @@ use crate::{
     environment::SimulationEnvironment,
 };
 
-// TODO: Maybe need a `SimulationAccount` that abstracts some of the revm primitives further.
-// TODO: We could filter events here to optimize! That is, we can let the manager know the agents' filter so we only send them messages they need. This cuts overhead
-
 #[derive(Debug)]
 /// Error type for the simulation manager.
 pub struct ManagerError(String);
@@ -84,7 +81,6 @@ impl<'a> SimulationManager<'a> {
         Ok(())
     }
 
-    // TODO: maybe should make the name optional here, but I struggled with this.
     /// Allow the manager to create a dummy user account.
     pub fn create_user(&mut self, address: B160, name: &'a str) -> Result<(), ManagerError> {
         self.environment
@@ -100,23 +96,23 @@ impl<'a> SimulationManager<'a> {
     }
 
     /// Takes an `ExecutionResult` and returns the raw bytes of the output that can then be decoded.
-    pub fn unpack_execution(&self, execution_result: ExecutionResult) -> Bytes {
+    pub fn unpack_execution(
+        &self,
+        execution_result: ExecutionResult,
+    ) -> Result<Bytes, ManagerError> {
         match execution_result {
             ExecutionResult::Success { output, .. } => match output {
-                Output::Call(value) => value,
-                Output::Create(_, Some(_)) => {
-                    panic!("Failed. This was a 'Create' call, use 'Deploy' instead.")
-                }
-                _ => panic!("This call has failed."),
+                Output::Call(value) => Ok(value),
+                Output::Create(value, _address) => Ok(value),
             },
-            ExecutionResult::Halt { reason, gas_used } => panic!(
+            ExecutionResult::Halt { reason, gas_used } => Err(ManagerError(format!(
                 "This call halted for {:#?} and used {} gas.",
                 reason, gas_used
-            ),
-            ExecutionResult::Revert { output, gas_used } => panic!(
-                "This call reverted with output {:?} and used {} gas.",
+            ))),
+            ExecutionResult::Revert { output, gas_used } => Err(ManagerError(format!(
+                "This call reverted with output {:#?} and used {} gas.",
                 output, gas_used
-            ),
+            ))),
         }
     }
 }

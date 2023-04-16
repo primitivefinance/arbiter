@@ -2,6 +2,8 @@
 #![warn(unsafe_code)]
 //! Main lives in the `cli` crate so that we can do our input parsing.
 
+use std::error::Error;
+
 use bindings::{arbiter_token, rmm01_portfolio, simple_registry, uniswap_v3_pool, weth9};
 use clap::{CommandFactory, Parser, Subcommand};
 use ethers::prelude::U256;
@@ -54,7 +56,7 @@ enum Commands {
 }
 
 #[tokio::main]
-async fn main() -> Result<()> {
+async fn main() -> Result<(), Box<dyn Error>> {
     let args = Args::parse();
 
     match &args.command {
@@ -118,7 +120,7 @@ async fn main() -> Result<()> {
             // Allocating new tokens to user by calling Arbiter Token's ERC20 'mint' instance.
             let mint_amount = U256::from(1000);
             let input_arguments = (recast_address(arbitrageur.address()), mint_amount);
-            let call_data = arbiter_token.encode_function("mint", input_arguments);
+            let call_data = arbiter_token.encode_function("mint", input_arguments)?;
 
             // Call the 'mint' function.
             let execution_result =

@@ -14,7 +14,6 @@ pub struct SimulationEnvironment {
     pub(crate) evm: EVM<CacheDB<EmptyDB>>,
     /// The sender on the event channel that is used to send events to the agents and simulation manager.
     pub(crate) event_senders: Vec<Sender<Vec<Log>>>,
-    // TODO: Perhaps add the contracts in here?
 }
 
 impl SimulationEnvironment {

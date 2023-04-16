@@ -23,6 +23,8 @@ pub trait Cfmm: Exchange {
 
 #[cfg(test)]
 mod tests {
+    use std::error::Error;
+
     use bindings::{arbiter_token, liquid_exchange};
     use ethers::prelude::U256;
     use revm::primitives::{ruint::Uint, B160};
@@ -32,7 +34,7 @@ mod tests {
         utils::recast_address,
     };
     #[test]
-    fn test_swap_x_for_y_liquid_exchange() {
+    fn test_swap_x_for_y_liquid_exchange() -> Result<(), Box<dyn Error>> {
         // define the wad constant
         let decimals = 18_u8;
         let wad: U256 = U256::from(10_i64.pow(decimals as u32));
@@ -84,23 +86,23 @@ mod tests {
         // Mint token_x to alice.
         let mint_amount = wad.checked_mul(U256::from(20)).unwrap(); // in wei units
         let args = (recast_address(alice.address()), mint_amount);
-        let call_data = token_x.encode_function("mint", args);
+        let call_data = token_x.encode_function("mint", args)?;
         admin.call_contract(&mut manager.environment, &token_x, call_data, Uint::from(0));
 
         // Mint max token_y to the liquid_exchange contract.
         let args = (recast_address(liquid_exchange_xy.address), U256::MAX);
-        let call_data = token_y.encode_function("mint", args);
+        let call_data = token_y.encode_function("mint", args)?;
         admin.call_contract(&mut manager.environment, &token_y, call_data, Uint::from(0));
 
         // Have alice's approval for token_x to be spent by the liquid_exchange.
         let args = (recast_address(liquid_exchange_xy.address), U256::MAX);
-        let call_data = token_x.encode_function("approve", args);
+        let call_data = token_x.encode_function("approve", args)?;
         alice.call_contract(&mut manager.environment, &token_x, call_data, Uint::from(0));
 
         // Have alice call the swap function to trade token_x for token_y.
         let swap_amount = mint_amount / 2;
         let call_data = liquid_exchange_xy
-            .encode_function("swap", (recast_address(token_x.address), swap_amount));
+            .encode_function("swap", (recast_address(token_x.address), swap_amount))?;
         alice.call_contract(
             &mut manager.environment,
             &liquid_exchange_xy,
@@ -109,26 +111,27 @@ mod tests {
         );
 
         // Let alice check they spent the right amount of token_x
-        let call_data = token_x.encode_function("balanceOf", recast_address(user_address));
+        let call_data = token_x.encode_function("balanceOf", recast_address(user_address))?;
         let execution_result =
             alice.call_contract(&mut manager.environment, &token_x, call_data, Uint::from(0)); // Call the 'balanceOf' function.
-        let value = manager.unpack_execution(execution_result);
-        let response: U256 = token_x.decode_output("balanceOf", value);
+        let value = manager.unpack_execution(execution_result)?;
+        let response: U256 = token_x.decode_output("balanceOf", value)?;
         println!("alice has {} token_x after swap", response);
         assert_eq!(response, mint_amount - swap_amount);
 
         // Let alice check they received the right amount of token_y
-        let call_data = token_y.encode_function("balanceOf", recast_address(user_address));
+        let call_data = token_y.encode_function("balanceOf", recast_address(user_address))?;
         let execution_result =
             alice.call_contract(&mut manager.environment, &token_y, call_data, Uint::from(0)); // Call the 'balanceOf' function.
-        let value = manager.unpack_execution(execution_result);
-        let response: U256 = token_y.decode_output("balanceOf", value);
+        let value = manager.unpack_execution(execution_result)?;
+        let response: U256 = token_y.decode_output("balanceOf", value)?;
         println!("alice has {} token_y after swap", response);
         assert_eq!(response, swap_amount * U256::from(price_to_check));
+        Ok(())
     }
 
     #[test]
-    fn test_swap_y_for_x_liquid_exchange() {
+    fn test_swap_y_for_x_liquid_exchange() -> Result<(), Box<dyn Error>> {
         // define the wad constant
         let decimals = 18_u8;
         let wad: U256 = U256::from(10_i64.pow(decimals as u32));
@@ -138,7 +141,7 @@ mod tests {
 
         // Set up a user named alice
         let user_name = "alice";
-        let user_address = B160::from_low_u64_be(2); // TODO: Prevent address collisions
+        let user_address = B160::from_low_u64_be(2);
         manager.create_user(user_address, user_name).unwrap();
 
         // Pull out the admin and alice
@@ -180,23 +183,23 @@ mod tests {
         // Mint token_y to alice.
         let mint_amount = wad.checked_mul(U256::from(20)).unwrap(); // in wei units
         let args = (recast_address(alice.address()), mint_amount);
-        let call_data = token_y.encode_function("mint", args);
+        let call_data = token_y.encode_function("mint", args)?;
         admin.call_contract(&mut manager.environment, &token_y, call_data, Uint::from(0));
 
         // Mint max token_x to the liquid_exchange contract.
         let args = (recast_address(liquid_exchange_xy.address), U256::MAX);
-        let call_data = token_x.encode_function("mint", args);
+        let call_data = token_x.encode_function("mint", args)?;
         admin.call_contract(&mut manager.environment, &token_x, call_data, Uint::from(0));
 
         // Have alice's approval for token_y to be spent by the liquid_exchange.
         let args = (recast_address(liquid_exchange_xy.address), U256::MAX);
-        let call_data = token_y.encode_function("approve", args);
+        let call_data = token_y.encode_function("approve", args)?;
         alice.call_contract(&mut manager.environment, &token_y, call_data, Uint::from(0));
 
         // Have alice call the swap function to trade token_y for token_x.
         let swap_amount = mint_amount / 2;
         let call_data = liquid_exchange_xy
-            .encode_function("swap", (recast_address(token_y.address), swap_amount));
+            .encode_function("swap", (recast_address(token_y.address), swap_amount))?;
         alice.call_contract(
             &mut manager.environment,
             &liquid_exchange_xy,
@@ -205,26 +208,27 @@ mod tests {
         );
 
         // Let alice check they spent the right amount of token_y
-        let call_data = token_y.encode_function("balanceOf", recast_address(user_address));
+        let call_data = token_y.encode_function("balanceOf", recast_address(user_address))?;
         let execution_result =
             alice.call_contract(&mut manager.environment, &token_y, call_data, Uint::from(0)); // Call the 'balanceOf' function.
-        let value = manager.unpack_execution(execution_result);
-        let response: U256 = token_y.decode_output("balanceOf", value);
+        let value = manager.unpack_execution(execution_result)?;
+        let response: U256 = token_y.decode_output("balanceOf", value)?;
         println!("alice has {} token_y after swap", response);
         assert_eq!(response, mint_amount - swap_amount);
 
         // Let alice check they received the right amount of token_x
-        let call_data = token_x.encode_function("balanceOf", recast_address(user_address));
+        let call_data = token_x.encode_function("balanceOf", recast_address(user_address))?;
         let execution_result =
             alice.call_contract(&mut manager.environment, &token_x, call_data, Uint::from(0)); // Call the 'balanceOf' function.
-        let value = manager.unpack_execution(execution_result);
-        let response: U256 = token_x.decode_output("balanceOf", value);
+        let value = manager.unpack_execution(execution_result)?;
+        let response: U256 = token_x.decode_output("balanceOf", value)?;
         println!("alice has {} token_x after swap", response);
         assert_eq!(response, U256::from(10_i64.pow(16)));
+        Ok(())
     }
 
     #[test]
-    fn test_price_simulation_oracle() {
+    fn test_price_simulation_oracle() -> Result<(), Box<dyn Error>> {
         // Get a price path from the oracle.
         let timestep = 1.0;
         let timescale = String::from("day");
@@ -294,7 +298,7 @@ mod tests {
             println!("Price from price path: {}", price);
             let wad_price = crate::price_simulation::float_to_wad(price);
             println!("WAD price: {}", wad_price);
-            let call_data = liquid_exchange_xy.encode_function("setPrice", wad_price);
+            let call_data = liquid_exchange_xy.encode_function("setPrice", wad_price)?;
             admin.call_contract(
                 &mut manager.environment,
                 &liquid_exchange_xy,
@@ -302,17 +306,18 @@ mod tests {
                 Uint::from(0),
             );
             // Check that the price is set correctly
-            let call_data = liquid_exchange_xy.encode_function("price", ());
+            let call_data = liquid_exchange_xy.encode_function("price", ())?;
             let execution_result = admin.call_contract(
                 &mut manager.environment,
                 &liquid_exchange_xy,
                 call_data,
                 Uint::from(0),
             );
-            let value = manager.unpack_execution(execution_result);
-            let response: U256 = liquid_exchange_xy.decode_output("price", value);
+            let value = manager.unpack_execution(execution_result)?;
+            let response: U256 = liquid_exchange_xy.decode_output("price", value)?;
             println!("Price from the exchange: {}", response);
             assert_eq!(response, wad_price);
         }
+        Ok(())
     }
 }
