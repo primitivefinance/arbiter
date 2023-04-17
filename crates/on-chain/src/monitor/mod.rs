@@ -1,11 +1,9 @@
 #![warn(missing_docs)]
 //! The data that describes agents that live in a `SimulationEnvironment`.
 //! All agents must implement the `Agent` trait.
-use csv::WriterBuilder;
-use std::error::Error;
-use std::fs::File;
-use std::sync::Arc;
+use std::{error::Error, fs::File, sync::Arc};
 
+use csv::WriterBuilder;
 use ethers::{
     abi::Abi,
     contract::Contract,
@@ -119,7 +117,7 @@ impl HistoricalMonitor {
                     swap_event, log_topics, log_data,
                 ) {
                 Ok(event) => event,
-                Err(_) => continue, // Some blocks don't have any events which will throw an error. We're ignoring these
+                Err(_) => continue, /* Some blocks don't have any events which will throw an error. We're ignoring these */
             };
 
             let (_sender, _recipient, _amount0, _amount1, _sqrt_price_x96, _liquidity, _tick) =
@@ -138,7 +136,7 @@ impl HistoricalMonitor {
             let sqrtprice = sqrt_price_x96 as f64;
             normalized_price_data.push(sqrtprice);
         }
-        return normalized_price_data;
+        normalized_price_data
     }
 
     /// Save historical data to csv

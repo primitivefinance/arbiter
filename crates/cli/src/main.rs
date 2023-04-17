@@ -235,16 +235,11 @@ async fn main() -> Result<()> {
             let mut pricedata: Vec<U256> = Vec::new();
             for block in range.step_by(step as usize) {
                 let sqrtpricex96 = historical_monitor
-                .historical_monitor(
-                    contract_address,
-                    contract_abi.clone(),
-                    block,
-                    block+step,
-                )
-                .await;
+                    .historical_monitor(contract_address, contract_abi.clone(), block, block + step)
+                    .await;
                 let sqrtpricex96 = sqrtpricex96.unwrap();
                 pricedata.extend(sqrtpricex96)
-            };
+            }
 
             historical_monitor
                 .save_price_to_csv(&pricedata, "price.csv")

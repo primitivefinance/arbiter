@@ -73,7 +73,6 @@ impl<'a> SimulationManager<'a> {
         if self
             .agents
             .values()
-            .into_iter()
             .any(|agent_in_db| agent_in_db.address() == agent.address())
         {
             return Err(ManagerError(
