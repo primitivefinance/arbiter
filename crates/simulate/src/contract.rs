@@ -5,6 +5,7 @@ use std::marker::PhantomData;
 use bytes::Bytes;
 use ethers::{
     abi::{Contract, Detokenize, Token, Tokenize},
+    contract::AbiError,
     prelude::BaseContract,
     types::{Bytes as EthersBytes, H256},
 };
@@ -14,7 +15,6 @@ use revm::primitives::{B160, B256};
 /// A struct use for [`PhantomData`] to indicate a lock on contracts that are not deployed.
 pub struct NotDeployed;
 #[derive(Debug)]
-// TODO: It would be good to also allow the `IsDeployed` to also mention which `SimulationManager` has deployed it (when we have multiple managers).
 /// A struct use for `PhantomData` to indicate an unlocked contract that is deployed.
 pub struct IsDeployed;
 
@@ -57,7 +57,6 @@ pub struct SimulationContract<Deployed: DeploymentStatus> {
     abi: Deployed::Abi,
     /// The ethers `BaseContract` that holds the ABI.
     pub base_contract: Deployed::BaseContract,
-    // TODO: Bytecode is really only used for deployment. Maybe we don't need to store it like this.
     /// The contract's deployed bytecode.
     pub bytecode: Deployed::Bytecode,
     /// A `PhantomData` marker to indicate whether the contract is deployed or not.
@@ -78,7 +77,6 @@ impl SimulationContract<NotDeployed> {
             constructor_arguments: (),
         }
     }
-    // TODO: This function can probably be made private.
     /// Creates a new `SimulationContract` that is marked as deployed.
     /// This is only called by implicitly by the `SimulationManager` inside of the `deploy` function.
     pub(crate) fn to_deployed(
@@ -99,16 +97,23 @@ impl SimulationContract<NotDeployed> {
 
 impl SimulationContract<IsDeployed> {
     /// Encodes the arguments for a function call for the [`SimulationContract`].
-    pub fn encode_function(&self, function_name: &str, args: impl Tokenize) -> Bytes {
-        self.abi
-            .encode(function_name, args)
-            .unwrap()
-            .into_iter()
-            .collect()
+    pub fn encode_function(
+        &self,
+        function_name: &str,
+        args: impl Tokenize,
+    ) -> Result<Bytes, AbiError> {
+        match self.abi.encode(function_name, args) {
+            Ok(encoded) => Ok(encoded.into_iter().collect()),
+            Err(e) => Err(e),
+        }
     }
     /// Decodes the output of a function call for the [`SimulationContract`].
-    pub fn decode_output<D: Detokenize>(&self, function_name: &str, value: Bytes) -> D {
-        self.abi.decode_output(function_name, value).unwrap()
+    pub fn decode_output<D: Detokenize>(
+        &self,
+        function_name: &str,
+        value: Bytes,
+    ) -> Result<D, AbiError> {
+        self.abi.decode_output::<D, Bytes>(function_name, value)
     }
     /// Decodes the logs for an event with the [`SimulationContract`].
     pub fn decode_event<D: Detokenize>(
@@ -116,13 +121,12 @@ impl SimulationContract<IsDeployed> {
         function_name: &str,
         log_topics: Vec<B256>,
         log_data: Bytes,
-    ) -> D {
+    ) -> Result<D, AbiError> {
         let log_topics: Vec<H256> = log_topics
             .into_iter()
             .map(|topic| H256::from_slice(&topic.0))
             .collect();
         self.abi
             .decode_event(function_name, log_topics, log_data.into())
-            .unwrap()
     }
 }

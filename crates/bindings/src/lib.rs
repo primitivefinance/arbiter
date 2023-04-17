@@ -8,6 +8,7 @@ pub mod arbiter_token;
 pub mod assembly_lib;
 pub mod bit_math;
 pub mod echidna_erc20;
+pub mod encoder_target;
 pub mod erc20;
 pub mod fee_on_transfer_token;
 pub mod fixed_point_128;
