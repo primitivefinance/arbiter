@@ -16,6 +16,8 @@ tokio = { version = "1.23", features = [
     "macros",
     "full"
 ]}
+compiler = { git = "https://github.com/ts0yu/folio" }
+
 clap = { version = "4.0.32", features = ["derive"] }
 serde = { version = "1.0.152", features =["derive"] }
 # utils = { path = "../utils" }

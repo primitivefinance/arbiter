@@ -9,28 +9,48 @@ use ethers::{abi::Token, prelude::U256, types::H256};
 use eyre::Result;
 use revm::primitives::{ruint::Uint, B160};
 use simulate::{
-    agent::Agent, contract::SimulationContract, manager::SimulationManager, utils::recast_address,
+    agent::Agent,
+    contract::{IsDeployed, SimulationContract},
+    manager::SimulationManager,
+    utils::recast_address,
 };
 
 pub fn sim() -> Result<(), Box<dyn Error>> {
-    // Create a `SimulationManager` that runs simulations in their `SimulationEnvironment`.
     // define the wad constant
     let decimals = 18_u8;
     let wad: U256 = U256::from(10_i64.pow(decimals as u32));
-    // This will create an EVM instance along with an admin user account.
+    // Create a `SimulationManager` that runs simulations in their `SimulationEnvironment`.
     let mut manager = SimulationManager::new();
 
-    // Get all the necessary users.
     let user_name = "arbitrageur";
     let user_address = B160::from_low_u64_be(2);
     manager.create_user(user_address, user_name)?;
-    let arbitrageur = manager.agents.get(user_name).unwrap();
-    println!("Arbitraguer created at: {}", user_address);
-    let admin = manager.agents.get("admin").unwrap();
+    
 
     // Deploying Contracts
-    // --------------------------------------------------------------------------------------------
-    // Deploy the WETH contract.
+    let contracts =
+        deploy_sim_contracts(&mut manager, wad)?;
+
+    intitalization_calls(&mut manager, contracts)?;
+
+    Ok(())
+}
+
+fn deploy_sim_contracts(
+    manager: &mut SimulationManager,
+    wad: U256,
+) -> Result<
+    (
+        SimulationContract<IsDeployed>,
+        SimulationContract<IsDeployed>,
+        SimulationContract<IsDeployed>,
+        SimulationContract<IsDeployed>,
+        SimulationContract<IsDeployed>,
+    ),
+    Box<dyn Error>,
+> {
+    let admin = manager.agents.get("admin").unwrap();
+    // Deploy Weth
     let weth = SimulationContract::new(weth9::WETH9_ABI.clone(), weth9::WETH9_BYTECODE.clone());
     let weth = admin.deploy(&mut manager.environment, weth, ());
     println!("WETH deployed at: {}", weth.address);
@@ -92,6 +112,7 @@ pub fn sim() -> Result<(), Box<dyn Error>> {
     );
     let liquid_exchange_xy = admin.deploy(&mut manager.environment, liquid_exchange, args);
 
+    // Deploy encoder target
     let encoder_contract = SimulationContract::new(
         encoder_target::ENCODERTARGET_ABI.clone(),
         encoder_target::ENCODERTARGET_BYTECODE.clone(),
@@ -99,6 +120,21 @@ pub fn sim() -> Result<(), Box<dyn Error>> {
     let encoder_target = admin.deploy(&mut manager.environment, encoder_contract, ());
 
     println!("encoder target deployed at: {}", encoder_target.address);
+    Ok((
+        arbiter_token_x,
+        arbiter_token_y,
+        portfolio,
+        liquid_exchange_xy,
+        encoder_target,
+    ))
+}
+fn intitalization_calls(manager: &mut SimulationManager, contracts: (SimulationContract<IsDeployed>,SimulationContract<IsDeployed>, SimulationContract<IsDeployed>, SimulationContract<IsDeployed>, SimulationContract<IsDeployed>)) ->  Result<(),Box<dyn Error>> {
+
+    let admin = manager.agents.get("admin").unwrap();
+    // Get all the necessary users.
+    let (arbiter_token_x, arbiter_token_y, portfolio, liquid_exchange_xy, encoder_target) = contracts;
+
+    let arbitrageur = manager.agents.get("arbitrageur").unwrap();
 
     // Allocating new tokens to user by calling Arbiter Token's ERC20 'mint' instance.
     let mint_amount = U256::from(1000);
@@ -262,11 +298,4 @@ pub fn sim() -> Result<(), Box<dyn Error>> {
     // uint128 maxPrice,
     // uint128 price
     Ok(())
-}
-
-fn _deploy_sim_contracts() {
-    todo!()
-}
-fn _intitalization_calls() {
-    todo!()
 }
