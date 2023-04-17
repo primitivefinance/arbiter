@@ -4,6 +4,7 @@ use bindings::{
     arbiter_token, encoder_target, i_portfolio, liquid_exchange, rmm01_portfolio, simple_registry,
     weth9,
 };
+use primitive_types::H160 as PH160;
 use ethers::types::{Address};
 use bytes::Bytes;
 use ethers::{abi::Token, prelude::U256, types::H256};
@@ -290,10 +291,10 @@ fn intitalization_calls(manager: &mut SimulationManager, contracts: (SimulationC
     println!("Decoded pairID: {:#?}", hex::encode(pair_id.to_string()));
     let usize_pair_id = vec_u8_to_usize(pair_id.into_bytes().unwrap()).unwrap();
     // let thing = B160::H160::from_slice(&admin.address());
-    let address = Address::from(admin.address().as_fixed_bytes());
+    let controller_address = PH160::from(admin.address().as_fixed_bytes());
     let codegen = Codegen::new(vec![Expression::Opcode(Opcode::CreatePool {
         pair_id: usize_pair_id, // uint24
-        controller: address, // address
+        controller: controller_address, // address
         priority_fee: 1000, // uint16 1bps
         fee: 1000, // uint16
         vol: 1000, // uint16
@@ -302,7 +303,7 @@ fn intitalization_calls(manager: &mut SimulationManager, contracts: (SimulationC
         max_price: 3000, // uint128
         price:1000, // uint128
      })]);
-     let create_pool = codegen.encode()[0];
+     let create_pool = codegen.encode()[0].clone();
 
     // Create a new pool parameters
     // --------------------------------------------------------------------------------------------
