@@ -12,36 +12,42 @@ use crossbeam_channel::Receiver;
 use ethers::abi::Tokenize;
 use revm::primitives::{Address, ExecutionResult, Log, Output, TransactTo, TxEnv, B160, U256};
 
-use self::user::User;
+use self::{user::User, simple_arbitrageur::SimpleArbitrageur};
 use crate::{
     contract::{IsDeployed, NotDeployed, SimulationContract},
     environment::SimulationEnvironment,
 };
 
 pub mod user;
+pub mod simple_arbitrageur;
 
 /// An agent is an entity that can interact with the simulation environment.
 /// Agents can be various entities such as users, market makers, arbitrageurs, etc.
 /// Only the [`User`] agent is currently implemented.
 pub enum AgentType {
-    /// The user agent.
+    /// The [`User`] agent.
     User(User),
+    /// The [`SimpleArbitrageur`] agent that will arbitrage between a pair of pools.
+    SimpleArbitrageur(SimpleArbitrageur),
 }
 
 impl Agent for AgentType {
     fn address(&self) -> Address {
         match self {
             AgentType::User(user) => user.address(),
+            AgentType::SimpleArbitrageur(simple_arbitrageur) => simple_arbitrageur.address(),
         }
     }
     fn transact_settings(&self) -> &TransactSettings {
         match self {
             AgentType::User(user) => user.transact_settings(),
+            AgentType::SimpleArbitrageur(simple_arbitrageur) => simple_arbitrageur.transact_settings(),
         }
     }
     fn receiver(&self) -> Receiver<Vec<Log>> {
         match self {
             AgentType::User(user) => user.event_receiver.clone(),
+            AgentType::SimpleArbitrageur(simple_arbitrageur) => simple_arbitrageur.event_receiver.clone(),
         }
     }
     fn filter_events(&self) {
@@ -65,7 +71,7 @@ pub trait Agent {
     /// The event's channel receiver for the agent.
     fn receiver(&self) -> Receiver<Vec<Log>>;
     /// Used to allow agents to filter out the events they choose to monitor.
-    fn filter_events(&self);
+    fn filter_events(&self, logs: Vec<Log>) -> Vec<Log>;
 
     /// Used to allow agents to make a generic call a specific smart contract.
     fn call_contract(

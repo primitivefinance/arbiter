@@ -151,7 +151,7 @@ mod tests {
         // Create arbiter token general contract.
         let arbiter_token = SimulationContract::new(
             arbiter_token::ARBITERTOKEN_ABI.clone(),
-            bindings::arbiter_token::ARBITERTOKEN_BYTECODE.clone(),
+            arbiter_token::ARBITERTOKEN_BYTECODE.clone(),
         );
 
         // Deploy token_x.
@@ -171,7 +171,7 @@ mod tests {
         let initial_price = wad.checked_mul(U256::from(price_to_check)).unwrap();
         let liquid_exchange = SimulationContract::new(
             liquid_exchange::LIQUIDEXCHANGE_ABI.clone(),
-            bindings::liquid_exchange::LIQUIDEXCHANGE_BYTECODE.clone(),
+            liquid_exchange::LIQUIDEXCHANGE_BYTECODE.clone(),
         );
         let args = (
             recast_address(token_x.address),
