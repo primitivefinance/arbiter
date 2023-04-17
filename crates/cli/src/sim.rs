@@ -5,9 +5,8 @@ use bindings::{
     weth9,
 };
 use primitive_types::H160 as PH160;
-use ethers::types::{Address};
 use bytes::Bytes;
-use ethers::{abi::Token, prelude::U256, types::H256};
+use ethers::{abi::{Token, Detokenize}, prelude::U256, types::H256};
 use eyre::Result;
 use revm::primitives::{ruint::Uint, B160};
 use simulate::{
@@ -289,21 +288,23 @@ fn intitalization_calls(manager: &mut SimulationManager, contracts: (SimulationC
             .decode_event("CreatePair", h256_vec, ethers::types::Bytes(data))
             .unwrap();
     println!("Decoded pairID: {:#?}", hex::encode(pair_id.to_string()));
-    let usize_pair_id = vec_u8_to_usize(pair_id.into_bytes().unwrap()).unwrap();
-    // let thing = B160::H160::from_slice(&admin.address());
+    let hex = hex::encode(pair_id.to_string());
+    let usize_value = u64::from_str_radix(&hex, 16).unwrap_or(0) as usize;
     let controller_address = PH160::from(admin.address().as_fixed_bytes());
     let codegen = Codegen::new(vec![Expression::Opcode(Opcode::CreatePool {
-        pair_id: usize_pair_id, // uint24
-        controller: controller_address, // address
+        pair_id: usize_value, // uint24
+        controller: controller_address.into(), // address
         priority_fee: 1000, // uint16 1bps
-        fee: 1000, // uint16
-        vol: 1000, // uint16
+        fee: 100, // uint16
+        vol: 2_000, // uint16
         dur: 0, // uint16
         jit: 0, // uint16
         max_price: 3000, // uint128
         price:1000, // uint128
      })]);
      let create_pool = codegen.encode()[0].clone();
+
+     println!("Create pool: {:#?}", hex::encode(&create_pool));
 
     // Create a new pool parameters
     // --------------------------------------------------------------------------------------------
@@ -317,20 +318,4 @@ fn intitalization_calls(manager: &mut SimulationManager, contracts: (SimulationC
     // uint128 maxPrice,
     // uint128 price
     Ok(())
-}
-
-fn vec_u8_to_usize(vec: Vec<u8>) -> Option<usize> {
-    let usize_bytes = std::mem::size_of::<usize>();
-
-    if vec.len() > usize_bytes {
-        return None;
-    }
-
-    let mut usize_value: usize = 0;
-
-    for (i, &byte) in vec.iter().enumerate() {
-        usize_value |= (byte as usize) << (8 * i);
-    }
-
-    Some(usize_value)
 }
