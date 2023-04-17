@@ -296,16 +296,29 @@ fn intitalization_calls(manager: &mut SimulationManager, contracts: (SimulationC
         controller: controller_address.into(), // address
         priority_fee: 1000, // uint16 1bps
         fee: 100, // uint16
-        vol: 2_000, // uint16
-        dur: 0, // uint16
+        vol: 00_001, // uint16
+        dur: 65535, // uint16 // magic number for perp is 65535 which is 0xffff
         jit: 0, // uint16
         max_price: 3000, // uint128
         price:1000, // uint128
      })]);
-     let create_pool = codegen.encode()[0].clone();
+    let create_pool = codegen.encode()[0].clone();
 
-     println!("Create pool: {:#?}", hex::encode(&create_pool));
+    println!("Create pool: {:#?}", hex::encode(&create_pool));
+    let args: Bytes = hex::encode(&create_pool).into();
 
+    let portfolio_create_pair_call_data: Bytes =
+        portfolio.encode_function("multiprocess", args)?;
+    let encoded_create_pair_result = admin.call_contract(
+        &mut manager.environment,
+        &portfolio,
+        portfolio_create_pair_call_data,
+        Uint::from(0),
+    );
+    println!(
+        "Encoded create pool result: {:#?}",
+        encoded_create_pair_result
+    );
     // Create a new pool parameters
     // --------------------------------------------------------------------------------------------
     // uint24 pairId,
