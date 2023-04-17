@@ -1,9 +1,10 @@
-use std::error::Error;
+use std::{error::Error, usize};
 
 use bindings::{
     arbiter_token, encoder_target, i_portfolio, liquid_exchange, rmm01_portfolio, simple_registry,
     weth9,
 };
+use ethers::types::{Address};
 use bytes::Bytes;
 use ethers::{abi::Token, prelude::U256, types::H256};
 use eyre::Result;
@@ -14,6 +15,8 @@ use simulate::{
     manager::SimulationManager,
     utils::recast_address,
 };
+use compiler::{codegen::Codegen, assembler::{Expression}, opcode::Opcode};
+
 
 pub fn sim() -> Result<(), Box<dyn Error>> {
     // define the wad constant
@@ -285,6 +288,21 @@ fn intitalization_calls(manager: &mut SimulationManager, contracts: (SimulationC
             .decode_event("CreatePair", h256_vec, ethers::types::Bytes(data))
             .unwrap();
     println!("Decoded pairID: {:#?}", hex::encode(pair_id.to_string()));
+    let usize_pair_id = vec_u8_to_usize(pair_id.into_bytes().unwrap()).unwrap();
+    // let thing = B160::H160::from_slice(&admin.address());
+    let address = Address::from(admin.address().as_fixed_bytes());
+    let codegen = Codegen::new(vec![Expression::Opcode(Opcode::CreatePool {
+        pair_id: usize_pair_id, // uint24
+        controller: address, // address
+        priority_fee: 1000, // uint16 1bps
+        fee: 1000, // uint16
+        vol: 1000, // uint16
+        dur: 0, // uint16
+        jit: 0, // uint16
+        max_price: 3000, // uint128
+        price:1000, // uint128
+     })]);
+     let create_pool = codegen.encode()[0];
 
     // Create a new pool parameters
     // --------------------------------------------------------------------------------------------
@@ -298,4 +316,20 @@ fn intitalization_calls(manager: &mut SimulationManager, contracts: (SimulationC
     // uint128 maxPrice,
     // uint128 price
     Ok(())
+}
+
+fn vec_u8_to_usize(vec: Vec<u8>) -> Option<usize> {
+    let usize_bytes = std::mem::size_of::<usize>();
+
+    if vec.len() > usize_bytes {
+        return None;
+    }
+
+    let mut usize_value: usize = 0;
+
+    for (i, &byte) in vec.iter().enumerate() {
+        usize_value |= (byte as usize) << (8 * i);
+    }
+
+    Some(usize_value)
 }
