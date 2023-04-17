@@ -2,20 +2,15 @@
 #![warn(unsafe_code)]
 //! Main lives in the `cli` crate so that we can do our input parsing.
 
-use std::str::FromStr;
-
 use bindings::{arbiter_token, rmm01_portfolio, simple_registry, uniswap_v3_pool, weth9};
 use clap::{CommandFactory, Parser, Subcommand};
-use ethers::{
-    abi::Tokenize,
-    prelude::{BaseContract, U256},
-};
+use ethers::prelude::U256;
 use eyre::Result;
 use on_chain::monitor::{EventMonitor, HistoricalMonitor};
 use revm::primitives::{ruint::Uint, B160};
 use simulate::{
-    contract::SimulationContract, manager::SimulationManager, price_simulation::PriceSimulation,
-    utils::recast_address,
+    agent::Agent, contract::SimulationContract, manager::SimulationManager,
+    price_simulation::PriceSimulation, utils::recast_address,
 };
 mod config;
 
@@ -91,61 +86,47 @@ async fn main() -> Result<()> {
             // This will create an EVM instance along with an admin user account.
             let mut manager = SimulationManager::new();
 
-            // Deploy the WETH contract.
-            let weth = SimulationContract::new(
-                BaseContract::from(weth9::WETH9_ABI.clone()),
-                weth9::WETH9_BYTECODE.clone().into_iter().collect(),
-            );
+            // Get all the necessary users.
+            let user_name = "arbitrageur";
+            let user_address = B160::from_low_u64_be(2);
+            manager.create_user(user_address, user_name)?;
+            let arbitrageur = manager.agents.get(user_name).unwrap();
+            println!("Arbitraguer created at: {}", user_address);
+            let admin = manager.agents.get("admin").unwrap();
 
-            let weth = manager.agents.get("admin").unwrap().deploy(
-                &mut manager.environment,
-                weth,
-                ().into_tokens(),
-            );
+            // Pull out the environment from the manager after creating users.
+            let environment = &mut manager.environment;
+
+            // Deploy the WETH contract.
+            let weth =
+                SimulationContract::new(weth9::WETH9_ABI.clone(), weth9::WETH9_BYTECODE.clone());
+            let weth = admin.deploy(environment, weth, ());
             println!("WETH deployed at: {}", weth.address);
 
             // Deploy the registry contract.
             let registry = SimulationContract::new(
-                BaseContract::from(simple_registry::SIMPLEREGISTRY_ABI.clone()),
-                simple_registry::SIMPLEREGISTRY_BYTECODE
-                    .clone()
-                    .into_iter()
-                    .collect(),
+                simple_registry::SIMPLEREGISTRY_ABI.clone(),
+                simple_registry::SIMPLEREGISTRY_BYTECODE.clone(),
             );
-
-            let registry = manager.agents.get("admin").unwrap().deploy(
-                &mut manager.environment,
-                registry,
-                ().into_tokens(),
-            );
+            let registry = admin.deploy(environment, registry, ());
             println!("Simple registry deployed at: {}", registry.address);
 
             // Deploy the portfolio contract.
             let portfolio = SimulationContract::new(
-                BaseContract::from(rmm01_portfolio::RMM01PORTFOLIO_ABI.clone()),
-                rmm01_portfolio::RMM01PORTFOLIO_BYTECODE
-                    .clone()
-                    .into_iter()
-                    .collect(),
+                rmm01_portfolio::RMM01PORTFOLIO_ABI.clone(),
+                rmm01_portfolio::RMM01PORTFOLIO_BYTECODE.clone(),
             );
 
             let portfolio_args = (
                 recast_address(weth.address),
                 recast_address(registry.address),
             );
-            let portfolio = manager.agents.get("admin").unwrap().deploy(
-                &mut manager.environment,
-                portfolio,
-                portfolio_args.into_tokens(),
-            );
+            let portfolio = admin.deploy(environment, portfolio, portfolio_args);
             println!("Portfolio deployed at: {}", portfolio.address);
 
             let arbiter_token = SimulationContract::new(
-                BaseContract::from(arbiter_token::ARBITERTOKEN_ABI.clone()),
-                arbiter_token::ARBITERTOKEN_BYTECODE
-                    .clone()
-                    .into_iter()
-                    .collect(),
+                arbiter_token::ARBITERTOKEN_ABI.clone(),
+                arbiter_token::ARBITERTOKEN_BYTECODE.clone(),
             );
 
             // Choose name and symbol and combine into the constructor args required by ERC-20 contracts.
@@ -154,41 +135,17 @@ async fn main() -> Result<()> {
             let args = (name.to_string(), symbol.to_string(), 18_u8);
 
             // Call the contract deployer and receive a IsDeployed version of SimulationContract that now has an address.
-            let arbiter_token = manager.agents.get("admin").unwrap().deploy(
-                &mut manager.environment,
-                arbiter_token,
-                args.into_tokens(),
-            );
+            let arbiter_token = admin.deploy(environment, arbiter_token, args);
             println!("Arbiter Token deployed at: {}", arbiter_token.address);
-
-            // Create a user to mint tokens to.
-            let user_name = "arbitrageur";
-            let user_address =
-                B160::from_str("0x0000000000000000000000000000000000000002").unwrap();
-            manager.create_user(user_address, user_name).unwrap();
-
-            println!("Arbitraguer created at: {}", user_address);
 
             // Allocating new tokens to user by calling Arbiter Token's ERC20 'mint' instance.
             let mint_amount = U256::from(1000);
-            let input_arguments = (
-                recast_address(manager.agents[user_name].address()),
-                mint_amount,
-            );
-            let call_data = arbiter_token
-                .base_contract
-                .encode("mint", input_arguments)
-                .unwrap()
-                .into_iter()
-                .collect();
+            let input_arguments = (recast_address(arbitrageur.address()), mint_amount);
+            let call_data = arbiter_token.encode_function("mint", input_arguments);
 
             // Call the 'mint' function.
-            let execution_result = manager.agents.get("admin").unwrap().call_contract(
-                &mut manager.environment,
-                &arbiter_token,
-                call_data,
-                Uint::from(0),
-            ); // TODO: SOME KIND OF ERROR HANDLING IS NECESSARY FOR THESE TYPES OF CALLS
+            let execution_result =
+                admin.call_contract(environment, &arbiter_token, call_data, Uint::from(0)); // TODO: SOME KIND OF ERROR HANDLING IS NECESSARY FOR THESE TYPES OF CALLS
             println!("Mint execution result: {:#?}", execution_result);
         }
 
