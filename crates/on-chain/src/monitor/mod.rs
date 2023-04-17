@@ -105,6 +105,8 @@ impl HistoricalMonitor {
             pub amount0: U256,
             pub amount1: U256,
             pub sqrt_price_x96: u128,
+            pub liquidity: U256,
+            pub tick: i32,
         }
 
         let mut price_data: Vec<u128> = Vec::new();
@@ -116,14 +118,41 @@ impl HistoricalMonitor {
                 .collect();
             
                 let decoded_swap_event = contract
-                    .decode_event::<(H160,H160,U256,U256,u128)>(swap_event, log_topics, log_data)?;
+                    .decode_event::<(H160,H160,U256,U256,u128,U256,i32)>(swap_event, log_topics, log_data)?;
 
-                let (_sender, _recipient, _amount0, _amount1, _sqrt_price_x96) = decoded_swap_event;
-
+                let (_sender, _recipient, _amount0, _amount1, _sqrt_price_x96, _liquidity, _tick) = decoded_swap_event;
+                println!("sqrt_price_x96: {:?}", _sqrt_price_x96);
                 price_data.push(_sqrt_price_x96);
 
         }
         Ok(price_data)
+    }
+    
+    async fn process_block_range(
+        historical_monitor: &HistoricalMonitor,
+        contract_address: &str,
+        contract_abi: ethers::abi::Abi,
+        start_block: u64,
+        end_block: u64,
+    ) -> Result<Vec<f64>, eyre::Error> {
+        let mut prices = Vec::new();
+        let max_block_range: u64 = 40;
+    
+        let mut current_start = start_block;
+        while current_start <= end_block {
+            let current_end = std::cmp::min(current_start + max_block_range - 1, end_block);
+    
+            let sqrtpricex96 = historical_monitor
+                .historical_monitor(contract_address, contract_abi.clone(), current_start, current_end)
+                .await?;
+    
+            let chunk_prices = historical_monitor.sqrt_price_x96_to_price(sqrtpricex96);
+            prices.extend(chunk_prices);
+    
+            current_start += max_block_range;
+        }
+    
+        Ok(prices)
     }
     
     /// Converts sqrt_price_x96 to readable price
@@ -133,9 +162,8 @@ impl HistoricalMonitor {
 
         for price in price_data {
             let sqrt_price_x96 = price;
-            let sqrtprice = (sqrt_price_x96 as f64) / (2.0_f64.powi(96) as f64);
-            let price = sqrtprice * sqrtprice;
-            normalized_price_data.push(price);
+            let sqrtprice = sqrt_price_x96 as f64;
+            normalized_price_data.push(sqrtprice);
         }
         return normalized_price_data;
     }

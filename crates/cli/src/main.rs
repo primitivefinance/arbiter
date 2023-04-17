@@ -3,6 +3,7 @@
 //! Main lives in the `cli` crate so that we can do our input parsing.
 
 use std::str::FromStr;
+use std::env;
 
 use bindings::{arbiter_token, rmm01_portfolio, simple_registry, uniswap_v3_pool, weth9};
 use clap::{CommandFactory, Parser, Subcommand};
@@ -57,10 +58,22 @@ enum Commands {
         config: String,
     },
 
-    Exportbacktest {
+    ExportSwapRange {
         /// Path to config.toml containing simulation parameterization (optional)
         #[arg(short, long, default_value = "./crates/cli/src/config.toml", num_args = 0..=1)]
         config: String,
+
+        /// Start block for the block range
+        #[arg(short = 's', long, required = true)]
+        start_block: u64,
+
+        /// End block for the block range
+        #[arg(short = 'e', long, required = true)]
+        end_block: u64,
+
+        /// Contract address to monitor
+        #[arg(short = 'a', long, required = true)]
+        address: String,
     },
     Importbacktest {
         /// Path to config.toml containing simulation parameterization (optional)
@@ -251,15 +264,20 @@ async fn main() -> Result<()> {
                 .await;
         }
 
-        Some(Commands::Exportbacktest { config: _ }) => {
+        Some(Commands::ExportSwapRange {
+            config: _,
+            start_block,
+            end_block,
+            address,
+        }) => {
             // Parse the contract address
-            let contract_address = "0x88e6A0c2dDD26FEEb64F039a2c41296FcB3f5640";
+            let contract_address = contract;
             let historical_monitor =
                 HistoricalMonitor::new(on_chain::monitor::utils::RpcTypes::Mainnet).await;
             let contract_abi = uniswap_v3_pool::UNISWAPV3POOL_ABI.clone();
-            let sqrtpricex96 = historical_monitor.historical_monitor(contract_address, contract_abi, 17048000, 17048763).await.unwrap();
+            let sqrtpricex96 = historical_monitor(contract_address, contract_abi, *start_block, *end_block).await;
             
-            let price = historical_monitor.sqrt_price_x96_to_price(sqrtpricex96);
+            let price = historical_monitor.sqrt_price_x96_to_price(sqrtpricex96.unwrap());
             let price_ref = &price;
             let _ = price;
 
