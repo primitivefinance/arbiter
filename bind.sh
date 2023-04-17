@@ -6,6 +6,8 @@ forge bind --skip "^UniswapV3.*" -C lib/v3-core/contracts -b crates/bindings/ --
 echo "Generated bindings for v3-core"
 forge bind -C lib/portfolio/contracts -b crates/bindings/ --crate-name bindings --overwrite
 echo "Generated bindings for portfolio"
+forge bind -C lib/portfolio/test/EncoderTarget.sol -b crates/bindings/ --crate-name bindings --overwrite
+echo "Generated bindings for encoder target"
 forge bind -C lib/canonical-weth/contracts -b crates/bindings/ --crate-name bindings --overwrite
 echo "Generated bindings for canonical-weth"
 forge bind -C lib/arbiter/contracts -b crates/bindings/ --crate-name bindings --overwrite
