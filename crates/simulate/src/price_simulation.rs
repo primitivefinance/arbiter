@@ -3,14 +3,14 @@
 //! Used to generate price paths for a simulation.
 //! Managers will be able to read from this data to change prices of for infinitely liquid pools.
 
-use std::fs::File;
 use std::error::Error;
+use std::fs::File;
 
+use csv::ReaderBuilder;
 use ethers::types::U256;
 use plotly::{Plot, Scatter};
 use rand::prelude::*;
 use rand_distr::{Distribution, Normal};
-use csv::ReaderBuilder;
 
 #[derive(Debug)]
 /// Data needed for a Geometric Brownian Motion (GBM) price path generator information.
@@ -36,7 +36,7 @@ pub struct PriceSimulation {
 }
 
 impl PriceSimulation {
-    /// Public builder function that instantiates a `Simulation`.
+    /// Public builder function that instantiates a [`PriceSimulation`].
     pub fn new(
         timestep: f64,
         timescale: String,

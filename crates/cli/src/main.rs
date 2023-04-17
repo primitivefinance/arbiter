@@ -3,7 +3,6 @@
 //! Main lives in the `cli` crate so that we can do our input parsing.
 
 use std::str::FromStr;
-use std::env;
 
 use bindings::{arbiter_token, rmm01_portfolio, simple_registry, uniswap_v3_pool, weth9};
 use clap::{CommandFactory, Parser, Subcommand};
@@ -270,25 +269,34 @@ async fn main() -> Result<()> {
             end_block,
             address,
         }) => {
-            // Parse the contract address
-            let contract_address = contract;
+            let range = *start_block..*end_block;
+            let step = 100_u64; // doing this so we don't hit rpc limits
+            let contract_address = address;
             let historical_monitor =
                 HistoricalMonitor::new(on_chain::monitor::utils::RpcTypes::Mainnet).await;
-            let contract_abi = uniswap_v3_pool::UNISWAPV3POOL_ABI.clone();
-            let sqrtpricex96 = historical_monitor(contract_address, contract_abi, *start_block, *end_block).await;
-            
-            let price = historical_monitor.sqrt_price_x96_to_price(sqrtpricex96.unwrap());
-            let price_ref = &price;
-            let _ = price;
+            let contract_abi = uniswap_v3_pool::UNISWAPV3POOL_ABI.to_owned();
+            let mut pricedata: Vec<U256> = Vec::new();
+            for block in range.step_by(step as usize) {
+                let sqrtpricex96 = historical_monitor
+                .historical_monitor(
+                    contract_address,
+                    contract_abi.clone(),
+                    block,
+                    block+step,
+                )
+                .await;
+                let sqrtpricex96 = sqrtpricex96.unwrap();
+                pricedata.extend(sqrtpricex96)
+            };
 
-            historical_monitor.save_price_to_csv(price_ref, "price.csv").unwrap();
-
-            println!("{:?}", price_ref);
+            historical_monitor
+                .save_price_to_csv(&pricedata, "price.csv")
+                .unwrap();
         }
 
         Some(Commands::Importbacktest { config: _ }) => {
-
-            let price_data = simulate::price_simulation::import_price_from_csv("price_data.csv").unwrap();
+            let price_data =
+                simulate::price_simulation::import_price_from_csv("price_data.csv").unwrap();
             let price_ref = &price_data;
             let _ = price_ref;
 

@@ -6,7 +6,7 @@ use ethers::prelude::BaseContract;
 use revm::primitives::B160;
 
 #[derive(Debug, Clone)]
-/// A struct use for `PhantomData` to indicate a lock on contracts that are not deployed.
+/// A struct use for [`PhantomData`] to indicate a lock on contracts that are not deployed.
 pub struct NotDeployed;
 #[derive(Debug)]
 // TODO: It would be good to also allow the `IsDeployed` to also mention which `SimulationManager` has deployed it (when we have multiple managers).

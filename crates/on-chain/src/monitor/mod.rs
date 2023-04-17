@@ -1,11 +1,10 @@
 #![warn(missing_docs)]
 //! The data that describes agents that live in a `SimulationEnvironment`.
 //! All agents must implement the `Agent` trait.
-use std::sync::Arc;
+use csv::WriterBuilder;
 use std::error::Error;
 use std::fs::File;
-use csv::WriterBuilder;
-
+use std::sync::Arc;
 
 use ethers::{
     abi::Abi,
@@ -78,7 +77,7 @@ impl HistoricalMonitor {
         contract_abi: Abi,
         from_block: u64,
         to_block: u64,
-    ) -> Result<Vec<u128>, Box<dyn std::error::Error>> {
+    ) -> Result<Vec<U256>, Box<dyn std::error::Error>> {
         let contract_address: Address = contract_address.parse()?;
         let contract = Contract::new(contract_address, contract_abi, self.provider.clone());
 
@@ -102,62 +101,36 @@ impl HistoricalMonitor {
         pub struct Swap {
             pub sender: Address,
             pub recipient: Address,
-            pub amount0: U256,
-            pub amount1: U256,
-            pub sqrt_price_x96: u128,
+            pub amount0: I256,
+            pub amount1: I256,
+            pub sqrt_price_x96: U256,
             pub liquidity: U256,
             pub tick: i32,
         }
 
-        let mut price_data: Vec<u128> = Vec::new();
+        let mut price_data: Vec<U256> = Vec::new();
 
         for log in past_logs {
             let log_topics: Vec<H256> = log.topics.clone();
-            let log_data = log.data.0
-                .into_iter()
-                .collect();
-            
-                let decoded_swap_event = contract
-                    .decode_event::<(H160,H160,U256,U256,u128,U256,i32)>(swap_event, log_topics, log_data)?;
+            let log_data = log.data.0.into_iter().collect();
 
-                let (_sender, _recipient, _amount0, _amount1, _sqrt_price_x96, _liquidity, _tick) = decoded_swap_event;
-                println!("sqrt_price_x96: {:?}", _sqrt_price_x96);
-                price_data.push(_sqrt_price_x96);
+            let decoded_swap_event = match contract
+                .decode_event::<(H160, H160, I256, I256, U256, U256, i32)>(
+                    swap_event, log_topics, log_data,
+                ) {
+                Ok(event) => event,
+                Err(_) => continue, // Some blocks don't have any events which will throw an error. We're ignoring these
+            };
 
+            let (_sender, _recipient, _amount0, _amount1, _sqrt_price_x96, _liquidity, _tick) =
+                decoded_swap_event;
+            price_data.push(_sqrt_price_x96);
         }
         Ok(price_data)
     }
-    
-    async fn process_block_range(
-        historical_monitor: &HistoricalMonitor,
-        contract_address: &str,
-        contract_abi: ethers::abi::Abi,
-        start_block: u64,
-        end_block: u64,
-    ) -> Result<Vec<f64>, eyre::Error> {
-        let mut prices = Vec::new();
-        let max_block_range: u64 = 40;
-    
-        let mut current_start = start_block;
-        while current_start <= end_block {
-            let current_end = std::cmp::min(current_start + max_block_range - 1, end_block);
-    
-            let sqrtpricex96 = historical_monitor
-                .historical_monitor(contract_address, contract_abi.clone(), current_start, current_end)
-                .await?;
-    
-            let chunk_prices = historical_monitor.sqrt_price_x96_to_price(sqrtpricex96);
-            prices.extend(chunk_prices);
-    
-            current_start += max_block_range;
-        }
-    
-        Ok(prices)
-    }
-    
+
     /// Converts sqrt_price_x96 to readable price
     pub fn sqrt_price_x96_to_price(&self, price_data: Vec<u128>) -> Vec<f64> {
-        
         let mut normalized_price_data: Vec<f64> = Vec::new();
 
         for price in price_data {
@@ -169,16 +142,20 @@ impl HistoricalMonitor {
     }
 
     /// Save historical data to csv
-    pub fn save_price_to_csv(&self, price_data: &Vec<f64>, file_path: &str) -> Result<(), Box<dyn Error>> {
+    pub fn save_price_to_csv(
+        &self,
+        price_data: &Vec<U256>,
+        file_path: &str,
+    ) -> Result<(), Box<dyn Error>> {
         let file = File::create(file_path)?;
         let mut writer = WriterBuilder::new().from_writer(file);
-    
+
         for num in price_data {
             writer.serialize(num)?;
         }
-    
+
         writer.flush()?;
-    
+
         Ok(())
     }
 }
