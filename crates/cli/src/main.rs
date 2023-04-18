@@ -14,6 +14,8 @@ use simulate::{
     agent::Agent, contract::SimulationContract, manager::SimulationManager,
     price_simulation::PriceSimulation, utils::recast_address,
 };
+use ethers::types::U256;
+
 mod config;
 mod sim;
 
