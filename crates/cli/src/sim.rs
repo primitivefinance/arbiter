@@ -6,7 +6,7 @@ use bindings::{
 };
 use primitive_types::H160 as PH160;
 use bytes::Bytes;
-use ethers::{prelude::U256};
+use ethers::{prelude::U256, types::H256, abi::Token};
 use eyre::Result;
 use revm::primitives::{ruint::Uint, B160};
 use simulate::{
@@ -250,59 +250,26 @@ fn intitalization_calls(manager: &mut SimulationManager, contracts: (SimulationC
         encoder_create_pair_call_data,
         Uint::from(0),
     );
+    // Encoder Target encoding
+    // TODO migrate this to a test late on
     let encoded_data = manager.unpack_execution(encoded_create_pair_result)?;
     let decoded_encoded_data: Bytes = encoder_target.decode_output("createPair", encoded_data)?;
-    println!(
-        "Decoded create pair: {:#?}",
-        &decoded_encoded_data
-    );
-
     let portfolio_create_pair_call_data: Bytes =
         portfolio.encode_function("multiprocess", decoded_encoded_data.clone())?;
-    // let encoded_create_pair_result = admin.call_contract(
-    //     &mut manager.environment,
-    //     &portfolio,
-    //     portfolio_create_pair_call_data,
-    //     Uint::from(0),
-    // );
-    // println!(
-    //     "Encoded create pair: {:#?}",
-    //     encoded_create_pair_result.is_success()
-    // );
 
-    // TODO: Get the paidID and use the Pair id to create new pool
-    // print!("result: {:#?}", encoded_create_pair_result.logs()[0]);
-    // let topics = encoded_create_pair_result.logs()[0].topics.clone();
-
-    // let h256_vec: Vec<H256> = topics
-    //     .iter()
-    //     .map(|b256| H256::from_slice(b256.as_bytes()))
-    //     .collect();
-    // let i_portfolio = SimulationContract::new(
-    //     i_portfolio::IPORTFOLIO_ABI.clone(),
-    //     bindings::rmm01_portfolio::RMM01PORTFOLIO_BYTECODE.clone(),
-    // );
-    // let data = encoded_create_pair_result.logs()[0].data.clone();
-    // let (pair_id, _token_1, _token_2, _dec_1, _dec_2): (Token, Token, Token, Token, Token) =
-    //     i_portfolio
-    //         .base_contract
-    //         .decode_event("CreatePair", h256_vec, ethers::types::Bytes(data))
-    //         .unwrap();
-    // println!("Decoded pairID: {:#?}", hex::encode(pair_id.to_string()));
-
+    // Folio encoding
     let token_x_ad = PH160::from(arbiter_token_x.address.as_fixed_bytes());
     let token_y_ad = PH160::from(arbiter_token_y.address.as_fixed_bytes());
-
     let codegen = Codegen::new(vec![Expression::Opcode(Opcode::CreatePair { token_0: (token_x_ad), token_1: (token_y_ad) })]);
     let create_pair = codegen.encode()[0].clone();
     let create_pair: Bytes = hex::decode(create_pair).unwrap().into_iter().collect();
-    println!("Create pair: {:#?}", create_pair);
+    // make sure encodings have parity
     assert_eq!(create_pair, decoded_encoded_data);
 
+    // Use the folio encoding
     let call_data: Bytes =
         portfolio.encode_function("multiprocess", create_pair)?;
     assert_eq!(portfolio_create_pair_call_data, call_data);
-    println!("testing");
     let encoded_create_pair_result = admin.call_contract(
 &mut manager.environment,
         &portfolio,
@@ -310,52 +277,70 @@ fn intitalization_calls(manager: &mut SimulationManager, contracts: (SimulationC
         Uint::from(0),
     );
     println!(
-        "Encoded create pair: {:#?}",
+        "Encoded create pair with Folio encoding: {:#?}",
+        encoded_create_pair_result.is_success()
+    );
+    let topics = encoded_create_pair_result.logs()[0].topics.clone();
+
+    let h256_vec: Vec<H256> = topics
+        .iter()
+        .map(|b256| H256::from_slice(b256.as_bytes()))
+        .collect();
+    let i_portfolio = SimulationContract::new(
+        i_portfolio::IPORTFOLIO_ABI.clone(),
+        bindings::rmm01_portfolio::RMM01PORTFOLIO_BYTECODE.clone(),
+    );
+    let data = encoded_create_pair_result.logs()[0].data.clone();
+    let (pair_id, _token_1, _token_2, _dec_1, _dec_2): (Token, Token, Token, Token, Token) =
+        i_portfolio
+            .base_contract
+            .decode_event("CreatePair", h256_vec, ethers::types::Bytes(data))
+            .unwrap();
+    println!("Decoded pairID: {:#?}", hex::encode(pair_id.to_string()));
+    let hex = hex::encode(pair_id.to_string());
+    let usize_value = u64::from_str_radix(&hex, 16).unwrap_or(0) as usize;
+    let controller_address = PH160::from(admin.address().as_fixed_bytes());
+    let codegen = Codegen::new(vec![Expression::Opcode(Opcode::CreatePool {
+        pair_id: usize_value, // uint24
+        controller: controller_address.into(), // address
+        priority_fee: 1000, // uint16 1bps
+        fee: 100, // uint16
+        vol: 00_001, // uint16
+        dur: 65535, // uint16 // magic number for perp is 65535 which is 0xffff
+        jit: 0, // uint16
+        max_price: 3000, // uint128
+        price:1000, // uint128
+     })]);
+    let create_pool = codegen.encode()[0].clone();
+
+    // println!("Create pool: {:#?}", hex::decode(create_pool));
+    //     let create_pair: Bytes = hex::decode(create_pair).unwrap().into_iter().collect();
+
+    let create_pool_arg: Bytes = hex::decode(create_pool).unwrap().into_iter().collect();
+    println!("Create pool args: {:#?}", hex::encode(create_pool_arg.clone()));
+
+    let portfolio_create_pair_call_data: Bytes =
+        portfolio.encode_function("multiprocess", create_pool_arg)?;
+    let encoded_create_pair_result = admin.call_contract(
+        &mut manager.environment,
+        &portfolio,
+        portfolio_create_pair_call_data,
+        Uint::from(0),
+    );
+    println!(
+        "Encoded create pool result: {:#?}",
         encoded_create_pair_result
     );
-    // let args: Bytes = hex::encode(&create_pair).into();
-
-    // let hex = hex::encode(pair_id.to_string());
-    // let usize_value = u64::from_str_radix(&hex, 16).unwrap_or(0) as usize;
-    // let controller_address = PH160::from(admin.address().as_fixed_bytes());
-    // let codegen = Codegen::new(vec![Expression::Opcode(Opcode::CreatePool {
-    //     pair_id: usize_value, // uint24
-    //     controller: controller_address.into(), // address
-    //     priority_fee: 1000, // uint16 1bps
-    //     fee: 100, // uint16
-    //     vol: 00_001, // uint16
-    //     dur: 65535, // uint16 // magic number for perp is 65535 which is 0xffff
-    //     jit: 0, // uint16
-    //     max_price: 3000, // uint128
-    //     price:1000, // uint128
-    //  })]);
-    // let create_pool = codegen.encode()[0].clone();
-
-    // println!("Create pool: {:#?}", hex::encode(&create_pool));
-    // let args: Bytes = hex::encode(&create_pool).into();
-
-    // let portfolio_create_pair_call_data: Bytes =
-    //     portfolio.encode_function("multiprocess", args)?;
-    // let encoded_create_pair_result = admin.call_contract(
-    //     &mut manager.environment,
-    //     &portfolio,
-    //     portfolio_create_pair_call_data,
-    //     Uint::from(0),
-    // );
-    // println!(
-    //     "Encoded create pool result: {:#?}",
-    //     encoded_create_pair_result
-    // );
-    // Create a new pool parameters
-    // --------------------------------------------------------------------------------------------
-    // uint24 pairId,
-    // address controller,
-    // uint16 priorityFee,
-    // uint16 fee,
-    // uint16 vol,
-    // uint16 dur,
-    // uint16 jit,
-    // uint128 maxPrice,
-    // uint128 price
+    // // Create a new pool parameters
+    // // --------------------------------------------------------------------------------------------
+    // // uint24 pairId,
+    // // address controller,
+    // // uint16 priorityFee,
+    // // uint16 fee,
+    // // uint16 vol,
+    // // uint16 dur,
+    // // uint16 jit,
+    // // uint128 maxPrice,
+    // // uint128 price
     Ok(())
 }
