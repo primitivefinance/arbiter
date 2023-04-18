@@ -5,7 +5,6 @@ use bindings::{
     arbiter_token, encoder_target, i_portfolio, liquid_exchange, rmm01_portfolio, simple_registry,
     weth9,
 };
-use ethers_core::utils::decode_revert;
 use primitive_types::H160 as PH160;
 use bytes::Bytes;
 use ethers::{prelude::U256, types::H256, abi::Token};
