@@ -25,6 +25,7 @@ thiserror = "1.0.38"
 eyre = "0.6.6"
 toml = "0.7.3"
 ethers = "2.0.2"
+ethers-core = "0.6.0"
 
 # revm and related
 revm = "3.1.0"

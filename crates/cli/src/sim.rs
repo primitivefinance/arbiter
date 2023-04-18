@@ -1,9 +1,11 @@
+#![warn(missing_docs)]
 use std::{error::Error};
 
 use bindings::{
     arbiter_token, encoder_target, i_portfolio, liquid_exchange, rmm01_portfolio, simple_registry,
     weth9,
 };
+use ethers_core::utils::decode_revert;
 use primitive_types::H160 as PH160;
 use bytes::Bytes;
 use ethers::{prelude::U256, types::H256, abi::Token};
@@ -339,6 +341,9 @@ fn intitalization_calls(manager: &mut SimulationManager, contracts: (SimulationC
             if let Some(output) = error.output {
                 // Handle output bytes in case of Revert
                 println!("Output: {:#?}", hex::encode(output));
+                let thing: Bytes = portfolio.decode_output("multiprocess", output).unwrap();
+                println!("Decoded output: {:#?}", hex::encode(thing));
+                
             }
         }
     }
