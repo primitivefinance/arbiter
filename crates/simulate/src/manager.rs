@@ -13,7 +13,7 @@ use crossbeam_channel::unbounded;
 use revm::primitives::{AccountInfo, ExecutionResult, Log, Output, B160};
 
 use crate::{
-    agent::{user::User, Agent, AgentType},
+    agent::{user::User, Agent, AgentType, NotActive, IsActive, Identifiable},
     environment::SimulationEnvironment,
 };
 
@@ -34,7 +34,7 @@ pub struct SimulationManager<'a> {
     /// `SimulationEnvironment` that the simulation manager controls.
     pub environment: SimulationEnvironment,
     /// The agents that are currently running in the simulation environment.
-    pub agents: HashMap<&'a str, AgentType>,
+    pub agents: HashMap<&'a str, AgentType<IsActive>>,
 }
 
 impl<'a> Default for SimulationManager<'a> {
@@ -66,7 +66,7 @@ impl<'a> SimulationManager<'a> {
     }
 
     /// Add an [`Agent`] to the current simulation.
-    pub fn add_agent(&mut self, name: &'a str, agent: AgentType) -> Result<(), ManagerError> {
+    pub fn add_agent(&mut self, name: &'a str, agent: AgentType<NotActive>) -> Result<(), ManagerError> {
         if self
             .agents
             .values()
@@ -90,6 +90,19 @@ impl<'a> SimulationManager<'a> {
             .insert_account_info(address, AccountInfo::default());
         let (event_sender_user, event_receiver_user) = unbounded::<Vec<Log>>();
         let user = AgentType::User(User::new(event_receiver_user, address));
+        self.add_agent(name, user)?;
+        self.environment.add_sender(event_sender_user);
+        Ok(())
+    }
+
+    pub fn create_agent(&mut self, address: B160, name: &'a str, agent_type: AgentType<NotActive>) -> Result<(), ManagerError> {
+        self.environment
+            .evm
+            .db()
+            .unwrap()
+            .insert_account_info(address, AccountInfo::default());
+        let (event_sender_user, event_receiver_user) = unbounded::<Vec<Log>>();
+        let agent = AgentType::User(User::new(event_receiver_user, address));
         self.add_agent(name, user)?;
         self.environment.add_sender(event_sender_user);
         Ok(())

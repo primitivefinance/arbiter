@@ -4,13 +4,13 @@
 //!
 //! An abstract representation of an agent on the EVM, to be used in simulations.
 //! Some examples of agents are market makers or arbitrageurs.
-//! All agents must implement the [`Agent`] trait.
+//! All agents must implement the [`Agent`] and [`Identifiable`] traits.
 use std::thread;
 
 use bytes::Bytes;
 use crossbeam_channel::Receiver;
 use ethers::abi::Tokenize;
-use revm::primitives::{Address, ExecutionResult, Log, Output, TransactTo, TxEnv, B160, U256};
+use revm::primitives::{Address, ExecutionResult, Log, Output, TransactTo, TxEnv, B160, U256, Account};
 
 use self::{user::User, simple_arbitrageur::SimpleArbitrageur};
 use crate::{
@@ -21,23 +21,63 @@ use crate::{
 pub mod user;
 pub mod simple_arbitrageur;
 
+pub trait Identifiable {
+    fn name(&self) -> String;
+    fn address(&self) -> Address;
+}
+
+impl <AgentState: AgentStatus> Identifiable for AgentType<AgentState> {
+    fn name(&self) -> String {
+        match self {
+            AgentType::User(user) => user.name,
+            AgentType::SimpleArbitrageur(simple_arbitrageur) => simple_arbitrageur.name,
+        }
+    }
+    fn address(&self) -> Address {
+        match self {
+            AgentType::User(user) => user.address,
+            AgentType::SimpleArbitrageur(simple_arbitrageur) => simple_arbitrageur.address,
+        }
+    }
+}
+
+pub trait AgentStatus {
+    type Account;
+    type Receiver;
+}
+
+#[derive(Debug, Clone)]
+pub struct NotActive;
+
+#[derive(Debug)]
+pub struct IsActive;
+
+impl AgentStatus for NotActive {
+    type Account = ();
+    type Receiver = ();
+}
+
+impl AgentStatus for IsActive {
+    type Account = Account;
+    type Receiver = Receiver<Vec<Log>>;
+}
+
+
 /// An agent is an entity that can interact with the simulation environment.
 /// Agents can be various entities such as users, market makers, arbitrageurs, etc.
 /// Only the [`User`] agent is currently implemented.
-pub enum AgentType {
+pub enum AgentType<AgentState: AgentStatus> {
     /// The [`User`] agent.
-    User(User),
+    User(User<AgentState>),
     /// The [`SimpleArbitrageur`] agent that will arbitrage between a pair of pools.
-    SimpleArbitrageur(SimpleArbitrageur),
+    SimpleArbitrageur(SimpleArbitrageur<AgentState>),
 }
 
-impl Agent for AgentType {
-    fn address(&self) -> Address {
-        match self {
-            AgentType::User(user) => user.address(),
-            AgentType::SimpleArbitrageur(simple_arbitrageur) => simple_arbitrageur.address(),
-        }
-    }
+impl AgentType<NotActive> {
+
+}
+
+impl Agent for AgentType<IsActive> {
     fn transact_settings(&self) -> &TransactSettings {
         match self {
             AgentType::User(user) => user.transact_settings(),
@@ -50,7 +90,7 @@ impl Agent for AgentType {
             AgentType::SimpleArbitrageur(simple_arbitrageur) => simple_arbitrageur.event_receiver.clone(),
         }
     }
-    fn filter_events(&self) {
+    fn filter_events(&self, logs: Vec<Log>) -> Vec<Log> {
         todo!();
     }
 }
@@ -64,8 +104,10 @@ pub struct TransactSettings {
 
 /// Basic traits that every `Agent` must implement in order to properly interact with an EVM.
 pub trait Agent {
-    /// Returns the address of the agent.
-    fn address(&self) -> Address;
+    // /// Returns the name of the agent.
+    // fn name(&self) -> String;
+    // /// Returns the address of the agent.
+    // fn address(&self) -> Address;
     /// Returns the transaction settings of the agent.
     fn transact_settings(&self) -> &TransactSettings;
     /// The event's channel receiver for the agent.
