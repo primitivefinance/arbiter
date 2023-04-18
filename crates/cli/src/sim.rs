@@ -303,19 +303,15 @@ fn intitalization_calls(manager: &mut SimulationManager, contracts: (SimulationC
     let codegen = Codegen::new(vec![Expression::Opcode(Opcode::CreatePool {
         pair_id: usize_value, // uint24
         controller: controller_address.into(), // address
-        priority_fee: 1000, // uint16 1bps
-        fee: 100, // uint16
-        vol: 00_001, // uint16
-        dur: 65535, // uint16 // magic number for perp is 65535 which is 0xffff
-        jit: 0, // uint16
-        max_price: 3000, // uint128
-        price:1000, // uint128
+        priority_fee: 1000 as usize, // uint16 1bps
+        fee: 100 as usize, // uint16
+        vol: 00_001 as usize, // uint16
+        dur: 65535 as usize, // uint16 // magic number for perp is 65535 which is 0xffff
+        jit: 0 as usize, // uint16
+        max_price: 3000 as usize, // uint128
+        price:1000 as usize, // uint128
      })]);
     let create_pool = codegen.encode()[0].clone();
-
-    // println!("Create pool: {:#?}", hex::decode(create_pool));
-    //     let create_pair: Bytes = hex::decode(create_pair).unwrap().into_iter().collect();
-
     let create_pool_arg: Bytes = hex::decode(create_pool).unwrap().into_iter().collect();
     println!("Create pool args: {:#?}", hex::encode(create_pool_arg.clone()));
 
@@ -331,6 +327,21 @@ fn intitalization_calls(manager: &mut SimulationManager, contracts: (SimulationC
         "Encoded create pool result: {:#?}",
         encoded_create_pair_result
     );
+    // let error = encoded_create_pair_result;
+    match manager.unpack_execution(encoded_create_pair_result) {
+        Ok(thing) => {
+            // Handle success case
+            println!("Success: {:#?}", thing);
+        },
+        Err(error) => {
+            // Handle error case
+            println!("Error: {:#?}", error.message);
+            if let Some(output) = error.output {
+                // Handle output bytes in case of Revert
+                println!("Output: {:#?}", hex::encode(output));
+            }
+        }
+    }
     // // Create a new pool parameters
     // // --------------------------------------------------------------------------------------------
     // // uint24 pairId,

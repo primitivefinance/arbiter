@@ -19,13 +19,18 @@ use crate::{
 
 #[derive(Debug)]
 /// Error type for the simulation manager.
-pub struct ManagerError(String);
+pub struct ManagerError {
+    /// Error message.
+    pub message: String,
+    /// Byte output of the error.
+    pub output: Option<Bytes>
+}
 
 impl Error for ManagerError {}
 
 impl Display for ManagerError {
     fn fmt(&self, f: &mut Formatter) -> FmtResult {
-        write!(f, "{}", self.0)
+        write!(f, "{}", self.message)
     }
 }
 
@@ -73,9 +78,10 @@ impl<'a> SimulationManager<'a> {
             .into_iter()
             .any(|agent_in_db| agent_in_db.address() == agent.address())
         {
-            return Err(ManagerError(
-                "Agent already exists in the simulation environment.".to_string(),
-            ));
+            return Err(ManagerError{
+                message: "Agent already exists in the simulation environment.".to_string(),
+                output: None,
+        });
         };
         self.agents.insert(name, agent);
         Ok(())
@@ -105,17 +111,23 @@ impl<'a> SimulationManager<'a> {
                 Output::Call(value) => Ok(value),
                 Output::Create(value, _address) => Ok(value),
             },
-            ExecutionResult::Halt { reason, gas_used } => Err(ManagerError(format!(
-                "This call halted for {:#?} and used {} gas.",
-                reason, gas_used
-            ))),
-            ExecutionResult::Revert { output, gas_used } => Err(ManagerError(format!(
-                "This call reverted with output {:#?} and used {} gas.",
-                output, gas_used
-            ))),
+            ExecutionResult::Halt { reason, gas_used } => Err(ManagerError{
+                message:
+                    format!("This call halted for {:#?} and used {} gas.",
+                    reason, gas_used),
+                output: None,
+            }),
+            ExecutionResult::Revert { output, gas_used } => Err(ManagerError{
+                message: format!(
+                    "This call reverted with output {:#?} and used {} gas.",
+                    output, gas_used
+                ),
+                output: Some(output),
+            }),
         }
     }
 }
+    
 
 #[test]
 fn test_agent_address_collision() {
