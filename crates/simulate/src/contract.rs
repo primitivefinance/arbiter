@@ -101,7 +101,8 @@ impl SimulationContract<IsDeployed> {
         function_name: &str,
         value: Bytes,
     ) -> Result<D, AbiError> {
-        self.base_contract.decode_output::<D, Bytes>(function_name, value)
+        self.base_contract
+            .decode_output::<D, Bytes>(function_name, value)
     }
     /// Decodes the logs for an event with the [`SimulationContract`].
     pub fn decode_event<D: Detokenize>(

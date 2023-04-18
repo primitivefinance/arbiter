@@ -5,16 +5,19 @@
 use std::{
     collections::HashMap,
     error::Error,
-    fmt::{Display, Formatter, Result as FmtResult}, marker::PhantomData,
+    fmt::{Display, Formatter, Result as FmtResult},
+    marker::PhantomData,
 };
 
 use bytes::Bytes;
 use crossbeam_channel::unbounded;
-use ethers::types::U256;
-use revm::primitives::{AccountInfo, ExecutionResult, Log, Output, B160, Account};
+use revm::primitives::{Account, AccountInfo, ExecutionResult, Log, Output, B160, U256};
 
 use crate::{
-    agent::{user::User, Agent, AgentType, NotActive, IsActive, Identifiable, self, TransactSettings, simple_arbitrageur::SimpleArbitrageur},
+    agent::{
+        self, simple_arbitrageur::SimpleArbitrageur, user::User, Agent, AgentType, Identifiable,
+        IsActive, NotActive, TransactSettings,
+    },
     environment::SimulationEnvironment,
 };
 
@@ -66,37 +69,65 @@ impl<'a> SimulationManager<'a> {
         todo!()
     }
 
-    /// Add an [`Agent`] to the current simulation.
-    pub fn add_agent(&mut self, name: &'a str, agent: AgentType<NotActive>) -> Result<(), ManagerError> {
+    // /// Add an [`Agent`] to the current simulation.
+    // pub fn add_agent(&mut self, name: &'a str, agent: AgentType<NotActive>) -> Result<(), ManagerError> {
+    //     if self
+    //         .agents
+    //         .values()
+    //         .into_iter()
+    //         .any(|agent_in_db| agent_in_db.address() == agent.address())
+    //     {
+    //         return Err(ManagerError(
+    //             "Agent with that address already exists in the simulation environment.".to_string(),
+    //         ));
+    //     };
+    //     match self.agents.insert(name, agent) {
+    //         Some(_) => Err(ManagerError(
+    //             "Agent with that name already exists in the simulation environment.".to_string(),
+    //         )),
+    //         None => Ok(()),
+    //     };
+    //     Ok(())
+    // }
+
+    // /// Allow the manager to create a dummy user account.
+    // pub fn create_user(&mut self, address: B160, name: &'a str) -> Result<(), ManagerError> {
+    //     self.environment
+    //         .evm
+    //         .db()
+    //         .unwrap()
+    //         .insert_account_info(address, AccountInfo::default());
+    //     let (event_sender_user, event_receiver_user) = unbounded::<Vec<Log>>();
+    //     let user = AgentType::User(User::new(event_receiver_user, address));
+    //     self.add_agent(name, user)?;
+    //     self.environment.add_sender(event_sender_user);
+    //     Ok(())
+    // }
+
+    pub fn create_agent(
+        &mut self,
+        address: B160,
+        name: &'a str,
+        agent_type: AgentType<NotActive>,
+    ) -> Result<(), ManagerError> {
+        // Check to make sure we are not creating an agent with an address or name that already exists.
         if self
             .agents
             .values()
             .into_iter()
-            .any(|agent_in_db| agent_in_db.address() == agent.address())
+            .any(|agent_in_db| agent_in_db.address() == agent_type.address())
         {
             return Err(ManagerError(
-                "Agent already exists in the simulation environment.".to_string(),
+                "Agent with that address already exists in the simulation environment.".to_string(),
             ));
         };
-        self.agents.insert(name, agent);
-        Ok(())
-    }
+        if self.agents.keys().into_iter().any(|name_in_db| name_in_db == &name) {
+            return Err(ManagerError(
+                "Agent with that name already exists in the simulation environment.".to_string(),
+            ));
+        };
 
-    /// Allow the manager to create a dummy user account.
-    pub fn create_user(&mut self, address: B160, name: &'a str) -> Result<(), ManagerError> {
-        self.environment
-            .evm
-            .db()
-            .unwrap()
-            .insert_account_info(address, AccountInfo::default());
-        let (event_sender_user, event_receiver_user) = unbounded::<Vec<Log>>();
-        let user = AgentType::User(User::new(event_receiver_user, address));
-        self.add_agent(name, user)?;
-        self.environment.add_sender(event_sender_user);
-        Ok(())
-    }
-
-    pub fn create_agent(&mut self, address: B160, name: &'a str, agent_type: AgentType<NotActive>) -> Result<(), ManagerError> {
+        // Create the agent and add it to the simulation environment so long as we don't throw an error above.
         self.environment
             .evm
             .db()
@@ -104,35 +135,35 @@ impl<'a> SimulationManager<'a> {
             .insert_account_info(address, AccountInfo::default());
         let (event_sender, event_receiver) = unbounded::<Vec<Log>>();
         let agent = match agent_type {
-                AgentType::User(user) => {
-                    AgentType::User( User::<IsActive> {
-                        name: user.name,
-                        address: user.address,
-                        account: AccountInfo::default(),
-                        transact_settings: TransactSettings {
-                            gas_limit: u64::MAX,   // TODO: Users should have a gas limit.
-                            gas_price: U256::ZERO, // TODO: Users should have an associated gas price.
-                        },
-                        event_receiver: event_receiver,
-                        active: PhantomData,
-                    })
-                },
-                AgentType::SimpleArbitrageur(simple_arbitrageur) => AgentType::SimpleArbitrageur( SimpleArbitrageur::<IsActive> {
-                    name: simple_arbitrageur.name,
-                    address: simple_arbitrageur.address,
-                    account: AccountInfo::default(),
+            AgentType::User(user) => {
+                AgentType::User(User::<IsActive> {
+                    name: user.name,
+                    address: user.address,
+                    account_info: AccountInfo::default(),
                     transact_settings: TransactSettings {
                         gas_limit: u64::MAX,   // TODO: Users should have a gas limit.
                         gas_price: U256::ZERO, // TODO: Users should have an associated gas price.
                     },
-                    event_receiver: event_receiver,
+                    event_receiver,
                     active: PhantomData,
-
                 })
-            };
-
-
-        self.add_agent(name, agent)?;
+            }
+            AgentType::SimpleArbitrageur(simple_arbitrageur) => {
+                AgentType::SimpleArbitrageur(SimpleArbitrageur::<IsActive> {
+                    name: simple_arbitrageur.name,
+                    address: simple_arbitrageur.address,
+                    account_info: AccountInfo::default(),
+                    transact_settings: TransactSettings {
+                        gas_limit: u64::MAX,   // TODO: Users should have a gas limit.
+                        gas_price: U256::ZERO, // TODO: Users should have an associated gas price.
+                    },
+                    event_receiver,
+                    active: PhantomData,
+                    event_filter: simple_arbitrageur.event_filter,
+                })
+            }
+        };
+        self.agents.insert(name, agent);
         self.environment.add_sender(event_sender);
         Ok(())
     }
@@ -157,7 +188,6 @@ impl<'a> SimulationManager<'a> {
             ))),
         }
     }
-
 }
 
 #[test]

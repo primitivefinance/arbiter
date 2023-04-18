@@ -8,7 +8,7 @@ use revm::primitives::{Account, AccountInfo, Address, Log, B160, U256};
 
 use crate::agent::{Agent, TransactSettings};
 
-use super::{NotActive, IsActive, AgentStatus, Identifiable};
+use super::{AgentStatus, Identifiable, IsActive, NotActive};
 
 /// A user is an agent that can interact with the simulation environment generically.
 pub struct User<AgentState: AgentStatus> {
@@ -17,7 +17,7 @@ pub struct User<AgentState: AgentStatus> {
     /// Public address of the simulation manager.
     pub address: B160,
     /// [`revm::primitives`] account of the simulation manager.
-    pub account: AgentState::Account,
+    pub account_info: AgentState::AccountInfo,
     /// Contains the default transaction options for revm such as gas limit and gas price.
     transact_settings: TransactSettings,
     /// The [`crossbeam_channel::Receiver`] for the events are sent down from [`SimulationEnvironment`]'s dispatch.

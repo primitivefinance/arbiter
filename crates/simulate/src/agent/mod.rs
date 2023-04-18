@@ -4,29 +4,31 @@
 //!
 //! An abstract representation of an agent on the EVM, to be used in simulations.
 //! Some examples of agents are market makers or arbitrageurs.
-//! All agents must implement the [`Agent`] and [`Identifiable`] traits.
+//! All agents must implement the [`Agent`] and [`Identifiable`] traits through the [`AgentType`] enum.
 use std::thread;
 
 use bytes::Bytes;
 use crossbeam_channel::Receiver;
 use ethers::abi::Tokenize;
-use revm::primitives::{Address, ExecutionResult, Log, Output, TransactTo, TxEnv, B160, U256, Account, AccountInfo};
+use revm::primitives::{
+    Account, AccountInfo, Address, ExecutionResult, Log, Output, TransactTo, TxEnv, B160, U256,
+};
 
-use self::{user::User, simple_arbitrageur::SimpleArbitrageur};
+use self::{simple_arbitrageur::SimpleArbitrageur, user::User};
 use crate::{
     contract::{IsDeployed, NotDeployed, SimulationContract},
     environment::SimulationEnvironment,
 };
 
-pub mod user;
 pub mod simple_arbitrageur;
+pub mod user;
 
 pub trait Identifiable {
     fn name(&self) -> String;
     fn address(&self) -> Address;
 }
 
-impl <AgentState: AgentStatus> Identifiable for AgentType<AgentState> {
+impl<AgentState: AgentStatus> Identifiable for AgentType<AgentState> {
     fn name(&self) -> String {
         match self {
             AgentType::User(user) => user.name,
@@ -62,7 +64,6 @@ impl AgentStatus for IsActive {
     type Receiver = Receiver<Vec<Log>>;
 }
 
-
 /// An agent is an entity that can interact with the simulation environment.
 /// Agents can be various entities such as users, market makers, arbitrageurs, etc.
 /// Only the [`User`] agent is currently implemented.
@@ -77,13 +78,17 @@ impl Agent for AgentType<IsActive> {
     fn transact_settings(&self) -> &TransactSettings {
         match self {
             AgentType::User(user) => user.transact_settings(),
-            AgentType::SimpleArbitrageur(simple_arbitrageur) => simple_arbitrageur.transact_settings(),
+            AgentType::SimpleArbitrageur(simple_arbitrageur) => {
+                simple_arbitrageur.transact_settings()
+            }
         }
     }
     fn receiver(&self) -> Receiver<Vec<Log>> {
         match self {
             AgentType::User(user) => user.event_receiver.clone(),
-            AgentType::SimpleArbitrageur(simple_arbitrageur) => simple_arbitrageur.event_receiver.clone(),
+            AgentType::SimpleArbitrageur(simple_arbitrageur) => {
+                simple_arbitrageur.event_receiver.clone()
+            }
         }
     }
     fn filter_events(&self, logs: Vec<Log>) -> Vec<Log> {

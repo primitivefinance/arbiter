@@ -7,9 +7,13 @@ use crossbeam_channel::Receiver;
 use ethers::types::Filter;
 use revm::primitives::{Account, AccountInfo, Address, Log, B160, U256};
 
-use crate::{agent::{Agent, TransactSettings}, contract::{SimulationContract, IsDeployed}, utils::recast_address};
+use crate::{
+    agent::{Agent, TransactSettings},
+    contract::{IsDeployed, SimulationContract},
+    utils::recast_address,
+};
 
-use super::{IsActive, NotActive, AgentStatus};
+use super::{AgentStatus, IsActive, NotActive};
 
 /// A user is an agent that can interact with the simulation environment generically.
 pub struct SimpleArbitrageur<AgentState: AgentStatus> {
@@ -18,25 +22,18 @@ pub struct SimpleArbitrageur<AgentState: AgentStatus> {
     /// Public address of the simulation manager.
     pub address: B160,
     /// [`revm::primitives`] account of the [`SimulationManager`].
-    pub account: AgentState::Account,
+    pub account_info: AgentState::AccountInfo,
     /// Contains the default transaction options for revm such as gas limit and gas price.
     transact_settings: TransactSettings,
     /// The receiver for the crossbeam channel that events are sent down from manager's dispatch.
     pub event_receiver: Receiver<Vec<Log>>,
-    // pub tokens: (B160, B160),
-    pub pools: (SimulationContract<IsDeployed>, SimulationContract<IsDeployed>),
+
     pub event_filter: Filter,
     /// A [`PhantomData`] marker to indicate whether the agent is active or not.
     active: PhantomData<AgentState>,
 }
 
 impl Agent for SimpleArbitrageur<IsActive> {
-    fn name(&self) -> String {
-        self.name
-    }
-    fn address(&self) -> Address {
-        self.address
-    }
     fn transact_settings(&self) -> &TransactSettings {
         &self.transact_settings
     }
@@ -50,7 +47,15 @@ impl Agent for SimpleArbitrageur<IsActive> {
 
 impl SimpleArbitrageur<NotActive> {
     /// Constructor function to instantiate a user agent.
-    pub fn new(name: String, address: B160, pools: (SimulationContract<IsDeployed>, SimulationContract<IsDeployed>), event_strings: (&str, &str)) -> Self {
+    pub fn new(
+        name: String,
+        address: B160,
+        pools: (
+            SimulationContract<IsDeployed>,
+            SimulationContract<IsDeployed>,
+        ),
+        event_strings: (&str, &str),
+    ) -> Self {
         let event_filter = Filter {
             address: Some(ethers::types::ValueOrArray::Array(vec![
                 recast_address(pools.0.address),
@@ -62,6 +67,7 @@ impl SimpleArbitrageur<NotActive> {
         event_filter.event(event_strings.0);
         event_filter.event(event_strings.1);
         Self {
+            name,
             address,
             account: (),
             transact_settings: TransactSettings {
@@ -69,12 +75,11 @@ impl SimpleArbitrageur<NotActive> {
                 gas_price: U256::ZERO, // TODO: Users should have an associated gas price.
             },
             event_receiver: (),
-            pools,
             event_filter,
+            active: PhantomData,
         }
     }
 }
-
 
 #[cfg(test)]
 
@@ -90,7 +95,5 @@ mod test {
     #[test]
     fn simple_arbitrageur_event_filter_test() {
         SimpleArbitrageur::new(event_receiver, address, pools, event_strings)
-        
-
     }
 }
