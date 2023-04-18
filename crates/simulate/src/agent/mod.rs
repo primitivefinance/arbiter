@@ -10,7 +10,7 @@ use std::thread;
 use bytes::Bytes;
 use crossbeam_channel::Receiver;
 use ethers::abi::Tokenize;
-use revm::primitives::{Address, ExecutionResult, Log, Output, TransactTo, TxEnv, B160, U256, Account};
+use revm::primitives::{Address, ExecutionResult, Log, Output, TransactTo, TxEnv, B160, U256, Account, AccountInfo};
 
 use self::{user::User, simple_arbitrageur::SimpleArbitrageur};
 use crate::{
@@ -42,7 +42,7 @@ impl <AgentState: AgentStatus> Identifiable for AgentType<AgentState> {
 }
 
 pub trait AgentStatus {
-    type Account;
+    type AccountInfo;
     type Receiver;
 }
 
@@ -53,12 +53,12 @@ pub struct NotActive;
 pub struct IsActive;
 
 impl AgentStatus for NotActive {
-    type Account = ();
+    type AccountInfo = ();
     type Receiver = ();
 }
 
 impl AgentStatus for IsActive {
-    type Account = Account;
+    type AccountInfo = AccountInfo;
     type Receiver = Receiver<Vec<Log>>;
 }
 
@@ -71,10 +71,6 @@ pub enum AgentType<AgentState: AgentStatus> {
     User(User<AgentState>),
     /// The [`SimpleArbitrageur`] agent that will arbitrage between a pair of pools.
     SimpleArbitrageur(SimpleArbitrageur<AgentState>),
-}
-
-impl AgentType<NotActive> {
-
 }
 
 impl Agent for AgentType<IsActive> {
@@ -104,10 +100,6 @@ pub struct TransactSettings {
 
 /// Basic traits that every `Agent` must implement in order to properly interact with an EVM.
 pub trait Agent {
-    // /// Returns the name of the agent.
-    // fn name(&self) -> String;
-    // /// Returns the address of the agent.
-    // fn address(&self) -> Address;
     /// Returns the transaction settings of the agent.
     fn transact_settings(&self) -> &TransactSettings;
     /// The event's channel receiver for the agent.
