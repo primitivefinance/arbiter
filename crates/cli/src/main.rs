@@ -6,15 +6,10 @@ use std::error::Error;
 
 use bindings::uniswap_v3_pool;
 use clap::{CommandFactory, Parser, Subcommand};
-use eyre::Result;
-
-use on_chain::monitor::{EventMonitor, HistoricalMonitor};
-use revm::primitives::{ruint::Uint, B160};
-use simulate::{
-    agent::Agent, contract::SimulationContract, manager::SimulationManager,
-    price_simulation::PriceSimulation, utils::recast_address,
-};
 use ethers::types::U256;
+use eyre::Result;
+use on_chain::monitor::{EventMonitor, HistoricalMonitor};
+use simulate::{price_simulation::PriceSimulation};
 
 mod config;
 mod sim;
