@@ -297,12 +297,11 @@ fn intitalization_calls(manager: &mut SimulationManager, contracts: (SimulationC
             .base_contract
             .decode_event("CreatePair", h256_vec, ethers::types::Bytes(data))
             .unwrap();
-    println!("Decoded pairID: {:#?}", hex::encode(pair_id.to_string()));
-    let hex = hex::encode(pair_id.to_string());
-    let usize_value = u64::from_str_radix(&hex, 16).unwrap_or(0) as usize;
+    println!("Decoded pairID: {:#?}", pair_id);
+    // let pair_id: Bytes = hex::decode(pair_id).unwrap().into_iter().collect();
     let controller_address = PH160::from(admin.address().as_fixed_bytes());
     let codegen = Codegen::new(vec![Expression::Opcode(Opcode::CreatePool {
-        pair_id: usize_value, // uint24
+        pair_id: 1 as usize, // uint24
         controller: controller_address.into(), // address
         priority_fee: 1000 as usize, // uint16 1bps
         fee: 100 as usize, // uint16
@@ -339,9 +338,7 @@ fn intitalization_calls(manager: &mut SimulationManager, contracts: (SimulationC
             println!("Error: {:#?}", error.message);
             if let Some(output) = error.output {
                 // Handle output bytes in case of Revert
-                println!("Output: {:#?}", hex::encode(output));
-                let thing: Bytes = portfolio.decode_output("multiprocess", output).unwrap();
-                println!("Decoded output: {:#?}", hex::encode(thing));
+                println!("Output: {:#?}", hex::encode(&output));
                 
             }
         }
