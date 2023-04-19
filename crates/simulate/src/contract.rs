@@ -12,7 +12,7 @@ use ethers::{
 use revm::primitives::{B160, B256};
 
 #[derive(Debug, Clone)]
-/// A struct use for `PhantomData` to indicate a lock on contracts that are not deployed.
+/// A struct use for [`PhantomData`] to indicate a lock on contracts that are not deployed.
 pub struct NotDeployed;
 #[derive(Debug)]
 /// A struct use for `PhantomData` to indicate an unlocked contract that is deployed.
