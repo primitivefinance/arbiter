@@ -11,12 +11,12 @@ use std::{
 
 use bytes::Bytes;
 use crossbeam_channel::unbounded;
-use revm::primitives::{Account, AccountInfo, ExecutionResult, Log, Output, B160, U256};
+use ethers::types::Filter;
+use revm::primitives::{Account, AccountInfo, Address, ExecutionResult, Log, Output, B160, U256};
 
 use crate::{
     agent::{
-        self, simple_arbitrageur::SimpleArbitrageur, user::User, Agent, AgentType, Identifiable,
-        IsActive, NotActive, TransactSettings,
+        simple_arbitrageur::SimpleArbitrageur, user::User, Agent, AgentType, TransactSettings,
     },
     environment::SimulationEnvironment,
 };
@@ -34,33 +34,30 @@ impl Display for ManagerError {
 }
 
 /// Manages simulations.
-pub struct SimulationManager<'a> {
+pub struct SimulationManager {
     /// `SimulationEnvironment` that the simulation manager controls.
     pub environment: SimulationEnvironment,
     /// The agents that are currently running in the simulation environment.
-    pub agents: HashMap<&'a str, AgentType<'a, IsActive>>,
+    pub agents: HashMap<String, Box<dyn Agent>>,
 }
 
-impl<'a> Default for SimulationManager<'a> {
+impl Default for SimulationManager {
     fn default() -> Self {
         Self::new()
     }
 }
 
-impl<'a> SimulationManager<'a> {
+impl SimulationManager {
     /// Constructor function to instantiate a manager that has a default admin user and a simulation environment.
     /// The admin will always be given the 0x0...1 address.
     pub fn new() -> Self {
-        let (event_sender_admin, event_receiver_admin) = unbounded::<Vec<Log>>();
         let mut simulation_manager = Self {
             environment: SimulationEnvironment::new(),
             agents: HashMap::new(),
         };
-        let admin = AgentType::User(User::new("admin", B160::from_low_u64_be(1)));
-        simulation_manager.activate_agent(admin).unwrap();
         simulation_manager
-            .environment
-            .add_sender(event_sender_admin);
+            .create_agent("admin", B160::from_low_u64_be(1), AgentType::User, None)
+            .unwrap(); // This unwrap should never fail.
         simulation_manager
     }
 
@@ -69,22 +66,30 @@ impl<'a> SimulationManager<'a> {
         todo!()
     }
 
-    pub fn activate_agent(
+    pub fn create_agent<S: Into<String> + Copy>(
         &mut self,
-        agent_type: AgentType<NotActive>,
-    ) -> Result<&AgentType<'a, IsActive>, ManagerError> {
+        name: S,
+        address: Address,
+        agent_type: AgentType,
+        event_filter: Option<Filter>,
+    ) -> Result<(), ManagerError> {
         // Check to make sure we are not creating an agent with an address or name that already exists.
         if self
             .agents
             .values()
             .into_iter()
-            .any(|agent_in_db| agent_in_db.address() == agent_type.address())
+            .any(|agent_in_db| agent_in_db.address() == address)
         {
             return Err(ManagerError(
                 "Agent with that address already exists in the simulation environment.".to_string(),
             ));
         };
-        if self.agents.keys().into_iter().any(|name_in_db| name_in_db == &agent_type.name()) {
+        if self
+            .agents
+            .keys()
+            .into_iter()
+            .any(|name_in_db| *name_in_db == name.into())
+        {
             return Err(ManagerError(
                 "Agent with that name already exists in the simulation environment.".to_string(),
             ));
@@ -95,40 +100,39 @@ impl<'a> SimulationManager<'a> {
             .evm
             .db()
             .unwrap()
-            .insert_account_info(agent_type.address(), AccountInfo::default());
+            .insert_account_info(address, AccountInfo::default());
         let (event_sender, event_receiver) = unbounded::<Vec<Log>>();
-        let agent = match agent_type {
-            AgentType::User(user) => {
-                AgentType::User(User::<IsActive> {
-                    name: user.name,
-                    address: user.address,
+        match agent_type {
+            AgentType::User => {
+                let user = User {
+                    name: name.into(),
+                    address,
                     account_info: AccountInfo::default(),
                     transact_settings: TransactSettings {
                         gas_limit: u64::MAX,   // TODO: Users should have a gas limit.
                         gas_price: U256::ZERO, // TODO: Users should have an associated gas price.
                     },
                     event_receiver,
-                    active: PhantomData,
-                })
+                };
+                self.agents.insert(name.into(), Box::new(user));
             }
-            AgentType::SimpleArbitrageur(simple_arbitrageur) => {
-                AgentType::SimpleArbitrageur(SimpleArbitrageur::<IsActive> {
-                    name: simple_arbitrageur.name,
-                    address: simple_arbitrageur.address,
+            AgentType::SimpleArbitrageur => {
+                let simple_arbitrageur = SimpleArbitrageur {
+                    name: name.into(),
+                    address,
                     account_info: AccountInfo::default(),
                     transact_settings: TransactSettings {
                         gas_limit: u64::MAX,   // TODO: Users should have a gas limit.
                         gas_price: U256::ZERO, // TODO: Users should have an associated gas price.
                     },
                     event_receiver,
-                    active: PhantomData,
-                    event_filter: simple_arbitrageur.event_filter,
-                })
+                    event_filter: event_filter.unwrap_or_else(|| Filter::default()),
+                };
+                self.agents.insert(name.into(), Box::new(simple_arbitrageur));
             }
         };
-        self.agents.insert(agent.name(), agent);
         self.environment.add_sender(event_sender);
-        Ok(&agent)
+        Ok(())
     }
 
     /// Takes an `ExecutionResult` and returns the raw bytes of the output that can then be decoded.
@@ -156,7 +160,6 @@ impl<'a> SimulationManager<'a> {
 #[test]
 fn test_agent_address_collision() {
     let mut manager = SimulationManager::default();
-    let user = AgentType::User( User::new("alice", B160::from_low_u64_be(1)));
-    let result = manager.activate_agent(user);
+    let result = manager.create_agent("alice", B160::from_low_u64_be(1), AgentType::User, None);
     assert!(result.is_err());
 }

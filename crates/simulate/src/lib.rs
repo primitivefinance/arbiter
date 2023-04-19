@@ -18,7 +18,9 @@ mod tests {
     use revm::primitives::{ruint::Uint, B160};
 
     use crate::{
-        agent::{Agent, AgentType, user::User, Identifiable}, contract::SimulationContract, manager::SimulationManager,
+        agent::{user::User, Agent, AgentType},
+        contract::SimulationContract,
+        manager::SimulationManager,
         utils::recast_address,
     };
 
@@ -35,7 +37,7 @@ mod tests {
             SimulationContract::new(writer::WRITER_ABI.clone(), writer::WRITER_BYTECODE.clone());
 
         // Deploy the writer contract.
-        let writer = admin.deploy(&mut manager.environment, writer, ());
+        let writer = writer.deploy(&mut manager.environment, admin, ());
 
         // Generate calldata for the 'echoString' function
         let test_string = "Hello, world!";
@@ -68,9 +70,9 @@ mod tests {
         // Get the relevant users.
         let user_name = "alice";
         let user_address = B160::from_low_u64_be(2);
-        let alice = AgentType::User(User::new(user_name, user_address));
-        let alice = manager.activate_agent(alice)?;
+        manager.create_agent(user_name, user_address, AgentType::User, None)?;
         let admin = manager.agents.get("admin").unwrap();
+        let alice = manager.agents.get("alice").unwrap();
 
         // Get a SimulationContract for the Arbiter Token ERC-20 instance from the ABI and bytecode.
         let arbiter_token = SimulationContract::new(
@@ -84,7 +86,7 @@ mod tests {
         let args = (name.to_string(), symbol.to_string(), 18_u8);
 
         // Call the contract deployer and receive a IsDeployed version of SimulationContract that now has an address.
-        let arbiter_token = admin.deploy(&mut manager.environment, arbiter_token, args);
+        let arbiter_token = arbiter_token.deploy(&mut manager.environment, admin, args);
         println!("Arbiter Token deployed at: {}", arbiter_token.address);
 
         // Generate calldata for the 'name' function
@@ -152,7 +154,7 @@ mod tests {
             SimulationContract::new(writer::WRITER_ABI.clone(), writer::WRITER_BYTECODE.clone());
 
         // Deploy the writer contract.
-        let writer = admin.deploy(environment, writer, ());
+        let writer = writer.deploy(environment, admin, ());
 
         // Generate calldata for the 'echoString' function
         let test_string = "Hello, world!";
@@ -183,9 +185,9 @@ mod tests {
         let mut manager = SimulationManager::default();
         let user_name = "alice";
         let user_address = B160::from_low_u64_be(2);
-        let alice = AgentType::User(User::new(user_name, user_address));
-        let alice = manager.activate_agent(alice)?;
+        manager.create_agent(user_name, user_address, AgentType::User, None)?;
         let admin = manager.agents.get("admin").unwrap();
+        let alice = manager.agents.get("alice").unwrap();
 
         // Get bytecode and abi for the writer contract.
         let writer =
@@ -294,12 +296,8 @@ mod tests {
             }
         });
 
-        let writer =
-            manager
-                .agents
-                .get("admin")
-                .unwrap()
-                .deploy(&mut manager.environment, writer, ());
+        let writer = writer
+                .deploy(&mut manager.environment, admin, ());
 
         // Generate calldata for the 'echoString' function
         let test_string = "Hello, world!";

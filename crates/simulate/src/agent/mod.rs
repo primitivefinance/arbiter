@@ -9,7 +9,7 @@ use std::thread;
 
 use bytes::Bytes;
 use crossbeam_channel::Receiver;
-use ethers::abi::Tokenize;
+use ethers::abi::{Tokenize, Token};
 use revm::primitives::{
     Account, AccountInfo, Address, ExecutionResult, Log, Output, TransactTo, TxEnv, B160, U256,
 };
@@ -23,78 +23,14 @@ use crate::{
 pub mod simple_arbitrageur;
 pub mod user;
 
-pub trait Identifiable {
-    fn name(&self) -> &str;
-    fn address(&self) -> Address;
-}
-
-impl<'a, AgentState: AgentStatus> Identifiable for AgentType<'a, AgentState> {
-    fn name(&self) -> &str {
-        match self {
-            AgentType::User(user) => user.name,
-            AgentType::SimpleArbitrageur(simple_arbitrageur) => simple_arbitrageur.name,
-        }
-    }
-    fn address(&self) -> Address {
-        match self {
-            AgentType::User(user) => user.address,
-            AgentType::SimpleArbitrageur(simple_arbitrageur) => simple_arbitrageur.address,
-        }
-    }
-}
-
-pub trait AgentStatus {
-    type AccountInfo;
-    type Receiver;
-}
-
-#[derive(Debug, Clone)]
-pub struct NotActive;
-
-#[derive(Debug)]
-pub struct IsActive;
-
-impl AgentStatus for NotActive {
-    type AccountInfo = ();
-    type Receiver = ();
-}
-
-impl AgentStatus for IsActive {
-    type AccountInfo = AccountInfo;
-    type Receiver = Receiver<Vec<Log>>;
-}
-
 /// An agent is an entity that can interact with the simulation environment.
 /// Agents can be various entities such as users, market makers, arbitrageurs, etc.
 /// Only the [`User`] agent is currently implemented.
-pub enum AgentType<'a, AgentState: AgentStatus> {
-    /// The [`User`] agent.
-    User(User<'a, AgentState>),
-    /// The [`SimpleArbitrageur`] agent that will arbitrage between a pair of pools.
-    SimpleArbitrageur(SimpleArbitrageur<'a, AgentState>),
+pub enum AgentType {
+    User,
+    SimpleArbitrageur,
 }
 
-impl <'_> Agent for AgentType<'_, IsActive> {
-    fn transact_settings(&self) -> &TransactSettings {
-        match self {
-            AgentType::User(user) => &user.transact_settings,
-            AgentType::SimpleArbitrageur(simple_arbitrageur) => {
-                &simple_arbitrageur.transact_settings
-            }
-        }
-    }
-    fn receiver(&self) -> Receiver<Vec<Log>> {
-        match self {
-            AgentType::User(user) => user.event_receiver.clone(),
-            AgentType::SimpleArbitrageur(simple_arbitrageur) => {
-                simple_arbitrageur.event_receiver.clone()
-            }
-        }
-    }
-    fn filter_events(&self, logs: Vec<Log>) -> Vec<Log> {
-        todo!();
-    }
-}
 /// Describes the gas settings for a transaction.
 pub struct TransactSettings {
     /// Gas limit for the transaction for a simulation.
@@ -104,7 +40,11 @@ pub struct TransactSettings {
 }
 
 /// Basic traits that every `Agent` must implement in order to properly interact with an EVM.
-pub trait Agent: Identifiable {
+pub trait Agent {
+    /// Returns the name of the agent.
+    fn name(&self) -> String;
+    /// Returns the address of the agent.
+    fn address(&self) -> Address;
     /// Returns the transaction settings of the agent.
     fn transact_settings(&self) -> &TransactSettings;
     /// The event's channel receiver for the agent.
@@ -159,60 +99,5 @@ pub trait Agent: Identifiable {
             while let Ok(_logs) = receiver.recv() {}
             // TODO: Implement a filter / catch for specific events.
         });
-    }
-
-    /// Deploy a contract to the current simulation environment.
-    fn deploy(
-        &self,
-        simulation_environment: &mut SimulationEnvironment,
-        contract: SimulationContract<NotDeployed>,
-        constructor_arguments: impl Tokenize + Clone,
-    ) -> SimulationContract<IsDeployed> {
-        // Append constructor args (if available) to generate the deploy bytecode.
-        let bytecode = match contract.base_contract.abi().constructor.clone() {
-            Some(constructor) => Bytes::from(
-                constructor
-                    .encode_input(
-                        contract.bytecode.clone(),
-                        &constructor_arguments.clone().into_tokens(),
-                    )
-                    .unwrap(),
-            ),
-            None => Bytes::from(contract.bytecode.clone()),
-        };
-
-        // Take the execution result and extract the contract address.
-        let deploy_transaction = self.build_deploy_transaction(bytecode);
-        let execution_result = simulation_environment.execute(deploy_transaction);
-        let output = match execution_result {
-            ExecutionResult::Success { output, .. } => output,
-            ExecutionResult::Revert { output, .. } => panic!("Failed due to revert: {:?}", output),
-            ExecutionResult::Halt { reason, .. } => panic!("Failed due to halt: {:?}", reason),
-        };
-        let contract_address = match output {
-            Output::Create(_, address) => address.unwrap(),
-            _ => panic!("failed"),
-        };
-
-        SimulationContract::to_deployed(
-            contract,
-            contract_address,
-            constructor_arguments.into_tokens(),
-        )
-    }
-    /// Helper function to build a deploy transaction.
-    fn build_deploy_transaction(&self, bytecode: Bytes) -> TxEnv {
-        TxEnv {
-            caller: self.address(),
-            gas_limit: self.transact_settings().gas_limit,
-            gas_price: self.transact_settings().gas_price,
-            gas_priority_fee: None,
-            transact_to: TransactTo::create(),
-            value: U256::ZERO,
-            data: bytecode,
-            chain_id: None,
-            nonce: None,
-            access_list: Vec::new(),
-        }
     }
 }
