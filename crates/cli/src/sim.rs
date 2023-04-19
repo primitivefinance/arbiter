@@ -298,9 +298,14 @@ fn intitalization_calls(manager: &mut SimulationManager, contracts: (SimulationC
             .decode_event("CreatePair", h256_vec, ethers::types::Bytes(data))
             .unwrap();
     println!("Decoded pairID: {:#?}", pair_id.to_string());
+    let pair_id: u32 = pair_id.to_string().parse::<u32>().unwrap();    
+    let encoded_pair = portfolio.encode_function("pairs", pair_id.clone())?;
+    let pairs = admin.call_contract(&mut manager.environment, &portfolio, encoded_pair, Uint::from(0));
+    let result = manager.unpack_execution(pairs.clone())?;
+    let decoded_result = i_portfolio.base_contract.decode_output("pairs", result)?;
+    println!("got pairs: {:#?}", decoded_result);
     // let pair_id:usize = pair_id.to_string().parse::<usize>().unwrap(); // base 10 encoding as usize
-    let pair_id: u32 = pair_id.to_string().parse::<u32>().unwrap(); // base 10 encoding as usize
-    let controller_address = PH160::from(admin.address().as_fixed_bytes());
+    // base 10 encoding as usize
 
     let create_pool_args = (
         pair_id, // pair id
@@ -314,20 +319,33 @@ fn intitalization_calls(manager: &mut SimulationManager, contracts: (SimulationC
         100 as u128,
     );
     let create_pool_call_data = encoder_target.encode_function("createPool", create_pool_args)?;
-    println!("Create pool call data: {:#?}", hex::encode(create_pool_call_data.clone()));
-
-    let portfolio_create_pair_call_data: Bytes =
-        portfolio.encode_function("multiprocess", create_pool_call_data)?;
-    let encoded_create_pair_result = admin.call_contract(
+    let encoded_create_pool_result = admin.call_contract(
         &mut manager.environment,
-        &portfolio,
-        portfolio_create_pair_call_data,
-        Uint::from(0),
-    );
-    println!(
-        "Encoded create pool result: {:#?}",
-        encoded_create_pair_result
-    );
+                &encoder_target,
+                create_pool_call_data,
+                Uint::from(0),
+            );
+    println!("Encoded create pool result: {:#?}", encoded_create_pool_result.is_success());
+    let decoded_create_pool_data: Bytes = manager.unpack_execution(encoded_create_pool_result)?;
+    println!("Decoded create pool data: {:#?}", decoded_create_pool_data);
+
+    let decoded_result = encoder_target.decode_output("createPool", decoded_create_pool_data)?;
+    println!("Decoded create pool data: {:#?}", decoded_result);
+
+    
+
+    // let portfolio_create_pair_call_data: Bytes =
+    //     portfolio.encode_function("multiprocess", create_pool_call_data)?;
+    // let encoded_create_pair_result = admin.call_contract(
+    //     &mut manager.environment,
+    //     &portfolio,
+    //     portfolio_create_pair_call_data,
+    //     Uint::from(0),
+    // );
+    // println!(
+    //     "Encoded create pool result: {:#?}",
+    //     encoded_create_pair_result
+    // );
     // let codegen = Codegen::new(vec![Expression::Opcode(Opcode::CreatePool {
     //     pair_id: pair_id, // uint24
     //     controller: controller_address.into(), // address
@@ -384,4 +402,28 @@ fn intitalization_calls(manager: &mut SimulationManager, contracts: (SimulationC
     // // uint128 maxPrice,
     // // uint128 price
     Ok(())
+}
+mod test {
+    #[test]
+    fn test_create_pair_encoding() {
+        // get args
+        // get encoded targer args
+        // check this is correct
+    }
+    #[test]
+    fn test_create_pair() {
+        // send create pair call data to portfolio
+        // check with the i_portfolio `pairs` function that the pair was created and state was changed
+    }
+    #[test]
+    fn test_create_pool_encoding() {
+        // get args
+        // get encoded targer args
+        // check that the encoder target return the correct bytes
+    }
+    #[test]
+    fn test_create_pool() {
+        // send create pool call data to portfolio
+        // check with the i_portfolio that the pair was created and state was changed
+    }
 }
