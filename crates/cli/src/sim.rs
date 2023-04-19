@@ -299,22 +299,22 @@ fn intitalization_calls(manager: &mut SimulationManager, contracts: (SimulationC
             .unwrap();
     println!("Decoded pairID: {:#?}", pair_id.to_string());
     // let pair_id:usize = pair_id.to_string().parse::<usize>().unwrap(); // base 10 encoding as usize
-    let pair_id: i32 = pair_id.to_string().parse::<i32>().unwrap(); // base 10 encoding as usize
+    let pair_id: u32 = pair_id.to_string().parse::<u32>().unwrap(); // base 10 encoding as usize
     let controller_address = PH160::from(admin.address().as_fixed_bytes());
 
     let create_pool_args = (
-        pair_id,
-        recast_address(admin.address()),
-        1000 ,
-        100 ,
-        00_001 ,
-        65535 ,
-        0,
-        3000 ,
-        1000 ,
+        pair_id, // pair id
+        recast_address(admin.address()), // controller
+        100 as u16, // priority fee
+        100 as u16, // fee
+        10_000 as u16,
+        65535 as u16,
+        0 as u16,
+        300 as u128,
+        100 as u128,
     );
     let create_pool_call_data = encoder_target.encode_function("createPool", create_pool_args)?;
-    println!("Create pool call data: {:#?}", create_pool_call_data);
+    println!("Create pool call data: {:#?}", hex::encode(create_pool_call_data.clone()));
 
     let portfolio_create_pair_call_data: Bytes =
         portfolio.encode_function("multiprocess", create_pool_call_data)?;
