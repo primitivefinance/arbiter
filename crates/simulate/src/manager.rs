@@ -38,7 +38,7 @@ pub struct SimulationManager<'a> {
     /// `SimulationEnvironment` that the simulation manager controls.
     pub environment: SimulationEnvironment,
     /// The agents that are currently running in the simulation environment.
-    pub agents: HashMap<&'a str, AgentType<IsActive>>,
+    pub agents: HashMap<&'a str, AgentType<'a, IsActive>>,
 }
 
 impl<'a> Default for SimulationManager<'a> {
@@ -56,8 +56,8 @@ impl<'a> SimulationManager<'a> {
             environment: SimulationEnvironment::new(),
             agents: HashMap::new(),
         };
-        let admin = AgentType::User(User::new(event_receiver_admin, B160::from_low_u64_be(1)));
-        simulation_manager.add_agent("admin", admin).unwrap();
+        let admin = AgentType::User(User::new("admin", B160::from_low_u64_be(1)));
+        simulation_manager.activate_agent(admin).unwrap();
         simulation_manager
             .environment
             .add_sender(event_sender_admin);
@@ -69,47 +69,10 @@ impl<'a> SimulationManager<'a> {
         todo!()
     }
 
-    // /// Add an [`Agent`] to the current simulation.
-    // pub fn add_agent(&mut self, name: &'a str, agent: AgentType<NotActive>) -> Result<(), ManagerError> {
-    //     if self
-    //         .agents
-    //         .values()
-    //         .into_iter()
-    //         .any(|agent_in_db| agent_in_db.address() == agent.address())
-    //     {
-    //         return Err(ManagerError(
-    //             "Agent with that address already exists in the simulation environment.".to_string(),
-    //         ));
-    //     };
-    //     match self.agents.insert(name, agent) {
-    //         Some(_) => Err(ManagerError(
-    //             "Agent with that name already exists in the simulation environment.".to_string(),
-    //         )),
-    //         None => Ok(()),
-    //     };
-    //     Ok(())
-    // }
-
-    // /// Allow the manager to create a dummy user account.
-    // pub fn create_user(&mut self, address: B160, name: &'a str) -> Result<(), ManagerError> {
-    //     self.environment
-    //         .evm
-    //         .db()
-    //         .unwrap()
-    //         .insert_account_info(address, AccountInfo::default());
-    //     let (event_sender_user, event_receiver_user) = unbounded::<Vec<Log>>();
-    //     let user = AgentType::User(User::new(event_receiver_user, address));
-    //     self.add_agent(name, user)?;
-    //     self.environment.add_sender(event_sender_user);
-    //     Ok(())
-    // }
-
-    pub fn create_agent(
+    pub fn activate_agent(
         &mut self,
-        address: B160,
-        name: &'a str,
         agent_type: AgentType<NotActive>,
-    ) -> Result<(), ManagerError> {
+    ) -> Result<&AgentType<'a, IsActive>, ManagerError> {
         // Check to make sure we are not creating an agent with an address or name that already exists.
         if self
             .agents
@@ -121,7 +84,7 @@ impl<'a> SimulationManager<'a> {
                 "Agent with that address already exists in the simulation environment.".to_string(),
             ));
         };
-        if self.agents.keys().into_iter().any(|name_in_db| name_in_db == &name) {
+        if self.agents.keys().into_iter().any(|name_in_db| name_in_db == &agent_type.name()) {
             return Err(ManagerError(
                 "Agent with that name already exists in the simulation environment.".to_string(),
             ));
@@ -132,7 +95,7 @@ impl<'a> SimulationManager<'a> {
             .evm
             .db()
             .unwrap()
-            .insert_account_info(address, AccountInfo::default());
+            .insert_account_info(agent_type.address(), AccountInfo::default());
         let (event_sender, event_receiver) = unbounded::<Vec<Log>>();
         let agent = match agent_type {
             AgentType::User(user) => {
@@ -163,9 +126,9 @@ impl<'a> SimulationManager<'a> {
                 })
             }
         };
-        self.agents.insert(name, agent);
+        self.agents.insert(agent.name(), agent);
         self.environment.add_sender(event_sender);
-        Ok(())
+        Ok(&agent)
     }
 
     /// Takes an `ExecutionResult` and returns the raw bytes of the output that can then be decoded.
@@ -193,6 +156,7 @@ impl<'a> SimulationManager<'a> {
 #[test]
 fn test_agent_address_collision() {
     let mut manager = SimulationManager::default();
-    let result = manager.create_user(B160::from_low_u64_be(1), "alice");
+    let user = AgentType::User( User::new("alice", B160::from_low_u64_be(1)));
+    let result = manager.activate_agent(user);
     assert!(result.is_err());
 }

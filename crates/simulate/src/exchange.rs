@@ -30,11 +30,11 @@ mod tests {
     use revm::primitives::{ruint::Uint, B160};
 
     use crate::{
-        agent::Agent, contract::SimulationContract, manager::SimulationManager,
+        agent::{Agent, AgentType, user::User, Identifiable}, contract::SimulationContract, manager::SimulationManager,
         utils::recast_address,
     };
     #[test]
-    fn test_swap_x_for_y_liquid_exchange() -> Result<(), Box<dyn Error>> {
+    fn swap_x_for_y_liquid_exchange() -> Result<(), Box<dyn Error>> {
         // define the wad constant
         let decimals = 18_u8;
         let wad: U256 = U256::from(10_i64.pow(decimals as u32));
@@ -45,11 +45,9 @@ mod tests {
         // Set up a user named alice
         let user_name = "alice";
         let user_address = B160::from_low_u64_be(2);
-        manager.create_user(user_address, user_name).unwrap();
-
-        // Pull out the admin and alice
+        let alice = AgentType::User(User::new(user_name, user_address));
+        let alice = manager.activate_agent(alice)?;
         let admin = manager.agents.get("admin").unwrap();
-        let alice = manager.agents.get(user_name).unwrap();
 
         // Create arbiter token general contract.
         let arbiter_token = SimulationContract::new(
@@ -131,7 +129,7 @@ mod tests {
     }
 
     #[test]
-    fn test_swap_y_for_x_liquid_exchange() -> Result<(), Box<dyn Error>> {
+    fn swap_y_for_x_liquid_exchange() -> Result<(), Box<dyn Error>> {
         // define the wad constant
         let decimals = 18_u8;
         let wad: U256 = U256::from(10_i64.pow(decimals as u32));
@@ -142,11 +140,9 @@ mod tests {
         // Set up a user named alice
         let user_name = "alice";
         let user_address = B160::from_low_u64_be(2);
-        manager.create_user(user_address, user_name).unwrap();
-
-        // Pull out the admin and alice
+        let alice = AgentType::User(User::new(user_name, user_address));
+        let alice = manager.activate_agent(alice)?;
         let admin = manager.agents.get("admin").unwrap();
-        let alice = manager.agents.get(user_name).unwrap();
 
         // Create arbiter token general contract.
         let arbiter_token = SimulationContract::new(

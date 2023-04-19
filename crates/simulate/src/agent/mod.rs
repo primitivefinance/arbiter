@@ -24,12 +24,12 @@ pub mod simple_arbitrageur;
 pub mod user;
 
 pub trait Identifiable {
-    fn name(&self) -> String;
+    fn name(&self) -> &str;
     fn address(&self) -> Address;
 }
 
-impl<AgentState: AgentStatus> Identifiable for AgentType<AgentState> {
-    fn name(&self) -> String {
+impl<'a, AgentState: AgentStatus> Identifiable for AgentType<'a, AgentState> {
+    fn name(&self) -> &str {
         match self {
             AgentType::User(user) => user.name,
             AgentType::SimpleArbitrageur(simple_arbitrageur) => simple_arbitrageur.name,
@@ -67,19 +67,19 @@ impl AgentStatus for IsActive {
 /// An agent is an entity that can interact with the simulation environment.
 /// Agents can be various entities such as users, market makers, arbitrageurs, etc.
 /// Only the [`User`] agent is currently implemented.
-pub enum AgentType<AgentState: AgentStatus> {
+pub enum AgentType<'a, AgentState: AgentStatus> {
     /// The [`User`] agent.
-    User(User<AgentState>),
+    User(User<'a, AgentState>),
     /// The [`SimpleArbitrageur`] agent that will arbitrage between a pair of pools.
-    SimpleArbitrageur(SimpleArbitrageur<AgentState>),
+    SimpleArbitrageur(SimpleArbitrageur<'a, AgentState>),
 }
 
-impl Agent for AgentType<IsActive> {
+impl <'_> Agent for AgentType<'_, IsActive> {
     fn transact_settings(&self) -> &TransactSettings {
         match self {
-            AgentType::User(user) => user.transact_settings(),
+            AgentType::User(user) => &user.transact_settings,
             AgentType::SimpleArbitrageur(simple_arbitrageur) => {
-                simple_arbitrageur.transact_settings()
+                &simple_arbitrageur.transact_settings
             }
         }
     }
@@ -104,7 +104,7 @@ pub struct TransactSettings {
 }
 
 /// Basic traits that every `Agent` must implement in order to properly interact with an EVM.
-pub trait Agent {
+pub trait Agent: Identifiable {
     /// Returns the transaction settings of the agent.
     fn transact_settings(&self) -> &TransactSettings;
     /// The event's channel receiver for the agent.

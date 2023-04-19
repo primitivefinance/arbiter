@@ -18,14 +18,14 @@ mod tests {
     use revm::primitives::{ruint::Uint, B160};
 
     use crate::{
-        agent::Agent, contract::SimulationContract, manager::SimulationManager,
+        agent::{Agent, AgentType, user::User, Identifiable}, contract::SimulationContract, manager::SimulationManager,
         utils::recast_address,
     };
 
     #[test]
     /// Test that the writer contract can echo a string.
     /// The writer contract takes in no constructor args.
-    fn test_string_write() -> Result<(), Box<dyn Error>> {
+    fn string_write() -> Result<(), Box<dyn Error>> {
         // Set up the execution manager and a user address.
         let mut manager = SimulationManager::default();
         let admin = manager.agents.get("admin").unwrap();
@@ -60,7 +60,7 @@ mod tests {
 
     #[test]
     /// Test to see that we can mint tokens to a user.
-    fn test_token_mint() -> Result<(), Box<dyn Error>> {
+    fn token_mint() -> Result<(), Box<dyn Error>> {
         // Create a `SimulationManager` where we can run simulations.
         // This will also create an EVM instance associated to the manager.
         let mut manager = SimulationManager::default();
@@ -68,9 +68,9 @@ mod tests {
         // Get the relevant users.
         let user_name = "alice";
         let user_address = B160::from_low_u64_be(2);
-        manager.create_user(user_address, user_name).unwrap();
+        let alice = AgentType::User(User::new(user_name, user_address));
+        let alice = manager.activate_agent(alice)?;
         let admin = manager.agents.get("admin").unwrap();
-        let alice = manager.agents.get(user_name).unwrap();
 
         // Get a SimulationContract for the Arbiter Token ERC-20 instance from the ABI and bytecode.
         let arbiter_token = SimulationContract::new(
@@ -141,7 +141,7 @@ mod tests {
 
     /// Test to make sure that events are getting logged into the crossbeam channel.
     #[test]
-    fn test_event_logging() -> Result<(), Box<dyn Error>> {
+    fn event_logging() -> Result<(), Box<dyn Error>> {
         // Set up the execution manager and a user address.
         let mut manager = SimulationManager::default();
         let admin = manager.agents.get("admin").unwrap();
@@ -178,14 +178,14 @@ mod tests {
 
     /// Test to make sure events can be streamed from the crossbeam channel on a new thread.
     #[test]
-    fn test_event_monitoring() -> Result<(), Box<dyn Error>> {
+    fn event_monitoring() -> Result<(), Box<dyn Error>> {
         // Set up the execution manager and a user address.
         let mut manager = SimulationManager::default();
         let user_name = "alice";
-        let user_address = B160::from_str("0x0000000000000000000000000000000000000002").unwrap();
-        manager.create_user(user_address, user_name).unwrap();
+        let user_address = B160::from_low_u64_be(2);
+        let alice = AgentType::User(User::new(user_name, user_address));
+        let alice = manager.activate_agent(alice)?;
         let admin = manager.agents.get("admin").unwrap();
-        let alice = manager.agents.get(user_name).unwrap();
 
         // Get bytecode and abi for the writer contract.
         let writer =
