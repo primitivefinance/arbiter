@@ -9,7 +9,7 @@ use ethers::{abi::Token, prelude::{U256, BaseContract}, types::H256};
 use eyre::Result;
 use revm::primitives::{ruint::Uint, B160};
 use simulate::{
-    agent::{Agent, AgentType}, contract::SimulationContract, manager::SimulationManager, utils::recast_address,
+    agent::AgentType, contract::SimulationContract, manager::SimulationManager, utils::recast_address,
 };
 
 pub fn sim() -> Result<(), Box<dyn Error>> {

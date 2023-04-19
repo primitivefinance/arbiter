@@ -6,13 +6,12 @@ use std::{
     collections::HashMap,
     error::Error,
     fmt::{Display, Formatter, Result as FmtResult},
-    marker::PhantomData,
 };
 
 use bytes::Bytes;
 use crossbeam_channel::unbounded;
 use ethers::types::Filter;
-use revm::primitives::{Account, AccountInfo, Address, ExecutionResult, Log, Output, B160, U256};
+use revm::primitives::{AccountInfo, Address, ExecutionResult, Log, Output, B160, U256};
 
 use crate::{
     agent::{
@@ -66,6 +65,7 @@ impl SimulationManager {
         todo!()
     }
 
+    /// Create an agent in the simulation environment.
     pub fn create_agent<S: Into<String> + Copy>(
         &mut self,
         name: S,
@@ -126,7 +126,7 @@ impl SimulationManager {
                         gas_price: U256::ZERO, // TODO: Users should have an associated gas price.
                     },
                     event_receiver,
-                    event_filter: event_filter.unwrap_or_else(|| Filter::default()),
+                    event_filter: event_filter.unwrap_or_default(),
                 };
                 self.agents.insert(name.into(), Box::new(simple_arbitrageur));
             }

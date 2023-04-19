@@ -1,10 +1,10 @@
 #![warn(missing_docs)]
 //! Describes the most basic type of user agent.
 
-use std::marker::PhantomData;
+
 
 use crossbeam_channel::Receiver;
-use revm::primitives::{Account, AccountInfo, Address, Log, B160, U256};
+use revm::primitives::{AccountInfo, Address, Log, B160, U256};
 
 use crate::agent::{Agent, TransactSettings};
 
@@ -35,7 +35,7 @@ impl Agent for User {
     fn receiver(&self) -> Receiver<Vec<Log>> {
         self.event_receiver.clone()
     }
-    fn filter_events(&self, logs: Vec<Log>) -> Vec<Log> {
+    fn filter_events(&self, _logs: Vec<Log>) -> Vec<Log> {
         todo!();
     }
 }

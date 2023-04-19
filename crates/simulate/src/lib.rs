@@ -11,14 +11,14 @@ pub mod utils;
 
 #[cfg(test)]
 mod tests {
-    use std::{error::Error, str::FromStr, thread};
+    use std::{error::Error, thread};
 
     use bindings::{arbiter_token, writer};
     use ethers::prelude::{H256, U256};
     use revm::primitives::{ruint::Uint, B160};
 
     use crate::{
-        agent::{user::User, Agent, AgentType},
+        agent::{AgentType},
         contract::SimulationContract,
         manager::SimulationManager,
         utils::recast_address,

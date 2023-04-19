@@ -9,14 +9,14 @@ use std::thread;
 
 use bytes::Bytes;
 use crossbeam_channel::Receiver;
-use ethers::abi::{Tokenize, Token};
+
 use revm::primitives::{
-    Account, AccountInfo, Address, ExecutionResult, Log, Output, TransactTo, TxEnv, B160, U256,
+    Address, ExecutionResult, Log, TransactTo, TxEnv, B160, U256,
 };
 
-use self::{simple_arbitrageur::SimpleArbitrageur, user::User};
+
 use crate::{
-    contract::{IsDeployed, NotDeployed, SimulationContract},
+    contract::{IsDeployed, SimulationContract},
     environment::SimulationEnvironment,
 };
 
@@ -27,7 +27,9 @@ pub mod user;
 /// Agents can be various entities such as users, market makers, arbitrageurs, etc.
 /// Only the [`User`] agent is currently implemented.
 pub enum AgentType {
+    /// A [`User`] is the most basic agent that can interact with the simulation environment.
     User,
+    /// A [`SimpleArbitrageur`] is an agent that can perform arbitrage between two pools.
     SimpleArbitrageur,
 }
 
