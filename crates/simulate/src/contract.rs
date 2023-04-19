@@ -58,7 +58,7 @@ pub struct SimulationContract<DeployedState: ContractStatus> {
 }
 
 impl SimulationContract<NotDeployed> {
-    /// A constructor function for `SimulationContract` that takes a `BaseContract` and the deployment bytecode.
+    /// A constructor function for [`SimulationContract`] that takes a [`BaseContract`] and the deployment bytecode.
     pub fn new(contract: Contract, bytecode: EthersBytes) -> Self {
         Self {
             base_contract: BaseContract::from(contract),
@@ -68,23 +68,9 @@ impl SimulationContract<NotDeployed> {
             constructor_arguments: (),
         }
     }
-    // /// Creates a new [`SimulationContract`] that is marked as deployed.
-    // /// This is only called by implicitly by the [`SimulationManager`] inside of the `deploy` function.
-    // pub(crate) fn to_deployed(
-    //     simulation_contract: SimulationContract<NotDeployed>,
-    //     address: B160,
-    //     constructor_arguments: Vec<Token>,
-    // ) -> SimulationContract<IsDeployed> {
-    //     SimulationContract {
-    //         bytecode: (),
-    //         address,
-    //         deployed: std::marker::PhantomData,
-    //         base_contract: simulation_contract.base_contract,
-    //         constructor_arguments: constructor_arguments,
-    //     }
-    // }
 
-    /// Deploy a contract to the current simulation environment.
+    /// Deploy a contract to the current simulation environment and return a new [`SimulationContract<IsDeployed>`].
+    /// Does not consume the current [`SimulationContract<NotDeployed>`] so that more copies can be deployed later.
     pub fn deploy<T: Tokenize> (
         &self,
         simulation_environment: &mut SimulationEnvironment,

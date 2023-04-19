@@ -91,10 +91,10 @@ mod test {
     use bindings::liquid_exchange::{LiquidExchangeEvents, PriceChangeFilter};
     // use ethers::prelude::contract::base::decode_event;
 
-    #[test]
-    fn simple_arbitrageur_event_filter() {
-        // SimpleArbitrageur::new(event_receiver, address, pools, event_strings)
-        assert_eq!(1,1);
-        todo!();
-    }
+    // #[test]
+    // fn simple_arbitrageur_event_filter() {
+    //     // SimpleArbitrageur::new(event_receiver, address, pools, event_strings)
+    //     assert_eq!(1,1);
+    //     todo!();
+    // }
 }
