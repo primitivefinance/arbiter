@@ -76,15 +76,15 @@ impl SimpleArbitrageur {
     /// Creates a filter for the events that the agent is interested in.
     pub fn create_filter(
         pools: (
-            SimulationContract<IsDeployed>,
-            SimulationContract<IsDeployed>,
+            B160,
+            B160
         ),
         event_names: Vec<&str>,
     ) -> Filter {
         let event_filter = Filter {
             address: Some(ethers::types::ValueOrArray::Array(vec![
-                recast_address(pools.0.address),
-                recast_address(pools.1.address),
+                recast_address(pools.0),
+                recast_address(pools.1),
             ])),
             topics: [None, None, None, None], // None for all topics
             ..Default::default()
@@ -115,7 +115,7 @@ mod test {
 
         // Set up the execution manager and a user address.
         let mut manager = SimulationManager::default();
-        let admin = manager.agents.get("admin").unwrap();
+        // let admin = manager.agents.get("admin").unwrap();
 
         // Create arbiter token general contract.
         let arbiter_token = SimulationContract::new(
@@ -127,13 +127,13 @@ mod test {
         let name = "Token X";
         let symbol = "TKNX";
         let args = (name.to_string(), symbol.to_string(), decimals);
-        let token_x = arbiter_token.deploy(&mut manager.environment, admin, args);
+        let token_x = arbiter_token.deploy(&mut manager.environment, manager.agents.get("admin").unwrap(), args);
 
         // Deploy token_y.
         let name = "Token Y";
         let symbol = "TKNY";
         let args = (name.to_string(), symbol.to_string(), decimals);
-        let token_y = arbiter_token.deploy(&mut manager.environment, admin, args);
+        let token_y = arbiter_token.deploy(&mut manager.environment, manager.agents.get("admin").unwrap(), args);
 
         // Deploy LiquidExchange
         let price_to_check = 1000;
@@ -149,7 +149,7 @@ mod test {
         );
 
         // Deploy two exchanges so they can list different prices.
-        let liquid_exchange_xy0 = liquid_exchange.deploy(&mut manager.environment, admin, args0);
+        let liquid_exchange_xy0 = liquid_exchange.deploy(&mut manager.environment, manager.agents.get("admin").unwrap(), args0);
         let price_to_check = 123;
         let initial_price = wad.checked_mul(U256::from(price_to_check)).unwrap();
         let args1 = (
@@ -157,13 +157,13 @@ mod test {
             recast_address(token_y.address),
             initial_price,
         );
-        let liquid_exchange_xy1 = liquid_exchange.deploy(&mut manager.environment, admin, args1);
+        let liquid_exchange_xy1 = liquid_exchange.deploy(&mut manager.environment, manager.agents.get("admin").unwrap(), args1);
         // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
 
         // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
         // Set up the filter.
         let event_filter = SimpleArbitrageur::create_filter(
-            (liquid_exchange_xy0, liquid_exchange_xy1),
+            (liquid_exchange_xy0.address, liquid_exchange_xy1.address),
             vec!["PriceChange"],
         );
 
@@ -179,7 +179,7 @@ mod test {
         // Make a price change to the first exchange.
         let new_price0 = wad.checked_mul(U256::from(42069)).unwrap();
         let call_data = liquid_exchange_xy0.encode_function("setPrice", (new_price0))?;
-        admin.call_contract(
+        manager.agents.get("admin").unwrap().call_contract(
             &mut manager.environment,
             &liquid_exchange_xy0,
             call_data,
