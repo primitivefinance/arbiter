@@ -1,8 +1,6 @@
 #![warn(missing_docs)]
 //! Describes the most basic type of user agent.
 
-
-
 use crossbeam_channel::Receiver;
 use revm::primitives::{AccountInfo, Address, Log, B160, U256};
 

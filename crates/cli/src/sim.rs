@@ -5,11 +5,16 @@ use bindings::{
     weth9,
 };
 use bytes::Bytes;
-use ethers::{abi::Token, prelude::{U256, BaseContract}, types::H256};
+use ethers::{
+    abi::Token,
+    prelude::{BaseContract, U256},
+    types::H256,
+};
 use eyre::Result;
 use revm::primitives::{ruint::Uint, B160};
 use simulate::{
-    agent::AgentType, contract::SimulationContract, manager::SimulationManager, utils::recast_address,
+    agent::AgentType, contract::SimulationContract, manager::SimulationManager,
+    utils::recast_address,
 };
 
 pub fn sim() -> Result<(), Box<dyn Error>> {
@@ -237,9 +242,7 @@ pub fn sim() -> Result<(), Box<dyn Error>> {
         .iter()
         .map(|b256| H256::from_slice(b256.as_bytes()))
         .collect();
-    let i_portfolio = BaseContract::from(
-        i_portfolio::IPORTFOLIO_ABI.clone(),
-    );
+    let i_portfolio = BaseContract::from(i_portfolio::IPORTFOLIO_ABI.clone());
     let data = encoded_create_pair_result.logs()[0].data.clone();
     let (pair_id, _token_1, _token_2, _dec_1, _dec_2): (Token, Token, Token, Token, Token) =
         i_portfolio

@@ -18,9 +18,7 @@ mod tests {
     use revm::primitives::{ruint::Uint, B160};
 
     use crate::{
-        agent::{AgentType},
-        contract::SimulationContract,
-        manager::SimulationManager,
+        agent::AgentType, contract::SimulationContract, manager::SimulationManager,
         utils::recast_address,
     };
 
@@ -296,8 +294,7 @@ mod tests {
             }
         });
 
-        let writer = writer
-                .deploy(&mut manager.environment, admin, ());
+        let writer = writer.deploy(&mut manager.environment, admin, ());
 
         // Generate calldata for the 'echoString' function
         let test_string = "Hello, world!";

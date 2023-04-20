@@ -9,9 +9,9 @@ use ethers::{
     prelude::BaseContract,
     types::{Bytes as EthersBytes, H256},
 };
-use revm::primitives::{B160, B256, ExecutionResult, Output, TxEnv, TransactTo, U256};
+use revm::primitives::{ExecutionResult, Output, TransactTo, TxEnv, B160, B256, U256};
 
-use crate::{environment::SimulationEnvironment, agent::Agent};
+use crate::{agent::Agent, environment::SimulationEnvironment};
 
 #[derive(Debug, Clone)]
 /// A struct use for `PhantomData` to indicate a lock on contracts that are not deployed.
@@ -71,7 +71,7 @@ impl SimulationContract<NotDeployed> {
 
     /// Deploy a contract to the current simulation environment and return a new [`SimulationContract<IsDeployed>`].
     /// Does not consume the current [`SimulationContract<NotDeployed>`] so that more copies can be deployed later.
-    pub fn deploy<T: Tokenize> (
+    pub fn deploy<T: Tokenize>(
         &self,
         simulation_environment: &mut SimulationEnvironment,
         deployer: &Box<dyn Agent>,
@@ -82,10 +82,7 @@ impl SimulationContract<NotDeployed> {
         let bytecode = match self.base_contract.abi().constructor.clone() {
             Some(constructor) => Bytes::from(
                 constructor
-                    .encode_input(
-                        self.bytecode.clone(),
-                        &tokenized_args,
-                    )
+                    .encode_input(self.bytecode.clone(), &tokenized_args)
                     .unwrap(),
             ),
             None => Bytes::from(self.bytecode.clone()),

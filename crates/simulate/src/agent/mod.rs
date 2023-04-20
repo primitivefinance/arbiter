@@ -10,10 +10,7 @@ use std::thread;
 use bytes::Bytes;
 use crossbeam_channel::Receiver;
 
-use revm::primitives::{
-    Address, ExecutionResult, Log, TransactTo, TxEnv, B160, U256,
-};
-
+use revm::primitives::{Address, ExecutionResult, Log, TransactTo, TxEnv, B160, U256};
 
 use crate::{
     contract::{IsDeployed, SimulationContract},
@@ -42,7 +39,7 @@ pub struct TransactSettings {
 }
 
 /// Basic traits that every `Agent` must implement in order to properly interact with an EVM.
-pub trait Agent {
+pub trait Agent: Sync {
     /// Returns the name of the agent.
     fn name(&self) -> String;
     /// Returns the address of the agent.
@@ -98,8 +95,9 @@ pub trait Agent {
     fn monitor_events(&self) {
         let receiver = self.receiver();
         thread::spawn(move || {
-            while let Ok(_logs) = receiver.recv() {}
-            // TODO: Implement a filter / catch for specific events.
+            while let Ok(logs) = receiver.recv() {
+                // self.filter_events(logs);
+            }
         });
     }
 }

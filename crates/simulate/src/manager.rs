@@ -128,7 +128,8 @@ impl SimulationManager {
                     event_receiver,
                     event_filter: event_filter.unwrap_or_default(),
                 };
-                self.agents.insert(name.into(), Box::new(simple_arbitrageur));
+                self.agents
+                    .insert(name.into(), Box::new(simple_arbitrageur));
             }
         };
         self.environment.add_sender(event_sender);

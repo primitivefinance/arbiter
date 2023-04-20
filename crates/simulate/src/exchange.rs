@@ -30,9 +30,7 @@ mod tests {
     use revm::primitives::{ruint::Uint, B160};
 
     use crate::{
-        agent::{Agent, AgentType},
-        contract::SimulationContract,
-        manager::SimulationManager,
+        agent::AgentType, contract::SimulationContract, manager::SimulationManager,
         utils::recast_address,
     };
     #[test]
