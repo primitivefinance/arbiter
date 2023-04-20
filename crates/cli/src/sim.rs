@@ -53,6 +53,7 @@ fn deploy_sim_contracts(
     ),
     Box<dyn Error>,
 > {
+    let decimals = 18_u8;
     let admin = manager.agents.get("admin").unwrap();
     // Deploy Weth
     let weth = SimulationContract::new(weth9::WETH9_ABI.clone(), weth9::WETH9_BYTECODE.clone());
@@ -88,7 +89,7 @@ fn deploy_sim_contracts(
     // Choose name and symbol and combine into the constructor args required by ERC-20 contracts.
     let name = "ArbiterToken";
     let symbol = "ARBX";
-    let args = (name.to_string(), symbol.to_string(), 18_u8);
+    let args = (name.to_string(), symbol.to_string(), decimals);
 
     // Call the contract deployer and receive a IsDeployed version of SimulationContract that now has an address.
     let arbiter_token_x = admin.deploy(&mut manager.environment, arbiter_token.clone(), args);
@@ -96,7 +97,7 @@ fn deploy_sim_contracts(
 
     let name = "ArbiterTokenY";
     let symbol = "ARBY";
-    let args = (name.to_string(), symbol.to_string(), 18_u8);
+    let args = (name.to_string(), symbol.to_string(), decimals);
 
     // Call the contract deployer and receive a IsDeployed version of SimulationContract that now has an address.
     let arbiter_token_y = admin.deploy(&mut manager.environment, arbiter_token, args);
@@ -348,12 +349,13 @@ fn intitalization_calls(manager: &mut SimulationManager, contracts: (SimulationC
 mod test {
 
     use std::str::FromStr;
+    use primitive_types::H160 as PH160;
 
-    use ethers::types::H160;
+    use ethers::{types::H160, prelude::BaseContract, abi::Address};
     use super::*;
 
     #[test]
-    fn test_create_pair_encoding() -> Result<(), Box<dyn std::error::Error>> {
+    fn test_create_pair_target_encoding() -> Result<(), Box<dyn std::error::Error>> {
         // define the wad constant
         let decimals = 18_u8;
         let wad: U256 = U256::from(10_i64.pow(decimals as u32));
@@ -432,21 +434,85 @@ mod test {
             hex::encode(create_pair),
             "0c2c1de3b4dbb4adebebb5dcecae825be2a9fc6eb683769beeb7e5405ef0b7dc3c66c43e3a51a6d27f");
         Ok(())
+    }
 
+    #[test]
+    fn test_create_pair_call() -> Result<(), Box<dyn std::error::Error>> {
+        let decimals = 18_u8;
+        let wad: U256 = U256::from(10_i64.pow(decimals as u32));
+        // Create a `SimulationManager` that runs simulations in their `SimulationEnvironment`.
+        let mut manager = SimulationManager::new();
+        // Deploy the contracts
+        let (arbiter_token_x,
+        arbiter_token_y,
+        portfolio,
+        _liquid_exchange_xy,
+        _encoder_target) = deploy_sim_contracts(&mut manager, wad)?;
+
+        let admin = manager.agents.get("admin").unwrap();
+        // Folio encoding // get args
+        let token_x_ad = PH160::from(arbiter_token_x.address.as_fixed_bytes());
+        let token_y_ad = PH160::from(arbiter_token_y.address.as_fixed_bytes());
+
+        let codegen = Codegen::new(vec![Expression::Opcode(Opcode::CreatePair { token_0: (token_x_ad), token_1: (token_y_ad) })]);
+        let create_pair = codegen.encode()[0].clone();
+        let create_pair: Bytes = hex::decode(create_pair).unwrap().into_iter().collect();
+
+        // Portfolio encoding call data
+        let create_pair_call_data = portfolio.encode_function("multiprocess", create_pair).unwrap();
+        let encoded_create_pair_result = admin.call_contract(
+            &mut manager.environment,
+            &portfolio,
+            create_pair_call_data,
+            Uint::from(0),
+        );
+        assert_eq!(encoded_create_pair_result.is_success(), true);
+
+        // This wont return anything, so we now have to call the i_portfolio pairs
+        // to get the pair id we need to get it from the event here
+        let topics = encoded_create_pair_result.logs()[0].topics.clone();
+
+        let h256_vec: Vec<H256> = topics
+            .iter()
+            .map(|b256| H256::from_slice(b256.as_bytes()))
+            .collect();
+        let i_portfolio = SimulationContract::new(
+            i_portfolio::IPORTFOLIO_ABI.clone(),
+            bindings::rmm01_portfolio::RMM01PORTFOLIO_BYTECODE.clone(),
+        );
+        let data = encoded_create_pair_result.logs()[0].data.clone();
+        let (pair_id, _token_1, _token_2, _dec_1, _dec_2): (Token, Token, Token, Token, Token) =
+            i_portfolio
+                .base_contract
+                .decode_event("CreatePair", h256_vec, ethers::types::Bytes(data))
+                .unwrap();
+        println!("Decoded pairID: {:#?}", pair_id.to_string());
+        let pair_id: u32 = pair_id.to_string().parse::<u32>().unwrap();    
+        let encoded_pair: Bytes = i_portfolio.base_contract.encode("pairs", pair_id.clone())?.into_iter().collect();
+        let request = admin.call_contract(
+            &mut manager.environment,
+            &portfolio,
+            encoded_pair,
+            Uint::from(0),
+        );
+        assert_eq!(request.is_success(), true);
+        let unpacked = manager.unpack_execution(request)?;
+
+        // Mental Picture of the data
+        //     000000000000000000000000|2c1de3b4dbb4adebebb5dcecae825be2a9fc6eb6|0000000000000000000000000000000000000000000000000000000000000012...
+        // token_x: ^ 24 bits:8bytes |0x2c1de3b4dbb4adebebb5dcecae825be2a9fc6eb6| ^ 64 bits, 12 = 18 decimals
+        // ...|000000000000000000000000|83769beeb7e5405ef0b7dc3c66c43e3a51a6d27f|0000000000000000000000000000000000000000000000000000000000000012
+        // token_y: ^ 24 bits:8bytes |0x83769beeb7e5405ef0b7dc3c66c43e3a51a6d27f| ^ 64 bits, 12 = 18 decimals
+
+        let decoded_pairs_response: (H160, u8, H160, u8) = i_portfolio.base_contract.decode_output("pairs", unpacked)?;
+        assert!(decoded_pairs_response.0 == arbiter_token_x.address.into());
+        assert!(decoded_pairs_response.2 == arbiter_token_y.address.into());
+        assert!(decoded_pairs_response.1 == decimals);
+        assert!(decoded_pairs_response.3 == decimals);
+        Ok(())
     }
     #[test]
-    fn test_create_pair() {
-        // send create pair call data to portfolio
-        // check with the i_portfolio `pairs` function that the pair was created and state was changed
-    }
-    #[test]
-    fn test_create_pool_encoding() {
-        // get args
-        // get encoded targer args
-        // check that the encoder target return the correct bytes
-    }
-    #[test]
-    fn test_create_pool() {
+    fn test_create_pool_folio_encoding() {
         // send create pool call data to portfolio
         // check with the i_portfolio that the pair was created and state was changed
     }
