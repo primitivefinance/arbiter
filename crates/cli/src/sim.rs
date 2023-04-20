@@ -307,89 +307,31 @@ fn intitalization_calls(manager: &mut SimulationManager, contracts: (SimulationC
     // let pair_id:usize = pair_id.to_string().parse::<usize>().unwrap(); // base 10 encoding as usize
     // base 10 encoding as usize
 
-    let create_pool_args = (
-        pair_id, // pair id
-        recast_address(admin.address()), // controller
-        100 as u16, // priority fee
-        100 as u16, // fee
-        10_000 as u16,
-        65535 as u16,
-        0 as u16,
-        300 as u128,
-        100 as u128,
-    );
-    let create_pool_call_data = encoder_target.encode_function("createPool", create_pool_args)?;
-    let encoded_create_pool_result = admin.call_contract(
-        &mut manager.environment,
-                &encoder_target,
-                create_pool_call_data,
-                Uint::from(0),
-            );
-    println!("Encoded create pool result: {:#?}", encoded_create_pool_result.is_success());
-    let decoded_create_pool_data: Bytes = manager.unpack_execution(encoded_create_pool_result)?;
-    println!("Decoded create pool data: {:#?}", decoded_create_pool_data);
-
-    let decoded_result = encoder_target.decode_output("createPool", decoded_create_pool_data)?;
-    println!("Decoded create pool data: {:#?}", decoded_result);
-
-    
-
-    // let portfolio_create_pair_call_data: Bytes =
-    //     portfolio.encode_function("multiprocess", create_pool_call_data)?;
-    // let encoded_create_pair_result = admin.call_contract(
+    // let create_pool_args = (
+    //     pair_id, // pair id
+    //     recast_address(admin.address()), // controller
+    //     100 as u16, // priority fee
+    //     100 as u16, // fee
+    //     10_000 as u16,
+    //     65535 as u16,
+    //     0 as u16,
+    //     300 as u128,
+    //     100 as u128,
+    // );
+    // let create_pool_call_data = encoder_target.encode_function("createPool", create_pool_args)?;
+    // let encoded_create_pool_result = admin.call_contract(
     //     &mut manager.environment,
-    //     &portfolio,
-    //     portfolio_create_pair_call_data,
-    //     Uint::from(0),
-    // );
-    // println!(
-    //     "Encoded create pool result: {:#?}",
-    //     encoded_create_pair_result
-    // );
-    // let codegen = Codegen::new(vec![Expression::Opcode(Opcode::CreatePool {
-    //     pair_id: pair_id, // uint24
-    //     controller: controller_address.into(), // address
-    //     priority_fee: 1000 as usize, // uint16 1bps
-    //     fee: 100 as usize, // uint16
-    //     vol: 00_001 as usize, // uint16
-    //     dur: 65535 as usize, // uint16 // magic number for perp is 65535 which is 0xffff
-    //     jit: 0 as usize, // uint16
-    //     max_price: 3000 as usize, // uint128
-    //     price:1000 as usize, // uint128
-    //  })]);
-    // let create_pool = codegen.encode()[0].clone();
-    // let create_pool = Codegen::generate(codegen.encode());
-    // let create_pool_arg: Bytes = hex::decode(create_pool).unwrap().into_iter().collect();
-    // println!("Create pool args: {:#?}", hex::encode(create_pool_arg.clone()));
+    //             &encoder_target,
+    //             create_pool_call_data,
+    //             Uint::from(0),
+    //         );
+    // println!("Encoded create pool result: {:#?}", encoded_create_pool_result.is_success());
+    // let decoded_create_pool_data: Bytes = manager.unpack_execution(encoded_create_pool_result)?;
+    // println!("Decoded create pool data: {:#?}", decoded_create_pool_data);
 
-    // let portfolio_create_pair_call_data: Bytes =
-    //     portfolio.encode_function("multiprocess", create_pool_arg)?;
-    // let encoded_create_pair_result = admin.call_contract(
-    //     &mut manager.environment,
-    //     &portfolio,
-    //     portfolio_create_pair_call_data,
-    //     Uint::from(0),
-    // );
-    // println!(
-    //     "Encoded create pool result: {:#?}",
-    //     encoded_create_pair_result
-    // );
-    // let error = encoded_create_pair_result;
-    match manager.unpack_execution(encoded_create_pair_result) {
-        Ok(thing) => {
-            // Handle success case
-            println!("Success: {:#?}", thing);
-        },
-        Err(error) => {
-            // Handle error case
-            println!("Error: {:#?}", error.message);
-            if let Some(output) = error.output {
-                // Handle output bytes in case of Revert
-                println!("Output: {:#?}", hex::encode(&output));
-                
-            }
-        }
-    }
+    // let decoded_result = encoder_target.decode_output("createPool", decoded_create_pool_data)?;
+    // println!("Decoded create pool data: {:#?}", decoded_result);
+
     // // Create a new pool parameters
     // // --------------------------------------------------------------------------------------------
     // // uint24 pairId,
@@ -404,11 +346,93 @@ fn intitalization_calls(manager: &mut SimulationManager, contracts: (SimulationC
     Ok(())
 }
 mod test {
+
+    use std::str::FromStr;
+
+    use ethers::types::H160;
+    use super::*;
+
     #[test]
-    fn test_create_pair_encoding() {
-        // get args
-        // get encoded targer args
-        // check this is correct
+    fn test_create_pair_encoding() -> Result<(), Box<dyn std::error::Error>> {
+        // define the wad constant
+        let decimals = 18_u8;
+        let wad: U256 = U256::from(10_i64.pow(decimals as u32));
+        // Create a `SimulationManager` that runs simulations in their `SimulationEnvironment`.
+        let mut manager = SimulationManager::new();
+
+        // Deploy the contracts
+        let (arbiter_token_x,
+        arbiter_token_y,
+        _portfolio,
+        _liquid_exchange_xy,
+        encoder_target) = deploy_sim_contracts(&mut manager, wad)?;
+
+        let admin = manager.agents.get("admin").unwrap();
+        let encoder_args = (
+            recast_address(arbiter_token_x.address),
+            recast_address(arbiter_token_y.address),
+        );
+        assert_eq!(encoder_args.0, H160::from_str("0x2c1de3b4dbb4adebebb5dcecae825be2a9fc6eb6").unwrap());
+        assert_eq!(encoder_args.1, H160::from_str("0x83769beeb7e5405ef0b7dc3c66c43e3a51a6d27f").unwrap());
+
+        let encoder_create_pair_call_data =
+            encoder_target.encode_function("createPair", encoder_args)?;
+        println!(
+            "Encoded create pair call_data: {:#?}",
+            hex::encode(encoder_create_pair_call_data.clone())
+        );
+
+        let encoded_create_pair_result = admin.call_contract(
+            &mut manager.environment,
+            &encoder_target,
+            encoder_create_pair_call_data,
+            Uint::from(0),
+        );
+        assert_eq!(encoded_create_pair_result.is_success(), true);
+
+        let encoded_data = manager.unpack_execution(encoded_create_pair_result)?;
+        let decoded_encoded_data: Bytes = encoder_target.decode_output("createPair", encoded_data)?;
+ 
+        println!(
+            "Portfolio create pair call data: {:#?}",
+            hex::encode(decoded_encoded_data.clone())
+        );
+        assert_eq!(
+            hex::encode(decoded_encoded_data.clone()),
+            "0c2c1de3b4dbb4adebebb5dcecae825be2a9fc6eb683769beeb7e5405ef0b7dc3c66c43e3a51a6d27f");
+        Ok(())
+    }
+
+    #[test]
+    fn test_folio_encoding_for_create_pair() -> Result<(), Box<dyn std::error::Error>>{
+        let decimals = 18_u8;
+        let wad: U256 = U256::from(10_i64.pow(decimals as u32));
+        // Create a `SimulationManager` that runs simulations in their `SimulationEnvironment`.
+        let mut manager = SimulationManager::new();
+
+        // Deploy the contracts
+        let (arbiter_token_x,
+        arbiter_token_y,
+        _portfolio,
+        _liquid_exchange_xy,
+        _encoder_target) = deploy_sim_contracts(&mut manager, wad)?;
+
+        // Folio encoding
+        let token_x_ad = PH160::from(arbiter_token_x.address.as_fixed_bytes());
+        let token_y_ad = PH160::from(arbiter_token_y.address.as_fixed_bytes());
+
+        assert_eq!(token_x_ad, PH160::from_str("0x2c1de3b4dbb4adebebb5dcecae825be2a9fc6eb6").unwrap());
+        assert_eq!(token_y_ad, PH160::from_str("0x83769beeb7e5405ef0b7dc3c66c43e3a51a6d27f").unwrap());
+
+        let codegen = Codegen::new(vec![Expression::Opcode(Opcode::CreatePair { token_0: (token_x_ad), token_1: (token_y_ad) })]);
+        let create_pair = codegen.encode()[0].clone();
+        let create_pair: Bytes = hex::decode(create_pair).unwrap().into_iter().collect();
+ 
+        assert_eq!(
+            hex::encode(create_pair),
+            "0c2c1de3b4dbb4adebebb5dcecae825be2a9fc6eb683769beeb7e5405ef0b7dc3c66c43e3a51a6d27f");
+        Ok(())
+
     }
     #[test]
     fn test_create_pair() {
