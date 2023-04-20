@@ -11,10 +11,8 @@ use std::{
     thread,
 };
 
-
 use bytes::Bytes;
 use crossbeam_channel::Receiver;
-
 use ethers::types::H256;
 use revm::primitives::{Address, ExecutionResult, Log, TransactTo, TxEnv, B160, U256};
 
@@ -72,22 +70,23 @@ pub trait Agent: Sync {
     fn filter_events(&self, logs: Vec<Log>) -> Vec<Log> {
         println!("Filtering events for agent: {}", self.name());
         println!("The raw logs are {:?}", logs);
-    
+
         if self.event_filters().is_empty() {
             return logs;
         }
-    
+
         let mut events = vec![];
-    
+
         for log in logs {
             for event_filter in self.event_filters().iter() {
-                if event_filter.address == log.address && event_filter.topic == log.topics[0].into() {
+                if event_filter.address == log.address && event_filter.topic == log.topics[0].into()
+                {
                     events.push(log.clone());
                     break;
                 }
             }
         }
-    
+
         events
     }
 
@@ -176,7 +175,7 @@ mod tests {
 
     use std::error::Error;
 
-    use bindings::{writer, arbiter_token};
+    use bindings::{arbiter_token, writer};
     use revm::primitives::{ruint::Uint, B160};
 
     use crate::{
@@ -206,8 +205,12 @@ mod tests {
         manager.create_agent("alice", B160::from_low_u64_be(2), AgentType::User, None)?;
 
         let event_filters = vec![create_filter(&writer, "WasWritten")];
-        manager.create_agent("bob", B160::from_low_u64_be(3), AgentType::User, Some(event_filters))?;
-
+        manager.create_agent(
+            "bob",
+            B160::from_low_u64_be(3),
+            AgentType::User,
+            Some(event_filters),
+        )?;
 
         let alice = manager.agents.get("alice").unwrap();
         let bob = manager.agents.get("bob").unwrap();
@@ -260,18 +263,25 @@ mod tests {
             test_string,
         );
 
-                // Create writer contract.
-                let arbt =
-                SimulationContract::new(arbiter_token::ARBITERTOKEN_ABI.clone(), arbiter_token::ARBITERTOKEN_BYTECODE.clone());
-            let arbt = arbt.deploy(
-                &mut manager.environment,
-                manager.agents.get("admin").unwrap(),
-                ("ArbiterToken".to_string(),"ARBT".to_string(), 18_u8),
-            );
+        // Create writer contract.
+        let arbt = SimulationContract::new(
+            arbiter_token::ARBITERTOKEN_ABI.clone(),
+            arbiter_token::ARBITERTOKEN_BYTECODE.clone(),
+        );
+        let arbt = arbt.deploy(
+            &mut manager.environment,
+            manager.agents.get("admin").unwrap(),
+            ("ArbiterToken".to_string(), "ARBT".to_string(), 18_u8),
+        );
 
         // Create agent with a filter.
         let event_filters = vec![create_filter(&arbt, "Approval")];
-        manager.create_agent("alice", B160::from_low_u64_be(2), AgentType::User, Some(event_filters))?;
+        manager.create_agent(
+            "alice",
+            B160::from_low_u64_be(2),
+            AgentType::User,
+            Some(event_filters),
+        )?;
         let alice = manager.agents.get("alice").unwrap();
 
         println!("Alice's event filter: {:#?}", alice.event_filters());

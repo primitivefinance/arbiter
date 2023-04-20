@@ -2,12 +2,9 @@
 //! Describes the most basic type of user agent.
 
 use crossbeam_channel::Receiver;
-
 use revm::primitives::{AccountInfo, Address, Log, B160};
 
-use crate::{
-    agent::{Agent, SimulationEventFilter, TransactSettings},
-};
+use crate::agent::{Agent, SimulationEventFilter, TransactSettings};
 
 /// A user is an agent that can interact with the simulation environment generically.
 pub struct SimpleArbitrageur {
@@ -49,11 +46,15 @@ mod tests {
     use std::error::Error;
 
     use bindings::{arbiter_token, liquid_exchange};
-
-    use crate::{agent::{AgentType, create_filter}, manager::SimulationManager, utils::recast_address, contract::SimulationContract};
-
     use ethers::prelude::U256;
     use revm::primitives::B160;
+
+    use crate::{
+        agent::{create_filter, AgentType},
+        contract::SimulationContract,
+        manager::SimulationManager,
+        utils::recast_address,
+    };
 
     #[test]
     fn simple_arbitrageur_event_filter() -> Result<(), Box<dyn Error>> {
