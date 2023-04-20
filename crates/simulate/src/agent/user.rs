@@ -4,7 +4,7 @@
 use crossbeam_channel::Receiver;
 use revm::primitives::{AccountInfo, Address, Log, B160, U256};
 
-use crate::agent::{Agent, TransactSettings};
+use crate::agent::{create_filter, Agent, SimulationEventFilter, TransactSettings};
 
 /// A user is an agent that can interact with the simulation environment generically.
 pub struct User {
@@ -18,6 +18,8 @@ pub struct User {
     pub transact_settings: TransactSettings,
     /// The [`crossbeam_channel::Receiver`] for the events are sent down from [`SimulationEnvironment`]'s dispatch.
     pub event_receiver: Receiver<Vec<Log>>,
+    /// The filter for the events that the agent is interested in.
+    pub event_filters: Vec<SimulationEventFilter>,
 }
 
 impl Agent for User {
@@ -33,14 +35,19 @@ impl Agent for User {
     fn receiver(&self) -> Receiver<Vec<Log>> {
         self.event_receiver.clone()
     }
-    fn filter_events(&self, _logs: Vec<Log>) -> Vec<Log> {
-        todo!();
+    fn event_filters(&self) -> Vec<SimulationEventFilter> {
+        self.event_filters.clone()
     }
 }
 
 impl User {
     /// Constructor function to instantiate a user agent.
-    pub(crate) fn new(name: String, address: B160, event_receiver: Receiver<Vec<Log>>) -> Self {
+    pub(crate) fn new(
+        name: String,
+        address: B160,
+        event_receiver: Receiver<Vec<Log>>,
+        event_filter: Vec<SimulationEventFilter>,
+    ) -> Self {
         Self {
             name,
             address,
@@ -50,6 +57,7 @@ impl User {
                 gas_price: U256::ZERO, // TODO: Users should have an associated gas price.
             },
             event_receiver,
+            event_filters: vec![],
         }
     }
 }

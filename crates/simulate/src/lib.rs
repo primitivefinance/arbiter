@@ -163,8 +163,8 @@ mod tests {
         let _execution_result = admin.call_contract(environment, &writer, call_data, Uint::ZERO);
 
         // Read logs twice since the first time is just the contract creation which gives no log.
-        let _logs = admin.read_logs();
-        let logs = admin.read_logs();
+        let _logs = admin.read_logs()?;
+        let logs = admin.read_logs()?;
 
         // Decode the logs
         let log_topics = logs[0].topics.clone();

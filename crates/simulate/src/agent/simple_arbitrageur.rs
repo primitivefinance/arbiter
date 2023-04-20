@@ -6,8 +6,8 @@ use ethers::types::Filter;
 use revm::primitives::{AccountInfo, Address, Log, B160, U256};
 
 use crate::{
-    agent::{Agent, TransactSettings},
-    contract::{create_filter, IsDeployed, SimulationContract, SimulationEventFilter},
+    agent::{create_filter, Agent, SimulationEventFilter, TransactSettings},
+    contract::{IsDeployed, SimulationContract},
     utils::recast_address,
 };
 
@@ -40,22 +40,8 @@ impl Agent for SimpleArbitrageur {
     fn receiver(&self) -> Receiver<Vec<Log>> {
         self.event_receiver.clone()
     }
-    fn filter_events(&self, logs: Vec<Log>) -> Vec<Log> {
-        println!("The raw logs are: {:#?}", &logs);
-        let mut events = vec![];
-        for event_filter in self.event_filters.iter() {
-            let potential_events = logs
-                .clone()
-                .into_iter()
-                .filter(|log| event_filter.address == log.address)
-                .collect::<Vec<Log>>();
-            let filtered_events = potential_events
-                .into_iter()
-                .filter(|log| event_filter.topic == log.topics[0].into())
-                .collect::<Vec<Log>>();
-            events.extend(filtered_events);
-        }
-        events
+    fn event_filters(&self) -> Vec<SimulationEventFilter> {
+        self.event_filters.clone()
     }
 }
 
@@ -82,8 +68,9 @@ impl SimpleArbitrageur {
 }
 
 #[cfg(test)]
+mod tests {
 
-mod test {
+    use std::error::Error;
 
     use bindings::{arbiter_token, liquid_exchange};
 
@@ -95,7 +82,7 @@ mod test {
     use super::*;
 
     #[test]
-    fn simple_arbitrageur_event_filter() -> Result<(), Box<dyn std::error::Error>> {
+    fn simple_arbitrageur_event_filter() -> Result<(), Box<dyn Error>> {
         // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
         // Set up the liquid exchange.
         let decimals = 18_u8;
@@ -191,7 +178,7 @@ mod test {
             U256::zero().into(),
         );
         // Test that the arbitrageur doesn't filter out these logs.
-        let unfiltered_events = arbitrageur.read_logs();
+        let unfiltered_events = arbitrageur.read_logs()?;
         let filtered_events = arbitrageur.filter_events(unfiltered_events.clone());
         println!(
             "The filtered events for the first call are: {:#?}",
@@ -209,7 +196,7 @@ mod test {
             U256::zero().into(),
         );
         // Test that the arbitrageur doesn't filter out these logs.
-        let unfiltered_events = arbitrageur.read_logs();
+        let unfiltered_events = arbitrageur.read_logs()?;
         let filtered_events = arbitrageur.filter_events(unfiltered_events.clone());
         println!(
             "The filtered events for the second call are: {:#?}",
@@ -235,7 +222,7 @@ mod test {
             U256::zero().into(),
         );
         // Test that the arbitrageur does filter out these logs.
-        let unfiltered_events = arbitrageur.read_logs();
+        let unfiltered_events = arbitrageur.read_logs()?;
         let filtered_events = arbitrageur.filter_events(unfiltered_events.clone());
         println!(
             "The filtered events for the second call are: {:#?}",

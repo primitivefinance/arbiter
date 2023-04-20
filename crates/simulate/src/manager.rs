@@ -15,9 +15,9 @@ use revm::primitives::{AccountInfo, Address, ExecutionResult, Log, Output, B160,
 
 use crate::{
     agent::{
-        simple_arbitrageur::SimpleArbitrageur, user::User, Agent, AgentType, TransactSettings,
+        simple_arbitrageur::SimpleArbitrageur, user::User, Agent, AgentType, SimulationEventFilter,
+        TransactSettings,
     },
-    contract::SimulationEventFilter,
     environment::SimulationEnvironment,
 };
 
@@ -105,6 +105,13 @@ impl SimulationManager {
         let (event_sender, event_receiver) = unbounded::<Vec<Log>>();
         match agent_type {
             AgentType::User => {
+                // let event_filters = match event_filter {
+                //     Some(event_filter) => event_filter,
+                //     None => {
+                //         println!("Got here?");
+                //         vec![]
+                //     },
+                // };
                 let user = User {
                     name: name.into(),
                     address,
@@ -114,6 +121,7 @@ impl SimulationManager {
                         gas_price: U256::ZERO, // TODO: Users should have an associated gas price.
                     },
                     event_receiver,
+                    event_filters: event_filter.unwrap_or_default(),
                 };
                 self.agents.insert(name.into(), Box::new(user));
             }
@@ -166,7 +174,7 @@ impl SimulationManager {
 }
 
 #[test]
-fn test_agent_address_collision() {
+fn agent_address_collision() {
     let mut manager = SimulationManager::default();
     let result = manager.create_agent("alice", B160::from_low_u64_be(1), AgentType::User, None);
     assert!(result.is_err());
