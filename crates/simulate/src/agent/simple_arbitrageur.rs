@@ -2,13 +2,11 @@
 //! Describes the most basic type of user agent.
 
 use crossbeam_channel::Receiver;
-use ethers::types::Filter;
-use revm::primitives::{AccountInfo, Address, Log, B160, U256};
+
+use revm::primitives::{AccountInfo, Address, Log, B160};
 
 use crate::{
-    agent::{create_filter, Agent, SimulationEventFilter, TransactSettings},
-    contract::{IsDeployed, SimulationContract},
-    utils::recast_address,
+    agent::{Agent, SimulationEventFilter, TransactSettings},
 };
 
 /// A user is an agent that can interact with the simulation environment generically.
@@ -45,28 +43,6 @@ impl Agent for SimpleArbitrageur {
     }
 }
 
-impl SimpleArbitrageur {
-    /// Constructor function to instantiate a user agent.
-    pub fn new(
-        name: String,
-        address: B160,
-        event_receiver: Receiver<Vec<Log>>,
-        event_filters: Vec<SimulationEventFilter>,
-    ) -> Self {
-        Self {
-            name,
-            address,
-            account_info: AccountInfo::default(),
-            transact_settings: TransactSettings {
-                gas_limit: u64::MAX,   // TODO: Users should have a gas limit.
-                gas_price: U256::ZERO, // TODO: Users should have an associated gas price.
-            },
-            event_receiver,
-            event_filters,
-        }
-    }
-}
-
 #[cfg(test)]
 mod tests {
 
@@ -74,12 +50,10 @@ mod tests {
 
     use bindings::{arbiter_token, liquid_exchange};
 
-    use crate::{agent::AgentType, manager::SimulationManager};
+    use crate::{agent::{AgentType, create_filter}, manager::SimulationManager, utils::recast_address, contract::SimulationContract};
 
     use ethers::prelude::U256;
-    use revm::primitives::{ruint::Uint, B160};
-
-    use super::*;
+    use revm::primitives::B160;
 
     #[test]
     fn simple_arbitrageur_event_filter() -> Result<(), Box<dyn Error>> {
@@ -170,7 +144,7 @@ mod tests {
         // Make calls that the arbitrageur should not filter out.
         // Make a price change to the first exchange.
         let new_price0 = wad.checked_mul(U256::from(42069)).unwrap();
-        let call_data = liquid_exchange_xy0.encode_function("setPrice", (new_price0))?;
+        let call_data = liquid_exchange_xy0.encode_function("setPrice", new_price0)?;
         manager.agents.get("admin").unwrap().call_contract(
             &mut manager.environment,
             &liquid_exchange_xy0,
@@ -188,7 +162,7 @@ mod tests {
 
         // Make a price change to the second exchange.
         let new_price1 = wad.checked_mul(U256::from(69420)).unwrap();
-        let call_data = liquid_exchange_xy1.encode_function("setPrice", (new_price1))?;
+        let call_data = liquid_exchange_xy1.encode_function("setPrice", new_price1)?;
         manager.agents.get("admin").unwrap().call_contract(
             &mut manager.environment,
             &liquid_exchange_xy1,

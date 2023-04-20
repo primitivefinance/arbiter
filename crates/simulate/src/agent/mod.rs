@@ -11,7 +11,7 @@ use std::{
     thread,
 };
 
-use bindings::arbiter_token::NameCall;
+
 use bytes::Bytes;
 use crossbeam_channel::Receiver;
 
@@ -19,7 +19,7 @@ use ethers::types::H256;
 use revm::primitives::{Address, ExecutionResult, Log, TransactTo, TxEnv, B160, U256};
 
 use crate::{
-    contract::{DeploymentStatus, IsDeployed, SimulationContract},
+    contract::{IsDeployed, SimulationContract},
     environment::SimulationEnvironment,
 };
 
@@ -138,7 +138,7 @@ pub trait Agent: Sync {
     fn monitor_events(&self) {
         let receiver = self.receiver();
         thread::spawn(move || {
-            while let Ok(logs) = receiver.recv() {
+            while let Ok(_logs) = receiver.recv() {
                 // self.filter_events(logs);
             }
         });
@@ -177,11 +177,10 @@ mod tests {
     use std::error::Error;
 
     use bindings::{writer, arbiter_token};
-    use ethers::types::U256;
     use revm::primitives::{ruint::Uint, B160};
 
     use crate::{
-        agent::{create_filter, AgentType, SimulationEventFilter},
+        agent::{create_filter, AgentType},
         contract::SimulationContract,
         manager::SimulationManager,
     };

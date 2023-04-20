@@ -10,7 +10,7 @@ use std::{
 
 use bytes::Bytes;
 use crossbeam_channel::unbounded;
-use ethers::types::Filter;
+
 use revm::primitives::{AccountInfo, Address, ExecutionResult, Log, Output, B160, U256};
 
 use crate::{
