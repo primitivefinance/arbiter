@@ -5,20 +5,38 @@
 //! An abstract representation of an agent on the EVM, to be used in simulations.
 //! Some examples of agents are market makers or arbitrageurs.
 //! All agents must implement the [`Agent`] and [`Identifiable`] traits through the [`AgentType`] enum.
-use std::thread;
+use std::{
+    error::Error,
+    fmt::{Display, Formatter, Result as FmtResult},
+    thread,
+};
 
+use bindings::arbiter_token::NameCall;
 use bytes::Bytes;
 use crossbeam_channel::Receiver;
 
+use ethers::types::H256;
 use revm::primitives::{Address, ExecutionResult, Log, TransactTo, TxEnv, B160, U256};
 
 use crate::{
-    contract::{IsDeployed, SimulationContract},
+    contract::{DeploymentStatus, IsDeployed, SimulationContract},
     environment::SimulationEnvironment,
 };
 
 pub mod simple_arbitrageur;
 pub mod user;
+
+#[derive(Debug)]
+/// Error type for the simulation manager.
+pub struct AgentError(String);
+
+impl Error for AgentError {}
+
+impl Display for AgentError {
+    fn fmt(&self, f: &mut Formatter) -> FmtResult {
+        write!(f, "{}", self.0)
+    }
+}
 
 /// An agent is an entity that can interact with the simulation environment.
 /// Agents can be various entities such as users, market makers, arbitrageurs, etc.

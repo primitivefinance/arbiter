@@ -17,6 +17,7 @@ use crate::{
     agent::{
         simple_arbitrageur::SimpleArbitrageur, user::User, Agent, AgentType, TransactSettings,
     },
+    contract::SimulationEventFilter,
     environment::SimulationEnvironment,
 };
 
@@ -71,7 +72,7 @@ impl SimulationManager {
         name: S,
         address: Address,
         agent_type: AgentType,
-        event_filter: Option<Filter>,
+        event_filter: Option<Vec<SimulationEventFilter>>,
     ) -> Result<(), ManagerError> {
         // Check to make sure we are not creating an agent with an address or name that already exists.
         if self
@@ -117,6 +118,12 @@ impl SimulationManager {
                 self.agents.insert(name.into(), Box::new(user));
             }
             AgentType::SimpleArbitrageur => {
+                let event_filters = match event_filter {
+                    Some(event_filter) => Ok(event_filter),
+                    None => Err(ManagerError(
+                        "`SimpleArbitrageur` agent must have an event filter.".to_string(),
+                    )),
+                }?;
                 let simple_arbitrageur = SimpleArbitrageur {
                     name: name.into(),
                     address,
@@ -126,7 +133,7 @@ impl SimulationManager {
                         gas_price: U256::ZERO, // TODO: Users should have an associated gas price.
                     },
                     event_receiver,
-                    event_filter: event_filter.unwrap_or_default(),
+                    event_filters,
                 };
                 self.agents
                     .insert(name.into(), Box::new(simple_arbitrageur));

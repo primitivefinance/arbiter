@@ -21,7 +21,7 @@ pub struct NotDeployed;
 pub struct IsDeployed;
 
 /// Trait that is used to allow for different statuses of contract fields depending on whether a contract is deployed or not.
-pub trait ContractStatus {
+pub trait DeploymentStatus {
     /// The type of the address field.
     type Address;
     /// The type of the bytecode field used only before deployment.
@@ -30,13 +30,13 @@ pub trait ContractStatus {
     type ConstructorArguments;
 }
 
-impl ContractStatus for NotDeployed {
+impl DeploymentStatus for NotDeployed {
     type Address = ();
     type Bytecode = Vec<u8>;
     type ConstructorArguments = ();
 }
 
-impl ContractStatus for IsDeployed {
+impl DeploymentStatus for IsDeployed {
     type Address = B160;
     type Bytecode = ();
     type ConstructorArguments = Vec<Token>;
@@ -44,7 +44,7 @@ impl ContractStatus for IsDeployed {
 
 #[derive(Debug, Clone)]
 /// A struct that wraps around the ethers `BaseContract` and adds some additional information relevant for revm and the simulation.
-pub struct SimulationContract<DeployedState: ContractStatus> {
+pub struct SimulationContract<DeployedState: DeploymentStatus> {
     /// The address of the contract within the relevant [`SimulationEnvironment`].
     pub address: DeployedState::Address,
     /// The ethers [`BaseContract`] that holds the ABI.
@@ -156,5 +156,30 @@ impl SimulationContract<IsDeployed> {
             .collect();
         self.base_contract
             .decode_event(function_name, log_topics, log_data.into())
+    }
+}
+
+/// The filtering implmentation to be used with the [`Agent`] trait.
+pub struct SimulationEventFilter {
+    /// The addresses to filter for.
+    pub address: B160,
+    /// The event names to filter for.
+    pub topic: H256,
+}
+
+/// Creates a filter for the agent to use to filter out events.
+pub fn create_filter(
+    contract: &SimulationContract<IsDeployed>,
+    event_name: &str,
+) -> SimulationEventFilter {
+    // let abi = contracts[0].base_contract.abi();
+    SimulationEventFilter {
+        address: contract.address,
+        topic: contract
+            .base_contract
+            .abi()
+            .event(event_name)
+            .unwrap()
+            .signature(),
     }
 }

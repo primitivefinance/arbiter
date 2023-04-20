@@ -7,7 +7,7 @@ use revm::primitives::{AccountInfo, Address, Log, B160, U256};
 
 use crate::{
     agent::{Agent, TransactSettings},
-    contract::{IsDeployed, SimulationContract},
+    contract::{create_filter, IsDeployed, SimulationContract, SimulationEventFilter},
     utils::recast_address,
 };
 
@@ -24,7 +24,7 @@ pub struct SimpleArbitrageur {
     /// The receiver for the crossbeam channel that events are sent down from manager's dispatch.
     pub event_receiver: Receiver<Vec<Log>>,
     /// The filter for the events that the agent is interested in.
-    pub event_filter: Filter,
+    pub event_filters: Vec<SimulationEventFilter>,
 }
 
 impl Agent for SimpleArbitrageur {
@@ -41,14 +41,21 @@ impl Agent for SimpleArbitrageur {
         self.event_receiver.clone()
     }
     fn filter_events(&self, logs: Vec<Log>) -> Vec<Log> {
-        println!("Filtering events for agent: {}", self.name);
-        let topics = self.event_filter.topics.clone();
-        let thing = topics[0].clone().unwrap();
-        println!("Thing is: {:?}", thing);
-        logs
-        // logs.into_iter()
-        //     .filter(|log| self.event_filter.topics == log.topics)
-        //     .collect()
+        println!("The raw logs are: {:#?}", &logs);
+        let mut events = vec![];
+        for event_filter in self.event_filters.iter() {
+            let potential_events = logs
+                .clone()
+                .into_iter()
+                .filter(|log| event_filter.address == log.address)
+                .collect::<Vec<Log>>();
+            let filtered_events = potential_events
+                .into_iter()
+                .filter(|log| event_filter.topic == log.topics[0].into())
+                .collect::<Vec<Log>>();
+            events.extend(filtered_events);
+        }
+        events
     }
 }
 
@@ -58,7 +65,7 @@ impl SimpleArbitrageur {
         name: String,
         address: B160,
         event_receiver: Receiver<Vec<Log>>,
-        event_filter: Filter,
+        event_filters: Vec<SimulationEventFilter>,
     ) -> Self {
         Self {
             name,
@@ -69,27 +76,8 @@ impl SimpleArbitrageur {
                 gas_price: U256::ZERO, // TODO: Users should have an associated gas price.
             },
             event_receiver,
-            event_filter,
+            event_filters,
         }
-    }
-
-    /// Creates a filter for the events that the agent is interested in.
-    pub fn create_filter(
-        pools: (
-            B160,
-            B160
-        ),
-        event_names: Vec<&str>,
-    ) -> Filter {
-        let event_filter = Filter {
-            address: Some(ethers::types::ValueOrArray::Array(vec![
-                recast_address(pools.0),
-                recast_address(pools.1),
-            ])),
-            topics: [None, None, None, None], // None for all topics
-            ..Default::default()
-        };
-        event_filter.events(event_names)
     }
 }
 
@@ -127,13 +115,21 @@ mod test {
         let name = "Token X";
         let symbol = "TKNX";
         let args = (name.to_string(), symbol.to_string(), decimals);
-        let token_x = arbiter_token.deploy(&mut manager.environment, manager.agents.get("admin").unwrap(), args);
+        let token_x = arbiter_token.deploy(
+            &mut manager.environment,
+            manager.agents.get("admin").unwrap(),
+            args,
+        );
 
         // Deploy token_y.
         let name = "Token Y";
         let symbol = "TKNY";
         let args = (name.to_string(), symbol.to_string(), decimals);
-        let token_y = arbiter_token.deploy(&mut manager.environment, manager.agents.get("admin").unwrap(), args);
+        let token_y = arbiter_token.deploy(
+            &mut manager.environment,
+            manager.agents.get("admin").unwrap(),
+            args,
+        );
 
         // Deploy LiquidExchange
         let price_to_check = 1000;
@@ -149,7 +145,11 @@ mod test {
         );
 
         // Deploy two exchanges so they can list different prices.
-        let liquid_exchange_xy0 = liquid_exchange.deploy(&mut manager.environment, manager.agents.get("admin").unwrap(), args0);
+        let liquid_exchange_xy0 = liquid_exchange.deploy(
+            &mut manager.environment,
+            manager.agents.get("admin").unwrap(),
+            args0,
+        );
         let price_to_check = 123;
         let initial_price = wad.checked_mul(U256::from(price_to_check)).unwrap();
         let args1 = (
@@ -157,25 +157,30 @@ mod test {
             recast_address(token_y.address),
             initial_price,
         );
-        let liquid_exchange_xy1 = liquid_exchange.deploy(&mut manager.environment, manager.agents.get("admin").unwrap(), args1);
-        // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
-
-        // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
-        // Set up the filter.
-        let event_filter = SimpleArbitrageur::create_filter(
-            (liquid_exchange_xy0.address, liquid_exchange_xy1.address),
-            vec!["PriceChange"],
+        let liquid_exchange_xy1 = liquid_exchange.deploy(
+            &mut manager.environment,
+            manager.agents.get("admin").unwrap(),
+            args1,
         );
+        // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
 
-        // should just pass addresses of the contracts to make a filter, also stop using the Filter object and get the filter from the contract bindings?
-
+        // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
+        // Create a simple arbitrageur agent.
+        let event_filters = vec![
+            create_filter(&liquid_exchange_xy0, "PriceChange"),
+            create_filter(&liquid_exchange_xy1, "PriceChange"),
+        ];
         manager.create_agent(
             "arbitrageur",
             B160::from_low_u64_be(2),
             AgentType::SimpleArbitrageur,
-            Some(event_filter),
+            Some(event_filters),
         )?;
         let arbitrageur = manager.agents.get("arbitrageur").unwrap();
+        // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
+
+        // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
+        // Make calls that the arbitrageur should not filter out.
         // Make a price change to the first exchange.
         let new_price0 = wad.checked_mul(U256::from(42069)).unwrap();
         let call_data = liquid_exchange_xy0.encode_function("setPrice", (new_price0))?;
@@ -185,8 +190,58 @@ mod test {
             call_data,
             U256::zero().into(),
         );
+        // Test that the arbitrageur doesn't filter out these logs.
+        let unfiltered_events = arbitrageur.read_logs();
+        let filtered_events = arbitrageur.filter_events(unfiltered_events.clone());
+        println!(
+            "The filtered events for the first call are: {:#?}",
+            &filtered_events
+        );
+        assert_eq!(filtered_events, unfiltered_events);
 
-        arbitrageur.filter_events(arbitrageur.read_logs());
+        // Make a price change to the second exchange.
+        let new_price1 = wad.checked_mul(U256::from(69420)).unwrap();
+        let call_data = liquid_exchange_xy1.encode_function("setPrice", (new_price1))?;
+        manager.agents.get("admin").unwrap().call_contract(
+            &mut manager.environment,
+            &liquid_exchange_xy1,
+            call_data,
+            U256::zero().into(),
+        );
+        // Test that the arbitrageur doesn't filter out these logs.
+        let unfiltered_events = arbitrageur.read_logs();
+        let filtered_events = arbitrageur.filter_events(unfiltered_events.clone());
+        println!(
+            "The filtered events for the second call are: {:#?}",
+            &filtered_events
+        );
+        assert_eq!(filtered_events, unfiltered_events);
+        // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
+
+        // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
+        // Make calls that the arbitrageur should filter out.
+        // Make a call to mint tokens.
+        let call_data = token_x.encode_function(
+            "mint",
+            (
+                recast_address(manager.agents.get("arbitrageur").unwrap().address()),
+                U256::from(1),
+            ),
+        )?;
+        manager.agents.get("admin").unwrap().call_contract(
+            &mut manager.environment,
+            &token_x,
+            call_data,
+            U256::zero().into(),
+        );
+        // Test that the arbitrageur does filter out these logs.
+        let unfiltered_events = arbitrageur.read_logs();
+        let filtered_events = arbitrageur.filter_events(unfiltered_events.clone());
+        println!(
+            "The filtered events for the second call are: {:#?}",
+            &filtered_events
+        );
+        assert_eq!(filtered_events, vec![]);
         Ok(())
     }
 }
