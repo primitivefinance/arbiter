@@ -7,16 +7,18 @@ pub use rmm01_extended_lib::*;
     clippy::upper_case_acronyms,
     clippy::type_complexity,
     dead_code,
-    non_camel_case_types
+    non_camel_case_types,
 )]
 pub mod rmm01_extended_lib {
     #[rustfmt::skip]
     const __ABI: &str = "[]";
     ///The parsed JSON ABI of the contract.
-    pub static RMM01EXTENDEDLIB_ABI: ::ethers::contract::Lazy<::ethers::core::abi::Abi> =
-        ::ethers::contract::Lazy::new(|| {
-            ::ethers::core::utils::__serde_json::from_str(__ABI).expect("ABI is always valid")
-        });
+    pub static RMM01EXTENDEDLIB_ABI: ::ethers::contract::Lazy<
+        ::ethers::core::abi::Abi,
+    > = ::ethers::contract::Lazy::new(|| {
+        ::ethers::core::utils::__serde_json::from_str(__ABI)
+            .expect("ABI is always valid")
+    });
     #[rustfmt::skip]
     const __BYTECODE: &[u8] = &[
         96,
@@ -117,38 +119,38 @@ pub mod rmm01_extended_lib {
         34,
         18,
         32,
-        97,
-        193,
-        211,
-        53,
-        229,
-        91,
-        75,
-        10,
-        98,
-        99,
-        92,
-        36,
-        123,
-        174,
-        239,
-        51,
-        46,
-        244,
-        222,
-        61,
-        110,
-        171,
-        94,
-        146,
-        47,
+        58,
+        28,
         62,
-        149,
-        191,
-        157,
-        150,
-        66,
-        139,
+        108,
+        15,
+        33,
+        39,
+        158,
+        203,
+        134,
+        20,
+        91,
+        89,
+        174,
+        129,
+        120,
+        24,
+        32,
+        134,
+        146,
+        93,
+        38,
+        218,
+        135,
+        169,
+        21,
+        164,
+        17,
+        203,
+        124,
+        9,
+        134,
         100,
         115,
         111,
@@ -162,8 +164,9 @@ pub mod rmm01_extended_lib {
         51,
     ];
     ///The bytecode of the contract.
-    pub static RMM01EXTENDEDLIB_BYTECODE: ::ethers::core::types::Bytes =
-        ::ethers::core::types::Bytes::from_static(__BYTECODE);
+    pub static RMM01EXTENDEDLIB_BYTECODE: ::ethers::core::types::Bytes = ::ethers::core::types::Bytes::from_static(
+        __BYTECODE,
+    );
     #[rustfmt::skip]
     const __DEPLOYED_BYTECODE: &[u8] = &[
         115,
@@ -209,38 +212,38 @@ pub mod rmm01_extended_lib {
         34,
         18,
         32,
-        97,
-        193,
-        211,
-        53,
-        229,
-        91,
-        75,
-        10,
-        98,
-        99,
-        92,
-        36,
-        123,
-        174,
-        239,
-        51,
-        46,
-        244,
-        222,
-        61,
-        110,
-        171,
-        94,
-        146,
-        47,
+        58,
+        28,
         62,
-        149,
-        191,
-        157,
-        150,
-        66,
-        139,
+        108,
+        15,
+        33,
+        39,
+        158,
+        203,
+        134,
+        20,
+        91,
+        89,
+        174,
+        129,
+        120,
+        24,
+        32,
+        134,
+        146,
+        93,
+        38,
+        218,
+        135,
+        169,
+        21,
+        164,
+        17,
+        203,
+        124,
+        9,
+        134,
         100,
         115,
         111,
@@ -254,8 +257,9 @@ pub mod rmm01_extended_lib {
         51,
     ];
     ///The deployed bytecode of the contract.
-    pub static RMM01EXTENDEDLIB_DEPLOYED_BYTECODE: ::ethers::core::types::Bytes =
-        ::ethers::core::types::Bytes::from_static(__DEPLOYED_BYTECODE);
+    pub static RMM01EXTENDEDLIB_DEPLOYED_BYTECODE: ::ethers::core::types::Bytes = ::ethers::core::types::Bytes::from_static(
+        __DEPLOYED_BYTECODE,
+    );
     pub struct RMM01ExtendedLib<M>(::ethers::contract::Contract<M>);
     impl<M> ::core::clone::Clone for RMM01ExtendedLib<M> {
         fn clone(&self) -> Self {
@@ -275,9 +279,7 @@ pub mod rmm01_extended_lib {
     }
     impl<M> ::core::fmt::Debug for RMM01ExtendedLib<M> {
         fn fmt(&self, f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
-            f.debug_tuple(stringify!(RMM01ExtendedLib))
-                .field(&self.address())
-                .finish()
+            f.debug_tuple(stringify!(RMM01ExtendedLib)).field(&self.address()).finish()
         }
     }
     impl<M: ::ethers::providers::Middleware> RMM01ExtendedLib<M> {
@@ -287,11 +289,13 @@ pub mod rmm01_extended_lib {
             address: T,
             client: ::std::sync::Arc<M>,
         ) -> Self {
-            Self(::ethers::contract::Contract::new(
-                address.into(),
-                RMM01EXTENDEDLIB_ABI.clone(),
-                client,
-            ))
+            Self(
+                ::ethers::contract::Contract::new(
+                    address.into(),
+                    RMM01EXTENDEDLIB_ABI.clone(),
+                    client,
+                ),
+            )
         }
         /// Constructs the general purpose `Deployer` instance based on the provided constructor arguments and sends it.
         /// Returns a new instance of a deployer that returns an instance of this contract after sending the transaction
@@ -334,8 +338,7 @@ pub mod rmm01_extended_lib {
         }
     }
     impl<M: ::ethers::providers::Middleware> From<::ethers::contract::Contract<M>>
-        for RMM01ExtendedLib<M>
-    {
+    for RMM01ExtendedLib<M> {
         fn from(contract: ::ethers::contract::Contract<M>) -> Self {
             Self::new(contract.address(), contract.client())
         }

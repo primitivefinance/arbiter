@@ -321,7 +321,7 @@ fn intitalization_calls(manager: &mut SimulationManager, contracts: (SimulationC
 }
 mod test {
 
-    use std::str::FromStr;
+    use std::{str::FromStr, sync::Arc};
     use primitive_types::H160 as PH160;
 
     use ethers::{types::H160, prelude::BaseContract, abi::Address, utils::parse_ether};
@@ -412,7 +412,7 @@ mod test {
         arbiter_token_y,
         portfolio,
         _liquid_exchange_xy,
-        _encoder_target) = deploy_sim_contracts(&mut manager, wad)?;
+        encoder_target) = deploy_sim_contracts(&mut manager, wad)?;
 
         let admin = manager.agents.get("admin").unwrap();
         // Folio encoding // get args
@@ -482,23 +482,51 @@ mod test {
         // send create pool call data to portfolio
         // check with the i_portfolio that the pair was created and state was changed
         // data encoding should look like this
-        // let max_price = parse_ether("1").unwrap();
-        // let max_price = hex::encode(max_price.to_string()).parse::<usize>().unwrap();
-        let codegen = Codegen::new(vec![Expression::Opcode(Opcode::CreatePool {
-            pair_id: pair_id, 
-            controller: PH160::from(admin.address().as_fixed_bytes()), 
-            priority_fee: 100 as usize, // 1%
-            fee: 100 as usize, // 1%
-            vol: 1 as usize,  // .1%
-            dur: 65535 as usize, // magic perp number
-            jit: 0 as usize, // 
-            max_price: usize::MAX, // Strike
-            price: usize::MAX, //
-        })]);
-        let code_gen = codegen.encode()[0].clone();
-        assert_eq!(code_gen, "0b0000010000000000000000000000000000000000000001006400640001ffff000034000000000000000000ffffffffffffffff000000000000000000ffffffffffffffff");
+        let max_price = parse_ether("1").unwrap();
+        let max_price = hex::encode(max_price.to_string()).parse::<u128>().unwrap();
+        let encoder_args = (
+            pair_id as u32,
+            recast_address(arbiter_token_y.address),
+            100 as u16, // priority fee
+            100 as u16, // fee
+            100 as u16, // vol
+            65535 as u16, // priority fee
+            0 as u16, // jit
+            max_price as u128, // max price
+            max_price as u128, // price
+        );
 
-        let create_pool_call_data: Bytes = hex::decode(code_gen).unwrap().into_iter().collect();
+
+        // pub pair_id: u32,
+        // pub controller: ::ethers::core::types::Address,
+        // pub priority_fee: u16,
+        // pub fee: u16,
+        // pub vol: u16,
+        // pub dur: u16,
+        // pub jit: u16,
+        // pub max_price: u128,
+        // pub price: u128,
+        // let codegen = encoder_target.encode_function("createPool", create_pair).unwrap();
+
+        // let codegen = Codegen::new(vec![Expression::Opcode(Opcode::CreatePool {
+        //     pair_id: pair_id, 
+        //     controller: PH160::from(admin.address().as_fixed_bytes()), 
+        //     priority_fee: 100 as usize, // 1%
+        //     fee: 100 as usize, // 1%
+        //     vol: 100 as usize,  // .1%
+        //     dur: 65535 as usize, // magic perp number
+        //     jit: 0 as usize, // 
+        //     max_price: usize::MAX, // Strike
+        //     price: usize::MAX, //
+        // })]);
+        // let code_gen = codegen.encode()[0].clone();
+        // assert_eq!(code_gen, "0b0000010000000000000000000000000000000000000001006400640064ffff000034000000000000000000ffffffffffffffff000000000000000000ffffffffffffffff");
+
+        // 0b|000001|0000000000000000000000000000000000000001|0064|0064|0064|ffff|000034000000000000000000ffffffffffffffff000000000000000000ffffffffffffffff
+        // `0x | CREATE_POOL (1 byte) | pairId (3 bytes) | controller (20 bytes) | priorityFee (2 bytes) | fee (2 bytes) | vol (2 bytes) | dur (2 bytes) | jit (2 bytes) | pointerPrice (1 byte) | powerMaxPrice (1 byte) | baseMaxPrice (? bytes) | powerPrice (1 byte) | basePrice (? bytes)`\
+
+
+        // let create_pool_call_data: Bytes = hex::decode(code_gen).unwrap().into_iter().collect();
 
         // Create call call data                                 
         // =   0b|000001|0000000000000000000000000000000000000001|0064|0064|0001|ffff|0000|34|00|00000000000000000000000000000001|00|00000000000000000000000000000001
@@ -507,16 +535,18 @@ mod test {
         
         // call data of create call on mainnet after abi encoding:
         // Prefixed a with 4 byte function selector added paddings from rusts endian-ness
+        // 0x|a0fdf413|00000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000045
+        // 0b|000001|000000000000000000000000000000000000000000010001007bffff0001340000000000000000000de0b6b3a76400000000000000000000000de0b6b3a7640000000000000000000000000000000000000000000000000000000000
         // 0x|a0fdf413|00000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000045 <--- Prefix
         //|0b|000001|0000000000000000000000000000000000000000|0001|0001|007b|ffff|0001|34|00|00000000000000000de0b6b3a7640000|00|00000000000000000de0b6b3a7640000|000000000000000000000000000000000000000000000000000000
         // 0x|a0fdf413| <- function selector of multicall which is byte hash of its bits
         // `0x | CREATE_POOL (1 byte) | pairId (3 bytes) | controller (20 bytes) | priorityFee (2 bytes) | fee (2 bytes) | vol (2 bytes) | dur (2 bytes) | jit (2 bytes) | pointerPrice (1 byte) | powerMaxPrice (1 byte) | baseMaxPrice (? bytes) | powerPrice (1 byte) | basePrice (? bytes)`\
         
-        let encoded_from_string: Bytes = "0b0000010000000000000000000000000000000000000000000100010001ffff0001340000000000000000000de0b6b3a76400000000000000000000000de0b6b3a7640000".into();
+        let encoded_from_string: Bytes = hex::decode("0b0000010000000000000000000000000000000000000000000100010064ffff0001340000000000000000000de0b6b3a76400000000000000000000000de0b6b3a764".as_bytes())?.into_iter().collect();
         println!("encoded_from_string: {:#?}", encoded_from_string.clone());
         let abi_encoded_create_pool = portfolio.encode_function("multiprocess", encoded_from_string).unwrap();
         
-        println!("abi_encoded_create_pool: {:#?}", hex::encode(abi_encoded_create_pool.clone()));
+        println!("abi_encoded_create_pool: {:#?}", abi_encoded_create_pool.clone());
         // Abi from mainnet
         // 0x|a0fdf413|00000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000045|0b|000001|0000000000000000000000000000000000000000|0001|0001|007b|ffff|0001|34|00|00000000000000000de0b6b3a7640000|00|00000000000000000de0b6b3a7640000|000000000000000000000000000000000000000000000000000000
         
@@ -528,13 +558,21 @@ mod test {
         // which are generated with ./bind which is a shell scrip that uses regex to itterate 
         // over the gitsubmodules and generate and aggrigrate the bindings
 
+        let encoded_from_string: Bytes = "0b0000010000000000000000000000000000000000000000000100010064ffff0001340000000000000000000de0b6b3a76400000000000000000000000de0b6b3a764
+        ".into();
+        println!("encoded_from_string: {:#?}", encoded_from_string.clone());
+        // let abi_encoded_create_pool = portfolio.encode_function("multiprocess", encoded_from_string).unwrap();
+        
         let encoded_create_pool_result = admin.call_contract(
             &mut manager.environment,
             &portfolio,
             abi_encoded_create_pool,
             Uint::from(0),
         );
-        println!("encoded_create_pool_result: {:#?}", encoded_create_pool_result);
+        let result_object: Bytes = manager.unpack_execution(encoded_create_pool_result.clone())?;
+               // `0x | CREATE_POOL (1 byte) | pairId (3 bytes) | controller (20 bytes) | priorityFee (2 bytes) | fee (2 bytes) | vol (2 bytes) | dur (2 bytes) | jit (2 bytes) | pointerPrice (1 byte) | powerMaxPrice (1 byte) | baseMaxPrice (? bytes) | powerPrice (1 byte) | basePrice (? bytes)`\
+        println!("encoded_create_pool_result: {:#?}", hex::encode(result_object));
+        println!("Raw Result: {:#?}", encoded_create_pool_result);
         assert_eq!(encoded_create_pool_result.is_success(), true);
 
 
