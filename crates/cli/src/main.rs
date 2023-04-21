@@ -4,13 +4,12 @@
 
 use std::error::Error;
 
-use bindings::uniswap_v3_pool;
 use clap::{CommandFactory, Parser, Subcommand};
 use eyre::Result;
-use on_chain::monitor::EventMonitor;
 use simulate::price_simulation::PriceSimulation;
 mod config;
 mod sim;
+mod chain;
 
 #[derive(Parser)]
 #[command(name = "Arbiter")]
@@ -121,14 +120,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
             test_sim.plot(&time, &gbm_path);
         }
         Some(Commands::Chain { config: _ }) => {
-            // Parse the contract address
-            let contract_address = "0x88e6A0c2dDD26FEEb64F039a2c41296FcB3f5640";
-            let event_monitor =
-                EventMonitor::new(on_chain::monitor::utils::RpcTypes::Mainnet).await;
-            let contract_abi = uniswap_v3_pool::UNISWAPV3POOL_ABI.clone();
-            let _ = event_monitor
-                .monitor_events(contract_address, contract_abi)
-                .await;
+            chain::chain().await?;
         }
         None => {
             Args::command()
