@@ -104,13 +104,6 @@ impl SimulationManager {
         let (event_sender, event_receiver) = unbounded::<Vec<Log>>();
         match agent_type {
             AgentType::User => {
-                // let event_filters = match event_filter {
-                //     Some(event_filter) => event_filter,
-                //     None => {
-                //         println!("Got here?");
-                //         vec![]
-                //     },
-                // };
                 let user = User {
                     name: name.into(),
                     address,
