@@ -1,10 +1,12 @@
 //! Module for price process generation and plotting.
 
-use crate::stochastic::*;
+use std::{error::Error, fs::File};
+
 use csv::ReaderBuilder;
 use plotly::{Plot, Scatter};
 use rand::SeedableRng;
-use std::{error::Error, fs::File};
+
+use crate::stochastic::*;
 
 /// Trait for all price processes.
 pub trait Plotting {
