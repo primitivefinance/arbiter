@@ -1,17 +1,13 @@
-use simulate::stochastic::price_process::*;
+use simulate::stochastic::price::{
+    Price,
+    PriceProcessType,
+    GBM
+};
 
-mod config;
+use crate::config::ConfigGBM;
 
-pub fn plot_gbm() {
-    let config = config::ConfigGBM::new {
-        timestep,
-        timescale,
-        num_steps,
-        initial_price,
-        drift,
-        volatility,
-        seed,
-    }.unwrap();
+pub fn plot_gbm(config_path: &String) {
+    let config = ConfigGBM::new(config_path).unwrap();
     let price_gbm = Price::new(
         PriceProcessType::GBM,
         config.timestep,

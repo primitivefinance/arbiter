@@ -119,7 +119,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
 
         Some(Commands::Gbm { config }) => {
             // Plot a GBM price path
-            gbm::plot_gbm();
+            gbm::plot_gbm(config);
         }
 
         Some(Commands::Live { config: _ }) => {
