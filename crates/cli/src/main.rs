@@ -9,11 +9,11 @@ use clap::{CommandFactory, Parser, Subcommand};
 use ethers::types::U256;
 use eyre::Result;
 use on_chain::monitor::{EventMonitor, HistoricalMonitor};
-use simulate::price_simulation::PriceSimulation;
 
 mod config;
 mod sim;
 mod gbm;
+mod ou;
 
 #[derive(Parser)]
 #[command(name = "Arbiter")]
@@ -88,33 +88,8 @@ async fn main() -> Result<(), Box<dyn Error>> {
         }
 
         Some(Commands::Ou { config }) => {
-            // Plot a GBM price path
-            let config::Config {
-                timestep,
-                timescale,
-                num_steps,
-                initial_price,
-                drift,
-                volatility,
-                seed,
-                ou_mean_reversion_speed,
-                ou_mean,
-                ..
-            } = config::Config::new(config).unwrap();
-            let test_sim = PriceSimulation::new(
-                timestep,
-                timescale,
-                num_steps,
-                initial_price,
-                drift,
-                volatility,
-                ou_mean_reversion_speed,
-                ou_mean,
-                seed,
-            );
-
-            let (time, ou_path) = test_sim.ou();
-            test_sim.plot(&time, &ou_path);
+            // Plot an OU price path
+            ou::plot_ou(config);
         }
 
         Some(Commands::Gbm { config }) => {

@@ -8,6 +8,7 @@ pub mod exchange;
 pub mod manager;
 pub mod price_simulation;
 pub mod utils;
+pub mod stochastic;
 
 #[cfg(test)]
 mod tests {

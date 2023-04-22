@@ -1,10 +1,21 @@
+//! Distribution sampling and price process generation and plotting.
+
+#![allow(dead_code)]
+
 use rand::Rng;
-use rand::distributions::{*};
+use rand_distr::{
+    Normal as NormalDistr,
+    Poisson as PoissonDistr,
+    Exp as ExpDistr,
+    Gamma as GammaDistr,
+    Beta as BetaDistr,
+};
 
 pub mod price_process;
 
 /// A trait for distribution sampling.
 pub trait Distribution<T> {
+    /// Sample from a distribution
     fn sample<R: Rng + ?Sized>(&self, rng: &mut R) -> T;
 }
 
@@ -24,28 +35,8 @@ impl Normal {
 impl Distribution<f64> for Normal {
     /// Sample from a normal distribution
     fn sample<R: Rng + ?Sized>(&self, rng: &mut R) -> f64 {
-        let normal = Normal::new(self.mean, self.stddev).unwrap();
-        normal.sample(rng)
-    }
-}
-/// Uniform distribution parameters struct
-pub struct Uniform {
-    low: f64,
-    high: f64,
-}
-
-impl Uniform {
-    /// Create a new uniform distribution
-    fn new(low: f64, high: f64) -> Uniform {
-        Uniform { low, high }
-    }
-}
-
-impl Distribution<f64> for Uniform {
-    /// Sample from a uniform distribution
-    fn sample<R: Rng + ?Sized>(&self, rng: &mut R) -> f64 {
-        let uniform = Uniform::new(self.low, self.high).unwrap();
-        uniform.sample(rng)
+        let normal = NormalDistr::new(self.mean, self.std_dev).unwrap();
+        rng.sample(normal)
     }
 }
 
@@ -64,8 +55,8 @@ impl Poisson {
 impl Distribution<f64> for Poisson {
     /// Sample from a poisson distribution
     fn sample<R: Rng + ?Sized>(&self, rng: &mut R) -> f64 {
-        let poisson = Poisson::new(self.mean).unwrap();
-        poisson.sample(rng)
+        let poisson = PoissonDistr::new(self.mean).unwrap();
+        rng.sample(poisson)
     }
 }
 
@@ -84,8 +75,8 @@ impl Exponential {
 impl Distribution<f64> for Exponential {
     /// Sample from an exponential distribution
     fn sample<R: Rng + ?Sized>(&self, rng: &mut R) -> f64 {
-        let exponential = Exponential::new(self.lambda).unwrap();
-        exponential.sample(rng)
+        let exponential = ExpDistr::new(self.lambda).unwrap();
+        rng.sample(exponential)
     }
 }
 
@@ -105,8 +96,8 @@ impl Gamma {
 impl Distribution<f64> for Gamma {
     /// Sample from a gamma distribution
     fn sample<R: Rng + ?Sized>(&self, rng: &mut R) -> f64 {
-        let gamma = Gamma::new(self.alpha, self.beta).unwrap();
-        gamma.sample(rng)
+        let gamma = GammaDistr::new(self.alpha, self.beta).unwrap();
+        rng.sample(gamma)
     }
 }
 
@@ -126,7 +117,7 @@ impl Beta {
 impl Distribution<f64> for Beta {
     /// Sample from a beta distribution
     fn sample<R: Rng + ?Sized>(&self, rng: &mut R) -> f64 {
-        let beta = Beta::new(self.alpha, self.beta).unwrap();
-        beta.sample(rng)
+        let beta = BetaDistr::new(self.alpha, self.beta).unwrap();
+        rng.sample(beta)
     }
 }
