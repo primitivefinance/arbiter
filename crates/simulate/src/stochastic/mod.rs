@@ -1,6 +1,8 @@
 use rand::Rng;
 use rand::distributions::{*};
 
+pub mod price_process;
+
 /// A trait for distribution sampling.
 pub trait Distribution<T> {
     fn sample<R: Rng + ?Sized>(&self, rng: &mut R) -> T;

@@ -1,6 +1,8 @@
 use plotly::{Plot, Scatter};
 use std::{error::Error, fs::File};
 use csv::ReaderBuilder;
+use rand::Rng;
+use stochastic::*;
 
 /// Trait for all price processes.
 pub trait Plot {
@@ -67,14 +69,29 @@ impl Plot for Price {
     /// # Panics
     /// * `PlottingPrice.html` - If the file cannot be created.
     fn plot(&self, time: &[f64], price_path: &[f64]) {
-        let mut filename = String::from("PlottingPrice");
-        filename.push_str(".html");
+        match self.process_type {
+            PriceProcessType::GBM => {
+                let mut filename = String::from("Plotting_GBM_Price");
+                filename.push_str(".html");
 
-        let mut plot = Plot::new();
-        let trace = Scatter::new(time.to_owned(), price_path.to_owned());
-        plot.add_trace(trace);
+                let mut plot = Plot::new();
+                let trace = Scatter::new(time.to_owned(), price_path.to_owned());
+                plot.add_trace(trace);
 
-        plot.write_html(filename) // Produces .html using the identifier in arbiter root directory.
+                plot.write_html(filename)
+            },
+            PriceProcessType::OU => {
+                let mut filename = String::from("Plotting_OU_Price");
+                filename.push_str(".html");
+
+                let mut plot = Plot::new();
+                let trace = Scatter::new(time.to_owned(), price_path.to_owned());
+                plot.add_trace(trace);
+
+                plot.write_html(filename) // Produces .html using the identifier in arbiter root directory.
+            },
+        }
+        
     }
 }
 
@@ -103,7 +120,7 @@ impl GBM {
     /// * `prices` - Vector of prices. (Vec<f64>)
     pub fn generateGBM(&self, timestep: f64, num_steps: usize, initial_price: f64, seed: u64) -> (Vec<f64>, Vec<f64>) {
         let mut rng = rand::rngs::StdRng::seed_from_u64(seed);
-        let normal = Normal::new(0.0, 1.0).unwrap();
+        let normal = stochastic::Normal::new(0.0, 1.0).unwrap();
         let mut prices = vec![initial_price];
         let mut price = initial_price;
 
@@ -148,7 +165,7 @@ impl OU {
     /// * `prices` - Vector of prices. (Vec<f64>)
     pub fn generateOU(&self, timestep: f64, num_steps: usize, initial_price: f64, seed: u64) -> (Vec<f64>, Vec<f64>) {
         let mut rng = rand::rngs::StdRng::seed_from_u64(seed);
-        let normal = Normal::new(0.0, 1.0).unwrap();
+        let normal = stochastic::Normal::new(0.0, 1.0).unwrap();
         let mut prices = vec![initial_price];
         let mut price = initial_price;
 
