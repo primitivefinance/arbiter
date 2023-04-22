@@ -3,6 +3,9 @@
 //! Used to generate price paths for a simulation.
 //! Managers will be able to read from this data to change prices of for infinitely liquid pools.
 
+use std::{error::Error, fs::File};
+
+use csv::ReaderBuilder;
 use ethers::types::U256;
 use plotly::{Plot, Scatter};
 use rand::prelude::*;
@@ -32,7 +35,7 @@ pub struct PriceSimulation {
 }
 
 impl PriceSimulation {
-    /// Public builder function that instantiates a `Simulation`.
+    /// Public builder function that instantiates a [`PriceSimulation`].
     pub fn new(
         timestep: f64,
         timescale: String,
@@ -111,4 +114,18 @@ impl PriceSimulation {
 /// Converts a float to a WAD fixed point prepared U256 number.
 pub fn float_to_wad(x: f64) -> U256 {
     U256::from((x * 1e18) as u128)
+}
+
+/// Import CSV file of price data.
+pub fn import_price_from_csv(file_path: &str) -> Result<Vec<f64>, Box<dyn Error>> {
+    let mut price_data: Vec<f64> = Vec::new();
+    let file = File::open(file_path)?;
+    let mut reader = ReaderBuilder::new().from_reader(file);
+
+    for result in reader.deserialize() {
+        let num: f64 = result?;
+        price_data.push(num);
+    }
+
+    Ok(price_data)
 }

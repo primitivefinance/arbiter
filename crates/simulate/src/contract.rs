@@ -14,7 +14,7 @@ use revm::primitives::{ExecutionResult, Output, TransactTo, TxEnv, B160, B256, U
 use crate::{agent::Agent, environment::SimulationEnvironment};
 
 #[derive(Debug, Clone)]
-/// A struct use for `PhantomData` to indicate a lock on contracts that are not deployed.
+/// A struct use for [`PhantomData`] to indicate a lock on contracts that are not deployed.
 pub struct NotDeployed;
 #[derive(Debug)]
 /// A struct use for `PhantomData` to indicate an unlocked contract that is deployed.
