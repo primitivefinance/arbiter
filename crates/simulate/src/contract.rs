@@ -9,7 +9,9 @@ use ethers::{
     prelude::BaseContract,
     types::{Bytes as EthersBytes, H256},
 };
-use revm::primitives::{B160, B256};
+use revm::primitives::{ExecutionResult, Output, TransactTo, TxEnv, B160, B256, U256};
+
+use crate::{agent::Agent, environment::SimulationEnvironment};
 
 #[derive(Debug, Clone)]
 /// A struct use for [`PhantomData`] to indicate a lock on contracts that are not deployed.
@@ -22,10 +24,6 @@ pub struct IsDeployed;
 pub trait DeploymentStatus {
     /// The type of the address field.
     type Address;
-    /// The type of the ABI field that is used once deployed.
-    type Abi;
-    /// The type of the base contract field that is used before deployment.
-    type BaseContract;
     /// The type of the bytecode field used only before deployment.
     type Bytecode;
     /// The type of the constructor arguments field used only before deployment.
@@ -34,63 +32,92 @@ pub trait DeploymentStatus {
 
 impl DeploymentStatus for NotDeployed {
     type Address = ();
-    type Abi = ();
-    type BaseContract = BaseContract;
     type Bytecode = Vec<u8>;
     type ConstructorArguments = ();
 }
 
 impl DeploymentStatus for IsDeployed {
     type Address = B160;
-    type Abi = BaseContract;
-    type BaseContract = ();
     type Bytecode = ();
     type ConstructorArguments = Vec<Token>;
 }
 
 #[derive(Debug, Clone)]
 /// A struct that wraps around the ethers `BaseContract` and adds some additional information relevant for revm and the simulation.
-pub struct SimulationContract<Deployed: DeploymentStatus> {
-    /// The address of the contract within the relevant `SimulationEnvironment`.
-    pub address: Deployed::Address,
-    /// The ABI of the contract (same as the base contract, but private once deployed for a better API)
-    abi: Deployed::Abi,
-    /// The ethers `BaseContract` that holds the ABI.
-    pub base_contract: Deployed::BaseContract,
+pub struct SimulationContract<DeployedState: DeploymentStatus> {
+    /// The address of the contract within the relevant [`SimulationEnvironment`].
+    pub address: DeployedState::Address,
+    /// The ethers [`BaseContract`] that holds the ABI.
+    pub(crate) base_contract: BaseContract,
     /// The contract's deployed bytecode.
-    pub bytecode: Deployed::Bytecode,
-    /// A `PhantomData` marker to indicate whether the contract is deployed or not.
-    pub deployed: PhantomData<Deployed>,
+    pub bytecode: DeployedState::Bytecode,
+    /// A [`PhantomData`] marker to indicate whether the contract is deployed or not.
+    deployed: PhantomData<DeployedState>,
     /// The constructor arguments for the contract.
-    pub constructor_arguments: Deployed::ConstructorArguments,
+    pub constructor_arguments: DeployedState::ConstructorArguments,
 }
 
 impl SimulationContract<NotDeployed> {
-    /// A constructor function for `SimulationContract` that takes a `BaseContract` and the deployment bytecode.
+    /// A constructor function for [`SimulationContract`] that takes a [`BaseContract`] and the deployment bytecode.
     pub fn new(contract: Contract, bytecode: EthersBytes) -> Self {
         Self {
-            abi: (),
             base_contract: BaseContract::from(contract),
             bytecode: bytecode.to_vec(),
             address: (),
-            deployed: std::marker::PhantomData,
+            deployed: PhantomData,
             constructor_arguments: (),
         }
     }
-    /// Creates a new `SimulationContract` that is marked as deployed.
-    /// This is only called by implicitly by the `SimulationManager` inside of the `deploy` function.
-    pub(crate) fn to_deployed(
-        simulation_contract: SimulationContract<NotDeployed>,
-        address: B160,
-        constructor_arguments: Vec<Token>,
+
+    /// Deploy a contract to the current simulation environment and return a new [`SimulationContract<IsDeployed>`].
+    /// Does not consume the current [`SimulationContract<NotDeployed>`] so that more copies can be deployed later.
+    pub fn deploy<T: Tokenize>(
+        &self,
+        simulation_environment: &mut SimulationEnvironment,
+        deployer: &Box<dyn Agent>,
+        constructor_arguments: T,
     ) -> SimulationContract<IsDeployed> {
+        // Append constructor args (if available) to generate the deploy bytecode.
+        let tokenized_args = constructor_arguments.into_tokens();
+        let bytecode = match self.base_contract.abi().constructor.clone() {
+            Some(constructor) => Bytes::from(
+                constructor
+                    .encode_input(self.bytecode.clone(), &tokenized_args)
+                    .unwrap(),
+            ),
+            None => Bytes::from(self.bytecode.clone()),
+        };
+
+        // Take the execution result and extract the contract address.
+        let deploy_txenv = TxEnv {
+            caller: deployer.address(),
+            gas_limit: deployer.transact_settings().gas_limit,
+            gas_price: deployer.transact_settings().gas_price,
+            gas_priority_fee: None,
+            transact_to: TransactTo::create(),
+            value: U256::ZERO,
+            data: bytecode,
+            chain_id: None,
+            nonce: None,
+            access_list: Vec::new(),
+        };
+        let execution_result = simulation_environment.execute(deploy_txenv);
+        let output = match execution_result {
+            ExecutionResult::Success { output, .. } => output,
+            ExecutionResult::Revert { output, .. } => panic!("Failed due to revert: {:?}", output),
+            ExecutionResult::Halt { reason, .. } => panic!("Failed due to halt: {:?}", reason),
+        };
+        let address = match output {
+            Output::Create(_, address) => address.unwrap(),
+            _ => panic!("failed"),
+        };
+
         SimulationContract {
-            abi: simulation_contract.base_contract,
             bytecode: (),
             address,
             deployed: std::marker::PhantomData,
-            base_contract: (),
-            constructor_arguments,
+            base_contract: self.base_contract.clone(),
+            constructor_arguments: tokenized_args,
         }
     }
 }
@@ -102,7 +129,7 @@ impl SimulationContract<IsDeployed> {
         function_name: &str,
         args: impl Tokenize,
     ) -> Result<Bytes, AbiError> {
-        match self.abi.encode(function_name, args) {
+        match self.base_contract.encode(function_name, args) {
             Ok(encoded) => Ok(encoded.into_iter().collect()),
             Err(e) => Err(e),
         }
@@ -113,7 +140,8 @@ impl SimulationContract<IsDeployed> {
         function_name: &str,
         value: Bytes,
     ) -> Result<D, AbiError> {
-        self.abi.decode_output::<D, Bytes>(function_name, value)
+        self.base_contract
+            .decode_output::<D, Bytes>(function_name, value)
     }
     /// Decodes the logs for an event with the [`SimulationContract`].
     pub fn decode_event<D: Detokenize>(
@@ -126,7 +154,7 @@ impl SimulationContract<IsDeployed> {
             .into_iter()
             .map(|topic| H256::from_slice(&topic.0))
             .collect();
-        self.abi
+        self.base_contract
             .decode_event(function_name, log_topics, log_data.into())
     }
 }
