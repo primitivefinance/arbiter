@@ -4,11 +4,8 @@
 
 use rand::Rng;
 use rand_distr::{
-    Normal as NormalDistr,
+    Beta as BetaDistr, Exp as ExpDistr, Gamma as GammaDistr, Normal as NormalDistr,
     Poisson as PoissonDistr,
-    Exp as ExpDistr,
-    Gamma as GammaDistr,
-    Beta as BetaDistr,
 };
 
 pub mod price_process;

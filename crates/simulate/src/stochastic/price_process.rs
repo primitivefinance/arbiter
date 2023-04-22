@@ -1,10 +1,10 @@
 //! Module for price process generation and plotting.
 
-use plotly::{Plot, Scatter};
-use std::{error::Error, fs::File};
-use csv::ReaderBuilder;
-use rand::{SeedableRng};
 use crate::stochastic::*;
+use csv::ReaderBuilder;
+use plotly::{Plot, Scatter};
+use rand::SeedableRng;
+use std::{error::Error, fs::File};
 
 /// Trait for all price processes.
 pub trait Plotting {
@@ -88,7 +88,7 @@ impl Plotting for Price {
                 plot.add_trace(trace);
 
                 plot.write_html(filename)
-            },
+            }
             PriceProcessType::OU => {
                 let mut filename = String::from("Plotting_OU_Price");
                 filename.push_str(".html");
@@ -98,9 +98,8 @@ impl Plotting for Price {
                 plot.add_trace(trace);
 
                 plot.write_html(filename) // Produces .html using the identifier in arbiter root directory.
-            },
+            }
         }
-        
     }
 }
 
@@ -127,7 +126,13 @@ impl GBM {
     /// # Returns
     /// * `time` - Vector of time steps. (Vec<f64>)
     /// * `prices` - Vector of prices. (Vec<f64>)
-    pub fn generate_gbm(&self, timestep: f64, num_steps: usize, initial_price: f64, seed: u64) -> (Vec<f64>, Vec<f64>) {
+    pub fn generate_gbm(
+        &self,
+        timestep: f64,
+        num_steps: usize,
+        initial_price: f64,
+        seed: u64,
+    ) -> (Vec<f64>, Vec<f64>) {
         let mut rng = rand::rngs::StdRng::seed_from_u64(seed);
         let normal = Normal::new(0.0, 1.0);
         let mut prices = vec![initial_price];
@@ -135,8 +140,7 @@ impl GBM {
 
         for _ in 0..num_steps {
             let noise = normal.sample(&mut rng);
-            price *=
-                1.0 + self.drift * timestep + self.volatility * noise * timestep.sqrt();
+            price *= 1.0 + self.drift * timestep + self.volatility * noise * timestep.sqrt();
             prices.push(price);
         }
         let time = (0..num_steps)
@@ -174,7 +178,13 @@ impl OU {
     /// # Returns
     /// * `time` - Vector of time steps. (Vec<f64>)
     /// * `prices` - Vector of prices. (Vec<f64>)
-    pub fn generate_ou(&self, timestep: f64, num_steps: usize, initial_price: f64, seed: u64) -> (Vec<f64>, Vec<f64>) {
+    pub fn generate_ou(
+        &self,
+        timestep: f64,
+        num_steps: usize,
+        initial_price: f64,
+        seed: u64,
+    ) -> (Vec<f64>, Vec<f64>) {
         let mut rng = rand::rngs::StdRng::seed_from_u64(seed);
         let normal = Normal::new(0.0, 1.0);
         let mut prices = vec![initial_price];

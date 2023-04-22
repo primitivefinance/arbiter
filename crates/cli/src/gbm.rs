@@ -1,9 +1,4 @@
-use simulate::stochastic::price_process::{
-    Price,
-    PriceProcessType,
-    GBM,
-    Plotting,
-};
+use simulate::stochastic::price_process::{Plotting, Price, PriceProcessType, GBM};
 
 use crate::config::ConfigGBM;
 
@@ -18,18 +13,21 @@ pub fn plot_gbm(config_path: &String) {
         config.seed,
     );
     let gbm_config = GBM::new(config.drift, config.volatility);
-    let time = gbm_config.generate_gbm(
-        price_gbm.timestep,
-        price_gbm.num_steps,
-        price_gbm.initial_price,
-        price_gbm.seed,
-    ).0;
-    let price_path = gbm_config.generate_gbm(
-        price_gbm.timestep,
-        price_gbm.num_steps,
-        price_gbm.initial_price,
-        price_gbm.seed,
-    ).1;
+    let time = gbm_config
+        .generate_gbm(
+            price_gbm.timestep,
+            price_gbm.num_steps,
+            price_gbm.initial_price,
+            price_gbm.seed,
+        )
+        .0;
+    let price_path = gbm_config
+        .generate_gbm(
+            price_gbm.timestep,
+            price_gbm.num_steps,
+            price_gbm.initial_price,
+            price_gbm.seed,
+        )
+        .1;
     price_gbm.plot(&time, &price_path);
 }
-

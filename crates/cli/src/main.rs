@@ -11,9 +11,9 @@ use eyre::Result;
 use on_chain::monitor::{EventMonitor, HistoricalMonitor};
 
 mod config;
-mod sim;
 mod gbm;
 mod ou;
+mod sim;
 
 #[derive(Parser)]
 #[command(name = "Arbiter")]
