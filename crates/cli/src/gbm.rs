@@ -1,4 +1,4 @@
-use simulate::stochastic::price::{
+use simulate::stochastic::price_process::{
     Price,
     PriceProcessType,
     GBM
