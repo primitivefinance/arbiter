@@ -5,11 +5,16 @@ use bindings::{
     weth9,
 };
 use bytes::Bytes;
-use ethers::{abi::Token, prelude::U256, types::H256};
+use ethers::{
+    abi::Token,
+    prelude::{BaseContract, U256},
+    types::H256,
+};
 use eyre::Result;
 use revm::primitives::{ruint::Uint, B160};
 use simulate::{
-    agent::Agent, contract::SimulationContract, manager::SimulationManager, utils::recast_address,
+    agent::AgentType, contract::SimulationContract, manager::SimulationManager,
+    utils::recast_address,
 };
 
 pub fn sim() -> Result<(), Box<dyn Error>> {
@@ -23,16 +28,16 @@ pub fn sim() -> Result<(), Box<dyn Error>> {
     // Get all the necessary users.
     let user_name = "arbitrageur";
     let user_address = B160::from_low_u64_be(2);
-    manager.create_user(user_address, user_name)?;
+    manager.create_agent(user_name, user_address, AgentType::User, None)?;
     let arbitrageur = manager.agents.get(user_name).unwrap();
-    println!("Arbitraguer created at: {}", user_address);
+    println!("Arbitrageur created at: {}", user_address);
     let admin = manager.agents.get("admin").unwrap();
 
     // Deploying Contracts
     // --------------------------------------------------------------------------------------------
     // Deploy the WETH contract.
     let weth = SimulationContract::new(weth9::WETH9_ABI.clone(), weth9::WETH9_BYTECODE.clone());
-    let weth = admin.deploy(&mut manager.environment, weth, ());
+    let weth = weth.deploy(&mut manager.environment, admin, ());
     println!("WETH deployed at: {}", weth.address);
 
     // Deploy the registry contract.
@@ -40,7 +45,7 @@ pub fn sim() -> Result<(), Box<dyn Error>> {
         simple_registry::SIMPLEREGISTRY_ABI.clone(),
         simple_registry::SIMPLEREGISTRY_BYTECODE.clone(),
     );
-    let registry = admin.deploy(&mut manager.environment, registry, ());
+    let registry = registry.deploy(&mut manager.environment, admin, ());
     println!("Simple registry deployed at: {}", registry.address);
 
     // Deploy the portfolio contract.
@@ -53,7 +58,7 @@ pub fn sim() -> Result<(), Box<dyn Error>> {
         recast_address(weth.address),
         recast_address(registry.address),
     );
-    let portfolio = admin.deploy(&mut manager.environment, portfolio, portfolio_args);
+    let portfolio = portfolio.deploy(&mut manager.environment, admin, portfolio_args);
     println!("Portfolio deployed at: {}", portfolio.address);
 
     let arbiter_token = SimulationContract::new(
@@ -67,7 +72,7 @@ pub fn sim() -> Result<(), Box<dyn Error>> {
     let args = (name.to_string(), symbol.to_string(), 18_u8);
 
     // Call the contract deployer and receive a IsDeployed version of SimulationContract that now has an address.
-    let arbiter_token_x = admin.deploy(&mut manager.environment, arbiter_token.clone(), args);
+    let arbiter_token_x = arbiter_token.deploy(&mut manager.environment, admin, args);
     println!("Arbiter Token x deployed at: {}", arbiter_token_x.address);
 
     let name = "ArbiterTokenY";
@@ -75,7 +80,7 @@ pub fn sim() -> Result<(), Box<dyn Error>> {
     let args = (name.to_string(), symbol.to_string(), 18_u8);
 
     // Call the contract deployer and receive a IsDeployed version of SimulationContract that now has an address.
-    let arbiter_token_y = admin.deploy(&mut manager.environment, arbiter_token, args);
+    let arbiter_token_y = arbiter_token.deploy(&mut manager.environment, admin, args);
     println!("Arbiter Token Y deployed at: {}", arbiter_token_y.address);
 
     // Deploy LiquidExchange
@@ -90,13 +95,13 @@ pub fn sim() -> Result<(), Box<dyn Error>> {
         recast_address(arbiter_token_y.address),
         initial_price,
     );
-    let liquid_exchange_xy = admin.deploy(&mut manager.environment, liquid_exchange, args);
+    let liquid_exchange_xy = liquid_exchange.deploy(&mut manager.environment, admin, args);
 
-    let encoder_contract = SimulationContract::new(
+    let encoder_target = SimulationContract::new(
         encoder_target::ENCODERTARGET_ABI.clone(),
         encoder_target::ENCODERTARGET_BYTECODE.clone(),
     );
-    let encoder_target = admin.deploy(&mut manager.environment, encoder_contract, ());
+    let encoder_target = encoder_target.deploy(&mut manager.environment, admin, ());
 
     println!("encoder target deployed at: {}", encoder_target.address);
 
@@ -233,22 +238,29 @@ pub fn sim() -> Result<(), Box<dyn Error>> {
     // TODO: Get the paidID and use the Pair id to create new pool
     print!("result: {:#?}", encoded_create_pair_result.logs()[0]);
     let topics = encoded_create_pair_result.logs()[0].topics.clone();
-
     let h256_vec: Vec<H256> = topics
         .iter()
         .map(|b256| H256::from_slice(b256.as_bytes()))
         .collect();
-    let i_portfolio = SimulationContract::new(
-        i_portfolio::IPORTFOLIO_ABI.clone(),
-        bindings::rmm01_portfolio::RMM01PORTFOLIO_BYTECODE.clone(),
-    );
+    let i_portfolio = BaseContract::from(i_portfolio::IPORTFOLIO_ABI.clone());
     let data = encoded_create_pair_result.logs()[0].data.clone();
     let (pair_id, _token_1, _token_2, _dec_1, _dec_2): (Token, Token, Token, Token, Token) =
         i_portfolio
-            .base_contract
             .decode_event("CreatePair", h256_vec, ethers::types::Bytes(data))
             .unwrap();
     println!("Decoded pairID: {:#?}", hex::encode(pair_id.to_string()));
+    // let i_portfolio = SimulationContract::new(
+    //     i_portfolio::IPORTFOLIO_ABI.clone(),
+    //     bindings::rmm01_portfolio::RMM01PORTFOLIO_BYTECODE.clone(),
+    // );
+    // let i_portfolio = i_portfolio.deploy(&mut manager.environment, admin, ());
+    // let topics = encoded_create_pair_result.logs()[0].topics.clone();
+    // let data = encoded_create_pair_result.logs()[0].data.clone();
+    // let (pair_id, _token_1, _token_2, _dec_1, _dec_2): (Token, Token, Token, Token, Token) =
+    //     i_portfolio
+    //         .decode_event("CreatePair", topics, data)
+    //         .unwrap();
+    // println!("Decoded pairID: {:#?}", hex::encode(pair_id.to_string()));
 
     // Create a new pool parameters
     // --------------------------------------------------------------------------------------------
