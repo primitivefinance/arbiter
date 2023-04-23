@@ -9,11 +9,11 @@ use clap::{CommandFactory, Parser, Subcommand};
 use eyre::Result;
 use on_chain::monitor::EventMonitor;
 
+mod backtest_data;
 mod config;
 mod gbm;
 mod ou;
 mod sim;
-mod backtest_data;
 
 #[derive(Parser)]
 #[command(name = "Arbiter")]
@@ -121,7 +121,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
             backtest_data::save_backtest_data(config, start_block, end_block, address).await;
         }
 
-        Some(Commands::Importbacktest { config, file_path}) => {
+        Some(Commands::Importbacktest { config, file_path }) => {
             // Import swap price data from a csv file
             backtest_data::load_backtest_data(config, file_path).await;
         }

@@ -27,7 +27,11 @@ impl Normal {
     /// Create a new normal distribution
     fn new(mean: f64, std_dev: f64) -> Normal {
         let distribution = NormalDistr::new(mean, std_dev).unwrap();
-        Normal { mean, std_dev, distribution }
+        Normal {
+            mean,
+            std_dev,
+            distribution,
+        }
     }
 }
 
@@ -69,7 +73,10 @@ impl Exponential {
     /// Create a new exponential distribution
     fn new(lambda: f64) -> Exponential {
         let distribution = ExpDistr::new(lambda).unwrap();
-        Exponential { lambda, distribution }
+        Exponential {
+            lambda,
+            distribution,
+        }
     }
 }
 
@@ -92,7 +99,11 @@ impl Gamma {
     /// Create a new gamma distribution
     fn new(alpha: f64, beta: f64) -> Gamma {
         let distribution = GammaDistr::new(alpha, beta).unwrap();
-        Gamma { alpha, beta, distribution }
+        Gamma {
+            alpha,
+            beta,
+            distribution,
+        }
     }
 }
 
@@ -114,7 +125,11 @@ impl Beta {
     /// Create a new beta distribution
     fn new(alpha: f64, beta: f64) -> Beta {
         let distribution = BetaDistr::new(alpha, beta).unwrap();
-        Beta { alpha, beta, distribution }
+        Beta {
+            alpha,
+            beta,
+            distribution,
+        }
     }
 }
 
