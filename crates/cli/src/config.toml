@@ -3,9 +3,13 @@ timestep = 0.0027397
 timescale = "years"
 num_steps = 365
 initial_price = 1
+seed = 887
+
+[gbm]
 drift = 0.1
 volatility = 0.07
-seed = 887
+
+[ou]
 ou_mean_reversion_speed = 50
 ou_mean = 1
 

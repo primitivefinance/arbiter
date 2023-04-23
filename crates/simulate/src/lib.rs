@@ -7,6 +7,7 @@ pub mod environment;
 pub mod exchange;
 pub mod manager;
 pub mod price_simulation;
+pub mod stochastic;
 pub mod utils;
 
 #[cfg(test)]
