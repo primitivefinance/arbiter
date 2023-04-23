@@ -2,6 +2,9 @@ use simulate::stochastic::price_process::{Plotting, Price, PriceProcessType, GBM
 
 use crate::config::ConfigGBM;
 
+/// Generate a GBM price path with parameters sourced from `config.toml` and plot it
+/// # Arguments
+/// * `config_path` - Path to the config.toml file
 pub fn plot_gbm(config_path: &String) {
     let config = ConfigGBM::new(config_path).unwrap();
     let price_gbm = Price::new(

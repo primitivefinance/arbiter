@@ -2,6 +2,9 @@ use simulate::stochastic::price_process::{Plotting, Price, PriceProcessType, OU}
 
 use crate::config::ConfigOU;
 
+/// Generate a OU price path with parameters sourced from `config.toml` and plot it
+/// # Arguments
+/// * `config_path` - Path to the `config.toml` file
 pub fn plot_ou(config_path: &String) {
     let config = ConfigOU::new(config_path).unwrap();
     let price_ou = Price::new(

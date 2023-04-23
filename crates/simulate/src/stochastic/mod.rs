@@ -20,52 +20,56 @@ pub trait Distribution<T> {
 pub struct Normal {
     mean: f64,
     std_dev: f64,
+    distribution: NormalDistr<f64>,
 }
 
 impl Normal {
     /// Create a new normal distribution
     fn new(mean: f64, std_dev: f64) -> Normal {
-        Normal { mean, std_dev }
+        let distribution = NormalDistr::new(mean, std_dev).unwrap();
+        Normal { mean, std_dev, distribution }
     }
 }
 
 impl Distribution<f64> for Normal {
     /// Sample from a normal distribution
     fn sample<R: Rng + ?Sized>(&self, rng: &mut R) -> f64 {
-        let normal = NormalDistr::new(self.mean, self.std_dev).unwrap();
-        rng.sample(normal)
+        rng.sample(self.distribution)
     }
 }
 
 /// Poisson distribution parameters struct
 pub struct Poisson {
     mean: f64,
+    distribution: PoissonDistr<f64>,
 }
 
 impl Poisson {
     /// Create a new poisson distribution
     fn new(mean: f64) -> Poisson {
-        Poisson { mean }
+        let distribution = PoissonDistr::new(mean).unwrap();
+        Poisson { mean, distribution }
     }
 }
 
 impl Distribution<f64> for Poisson {
     /// Sample from a poisson distribution
     fn sample<R: Rng + ?Sized>(&self, rng: &mut R) -> f64 {
-        let poisson = PoissonDistr::new(self.mean).unwrap();
-        rng.sample(poisson)
+        rng.sample(self.distribution)
     }
 }
 
 /// Exponential distribution parameters struct
 pub struct Exponential {
     lambda: f64,
+    distribution: ExpDistr<f64>,
 }
 
 impl Exponential {
     /// Create a new exponential distribution
     fn new(lambda: f64) -> Exponential {
-        Exponential { lambda }
+        let distribution = ExpDistr::new(lambda).unwrap();
+        Exponential { lambda, distribution }
     }
 }
 
@@ -81,20 +85,21 @@ impl Distribution<f64> for Exponential {
 pub struct Gamma {
     alpha: f64,
     beta: f64,
+    distribution: GammaDistr<f64>,
 }
 
 impl Gamma {
     /// Create a new gamma distribution
     fn new(alpha: f64, beta: f64) -> Gamma {
-        Gamma { alpha, beta }
+        let distribution = GammaDistr::new(alpha, beta).unwrap();
+        Gamma { alpha, beta, distribution }
     }
 }
 
 impl Distribution<f64> for Gamma {
     /// Sample from a gamma distribution
     fn sample<R: Rng + ?Sized>(&self, rng: &mut R) -> f64 {
-        let gamma = GammaDistr::new(self.alpha, self.beta).unwrap();
-        rng.sample(gamma)
+        rng.sample(self.distribution)
     }
 }
 
@@ -102,19 +107,20 @@ impl Distribution<f64> for Gamma {
 pub struct Beta {
     alpha: f64,
     beta: f64,
+    distribution: BetaDistr<f64>,
 }
 
 impl Beta {
     /// Create a new beta distribution
     fn new(alpha: f64, beta: f64) -> Beta {
-        Beta { alpha, beta }
+        let distribution = BetaDistr::new(alpha, beta).unwrap();
+        Beta { alpha, beta, distribution }
     }
 }
 
 impl Distribution<f64> for Beta {
     /// Sample from a beta distribution
     fn sample<R: Rng + ?Sized>(&self, rng: &mut R) -> f64 {
-        let beta = BetaDistr::new(self.alpha, self.beta).unwrap();
-        rng.sample(beta)
+        rng.sample(self.distribution)
     }
 }
