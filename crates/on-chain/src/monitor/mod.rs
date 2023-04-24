@@ -86,7 +86,6 @@ impl HistoricalMonitor {
                 to_block: Some(ethers::types::BlockNumber::Number(to_block.into())),
             },
             topics: [None, None, None, None], // None for all topics
-            ..Default::default()
         };
         let past_logs = self
             .provider

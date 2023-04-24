@@ -30,7 +30,10 @@ mod tests {
     use revm::primitives::{ruint::Uint, B160};
 
     use crate::{
-        agent::AgentType, contract::SimulationContract, manager::SimulationManager,
+        agent::AgentType,
+        contract::SimulationContract,
+        manager::SimulationManager,
+        stochastic::price_process::{Price, PriceProcessType, GBM},
         utils::recast_address,
     };
     #[test]
@@ -233,20 +236,15 @@ mod tests {
         let drift = 0.5;
         let volatility = 0.1;
         let seed = 123;
-        let ou_mean_reversion_speed = 0.1;
-        let ou_mean_price = 1.0;
-        let gbm = crate::price_simulation::PriceSimulation::new(
+        let price = Price::new(
+            PriceProcessType::GBM(GBM::new(drift, volatility)),
             timestep,
             timescale,
             num_steps,
             initial_price,
-            drift,
-            volatility,
-            ou_mean_reversion_speed,
-            ou_mean_price,
             seed,
         );
-        let (_time, price_path) = gbm.gbm();
+        let price_path = price.generate_price_path();
 
         // Set up the liquid exchange
         // define the wad constant
@@ -290,9 +288,9 @@ mod tests {
         let liquid_exchange_xy = liquid_exchange.deploy(&mut manager.environment, admin, args);
 
         // Loop over and set prices on the liquid exchange from the oracle.
-        for price in price_path {
+        for price in price_path.1 {
             println!("Price from price path: {}", price);
-            let wad_price = crate::price_simulation::float_to_wad(price);
+            let wad_price = crate::utils::float_to_wad(price);
             println!("WAD price: {}", wad_price);
             let call_data = liquid_exchange_xy.encode_function("setPrice", wad_price)?;
             admin.call_contract(

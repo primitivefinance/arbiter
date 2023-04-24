@@ -88,15 +88,15 @@ async fn main() -> Result<(), Box<dyn Error>> {
 
         Some(Commands::Ou { config }) => {
             // Plot an OU price path
-            ou::plot_ou(config);
+            price_path::plot_ou(config)?;
         }
 
         Some(Commands::Gbm { config }) => {
             // Plot a GBM price path
-            gbm::plot_gbm(config);
+            price_path::plot_gbm(config)?;
         }
 
-        Some(Commands::Live { config }) => {
+        Some(Commands::Live { config: _ }) => {
             // Parse the contract address
             live::live().await?;
         }
@@ -108,12 +108,12 @@ async fn main() -> Result<(), Box<dyn Error>> {
             address,
         }) => {
             // Export swap price data for a given block range
-            backtest_data::save_backtest_data(config, start_block, end_block, address).await;
+            backtest_data::save_backtest_data(config, start_block, end_block, address).await?;
         }
 
         Some(Commands::Importbacktest { config, file_path }) => {
             // Import swap price data from a csv file
-            backtest_data::load_backtest_data(config, file_path).await;
+            backtest_data::load_backtest_data(config, file_path).await?;
         }
 
         None => {

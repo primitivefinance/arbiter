@@ -5,8 +5,8 @@ pub mod agent;
 pub mod contract;
 pub mod environment;
 pub mod exchange;
+pub mod historic;
 pub mod manager;
-pub mod price_simulation;
 pub mod stochastic;
 pub mod utils;
 
