@@ -140,8 +140,9 @@ impl GBM {
 
         for _ in 0..price_process.num_steps {
             let noise = normal.sample(&mut rng);
-            new_price *=
-                1.0 + self.drift * price_process.timestep + self.volatility * noise * price_process.timestep.sqrt();
+            new_price *= 1.0
+                + self.drift * price_process.timestep
+                + self.volatility * noise * price_process.timestep.sqrt();
             prices.push(new_price);
         }
         let time = (0..price_process.num_steps)
@@ -188,8 +189,9 @@ impl OU {
 
         for _ in 0..price_process.num_steps {
             let noise = normal.sample(&mut rng);
-            new_price += self.mean_reversion_speed * (self.mean_price - new_price) * price_process.timestep
-                + self.volatility * noise * price_process.timestep.sqrt();
+            new_price +=
+                self.mean_reversion_speed * (self.mean_price - new_price) * price_process.timestep
+                    + self.volatility * noise * price_process.timestep.sqrt();
             prices.push(new_price);
         }
         let time = (0..price_process.num_steps)
