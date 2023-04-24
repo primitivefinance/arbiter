@@ -4,17 +4,12 @@
 
 use std::error::Error;
 
-use bindings::uniswap_v3_pool;
 use clap::{CommandFactory, Parser, Subcommand};
+use commands::*;
 use eyre::Result;
-use on_chain::monitor::EventMonitor;
 
-mod backtest_data;
+mod commands;
 mod config;
-mod gbm;
-mod ou;
-mod sim;
-mod chain;
 
 #[derive(Parser)]
 #[command(name = "Arbiter")]
@@ -87,7 +82,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
 
     match &args.command {
         Some(Commands::Sim { config: _ }) => {
-            // Create a `SimulationManager` that runs simulations in their `SimulationEnvironment`.
+            // Create a [`SimulationManager`] that runs simulations in their `SimulationEnvironment`.
             sim::sim()?;
         }
 
@@ -101,15 +96,9 @@ async fn main() -> Result<(), Box<dyn Error>> {
             gbm::plot_gbm(config);
         }
 
-        Some(Commands::Live { config: _ }) => {
+        Some(Commands::Live { config }) => {
             // Parse the contract address
-            let contract_address = "0x88e6A0c2dDD26FEEb64F039a2c41296FcB3f5640";
-            let event_monitor =
-                EventMonitor::new(on_chain::monitor::utils::RpcTypes::Mainnet).await;
-            let contract_abi = uniswap_v3_pool::UNISWAPV3POOL_ABI.clone();
-            let _ = event_monitor
-                .monitor_events(contract_address, contract_abi)
-                .await;
+            live::live().await?;
         }
 
         Some(Commands::ExportSwapRange {
