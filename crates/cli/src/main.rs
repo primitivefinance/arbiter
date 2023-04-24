@@ -4,15 +4,12 @@
 
 use std::error::Error;
 
-use bindings::uniswap_v3_pool;
 use clap::{CommandFactory, Parser, Subcommand};
-use ethers::types::U256;
+use commands::*;
 use eyre::Result;
-use on_chain::monitor::{EventMonitor, HistoricalMonitor};
-use simulate::price_simulation::PriceSimulation;
 
+mod commands;
 mod config;
-mod sim;
 
 #[derive(Parser)]
 #[command(name = "Arbiter")]
@@ -73,6 +70,9 @@ enum Commands {
         /// Path to config.toml containing simulation parameterization (optional)
         #[arg(short, long, default_value = "./crates/cli/src/config.toml", num_args = 0..=1)]
         config: String,
+        /// Path to csv file containing price data
+        #[arg(short = 'f', long, required = true)]
+        file_path: String,
     },
 }
 
@@ -82,114 +82,38 @@ async fn main() -> Result<(), Box<dyn Error>> {
 
     match &args.command {
         Some(Commands::Sim { config: _ }) => {
-            // Create a `SimulationManager` that runs simulations in their `SimulationEnvironment`.
+            // Create a [`SimulationManager`] that runs simulations in their `SimulationEnvironment`.
             sim::sim()?;
         }
 
         Some(Commands::Ou { config }) => {
-            // Plot a GBM price path
-            let config::Config {
-                timestep,
-                timescale,
-                num_steps,
-                initial_price,
-                drift,
-                volatility,
-                seed,
-                ou_mean_reversion_speed,
-                ou_mean,
-                ..
-            } = config::Config::new(config).unwrap();
-            let test_sim = PriceSimulation::new(
-                timestep,
-                timescale,
-                num_steps,
-                initial_price,
-                drift,
-                volatility,
-                ou_mean_reversion_speed,
-                ou_mean,
-                seed,
-            );
-
-            let (time, ou_path) = test_sim.ou();
-            test_sim.plot(&time, &ou_path);
+            // Plot an OU price path
+            price_path::plot_ou(config)?;
         }
 
         Some(Commands::Gbm { config }) => {
             // Plot a GBM price path
-            let config::Config {
-                timestep,
-                timescale,
-                num_steps,
-                initial_price,
-                drift,
-                volatility,
-                seed,
-                ou_mean_reversion_speed,
-                ou_mean,
-                ..
-            } = config::Config::new(config).unwrap();
-            let test_sim = PriceSimulation::new(
-                timestep,
-                timescale,
-                num_steps,
-                initial_price,
-                drift,
-                volatility,
-                ou_mean_reversion_speed,
-                ou_mean,
-                seed,
-            );
-
-            let (time, gbm_path) = test_sim.gbm();
-            test_sim.plot(&time, &gbm_path);
+            price_path::plot_gbm(config)?;
         }
 
         Some(Commands::Live { config: _ }) => {
             // Parse the contract address
-            let contract_address = "0x88e6A0c2dDD26FEEb64F039a2c41296FcB3f5640";
-            let event_monitor =
-                EventMonitor::new(on_chain::monitor::utils::RpcTypes::Mainnet).await;
-            let contract_abi = uniswap_v3_pool::UNISWAPV3POOL_ABI.clone();
-            let _ = event_monitor
-                .monitor_events(contract_address, contract_abi)
-                .await;
+            live::live().await?;
         }
 
         Some(Commands::ExportSwapRange {
-            config: _,
+            config,
             start_block,
             end_block,
             address,
         }) => {
-            let range = *start_block..*end_block;
-            let step = 100_u64; // doing this so we don't hit rpc limits
-            let contract_address = address;
-            let historical_monitor =
-                HistoricalMonitor::new(on_chain::monitor::utils::RpcTypes::Mainnet).await;
-            let contract_abi = uniswap_v3_pool::UNISWAPV3POOL_ABI.to_owned();
-            let mut pricedata: Vec<U256> = Vec::new();
-            for block in range.step_by(step as usize) {
-                let sqrtpricex96 = historical_monitor
-                    .historical_monitor(contract_address, contract_abi.clone(), block, block + step)
-                    .await;
-                let sqrtpricex96 = sqrtpricex96.unwrap();
-                pricedata.extend(sqrtpricex96)
-            }
-
-            historical_monitor
-                .save_price_to_csv(&pricedata, "price.csv")
-                .unwrap();
+            // Export swap price data for a given block range
+            backtest_data::save_backtest_data(config, start_block, end_block, address).await?;
         }
 
-        Some(Commands::Importbacktest { config: _ }) => {
-            let price_data =
-                simulate::price_simulation::import_price_from_csv("price_data.csv").unwrap();
-            let price_ref = &price_data;
-            let _ = price_ref;
-
-            println!("{:?}", price_ref);
+        Some(Commands::Importbacktest { config, file_path }) => {
+            // Import swap price data from a csv file
+            backtest_data::load_backtest_data(config, file_path).await?;
         }
 
         None => {

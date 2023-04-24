@@ -37,7 +37,7 @@ mod tests {
     use crate::contract::SimulationContract;
 
     #[test]
-    fn test_simulation_middleware_calldata() {
+    fn simulation_middleware_calldata() {
         let arc_middleware = Arc::new(SimulationMiddleware::default());
         let writer = Writer::new(Address::from_low_u64_be(1), arc_middleware);
         let thing = writer.echo_string(String::from("Hello, world!"));

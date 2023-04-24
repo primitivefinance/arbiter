@@ -30,11 +30,14 @@ mod tests {
     use revm::primitives::{ruint::Uint, B160};
 
     use crate::{
-        agent::Agent, contract::SimulationContract, manager::SimulationManager,
+        agent::AgentType,
+        contract::SimulationContract,
+        manager::SimulationManager,
+        stochastic::price_process::{PriceProcess, PriceProcessType, GBM},
         utils::recast_address,
     };
     #[test]
-    fn test_swap_x_for_y_liquid_exchange() -> Result<(), Box<dyn Error>> {
+    fn swap_x_for_y_liquid_exchange() -> Result<(), Box<dyn Error>> {
         // define the wad constant
         let decimals = 18_u8;
         let wad: U256 = U256::from(10_i64.pow(decimals as u32));
@@ -45,11 +48,9 @@ mod tests {
         // Set up a user named alice
         let user_name = "alice";
         let user_address = B160::from_low_u64_be(2);
-        manager.create_user(user_address, user_name).unwrap();
-
-        // Pull out the admin and alice
+        manager.create_agent(user_name, user_address, AgentType::User, None)?;
         let admin = manager.agents.get("admin").unwrap();
-        let alice = manager.agents.get(user_name).unwrap();
+        let alice = manager.agents.get("alice").unwrap();
 
         // Create arbiter token general contract.
         let arbiter_token = SimulationContract::new(
@@ -61,13 +62,13 @@ mod tests {
         let name = "Token X";
         let symbol = "TKNX";
         let args = (name.to_string(), symbol.to_string(), decimals);
-        let token_x = admin.deploy(&mut manager.environment, arbiter_token.clone(), args);
+        let token_x = arbiter_token.deploy(&mut manager.environment, admin, args);
 
         // Deploy token_y.
         let name = "Token Y";
         let symbol = "TKNY";
         let args = (name.to_string(), symbol.to_string(), decimals);
-        let token_y = admin.deploy(&mut manager.environment, arbiter_token, args);
+        let token_y = arbiter_token.deploy(&mut manager.environment, admin, args);
 
         // Deploy LiquidExchange
         let price_to_check = 1000;
@@ -81,7 +82,7 @@ mod tests {
             recast_address(token_y.address),
             initial_price,
         );
-        let liquid_exchange_xy = admin.deploy(&mut manager.environment, liquid_exchange, args);
+        let liquid_exchange_xy = liquid_exchange.deploy(&mut manager.environment, admin, args);
 
         // Mint token_x to alice.
         let mint_amount = wad.checked_mul(U256::from(20)).unwrap(); // in wei units
@@ -131,7 +132,7 @@ mod tests {
     }
 
     #[test]
-    fn test_swap_y_for_x_liquid_exchange() -> Result<(), Box<dyn Error>> {
+    fn swap_y_for_x_liquid_exchange() -> Result<(), Box<dyn Error>> {
         // define the wad constant
         let decimals = 18_u8;
         let wad: U256 = U256::from(10_i64.pow(decimals as u32));
@@ -142,43 +143,41 @@ mod tests {
         // Set up a user named alice
         let user_name = "alice";
         let user_address = B160::from_low_u64_be(2);
-        manager.create_user(user_address, user_name).unwrap();
-
-        // Pull out the admin and alice
+        manager.create_agent(user_name, user_address, AgentType::User, None)?;
         let admin = manager.agents.get("admin").unwrap();
-        let alice = manager.agents.get(user_name).unwrap();
+        let alice = manager.agents.get("alice").unwrap();
 
         // Create arbiter token general contract.
         let arbiter_token = SimulationContract::new(
             arbiter_token::ARBITERTOKEN_ABI.clone(),
-            bindings::arbiter_token::ARBITERTOKEN_BYTECODE.clone(),
+            arbiter_token::ARBITERTOKEN_BYTECODE.clone(),
         );
 
         // Deploy token_x.
         let name = "Token X";
         let symbol = "TKNX";
         let args = (name.to_string(), symbol.to_string(), decimals);
-        let token_x = admin.deploy(&mut manager.environment, arbiter_token.clone(), args);
+        let token_x = arbiter_token.deploy(&mut manager.environment, admin, args);
 
         // Deploy token_y.
         let name = "Token Y";
         let symbol = "TKNY";
         let args = (name.to_string(), symbol.to_string(), decimals);
-        let token_y = admin.deploy(&mut manager.environment, arbiter_token, args);
+        let token_y = arbiter_token.deploy(&mut manager.environment, admin, args);
 
         // Deploy LiquidExchange
         let price_to_check = 1000;
         let initial_price = wad.checked_mul(U256::from(price_to_check)).unwrap();
         let liquid_exchange = SimulationContract::new(
             liquid_exchange::LIQUIDEXCHANGE_ABI.clone(),
-            bindings::liquid_exchange::LIQUIDEXCHANGE_BYTECODE.clone(),
+            liquid_exchange::LIQUIDEXCHANGE_BYTECODE.clone(),
         );
         let args = (
             recast_address(token_x.address),
             recast_address(token_y.address),
             initial_price,
         );
-        let liquid_exchange_xy = admin.deploy(&mut manager.environment, liquid_exchange, args);
+        let liquid_exchange_xy = liquid_exchange.deploy(&mut manager.environment, admin, args);
 
         // Mint token_y to alice.
         let mint_amount = wad.checked_mul(U256::from(20)).unwrap(); // in wei units
@@ -228,7 +227,7 @@ mod tests {
     }
 
     #[test]
-    fn test_price_simulation_oracle() -> Result<(), Box<dyn Error>> {
+    fn price_simulation_oracle() -> Result<(), Box<dyn Error>> {
         // Get a price path from the oracle.
         let timestep = 1.0;
         let timescale = String::from("day");
@@ -237,20 +236,15 @@ mod tests {
         let drift = 0.5;
         let volatility = 0.1;
         let seed = 123;
-        let ou_mean_reversion_speed = 0.1;
-        let ou_mean_price = 1.0;
-        let gbm = crate::price_simulation::PriceSimulation::new(
+        let price = PriceProcess::new(
+            PriceProcessType::GBM(GBM::new(drift, volatility)),
             timestep,
             timescale,
             num_steps,
             initial_price,
-            drift,
-            volatility,
-            ou_mean_reversion_speed,
-            ou_mean_price,
             seed,
         );
-        let (_time, price_path) = gbm.gbm();
+        let price_path = price.generate_price_path();
 
         // Set up the liquid exchange
         // define the wad constant
@@ -271,13 +265,13 @@ mod tests {
         let name = "Token X";
         let symbol = "TKNX";
         let args = (name.to_string(), symbol.to_string(), decimals);
-        let token_x = admin.deploy(&mut manager.environment, arbiter_token.clone(), args);
+        let token_x = arbiter_token.deploy(&mut manager.environment, admin, args);
 
         // Deploy token_y.
         let name = "Token Y";
         let symbol = "TKNY";
         let args = (name.to_string(), symbol.to_string(), decimals);
-        let token_y = admin.deploy(&mut manager.environment, arbiter_token, args);
+        let token_y = arbiter_token.deploy(&mut manager.environment, admin, args);
 
         // Deploy LiquidExchange
         let price_to_check = 1000; // Initial price is this for sake of ease.
@@ -291,12 +285,12 @@ mod tests {
             recast_address(token_y.address),
             initial_price,
         );
-        let liquid_exchange_xy = admin.deploy(&mut manager.environment, liquid_exchange, args);
+        let liquid_exchange_xy = liquid_exchange.deploy(&mut manager.environment, admin, args);
 
         // Loop over and set prices on the liquid exchange from the oracle.
-        for price in price_path {
+        for price in price_path.1 {
             println!("Price from price path: {}", price);
-            let wad_price = crate::price_simulation::float_to_wad(price);
+            let wad_price = crate::utils::float_to_wad(price);
             println!("WAD price: {}", wad_price);
             let call_data = liquid_exchange_xy.encode_function("setPrice", wad_price)?;
             admin.call_contract(

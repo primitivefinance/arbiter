@@ -5,27 +5,28 @@ pub mod agent;
 pub mod contract;
 pub mod environment;
 pub mod exchange;
+pub mod historic;
 pub mod manager;
-pub mod price_simulation;
+pub mod stochastic;
 pub mod utils;
 
 #[cfg(test)]
 mod tests {
-    use std::{error::Error, str::FromStr, thread};
+    use std::{error::Error, thread};
 
     use bindings::{arbiter_token, writer};
     use ethers::prelude::{H256, U256};
     use revm::primitives::{ruint::Uint, B160};
 
     use crate::{
-        agent::Agent, contract::SimulationContract, manager::SimulationManager,
+        agent::AgentType, contract::SimulationContract, manager::SimulationManager,
         utils::recast_address,
     };
 
     #[test]
     /// Test that the writer contract can echo a string.
     /// The writer contract takes in no constructor args.
-    fn test_string_write() -> Result<(), Box<dyn Error>> {
+    fn string_write() -> Result<(), Box<dyn Error>> {
         // Set up the execution manager and a user address.
         let mut manager = SimulationManager::default();
         let admin = manager.agents.get("admin").unwrap();
@@ -35,7 +36,7 @@ mod tests {
             SimulationContract::new(writer::WRITER_ABI.clone(), writer::WRITER_BYTECODE.clone());
 
         // Deploy the writer contract.
-        let writer = admin.deploy(&mut manager.environment, writer, ());
+        let writer = writer.deploy(&mut manager.environment, admin, ());
 
         // Generate calldata for the 'echoString' function
         let test_string = "Hello, world!";
@@ -60,7 +61,7 @@ mod tests {
 
     #[test]
     /// Test to see that we can mint tokens to a user.
-    fn test_token_mint() -> Result<(), Box<dyn Error>> {
+    fn token_mint() -> Result<(), Box<dyn Error>> {
         // Create a `SimulationManager` where we can run simulations.
         // This will also create an EVM instance associated to the manager.
         let mut manager = SimulationManager::default();
@@ -68,9 +69,9 @@ mod tests {
         // Get the relevant users.
         let user_name = "alice";
         let user_address = B160::from_low_u64_be(2);
-        manager.create_user(user_address, user_name).unwrap();
+        manager.create_agent(user_name, user_address, AgentType::User, None)?;
         let admin = manager.agents.get("admin").unwrap();
-        let alice = manager.agents.get(user_name).unwrap();
+        let alice = manager.agents.get("alice").unwrap();
 
         // Get a SimulationContract for the Arbiter Token ERC-20 instance from the ABI and bytecode.
         let arbiter_token = SimulationContract::new(
@@ -84,7 +85,7 @@ mod tests {
         let args = (name.to_string(), symbol.to_string(), 18_u8);
 
         // Call the contract deployer and receive a IsDeployed version of SimulationContract that now has an address.
-        let arbiter_token = admin.deploy(&mut manager.environment, arbiter_token, args);
+        let arbiter_token = arbiter_token.deploy(&mut manager.environment, admin, args);
         println!("Arbiter Token deployed at: {}", arbiter_token.address);
 
         // Generate calldata for the 'name' function
@@ -141,7 +142,7 @@ mod tests {
 
     /// Test to make sure that events are getting logged into the crossbeam channel.
     #[test]
-    fn test_event_logging() -> Result<(), Box<dyn Error>> {
+    fn event_logging() -> Result<(), Box<dyn Error>> {
         // Set up the execution manager and a user address.
         let mut manager = SimulationManager::default();
         let admin = manager.agents.get("admin").unwrap();
@@ -152,7 +153,7 @@ mod tests {
             SimulationContract::new(writer::WRITER_ABI.clone(), writer::WRITER_BYTECODE.clone());
 
         // Deploy the writer contract.
-        let writer = admin.deploy(environment, writer, ());
+        let writer = writer.deploy(environment, admin, ());
 
         // Generate calldata for the 'echoString' function
         let test_string = "Hello, world!";
@@ -163,8 +164,8 @@ mod tests {
         let _execution_result = admin.call_contract(environment, &writer, call_data, Uint::ZERO);
 
         // Read logs twice since the first time is just the contract creation which gives no log.
-        let _logs = admin.read_logs();
-        let logs = admin.read_logs();
+        let _logs = admin.read_logs()?;
+        let logs = admin.read_logs()?;
 
         // Decode the logs
         let log_topics = logs[0].topics.clone();
@@ -178,14 +179,14 @@ mod tests {
 
     /// Test to make sure events can be streamed from the crossbeam channel on a new thread.
     #[test]
-    fn test_event_monitoring() -> Result<(), Box<dyn Error>> {
+    fn event_monitoring() -> Result<(), Box<dyn Error>> {
         // Set up the execution manager and a user address.
         let mut manager = SimulationManager::default();
         let user_name = "alice";
-        let user_address = B160::from_str("0x0000000000000000000000000000000000000002").unwrap();
-        manager.create_user(user_address, user_name).unwrap();
+        let user_address = B160::from_low_u64_be(2);
+        manager.create_agent(user_name, user_address, AgentType::User, None)?;
         let admin = manager.agents.get("admin").unwrap();
-        let alice = manager.agents.get(user_name).unwrap();
+        let alice = manager.agents.get("alice").unwrap();
 
         // Get bytecode and abi for the writer contract.
         let writer =
@@ -294,12 +295,7 @@ mod tests {
             }
         });
 
-        let writer =
-            manager
-                .agents
-                .get("admin")
-                .unwrap()
-                .deploy(&mut manager.environment, writer, ());
+        let writer = writer.deploy(&mut manager.environment, admin, ());
 
         // Generate calldata for the 'echoString' function
         let test_string = "Hello, world!";

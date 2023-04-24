@@ -7,18 +7,21 @@ use bindings::{
 };
 use primitive_types::H160 as PH160;
 use bytes::Bytes;
-use ethers::{prelude::U256, types::H256, abi::Token};
+use ethers::{
+    abi::Token,
+    prelude::{BaseContract, U256},
+    types::H256,
+};
 use eyre::Result;
 use revm::primitives::{ruint::Uint, B160};
 use simulate::{
-    agent::Agent,
-    contract::{IsDeployed, SimulationContract},
-    manager::SimulationManager,
+    agent::AgentType, contract::{SimulationContract, IsDeployed}, manager::SimulationManager,
     utils::recast_address,
 };
 use compiler::{codegen::Codegen, assembler::{Expression}, opcode::Opcode};
 
 
+/// Run a simulation.
 pub fn sim() -> Result<(), Box<dyn Error>> {
     // define the wad constant
     let decimals = 18_u8;
@@ -28,8 +31,11 @@ pub fn sim() -> Result<(), Box<dyn Error>> {
 
     let user_name = "arbitrageur";
     let user_address = B160::from_low_u64_be(2);
-    manager.create_user(user_address, user_name)?;
     
+    manager.create_agent(user_name, user_address, AgentType::User, None)?;
+    let arbitrageur = manager.agents.get(user_name).unwrap();
+    println!("Arbitrageur created at: {}", user_address);
+    let admin = manager.agents.get("admin").unwrap();
 
     // Deploying Contracts
     let contracts =
@@ -57,7 +63,7 @@ fn deploy_sim_contracts(
     let admin = manager.agents.get("admin").unwrap();
     // Deploy Weth
     let weth = SimulationContract::new(weth9::WETH9_ABI.clone(), weth9::WETH9_BYTECODE.clone());
-    let weth = admin.deploy(&mut manager.environment, weth, ());
+    let weth = weth.deploy(&mut manager.environment, admin, ());
     println!("WETH deployed at: {}", weth.address);
 
     // Deploy the registry contract.
@@ -65,7 +71,7 @@ fn deploy_sim_contracts(
         simple_registry::SIMPLEREGISTRY_ABI.clone(),
         simple_registry::SIMPLEREGISTRY_BYTECODE.clone(),
     );
-    let registry = admin.deploy(&mut manager.environment, registry, ());
+    let registry = registry.deploy(&mut manager.environment, admin, ());
     println!("Simple registry deployed at: {}", registry.address);
 
     // Deploy the portfolio contract.
@@ -78,7 +84,7 @@ fn deploy_sim_contracts(
         recast_address(weth.address),
         recast_address(registry.address),
     );
-    let portfolio = admin.deploy(&mut manager.environment, portfolio, portfolio_args);
+    let portfolio = portfolio.deploy(&mut manager.environment, admin, portfolio_args);
     println!("Portfolio deployed at: {}", portfolio.address);
 
     let arbiter_token = SimulationContract::new(
@@ -92,7 +98,7 @@ fn deploy_sim_contracts(
     let args = (name.to_string(), symbol.to_string(), decimals);
 
     // Call the contract deployer and receive a IsDeployed version of SimulationContract that now has an address.
-    let arbiter_token_x = admin.deploy(&mut manager.environment, arbiter_token.clone(), args);
+    let arbiter_token_x = arbiter_token.deploy(&mut manager.environment, admin, args);
     println!("Arbiter Token x deployed at: {}", arbiter_token_x.address);
 
     let name = "ArbiterTokenY";
@@ -100,7 +106,7 @@ fn deploy_sim_contracts(
     let args = (name.to_string(), symbol.to_string(), decimals);
 
     // Call the contract deployer and receive a IsDeployed version of SimulationContract that now has an address.
-    let arbiter_token_y = admin.deploy(&mut manager.environment, arbiter_token, args);
+    let arbiter_token_y = arbiter_token.deploy(&mut manager.environment, admin, args);
     println!("Arbiter Token Y deployed at: {}", arbiter_token_y.address);
 
     // Deploy LiquidExchange
@@ -115,14 +121,14 @@ fn deploy_sim_contracts(
         recast_address(arbiter_token_y.address),
         initial_price,
     );
-    let liquid_exchange_xy = admin.deploy(&mut manager.environment, liquid_exchange, args);
+    let liquid_exchange_xy = liquid_exchange.deploy(&mut manager.environment, admin, args);
 
     // Deploy encoder target
     let encoder_contract = SimulationContract::new(
         encoder_target::ENCODERTARGET_ABI.clone(),
         encoder_target::ENCODERTARGET_BYTECODE.clone(),
     );
-    let encoder_target = admin.deploy(&mut manager.environment, encoder_contract, ());
+    let encoder_target = encoder_contract.deploy(&mut manager.environment, admin, ());
 
     println!("encoder target deployed at: {}", encoder_target.address);
     Ok((
@@ -283,19 +289,14 @@ fn intitalization_calls(manager: &mut SimulationManager, contracts: (SimulationC
         encoded_create_pair_result.is_success()
     );
     let topics = encoded_create_pair_result.logs()[0].topics.clone();
-
     let h256_vec: Vec<H256> = topics
         .iter()
         .map(|b256| H256::from_slice(b256.as_bytes()))
         .collect();
-    let i_portfolio = SimulationContract::new(
-        i_portfolio::IPORTFOLIO_ABI.clone(),
-        bindings::rmm01_portfolio::RMM01PORTFOLIO_BYTECODE.clone(),
-    );
+    let i_portfolio = BaseContract::from(i_portfolio::IPORTFOLIO_ABI.clone());
     let data = encoded_create_pair_result.logs()[0].data.clone();
     let (pair_id, _token_1, _token_2, _dec_1, _dec_2): (Token, Token, Token, Token, Token) =
         i_portfolio
-            .base_contract
             .decode_event("CreatePair", h256_vec, ethers::types::Bytes(data))
             .unwrap();
     println!("Decoded pairID: {:#?}", pair_id.to_string());
@@ -303,7 +304,7 @@ fn intitalization_calls(manager: &mut SimulationManager, contracts: (SimulationC
     let encoded_pair = portfolio.encode_function("pairs", pair_id.clone())?;
     let pairs = admin.call_contract(&mut manager.environment, &portfolio, encoded_pair, Uint::from(0));
     let result = manager.unpack_execution(pairs.clone())?;
-    let decoded_result = i_portfolio.base_contract.decode_output("pairs", result)?;
+    let decoded_result = i_portfolio.decode_output("pairs", result)?;
     println!("got pairs: {:#?}", decoded_result);
 
     // // Create a new pool parameters
@@ -447,14 +448,14 @@ mod test {
             bindings::rmm01_portfolio::RMM01PORTFOLIO_BYTECODE.clone(),
         );
         let data = encoded_create_pair_result.logs()[0].data.clone();
+        let base_contract = BaseContract::from(i_portfolio::IPORTFOLIO_ABI.clone());
         let (pair_id, _token_1, _token_2, _dec_1, _dec_2): (Token, Token, Token, Token, Token) =
-            i_portfolio
-                .base_contract
+        base_contract
                 .decode_event("CreatePair", h256_vec, ethers::types::Bytes(data))
                 .unwrap();
         println!("Decoded pairID: {:#?}", pair_id.to_string());
         let pair_id: u32 = pair_id.to_string().parse::<u32>().unwrap();    
-        let encoded_pair: Bytes = i_portfolio.base_contract.encode("pairs", pair_id.clone())?.into_iter().collect();
+        let encoded_pair: Bytes = base_contract.encode("pairs", pair_id.clone())?.into_iter().collect();
         let request = admin.call_contract(
             &mut manager.environment,
             &portfolio,
@@ -470,7 +471,7 @@ mod test {
         // ...|000000000000000000000000|83769beeb7e5405ef0b7dc3c66c43e3a51a6d27f|0000000000000000000000000000000000000000000000000000000000000012
         // token_y: ^ 24 bits:8bytes |0x83769beeb7e5405ef0b7dc3c66c43e3a51a6d27f| ^ 64 bits, 12 = 18 decimals
 
-        let decoded_pairs_response: (H160, u8, H160, u8) = i_portfolio.base_contract.decode_output("pairs", unpacked)?;
+        let decoded_pairs_response: (H160, u8, H160, u8) = base_contract.decode_output("pairs", unpacked)?;
         assert!(decoded_pairs_response.0 == arbiter_token_x.address.into());
         assert!(decoded_pairs_response.2 == arbiter_token_y.address.into());
         assert!(decoded_pairs_response.1 == decimals);
