@@ -1,6 +1,7 @@
-//! Distribution sampling and price process generation and plotting.
-
+#![warn(missing_docs)]
+#![warn(unsafe_code)]
 #![allow(dead_code)]
+//! Distribution sampling and price process generation and plotting.
 
 use rand::Rng;
 use rand_distr::{

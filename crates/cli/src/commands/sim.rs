@@ -1,3 +1,6 @@
+#![warn(missing_docs)]
+#![warn(unsafe_code)]
+
 use std::error::Error;
 
 use bindings::{
@@ -17,6 +20,7 @@ use simulate::{
     utils::recast_address,
 };
 
+/// Run a simulation.
 pub fn sim() -> Result<(), Box<dyn Error>> {
     // Create a `SimulationManager` that runs simulations in their `SimulationEnvironment`.
     // define the wad constant

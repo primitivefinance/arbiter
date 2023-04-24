@@ -1,3 +1,6 @@
+#![warn(missing_docs)]
+#![warn(unsafe_code)]
+
 use std::error::Error;
 
 use simulate::stochastic::price_process::{Plotting, PriceProcess, PriceProcessType, GBM, OU};

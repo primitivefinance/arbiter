@@ -1,9 +1,13 @@
+#![warn(missing_docs)]
+#![warn(unsafe_code)]
+
 use std::error::Error;
 
 use bindings::uniswap_v3_pool;
 use ethers::types::U256;
 use on_chain::monitor::HistoricalMonitor;
 
+/// Save historical data from a smart contract to a csv file.
 pub async fn save_backtest_data(
     _config: &str,
     start_block: &u64,
@@ -29,6 +33,7 @@ pub async fn save_backtest_data(
     Ok(())
 }
 
+/// Load historical data from a csv file and do something with it.
 pub async fn load_backtest_data(_config: &str, file_path: &str) -> Result<(), Box<dyn Error>> {
     let price_data = simulate::historic::import_price_from_csv(file_path)?;
     let price_ref = &price_data;
