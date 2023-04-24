@@ -33,7 +33,7 @@ mod tests {
         agent::AgentType,
         contract::SimulationContract,
         manager::SimulationManager,
-        stochastic::price_process::{Price, PriceProcessType, GBM},
+        stochastic::price_process::{PriceProcess, PriceProcessType, GBM},
         utils::recast_address,
     };
     #[test]
@@ -236,7 +236,7 @@ mod tests {
         let drift = 0.5;
         let volatility = 0.1;
         let seed = 123;
-        let price = Price::new(
+        let price = PriceProcess::new(
             PriceProcessType::GBM(GBM::new(drift, volatility)),
             timestep,
             timescale,

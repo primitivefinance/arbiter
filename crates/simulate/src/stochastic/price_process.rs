@@ -21,7 +21,7 @@ pub enum PriceProcessType {
 }
 
 /// Struct for all price processes init parameters.
-/// A price process is a stochastic process that describes the evolution of a price.
+/// A price process is a stochastic process that describes the evolution of a price_process.
 /// # Fields
 /// * `process_type` - Type of price process. (PriceProcessType)
 /// * `timestep` - Time step of the simulation. (f64)
@@ -29,7 +29,7 @@ pub enum PriceProcessType {
 /// * `num_steps` - Number of steps in the simulation. (usize)
 /// * `initial_price` - Initial price of the simulation. (f64)
 /// * `seed` - Seed for testing. (u64)
-pub struct Price {
+pub struct PriceProcess {
     /// Type of price process.
     pub process_type: PriceProcessType,
     /// Time step of the simulation.
@@ -44,7 +44,7 @@ pub struct Price {
     pub seed: u64,
 }
 
-impl Price {
+impl PriceProcess {
     /// Public builder function that instantiates a [`Price`].
     pub fn new(
         process_type: PriceProcessType,
@@ -54,7 +54,7 @@ impl Price {
         initial_price: f64,
         seed: u64,
     ) -> Self {
-        Price {
+        PriceProcess {
             process_type,
             timestep,
             timescale,
@@ -73,7 +73,7 @@ impl Price {
     }
 }
 
-impl Plotting for Price {
+impl Plotting for PriceProcess {
     /// Plots a price path vs time.
     /// # Arguments
     /// * `time` - Vector of time steps. (Vec<f64>)
@@ -132,20 +132,20 @@ impl GBM {
     /// # Returns
     /// * `time` - Vector of time steps. (Vec<f64>)
     /// * `prices` - Vector of prices. (Vec<f64>)
-    fn generate(&self, price: &Price) -> (Vec<f64>, Vec<f64>) {
-        let mut rng = rand::rngs::StdRng::seed_from_u64(price.seed);
+    fn generate(&self, price_process: &PriceProcess) -> (Vec<f64>, Vec<f64>) {
+        let mut rng = rand::rngs::StdRng::seed_from_u64(price_process.seed);
         let normal = Normal::new(0.0, 1.0);
-        let mut prices = vec![price.initial_price];
-        let mut new_price = price.initial_price;
+        let mut prices = vec![price_process.initial_price];
+        let mut new_price = price_process.initial_price;
 
-        for _ in 0..price.num_steps {
+        for _ in 0..price_process.num_steps {
             let noise = normal.sample(&mut rng);
             new_price *=
-                1.0 + self.drift * price.timestep + self.volatility * noise * price.timestep.sqrt();
+                1.0 + self.drift * price_process.timestep + self.volatility * noise * price_process.timestep.sqrt();
             prices.push(new_price);
         }
-        let time = (0..price.num_steps)
-            .map(|i| i as f64 * price.timestep)
+        let time = (0..price_process.num_steps)
+            .map(|i| i as f64 * price_process.timestep)
             .collect::<Vec<f64>>();
         (time, prices)
     }
@@ -180,20 +180,20 @@ impl OU {
     /// # Returns
     /// * `time` - Vector of time steps. (Vec<f64>)
     /// * `prices` - Vector of prices. (Vec<f64>)
-    fn generate(&self, price: &Price) -> (Vec<f64>, Vec<f64>) {
-        let mut rng = rand::rngs::StdRng::seed_from_u64(price.seed);
+    fn generate(&self, price_process: &PriceProcess) -> (Vec<f64>, Vec<f64>) {
+        let mut rng = rand::rngs::StdRng::seed_from_u64(price_process.seed);
         let normal = Normal::new(0.0, 1.0);
-        let mut prices = vec![price.initial_price];
-        let mut new_price = price.initial_price;
+        let mut prices = vec![price_process.initial_price];
+        let mut new_price = price_process.initial_price;
 
-        for _ in 0..price.num_steps {
+        for _ in 0..price_process.num_steps {
             let noise = normal.sample(&mut rng);
-            new_price += self.mean_reversion_speed * (self.mean_price - new_price) * price.timestep
-                + self.volatility * noise * price.timestep.sqrt();
+            new_price += self.mean_reversion_speed * (self.mean_price - new_price) * price_process.timestep
+                + self.volatility * noise * price_process.timestep.sqrt();
             prices.push(new_price);
         }
-        let time = (0..price.num_steps)
-            .map(|i| i as f64 * price.timestep)
+        let time = (0..price_process.num_steps)
+            .map(|i| i as f64 * price_process.timestep)
             .collect::<Vec<f64>>();
         (time, prices)
     }

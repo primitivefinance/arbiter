@@ -1,6 +1,6 @@
 use std::error::Error;
 
-use simulate::stochastic::price_process::{Plotting, Price, PriceProcessType, GBM, OU};
+use simulate::stochastic::price_process::{Plotting, PriceProcess, PriceProcessType, GBM, OU};
 
 use crate::config::{ConfigGBM, ConfigOU};
 
@@ -10,7 +10,7 @@ use crate::config::{ConfigGBM, ConfigOU};
 pub fn plot_gbm(config_path: &String) -> Result<(), Box<dyn Error>> {
     let config = ConfigGBM::new(config_path)?;
     let gbm_config = GBM::new(config.drift, config.volatility);
-    let price_gbm = Price::new(
+    let price_gbm = PriceProcess::new(
         PriceProcessType::GBM(gbm_config),
         config.timestep,
         config.timescale,
@@ -33,7 +33,7 @@ pub fn plot_ou(config_path: &String) -> Result<(), Box<dyn Error>> {
         config.ou_mean_reversion_speed,
         config.ou_mean,
     );
-    let price_ou = Price::new(
+    let price_ou = PriceProcess::new(
         PriceProcessType::OU(ou_config),
         config.timestep,
         config.timescale,
