@@ -4,16 +4,12 @@
 
 use std::error::Error;
 
-use bindings::uniswap_v3_pool;
 use clap::{CommandFactory, Parser, Subcommand};
+use commands::*;
 use eyre::Result;
-use on_chain::monitor::EventMonitor;
 
-mod backtest_data;
+mod commands;
 mod config;
-mod gbm;
-mod ou;
-mod sim;
 
 #[derive(Parser)]
 #[command(name = "Arbiter")]
@@ -86,29 +82,23 @@ async fn main() -> Result<(), Box<dyn Error>> {
 
     match &args.command {
         Some(Commands::Sim { config: _ }) => {
-            // Create a `SimulationManager` that runs simulations in their `SimulationEnvironment`.
+            // Create a [`SimulationManager`] that runs simulations in their `SimulationEnvironment`.
             sim::sim()?;
         }
 
         Some(Commands::Ou { config }) => {
             // Plot an OU price path
-            ou::plot_ou(config);
+            price_path::plot_ou(config)?;
         }
 
         Some(Commands::Gbm { config }) => {
             // Plot a GBM price path
-            gbm::plot_gbm(config);
+            price_path::plot_gbm(config)?;
         }
 
         Some(Commands::Live { config: _ }) => {
             // Parse the contract address
-            let contract_address = "0x88e6A0c2dDD26FEEb64F039a2c41296FcB3f5640";
-            let event_monitor =
-                EventMonitor::new(on_chain::monitor::utils::RpcTypes::Mainnet).await;
-            let contract_abi = uniswap_v3_pool::UNISWAPV3POOL_ABI.clone();
-            let _ = event_monitor
-                .monitor_events(contract_address, contract_abi)
-                .await;
+            live::live().await?;
         }
 
         Some(Commands::ExportSwapRange {
@@ -118,12 +108,12 @@ async fn main() -> Result<(), Box<dyn Error>> {
             address,
         }) => {
             // Export swap price data for a given block range
-            backtest_data::save_backtest_data(config, start_block, end_block, address).await;
+            backtest_data::save_backtest_data(config, start_block, end_block, address).await?;
         }
 
         Some(Commands::Importbacktest { config, file_path }) => {
             // Import swap price data from a csv file
-            backtest_data::load_backtest_data(config, file_path).await;
+            backtest_data::load_backtest_data(config, file_path).await?;
         }
 
         None => {

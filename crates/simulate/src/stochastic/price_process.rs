@@ -1,8 +1,5 @@
 //! Module for price process generation and plotting.
 
-use std::{error::Error, fs::File};
-
-use csv::ReaderBuilder;
 use plotly::{Plot, Scatter};
 use rand::SeedableRng;
 
@@ -14,19 +11,17 @@ pub trait Plotting {
     fn plot(&self, time: &[f64], price_path: &[f64]);
 }
 
-/// Type of price process enumerator.
 #[derive(Debug)]
-
 /// Enum for type of price process being used.
 pub enum PriceProcessType {
     /// Geometric Brownian Motion (GBM) process.
-    GBM,
+    GBM(GBM),
     /// Ornstein-Uhlenbeck (OU) process.
-    OU,
+    OU(OU),
 }
 
 /// Struct for all price processes init parameters.
-/// A price process is a stochastic process that describes the evolution of a price.
+/// A price process is a stochastic process that describes the evolution of a price_process.
 /// # Fields
 /// * `process_type` - Type of price process. (PriceProcessType)
 /// * `timestep` - Time step of the simulation. (f64)
@@ -34,7 +29,7 @@ pub enum PriceProcessType {
 /// * `num_steps` - Number of steps in the simulation. (usize)
 /// * `initial_price` - Initial price of the simulation. (f64)
 /// * `seed` - Seed for testing. (u64)
-pub struct Price {
+pub struct PriceProcess {
     /// Type of price process.
     pub process_type: PriceProcessType,
     /// Time step of the simulation.
@@ -49,7 +44,7 @@ pub struct Price {
     pub seed: u64,
 }
 
-impl Price {
+impl PriceProcess {
     /// Public builder function that instantiates a [`Price`].
     pub fn new(
         process_type: PriceProcessType,
@@ -59,7 +54,7 @@ impl Price {
         initial_price: f64,
         seed: u64,
     ) -> Self {
-        Price {
+        PriceProcess {
             process_type,
             timestep,
             timescale,
@@ -68,9 +63,17 @@ impl Price {
             seed,
         }
     }
+
+    /// Generates a price path.
+    pub fn generate_price_path(&self) -> (Vec<f64>, Vec<f64>) {
+        match &self.process_type {
+            PriceProcessType::GBM(gbm) => gbm.generate(self),
+            PriceProcessType::OU(ou) => ou.generate(self),
+        }
+    }
 }
 
-impl Plotting for Price {
+impl Plotting for PriceProcess {
     /// Plots a price path vs time.
     /// # Arguments
     /// * `time` - Vector of time steps. (Vec<f64>)
@@ -81,7 +84,7 @@ impl Plotting for Price {
     /// * `PlottingPrice.html` - If the file cannot be created.
     fn plot(&self, time: &[f64], price_path: &[f64]) {
         match self.process_type {
-            PriceProcessType::GBM => {
+            PriceProcessType::GBM(..) => {
                 let mut filename = String::from("Plotting_GBM_Price");
                 filename.push_str(".html");
 
@@ -91,7 +94,7 @@ impl Plotting for Price {
 
                 plot.write_html(filename)
             }
-            PriceProcessType::OU => {
+            PriceProcessType::OU(..) => {
                 let mut filename = String::from("Plotting_OU_Price");
                 filename.push_str(".html");
 
@@ -109,6 +112,7 @@ impl Plotting for Price {
 /// # Fields
 /// * `drift` - Price drift of the underlying asset. (f64)
 /// * `volatility` - Volatility of the underlying asset. (f64)
+#[derive(Debug)]
 pub struct GBM {
     drift: f64,
     volatility: f64,
@@ -128,25 +132,21 @@ impl GBM {
     /// # Returns
     /// * `time` - Vector of time steps. (Vec<f64>)
     /// * `prices` - Vector of prices. (Vec<f64>)
-    pub fn generate_gbm(
-        &self,
-        timestep: f64,
-        num_steps: usize,
-        initial_price: f64,
-        seed: u64,
-    ) -> (Vec<f64>, Vec<f64>) {
-        let mut rng = rand::rngs::StdRng::seed_from_u64(seed);
+    fn generate(&self, price_process: &PriceProcess) -> (Vec<f64>, Vec<f64>) {
+        let mut rng = rand::rngs::StdRng::seed_from_u64(price_process.seed);
         let normal = Normal::new(0.0, 1.0);
-        let mut prices = vec![initial_price];
-        let mut price = initial_price;
+        let mut prices = vec![price_process.initial_price];
+        let mut new_price = price_process.initial_price;
 
-        for _ in 0..num_steps {
+        for _ in 0..price_process.num_steps {
             let noise = normal.sample(&mut rng);
-            price *= 1.0 + self.drift * timestep + self.volatility * noise * timestep.sqrt();
-            prices.push(price);
+            new_price *= 1.0
+                + self.drift * price_process.timestep
+                + self.volatility * noise * price_process.timestep.sqrt();
+            prices.push(new_price);
         }
-        let time = (0..num_steps)
-            .map(|i| i as f64 * timestep)
+        let time = (0..price_process.num_steps)
+            .map(|i| i as f64 * price_process.timestep)
             .collect::<Vec<f64>>();
         (time, prices)
     }
@@ -156,6 +156,7 @@ impl GBM {
 /// # Fields
 /// * `mean_reversion_speed` - Mean reversion speed of the underlying asset. (f64)
 /// * `mean_price` - Mean price of the underlying asset. (f64)
+#[derive(Debug)]
 pub struct OU {
     volatility: f64,
     mean_reversion_speed: f64,
@@ -180,45 +181,22 @@ impl OU {
     /// # Returns
     /// * `time` - Vector of time steps. (Vec<f64>)
     /// * `prices` - Vector of prices. (Vec<f64>)
-    pub fn generate_ou(
-        &self,
-        timestep: f64,
-        num_steps: usize,
-        initial_price: f64,
-        seed: u64,
-    ) -> (Vec<f64>, Vec<f64>) {
-        let mut rng = rand::rngs::StdRng::seed_from_u64(seed);
+    fn generate(&self, price_process: &PriceProcess) -> (Vec<f64>, Vec<f64>) {
+        let mut rng = rand::rngs::StdRng::seed_from_u64(price_process.seed);
         let normal = Normal::new(0.0, 1.0);
-        let mut prices = vec![initial_price];
-        let mut price = initial_price;
+        let mut prices = vec![price_process.initial_price];
+        let mut new_price = price_process.initial_price;
 
-        for _ in 0..num_steps {
+        for _ in 0..price_process.num_steps {
             let noise = normal.sample(&mut rng);
-            price += self.mean_reversion_speed * (self.mean_price - price) * timestep
-                + self.volatility * noise * timestep.sqrt();
-            prices.push(price);
+            new_price +=
+                self.mean_reversion_speed * (self.mean_price - new_price) * price_process.timestep
+                    + self.volatility * noise * price_process.timestep.sqrt();
+            prices.push(new_price);
         }
-        let time = (0..num_steps)
-            .map(|i| i as f64 * timestep)
+        let time = (0..price_process.num_steps)
+            .map(|i| i as f64 * price_process.timestep)
             .collect::<Vec<f64>>();
         (time, prices)
     }
-}
-
-/// Import CSV file of price data
-/// # Arguments
-/// * `file_path` - path to csv file of price data (String)
-/// # Returns
-/// * `price_data` - Vector of prices. (Vec<f64>)
-pub fn import_price_from_csv(file_path: &str) -> Result<Vec<f64>, Box<dyn Error>> {
-    let mut price_data: Vec<f64> = Vec::new();
-    let file = File::open(file_path)?;
-    let mut reader = ReaderBuilder::new().from_reader(file);
-
-    for result in reader.deserialize() {
-        let num: f64 = result?;
-        price_data.push(num);
-    }
-
-    Ok(price_data)
 }
