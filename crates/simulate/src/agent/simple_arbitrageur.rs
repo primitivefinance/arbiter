@@ -45,7 +45,7 @@ impl Agent for SimpleArbitrageur {
 }
 
 impl SimpleArbitrageur {
-    fn detect_arbitrage(&self) -> Result<(), Box<dyn Error>> {
+    async fn detect_arbitrage(&self) -> Result<(), Box<dyn Error>> {
         Ok(())
     }
 }
@@ -66,7 +66,7 @@ mod tests {
         utils::recast_address,
     };
 
-    #[test]
+    // #[test]
     // fn simple_arbitrageur_event_filter() -> Result<(), Box<dyn Error>> {
     //     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
     //     // Set up the liquid exchange.

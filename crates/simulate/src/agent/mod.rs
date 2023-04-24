@@ -13,7 +13,7 @@ use std::{
 
 use bytes::Bytes;
 use crossbeam_channel::Receiver;
-use ethers::types::H256;
+use ethers::{types::H256, abi::{ethabi::AbiError, Token}, prelude::BaseContract};
 use revm::primitives::{Address, ExecutionResult, Log, TransactTo, TxEnv, B160, U256};
 
 use crate::{
@@ -108,18 +108,25 @@ pub trait Agent: Sync {
             Err(e) => Err(AgentError(format!("Error reading logs for agent: {}", e))),
         }
     }
-
-    // TODO: This isn't totally tested yet, but it comes from the `test_event_monitoring()` function
+    // TODO: add a condition as a bool valued function?
     /// Monitor events for the agent.
-    fn monitor_events(&self) {
+    fn monitor_events(&self) -> Result<(), AgentError> {
         let receiver = self.receiver();
         let event_filters = self.event_filters();
+
+        let event_name = event_filters[0].event_name.clone();
+        let event_topic = event_filters[0].topic;
         thread::spawn(move || {
+            let decoder = |input| event_filters[0].base_contract.decode_event_raw(event_name.as_str(), vec![event_topic], input);
             while let Ok(logs) = receiver.recv() {
                 let filtered_logs = filter_events(event_filters.clone(), logs);
                 println!("Filtered logs are: {:#?}", filtered_logs);
+                let data = filtered_logs[0].data.clone().into_iter().collect(); 
+                let decoded_event = decoder(data).unwrap(); // TODO: Fix the error handling here.
+                println!("Decoded event says: {:#?}", decoded_event);
             }
         });
+        Ok(())
     }
 }
 
@@ -130,6 +137,9 @@ pub struct SimulationEventFilter {
     pub address: B160,
     /// The event names to filter for.
     pub topic: H256,
+
+    base_contract: BaseContract,
+    pub event_name: String,
 }
 
 /// Creates a filter for the agent to use to filter out events.
@@ -137,15 +147,18 @@ pub fn create_filter(
     contract: &SimulationContract<IsDeployed>,
     event_name: &str,
 ) -> SimulationEventFilter {
-    // let abi = contracts[0].base_contract.abi();
+    let topic = contract
+    .base_contract
+    .abi()
+    .event(event_name)
+    .unwrap()
+    .signature();
+    // let decoder = |input| contract.decode_event::<[Token]>(event_name, vec![topic.into()], input); 
     SimulationEventFilter {
         address: contract.address,
-        topic: contract
-            .base_contract
-            .abi()
-            .event(event_name)
-            .unwrap()
-            .signature(),
+        topic,
+        base_contract: contract.base_contract.clone(),
+        event_name: event_name.to_string(),
     }
 }
 
@@ -159,7 +172,7 @@ fn filter_events(simulation_filters: Vec<SimulationEventFilter>, logs: Vec<Log>)
 
     for log in logs {
         for event_filter in simulation_filters.iter() {
-            if event_filter.address == log.address && event_filter.topic == log.topics[0].into()
+            if event_filter.address == log.address && event_filter.topic == log.topics[0].into() // TODO: Needs to not just be log.topics[0]
             {
                 events.push(log.clone());
                 break;
