@@ -12,6 +12,7 @@ Cargo.lock
 /cache/
 /out/
 *.html
+*.csv
 
 .DS_Store
 # /contracts/*
