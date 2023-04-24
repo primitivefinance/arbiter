@@ -18,7 +18,7 @@ use revm::primitives::{Address, ExecutionResult, Log, TransactTo, TxEnv, B160, U
 
 use crate::{
     contract::{IsDeployed, SimulationContract},
-    environment::SimulationEnvironment,
+    environment::SimulationEnvironment, utils::float_to_wad,
 };
 
 pub mod simple_arbitrageur;
@@ -109,6 +109,7 @@ pub trait Agent: Sync {
         }
     }
     // TODO: add a condition as a bool valued function?
+    // TODO: It would be optimal to not build functions inside of the monitor events since it could get called often. Ideally we just don't call it often?
     /// Monitor events for the agent.
     fn monitor_events(&self) -> Result<(), AgentError> {
         let receiver = self.receiver();
@@ -124,6 +125,12 @@ pub trait Agent: Sync {
                 let data = filtered_logs[0].data.clone().into_iter().collect(); 
                 let decoded_event = decoder(data).unwrap(); // TODO: Fix the error handling here.
                 println!("Decoded event says: {:#?}", decoded_event);
+                let value = decoded_event[0].clone();
+                println!("The value is: {:#?}", value);
+                let value = value.into_uint().unwrap();
+                if value > float_to_wad(50000_f64) {
+                    println!("FAKE ARB EVENT");
+                }
             }
         });
         Ok(())
