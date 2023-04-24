@@ -134,6 +134,7 @@ impl SimulationManager {
                     },
                     event_receiver,
                     event_filters,
+                    prices: (U256::ZERO, U256::ZERO),
                 };
                 self.agents
                     .insert(name.into(), Box::new(simple_arbitrageur));
