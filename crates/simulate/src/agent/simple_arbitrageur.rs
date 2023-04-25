@@ -1,12 +1,12 @@
 #![warn(missing_docs)]
 //! Describes the most basic type of user agent.
 
-use std::error::Error;
+use std::{error::Error, thread};
 
 use crossbeam_channel::Receiver;
 use revm::primitives::{AccountInfo, Address, Log, B160, U256};
 
-use crate::agent::{Agent, SimulationEventFilter, TransactSettings};
+use crate::{agent::{Agent, SimulationEventFilter, TransactSettings, filter_events}, utils::float_to_wad};
 
 /// A user is an agent that can interact with the simulation environment generically.
 pub struct SimpleArbitrageur {
@@ -44,12 +44,6 @@ impl Agent for SimpleArbitrageur {
     }
 }
 
-impl SimpleArbitrageur {
-    async fn detect_arbitrage(&self) -> Result<(), Box<dyn Error>> {
-        Ok(())
-    }
-}
-
 #[cfg(test)]
 mod tests {
 
@@ -65,6 +59,8 @@ mod tests {
         manager::SimulationManager,
         utils::recast_address,
     };
+
+    use super::SimpleArbitrageur;
 
     // #[test]
     // fn simple_arbitrageur_event_filter() -> Result<(), Box<dyn Error>> {

@@ -55,7 +55,7 @@ pub struct TransactSettings {
 }
 
 /// Basic traits that every `Agent` must implement in order to properly interact with an EVM.
-pub trait Agent: Sync {
+pub trait Agent {
     /// Returns the name of the agent.
     fn name(&self) -> String;
     /// Returns the address of the agent.
@@ -108,22 +108,20 @@ pub trait Agent: Sync {
             Err(e) => Err(AgentError(format!("Error reading logs for agent: {}", e))),
         }
     }
+    // TODO: Right now this is only detecting an arb event and instead...
     // TODO: add a condition as a bool valued function?
     // TODO: It would be optimal to not build functions inside of the monitor events since it could get called often. Ideally we just don't call it often?
     /// Monitor events for the agent.
-    fn monitor_events(&self) -> Result<(), AgentError> {
+    fn monitor_events(&self) -> Result<(), AgentError>  {
         let receiver = self.receiver();
         let event_filters = self.event_filters();
-
-        let event_name = event_filters[0].event_name.clone();
-        let event_topic = event_filters[0].topic;
         thread::spawn(move || {
-            let decoder = |input| event_filters[0].base_contract.decode_event_raw(event_name.as_str(), vec![event_topic], input);
+            let decoder = |input, filter_num: usize| event_filters[filter_num].base_contract.decode_event_raw(event_filters[filter_num].event_name.as_str(), vec![event_filters[filter_num].topic], input);
             while let Ok(logs) = receiver.recv() {
                 let filtered_logs = filter_events(event_filters.clone(), logs);
                 println!("Filtered logs are: {:#?}", filtered_logs);
                 let data = filtered_logs[0].data.clone().into_iter().collect(); 
-                let decoded_event = decoder(data).unwrap(); // TODO: Fix the error handling here.
+                let decoded_event = decoder(data, 0).unwrap(); // TODO: Fix the error handling here.
                 println!("Decoded event says: {:#?}", decoded_event);
                 let value = decoded_event[0].clone();
                 println!("The value is: {:#?}", value);
@@ -170,7 +168,7 @@ pub fn create_filter(
 }
 
 /// Used to allow agents to filter out the events they choose to monitor.
-fn filter_events(simulation_filters: Vec<SimulationEventFilter>, logs: Vec<Log>) -> Vec<Log> {
+pub fn filter_events(simulation_filters: Vec<SimulationEventFilter>, logs: Vec<Log>) -> Vec<Log> {
     if simulation_filters.is_empty() {
         return logs;
     }
