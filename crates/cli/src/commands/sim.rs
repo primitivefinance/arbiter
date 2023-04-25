@@ -285,12 +285,12 @@ fn intitalization_calls(
         .collect();
     let i_portfolio = BaseContract::from(i_portfolio::IPORTFOLIO_ABI.clone());
     let data = encoded_create_pair_result.logs()[0].data.clone();
-    let (pair_id, _token_1, _token_2, _dec_1, _dec_2): (Token, Token, Token, Token, Token) =
+    let result: (Token, Token, Token, Token, Token) =
         i_portfolio
             .decode_event("CreatePair", h256_vec, ethers::types::Bytes(data))
             .unwrap();
-    println!("Decoded pairID: {:#?}", pair_id.to_string());
-    let pair_id: u32 = pair_id.to_string().parse::<u32>().unwrap();
+    println!("Decoded pairID: {:#?}", result.0.to_string());
+    let pair_id: u32 = result.0.to_string().parse::<u32>().unwrap();
     let encoded_pair = portfolio.encode_function("pairs", pair_id)?;
     let pairs = admin.call_contract(
         &mut manager.environment,
@@ -348,7 +348,7 @@ fn intitalization_calls(
         create_pool_call,
         Uint::from(0),
     );
-    println!("create pool result {:#?}", result.is_success());
+    assert_eq!(result.is_success(), true);
 
     Ok(())
 }
