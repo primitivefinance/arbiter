@@ -26,7 +26,7 @@ pub struct ManagerError {
     /// Error message.
     pub message: String,
     /// Byte output of the error.
-    pub output: Option<Bytes>
+    pub output: Option<Bytes>,
 }
 
 impl Error for ManagerError {}
@@ -85,11 +85,11 @@ impl SimulationManager {
             .into_iter()
             .any(|agent_in_db| agent_in_db.address() == address)
         {
-            return Err(ManagerError{
-                message: "Agent with that address already exists in the simulation environment.".to_string(),
-                output: None 
-            }
-            );
+            return Err(ManagerError {
+                message: "Agent with that address already exists in the simulation environment."
+                    .to_string(),
+                output: None,
+            });
         };
         if self
             .agents
@@ -97,10 +97,11 @@ impl SimulationManager {
             .into_iter()
             .any(|name_in_db| *name_in_db == name.into())
         {
-            return Err(ManagerError{
-                message: "Agent with that name already exists in the simulation environment.".to_string(),
-                output: None
-        });
+            return Err(ManagerError {
+                message: "Agent with that name already exists in the simulation environment."
+                    .to_string(),
+                output: None,
+            });
         };
 
         // Create the agent and add it to the simulation environment so long as we don't throw an error above.
@@ -128,10 +129,10 @@ impl SimulationManager {
             AgentType::SimpleArbitrageur => {
                 let event_filters = match event_filter {
                     Some(event_filter) => Ok(event_filter),
-                    None => Err(ManagerError{
+                    None => Err(ManagerError {
                         message: "`SimpleArbitrageur` agent must have an event filter.".to_string(),
                         output: None,
-                }),
+                    }),
                 }?;
                 let simple_arbitrageur = SimpleArbitrageur {
                     name: name.into(),
@@ -162,13 +163,14 @@ impl SimulationManager {
                 Output::Call(value) => Ok(value),
                 Output::Create(value, _address) => Ok(value),
             },
-            ExecutionResult::Halt { reason, gas_used } => Err(ManagerError{
-                message:
-                    format!("This call halted for {:#?} and used {} gas.",
-                    reason, gas_used),
+            ExecutionResult::Halt { reason, gas_used } => Err(ManagerError {
+                message: format!(
+                    "This call halted for {:#?} and used {} gas.",
+                    reason, gas_used
+                ),
                 output: None,
             }),
-            ExecutionResult::Revert { output, gas_used } => Err(ManagerError{
+            ExecutionResult::Revert { output, gas_used } => Err(ManagerError {
                 message: format!(
                     "This call reverted with output {:#?} and used {} gas.",
                     output, gas_used
@@ -178,7 +180,6 @@ impl SimulationManager {
         }
     }
 }
-    
 
 #[test]
 fn agent_address_collision() {
