@@ -8,7 +8,7 @@ on:
 jobs:
   bump_version:
     runs-on: ubuntu-latest
-    if: github.event.pull_request.merged == true && (github.event.number % 5 == 0)
+    if: github.event.pull_request.merged == true
 
     steps:
       - name: Checkout repository
@@ -33,10 +33,10 @@ jobs:
           git config --global user.email "waylonjepsen1@gmail.com"
           git config --global user.name "Waylon Jepsen"
 
-      - name: Bump minor version
+      - name: Bump patch version
         run: |
           find . -name 'Cargo.toml' -execdir sh -c '
-            cargo bump minor
+            cargo bump patch
             VERSION=$(cargo metadata --format-version 1 | jq -r ".packages[] | select(.manifest_path == \"$(pwd)/Cargo.toml\") | .version")
             git add Cargo.toml
             git commit -m "Bump version in $(dirname $(pwd)) to $VERSION" ' \;
