@@ -25,11 +25,19 @@ jobs:
       - name: Install cargo-edit
         run: cargo install cargo-edit
 
-      - name: Bump minor version
+      - name: Install jq
+        run: sudo apt-get install -y jq
+
+      - name: Configure Git
         run: |
-          cargo bump minor
-          VERSION=$(cargo metadata --format-version 1 | jq -r '.packages[] | select(.name == "arbiter") | .version')
           git config --global user.email "waylonjepsen1@gmail.com"
           git config --global user.name "Waylon Jepsen"
-          git add Cargo.toml
-          git commit -m
+
+      - name: Bump minor version
+        run: |
+          find . -name 'Cargo.toml' -execdir sh -c '
+            cargo bump minor
+            VERSION=$(cargo metadata --format-version 1 | jq -r ".packages[] | select(.manifest_path == \"$(pwd)/Cargo.toml\") | .version")
+            git add Cargo.toml
+            git commit -m "Bump version in $(dirname $(pwd)) to $VERSION" ' \;
+          git push
