@@ -366,7 +366,7 @@ fn intitalization_calls(
         // should_allocate: bool,
         true,
         // use_max: u8,
-        100 as u8,
+        0u8,
         // pool_id: u64,
         100_u64,
         // delta_liquidity: u128,
@@ -387,7 +387,10 @@ fn intitalization_calls(
         "encoded_create_pool_result: {:#?}",
         hex::encode(decoded_encoded_data.clone())
     );
-    
+    // This is what we get, need to go over this with matt
+    // |01|00|00|0000000000641c2d030000000000000000000000000000000103000000000000000000000000000000010300000000000000000000000000000001
+    //  * `0x | ALLOCATE or DEALLOCATE (1 byte) | useMax (1 byte) | poolId (8 bytes) | pointerPowerDeltaAsset | pointerDeltaQuote | powerDeltaLiquidity (1 byte) | baseDeltaLiquidity (? bytes) | powerDeltaAsset (1 byte) | baseDeltaAsset (? bytes) | powerDeltaQuote (1 byte) | baseDeltaQuote (? bytes)`\
+
 
     // should_allocate: bool,
     // use_max: u8,
@@ -396,16 +399,11 @@ fn intitalization_calls(
     // amount_0: u128,
     // amount_1: u128,
 
-
     // @param data Encoded pool id
     // @return poolId Pool id converted from bytes to uint64
     // @return pairId Pair id of the pool
     // @return isMutable True if the pool is mutable
     // @return poolNonce Pool nonce of the pool
-    // @custom:example
-    // 
-    // (uint64 poolId, uint24 pairId, uint8 isMutable, uint32 poolNonce)
-    //     = decodePoolId(0x000007010000002a);
     
 
     Ok(())
