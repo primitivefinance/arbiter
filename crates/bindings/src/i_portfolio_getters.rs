@@ -12,7 +12,7 @@ pub use i_portfolio_getters::*;
 pub mod i_portfolio_getters {
     pub use super::super::shared_types::*;
     #[rustfmt::skip]
-    const __ABI: &str = "[{\"inputs\":[],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"REGISTRY\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\",\"components\":[]}]},{\"inputs\":[],\"stateMutability\":\"pure\",\"type\":\"function\",\"name\":\"VERSION\",\"outputs\":[{\"internalType\":\"string\",\"name\":\"\",\"type\":\"string\",\"components\":[]}]},{\"inputs\":[],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"WETH\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"uint64\",\"name\":\"poolId\",\"type\":\"uint64\",\"components\":[]},{\"internalType\":\"bool\",\"name\":\"sellAsset\",\"type\":\"bool\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"amountIn\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"address\",\"name\":\"swapper\",\"type\":\"address\",\"components\":[]}],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"getAmountOut\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"owner\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"address\",\"name\":\"token\",\"type\":\"address\",\"components\":[]}],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"getBalance\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"uint64\",\"name\":\"poolId\",\"type\":\"uint64\",\"components\":[]},{\"internalType\":\"int128\",\"name\":\"deltaLiquidity\",\"type\":\"int128\",\"components\":[]}],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"getLiquidityDeltas\",\"outputs\":[{\"internalType\":\"uint128\",\"name\":\"deltaAsset\",\"type\":\"uint128\",\"components\":[]},{\"internalType\":\"uint128\",\"name\":\"deltaQuote\",\"type\":\"uint128\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"uint64\",\"name\":\"poolId\",\"type\":\"uint64\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"deltaAsset\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"deltaQuote\",\"type\":\"uint256\",\"components\":[]}],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"getMaxLiquidity\",\"outputs\":[{\"internalType\":\"uint128\",\"name\":\"deltaLiquidity\",\"type\":\"uint128\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"token\",\"type\":\"address\",\"components\":[]}],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"getNetBalance\",\"outputs\":[{\"internalType\":\"int256\",\"name\":\"\",\"type\":\"int256\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"asset\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"address\",\"name\":\"quote\",\"type\":\"address\",\"components\":[]}],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"getPairId\",\"outputs\":[{\"internalType\":\"uint24\",\"name\":\"pairId\",\"type\":\"uint24\",\"components\":[]}]},{\"inputs\":[],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"getPairNonce\",\"outputs\":[{\"internalType\":\"uint24\",\"name\":\"\",\"type\":\"uint24\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"uint24\",\"name\":\"pairNonce\",\"type\":\"uint24\",\"components\":[]}],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"getPoolNonce\",\"outputs\":[{\"internalType\":\"uint32\",\"name\":\"\",\"type\":\"uint32\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"uint64\",\"name\":\"poolId\",\"type\":\"uint64\",\"components\":[]}],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"getPoolReserves\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"deltaAsset\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"deltaQuote\",\"type\":\"uint256\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"token\",\"type\":\"address\",\"components\":[]}],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"getReserve\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"uint64\",\"name\":\"poolId\",\"type\":\"uint64\",\"components\":[]}],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"getVirtualPrice\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"price\",\"type\":\"uint256\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"uint64\",\"name\":\"poolId\",\"type\":\"uint64\",\"components\":[]}],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"getVirtualReservesPerLiquidity\",\"outputs\":[{\"internalType\":\"uint128\",\"name\":\"deltaAsset\",\"type\":\"uint128\",\"components\":[]},{\"internalType\":\"uint128\",\"name\":\"deltaQuote\",\"type\":\"uint128\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"uint24\",\"name\":\"pairId\",\"type\":\"uint24\",\"components\":[]}],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"pairs\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"tokenAsset\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint8\",\"name\":\"decimalsAsset\",\"type\":\"uint8\",\"components\":[]},{\"internalType\":\"address\",\"name\":\"tokenQuote\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint8\",\"name\":\"decimalsQuote\",\"type\":\"uint8\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"uint64\",\"name\":\"poolId\",\"type\":\"uint64\",\"components\":[]}],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"pools\",\"outputs\":[{\"internalType\":\"uint128\",\"name\":\"virtualX\",\"type\":\"uint128\",\"components\":[]},{\"internalType\":\"uint128\",\"name\":\"virtualY\",\"type\":\"uint128\",\"components\":[]},{\"internalType\":\"uint128\",\"name\":\"liquidity\",\"type\":\"uint128\",\"components\":[]},{\"internalType\":\"uint32\",\"name\":\"lastTimestamp\",\"type\":\"uint32\",\"components\":[]},{\"internalType\":\"address\",\"name\":\"controller\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"struct PortfolioCurve\",\"name\":\"\",\"type\":\"tuple\",\"components\":[{\"internalType\":\"uint128\",\"name\":\"maxPrice\",\"type\":\"uint128\",\"components\":[]},{\"internalType\":\"uint16\",\"name\":\"jit\",\"type\":\"uint16\",\"components\":[]},{\"internalType\":\"uint16\",\"name\":\"fee\",\"type\":\"uint16\",\"components\":[]},{\"internalType\":\"uint16\",\"name\":\"duration\",\"type\":\"uint16\",\"components\":[]},{\"internalType\":\"uint16\",\"name\":\"volatility\",\"type\":\"uint16\",\"components\":[]},{\"internalType\":\"uint16\",\"name\":\"priorityFee\",\"type\":\"uint16\",\"components\":[]},{\"internalType\":\"uint32\",\"name\":\"createdAt\",\"type\":\"uint32\",\"components\":[]},{\"internalType\":\"bool\",\"name\":\"perpetual\",\"type\":\"bool\",\"components\":[]}]},{\"internalType\":\"struct PortfolioPair\",\"name\":\"\",\"type\":\"tuple\",\"components\":[{\"internalType\":\"address\",\"name\":\"tokenAsset\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint8\",\"name\":\"decimalsAsset\",\"type\":\"uint8\",\"components\":[]},{\"internalType\":\"address\",\"name\":\"tokenQuote\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint8\",\"name\":\"decimalsQuote\",\"type\":\"uint8\",\"components\":[]}]}]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"owner\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint64\",\"name\":\"poolId\",\"type\":\"uint64\",\"components\":[]}],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"positions\",\"outputs\":[{\"internalType\":\"uint128\",\"name\":\"freeLiquidity\",\"type\":\"uint128\",\"components\":[]},{\"internalType\":\"uint32\",\"name\":\"lastTimestamp\",\"type\":\"uint32\",\"components\":[]}]}]";
+    const __ABI: &str = "[{\"inputs\":[],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"REGISTRY\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\",\"components\":[]}]},{\"inputs\":[],\"stateMutability\":\"pure\",\"type\":\"function\",\"name\":\"VERSION\",\"outputs\":[{\"internalType\":\"string\",\"name\":\"\",\"type\":\"string\",\"components\":[]}]},{\"inputs\":[],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"WETH\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"uint64\",\"name\":\"poolId\",\"type\":\"uint64\",\"components\":[]},{\"internalType\":\"bool\",\"name\":\"sellAsset\",\"type\":\"bool\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"amountIn\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"address\",\"name\":\"swapper\",\"type\":\"address\",\"components\":[]}],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"getAmountOut\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"uint64\",\"name\":\"poolId\",\"type\":\"uint64\",\"components\":[]},{\"internalType\":\"int128\",\"name\":\"deltaLiquidity\",\"type\":\"int128\",\"components\":[]}],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"getLiquidityDeltas\",\"outputs\":[{\"internalType\":\"uint128\",\"name\":\"deltaAsset\",\"type\":\"uint128\",\"components\":[]},{\"internalType\":\"uint128\",\"name\":\"deltaQuote\",\"type\":\"uint128\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"uint64\",\"name\":\"poolId\",\"type\":\"uint64\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"deltaAsset\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"deltaQuote\",\"type\":\"uint256\",\"components\":[]}],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"getMaxLiquidity\",\"outputs\":[{\"internalType\":\"uint128\",\"name\":\"deltaLiquidity\",\"type\":\"uint128\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"token\",\"type\":\"address\",\"components\":[]}],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"getNetBalance\",\"outputs\":[{\"internalType\":\"int256\",\"name\":\"\",\"type\":\"int256\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"asset\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"address\",\"name\":\"quote\",\"type\":\"address\",\"components\":[]}],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"getPairId\",\"outputs\":[{\"internalType\":\"uint24\",\"name\":\"pairId\",\"type\":\"uint24\",\"components\":[]}]},{\"inputs\":[],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"getPairNonce\",\"outputs\":[{\"internalType\":\"uint24\",\"name\":\"\",\"type\":\"uint24\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"uint24\",\"name\":\"pairNonce\",\"type\":\"uint24\",\"components\":[]}],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"getPoolNonce\",\"outputs\":[{\"internalType\":\"uint32\",\"name\":\"\",\"type\":\"uint32\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"uint64\",\"name\":\"poolId\",\"type\":\"uint64\",\"components\":[]}],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"getPoolReserves\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"deltaAsset\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"deltaQuote\",\"type\":\"uint256\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"token\",\"type\":\"address\",\"components\":[]}],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"getReserve\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"uint64\",\"name\":\"poolId\",\"type\":\"uint64\",\"components\":[]}],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"getVirtualPrice\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"price\",\"type\":\"uint256\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"uint64\",\"name\":\"poolId\",\"type\":\"uint64\",\"components\":[]}],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"getVirtualReservesDec\",\"outputs\":[{\"internalType\":\"uint128\",\"name\":\"deltaAsset\",\"type\":\"uint128\",\"components\":[]},{\"internalType\":\"uint128\",\"name\":\"deltaQuote\",\"type\":\"uint128\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"uint24\",\"name\":\"pairId\",\"type\":\"uint24\",\"components\":[]}],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"pairs\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"tokenAsset\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint8\",\"name\":\"decimalsAsset\",\"type\":\"uint8\",\"components\":[]},{\"internalType\":\"address\",\"name\":\"tokenQuote\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint8\",\"name\":\"decimalsQuote\",\"type\":\"uint8\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"uint64\",\"name\":\"poolId\",\"type\":\"uint64\",\"components\":[]}],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"pools\",\"outputs\":[{\"internalType\":\"uint128\",\"name\":\"virtualX\",\"type\":\"uint128\",\"components\":[]},{\"internalType\":\"uint128\",\"name\":\"virtualY\",\"type\":\"uint128\",\"components\":[]},{\"internalType\":\"uint128\",\"name\":\"liquidity\",\"type\":\"uint128\",\"components\":[]},{\"internalType\":\"uint32\",\"name\":\"lastTimestamp\",\"type\":\"uint32\",\"components\":[]},{\"internalType\":\"address\",\"name\":\"controller\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"struct PortfolioCurve\",\"name\":\"\",\"type\":\"tuple\",\"components\":[{\"internalType\":\"uint128\",\"name\":\"maxPrice\",\"type\":\"uint128\",\"components\":[]},{\"internalType\":\"uint16\",\"name\":\"jit\",\"type\":\"uint16\",\"components\":[]},{\"internalType\":\"uint16\",\"name\":\"fee\",\"type\":\"uint16\",\"components\":[]},{\"internalType\":\"uint16\",\"name\":\"duration\",\"type\":\"uint16\",\"components\":[]},{\"internalType\":\"uint16\",\"name\":\"volatility\",\"type\":\"uint16\",\"components\":[]},{\"internalType\":\"uint16\",\"name\":\"priorityFee\",\"type\":\"uint16\",\"components\":[]},{\"internalType\":\"uint32\",\"name\":\"createdAt\",\"type\":\"uint32\",\"components\":[]},{\"internalType\":\"bool\",\"name\":\"perpetual\",\"type\":\"bool\",\"components\":[]}]},{\"internalType\":\"struct PortfolioPair\",\"name\":\"\",\"type\":\"tuple\",\"components\":[{\"internalType\":\"address\",\"name\":\"tokenAsset\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint8\",\"name\":\"decimalsAsset\",\"type\":\"uint8\",\"components\":[]},{\"internalType\":\"address\",\"name\":\"tokenQuote\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint8\",\"name\":\"decimalsQuote\",\"type\":\"uint8\",\"components\":[]}]}]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"owner\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint64\",\"name\":\"poolId\",\"type\":\"uint64\",\"components\":[]}],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"positions\",\"outputs\":[{\"internalType\":\"uint128\",\"name\":\"freeLiquidity\",\"type\":\"uint128\",\"components\":[]},{\"internalType\":\"uint32\",\"name\":\"lastTimestamp\",\"type\":\"uint32\",\"components\":[]}]}]";
     ///The parsed JSON ABI of the contract.
     pub static IPORTFOLIOGETTERS_ABI: ::ethers::contract::Lazy<
         ::ethers::core::abi::Abi,
@@ -97,16 +97,6 @@ pub mod i_portfolio_getters {
         ) -> ::ethers::contract::builders::ContractCall<M, ::ethers::core::types::U256> {
             self.0
                 .method_hash([25, 5, 120, 7], (pool_id, sell_asset, amount_in, swapper))
-                .expect("method not found (this should never happen)")
-        }
-        ///Calls the contract's `getBalance` (0xd4fac45d) function
-        pub fn get_balance(
-            &self,
-            owner: ::ethers::core::types::Address,
-            token: ::ethers::core::types::Address,
-        ) -> ::ethers::contract::builders::ContractCall<M, ::ethers::core::types::U256> {
-            self.0
-                .method_hash([212, 250, 196, 93], (owner, token))
                 .expect("method not found (this should never happen)")
         }
         ///Calls the contract's `getLiquidityDeltas` (0x8992f20a) function
@@ -196,13 +186,13 @@ pub mod i_portfolio_getters {
                 .method_hash([97, 183, 234, 106], pool_id)
                 .expect("method not found (this should never happen)")
         }
-        ///Calls the contract's `getVirtualReservesPerLiquidity` (0x1a4b905b) function
-        pub fn get_virtual_reserves_per_liquidity(
+        ///Calls the contract's `getVirtualReservesDec` (0xa21b9ba0) function
+        pub fn get_virtual_reserves_dec(
             &self,
             pool_id: u64,
         ) -> ::ethers::contract::builders::ContractCall<M, (u128, u128)> {
             self.0
-                .method_hash([26, 75, 144, 91], pool_id)
+                .method_hash([162, 27, 155, 160], pool_id)
                 .expect("method not found (this should never happen)")
         }
         ///Calls the contract's `pairs` (0x5e47663c) function
@@ -310,22 +300,6 @@ pub mod i_portfolio_getters {
         pub sell_asset: bool,
         pub amount_in: ::ethers::core::types::U256,
         pub swapper: ::ethers::core::types::Address,
-    }
-    ///Container type for all input parameters for the `getBalance` function with signature `getBalance(address,address)` and selector `0xd4fac45d`
-    #[derive(
-        Clone,
-        ::ethers::contract::EthCall,
-        ::ethers::contract::EthDisplay,
-        Default,
-        Debug,
-        PartialEq,
-        Eq,
-        Hash
-    )]
-    #[ethcall(name = "getBalance", abi = "getBalance(address,address)")]
-    pub struct GetBalanceCall {
-        pub owner: ::ethers::core::types::Address,
-        pub token: ::ethers::core::types::Address,
     }
     ///Container type for all input parameters for the `getLiquidityDeltas` function with signature `getLiquidityDeltas(uint64,int128)` and selector `0x8992f20a`
     #[derive(
@@ -464,7 +438,7 @@ pub mod i_portfolio_getters {
     pub struct GetVirtualPriceCall {
         pub pool_id: u64,
     }
-    ///Container type for all input parameters for the `getVirtualReservesPerLiquidity` function with signature `getVirtualReservesPerLiquidity(uint64)` and selector `0x1a4b905b`
+    ///Container type for all input parameters for the `getVirtualReservesDec` function with signature `getVirtualReservesDec(uint64)` and selector `0xa21b9ba0`
     #[derive(
         Clone,
         ::ethers::contract::EthCall,
@@ -475,11 +449,8 @@ pub mod i_portfolio_getters {
         Eq,
         Hash
     )]
-    #[ethcall(
-        name = "getVirtualReservesPerLiquidity",
-        abi = "getVirtualReservesPerLiquidity(uint64)"
-    )]
-    pub struct GetVirtualReservesPerLiquidityCall {
+    #[ethcall(name = "getVirtualReservesDec", abi = "getVirtualReservesDec(uint64)")]
+    pub struct GetVirtualReservesDecCall {
         pub pool_id: u64,
     }
     ///Container type for all input parameters for the `pairs` function with signature `pairs(uint24)` and selector `0x5e47663c`
@@ -535,7 +506,6 @@ pub mod i_portfolio_getters {
         Version(VersionCall),
         Weth(WethCall),
         GetAmountOut(GetAmountOutCall),
-        GetBalance(GetBalanceCall),
         GetLiquidityDeltas(GetLiquidityDeltasCall),
         GetMaxLiquidity(GetMaxLiquidityCall),
         GetNetBalance(GetNetBalanceCall),
@@ -545,7 +515,7 @@ pub mod i_portfolio_getters {
         GetPoolReserves(GetPoolReservesCall),
         GetReserve(GetReserveCall),
         GetVirtualPrice(GetVirtualPriceCall),
-        GetVirtualReservesPerLiquidity(GetVirtualReservesPerLiquidityCall),
+        GetVirtualReservesDec(GetVirtualReservesDecCall),
         Pairs(PairsCall),
         Pools(PoolsCall),
         Positions(PositionsCall),
@@ -570,10 +540,6 @@ pub mod i_portfolio_getters {
             if let Ok(decoded)
                 = <GetAmountOutCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::GetAmountOut(decoded));
-            }
-            if let Ok(decoded)
-                = <GetBalanceCall as ::ethers::core::abi::AbiDecode>::decode(data) {
-                return Ok(Self::GetBalance(decoded));
             }
             if let Ok(decoded)
                 = <GetLiquidityDeltasCall as ::ethers::core::abi::AbiDecode>::decode(
@@ -614,10 +580,10 @@ pub mod i_portfolio_getters {
                 return Ok(Self::GetVirtualPrice(decoded));
             }
             if let Ok(decoded)
-                = <GetVirtualReservesPerLiquidityCall as ::ethers::core::abi::AbiDecode>::decode(
+                = <GetVirtualReservesDecCall as ::ethers::core::abi::AbiDecode>::decode(
                     data,
                 ) {
-                return Ok(Self::GetVirtualReservesPerLiquidity(decoded));
+                return Ok(Self::GetVirtualReservesDec(decoded));
             }
             if let Ok(decoded)
                 = <PairsCall as ::ethers::core::abi::AbiDecode>::decode(data) {
@@ -643,9 +609,6 @@ pub mod i_portfolio_getters {
                 Self::Version(element) => ::ethers::core::abi::AbiEncode::encode(element),
                 Self::Weth(element) => ::ethers::core::abi::AbiEncode::encode(element),
                 Self::GetAmountOut(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
-                Self::GetBalance(element) => {
                     ::ethers::core::abi::AbiEncode::encode(element)
                 }
                 Self::GetLiquidityDeltas(element) => {
@@ -675,7 +638,7 @@ pub mod i_portfolio_getters {
                 Self::GetVirtualPrice(element) => {
                     ::ethers::core::abi::AbiEncode::encode(element)
                 }
-                Self::GetVirtualReservesPerLiquidity(element) => {
+                Self::GetVirtualReservesDec(element) => {
                     ::ethers::core::abi::AbiEncode::encode(element)
                 }
                 Self::Pairs(element) => ::ethers::core::abi::AbiEncode::encode(element),
@@ -693,7 +656,6 @@ pub mod i_portfolio_getters {
                 Self::Version(element) => ::core::fmt::Display::fmt(element, f),
                 Self::Weth(element) => ::core::fmt::Display::fmt(element, f),
                 Self::GetAmountOut(element) => ::core::fmt::Display::fmt(element, f),
-                Self::GetBalance(element) => ::core::fmt::Display::fmt(element, f),
                 Self::GetLiquidityDeltas(element) => {
                     ::core::fmt::Display::fmt(element, f)
                 }
@@ -705,7 +667,7 @@ pub mod i_portfolio_getters {
                 Self::GetPoolReserves(element) => ::core::fmt::Display::fmt(element, f),
                 Self::GetReserve(element) => ::core::fmt::Display::fmt(element, f),
                 Self::GetVirtualPrice(element) => ::core::fmt::Display::fmt(element, f),
-                Self::GetVirtualReservesPerLiquidity(element) => {
+                Self::GetVirtualReservesDec(element) => {
                     ::core::fmt::Display::fmt(element, f)
                 }
                 Self::Pairs(element) => ::core::fmt::Display::fmt(element, f),
@@ -732,11 +694,6 @@ pub mod i_portfolio_getters {
     impl ::core::convert::From<GetAmountOutCall> for IPortfolioGettersCalls {
         fn from(value: GetAmountOutCall) -> Self {
             Self::GetAmountOut(value)
-        }
-    }
-    impl ::core::convert::From<GetBalanceCall> for IPortfolioGettersCalls {
-        fn from(value: GetBalanceCall) -> Self {
-            Self::GetBalance(value)
         }
     }
     impl ::core::convert::From<GetLiquidityDeltasCall> for IPortfolioGettersCalls {
@@ -784,10 +741,9 @@ pub mod i_portfolio_getters {
             Self::GetVirtualPrice(value)
         }
     }
-    impl ::core::convert::From<GetVirtualReservesPerLiquidityCall>
-    for IPortfolioGettersCalls {
-        fn from(value: GetVirtualReservesPerLiquidityCall) -> Self {
-            Self::GetVirtualReservesPerLiquidity(value)
+    impl ::core::convert::From<GetVirtualReservesDecCall> for IPortfolioGettersCalls {
+        fn from(value: GetVirtualReservesDecCall) -> Self {
+            Self::GetVirtualReservesDec(value)
         }
     }
     impl ::core::convert::From<PairsCall> for IPortfolioGettersCalls {
@@ -853,18 +809,6 @@ pub mod i_portfolio_getters {
         Hash
     )]
     pub struct GetAmountOutReturn(pub ::ethers::core::types::U256);
-    ///Container type for all return fields from the `getBalance` function with signature `getBalance(address,address)` and selector `0xd4fac45d`
-    #[derive(
-        Clone,
-        ::ethers::contract::EthAbiType,
-        ::ethers::contract::EthAbiCodec,
-        Default,
-        Debug,
-        PartialEq,
-        Eq,
-        Hash
-    )]
-    pub struct GetBalanceReturn(pub ::ethers::core::types::U256);
     ///Container type for all return fields from the `getLiquidityDeltas` function with signature `getLiquidityDeltas(uint64,int128)` and selector `0x8992f20a`
     #[derive(
         Clone,
@@ -985,7 +929,7 @@ pub mod i_portfolio_getters {
     pub struct GetVirtualPriceReturn {
         pub price: ::ethers::core::types::U256,
     }
-    ///Container type for all return fields from the `getVirtualReservesPerLiquidity` function with signature `getVirtualReservesPerLiquidity(uint64)` and selector `0x1a4b905b`
+    ///Container type for all return fields from the `getVirtualReservesDec` function with signature `getVirtualReservesDec(uint64)` and selector `0xa21b9ba0`
     #[derive(
         Clone,
         ::ethers::contract::EthAbiType,
@@ -996,7 +940,7 @@ pub mod i_portfolio_getters {
         Eq,
         Hash
     )]
-    pub struct GetVirtualReservesPerLiquidityReturn {
+    pub struct GetVirtualReservesDecReturn {
         pub delta_asset: u128,
         pub delta_quote: u128,
     }

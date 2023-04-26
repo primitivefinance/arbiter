@@ -11,7 +11,7 @@ pub use i_portfolio_events::*;
 )]
 pub mod i_portfolio_events {
     #[rustfmt::skip]
-    const __ABI: &str = "[{\"inputs\":[{\"internalType\":\"uint64\",\"name\":\"poolId\",\"type\":\"uint64\",\"components\":[],\"indexed\":true},{\"internalType\":\"address\",\"name\":\"asset\",\"type\":\"address\",\"components\":[],\"indexed\":true},{\"internalType\":\"address\",\"name\":\"quote\",\"type\":\"address\",\"components\":[],\"indexed\":true},{\"internalType\":\"uint256\",\"name\":\"deltaAsset\",\"type\":\"uint256\",\"components\":[],\"indexed\":false},{\"internalType\":\"uint256\",\"name\":\"deltaQuote\",\"type\":\"uint256\",\"components\":[],\"indexed\":false},{\"internalType\":\"uint256\",\"name\":\"deltaLiquidity\",\"type\":\"uint256\",\"components\":[],\"indexed\":false}],\"type\":\"event\",\"name\":\"Allocate\",\"outputs\":[],\"anonymous\":false},{\"inputs\":[{\"internalType\":\"uint64\",\"name\":\"poolId\",\"type\":\"uint64\",\"components\":[],\"indexed\":true},{\"internalType\":\"uint16\",\"name\":\"priorityFee\",\"type\":\"uint16\",\"components\":[],\"indexed\":true},{\"internalType\":\"uint16\",\"name\":\"fee\",\"type\":\"uint16\",\"components\":[],\"indexed\":true},{\"internalType\":\"uint16\",\"name\":\"jit\",\"type\":\"uint16\",\"components\":[],\"indexed\":false}],\"type\":\"event\",\"name\":\"ChangeParameters\",\"outputs\":[],\"anonymous\":false},{\"inputs\":[{\"internalType\":\"uint24\",\"name\":\"pairId\",\"type\":\"uint24\",\"components\":[],\"indexed\":true},{\"internalType\":\"address\",\"name\":\"asset\",\"type\":\"address\",\"components\":[],\"indexed\":true},{\"internalType\":\"address\",\"name\":\"quote\",\"type\":\"address\",\"components\":[],\"indexed\":true},{\"internalType\":\"uint8\",\"name\":\"decimalsAsset\",\"type\":\"uint8\",\"components\":[],\"indexed\":false},{\"internalType\":\"uint8\",\"name\":\"decimalsQuote\",\"type\":\"uint8\",\"components\":[],\"indexed\":false}],\"type\":\"event\",\"name\":\"CreatePair\",\"outputs\":[],\"anonymous\":false},{\"inputs\":[{\"internalType\":\"uint64\",\"name\":\"poolId\",\"type\":\"uint64\",\"components\":[],\"indexed\":true},{\"internalType\":\"address\",\"name\":\"asset\",\"type\":\"address\",\"components\":[],\"indexed\":true},{\"internalType\":\"address\",\"name\":\"quote\",\"type\":\"address\",\"components\":[],\"indexed\":true},{\"internalType\":\"address\",\"name\":\"controller\",\"type\":\"address\",\"components\":[],\"indexed\":false},{\"internalType\":\"uint128\",\"name\":\"maxPrice\",\"type\":\"uint128\",\"components\":[],\"indexed\":false},{\"internalType\":\"uint16\",\"name\":\"jit\",\"type\":\"uint16\",\"components\":[],\"indexed\":false},{\"internalType\":\"uint16\",\"name\":\"fee\",\"type\":\"uint16\",\"components\":[],\"indexed\":false},{\"internalType\":\"uint16\",\"name\":\"duration\",\"type\":\"uint16\",\"components\":[],\"indexed\":false},{\"internalType\":\"uint16\",\"name\":\"volatility\",\"type\":\"uint16\",\"components\":[],\"indexed\":false},{\"internalType\":\"uint16\",\"name\":\"priorityFee\",\"type\":\"uint16\",\"components\":[],\"indexed\":false}],\"type\":\"event\",\"name\":\"CreatePool\",\"outputs\":[],\"anonymous\":false},{\"inputs\":[{\"internalType\":\"uint64\",\"name\":\"poolId\",\"type\":\"uint64\",\"components\":[],\"indexed\":true},{\"internalType\":\"address\",\"name\":\"asset\",\"type\":\"address\",\"components\":[],\"indexed\":true},{\"internalType\":\"address\",\"name\":\"quote\",\"type\":\"address\",\"components\":[],\"indexed\":true},{\"internalType\":\"uint256\",\"name\":\"deltaAsset\",\"type\":\"uint256\",\"components\":[],\"indexed\":false},{\"internalType\":\"uint256\",\"name\":\"deltaQuote\",\"type\":\"uint256\",\"components\":[],\"indexed\":false},{\"internalType\":\"uint256\",\"name\":\"deltaLiquidity\",\"type\":\"uint256\",\"components\":[],\"indexed\":false}],\"type\":\"event\",\"name\":\"Deallocate\",\"outputs\":[],\"anonymous\":false},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"token\",\"type\":\"address\",\"components\":[],\"indexed\":true},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\",\"components\":[],\"indexed\":false}],\"type\":\"event\",\"name\":\"DecreaseReserveBalance\",\"outputs\":[],\"anonymous\":false},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"account\",\"type\":\"address\",\"components\":[],\"indexed\":true},{\"internalType\":\"address\",\"name\":\"token\",\"type\":\"address\",\"components\":[],\"indexed\":true},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\",\"components\":[],\"indexed\":false}],\"type\":\"event\",\"name\":\"DecreaseUserBalance\",\"outputs\":[],\"anonymous\":false},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"account\",\"type\":\"address\",\"components\":[],\"indexed\":true},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\",\"components\":[],\"indexed\":false}],\"type\":\"event\",\"name\":\"Deposit\",\"outputs\":[],\"anonymous\":false},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"token\",\"type\":\"address\",\"components\":[],\"indexed\":true},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\",\"components\":[],\"indexed\":false}],\"type\":\"event\",\"name\":\"IncreaseReserveBalance\",\"outputs\":[],\"anonymous\":false},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"account\",\"type\":\"address\",\"components\":[],\"indexed\":true},{\"internalType\":\"address\",\"name\":\"token\",\"type\":\"address\",\"components\":[],\"indexed\":true},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\",\"components\":[],\"indexed\":false}],\"type\":\"event\",\"name\":\"IncreaseUserBalance\",\"outputs\":[],\"anonymous\":false},{\"inputs\":[{\"internalType\":\"uint64\",\"name\":\"poolId\",\"type\":\"uint64\",\"components\":[],\"indexed\":true},{\"internalType\":\"uint256\",\"name\":\"price\",\"type\":\"uint256\",\"components\":[],\"indexed\":false},{\"internalType\":\"address\",\"name\":\"sellAsset\",\"type\":\"address\",\"components\":[],\"indexed\":true},{\"internalType\":\"uint256\",\"name\":\"input\",\"type\":\"uint256\",\"components\":[],\"indexed\":false},{\"internalType\":\"address\",\"name\":\"tokenOut\",\"type\":\"address\",\"components\":[],\"indexed\":true},{\"internalType\":\"uint256\",\"name\":\"output\",\"type\":\"uint256\",\"components\":[],\"indexed\":false},{\"internalType\":\"uint256\",\"name\":\"feeAmountDec\",\"type\":\"uint256\",\"components\":[],\"indexed\":false},{\"internalType\":\"int256\",\"name\":\"invariantWad\",\"type\":\"int256\",\"components\":[],\"indexed\":false}],\"type\":\"event\",\"name\":\"Swap\",\"outputs\":[],\"anonymous\":false},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"prevFee\",\"type\":\"uint256\",\"components\":[],\"indexed\":false},{\"internalType\":\"uint256\",\"name\":\"nextFee\",\"type\":\"uint256\",\"components\":[],\"indexed\":false}],\"type\":\"event\",\"name\":\"UpdateProtocolFee\",\"outputs\":[],\"anonymous\":false}]";
+    const __ABI: &str = "[{\"inputs\":[{\"internalType\":\"uint64\",\"name\":\"poolId\",\"type\":\"uint64\",\"components\":[],\"indexed\":true},{\"internalType\":\"address\",\"name\":\"asset\",\"type\":\"address\",\"components\":[],\"indexed\":true},{\"internalType\":\"address\",\"name\":\"quote\",\"type\":\"address\",\"components\":[],\"indexed\":true},{\"internalType\":\"uint256\",\"name\":\"deltaAsset\",\"type\":\"uint256\",\"components\":[],\"indexed\":false},{\"internalType\":\"uint256\",\"name\":\"deltaQuote\",\"type\":\"uint256\",\"components\":[],\"indexed\":false},{\"internalType\":\"uint256\",\"name\":\"deltaLiquidity\",\"type\":\"uint256\",\"components\":[],\"indexed\":false}],\"type\":\"event\",\"name\":\"Allocate\",\"outputs\":[],\"anonymous\":false},{\"inputs\":[{\"internalType\":\"uint64\",\"name\":\"poolId\",\"type\":\"uint64\",\"components\":[],\"indexed\":true},{\"internalType\":\"uint16\",\"name\":\"priorityFee\",\"type\":\"uint16\",\"components\":[],\"indexed\":true},{\"internalType\":\"uint16\",\"name\":\"fee\",\"type\":\"uint16\",\"components\":[],\"indexed\":true},{\"internalType\":\"uint16\",\"name\":\"jit\",\"type\":\"uint16\",\"components\":[],\"indexed\":false}],\"type\":\"event\",\"name\":\"ChangeParameters\",\"outputs\":[],\"anonymous\":false},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"token\",\"type\":\"address\",\"components\":[],\"indexed\":true},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\",\"components\":[],\"indexed\":false}],\"type\":\"event\",\"name\":\"ClaimFees\",\"outputs\":[],\"anonymous\":false},{\"inputs\":[{\"internalType\":\"uint24\",\"name\":\"pairId\",\"type\":\"uint24\",\"components\":[],\"indexed\":true},{\"internalType\":\"address\",\"name\":\"asset\",\"type\":\"address\",\"components\":[],\"indexed\":true},{\"internalType\":\"address\",\"name\":\"quote\",\"type\":\"address\",\"components\":[],\"indexed\":true},{\"internalType\":\"uint8\",\"name\":\"decimalsAsset\",\"type\":\"uint8\",\"components\":[],\"indexed\":false},{\"internalType\":\"uint8\",\"name\":\"decimalsQuote\",\"type\":\"uint8\",\"components\":[],\"indexed\":false}],\"type\":\"event\",\"name\":\"CreatePair\",\"outputs\":[],\"anonymous\":false},{\"inputs\":[{\"internalType\":\"uint64\",\"name\":\"poolId\",\"type\":\"uint64\",\"components\":[],\"indexed\":true},{\"internalType\":\"address\",\"name\":\"asset\",\"type\":\"address\",\"components\":[],\"indexed\":true},{\"internalType\":\"address\",\"name\":\"quote\",\"type\":\"address\",\"components\":[],\"indexed\":true},{\"internalType\":\"address\",\"name\":\"controller\",\"type\":\"address\",\"components\":[],\"indexed\":false},{\"internalType\":\"uint128\",\"name\":\"maxPrice\",\"type\":\"uint128\",\"components\":[],\"indexed\":false},{\"internalType\":\"uint16\",\"name\":\"jit\",\"type\":\"uint16\",\"components\":[],\"indexed\":false},{\"internalType\":\"uint16\",\"name\":\"fee\",\"type\":\"uint16\",\"components\":[],\"indexed\":false},{\"internalType\":\"uint16\",\"name\":\"duration\",\"type\":\"uint16\",\"components\":[],\"indexed\":false},{\"internalType\":\"uint16\",\"name\":\"volatility\",\"type\":\"uint16\",\"components\":[],\"indexed\":false},{\"internalType\":\"uint16\",\"name\":\"priorityFee\",\"type\":\"uint16\",\"components\":[],\"indexed\":false}],\"type\":\"event\",\"name\":\"CreatePool\",\"outputs\":[],\"anonymous\":false},{\"inputs\":[{\"internalType\":\"uint64\",\"name\":\"poolId\",\"type\":\"uint64\",\"components\":[],\"indexed\":true},{\"internalType\":\"address\",\"name\":\"asset\",\"type\":\"address\",\"components\":[],\"indexed\":true},{\"internalType\":\"address\",\"name\":\"quote\",\"type\":\"address\",\"components\":[],\"indexed\":true},{\"internalType\":\"uint256\",\"name\":\"deltaAsset\",\"type\":\"uint256\",\"components\":[],\"indexed\":false},{\"internalType\":\"uint256\",\"name\":\"deltaQuote\",\"type\":\"uint256\",\"components\":[],\"indexed\":false},{\"internalType\":\"uint256\",\"name\":\"deltaLiquidity\",\"type\":\"uint256\",\"components\":[],\"indexed\":false}],\"type\":\"event\",\"name\":\"Deallocate\",\"outputs\":[],\"anonymous\":false},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"token\",\"type\":\"address\",\"components\":[],\"indexed\":true},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\",\"components\":[],\"indexed\":false}],\"type\":\"event\",\"name\":\"DecreaseReserveBalance\",\"outputs\":[],\"anonymous\":false},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"account\",\"type\":\"address\",\"components\":[],\"indexed\":true},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\",\"components\":[],\"indexed\":false}],\"type\":\"event\",\"name\":\"Deposit\",\"outputs\":[],\"anonymous\":false},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"token\",\"type\":\"address\",\"components\":[],\"indexed\":true},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\",\"components\":[],\"indexed\":false}],\"type\":\"event\",\"name\":\"IncreaseReserveBalance\",\"outputs\":[],\"anonymous\":false},{\"inputs\":[{\"internalType\":\"uint64\",\"name\":\"poolId\",\"type\":\"uint64\",\"components\":[],\"indexed\":true},{\"internalType\":\"uint256\",\"name\":\"price\",\"type\":\"uint256\",\"components\":[],\"indexed\":false},{\"internalType\":\"address\",\"name\":\"tokenIn\",\"type\":\"address\",\"components\":[],\"indexed\":true},{\"internalType\":\"uint256\",\"name\":\"input\",\"type\":\"uint256\",\"components\":[],\"indexed\":false},{\"internalType\":\"address\",\"name\":\"tokenOut\",\"type\":\"address\",\"components\":[],\"indexed\":true},{\"internalType\":\"uint256\",\"name\":\"output\",\"type\":\"uint256\",\"components\":[],\"indexed\":false},{\"internalType\":\"uint256\",\"name\":\"feeAmountDec\",\"type\":\"uint256\",\"components\":[],\"indexed\":false},{\"internalType\":\"int256\",\"name\":\"invariantWad\",\"type\":\"int256\",\"components\":[],\"indexed\":false}],\"type\":\"event\",\"name\":\"Swap\",\"outputs\":[],\"anonymous\":false},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"prevFee\",\"type\":\"uint256\",\"components\":[],\"indexed\":false},{\"internalType\":\"uint256\",\"name\":\"nextFee\",\"type\":\"uint256\",\"components\":[],\"indexed\":false}],\"type\":\"event\",\"name\":\"UpdateProtocolFee\",\"outputs\":[],\"anonymous\":false}]";
     ///The parsed JSON ABI of the contract.
     pub static IPORTFOLIOEVENTS_ABI: ::ethers::contract::Lazy<
         ::ethers::core::abi::Abi,
@@ -76,6 +76,16 @@ pub mod i_portfolio_events {
         > {
             self.0.event()
         }
+        ///Gets the contract's `ClaimFees` event
+        pub fn claim_fees_filter(
+            &self,
+        ) -> ::ethers::contract::builders::Event<
+            ::std::sync::Arc<M>,
+            M,
+            ClaimFeesFilter,
+        > {
+            self.0.event()
+        }
         ///Gets the contract's `CreatePair` event
         pub fn create_pair_filter(
             &self,
@@ -116,16 +126,6 @@ pub mod i_portfolio_events {
         > {
             self.0.event()
         }
-        ///Gets the contract's `DecreaseUserBalance` event
-        pub fn decrease_user_balance_filter(
-            &self,
-        ) -> ::ethers::contract::builders::Event<
-            ::std::sync::Arc<M>,
-            M,
-            DecreaseUserBalanceFilter,
-        > {
-            self.0.event()
-        }
         ///Gets the contract's `Deposit` event
         pub fn deposit_filter(
             &self,
@@ -139,16 +139,6 @@ pub mod i_portfolio_events {
             ::std::sync::Arc<M>,
             M,
             IncreaseReserveBalanceFilter,
-        > {
-            self.0.event()
-        }
-        ///Gets the contract's `IncreaseUserBalance` event
-        pub fn increase_user_balance_filter(
-            &self,
-        ) -> ::ethers::contract::builders::Event<
-            ::std::sync::Arc<M>,
-            M,
-            IncreaseUserBalanceFilter,
         > {
             self.0.event()
         }
@@ -232,6 +222,22 @@ pub mod i_portfolio_events {
         #[ethevent(indexed)]
         pub fee: u16,
         pub jit: u16,
+    }
+    #[derive(
+        Clone,
+        ::ethers::contract::EthEvent,
+        ::ethers::contract::EthDisplay,
+        Default,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash
+    )]
+    #[ethevent(name = "ClaimFees", abi = "ClaimFees(address,uint256)")]
+    pub struct ClaimFeesFilter {
+        #[ethevent(indexed)]
+        pub token: ::ethers::core::types::Address,
+        pub amount: ::ethers::core::types::U256,
     }
     #[derive(
         Clone,
@@ -340,27 +346,6 @@ pub mod i_portfolio_events {
         Eq,
         Hash
     )]
-    #[ethevent(
-        name = "DecreaseUserBalance",
-        abi = "DecreaseUserBalance(address,address,uint256)"
-    )]
-    pub struct DecreaseUserBalanceFilter {
-        #[ethevent(indexed)]
-        pub account: ::ethers::core::types::Address,
-        #[ethevent(indexed)]
-        pub token: ::ethers::core::types::Address,
-        pub amount: ::ethers::core::types::U256,
-    }
-    #[derive(
-        Clone,
-        ::ethers::contract::EthEvent,
-        ::ethers::contract::EthDisplay,
-        Default,
-        Debug,
-        PartialEq,
-        Eq,
-        Hash
-    )]
     #[ethevent(name = "Deposit", abi = "Deposit(address,uint256)")]
     pub struct DepositFilter {
         #[ethevent(indexed)]
@@ -397,27 +382,6 @@ pub mod i_portfolio_events {
         Hash
     )]
     #[ethevent(
-        name = "IncreaseUserBalance",
-        abi = "IncreaseUserBalance(address,address,uint256)"
-    )]
-    pub struct IncreaseUserBalanceFilter {
-        #[ethevent(indexed)]
-        pub account: ::ethers::core::types::Address,
-        #[ethevent(indexed)]
-        pub token: ::ethers::core::types::Address,
-        pub amount: ::ethers::core::types::U256,
-    }
-    #[derive(
-        Clone,
-        ::ethers::contract::EthEvent,
-        ::ethers::contract::EthDisplay,
-        Default,
-        Debug,
-        PartialEq,
-        Eq,
-        Hash
-    )]
-    #[ethevent(
         name = "Swap",
         abi = "Swap(uint64,uint256,address,uint256,address,uint256,uint256,int256)"
     )]
@@ -426,7 +390,7 @@ pub mod i_portfolio_events {
         pub pool_id: u64,
         pub price: ::ethers::core::types::U256,
         #[ethevent(indexed)]
-        pub sell_asset: ::ethers::core::types::Address,
+        pub token_in: ::ethers::core::types::Address,
         pub input: ::ethers::core::types::U256,
         #[ethevent(indexed)]
         pub token_out: ::ethers::core::types::Address,
@@ -454,14 +418,13 @@ pub mod i_portfolio_events {
     pub enum IPortfolioEventsEvents {
         AllocateFilter(AllocateFilter),
         ChangeParametersFilter(ChangeParametersFilter),
+        ClaimFeesFilter(ClaimFeesFilter),
         CreatePairFilter(CreatePairFilter),
         CreatePoolFilter(CreatePoolFilter),
         DeallocateFilter(DeallocateFilter),
         DecreaseReserveBalanceFilter(DecreaseReserveBalanceFilter),
-        DecreaseUserBalanceFilter(DecreaseUserBalanceFilter),
         DepositFilter(DepositFilter),
         IncreaseReserveBalanceFilter(IncreaseReserveBalanceFilter),
-        IncreaseUserBalanceFilter(IncreaseUserBalanceFilter),
         SwapFilter(SwapFilter),
         UpdateProtocolFeeFilter(UpdateProtocolFeeFilter),
     }
@@ -475,6 +438,9 @@ pub mod i_portfolio_events {
             if let Ok(decoded) = ChangeParametersFilter::decode_log(log) {
                 return Ok(IPortfolioEventsEvents::ChangeParametersFilter(decoded));
             }
+            if let Ok(decoded) = ClaimFeesFilter::decode_log(log) {
+                return Ok(IPortfolioEventsEvents::ClaimFeesFilter(decoded));
+            }
             if let Ok(decoded) = CreatePairFilter::decode_log(log) {
                 return Ok(IPortfolioEventsEvents::CreatePairFilter(decoded));
             }
@@ -487,17 +453,11 @@ pub mod i_portfolio_events {
             if let Ok(decoded) = DecreaseReserveBalanceFilter::decode_log(log) {
                 return Ok(IPortfolioEventsEvents::DecreaseReserveBalanceFilter(decoded));
             }
-            if let Ok(decoded) = DecreaseUserBalanceFilter::decode_log(log) {
-                return Ok(IPortfolioEventsEvents::DecreaseUserBalanceFilter(decoded));
-            }
             if let Ok(decoded) = DepositFilter::decode_log(log) {
                 return Ok(IPortfolioEventsEvents::DepositFilter(decoded));
             }
             if let Ok(decoded) = IncreaseReserveBalanceFilter::decode_log(log) {
                 return Ok(IPortfolioEventsEvents::IncreaseReserveBalanceFilter(decoded));
-            }
-            if let Ok(decoded) = IncreaseUserBalanceFilter::decode_log(log) {
-                return Ok(IPortfolioEventsEvents::IncreaseUserBalanceFilter(decoded));
             }
             if let Ok(decoded) = SwapFilter::decode_log(log) {
                 return Ok(IPortfolioEventsEvents::SwapFilter(decoded));
@@ -515,20 +475,15 @@ pub mod i_portfolio_events {
                 Self::ChangeParametersFilter(element) => {
                     ::core::fmt::Display::fmt(element, f)
                 }
+                Self::ClaimFeesFilter(element) => ::core::fmt::Display::fmt(element, f),
                 Self::CreatePairFilter(element) => ::core::fmt::Display::fmt(element, f),
                 Self::CreatePoolFilter(element) => ::core::fmt::Display::fmt(element, f),
                 Self::DeallocateFilter(element) => ::core::fmt::Display::fmt(element, f),
                 Self::DecreaseReserveBalanceFilter(element) => {
                     ::core::fmt::Display::fmt(element, f)
                 }
-                Self::DecreaseUserBalanceFilter(element) => {
-                    ::core::fmt::Display::fmt(element, f)
-                }
                 Self::DepositFilter(element) => ::core::fmt::Display::fmt(element, f),
                 Self::IncreaseReserveBalanceFilter(element) => {
-                    ::core::fmt::Display::fmt(element, f)
-                }
-                Self::IncreaseUserBalanceFilter(element) => {
                     ::core::fmt::Display::fmt(element, f)
                 }
                 Self::SwapFilter(element) => ::core::fmt::Display::fmt(element, f),
@@ -546,6 +501,11 @@ pub mod i_portfolio_events {
     impl ::core::convert::From<ChangeParametersFilter> for IPortfolioEventsEvents {
         fn from(value: ChangeParametersFilter) -> Self {
             Self::ChangeParametersFilter(value)
+        }
+    }
+    impl ::core::convert::From<ClaimFeesFilter> for IPortfolioEventsEvents {
+        fn from(value: ClaimFeesFilter) -> Self {
+            Self::ClaimFeesFilter(value)
         }
     }
     impl ::core::convert::From<CreatePairFilter> for IPortfolioEventsEvents {
@@ -568,11 +528,6 @@ pub mod i_portfolio_events {
             Self::DecreaseReserveBalanceFilter(value)
         }
     }
-    impl ::core::convert::From<DecreaseUserBalanceFilter> for IPortfolioEventsEvents {
-        fn from(value: DecreaseUserBalanceFilter) -> Self {
-            Self::DecreaseUserBalanceFilter(value)
-        }
-    }
     impl ::core::convert::From<DepositFilter> for IPortfolioEventsEvents {
         fn from(value: DepositFilter) -> Self {
             Self::DepositFilter(value)
@@ -581,11 +536,6 @@ pub mod i_portfolio_events {
     impl ::core::convert::From<IncreaseReserveBalanceFilter> for IPortfolioEventsEvents {
         fn from(value: IncreaseReserveBalanceFilter) -> Self {
             Self::IncreaseReserveBalanceFilter(value)
-        }
-    }
-    impl ::core::convert::From<IncreaseUserBalanceFilter> for IPortfolioEventsEvents {
-        fn from(value: IncreaseUserBalanceFilter) -> Self {
-            Self::IncreaseUserBalanceFilter(value)
         }
     }
     impl ::core::convert::From<SwapFilter> for IPortfolioEventsEvents {

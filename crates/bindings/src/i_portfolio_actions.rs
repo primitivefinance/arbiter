@@ -11,7 +11,7 @@ pub use i_portfolio_actions::*;
 )]
 pub mod i_portfolio_actions {
     #[rustfmt::skip]
-    const __ABI: &str = "[{\"inputs\":[{\"internalType\":\"uint64\",\"name\":\"poolId\",\"type\":\"uint64\",\"components\":[]},{\"internalType\":\"uint16\",\"name\":\"priorityFee\",\"type\":\"uint16\",\"components\":[]},{\"internalType\":\"uint16\",\"name\":\"fee\",\"type\":\"uint16\",\"components\":[]},{\"internalType\":\"uint16\",\"name\":\"jit\",\"type\":\"uint16\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"function\",\"name\":\"changeParameters\",\"outputs\":[]},{\"inputs\":[],\"stateMutability\":\"payable\",\"type\":\"function\",\"name\":\"deposit\",\"outputs\":[]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"token\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"address\",\"name\":\"to\",\"type\":\"address\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"function\",\"name\":\"draw\",\"outputs\":[]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"token\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"function\",\"name\":\"fund\",\"outputs\":[]},{\"inputs\":[{\"internalType\":\"bytes\",\"name\":\"data\",\"type\":\"bytes\",\"components\":[]}],\"stateMutability\":\"payable\",\"type\":\"function\",\"name\":\"multiprocess\",\"outputs\":[]},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"fee\",\"type\":\"uint256\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"function\",\"name\":\"setProtocolFee\",\"outputs\":[]}]";
+    const __ABI: &str = "[{\"inputs\":[{\"internalType\":\"uint64\",\"name\":\"poolId\",\"type\":\"uint64\",\"components\":[]},{\"internalType\":\"uint16\",\"name\":\"priorityFee\",\"type\":\"uint16\",\"components\":[]},{\"internalType\":\"uint16\",\"name\":\"fee\",\"type\":\"uint16\",\"components\":[]},{\"internalType\":\"uint16\",\"name\":\"jit\",\"type\":\"uint16\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"function\",\"name\":\"changeParameters\",\"outputs\":[]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"token\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"function\",\"name\":\"claimFee\",\"outputs\":[]},{\"inputs\":[{\"internalType\":\"bytes\",\"name\":\"data\",\"type\":\"bytes\",\"components\":[]}],\"stateMutability\":\"payable\",\"type\":\"function\",\"name\":\"multiprocess\",\"outputs\":[]},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"fee\",\"type\":\"uint256\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"function\",\"name\":\"setProtocolFee\",\"outputs\":[]}]";
     ///The parsed JSON ABI of the contract.
     pub static IPORTFOLIOACTIONS_ABI: ::ethers::contract::Lazy<
         ::ethers::core::abi::Abi,
@@ -68,31 +68,14 @@ pub mod i_portfolio_actions {
                 .method_hash([175, 119, 120, 85], (pool_id, priority_fee, fee, jit))
                 .expect("method not found (this should never happen)")
         }
-        ///Calls the contract's `deposit` (0xd0e30db0) function
-        pub fn deposit(&self) -> ::ethers::contract::builders::ContractCall<M, ()> {
-            self.0
-                .method_hash([208, 227, 13, 176], ())
-                .expect("method not found (this should never happen)")
-        }
-        ///Calls the contract's `draw` (0xad24d6a0) function
-        pub fn draw(
-            &self,
-            token: ::ethers::core::types::Address,
-            amount: ::ethers::core::types::U256,
-            to: ::ethers::core::types::Address,
-        ) -> ::ethers::contract::builders::ContractCall<M, ()> {
-            self.0
-                .method_hash([173, 36, 214, 160], (token, amount, to))
-                .expect("method not found (this should never happen)")
-        }
-        ///Calls the contract's `fund` (0x7b1837de) function
-        pub fn fund(
+        ///Calls the contract's `claimFee` (0xdda40797) function
+        pub fn claim_fee(
             &self,
             token: ::ethers::core::types::Address,
             amount: ::ethers::core::types::U256,
         ) -> ::ethers::contract::builders::ContractCall<M, ()> {
             self.0
-                .method_hash([123, 24, 55, 222], (token, amount))
+                .method_hash([221, 164, 7, 151], (token, amount))
                 .expect("method not found (this should never happen)")
         }
         ///Calls the contract's `multiprocess` (0xa0fdf413) function
@@ -141,7 +124,7 @@ pub mod i_portfolio_actions {
         pub fee: u16,
         pub jit: u16,
     }
-    ///Container type for all input parameters for the `deposit` function with signature `deposit()` and selector `0xd0e30db0`
+    ///Container type for all input parameters for the `claimFee` function with signature `claimFee(address,uint256)` and selector `0xdda40797`
     #[derive(
         Clone,
         ::ethers::contract::EthCall,
@@ -152,38 +135,8 @@ pub mod i_portfolio_actions {
         Eq,
         Hash
     )]
-    #[ethcall(name = "deposit", abi = "deposit()")]
-    pub struct DepositCall;
-    ///Container type for all input parameters for the `draw` function with signature `draw(address,uint256,address)` and selector `0xad24d6a0`
-    #[derive(
-        Clone,
-        ::ethers::contract::EthCall,
-        ::ethers::contract::EthDisplay,
-        Default,
-        Debug,
-        PartialEq,
-        Eq,
-        Hash
-    )]
-    #[ethcall(name = "draw", abi = "draw(address,uint256,address)")]
-    pub struct DrawCall {
-        pub token: ::ethers::core::types::Address,
-        pub amount: ::ethers::core::types::U256,
-        pub to: ::ethers::core::types::Address,
-    }
-    ///Container type for all input parameters for the `fund` function with signature `fund(address,uint256)` and selector `0x7b1837de`
-    #[derive(
-        Clone,
-        ::ethers::contract::EthCall,
-        ::ethers::contract::EthDisplay,
-        Default,
-        Debug,
-        PartialEq,
-        Eq,
-        Hash
-    )]
-    #[ethcall(name = "fund", abi = "fund(address,uint256)")]
-    pub struct FundCall {
+    #[ethcall(name = "claimFee", abi = "claimFee(address,uint256)")]
+    pub struct ClaimFeeCall {
         pub token: ::ethers::core::types::Address,
         pub amount: ::ethers::core::types::U256,
     }
@@ -221,9 +174,7 @@ pub mod i_portfolio_actions {
     #[derive(Clone, ::ethers::contract::EthAbiType, Debug, PartialEq, Eq, Hash)]
     pub enum IPortfolioActionsCalls {
         ChangeParameters(ChangeParametersCall),
-        Deposit(DepositCall),
-        Draw(DrawCall),
-        Fund(FundCall),
+        ClaimFee(ClaimFeeCall),
         Multiprocess(MultiprocessCall),
         SetProtocolFee(SetProtocolFeeCall),
     }
@@ -239,16 +190,8 @@ pub mod i_portfolio_actions {
                 return Ok(Self::ChangeParameters(decoded));
             }
             if let Ok(decoded)
-                = <DepositCall as ::ethers::core::abi::AbiDecode>::decode(data) {
-                return Ok(Self::Deposit(decoded));
-            }
-            if let Ok(decoded)
-                = <DrawCall as ::ethers::core::abi::AbiDecode>::decode(data) {
-                return Ok(Self::Draw(decoded));
-            }
-            if let Ok(decoded)
-                = <FundCall as ::ethers::core::abi::AbiDecode>::decode(data) {
-                return Ok(Self::Fund(decoded));
+                = <ClaimFeeCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+                return Ok(Self::ClaimFee(decoded));
             }
             if let Ok(decoded)
                 = <MultiprocessCall as ::ethers::core::abi::AbiDecode>::decode(data) {
@@ -267,9 +210,9 @@ pub mod i_portfolio_actions {
                 Self::ChangeParameters(element) => {
                     ::ethers::core::abi::AbiEncode::encode(element)
                 }
-                Self::Deposit(element) => ::ethers::core::abi::AbiEncode::encode(element),
-                Self::Draw(element) => ::ethers::core::abi::AbiEncode::encode(element),
-                Self::Fund(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::ClaimFee(element) => {
+                    ::ethers::core::abi::AbiEncode::encode(element)
+                }
                 Self::Multiprocess(element) => {
                     ::ethers::core::abi::AbiEncode::encode(element)
                 }
@@ -283,9 +226,7 @@ pub mod i_portfolio_actions {
         fn fmt(&self, f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
             match self {
                 Self::ChangeParameters(element) => ::core::fmt::Display::fmt(element, f),
-                Self::Deposit(element) => ::core::fmt::Display::fmt(element, f),
-                Self::Draw(element) => ::core::fmt::Display::fmt(element, f),
-                Self::Fund(element) => ::core::fmt::Display::fmt(element, f),
+                Self::ClaimFee(element) => ::core::fmt::Display::fmt(element, f),
                 Self::Multiprocess(element) => ::core::fmt::Display::fmt(element, f),
                 Self::SetProtocolFee(element) => ::core::fmt::Display::fmt(element, f),
             }
@@ -296,19 +237,9 @@ pub mod i_portfolio_actions {
             Self::ChangeParameters(value)
         }
     }
-    impl ::core::convert::From<DepositCall> for IPortfolioActionsCalls {
-        fn from(value: DepositCall) -> Self {
-            Self::Deposit(value)
-        }
-    }
-    impl ::core::convert::From<DrawCall> for IPortfolioActionsCalls {
-        fn from(value: DrawCall) -> Self {
-            Self::Draw(value)
-        }
-    }
-    impl ::core::convert::From<FundCall> for IPortfolioActionsCalls {
-        fn from(value: FundCall) -> Self {
-            Self::Fund(value)
+    impl ::core::convert::From<ClaimFeeCall> for IPortfolioActionsCalls {
+        fn from(value: ClaimFeeCall) -> Self {
+            Self::ClaimFee(value)
         }
     }
     impl ::core::convert::From<MultiprocessCall> for IPortfolioActionsCalls {

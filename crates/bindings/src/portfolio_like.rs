@@ -11,7 +11,7 @@ pub use portfolio_like::*;
 )]
 pub mod portfolio_like {
     #[rustfmt::skip]
-    const __ABI: &str = "[{\"inputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"function\",\"name\":\"draw\",\"outputs\":[]},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"function\",\"name\":\"setProtocolFee\",\"outputs\":[]}]";
+    const __ABI: &str = "[{\"inputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"function\",\"name\":\"claimFee\",\"outputs\":[]},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"function\",\"name\":\"setProtocolFee\",\"outputs\":[]}]";
     ///The parsed JSON ABI of the contract.
     pub static PORTFOLIOLIKE_ABI: ::ethers::contract::Lazy<::ethers::core::abi::Abi> = ::ethers::contract::Lazy::new(||
     ::ethers::core::utils::__serde_json::from_str(__ABI).expect("ABI is always valid"));
@@ -52,15 +52,14 @@ pub mod portfolio_like {
                 ),
             )
         }
-        ///Calls the contract's `draw` (0xad24d6a0) function
-        pub fn draw(
+        ///Calls the contract's `claimFee` (0xdda40797) function
+        pub fn claim_fee(
             &self,
             p0: ::ethers::core::types::Address,
             p1: ::ethers::core::types::U256,
-            p2: ::ethers::core::types::Address,
         ) -> ::ethers::contract::builders::ContractCall<M, ()> {
             self.0
-                .method_hash([173, 36, 214, 160], (p0, p1, p2))
+                .method_hash([221, 164, 7, 151], (p0, p1))
                 .expect("method not found (this should never happen)")
         }
         ///Calls the contract's `setProtocolFee` (0x787dce3d) function
@@ -79,7 +78,7 @@ pub mod portfolio_like {
             Self::new(contract.address(), contract.client())
         }
     }
-    ///Container type for all input parameters for the `draw` function with signature `draw(address,uint256,address)` and selector `0xad24d6a0`
+    ///Container type for all input parameters for the `claimFee` function with signature `claimFee(address,uint256)` and selector `0xdda40797`
     #[derive(
         Clone,
         ::ethers::contract::EthCall,
@@ -90,11 +89,10 @@ pub mod portfolio_like {
         Eq,
         Hash
     )]
-    #[ethcall(name = "draw", abi = "draw(address,uint256,address)")]
-    pub struct DrawCall(
+    #[ethcall(name = "claimFee", abi = "claimFee(address,uint256)")]
+    pub struct ClaimFeeCall(
         pub ::ethers::core::types::Address,
         pub ::ethers::core::types::U256,
-        pub ::ethers::core::types::Address,
     );
     ///Container type for all input parameters for the `setProtocolFee` function with signature `setProtocolFee(uint256)` and selector `0x787dce3d`
     #[derive(
@@ -112,7 +110,7 @@ pub mod portfolio_like {
     ///Container type for all of the contract's call
     #[derive(Clone, ::ethers::contract::EthAbiType, Debug, PartialEq, Eq, Hash)]
     pub enum PortfolioLikeCalls {
-        Draw(DrawCall),
+        ClaimFee(ClaimFeeCall),
         SetProtocolFee(SetProtocolFeeCall),
     }
     impl ::ethers::core::abi::AbiDecode for PortfolioLikeCalls {
@@ -121,8 +119,8 @@ pub mod portfolio_like {
         ) -> ::core::result::Result<Self, ::ethers::core::abi::AbiError> {
             let data = data.as_ref();
             if let Ok(decoded)
-                = <DrawCall as ::ethers::core::abi::AbiDecode>::decode(data) {
-                return Ok(Self::Draw(decoded));
+                = <ClaimFeeCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+                return Ok(Self::ClaimFee(decoded));
             }
             if let Ok(decoded)
                 = <SetProtocolFeeCall as ::ethers::core::abi::AbiDecode>::decode(data) {
@@ -134,7 +132,9 @@ pub mod portfolio_like {
     impl ::ethers::core::abi::AbiEncode for PortfolioLikeCalls {
         fn encode(self) -> Vec<u8> {
             match self {
-                Self::Draw(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::ClaimFee(element) => {
+                    ::ethers::core::abi::AbiEncode::encode(element)
+                }
                 Self::SetProtocolFee(element) => {
                     ::ethers::core::abi::AbiEncode::encode(element)
                 }
@@ -144,14 +144,14 @@ pub mod portfolio_like {
     impl ::core::fmt::Display for PortfolioLikeCalls {
         fn fmt(&self, f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
             match self {
-                Self::Draw(element) => ::core::fmt::Display::fmt(element, f),
+                Self::ClaimFee(element) => ::core::fmt::Display::fmt(element, f),
                 Self::SetProtocolFee(element) => ::core::fmt::Display::fmt(element, f),
             }
         }
     }
-    impl ::core::convert::From<DrawCall> for PortfolioLikeCalls {
-        fn from(value: DrawCall) -> Self {
-            Self::Draw(value)
+    impl ::core::convert::From<ClaimFeeCall> for PortfolioLikeCalls {
+        fn from(value: ClaimFeeCall) -> Self {
+            Self::ClaimFee(value)
         }
     }
     impl ::core::convert::From<SetProtocolFeeCall> for PortfolioLikeCalls {
