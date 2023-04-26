@@ -1,4 +1,4 @@
-name: Bump minor version
+name: Bump patch version
 
 on:
   pull_request:
