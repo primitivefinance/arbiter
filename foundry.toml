@@ -9,4 +9,3 @@ remappings = [
     '@solmate/=lib/portfolio/lib/solmate/src/',
     '@solstat/=lib/solstat/src/',
 ]
-ethers-rs  = "=2.0.0"

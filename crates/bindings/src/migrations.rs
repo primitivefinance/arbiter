@@ -7,16 +7,14 @@ pub use migrations::*;
     clippy::upper_case_acronyms,
     clippy::type_complexity,
     dead_code,
-    non_camel_case_types
+    non_camel_case_types,
 )]
 pub mod migrations {
     #[rustfmt::skip]
     const __ABI: &str = "[{\"inputs\":[{\"name\":\"newAddress\",\"type\":\"address\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"function\",\"name\":\"upgrade\",\"outputs\":[]},{\"inputs\":[],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"owner\",\"outputs\":[{\"name\":\"\",\"type\":\"address\",\"components\":[]}]},{\"inputs\":[],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"lastCompletedMigration\",\"outputs\":[{\"name\":\"\",\"type\":\"uint256\",\"components\":[]}]},{\"inputs\":[{\"name\":\"completed\",\"type\":\"uint256\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"function\",\"name\":\"setCompleted\",\"outputs\":[]},{\"inputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"constructor\",\"outputs\":[]}]";
     ///The parsed JSON ABI of the contract.
-    pub static MIGRATIONS_ABI: ::ethers::contract::Lazy<::ethers::core::abi::Abi> =
-        ::ethers::contract::Lazy::new(|| {
-            ::ethers::core::utils::__serde_json::from_str(__ABI).expect("ABI is always valid")
-        });
+    pub static MIGRATIONS_ABI: ::ethers::contract::Lazy<::ethers::core::abi::Abi> = ::ethers::contract::Lazy::new(||
+    ::ethers::core::utils::__serde_json::from_str(__ABI).expect("ABI is always valid"));
     #[rustfmt::skip]
     const __BYTECODE: &[u8] = &[
         96,
@@ -587,8 +585,9 @@ pub mod migrations {
         41,
     ];
     ///The bytecode of the contract.
-    pub static MIGRATIONS_BYTECODE: ::ethers::core::types::Bytes =
-        ::ethers::core::types::Bytes::from_static(__BYTECODE);
+    pub static MIGRATIONS_BYTECODE: ::ethers::core::types::Bytes = ::ethers::core::types::Bytes::from_static(
+        __BYTECODE,
+    );
     #[rustfmt::skip]
     const __DEPLOYED_BYTECODE: &[u8] = &[
         96,
@@ -1109,8 +1108,9 @@ pub mod migrations {
         41,
     ];
     ///The deployed bytecode of the contract.
-    pub static MIGRATIONS_DEPLOYED_BYTECODE: ::ethers::core::types::Bytes =
-        ::ethers::core::types::Bytes::from_static(__DEPLOYED_BYTECODE);
+    pub static MIGRATIONS_DEPLOYED_BYTECODE: ::ethers::core::types::Bytes = ::ethers::core::types::Bytes::from_static(
+        __DEPLOYED_BYTECODE,
+    );
     pub struct Migrations<M>(::ethers::contract::Contract<M>);
     impl<M> ::core::clone::Clone for Migrations<M> {
         fn clone(&self) -> Self {
@@ -1130,9 +1130,7 @@ pub mod migrations {
     }
     impl<M> ::core::fmt::Debug for Migrations<M> {
         fn fmt(&self, f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
-            f.debug_tuple(stringify!(Migrations))
-                .field(&self.address())
-                .finish()
+            f.debug_tuple(stringify!(Migrations)).field(&self.address()).finish()
         }
     }
     impl<M: ::ethers::providers::Middleware> Migrations<M> {
@@ -1142,11 +1140,13 @@ pub mod migrations {
             address: T,
             client: ::std::sync::Arc<M>,
         ) -> Self {
-            Self(::ethers::contract::Contract::new(
-                address.into(),
-                MIGRATIONS_ABI.clone(),
-                client,
-            ))
+            Self(
+                ::ethers::contract::Contract::new(
+                    address.into(),
+                    MIGRATIONS_ABI.clone(),
+                    client,
+                ),
+            )
         }
         /// Constructs the general purpose `Deployer` instance based on the provided constructor arguments and sends it.
         /// Returns a new instance of a deployer that returns an instance of this contract after sending the transaction
@@ -1198,7 +1198,10 @@ pub mod migrations {
         ///Calls the contract's `owner` (0x8da5cb5b) function
         pub fn owner(
             &self,
-        ) -> ::ethers::contract::builders::ContractCall<M, ::ethers::core::types::Address> {
+        ) -> ::ethers::contract::builders::ContractCall<
+            M,
+            ::ethers::core::types::Address,
+        > {
             self.0
                 .method_hash([141, 165, 203, 91], ())
                 .expect("method not found (this should never happen)")
@@ -1222,7 +1225,8 @@ pub mod migrations {
                 .expect("method not found (this should never happen)")
         }
     }
-    impl<M: ::ethers::providers::Middleware> From<::ethers::contract::Contract<M>> for Migrations<M> {
+    impl<M: ::ethers::providers::Middleware> From<::ethers::contract::Contract<M>>
+    for Migrations<M> {
         fn from(contract: ::ethers::contract::Contract<M>) -> Self {
             Self::new(contract.address(), contract.client())
         }
@@ -1236,7 +1240,7 @@ pub mod migrations {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(name = "lastCompletedMigration", abi = "lastCompletedMigration()")]
     pub struct LastCompletedMigrationCall;
@@ -1249,7 +1253,7 @@ pub mod migrations {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(name = "owner", abi = "owner()")]
     pub struct OwnerCall;
@@ -1262,7 +1266,7 @@ pub mod migrations {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(name = "setCompleted", abi = "setCompleted(uint256)")]
     pub struct SetCompletedCall {
@@ -1277,7 +1281,7 @@ pub mod migrations {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(name = "upgrade", abi = "upgrade(address)")]
     pub struct UpgradeCall {
@@ -1296,19 +1300,22 @@ pub mod migrations {
             data: impl AsRef<[u8]>,
         ) -> ::core::result::Result<Self, ::ethers::core::abi::AbiError> {
             let data = data.as_ref();
-            if let Ok(decoded) =
-                <LastCompletedMigrationCall as ::ethers::core::abi::AbiDecode>::decode(data)
-            {
+            if let Ok(decoded)
+                = <LastCompletedMigrationCall as ::ethers::core::abi::AbiDecode>::decode(
+                    data,
+                ) {
                 return Ok(Self::LastCompletedMigration(decoded));
             }
-            if let Ok(decoded) = <OwnerCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded)
+                = <OwnerCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::Owner(decoded));
             }
-            if let Ok(decoded) = <SetCompletedCall as ::ethers::core::abi::AbiDecode>::decode(data)
-            {
+            if let Ok(decoded)
+                = <SetCompletedCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::SetCompleted(decoded));
             }
-            if let Ok(decoded) = <UpgradeCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded)
+                = <UpgradeCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::Upgrade(decoded));
             }
             Err(::ethers::core::abi::Error::InvalidData.into())
@@ -1321,7 +1328,9 @@ pub mod migrations {
                     ::ethers::core::abi::AbiEncode::encode(element)
                 }
                 Self::Owner(element) => ::ethers::core::abi::AbiEncode::encode(element),
-                Self::SetCompleted(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::SetCompleted(element) => {
+                    ::ethers::core::abi::AbiEncode::encode(element)
+                }
                 Self::Upgrade(element) => ::ethers::core::abi::AbiEncode::encode(element),
             }
         }
@@ -1329,7 +1338,9 @@ pub mod migrations {
     impl ::core::fmt::Display for MigrationsCalls {
         fn fmt(&self, f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
             match self {
-                Self::LastCompletedMigration(element) => ::core::fmt::Display::fmt(element, f),
+                Self::LastCompletedMigration(element) => {
+                    ::core::fmt::Display::fmt(element, f)
+                }
                 Self::Owner(element) => ::core::fmt::Display::fmt(element, f),
                 Self::SetCompleted(element) => ::core::fmt::Display::fmt(element, f),
                 Self::Upgrade(element) => ::core::fmt::Display::fmt(element, f),
@@ -1365,7 +1376,7 @@ pub mod migrations {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     pub struct LastCompletedMigrationReturn(pub ::ethers::core::types::U256);
     ///Container type for all return fields from the `owner` function with signature `owner()` and selector `0x8da5cb5b`
@@ -1377,7 +1388,7 @@ pub mod migrations {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     pub struct OwnerReturn(pub ::ethers::core::types::Address);
 }
