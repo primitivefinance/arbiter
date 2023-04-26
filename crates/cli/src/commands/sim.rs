@@ -285,12 +285,12 @@ fn intitalization_calls(
         .collect();
     let i_portfolio = BaseContract::from(i_portfolio::IPORTFOLIO_ABI.clone());
     let data = encoded_create_pair_result.logs()[0].data.clone();
-    let result: (Token, Token, Token, Token, Token) =
+    let pair_result: (Token, Token, Token, Token, Token) =
         i_portfolio
             .decode_event("CreatePair", h256_vec, ethers::types::Bytes(data))
             .unwrap();
-    println!("Decoded pairID: {:#?}", result.0.to_string());
-    let pair_id: u32 = result.0.to_string().parse::<u32>().unwrap();
+    println!("Decoded pairID: {:#?}", pair_result.0.to_string());
+    let pair_id: u32 = pair_result.0.to_string().parse::<u32>().unwrap();
     let encoded_pair = portfolio.encode_function("pairs", pair_id)?;
     let pairs = admin.call_contract(
         &mut manager.environment,
@@ -349,6 +349,23 @@ fn intitalization_calls(
         Uint::from(0),
     );
     assert_eq!(result.is_success(), true);
+    println!("pair_id: {:#?}", pair_result.0);
+
+
+    // @dev Decodes the parameters of a pool given its id.
+    // The pool id is expected to be encoded using the following format:\
+    // `0x | pairId (3 bytes) | isMutable (1 byte) | poolNonce (4 bytes)
+    // 0x
+    // @param data Encoded pool id
+    // @return poolId Pool id converted from bytes to uint64
+    // @return pairId Pair id of the pool
+    // @return isMutable True if the pool is mutable
+    // @return poolNonce Pool nonce of the pool
+    // @custom:example
+    // 
+    // (uint64 poolId, uint24 pairId, uint8 isMutable, uint32 poolNonce)
+    //     = decodePoolId(0x000007010000002a);
+    
 
     Ok(())
 }
