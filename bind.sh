@@ -12,8 +12,6 @@ forge bind -C lib/canonical-weth/contracts -b crates/bindings/ --crate-name bind
 echo "Generated bindings for canonical-weth"
 forge bind -C lib/arbiter/contracts -b crates/bindings/ --crate-name bindings --overwrite
 echo "Generated bindings for arbiter contracts"
-forge bind -C encoder_target/EncoderTarget.sol -b crates/bindings/ --crate-name bindings --overwrite
-echo "Generated bindings for arbiter contracts"
 
 rm -f crates/bindings/src/mock_time_uniswap_v3_pool_deployer.rs
 

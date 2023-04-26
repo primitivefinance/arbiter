@@ -377,6 +377,16 @@ fn intitalization_calls(
         1000_u128,
     );
     
+    let allocate_call = encoder_target.encode_function("allocateOrDeallocate", allocate_builder)?;
+    let allocate_encode_result = admin.call_contract(&mut manager.environment, &encoder_target, allocate_call, Uint::from(0));
+    assert_eq!(allocate_encode_result.is_success(), true);
+    let result_object: Bytes = manager.unpack_execution(allocate_encode_result)?;
+    let decoded_encoded_data: Bytes =
+        encoder_target.decode_output("allocateOrDeallocate", result_object)?;
+    println!(
+        "encoded_create_pool_result: {:#?}",
+        hex::encode(decoded_encoded_data.clone())
+    );
     
 
     // should_allocate: bool,
