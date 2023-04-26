@@ -14,12 +14,14 @@ use std::{
 use bytes::Bytes;
 use crossbeam_channel::Receiver;
 use ethers::{types::H256, abi::{ethabi::AbiError, Token}, prelude::BaseContract};
-use revm::primitives::{Address, ExecutionResult, Log, TransactTo, TxEnv, B160, U256};
+use revm::primitives::{Address, ExecutionResult, Log, TransactTo, TxEnv, B160, U256, AccountInfo};
 
 use crate::{
     contract::{IsDeployed, SimulationContract},
     environment::SimulationEnvironment, utils::float_to_wad,
 };
+
+use self::{simple_arbitrageur::SimpleArbitrageur, user::User};
 
 pub mod simple_arbitrageur;
 pub mod user;
@@ -36,14 +38,61 @@ impl Display for AgentError {
     }
 }
 
+pub trait AgentStatus {
+    type Address;
+    type AccountInfo;
+    type EventReceiver;
+    type TransactSettings;
+}
+
+pub struct NotActive;
+pub struct IsActive;
+
+impl AgentStatus for NotActive {
+    type Address = ();
+    type AccountInfo = ();
+    type EventReceiver = ();
+    type TransactSettings = ();
+}
+
+impl AgentStatus for IsActive {
+    type Address = B160;
+    type AccountInfo = AccountInfo;
+    type EventReceiver = Receiver<Vec<Log>>;
+    type TransactSettings = TransactSettings;
+}
+
+pub trait Identifiable {
+    /// Returns the name of an [`IsActive`] or [`NotActive`] [`Agent`] (or otherwise identifiable type).
+    fn name(&self) -> String;
+}
+
 /// An agent is an entity that can interact with the simulation environment.
 /// Agents can be various entities such as users, market makers, arbitrageurs, etc.
-/// Only the [`User`] agent is currently implemented.
-pub enum AgentType {
+/// The [`User`] and [`SimpleArbitrageur`] agents are currently implemented.
+pub enum AgentType<AgentState: AgentStatus> {
     /// A [`User`] is the most basic agent that can interact with the simulation environment.
-    User,
+    User(User<AgentState>),
     /// A [`SimpleArbitrageur`] is an agent that can perform arbitrage between two pools.
-    SimpleArbitrageur,
+    SimpleArbitrageur(SimpleArbitrageur<AgentState>),
+}
+
+impl AgentType<IsActive> {
+    pub fn inner(&self) -> &dyn Agent {
+        match self {
+            AgentType::User(inner) => inner,
+            AgentType::SimpleArbitrageur(inner) => inner,
+        }
+    }
+}
+
+impl AgentType<NotActive> {
+    pub fn inner(&self) -> &dyn Identifiable {
+        match self {
+            AgentType::User(inner) => inner,
+            AgentType::SimpleArbitrageur(inner) => inner,
+        }
+    }
 }
 
 /// Describes the gas settings for a transaction.
@@ -55,9 +104,7 @@ pub struct TransactSettings {
 }
 
 /// Basic traits that every `Agent` must implement in order to properly interact with an EVM.
-pub trait Agent {
-    /// Returns the name of the agent.
-    fn name(&self) -> String;
+pub trait Agent: Identifiable {
     /// Returns the address of the agent.
     fn address(&self) -> Address;
     /// Returns the transaction settings of the agent.
