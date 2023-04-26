@@ -151,7 +151,7 @@ fn intitalization_calls(
     let arbitrageur = manager.agents.get("arbitrageur").unwrap();
 
     // Allocating new tokens to user by calling Arbiter Token's ERC20 'mint' instance.
-    let mint_amount = U256::from(1000);
+    let mint_amount = U256::from(10000000);
     let input_arguments = (recast_address(arbitrageur.address()), mint_amount);
     let call_data = arbiter_token_x.encode_function("mint", input_arguments)?;
 
@@ -355,7 +355,38 @@ fn intitalization_calls(
     // @dev Decodes the parameters of a pool given its id.
     // The pool id is expected to be encoded using the following format:\
     // `0x | pairId (3 bytes) | isMutable (1 byte) | poolNonce (4 bytes)
-    // 0x
+    // 0x|000001|00|00000001
+    let pool_id: Bytes = hex::decode("0000010000000001".as_bytes())?.into_iter().collect();
+    //         let encoded_from_string: Bytes = hex::decode("0b0000010000000000000000000000000000000000000000000100010064ffff0001340000000000000000000de0b6b3a76400000000000000000000000de0b6b3a764".as_bytes())?.into_iter().collect();
+
+    println!("pool_id: {:#?}", pool_id);
+
+
+    let allocate_builder = (
+        // should_allocate: bool,
+        true,
+        // use_max: u8,
+        100 as u8,
+        // pool_id: u64,
+        100_u64,
+        // delta_liquidity: u128,
+        1000_u64,
+        // amount_0: u128,
+        1000_u128,
+        // amount_1: u128,
+        1000_u128,
+    );
+    
+    
+
+    // should_allocate: bool,
+    // use_max: u8,
+    // pool_id: u64,
+    // delta_liquidity: u128,
+    // amount_0: u128,
+    // amount_1: u128,
+
+
     // @param data Encoded pool id
     // @return poolId Pool id converted from bytes to uint64
     // @return pairId Pair id of the pool

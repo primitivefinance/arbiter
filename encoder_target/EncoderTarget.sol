@@ -4,7 +4,10 @@ pragma solidity ^0.8.4;
 import "portfolio/contracts/libraries/FVMLib.sol";
 
 contract EncoderTarget {
-    function createPair(address asset, address quote) external pure returns (bytes memory) {
+    function createPair(
+        address asset,
+        address quote
+    ) external pure returns (bytes memory) {
         return encodeCreatePair(asset, quote);
     }
 
@@ -20,15 +23,7 @@ contract EncoderTarget {
         uint128 price
     ) external pure returns (bytes memory data) {
         return encodeCreatePool(
-            pairId,
-            controller,
-            priorityFee,
-            fee,
-            vol,
-            dur,
-            jit,
-            maxPrice,
-            price
+            pairId, controller, priorityFee, fee, vol, dur, jit, maxPrice, price
         );
     }
 
@@ -37,16 +32,16 @@ contract EncoderTarget {
         uint8 useMax,
         uint64 poolId,
         uint128 deltaLiquidity,
-        uint128 amount0,
-        uint128 amount1
+        uint128 deltaAsset,
+        uint128 deltaQuote
     ) external pure returns (bytes memory data) {
         return encodeAllocateOrDeallocate(
             shouldAllocate,
             useMax,
             poolId,
             deltaLiquidity,
-            amount0,
-            amount1
+            deltaAsset,
+            deltaQuote
         );
     }
 
@@ -60,3 +55,4 @@ contract EncoderTarget {
         return encodeSwap(useMax, poolId, amount0, amount1, sellAsset);
     }
 }
+
