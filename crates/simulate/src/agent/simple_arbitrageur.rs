@@ -1,7 +1,7 @@
 #![warn(missing_docs)]
 //! Describes the most basic type of user agent.
 
-use std::{error::Error, thread};
+use std::{error::Error, thread::{self, JoinHandle}, sync::{Arc, Mutex}};
 
 use crossbeam_channel::Receiver;
 use revm::primitives::{AccountInfo, Address, Log, B160, U256};
@@ -28,7 +28,7 @@ pub struct SimpleArbitrageur<AgentState: AgentStatus> {
     /// The filter for the events that the agent is interested in.
     pub event_filters: Vec<SimulationEventFilter>,
 
-    pub prices: [U256; 2],
+    pub prices: Arc<Mutex<[U256; 2]>>,
 }
 
 impl<AgentState: AgentStatus> Identifiable for SimpleArbitrageur<AgentState> {
@@ -64,18 +64,20 @@ impl SimpleArbitrageur<NotActive> {
             transact_settings: (),
             event_receiver: (),
             event_filters,
-            prices: [U256::MAX, U256::MAX], // Default to MAX value as a placeholder.
+            prices: Arc::new(Mutex::new([U256::MAX, U256::MAX])), // Default to MAX value as a placeholder.
         }
     }
 }
 
 impl SimpleArbitrageur<IsActive> {
-    pub fn detect_arbitrage(&self) {
+    pub fn detect_arbitrage(&self) -> JoinHandle<()> {
         let receiver = self.receiver();
         let event_filters = self.event_filters();
 
-        let mut prices = self.prices.clone();
-        thread::spawn(move || {
+        let mut prices = Arc::clone(&self.prices);
+
+        let handle = thread::spawn(move || {
+            let mut prices = prices.lock().unwrap();
             let decoder = |input, filter_num: usize| {
                 event_filters[filter_num].base_contract.decode_event_raw(
                     event_filters[filter_num].event_name.as_str(),
@@ -110,12 +112,20 @@ impl SimpleArbitrageur<IsActive> {
                     // First filter out if one of the prices is MAX as this is the default state.
                     if prices[0] != U256::MAX && prices[1] != U256::MAX {
                         let price_difference = prices[0].overflowing_sub(prices[1]);
-                        // let price_difference: U256 = price_difference.into();
                         println!("Price difference = {:#?}", price_difference);
+                        if price_difference.1 {
+                            println!("Arbitrage with price_0 < price_1");
+                            break;
+                        } else if price_difference.1 && price_difference.0 != U256::ZERO {
+                            println!("Arbitrage with price_0 > price_1");
+                            break;
+                        }
                     } 
                 } 
-            }
+            };
+            println!("Exited arbitrage detection thread!");
         });
+        handle
     }
 }
 
@@ -386,7 +396,7 @@ mod tests {
             AgentType::SimpleArbitrageur(base_arbitrageur) => base_arbitrageur,
             _ => panic!(),
         };
-        base_arbitrageur.detect_arbitrage();
+        let arbitrage_detection_handle = base_arbitrageur.detect_arbitrage();
 
         // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
         // Make calls that the arbitrageur should not filter out.
@@ -443,6 +453,9 @@ mod tests {
             call_data,
             U256::zero().into(),
         );
+
+        arbitrage_detection_handle.join();
+        println!("Arbitrageur prices: {:#?}", base_arbitrageur.prices);
         // Test that the arbitrageur does filter out these logs.
         // let unfiltered_events = arbitrageur.read_logs()?;
         // let filtered_events = arbitrageur.filter_events(unfiltered_events.clone());
