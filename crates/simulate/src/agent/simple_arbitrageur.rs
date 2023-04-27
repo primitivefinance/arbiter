@@ -154,7 +154,6 @@ mod tests {
 
     #[test]
     fn simple_arbitrageur_event_filter() -> Result<(), Box<dyn Error>> {
-        // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
         // Set up the liquid exchange.
         let decimals = 18_u8;
         let wad: U256 = U256::from(10_i64.pow(decimals as u32));
@@ -296,7 +295,6 @@ mod tests {
 
     #[test]
     fn simple_arbitrage_detection() -> Result<(), Box<dyn Error>> {
-        // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
         // Set up the liquid exchange.
         let decimals = 18_u8;
         let wad: U256 = U256::from(10_i64.pow(decimals as u32));
