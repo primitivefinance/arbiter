@@ -215,9 +215,7 @@ mod tests {
             manager.agents.get("admin").unwrap(),
             args1,
         );
-        // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
-
-        // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
+        
         // Create a simple arbitrageur agent.
         let event_filters = vec![
             create_filter(&liquid_exchange_xy0, "PriceChange"),
@@ -228,9 +226,7 @@ mod tests {
             AgentType::SimpleArbitrageur(SimpleArbitrageur::new("arbitrageur", event_filters));
         manager.activate_agent(arbitrageur, B160::from_low_u64_be(2))?;
         let arbitrageur = manager.agents.get("arbitrageur").unwrap();
-        // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
-
-        // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
+       
         // Make calls that the arbitrageur should not filter out.
         // Make a price change to the first exchange.
         let new_price0 = wad.checked_mul(U256::from(42069)).unwrap();
@@ -267,9 +263,7 @@ mod tests {
             &filtered_events
         );
         assert_eq!(filtered_events, unfiltered_events);
-        // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
-
-        // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
+        
         // Make calls that the arbitrageur should filter out.
         // Make a call to mint tokens.
         let call_data = token_x.encode_function(
@@ -364,9 +358,7 @@ mod tests {
             manager.agents.get("admin").unwrap(),
             args1,
         );
-        // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
 
-        // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
         // Create a simple arbitrageur agent.
         let event_filters = vec![
             create_filter(&liquid_exchange_xy0, "PriceChange"),
@@ -376,9 +368,7 @@ mod tests {
             AgentType::SimpleArbitrageur(SimpleArbitrageur::new("arbitrageur", event_filters));
         manager.activate_agent(arbitrageur, B160::from_low_u64_be(2))?;
         let arbitrageur = manager.agents.get("arbitrageur").unwrap();
-        // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
 
-        // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
         // Have the arbitrageur check for arbitrage events.
         let base_arbitrageur = match arbitrageur {
             AgentType::SimpleArbitrageur(base_arbitrageur) => base_arbitrageur,
@@ -392,11 +382,9 @@ mod tests {
         assert_eq!(prices[1], U256::MAX.into());
         drop(prices);
 
+        // Start the arbitrageur to detect price changes.
         let arbitrage_detection_handle = base_arbitrageur.detect_arbitrage();
 
-
-        // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
-        // Make calls that the arbitrageur should not filter out.
         // Make a price change to the first exchange.
         let new_price0 = wad.checked_mul(U256::from(42069)).unwrap();
         let call_data = liquid_exchange_xy0.encode_function("setPrice", new_price0)?;
@@ -406,14 +394,6 @@ mod tests {
             call_data,
             U256::zero().into(),
         );
-        // Test that the arbitrageur doesn't filter out these logs.
-        // let unfiltered_events = arbitrageur.read_logs()?;
-        // let filtered_events = arbitrageur.filter_events(unfiltered_events.clone());
-        // println!(
-        //     "The filtered events for the first call are: {:#?}",
-        //     &filtered_events
-        // );
-        // assert_eq!(filtered_events, unfiltered_events);
 
         // Make a price change to the second exchange.
         let new_price1 = wad.checked_mul(U256::from(69420)).unwrap();
@@ -424,48 +404,13 @@ mod tests {
             call_data,
             U256::zero().into(),
         );
-        // Test that the arbitrageur doesn't filter out these logs.
-        // let unfiltered_events = arbitrageur.read_logs()?;
-        // let filtered_events = arbitrageur.filter_events(unfiltered_events.clone());
-        // println!(
-        //     "The filtered events for the second call are: {:#?}",
-        //     &filtered_events
-        // );
-        // assert_eq!(filtered_events, unfiltered_events);
-        // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
 
-        // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
-        // Make calls that the arbitrageur should filter out.
-        // Make a call to mint tokens.
-        let call_data = token_x.encode_function(
-            "mint",
-            (
-                recast_address(manager.agents.get("arbitrageur").unwrap().address()),
-                U256::from(1),
-            ),
-        )?;
-        manager.agents.get("admin").unwrap().call_contract(
-            &mut manager.environment,
-            &token_x,
-            call_data,
-            U256::zero().into(),
-        );
-
-        arbitrage_detection_handle.join(); // Block progress until all the events have been recorded
+        arbitrage_detection_handle.join().unwrap(); // Block progress until all the events have been recorded
         let prices = Arc::clone(&base_arbitrageur.prices);
         let prices = prices.lock().unwrap();
         println!("Arbitrageur prices: {:#?}", prices);
         assert_eq!(prices[0], wad.checked_mul(U256::from(42069)).unwrap().into());
         assert_eq!(prices[1], wad.checked_mul(U256::from(69420)).unwrap().into());
-
-        // Test that the arbitrageur does filter out these logs.
-        // let unfiltered_events = arbitrageur.read_logs()?;
-        // let filtered_events = arbitrageur.filter_events(unfiltered_events.clone());
-        // println!(
-        //     "The filtered events for the second call are: {:#?}",
-        //     &filtered_events
-        // );
-        // assert_eq!(filtered_events, vec![]);
 
         Ok(())
     }

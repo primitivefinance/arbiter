@@ -272,139 +272,135 @@ pub fn filter_events(event_filters: Vec<SimulationEventFilter>, logs: Vec<Log>) 
     events
 }
 
-// #[cfg(test)]
-// mod tests {
+#[cfg(test)]
+mod tests {
 
-//     use std::error::Error;
+    use std::error::Error;
 
-//     use bindings::{arbiter_token, writer};
-//     use revm::primitives::{ruint::Uint, B160};
+    use bindings::{arbiter_token, writer};
+    use revm::primitives::{ruint::Uint, B160};
 
-//     use crate::{
-//         agent::{create_filter, AgentType},
-//         contract::SimulationContract,
-//         manager::SimulationManager,
-//     };
+    use crate::{
+        agent::{create_filter, AgentType, user::User, Agent},
+        contract::SimulationContract,
+        manager::SimulationManager,
+    };
 
-//     #[test]
-//     fn agent_event_filter_through() -> Result<(), Box<dyn Error>> {
-//         // Set up the execution manager and a user address.
-//         let mut manager = SimulationManager::default();
+    #[test]
+    fn agent_event_filter_through() -> Result<(), Box<dyn Error>> {
+        // Set up the execution manager and a user address.
+        let mut manager = SimulationManager::default();
 
-//         // Create writer contract.
-//         let writer =
-//             SimulationContract::new(writer::WRITER_ABI.clone(), writer::WRITER_BYTECODE.clone());
+        // Create writer contract.
+        let writer =
+            SimulationContract::new(writer::WRITER_ABI.clone(), writer::WRITER_BYTECODE.clone());
 
-//         // Deploy the writer.
-//         let test_string = "Hello, world..?".to_string();
-//         let writer = writer.deploy(
-//             &mut manager.environment,
-//             manager.agents.get("admin").unwrap(),
-//             test_string,
-//         );
+        // Deploy the writer.
+        let test_string = "Hello, world..?".to_string();
+        let writer = writer.deploy(
+            &mut manager.environment,
+            manager.agents.get("admin").unwrap(),
+            test_string,
+        );
 
-//         // Create two agents with a filter.
-//         manager.create_agent("alice", B160::from_low_u64_be(2), AgentType::User, None)?;
+        // Create two agents with a filter.
+        let alice = User::new("alice", None);
+        manager.activate_agent(AgentType::User(alice), B160::from_low_u64_be(2))?;
 
-//         let event_filters = vec![create_filter(&writer, "WasWritten")];
-//         manager.create_agent(
-//             "bob",
-//             B160::from_low_u64_be(3),
-//             AgentType::User,
-//             Some(event_filters),
-//         )?;
+        let event_filters = vec![create_filter(&writer, "WasWritten")];
+        let bob = User::new("bob", Some(event_filters));
+        manager.activate_agent(
+            AgentType::User(bob),
+            B160::from_low_u64_be(3),
+        )?;
 
-//         let alice = manager.agents.get("alice").unwrap();
-//         let bob = manager.agents.get("bob").unwrap();
+        let alice = manager.agents.get("alice").unwrap();
+        let bob = manager.agents.get("bob").unwrap();
 
-//         println!("Alice's event filter: {:#?}", alice.event_filters());
-//         println!("Bob's event filter: {:#?}", bob.event_filters());
+        println!("Alice's event filter: {:#?}", alice.event_filters());
+        println!("Bob's event filter: {:#?}", bob.event_filters());
 
-//         // Make calls that alice and bob won't filter out.
-//         let new_string = "Hello, world!".to_string();
-//         let call_data = writer.encode_function("echoString", new_string)?;
-//         manager.agents.get("admin").unwrap().call_contract(
-//             &mut manager.environment,
-//             &writer,
-//             call_data,
-//             Uint::ZERO,
-//         );
-//         // Test that the alice doesn't filter out these logs.
-//         let unfiltered_events = alice.read_logs()?;
-//         let filtered_events = alice.filter_events(unfiltered_events.clone());
-//         println!(
-//             "The filtered events for alice on the first call are: {:#?}",
-//             &filtered_events
-//         );
-//         assert_eq!(filtered_events, unfiltered_events);
-//         // Test that bob filters out these logs.
-//         let unfiltered_events = bob.read_logs()?;
-//         let filtered_events = bob.filter_events(unfiltered_events.clone());
-//         println!(
-//             "The filtered events for bob on the first call are: {:#?}",
-//             &filtered_events
-//         );
+        // Make calls that alice and bob won't filter out.
+        let new_string = "Hello, world!".to_string();
+        let call_data = writer.encode_function("echoString", new_string)?;
+        manager.agents.get("admin").unwrap().call_contract(
+            &mut manager.environment,
+            &writer,
+            call_data,
+            Uint::ZERO,
+        );
+        // Test that the alice doesn't filter out these logs.
+        let unfiltered_events = alice.read_logs()?;
+        let filtered_events = super::filter_events(alice.event_filters(), unfiltered_events.clone());
+        println!(
+            "The filtered events for alice on the first call are: {:#?}",
+            &filtered_events
+        );
+        assert_eq!(filtered_events, unfiltered_events);
+        // Test that bob filters out these logs.
+        let unfiltered_events = bob.read_logs()?;
+        let filtered_events = super::filter_events(bob.event_filters(), unfiltered_events.clone());
+        println!(
+            "The filtered events for bob on the first call are: {:#?}",
+            &filtered_events
+        );
 
-//         // Also try to filter out a different address.
+        // Also try to filter out a different address.
 
-//         Ok(())
-//     }
+        Ok(())
+    }
 
-//     #[test]
-//     fn agent_event_filter_out() -> Result<(), Box<dyn Error>> {
-//         // Set up the execution manager and a user address.
-//         let mut manager = SimulationManager::default();
+    #[test]
+    fn agent_event_filter_out() -> Result<(), Box<dyn Error>> {
+        // Set up the execution manager and a user address.
+        let mut manager = SimulationManager::default();
 
-//         // Create writer contract.
-//         let writer =
-//             SimulationContract::new(writer::WRITER_ABI.clone(), writer::WRITER_BYTECODE.clone());
-//         let test_string = "Hello, world..?".to_string();
-//         let writer = writer.deploy(
-//             &mut manager.environment,
-//             manager.agents.get("admin").unwrap(),
-//             test_string,
-//         );
+        // Create writer contract.
+        let writer =
+            SimulationContract::new(writer::WRITER_ABI.clone(), writer::WRITER_BYTECODE.clone());
+        let test_string = "Hello, world..?".to_string();
+        let writer = writer.deploy(
+            &mut manager.environment,
+            manager.agents.get("admin").unwrap(),
+            test_string,
+        );
 
-//         // Create writer contract.
-//         let arbt = SimulationContract::new(
-//             arbiter_token::ARBITERTOKEN_ABI.clone(),
-//             arbiter_token::ARBITERTOKEN_BYTECODE.clone(),
-//         );
-//         let arbt = arbt.deploy(
-//             &mut manager.environment,
-//             manager.agents.get("admin").unwrap(),
-//             ("ArbiterToken".to_string(), "ARBT".to_string(), 18_u8),
-//         );
+        // Create writer contract.
+        let arbt = SimulationContract::new(
+            arbiter_token::ARBITERTOKEN_ABI.clone(),
+            arbiter_token::ARBITERTOKEN_BYTECODE.clone(),
+        );
+        let arbt = arbt.deploy(
+            &mut manager.environment,
+            manager.agents.get("admin").unwrap(),
+            ("ArbiterToken".to_string(), "ARBT".to_string(), 18_u8),
+        );
 
-//         // Create agent with a filter.
-//         let event_filters = vec![create_filter(&arbt, "Approval")];
-//         manager.create_agent(
-//             "alice",
-//             B160::from_low_u64_be(2),
-//             AgentType::User,
-//             Some(event_filters),
-//         )?;
-//         let alice = manager.agents.get("alice").unwrap();
+        // Create agent with a filter.
+        let event_filters = vec![create_filter(&arbt, "Approval")];
+        let alice = User::new("alice", Some(event_filters));
+        manager.activate_agent(AgentType::User(alice), B160::from_low_u64_be(2))?;
+        let alice = manager.agents.get("alice").unwrap();
 
-//         println!("Alice's event filter: {:#?}", alice.event_filters());
+        println!("Alice's event filter: {:#?}", alice.event_filters());
 
-//         // Make calls that alice and bob won't filter out.
-//         let new_string = "Hello, world!".to_string();
-//         let call_data = writer.encode_function("echoString", new_string)?;
-//         manager.agents.get("admin").unwrap().call_contract(
-//             &mut manager.environment,
-//             &writer,
-//             call_data,
-//             Uint::ZERO,
-//         );
-//         // Test that the alice doesn't filter out these logs.
-//         let unfiltered_events = alice.read_logs()?;
-//         let filtered_events = alice.filter_events(unfiltered_events.clone());
-//         println!(
-//             "The filtered events for alice on the first call are: {:#?}",
-//             &filtered_events
-//         );
-//         assert_eq!(filtered_events, vec![]);
-//         Ok(())
-//     }
-// }
+        // Make calls that alice and bob won't filter out.
+        let new_string = "Hello, world!".to_string();
+        let call_data = writer.encode_function("echoString", new_string)?;
+        manager.agents.get("admin").unwrap().call_contract(
+            &mut manager.environment,
+            &writer,
+            call_data,
+            Uint::ZERO,
+        );
+        // Test that the alice doesn't filter out these logs.
+        let unfiltered_events = alice.read_logs()?;
+        let filtered_events = super::filter_events(alice.event_filters(), unfiltered_events.clone());
+        println!(
+            "The filtered events for alice on the first call are: {:#?}",
+            &filtered_events
+        );
+        assert_eq!(filtered_events, vec![]);
+        Ok(())
+    }
+}
