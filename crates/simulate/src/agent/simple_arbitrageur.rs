@@ -107,6 +107,7 @@ impl SimpleArbitrageur<IsActive> {
                     println!("The value is: {:#?}", value);
                     let value = value.into_uint().unwrap();
                     prices[pool_number] = value.into();
+                    println!("Price for pool number {:#?} is {:#?}", pool_number, prices[pool_number]);
 
                     // look to see if this gives an arbitrage event
                     // First filter out if one of the prices is MAX as this is the default state.
@@ -132,7 +133,7 @@ impl SimpleArbitrageur<IsActive> {
 #[cfg(test)]
 mod tests {
 
-    use std::error::Error;
+    use std::{error::Error, sync::Arc};
 
     use bindings::{arbiter_token, liquid_exchange};
     use ethers::{prelude::I256, prelude::U256};
@@ -377,26 +378,22 @@ mod tests {
         let arbitrageur = manager.agents.get("arbitrageur").unwrap();
         // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
 
-        let condition = |price_0: U256, price_1: U256| {
-            let difference = price_0.checked_sub(price_1);
-            match difference {
-                Some(difference) => {
-                    if difference == U256::zero() {
-                        println!("No price difference.")
-                    }
-                    println!("Buy Token0")
-                }
-                None => println!("Buy Token1"),
-            };
-        };
-
         // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
         // Have the arbitrageur check for arbitrage events.
         let base_arbitrageur = match arbitrageur {
             AgentType::SimpleArbitrageur(base_arbitrageur) => base_arbitrageur,
             _ => panic!(),
         };
+
+        // Verify that the initial prices are correct
+        let prices = Arc::clone(&base_arbitrageur.prices);
+        let prices = prices.lock().unwrap();
+        assert_eq!(prices[0], U256::MAX.into());
+        assert_eq!(prices[1], U256::MAX.into());
+        drop(prices);
+
         let arbitrage_detection_handle = base_arbitrageur.detect_arbitrage();
+
 
         // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
         // Make calls that the arbitrageur should not filter out.
@@ -454,8 +451,13 @@ mod tests {
             U256::zero().into(),
         );
 
-        arbitrage_detection_handle.join();
-        println!("Arbitrageur prices: {:#?}", base_arbitrageur.prices);
+        arbitrage_detection_handle.join(); // Block progress until all the events have been recorded
+        let prices = Arc::clone(&base_arbitrageur.prices);
+        let prices = prices.lock().unwrap();
+        println!("Arbitrageur prices: {:#?}", prices);
+        assert_eq!(prices[0], wad.checked_mul(U256::from(42069)).unwrap().into());
+        assert_eq!(prices[1], wad.checked_mul(U256::from(69420)).unwrap().into());
+
         // Test that the arbitrageur does filter out these logs.
         // let unfiltered_events = arbitrageur.read_logs()?;
         // let filtered_events = arbitrageur.filter_events(unfiltered_events.clone());
