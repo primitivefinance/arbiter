@@ -7,18 +7,16 @@ pub use i_portfolio_actions::*;
     clippy::upper_case_acronyms,
     clippy::type_complexity,
     dead_code,
-    non_camel_case_types,
+    non_camel_case_types
 )]
 pub mod i_portfolio_actions {
     #[rustfmt::skip]
     const __ABI: &str = "[{\"inputs\":[{\"internalType\":\"uint64\",\"name\":\"poolId\",\"type\":\"uint64\",\"components\":[]},{\"internalType\":\"uint16\",\"name\":\"priorityFee\",\"type\":\"uint16\",\"components\":[]},{\"internalType\":\"uint16\",\"name\":\"fee\",\"type\":\"uint16\",\"components\":[]},{\"internalType\":\"uint16\",\"name\":\"jit\",\"type\":\"uint16\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"function\",\"name\":\"changeParameters\",\"outputs\":[]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"token\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"function\",\"name\":\"claimFee\",\"outputs\":[]},{\"inputs\":[{\"internalType\":\"bytes\",\"name\":\"data\",\"type\":\"bytes\",\"components\":[]}],\"stateMutability\":\"payable\",\"type\":\"function\",\"name\":\"multiprocess\",\"outputs\":[]},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"fee\",\"type\":\"uint256\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"function\",\"name\":\"setProtocolFee\",\"outputs\":[]}]";
     ///The parsed JSON ABI of the contract.
-    pub static IPORTFOLIOACTIONS_ABI: ::ethers::contract::Lazy<
-        ::ethers::core::abi::Abi,
-    > = ::ethers::contract::Lazy::new(|| {
-        ::ethers::core::utils::__serde_json::from_str(__ABI)
-            .expect("ABI is always valid")
-    });
+    pub static IPORTFOLIOACTIONS_ABI: ::ethers::contract::Lazy<::ethers::core::abi::Abi> =
+        ::ethers::contract::Lazy::new(|| {
+            ::ethers::core::utils::__serde_json::from_str(__ABI).expect("ABI is always valid")
+        });
     pub struct IPortfolioActions<M>(::ethers::contract::Contract<M>);
     impl<M> ::core::clone::Clone for IPortfolioActions<M> {
         fn clone(&self) -> Self {
@@ -38,7 +36,9 @@ pub mod i_portfolio_actions {
     }
     impl<M> ::core::fmt::Debug for IPortfolioActions<M> {
         fn fmt(&self, f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
-            f.debug_tuple(stringify!(IPortfolioActions)).field(&self.address()).finish()
+            f.debug_tuple(stringify!(IPortfolioActions))
+                .field(&self.address())
+                .finish()
         }
     }
     impl<M: ::ethers::providers::Middleware> IPortfolioActions<M> {
@@ -48,13 +48,11 @@ pub mod i_portfolio_actions {
             address: T,
             client: ::std::sync::Arc<M>,
         ) -> Self {
-            Self(
-                ::ethers::contract::Contract::new(
-                    address.into(),
-                    IPORTFOLIOACTIONS_ABI.clone(),
-                    client,
-                ),
-            )
+            Self(::ethers::contract::Contract::new(
+                address.into(),
+                IPORTFOLIOACTIONS_ABI.clone(),
+                client,
+            ))
         }
         ///Calls the contract's `changeParameters` (0xaf777855) function
         pub fn change_parameters(
@@ -98,7 +96,8 @@ pub mod i_portfolio_actions {
         }
     }
     impl<M: ::ethers::providers::Middleware> From<::ethers::contract::Contract<M>>
-    for IPortfolioActions<M> {
+        for IPortfolioActions<M>
+    {
         fn from(contract: ::ethers::contract::Contract<M>) -> Self {
             Self::new(contract.address(), contract.client())
         }
@@ -112,7 +111,7 @@ pub mod i_portfolio_actions {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(
         name = "changeParameters",
@@ -133,7 +132,7 @@ pub mod i_portfolio_actions {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "claimFee", abi = "claimFee(address,uint256)")]
     pub struct ClaimFeeCall {
@@ -149,7 +148,7 @@ pub mod i_portfolio_actions {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "multiprocess", abi = "multiprocess(bytes)")]
     pub struct MultiprocessCall {
@@ -164,7 +163,7 @@ pub mod i_portfolio_actions {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "setProtocolFee", abi = "setProtocolFee(uint256)")]
     pub struct SetProtocolFeeCall {
@@ -183,22 +182,21 @@ pub mod i_portfolio_actions {
             data: impl AsRef<[u8]>,
         ) -> ::core::result::Result<Self, ::ethers::core::abi::AbiError> {
             let data = data.as_ref();
-            if let Ok(decoded)
-                = <ChangeParametersCall as ::ethers::core::abi::AbiDecode>::decode(
-                    data,
-                ) {
+            if let Ok(decoded) =
+                <ChangeParametersCall as ::ethers::core::abi::AbiDecode>::decode(data)
+            {
                 return Ok(Self::ChangeParameters(decoded));
             }
-            if let Ok(decoded)
-                = <ClaimFeeCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <ClaimFeeCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::ClaimFee(decoded));
             }
-            if let Ok(decoded)
-                = <MultiprocessCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <MultiprocessCall as ::ethers::core::abi::AbiDecode>::decode(data)
+            {
                 return Ok(Self::Multiprocess(decoded));
             }
-            if let Ok(decoded)
-                = <SetProtocolFeeCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) =
+                <SetProtocolFeeCall as ::ethers::core::abi::AbiDecode>::decode(data)
+            {
                 return Ok(Self::SetProtocolFee(decoded));
             }
             Err(::ethers::core::abi::Error::InvalidData.into())
@@ -207,18 +205,10 @@ pub mod i_portfolio_actions {
     impl ::ethers::core::abi::AbiEncode for IPortfolioActionsCalls {
         fn encode(self) -> Vec<u8> {
             match self {
-                Self::ChangeParameters(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
-                Self::ClaimFee(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
-                Self::Multiprocess(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
-                Self::SetProtocolFee(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
+                Self::ChangeParameters(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::ClaimFee(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::Multiprocess(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::SetProtocolFee(element) => ::ethers::core::abi::AbiEncode::encode(element),
             }
         }
     }

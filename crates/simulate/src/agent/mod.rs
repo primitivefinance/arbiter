@@ -1,4 +1,5 @@
 #![warn(missing_docs)]
+#![warn(unsafe_code)]
 
 //! ## Agent trait and associated functionality
 //!
@@ -13,20 +14,14 @@ use std::{
 
 use bytes::Bytes;
 use crossbeam_channel::Receiver;
-use ethers::{
-    abi::{ethabi::AbiError, Token},
-    prelude::BaseContract,
-    types::H256,
-};
+use ethers::{prelude::BaseContract, types::H256};
 use revm::primitives::{AccountInfo, Address, ExecutionResult, Log, TransactTo, TxEnv, B160, U256};
 
+use self::{simple_arbitrageur::SimpleArbitrageur, user::User};
 use crate::{
     contract::{IsDeployed, SimulationContract},
     environment::SimulationEnvironment,
-    utils::float_to_wad,
 };
-
-use self::{simple_arbitrageur::SimpleArbitrageur, user::User};
 
 pub mod simple_arbitrageur;
 pub mod user;
@@ -43,14 +38,23 @@ impl Display for AgentError {
     }
 }
 
+/// A marker trait for [`Agent`] types.
+/// Allows the agent to be in two states: [`NotActive`] and [`IsActive`].
+/// These two states have different properties.
 pub trait AgentStatus {
+    /// The address information of an agent.
     type Address;
+    /// The [`revm`] [`AccountInfo`] of the agent.
     type AccountInfo;
+    /// The receiver for the log stream emitted by the [`SimulationEnvironment`].
     type EventReceiver;
+    /// The settings that define how a given agent will transact with the [`SimulationEnvironment`].
     type TransactSettings;
 }
 
+/// Marker for an [`Agent`] when they are not yet added to the `SimulationManager` agent list.
 pub struct NotActive;
+/// Marker for an [`Agent`] that has been added to the `SimulationManager` agent list and has all the relevant information needed to be used in a simulation.
 pub struct IsActive;
 
 impl AgentStatus for NotActive {
@@ -67,6 +71,7 @@ impl AgentStatus for IsActive {
     type TransactSettings = TransactSettings;
 }
 
+/// Gives a function to retrieve the name of an [`Agent`].
 pub trait Identifiable {
     /// Returns the name of an [`IsActive`] or [`NotActive`] [`Agent`] (or otherwise identifiable type).
     fn name(&self) -> String;
@@ -83,6 +88,7 @@ pub enum AgentType<AgentState: AgentStatus> {
 }
 
 impl AgentType<IsActive> {
+    /// Retrieves the inner `&dyn Agent` struct inside of the [`AgentType`] enum.
     pub fn inner(&self) -> &dyn Agent {
         match self {
             AgentType::User(inner) => inner,
@@ -92,6 +98,7 @@ impl AgentType<IsActive> {
 }
 
 impl AgentType<NotActive> {
+    /// Retrieves the inner `&dyn Identifiable` struct inside of the [`AgentType`] enum.
     pub fn inner(&self) -> &dyn Identifiable {
         match self {
             AgentType::User(inner) => inner,
@@ -225,8 +232,9 @@ pub struct SimulationEventFilter {
     pub address: B160,
     /// The event names to filter for.
     pub topic: H256,
-
+    /// A private copy of the [`BaseContract`] for whichever contract is used to generate filters.
     base_contract: BaseContract,
+    /// The name of the event emitted by a contract.
     pub event_name: String,
 }
 
@@ -281,7 +289,7 @@ mod tests {
     use revm::primitives::{ruint::Uint, B160};
 
     use crate::{
-        agent::{create_filter, AgentType, user::User, Agent},
+        agent::{create_filter, user::User, Agent, AgentType},
         contract::SimulationContract,
         manager::SimulationManager,
     };
@@ -309,10 +317,7 @@ mod tests {
 
         let event_filters = vec![create_filter(&writer, "WasWritten")];
         let bob = User::new("bob", Some(event_filters));
-        manager.activate_agent(
-            AgentType::User(bob),
-            B160::from_low_u64_be(3),
-        )?;
+        manager.activate_agent(AgentType::User(bob), B160::from_low_u64_be(3))?;
 
         let alice = manager.agents.get("alice").unwrap();
         let bob = manager.agents.get("bob").unwrap();
@@ -331,7 +336,8 @@ mod tests {
         );
         // Test that the alice doesn't filter out these logs.
         let unfiltered_events = alice.read_logs()?;
-        let filtered_events = super::filter_events(alice.event_filters(), unfiltered_events.clone());
+        let filtered_events =
+            super::filter_events(alice.event_filters(), unfiltered_events.clone());
         println!(
             "The filtered events for alice on the first call are: {:#?}",
             &filtered_events
@@ -395,7 +401,8 @@ mod tests {
         );
         // Test that the alice doesn't filter out these logs.
         let unfiltered_events = alice.read_logs()?;
-        let filtered_events = super::filter_events(alice.event_filters(), unfiltered_events.clone());
+        let filtered_events =
+            super::filter_events(alice.event_filters(), unfiltered_events.clone());
         println!(
             "The filtered events for alice on the first call are: {:#?}",
             &filtered_events

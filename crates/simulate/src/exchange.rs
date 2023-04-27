@@ -30,7 +30,7 @@ mod tests {
     use revm::primitives::{ruint::Uint, B160};
 
     use crate::{
-        agent::{AgentType, Agent, user::User},
+        agent::{user::User, Agent, AgentType},
         contract::SimulationContract,
         manager::SimulationManager,
         stochastic::price_process::{PriceProcess, PriceProcessType, GBM},

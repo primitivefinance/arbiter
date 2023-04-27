@@ -10,14 +10,12 @@ use std::{
 
 use bytes::Bytes;
 use crossbeam_channel::unbounded;
-use ethers::providers::spoof::Account;
 use revm::primitives::{AccountInfo, Address, ExecutionResult, Log, Output, B160, U256};
 
 use crate::{
     agent::{
-        simple_arbitrageur::{self, SimpleArbitrageur},
-        user::User,
-        Agent, AgentType, IsActive, NotActive, SimulationEventFilter, TransactSettings,
+        simple_arbitrageur::SimpleArbitrageur, user::User, AgentType, IsActive, NotActive,
+        TransactSettings,
     },
     environment::SimulationEnvironment,
 };
@@ -62,10 +60,9 @@ impl SimulationManager {
             agents: HashMap::new(),
         };
         let admin = AgentType::User(User::new("admin", None));
-        simulation_manager.activate_agent(admin, B160::from_low_u64_be(1));
-        // simulation_manager
-        //     .add_agent("admin", B160::from_low_u64_be(1), AgentType::User, None)
-        //     .unwrap(); // This unwrap should never fail.
+        simulation_manager
+            .activate_agent(admin, B160::from_low_u64_be(1))
+            .unwrap(); // This unwrap should never fail.
         simulation_manager
     }
 
@@ -75,7 +72,6 @@ impl SimulationManager {
     }
 
     /// Adds and activates an agent to be put in the collection of agents under the manager's control.
-    /// // TODO: can this return an active agent?
     pub fn activate_agent(
         &mut self,
         new_agent: AgentType<NotActive>,

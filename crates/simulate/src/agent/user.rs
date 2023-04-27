@@ -1,12 +1,12 @@
 #![warn(missing_docs)]
+#![warn(unsafe_code)]
 //! Describes the most basic type of user agent.
 
 use crossbeam_channel::Receiver;
-use revm::primitives::{AccountInfo, Address, Log, B160};
-
-use crate::agent::{Agent, SimulationEventFilter, TransactSettings};
+use revm::primitives::{Address, Log};
 
 use super::{AgentStatus, Identifiable, IsActive, NotActive};
+use crate::agent::{Agent, SimulationEventFilter, TransactSettings};
 
 /// A user is an agent that can interact with the simulation environment generically.
 pub struct User<AgentState: AgentStatus> {
@@ -46,6 +46,7 @@ impl Agent for User<IsActive> {
 }
 
 impl User<NotActive> {
+    /// Creates a new [`User`] which takes an optional vector of [`SimulationEventFilter`] and automatically sets default initial stored prices.
     pub fn new<S: Into<String>>(
         name: S,
         event_filters: Option<Vec<SimulationEventFilter>>,

@@ -1,6 +1,5 @@
 #![warn(missing_docs)]
-//! This module contains the `SimulationContract` struct that is used to wrap around the ethers `BaseContract` and add some additional information relevant for revm and the simulation.
-use std::marker::PhantomData;
+//! This module contains the [`SimulationContract`] struct that is used to wrap around the ethers `BaseContract` and add some additional information relevant for revm and the simulation.
 
 use bytes::Bytes;
 use ethers::{
@@ -12,7 +11,7 @@ use ethers::{
 use revm::primitives::{ExecutionResult, Output, TransactTo, TxEnv, B160, B256, U256};
 
 use crate::{
-    agent::{Agent, AgentType, IsActive},
+    agent::{AgentType, IsActive},
     environment::SimulationEnvironment,
 };
 

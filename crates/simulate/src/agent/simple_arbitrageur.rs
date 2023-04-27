@@ -1,17 +1,17 @@
 #![warn(missing_docs)]
+#![warn(unsafe_code)]
 //! Describes the most basic type of user agent.
 
-use std::{error::Error, thread::{self, JoinHandle}, sync::{Arc, Mutex}};
-
-use crossbeam_channel::Receiver;
-use revm::primitives::{AccountInfo, Address, Log, B160, U256};
-
-use crate::{
-    agent::{filter_events, Agent, SimulationEventFilter, TransactSettings},
-    utils::float_to_wad,
+use std::{
+    sync::{Arc, Mutex},
+    thread::{self, JoinHandle},
 };
 
+use crossbeam_channel::Receiver;
+use revm::primitives::{Address, Log, U256};
+
 use super::{AgentStatus, Identifiable, IsActive, NotActive};
+use crate::agent::{filter_events, Agent, SimulationEventFilter, TransactSettings};
 
 /// A user is an agent that can interact with the simulation environment generically.
 pub struct SimpleArbitrageur<AgentState: AgentStatus> {
@@ -27,7 +27,7 @@ pub struct SimpleArbitrageur<AgentState: AgentStatus> {
     pub event_receiver: AgentState::EventReceiver,
     /// The filter for the events that the agent is interested in.
     pub event_filters: Vec<SimulationEventFilter>,
-
+    /// Storage of prices of the two pools the [`SimpleArbitrageur`] tracks.
     pub prices: Arc<Mutex<[U256; 2]>>,
 }
 
@@ -53,6 +53,7 @@ impl Agent for SimpleArbitrageur<IsActive> {
 }
 
 impl SimpleArbitrageur<NotActive> {
+    /// Creates a new [`SimpleArbitrageur`] which requires a vector of [`SimulationEventFilter`] and automatically sets default initial stored prices.
     pub fn new<S: Into<String>>(
         name: S,
         event_filters: Vec<SimulationEventFilter>,
@@ -64,19 +65,21 @@ impl SimpleArbitrageur<NotActive> {
             transact_settings: (),
             event_receiver: (),
             event_filters,
-            prices: Arc::new(Mutex::new([U256::MAX, U256::MAX])), // Default to MAX value as a placeholder.
+            prices: Arc::new(Mutex::new([U256::MAX, U256::MAX])), /* Default to MAX value as a placeholder. */
         }
     }
 }
 
 impl SimpleArbitrageur<IsActive> {
+    /// A basic implementation that will detect price discprepencies from events emitted from pools.
+    /// Currently implemented and tested only against the `liquid_exchange`.
     pub fn detect_arbitrage(&self) -> JoinHandle<()> {
         let receiver = self.receiver();
         let event_filters = self.event_filters();
 
-        let mut prices = Arc::clone(&self.prices);
+        let prices = Arc::clone(&self.prices);
 
-        let handle = thread::spawn(move || {
+        thread::spawn(move || {
             let mut prices = prices.lock().unwrap();
             let decoder = |input, filter_num: usize| {
                 event_filters[filter_num].base_contract.decode_event_raw(
@@ -90,7 +93,7 @@ impl SimpleArbitrageur<IsActive> {
                 let filtered_logs = filter_events(event_filters.clone(), logs);
                 println!("Filtered logs are: {:#?}", filtered_logs);
 
-                if filtered_logs.len() != 0 {
+                if !filtered_logs.is_empty() {
                     let data = filtered_logs[0].data.clone().into_iter().collect();
 
                     // See which pool this came from
@@ -107,7 +110,10 @@ impl SimpleArbitrageur<IsActive> {
                     println!("The value is: {:#?}", value);
                     let value = value.into_uint().unwrap();
                     prices[pool_number] = value.into();
-                    println!("Price for pool number {:#?} is {:#?}", pool_number, prices[pool_number]);
+                    println!(
+                        "Price for pool number {:#?} is {:#?}",
+                        pool_number, prices[pool_number]
+                    );
 
                     // look to see if this gives an arbitrage event
                     // First filter out if one of the prices is MAX as this is the default state.
@@ -121,12 +127,11 @@ impl SimpleArbitrageur<IsActive> {
                             println!("Arbitrage with price_0 > price_1");
                             break;
                         }
-                    } 
-                } 
-            };
+                    }
+                }
+            }
             println!("Exited arbitrage detection thread!");
-        });
-        handle
+        })
     }
 }
 
@@ -136,17 +141,16 @@ mod tests {
     use std::{error::Error, sync::Arc};
 
     use bindings::{arbiter_token, liquid_exchange};
-    use ethers::{prelude::I256, prelude::U256};
+    use ethers::prelude::U256;
     use revm::primitives::B160;
 
+    use super::SimpleArbitrageur;
     use crate::{
         agent::{create_filter, filter_events, Agent, AgentType},
         contract::SimulationContract,
         manager::SimulationManager,
         utils::recast_address,
     };
-
-    use super::SimpleArbitrageur;
 
     #[test]
     fn simple_arbitrageur_event_filter() -> Result<(), Box<dyn Error>> {
@@ -215,7 +219,7 @@ mod tests {
             manager.agents.get("admin").unwrap(),
             args1,
         );
-        
+
         // Create a simple arbitrageur agent.
         let event_filters = vec![
             create_filter(&liquid_exchange_xy0, "PriceChange"),
@@ -226,7 +230,7 @@ mod tests {
             AgentType::SimpleArbitrageur(SimpleArbitrageur::new("arbitrageur", event_filters));
         manager.activate_agent(arbitrageur, B160::from_low_u64_be(2))?;
         let arbitrageur = manager.agents.get("arbitrageur").unwrap();
-       
+
         // Make calls that the arbitrageur should not filter out.
         // Make a price change to the first exchange.
         let new_price0 = wad.checked_mul(U256::from(42069)).unwrap();
@@ -263,7 +267,7 @@ mod tests {
             &filtered_events
         );
         assert_eq!(filtered_events, unfiltered_events);
-        
+
         // Make calls that the arbitrageur should filter out.
         // Make a call to mint tokens.
         let call_data = token_x.encode_function(
@@ -409,8 +413,14 @@ mod tests {
         let prices = Arc::clone(&base_arbitrageur.prices);
         let prices = prices.lock().unwrap();
         println!("Arbitrageur prices: {:#?}", prices);
-        assert_eq!(prices[0], wad.checked_mul(U256::from(42069)).unwrap().into());
-        assert_eq!(prices[1], wad.checked_mul(U256::from(69420)).unwrap().into());
+        assert_eq!(
+            prices[0],
+            wad.checked_mul(U256::from(42069)).unwrap().into()
+        );
+        assert_eq!(
+            prices[1],
+            wad.checked_mul(U256::from(69420)).unwrap().into()
+        );
 
         Ok(())
     }
