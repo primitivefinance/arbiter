@@ -13,12 +13,17 @@ use std::{
 
 use bytes::Bytes;
 use crossbeam_channel::Receiver;
-use ethers::{types::H256, abi::{ethabi::AbiError, Token}, prelude::BaseContract};
-use revm::primitives::{Address, ExecutionResult, Log, TransactTo, TxEnv, B160, U256, AccountInfo};
+use ethers::{
+    abi::{ethabi::AbiError, Token},
+    prelude::BaseContract,
+    types::H256,
+};
+use revm::primitives::{AccountInfo, Address, ExecutionResult, Log, TransactTo, TxEnv, B160, U256};
 
 use crate::{
     contract::{IsDeployed, SimulationContract},
-    environment::SimulationEnvironment, utils::float_to_wad,
+    environment::SimulationEnvironment,
+    utils::float_to_wad,
 };
 
 use self::{simple_arbitrageur::SimpleArbitrageur, user::User};
@@ -95,6 +100,36 @@ impl AgentType<NotActive> {
     }
 }
 
+impl Identifiable for AgentType<IsActive> {
+    fn name(&self) -> String {
+        self.inner().name()
+    }
+}
+
+impl Identifiable for AgentType<NotActive> {
+    fn name(&self) -> String {
+        self.inner().name()
+    }
+}
+
+impl Agent for AgentType<IsActive> {
+    fn address(&self) -> Address {
+        self.inner().address()
+    }
+
+    fn transact_settings(&self) -> &TransactSettings {
+        self.inner().transact_settings()
+    }
+
+    fn receiver(&self) -> Receiver<Vec<Log>> {
+        self.inner().receiver()
+    }
+
+    fn event_filters(&self) -> Vec<SimulationEventFilter> {
+        self.inner().event_filters()
+    }
+}
+
 /// Describes the gas settings for a transaction.
 pub struct TransactSettings {
     /// Gas limit for the transaction for a simulation.
@@ -159,26 +194,27 @@ pub trait Agent: Identifiable {
     // TODO: add a condition as a bool valued function?
     // TODO: It would be optimal to not build functions inside of the monitor events since it could get called often. Ideally we just don't call it often?
     /// Monitor events for the agent.
-    fn monitor_events(&self) -> Result<(), AgentError>  {
+    fn monitor_events(&self) {
         let receiver = self.receiver();
         let event_filters = self.event_filters();
         thread::spawn(move || {
-            let decoder = |input, filter_num: usize| event_filters[filter_num].base_contract.decode_event_raw(event_filters[filter_num].event_name.as_str(), vec![event_filters[filter_num].topic], input);
+            let decoder = |input, filter_num: usize| {
+                event_filters[filter_num].base_contract.decode_event_raw(
+                    event_filters[filter_num].event_name.as_str(),
+                    vec![event_filters[filter_num].topic],
+                    input,
+                )
+            };
             while let Ok(logs) = receiver.recv() {
                 let filtered_logs = filter_events(event_filters.clone(), logs);
                 println!("Filtered logs are: {:#?}", filtered_logs);
-                let data = filtered_logs[0].data.clone().into_iter().collect(); 
+                let data = filtered_logs[0].data.clone().into_iter().collect();
                 let decoded_event = decoder(data, 0).unwrap(); // TODO: Fix the error handling here.
                 println!("Decoded event says: {:#?}", decoded_event);
                 let value = decoded_event[0].clone();
                 println!("The value is: {:#?}", value);
-                let value = value.into_uint().unwrap();
-                if value > float_to_wad(50000_f64) {
-                    println!("FAKE ARB EVENT");
-                }
             }
         });
-        Ok(())
     }
 }
 
@@ -200,12 +236,12 @@ pub fn create_filter(
     event_name: &str,
 ) -> SimulationEventFilter {
     let topic = contract
-    .base_contract
-    .abi()
-    .event(event_name)
-    .unwrap()
-    .signature();
-    // let decoder = |input| contract.decode_event::<[Token]>(event_name, vec![topic.into()], input); 
+        .base_contract
+        .abi()
+        .event(event_name)
+        .unwrap()
+        .signature();
+    // let decoder = |input| contract.decode_event::<[Token]>(event_name, vec![topic.into()], input);
     SimulationEventFilter {
         address: contract.address,
         topic,
@@ -215,16 +251,17 @@ pub fn create_filter(
 }
 
 /// Used to allow agents to filter out the events they choose to monitor.
-pub fn filter_events(simulation_filters: Vec<SimulationEventFilter>, logs: Vec<Log>) -> Vec<Log> {
-    if simulation_filters.is_empty() {
+pub fn filter_events(event_filters: Vec<SimulationEventFilter>, logs: Vec<Log>) -> Vec<Log> {
+    if event_filters.is_empty() {
         return logs;
     }
 
     let mut events = vec![];
 
     for log in logs {
-        for event_filter in simulation_filters.iter() {
-            if event_filter.address == log.address && event_filter.topic == log.topics[0].into() // TODO: Needs to not just be log.topics[0]
+        for event_filter in event_filters.iter() {
+            if event_filter.address == log.address && event_filter.topic == log.topics[0].into()
+            // TODO: Needs to not just be log.topics[0]
             {
                 events.push(log.clone());
                 break;

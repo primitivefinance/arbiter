@@ -6,7 +6,7 @@ use revm::primitives::{AccountInfo, Address, Log, B160};
 
 use crate::agent::{Agent, SimulationEventFilter, TransactSettings};
 
-use super::{AgentStatus, IsActive, NotActive, Identifiable};
+use super::{AgentStatus, Identifiable, IsActive, NotActive};
 
 /// A user is an agent that can interact with the simulation environment generically.
 pub struct User<AgentState: AgentStatus> {
@@ -24,8 +24,7 @@ pub struct User<AgentState: AgentStatus> {
     pub event_filters: Vec<SimulationEventFilter>,
 }
 
-
-impl <AgentState: AgentStatus> Identifiable for User<AgentState> {
+impl<AgentState: AgentStatus> Identifiable for User<AgentState> {
     fn name(&self) -> String {
         self.name.clone()
     }
@@ -47,7 +46,10 @@ impl Agent for User<IsActive> {
 }
 
 impl User<NotActive> {
-    pub fn new<S: Into<String>>(name: S, event_filters: Option<Vec<SimulationEventFilter>>) -> User<NotActive> {
+    pub fn new<S: Into<String>>(
+        name: S,
+        event_filters: Option<Vec<SimulationEventFilter>>,
+    ) -> User<NotActive> {
         User::<NotActive> {
             name: name.into(),
             address: (),

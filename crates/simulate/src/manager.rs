@@ -15,8 +15,9 @@ use revm::primitives::{AccountInfo, Address, ExecutionResult, Log, Output, B160,
 
 use crate::{
     agent::{
-        simple_arbitrageur::{SimpleArbitrageur, self}, user::User, Agent, AgentType, SimulationEventFilter,
-        TransactSettings, NotActive, IsActive,
+        simple_arbitrageur::{self, SimpleArbitrageur},
+        user::User,
+        Agent, AgentType, IsActive, NotActive, SimulationEventFilter, TransactSettings,
     },
     environment::SimulationEnvironment,
 };
@@ -118,7 +119,8 @@ impl SimulationManager {
                     event_receiver,
                     event_filters: user.event_filters,
                 };
-                self.agents.insert(new_user.name.clone(), AgentType::User(new_user));
+                self.agents
+                    .insert(new_user.name.clone(), AgentType::User(new_user));
             }
             AgentType::SimpleArbitrageur(simple_arbitrageur) => {
                 let new_simple_arbitrageur = SimpleArbitrageur::<IsActive> {
@@ -133,7 +135,10 @@ impl SimulationManager {
                     event_filters: simple_arbitrageur.event_filters,
                     prices: simple_arbitrageur.prices,
                 };
-                self.agents.insert(new_simple_arbitrageur.name.clone(), AgentType::SimpleArbitrageur(new_simple_arbitrageur));
+                self.agents.insert(
+                    new_simple_arbitrageur.name.clone(),
+                    AgentType::SimpleArbitrageur(new_simple_arbitrageur),
+                );
             }
         };
         self.environment.add_sender(event_sender);
@@ -166,6 +171,6 @@ impl SimulationManager {
 fn agent_address_collision() {
     let mut manager = SimulationManager::default();
     let alice = User::new("alice", None);
-    let result = manager.activate_agent( AgentType::User(alice), B160::from_low_u64_be(1));
+    let result = manager.activate_agent(AgentType::User(alice), B160::from_low_u64_be(1));
     assert!(result.is_err());
 }

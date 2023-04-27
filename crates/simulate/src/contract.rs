@@ -11,7 +11,10 @@ use ethers::{
 };
 use revm::primitives::{ExecutionResult, Output, TransactTo, TxEnv, B160, B256, U256};
 
-use crate::{agent::Agent, environment::SimulationEnvironment};
+use crate::{
+    agent::{Agent, AgentType, IsActive},
+    environment::SimulationEnvironment,
+};
 
 #[derive(Debug, Clone)]
 /// A struct use for [`PhantomData`] to indicate a lock on contracts that are not deployed.
@@ -68,60 +71,58 @@ impl SimulationContract<NotDeployed> {
             constructor_arguments: (),
         }
     }
+
+    /// Deploy a contract to the current simulation environment and return a new [`SimulationContract<IsDeployed>`].
+    /// Does not consume the current [`SimulationContract<NotDeployed>`] so that more copies can be deployed later.
+    pub fn deploy<T: Tokenize>(
+        &self,
+        simulation_environment: &mut SimulationEnvironment,
+        deployer: &AgentType<IsActive>,
+        constructor_arguments: T,
+    ) -> SimulationContract<IsDeployed> {
+        // Append constructor args (if available) to generate the deploy bytecode.
+        let tokenized_args = constructor_arguments.into_tokens();
+        let bytecode = match self.base_contract.abi().constructor.clone() {
+            Some(constructor) => Bytes::from(
+                constructor
+                    .encode_input(self.bytecode.clone(), &tokenized_args)
+                    .unwrap(),
+            ),
+            None => Bytes::from(self.bytecode.clone()),
+        };
+
+        // Take the execution result and extract the contract address.
+        let deploy_txenv = TxEnv {
+            caller: deployer.inner().address(),
+            gas_limit: deployer.inner().transact_settings().gas_limit,
+            gas_price: deployer.inner().transact_settings().gas_price,
+            gas_priority_fee: None,
+            transact_to: TransactTo::create(),
+            value: U256::ZERO,
+            data: bytecode,
+            chain_id: None,
+            nonce: None,
+            access_list: Vec::new(),
+        };
+        let execution_result = simulation_environment.execute(deploy_txenv);
+        let output = match execution_result {
+            ExecutionResult::Success { output, .. } => output,
+            ExecutionResult::Revert { output, .. } => panic!("Failed due to revert: {:?}", output),
+            ExecutionResult::Halt { reason, .. } => panic!("Failed due to halt: {:?}", reason),
+        };
+        let address = match output {
+            Output::Create(_, address) => address.unwrap(),
+            _ => panic!("failed"),
+        };
+
+        SimulationContract {
+            bytecode: (),
+            address,
+            base_contract: self.base_contract.clone(),
+            constructor_arguments: tokenized_args,
+        }
+    }
 }
-
-//     /// Deploy a contract to the current simulation environment and return a new [`SimulationContract<IsDeployed>`].
-//     /// Does not consume the current [`SimulationContract<NotDeployed>`] so that more copies can be deployed later.
-//     pub fn deploy<T: Tokenize>(
-//         &self,
-//         simulation_environment: &mut SimulationEnvironment,
-//         deployer: dyn Agent,
-//         constructor_arguments: T,
-//     ) -> SimulationContract<IsDeployed> {
-//         // Append constructor args (if available) to generate the deploy bytecode.
-//         let tokenized_args = constructor_arguments.into_tokens();
-//         let bytecode = match self.base_contract.abi().constructor.clone() {
-//             Some(constructor) => Bytes::from(
-//                 constructor
-//                     .encode_input(self.bytecode.clone(), &tokenized_args)
-//                     .unwrap(),
-//             ),
-//             None => Bytes::from(self.bytecode.clone()),
-//         };
-
-//         // Take the execution result and extract the contract address.
-//         let deploy_txenv = TxEnv {
-//             caller: deployer.address(),
-//             gas_limit: deployer.transact_settings().gas_limit,
-//             gas_price: deployer.transact_settings().gas_price,
-//             gas_priority_fee: None,
-//             transact_to: TransactTo::create(),
-//             value: U256::ZERO,
-//             data: bytecode,
-//             chain_id: None,
-//             nonce: None,
-//             access_list: Vec::new(),
-//         };
-//         let execution_result = simulation_environment.execute(deploy_txenv);
-//         let output = match execution_result {
-//             ExecutionResult::Success { output, .. } => output,
-//             ExecutionResult::Revert { output, .. } => panic!("Failed due to revert: {:?}", output),
-//             ExecutionResult::Halt { reason, .. } => panic!("Failed due to halt: {:?}", reason),
-//         };
-//         let address = match output {
-//             Output::Create(_, address) => address.unwrap(),
-//             _ => panic!("failed"),
-//         };
-
-//         SimulationContract {
-//             bytecode: (),
-//             address,
-//             deployed: std::marker::PhantomData,
-//             base_contract: self.base_contract.clone(),
-//             constructor_arguments: tokenized_args,
-//         }
-//     }
-// }
 
 impl SimulationContract<IsDeployed> {
     /// Encodes the arguments for a function call for the [`SimulationContract`].
