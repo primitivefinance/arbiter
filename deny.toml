@@ -35,8 +35,10 @@ skip-tree = [
 ]
 
 [sources]
+allow-git = ["https://github.com/ts0yu/folio#c5a6668d9551fbec446f9dbd5b04301cfe564d06"]
 unknown-registry = "deny"
 unknown-git = "deny"
+
 
 [sources.allow-org]
 github = ["onbjerg"]

@@ -7,16 +7,14 @@ pub use simple_registry::*;
     clippy::upper_case_acronyms,
     clippy::type_complexity,
     dead_code,
-    non_camel_case_types
+    non_camel_case_types,
 )]
 pub mod simple_registry {
     #[rustfmt::skip]
-    const __ABI: &str = "[{\"inputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"constructor\",\"outputs\":[]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"portfolio\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"address\",\"name\":\"token\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"address\",\"name\":\"to\",\"type\":\"address\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"function\",\"name\":\"claimFee\",\"outputs\":[]},{\"inputs\":[],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"controller\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"portfolio\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"fee\",\"type\":\"uint256\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"function\",\"name\":\"setFee\",\"outputs\":[]}]";
+    const __ABI: &str = "[{\"inputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"constructor\",\"outputs\":[]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"portfolio\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"address\",\"name\":\"token\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"function\",\"name\":\"claimFee\",\"outputs\":[]},{\"inputs\":[],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"controller\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"portfolio\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"fee\",\"type\":\"uint256\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"function\",\"name\":\"setFee\",\"outputs\":[]}]";
     ///The parsed JSON ABI of the contract.
-    pub static SIMPLEREGISTRY_ABI: ::ethers::contract::Lazy<::ethers::core::abi::Abi> =
-        ::ethers::contract::Lazy::new(|| {
-            ::ethers::core::utils::__serde_json::from_str(__ABI).expect("ABI is always valid")
-        });
+    pub static SIMPLEREGISTRY_ABI: ::ethers::contract::Lazy<::ethers::core::abi::Abi> = ::ethers::contract::Lazy::new(||
+    ::ethers::core::utils::__serde_json::from_str(__ABI).expect("ABI is always valid"));
     #[rustfmt::skip]
     const __BYTECODE: &[u8] = &[
         96,
@@ -57,7 +55,7 @@ pub mod simple_registry {
         85,
         97,
         2,
-        166,
+        140,
         128,
         97,
         0,
@@ -103,10 +101,10 @@ pub mod simple_registry {
         28,
         128,
         99,
-        44,
-        252,
-        244,
-        35,
+        166,
+        203,
+        224,
+        151,
         20,
         97,
         0,
@@ -151,7 +149,7 @@ pub mod simple_registry {
         4,
         97,
         1,
-        249,
+        240,
         86,
         91,
         97,
@@ -172,12 +170,12 @@ pub mod simple_registry {
         4,
         97,
         2,
-        70,
+        44,
         86,
         91,
         97,
         1,
-        70,
+        61,
         86,
         91,
         96,
@@ -251,12 +249,12 @@ pub mod simple_registry {
         64,
         81,
         99,
-        5,
-        105,
-        38,
-        181,
+        221,
+        164,
+        7,
+        151,
         96,
-        229,
+        224,
         27,
         129,
         82,
@@ -268,7 +266,7 @@ pub mod simple_registry {
         160,
         27,
         3,
-        133,
+        132,
         129,
         22,
         96,
@@ -280,32 +278,24 @@ pub mod simple_registry {
         36,
         130,
         1,
-        133,
+        132,
         144,
-        82,
-        131,
-        129,
-        22,
-        96,
-        68,
-        131,
-        1,
         82,
         145,
         130,
         22,
         145,
-        134,
+        133,
         22,
         144,
         99,
-        173,
-        36,
-        214,
-        160,
+        221,
+        164,
+        7,
+        151,
         144,
         96,
-        100,
+        68,
         1,
         96,
         0,
@@ -325,8 +315,8 @@ pub mod simple_registry {
         128,
         21,
         97,
-        1,
-        7,
+        0,
+        255,
         87,
         96,
         0,
@@ -341,7 +331,7 @@ pub mod simple_registry {
         21,
         97,
         1,
-        27,
+        19,
         87,
         61,
         96,
@@ -388,7 +378,6 @@ pub mod simple_registry {
         144,
         146,
         85,
-        80,
         80,
         80,
         80,
@@ -479,7 +468,7 @@ pub mod simple_registry {
         21,
         97,
         1,
-        160,
+        151,
         87,
         96,
         0,
@@ -494,7 +483,7 @@ pub mod simple_registry {
         21,
         97,
         1,
-        180,
+        171,
         87,
         61,
         96,
@@ -563,7 +552,7 @@ pub mod simple_registry {
         20,
         97,
         1,
-        244,
+        235,
         87,
         96,
         0,
@@ -580,17 +569,16 @@ pub mod simple_registry {
         128,
         96,
         0,
-        128,
         96,
-        128,
-        133,
-        135,
+        96,
+        132,
+        134,
         3,
         18,
         21,
         97,
         2,
-        15,
+        5,
         87,
         96,
         0,
@@ -599,57 +587,41 @@ pub mod simple_registry {
         91,
         97,
         2,
-        24,
-        133,
+        14,
+        132,
         97,
         1,
-        221,
+        212,
         86,
         91,
-        147,
+        146,
         80,
         97,
         2,
-        38,
+        28,
         96,
         32,
-        134,
+        133,
         1,
         97,
         1,
-        221,
+        212,
         86,
         91,
-        146,
+        145,
         80,
         96,
         64,
-        133,
+        132,
         1,
         53,
-        145,
-        80,
-        97,
-        2,
-        59,
-        96,
-        96,
-        134,
-        1,
-        97,
-        1,
-        221,
-        86,
-        91,
         144,
         80,
         146,
-        149,
-        145,
-        148,
         80,
         146,
         80,
+        146,
         86,
         91,
         96,
@@ -664,7 +636,7 @@ pub mod simple_registry {
         21,
         97,
         2,
-        89,
+        63,
         87,
         96,
         0,
@@ -673,11 +645,11 @@ pub mod simple_registry {
         91,
         97,
         2,
-        98,
+        72,
         131,
         97,
         1,
-        221,
+        212,
         86,
         91,
         148,
@@ -704,38 +676,38 @@ pub mod simple_registry {
         34,
         18,
         32,
-        224,
-        28,
-        12,
-        175,
-        212,
-        138,
-        98,
-        165,
-        255,
-        123,
-        115,
-        178,
+        124,
+        29,
         77,
-        0,
-        178,
-        15,
-        18,
-        57,
-        65,
-        216,
-        15,
-        91,
-        187,
-        37,
+        222,
+        244,
+        170,
+        243,
+        177,
+        145,
+        231,
+        112,
+        214,
+        249,
+        69,
+        82,
+        105,
+        24,
+        244,
+        154,
+        144,
+        227,
+        162,
+        240,
+        28,
+        126,
+        42,
+        161,
+        184,
+        212,
         125,
-        142,
-        228,
-        7,
-        61,
-        186,
-        242,
-        175,
+        70,
+        216,
         100,
         115,
         111,
@@ -749,8 +721,9 @@ pub mod simple_registry {
         51,
     ];
     ///The bytecode of the contract.
-    pub static SIMPLEREGISTRY_BYTECODE: ::ethers::core::types::Bytes =
-        ::ethers::core::types::Bytes::from_static(__BYTECODE);
+    pub static SIMPLEREGISTRY_BYTECODE: ::ethers::core::types::Bytes = ::ethers::core::types::Bytes::from_static(
+        __BYTECODE,
+    );
     #[rustfmt::skip]
     const __DEPLOYED_BYTECODE: &[u8] = &[
         96,
@@ -787,10 +760,10 @@ pub mod simple_registry {
         28,
         128,
         99,
-        44,
-        252,
-        244,
-        35,
+        166,
+        203,
+        224,
+        151,
         20,
         97,
         0,
@@ -835,7 +808,7 @@ pub mod simple_registry {
         4,
         97,
         1,
-        249,
+        240,
         86,
         91,
         97,
@@ -856,12 +829,12 @@ pub mod simple_registry {
         4,
         97,
         2,
-        70,
+        44,
         86,
         91,
         97,
         1,
-        70,
+        61,
         86,
         91,
         96,
@@ -935,12 +908,12 @@ pub mod simple_registry {
         64,
         81,
         99,
-        5,
-        105,
-        38,
-        181,
+        221,
+        164,
+        7,
+        151,
         96,
-        229,
+        224,
         27,
         129,
         82,
@@ -952,7 +925,7 @@ pub mod simple_registry {
         160,
         27,
         3,
-        133,
+        132,
         129,
         22,
         96,
@@ -964,32 +937,24 @@ pub mod simple_registry {
         36,
         130,
         1,
-        133,
+        132,
         144,
-        82,
-        131,
-        129,
-        22,
-        96,
-        68,
-        131,
-        1,
         82,
         145,
         130,
         22,
         145,
-        134,
+        133,
         22,
         144,
         99,
-        173,
-        36,
-        214,
-        160,
+        221,
+        164,
+        7,
+        151,
         144,
         96,
-        100,
+        68,
         1,
         96,
         0,
@@ -1009,8 +974,8 @@ pub mod simple_registry {
         128,
         21,
         97,
-        1,
-        7,
+        0,
+        255,
         87,
         96,
         0,
@@ -1025,7 +990,7 @@ pub mod simple_registry {
         21,
         97,
         1,
-        27,
+        19,
         87,
         61,
         96,
@@ -1072,7 +1037,6 @@ pub mod simple_registry {
         144,
         146,
         85,
-        80,
         80,
         80,
         80,
@@ -1163,7 +1127,7 @@ pub mod simple_registry {
         21,
         97,
         1,
-        160,
+        151,
         87,
         96,
         0,
@@ -1178,7 +1142,7 @@ pub mod simple_registry {
         21,
         97,
         1,
-        180,
+        171,
         87,
         61,
         96,
@@ -1247,7 +1211,7 @@ pub mod simple_registry {
         20,
         97,
         1,
-        244,
+        235,
         87,
         96,
         0,
@@ -1264,17 +1228,16 @@ pub mod simple_registry {
         128,
         96,
         0,
-        128,
         96,
-        128,
-        133,
-        135,
+        96,
+        132,
+        134,
         3,
         18,
         21,
         97,
         2,
-        15,
+        5,
         87,
         96,
         0,
@@ -1283,57 +1246,41 @@ pub mod simple_registry {
         91,
         97,
         2,
-        24,
-        133,
+        14,
+        132,
         97,
         1,
-        221,
+        212,
         86,
         91,
-        147,
+        146,
         80,
         97,
         2,
-        38,
+        28,
         96,
         32,
-        134,
+        133,
         1,
         97,
         1,
-        221,
+        212,
         86,
         91,
-        146,
+        145,
         80,
         96,
         64,
-        133,
+        132,
         1,
         53,
-        145,
-        80,
-        97,
-        2,
-        59,
-        96,
-        96,
-        134,
-        1,
-        97,
-        1,
-        221,
-        86,
-        91,
         144,
         80,
         146,
-        149,
-        145,
-        148,
         80,
         146,
         80,
+        146,
         86,
         91,
         96,
@@ -1348,7 +1295,7 @@ pub mod simple_registry {
         21,
         97,
         2,
-        89,
+        63,
         87,
         96,
         0,
@@ -1357,11 +1304,11 @@ pub mod simple_registry {
         91,
         97,
         2,
-        98,
+        72,
         131,
         97,
         1,
-        221,
+        212,
         86,
         91,
         148,
@@ -1388,38 +1335,38 @@ pub mod simple_registry {
         34,
         18,
         32,
-        224,
-        28,
-        12,
-        175,
-        212,
-        138,
-        98,
-        165,
-        255,
-        123,
-        115,
-        178,
+        124,
+        29,
         77,
-        0,
-        178,
-        15,
-        18,
-        57,
-        65,
-        216,
-        15,
-        91,
-        187,
-        37,
+        222,
+        244,
+        170,
+        243,
+        177,
+        145,
+        231,
+        112,
+        214,
+        249,
+        69,
+        82,
+        105,
+        24,
+        244,
+        154,
+        144,
+        227,
+        162,
+        240,
+        28,
+        126,
+        42,
+        161,
+        184,
+        212,
         125,
-        142,
-        228,
-        7,
-        61,
-        186,
-        242,
-        175,
+        70,
+        216,
         100,
         115,
         111,
@@ -1433,8 +1380,9 @@ pub mod simple_registry {
         51,
     ];
     ///The deployed bytecode of the contract.
-    pub static SIMPLEREGISTRY_DEPLOYED_BYTECODE: ::ethers::core::types::Bytes =
-        ::ethers::core::types::Bytes::from_static(__DEPLOYED_BYTECODE);
+    pub static SIMPLEREGISTRY_DEPLOYED_BYTECODE: ::ethers::core::types::Bytes = ::ethers::core::types::Bytes::from_static(
+        __DEPLOYED_BYTECODE,
+    );
     pub struct SimpleRegistry<M>(::ethers::contract::Contract<M>);
     impl<M> ::core::clone::Clone for SimpleRegistry<M> {
         fn clone(&self) -> Self {
@@ -1454,9 +1402,7 @@ pub mod simple_registry {
     }
     impl<M> ::core::fmt::Debug for SimpleRegistry<M> {
         fn fmt(&self, f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
-            f.debug_tuple(stringify!(SimpleRegistry))
-                .field(&self.address())
-                .finish()
+            f.debug_tuple(stringify!(SimpleRegistry)).field(&self.address()).finish()
         }
     }
     impl<M: ::ethers::providers::Middleware> SimpleRegistry<M> {
@@ -1466,11 +1412,13 @@ pub mod simple_registry {
             address: T,
             client: ::std::sync::Arc<M>,
         ) -> Self {
-            Self(::ethers::contract::Contract::new(
-                address.into(),
-                SIMPLEREGISTRY_ABI.clone(),
-                client,
-            ))
+            Self(
+                ::ethers::contract::Contract::new(
+                    address.into(),
+                    SIMPLEREGISTRY_ABI.clone(),
+                    client,
+                ),
+            )
         }
         /// Constructs the general purpose `Deployer` instance based on the provided constructor arguments and sends it.
         /// Returns a new instance of a deployer that returns an instance of this contract after sending the transaction
@@ -1511,22 +1459,24 @@ pub mod simple_registry {
             let deployer = ::ethers::contract::ContractDeployer::new(deployer);
             Ok(deployer)
         }
-        ///Calls the contract's `claimFee` (0x2cfcf423) function
+        ///Calls the contract's `claimFee` (0xa6cbe097) function
         pub fn claim_fee(
             &self,
             portfolio: ::ethers::core::types::Address,
             token: ::ethers::core::types::Address,
             amount: ::ethers::core::types::U256,
-            to: ::ethers::core::types::Address,
         ) -> ::ethers::contract::builders::ContractCall<M, ()> {
             self.0
-                .method_hash([44, 252, 244, 35], (portfolio, token, amount, to))
+                .method_hash([166, 203, 224, 151], (portfolio, token, amount))
                 .expect("method not found (this should never happen)")
         }
         ///Calls the contract's `controller` (0xf77c4791) function
         pub fn controller(
             &self,
-        ) -> ::ethers::contract::builders::ContractCall<M, ::ethers::core::types::Address> {
+        ) -> ::ethers::contract::builders::ContractCall<
+            M,
+            ::ethers::core::types::Address,
+        > {
             self.0
                 .method_hash([247, 124, 71, 145], ())
                 .expect("method not found (this should never happen)")
@@ -1543,13 +1493,12 @@ pub mod simple_registry {
         }
     }
     impl<M: ::ethers::providers::Middleware> From<::ethers::contract::Contract<M>>
-        for SimpleRegistry<M>
-    {
+    for SimpleRegistry<M> {
         fn from(contract: ::ethers::contract::Contract<M>) -> Self {
             Self::new(contract.address(), contract.client())
         }
     }
-    ///Container type for all input parameters for the `claimFee` function with signature `claimFee(address,address,uint256,address)` and selector `0x2cfcf423`
+    ///Container type for all input parameters for the `claimFee` function with signature `claimFee(address,address,uint256)` and selector `0xa6cbe097`
     #[derive(
         Clone,
         ::ethers::contract::EthCall,
@@ -1558,14 +1507,13 @@ pub mod simple_registry {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
-    #[ethcall(name = "claimFee", abi = "claimFee(address,address,uint256,address)")]
+    #[ethcall(name = "claimFee", abi = "claimFee(address,address,uint256)")]
     pub struct ClaimFeeCall {
         pub portfolio: ::ethers::core::types::Address,
         pub token: ::ethers::core::types::Address,
         pub amount: ::ethers::core::types::U256,
-        pub to: ::ethers::core::types::Address,
     }
     ///Container type for all input parameters for the `controller` function with signature `controller()` and selector `0xf77c4791`
     #[derive(
@@ -1576,7 +1524,7 @@ pub mod simple_registry {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(name = "controller", abi = "controller()")]
     pub struct ControllerCall;
@@ -1589,7 +1537,7 @@ pub mod simple_registry {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(name = "setFee", abi = "setFee(address,uint256)")]
     pub struct SetFeeCall {
@@ -1608,13 +1556,16 @@ pub mod simple_registry {
             data: impl AsRef<[u8]>,
         ) -> ::core::result::Result<Self, ::ethers::core::abi::AbiError> {
             let data = data.as_ref();
-            if let Ok(decoded) = <ClaimFeeCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded)
+                = <ClaimFeeCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::ClaimFee(decoded));
             }
-            if let Ok(decoded) = <ControllerCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded)
+                = <ControllerCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::Controller(decoded));
             }
-            if let Ok(decoded) = <SetFeeCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded)
+                = <SetFeeCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::SetFee(decoded));
             }
             Err(::ethers::core::abi::Error::InvalidData.into())
@@ -1623,8 +1574,12 @@ pub mod simple_registry {
     impl ::ethers::core::abi::AbiEncode for SimpleRegistryCalls {
         fn encode(self) -> Vec<u8> {
             match self {
-                Self::ClaimFee(element) => ::ethers::core::abi::AbiEncode::encode(element),
-                Self::Controller(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::ClaimFee(element) => {
+                    ::ethers::core::abi::AbiEncode::encode(element)
+                }
+                Self::Controller(element) => {
+                    ::ethers::core::abi::AbiEncode::encode(element)
+                }
                 Self::SetFee(element) => ::ethers::core::abi::AbiEncode::encode(element),
             }
         }
@@ -1662,7 +1617,7 @@ pub mod simple_registry {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     pub struct ControllerReturn(pub ::ethers::core::types::Address);
 }
