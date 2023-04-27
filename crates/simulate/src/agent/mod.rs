@@ -4,7 +4,7 @@
 //!
 //! An abstract representation of an agent on the EVM, to be used in simulations.
 //! Some examples of agents are market makers or arbitrageurs.
-//! All agents must implement the [`Agent`] traits through the [`AgentType`] enum.
+//! All agents must implement the [`Agent`] traits and be included in the [`AgentType`] enum.
 use std::{
     error::Error,
     fmt::{Display, Formatter, Result as FmtResult},
