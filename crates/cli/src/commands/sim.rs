@@ -7,9 +7,9 @@ use bindings::{
 };
 use bytes::Bytes;
 use ethers::{
-    abi::{Token},
+    abi::Token,
     prelude::{BaseContract, U256},
-    types::{H256, H160},
+    types::{H160, H256},
 };
 use eyre::Result;
 use revm::primitives::{ruint::Uint, B160};
@@ -27,7 +27,6 @@ struct SimulationContracts(
     SimulationContract<IsDeployed>,
     SimulationContract<IsDeployed>,
 );
-
 
 /// Run a simulation.
 pub fn sim() -> Result<(), Box<dyn Error>> {
@@ -56,8 +55,7 @@ pub fn sim() -> Result<(), Box<dyn Error>> {
 fn deploy_sim_contracts(
     manager: &mut SimulationManager,
     wad: U256,
-) -> Result<SimulationContracts, Box<dyn Error>,
-> {
+) -> Result<SimulationContracts, Box<dyn Error>> {
     let decimals = 18_u8;
     let admin = manager.agents.get("admin").unwrap();
     // Deploy Weth
@@ -138,6 +136,7 @@ fn deploy_sim_contracts(
         encoder_target,
     ))
 }
+
 fn intitalization_calls(
     manager: &mut SimulationManager,
     contracts: SimulationContracts,
@@ -145,8 +144,13 @@ fn intitalization_calls(
 ) -> Result<(), Box<dyn Error>> {
     let admin = manager.agents.get("admin").unwrap();
     // Get all the necessary users.
-    let SimulationContracts(arbiter_token_x, arbiter_token_y, portfolio, liquid_exchange_xy, encoder_target) =
-        contracts;
+    let SimulationContracts(
+        arbiter_token_x,
+        arbiter_token_y,
+        portfolio,
+        liquid_exchange_xy,
+        encoder_target,
+    ) = contracts;
 
     let arbitrageur = manager.agents.get("arbitrageur").unwrap();
 
@@ -285,10 +289,9 @@ fn intitalization_calls(
         .collect();
     let i_portfolio = BaseContract::from(i_portfolio::IPORTFOLIO_ABI.clone());
     let data = encoded_create_pair_result.logs()[0].data.clone();
-    let pair_result: (Token, Token, Token, Token, Token) =
-        i_portfolio
-            .decode_event("CreatePair", h256_vec, ethers::types::Bytes(data))
-            .unwrap();
+    let pair_result: (Token, Token, Token, Token, Token) = i_portfolio
+        .decode_event("CreatePair", h256_vec, ethers::types::Bytes(data))
+        .unwrap();
     println!("Decoded pairID: {:#?}", pair_result.0.to_string());
     let pair_id: u32 = pair_result.0.to_string().parse::<u32>().unwrap();
     let encoded_pair = portfolio.encode_function("pairs", pair_id)?;
@@ -299,7 +302,8 @@ fn intitalization_calls(
         Uint::from(0),
     );
     let result = manager.unpack_execution(pairs)?;
-    let decoded_pairs_response: (H160, u8, H160, u8) = i_portfolio.decode_output("pairs", result)?;
+    let decoded_pairs_response: (H160, u8, H160, u8) =
+        i_portfolio.decode_output("pairs", result)?;
 
     assert!(decoded_pairs_response.0 == arbiter_token_x.address.into());
     assert!(decoded_pairs_response.2 == arbiter_token_y.address.into());
@@ -328,16 +332,20 @@ fn intitalization_calls(
     );
 
     let call = encoder_target.encode_function("createPool", create_pool_builder)?;
-    let result = admin.call_contract(&mut manager.environment, &encoder_target, call, Uint::from(0));
+    let result = admin.call_contract(
+        &mut manager.environment,
+        &encoder_target,
+        call,
+        Uint::from(0),
+    );
 
     let result_object: Bytes = manager.unpack_execution(result)?;
-    let decoded_encoded_data: Bytes =
-        encoder_target.decode_output("createPair", result_object)?;
+    let decoded_encoded_data: Bytes = encoder_target.decode_output("createPair", result_object)?;
     println!(
         "encoded_create_pool_result: {:#?}",
         hex::encode(decoded_encoded_data.clone())
     );
-    // 
+    //
     // `0x | CREATE_POOL (1 byte) | pairId (3 bytes) | controller (20 bytes) | priorityFee (2 bytes) | fee (2 bytes) | vol (2 bytes) | dur (2 bytes) | jit (2 bytes) | pointerPrice (1 byte) | powerMaxPrice (1 byte) | baseMaxPrice (? bytes) | powerPrice (1 byte) | basePrice (? bytes)`\
     // 0b|000001|0000000000000000000000000000000000000001|0064|0064|0064|ffff|0000|3400|ffffffffffffffffffffffffffffffff0000000000000000000000000000000001
 
@@ -348,49 +356,48 @@ fn intitalization_calls(
         create_pool_call,
         Uint::from(0),
     );
-    assert_eq!(result.is_success(), true);
+    assert!(result.is_success());
     println!("pair_id: {:#?}", pair_result.0);
-
 
     // @dev Decodes the parameters of a pool given its id.
     // The pool id is expected to be encoded using the following format:\
     // `0x | pairId (3 bytes) | isMutable (1 byte) | poolNonce (4 bytes)
     // 0x|000001|00|00000001
-    let pool_id: Bytes = hex::decode("0000010000000001".as_bytes())?.into_iter().collect();
+    let pool_id: Bytes = hex::decode("0000010000000001".as_bytes())?
+        .into_iter()
+        .collect();
     //         let encoded_from_string: Bytes = hex::decode("0b0000010000000000000000000000000000000000000000000100010064ffff0001340000000000000000000de0b6b3a76400000000000000000000000de0b6b3a764".as_bytes())?.into_iter().collect();
 
     println!("pool_id: {:#?}", pool_id);
 
-
     let allocate_builder = (
         // should_allocate: bool,
-        true,
-        // use_max: u8,
-        0u8,
-        // pool_id: u64,
-        100_u64,
-        // delta_liquidity: u128,
-        1000_u64,
-        // amount_0: u128,
-        1000_u128,
-        // amount_1: u128,
+        true,      // use_max: u8,
+        0u8,       // pool_id: u64,
+        100_u64,   // delta_liquidity: u128,
+        1000_u64,  // amount_0: u128,
+        1000_u128, // amount_1: u128,
         1000_u128,
     );
-    
+
     let allocate_call = encoder_target.encode_function("allocateOrDeallocate", allocate_builder)?;
-    let allocate_encode_result = admin.call_contract(&mut manager.environment, &encoder_target, allocate_call, Uint::from(0));
-    assert_eq!(allocate_encode_result.is_success(), true);
+    let allocate_encode_result = admin.call_contract(
+        &mut manager.environment,
+        &encoder_target,
+        allocate_call,
+        Uint::from(0),
+    );
+    assert!(allocate_encode_result.is_success());
     let result_object: Bytes = manager.unpack_execution(allocate_encode_result)?;
     let decoded_encoded_data: Bytes =
         encoder_target.decode_output("allocateOrDeallocate", result_object)?;
     println!(
         "encoded_create_pool_result: {:#?}",
-        hex::encode(decoded_encoded_data.clone())
+        hex::encode(decoded_encoded_data)
     );
     // This is what we get, need to go over this with matt
     // |01|00|00|0000000000641c2d030000000000000000000000000000000103000000000000000000000000000000010300000000000000000000000000000001
     //  * `0x | ALLOCATE or DEALLOCATE (1 byte) | useMax (1 byte) | poolId (8 bytes) | pointerPowerDeltaAsset | pointerDeltaQuote | powerDeltaLiquidity (1 byte) | baseDeltaLiquidity (? bytes) | powerDeltaAsset (1 byte) | baseDeltaAsset (? bytes) | powerDeltaQuote (1 byte) | baseDeltaQuote (? bytes)`\
-
 
     // should_allocate: bool,
     // use_max: u8,
@@ -404,21 +411,19 @@ fn intitalization_calls(
     // @return pairId Pair id of the pool
     // @return isMutable True if the pool is mutable
     // @return poolNonce Pool nonce of the pool
-    
 
     Ok(())
 }
 
-
-mod test {
+#[cfg(test)]
+mod tests {
     #![allow(unused_imports)]
-    use compiler::{assembler::Expression, codegen::Codegen, opcode::Opcode};
-    use primitive_types::H160 as PH160;
-
     use std::str::FromStr;
 
-    use super::*;
+    use compiler::{assembler::Expression, codegen::Codegen, opcode::Opcode};
     use ethers::{abi::Address, prelude::BaseContract, types::H160, utils::parse_ether};
+
+    use super::*;
 
     #[test]
     fn test_create_pair_target_encoding() -> Result<(), Box<dyn std::error::Error>> {
@@ -429,9 +434,14 @@ mod test {
         let mut manager = SimulationManager::new();
 
         // Deploy the contracts
-        let contracts =
-            deploy_sim_contracts(&mut manager, wad)?;
-        let SimulationContracts(arbiter_token_x, arbiter_token_y, _portfolio, _liquid_exchange_xy, encoder_target) = contracts;
+        let contracts = deploy_sim_contracts(&mut manager, wad)?;
+        let SimulationContracts(
+            arbiter_token_x,
+            arbiter_token_y,
+            _portfolio,
+            _liquid_exchange_xy,
+            encoder_target,
+        ) = contracts;
         let admin = manager.agents.get("admin").unwrap();
         let encoder_args = (
             recast_address(arbiter_token_x.address),
@@ -476,25 +486,34 @@ mod test {
         let mut manager = SimulationManager::new();
 
         // Deploy the contracts
-        let SimulationContracts(arbiter_token_x, arbiter_token_y, _portfolio, _liquid_exchange_xy, _encoder_target) =
-            deploy_sim_contracts(&mut manager, wad)?;
+        let SimulationContracts(
+            arbiter_token_x,
+            arbiter_token_y,
+            _portfolio,
+            _liquid_exchange_xy,
+            _encoder_target,
+        ) = deploy_sim_contracts(&mut manager, wad)?;
 
         // Folio encoding
-        let token_x_ad = PH160::from(arbiter_token_x.address.as_fixed_bytes());
-        let token_y_ad = PH160::from(arbiter_token_y.address.as_fixed_bytes());
+        let token_x_ad = arbiter_token_x.address.as_fixed_bytes();
+        let token_y_ad = arbiter_token_y.address.as_fixed_bytes();
 
         assert_eq!(
             token_x_ad,
-            PH160::from_str("0x2c1de3b4dbb4adebebb5dcecae825be2a9fc6eb6").unwrap()
+            B160::from_str("0x2c1de3b4dbb4adebebb5dcecae825be2a9fc6eb6")
+                .unwrap()
+                .as_fixed_bytes()
         );
         assert_eq!(
             token_y_ad,
-            PH160::from_str("0x83769beeb7e5405ef0b7dc3c66c43e3a51a6d27f").unwrap()
+            B160::from_str("0x83769beeb7e5405ef0b7dc3c66c43e3a51a6d27f")
+                .unwrap()
+                .as_fixed_bytes()
         );
 
         let codegen = Codegen::new(vec![Expression::Opcode(Opcode::CreatePair {
-            token_0: (token_x_ad),
-            token_1: (token_y_ad),
+            token_0: token_x_ad.into(),
+            token_1: token_y_ad.into(),
         })]);
         let create_pair = codegen.encode()[0].clone();
         let create_pair: Bytes = hex::decode(create_pair).unwrap().into_iter().collect();
@@ -513,17 +532,22 @@ mod test {
         // Create a `SimulationManager` that runs simulations in their `SimulationEnvironment`.
         let mut manager = SimulationManager::new();
         // Deploy the contracts
-        let SimulationContracts(arbiter_token_x, arbiter_token_y, portfolio, _liquid_exchange_xy, encoder_target) =
-            deploy_sim_contracts(&mut manager, wad)?;
+        let SimulationContracts(
+            arbiter_token_x,
+            arbiter_token_y,
+            portfolio,
+            _liquid_exchange_xy,
+            encoder_target,
+        ) = deploy_sim_contracts(&mut manager, wad)?;
 
         let admin = manager.agents.get("admin").unwrap();
         // Folio encoding // get args
-        let token_x_ad = PH160::from(arbiter_token_x.address.as_fixed_bytes());
-        let token_y_ad = PH160::from(arbiter_token_y.address.as_fixed_bytes());
+        let token_x_ad = arbiter_token_x.address.as_fixed_bytes();
+        let token_y_ad = arbiter_token_y.address.as_fixed_bytes();
 
         let codegen = Codegen::new(vec![Expression::Opcode(Opcode::CreatePair {
-            token_0: (token_x_ad),
-            token_1: (token_y_ad),
+            token_0: token_x_ad.into(),
+            token_1: token_y_ad.into(),
         })]);
         let create_pair = codegen.encode()[0].clone();
         let create_pair: Bytes = hex::decode(create_pair).unwrap().into_iter().collect();
