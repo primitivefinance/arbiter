@@ -14,7 +14,7 @@ use ethers::{
 use eyre::Result;
 use revm::primitives::{ruint::Uint, B160};
 use simulate::{
-    agent::{AgentType},
+    agent::AgentType,
     contract::{IsDeployed, SimulationContract},
     manager::SimulationManager,
     utils::recast_address,
@@ -372,10 +372,10 @@ fn intitalization_calls(
 
     let allocate_builder = (
         // should_allocate: bool,
-        true, // use_max: u8,
-        0u8, // pool_id: u64,
-        100_u64, // delta_liquidity: u128,
-        1000_u64, // amount_0: u128,
+        true,      // use_max: u8,
+        0u8,       // pool_id: u64,
+        100_u64,   // delta_liquidity: u128,
+        1000_u64,  // amount_0: u128,
         1000_u128, // amount_1: u128,
         1000_u128,
     );
