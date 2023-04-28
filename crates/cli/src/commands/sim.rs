@@ -14,7 +14,7 @@ use ethers::{
 use eyre::Result;
 use revm::primitives::{ruint::Uint, B160};
 use simulate::{
-    agent::{Agent, AgentType},
+    agent::{AgentType},
     contract::{IsDeployed, SimulationContract},
     manager::SimulationManager,
     utils::recast_address,
@@ -356,7 +356,7 @@ fn intitalization_calls(
         create_pool_call,
         Uint::from(0),
     );
-    assert_eq!(result.is_success(), true);
+    assert!(result.is_success());
     println!("pair_id: {:#?}", pair_result.0);
 
     // @dev Decodes the parameters of a pool given its id.
@@ -387,13 +387,13 @@ fn intitalization_calls(
         allocate_call,
         Uint::from(0),
     );
-    assert_eq!(allocate_encode_result.is_success(), true);
+    assert!(allocate_encode_result.is_success());
     let result_object: Bytes = manager.unpack_execution(allocate_encode_result)?;
     let decoded_encoded_data: Bytes =
         encoder_target.decode_output("allocateOrDeallocate", result_object)?;
     println!(
         "encoded_create_pool_result: {:#?}",
-        hex::encode(decoded_encoded_data.clone())
+        hex::encode(decoded_encoded_data)
     );
     // This is what we get, need to go over this with matt
     // |01|00|00|0000000000641c2d030000000000000000000000000000000103000000000000000000000000000000010300000000000000000000000000000001
