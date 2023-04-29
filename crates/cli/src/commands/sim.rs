@@ -14,7 +14,7 @@ use ethers::{
 use eyre::Result;
 use revm::primitives::{ruint::Uint, B160};
 use simulate::{
-    agent::AgentType,
+    agent::{user::User, Agent, AgentType},
     contract::{IsDeployed, SimulationContract},
     manager::SimulationManager,
     utils::recast_address,
@@ -38,8 +38,9 @@ pub fn sim() -> Result<(), Box<dyn Error>> {
 
     let user_name = "arbitrageur";
     let user_address = B160::from_low_u64_be(2);
+    let arbitrageur = User::new(user_name, None);
 
-    manager.create_agent(user_name, user_address, AgentType::User, None)?;
+    manager.activate_agent(AgentType::User(arbitrageur), user_address)?;
     let _arbitrageur = manager.agents.get(user_name).unwrap();
     println!("Arbitrageur created at: {}", user_address);
     let _admin = manager.agents.get("admin").unwrap();
@@ -537,7 +538,7 @@ mod tests {
             arbiter_token_y,
             portfolio,
             _liquid_exchange_xy,
-            encoder_target,
+            _encoder_target,
         ) = deploy_sim_contracts(&mut manager, wad)?;
 
         let admin = manager.agents.get("admin").unwrap();

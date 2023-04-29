@@ -1,6 +1,5 @@
 #![warn(missing_docs)]
-//! This module contains the `SimulationContract` struct that is used to wrap around the ethers `BaseContract` and add some additional information relevant for revm and the simulation.
-use std::marker::PhantomData;
+//! This module contains the [`SimulationContract`] struct that is used to wrap around the ethers `BaseContract` and add some additional information relevant for revm and the simulation.
 
 use bytes::Bytes;
 use ethers::{
@@ -11,7 +10,10 @@ use ethers::{
 };
 use revm::primitives::{ExecutionResult, Output, TransactTo, TxEnv, B160, B256, U256};
 
-use crate::{agent::Agent, environment::SimulationEnvironment};
+use crate::{
+    agent::{AgentType, IsActive},
+    environment::SimulationEnvironment,
+};
 
 #[derive(Debug, Clone)]
 /// A struct use for [`PhantomData`] to indicate a lock on contracts that are not deployed.
@@ -51,8 +53,8 @@ pub struct SimulationContract<DeployedState: DeploymentStatus> {
     pub(crate) base_contract: BaseContract,
     /// The contract's deployed bytecode.
     pub bytecode: DeployedState::Bytecode,
-    /// A [`PhantomData`] marker to indicate whether the contract is deployed or not.
-    deployed: PhantomData<DeployedState>,
+    // /// A [`PhantomData`] marker to indicate whether the contract is deployed or not.
+    // deployed: PhantomData<DeployedState>,
     /// The constructor arguments for the contract.
     pub constructor_arguments: DeployedState::ConstructorArguments,
 }
@@ -64,7 +66,7 @@ impl SimulationContract<NotDeployed> {
             base_contract: BaseContract::from(contract),
             bytecode: bytecode.to_vec(),
             address: (),
-            deployed: PhantomData,
+            // deployed: PhantomData,
             constructor_arguments: (),
         }
     }
@@ -74,7 +76,7 @@ impl SimulationContract<NotDeployed> {
     pub fn deploy<T: Tokenize>(
         &self,
         simulation_environment: &mut SimulationEnvironment,
-        deployer: &Box<dyn Agent>,
+        deployer: &AgentType<IsActive>,
         constructor_arguments: T,
     ) -> SimulationContract<IsDeployed> {
         // Append constructor args (if available) to generate the deploy bytecode.
@@ -90,9 +92,9 @@ impl SimulationContract<NotDeployed> {
 
         // Take the execution result and extract the contract address.
         let deploy_txenv = TxEnv {
-            caller: deployer.address(),
-            gas_limit: deployer.transact_settings().gas_limit,
-            gas_price: deployer.transact_settings().gas_price,
+            caller: deployer.inner().address(),
+            gas_limit: deployer.inner().transact_settings().gas_limit,
+            gas_price: deployer.inner().transact_settings().gas_price,
             gas_priority_fee: None,
             transact_to: TransactTo::create(),
             value: U256::ZERO,
@@ -115,7 +117,6 @@ impl SimulationContract<NotDeployed> {
         SimulationContract {
             bytecode: (),
             address,
-            deployed: std::marker::PhantomData,
             base_contract: self.base_contract.clone(),
             constructor_arguments: tokenized_args,
         }

@@ -30,7 +30,7 @@ mod tests {
     use revm::primitives::{ruint::Uint, B160};
 
     use crate::{
-        agent::AgentType,
+        agent::{user::User, Agent, AgentType},
         contract::SimulationContract,
         manager::SimulationManager,
         stochastic::price_process::{PriceProcess, PriceProcessType, GBM},
@@ -48,7 +48,8 @@ mod tests {
         // Set up a user named alice
         let user_name = "alice";
         let user_address = B160::from_low_u64_be(2);
-        manager.create_agent(user_name, user_address, AgentType::User, None)?;
+        let alice = User::new(user_name, None);
+        manager.activate_agent(AgentType::User(alice), user_address)?;
         let admin = manager.agents.get("admin").unwrap();
         let alice = manager.agents.get("alice").unwrap();
 
@@ -143,7 +144,8 @@ mod tests {
         // Set up a user named alice
         let user_name = "alice";
         let user_address = B160::from_low_u64_be(2);
-        manager.create_agent(user_name, user_address, AgentType::User, None)?;
+        let alice = User::new(user_name, None);
+        manager.activate_agent(AgentType::User(alice), user_address)?;
         let admin = manager.agents.get("admin").unwrap();
         let alice = manager.agents.get("alice").unwrap();
 

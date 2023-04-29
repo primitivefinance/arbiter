@@ -19,7 +19,9 @@ mod tests {
     use revm::primitives::{ruint::Uint, B160};
 
     use crate::{
-        agent::AgentType, contract::SimulationContract, manager::SimulationManager,
+        agent::{user::User, Agent, AgentType},
+        contract::SimulationContract,
+        manager::SimulationManager,
         utils::recast_address,
     };
 
@@ -69,7 +71,8 @@ mod tests {
         // Get the relevant users.
         let user_name = "alice";
         let user_address = B160::from_low_u64_be(2);
-        manager.create_agent(user_name, user_address, AgentType::User, None)?;
+        let alice = User::new(user_name, None);
+        manager.activate_agent(AgentType::User(alice), user_address)?;
         let admin = manager.agents.get("admin").unwrap();
         let alice = manager.agents.get("alice").unwrap();
 
@@ -184,7 +187,8 @@ mod tests {
         let mut manager = SimulationManager::default();
         let user_name = "alice";
         let user_address = B160::from_low_u64_be(2);
-        manager.create_agent(user_name, user_address, AgentType::User, None)?;
+        let alice = User::new(user_name, None);
+        manager.activate_agent(AgentType::User(alice), user_address)?;
         let admin = manager.agents.get("admin").unwrap();
         let alice = manager.agents.get("alice").unwrap();
 
