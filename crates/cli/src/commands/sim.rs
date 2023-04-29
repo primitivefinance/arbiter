@@ -423,9 +423,6 @@ mod tests {
 
     use compiler::{assembler::Expression, codegen::Codegen, opcode::Opcode};
     use ethers::{abi::Address, prelude::BaseContract, types::H160, utils::parse_ether};
-    use primitive_types::H160 as PH160;
-
-    use super::*;
 
     use super::*;
 
@@ -541,7 +538,7 @@ mod tests {
             arbiter_token_y,
             portfolio,
             _liquid_exchange_xy,
-            encoder_target,
+            _encoder_target,
         ) = deploy_sim_contracts(&mut manager, wad)?;
 
         let admin = manager.agents.get("admin").unwrap();
