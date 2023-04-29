@@ -137,6 +137,7 @@ fn deploy_sim_contracts(
         encoder_target,
     ))
 }
+
 fn intitalization_calls(
     manager: &mut SimulationManager,
     contracts: SimulationContracts,
@@ -415,13 +416,16 @@ fn intitalization_calls(
     Ok(())
 }
 
-mod test {
+#[cfg(test)]
+mod tests {
     #![allow(unused_imports)]
     use std::str::FromStr;
 
     use compiler::{assembler::Expression, codegen::Codegen, opcode::Opcode};
     use ethers::{abi::Address, prelude::BaseContract, types::H160, utils::parse_ether};
     use primitive_types::H160 as PH160;
+
+    use super::*;
 
     use super::*;
 
@@ -495,21 +499,25 @@ mod test {
         ) = deploy_sim_contracts(&mut manager, wad)?;
 
         // Folio encoding
-        let token_x_ad = PH160::from(arbiter_token_x.address.as_fixed_bytes());
-        let token_y_ad = PH160::from(arbiter_token_y.address.as_fixed_bytes());
+        let token_x_ad = arbiter_token_x.address.as_fixed_bytes();
+        let token_y_ad = arbiter_token_y.address.as_fixed_bytes();
 
         assert_eq!(
             token_x_ad,
-            PH160::from_str("0x2c1de3b4dbb4adebebb5dcecae825be2a9fc6eb6").unwrap()
+            B160::from_str("0x2c1de3b4dbb4adebebb5dcecae825be2a9fc6eb6")
+                .unwrap()
+                .as_fixed_bytes()
         );
         assert_eq!(
             token_y_ad,
-            PH160::from_str("0x83769beeb7e5405ef0b7dc3c66c43e3a51a6d27f").unwrap()
+            B160::from_str("0x83769beeb7e5405ef0b7dc3c66c43e3a51a6d27f")
+                .unwrap()
+                .as_fixed_bytes()
         );
 
         let codegen = Codegen::new(vec![Expression::Opcode(Opcode::CreatePair {
-            token_0: (token_x_ad),
-            token_1: (token_y_ad),
+            token_0: token_x_ad.into(),
+            token_1: token_y_ad.into(),
         })]);
         let create_pair = codegen.encode()[0].clone();
         let create_pair: Bytes = hex::decode(create_pair).unwrap().into_iter().collect();
@@ -538,12 +546,12 @@ mod test {
 
         let admin = manager.agents.get("admin").unwrap();
         // Folio encoding // get args
-        let token_x_ad = PH160::from(arbiter_token_x.address.as_fixed_bytes());
-        let token_y_ad = PH160::from(arbiter_token_y.address.as_fixed_bytes());
+        let token_x_ad = arbiter_token_x.address.as_fixed_bytes();
+        let token_y_ad = arbiter_token_y.address.as_fixed_bytes();
 
         let codegen = Codegen::new(vec![Expression::Opcode(Opcode::CreatePair {
-            token_0: (token_x_ad),
-            token_1: (token_y_ad),
+            token_0: token_x_ad.into(),
+            token_1: token_y_ad.into(),
         })]);
         let create_pair = codegen.encode()[0].clone();
         let create_pair: Bytes = hex::decode(create_pair).unwrap().into_iter().collect();

@@ -17,15 +17,12 @@ tokio = { version = "1.23", features = [
     "full"
 ]}
 compiler = { git = "https://github.com/ts0yu/folio" }
-primitive-types = "0.9.1"
 clap = { version = "4.0.32", features = ["derive"] }
 serde = { version = "1.0.152", features =["derive"] }
-# utils = { path = "../utils" }
 thiserror = "1.0.38"
 eyre = "0.6.6"
 toml = "0.7.3"
 ethers = "2.0.2"
-ethers-core = "0.6.0"
 
 # revm and related
 revm = "3.1.0"
