@@ -53,6 +53,12 @@ pub fn sim() -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
+/// Deploy the contracts to the simulation environment.
+/// # Arguments
+/// * `manager` - Simulation manager to deploy contracts to. (SimulationManager)
+/// * `wad` - Wad constant to use for the simulation. (U256)
+/// # Returns
+/// * `SimulationContracts` - Contracts deployed to the simulation environment. (SimulationContracts)
 fn deploy_sim_contracts(
     manager: &mut SimulationManager,
     wad: U256,
@@ -138,6 +144,11 @@ fn deploy_sim_contracts(
     ))
 }
 
+/// Calls the initialization functions of each contract.
+/// # Arguments
+/// * `manager` - Simulation manager to deploy contracts to. (SimulationManager)
+/// * `contracts` - Contracts deployed to the simulation environment. (SimulationContracts)
+/// * `decimals` - Decimals to use for the simulation. (u8)
 fn intitalization_calls(
     manager: &mut SimulationManager,
     contracts: SimulationContracts,

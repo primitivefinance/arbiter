@@ -7,7 +7,12 @@ use bindings::uniswap_v3_pool;
 use ethers::types::U256;
 use on_chain::monitor::HistoricalMonitor;
 
-/// Save historical data from a smart contract to a csv file.
+/// Save historical sqrt_price_x96 data from a Uniswap V3 pool contract to a csv file.
+/// # Arguments
+/// * `config` - Path to the config file. (String)
+/// * `start_block` - Start block to get data from. (u64)
+/// * `end_block` - End block to get data from. (u64)
+/// * `address` - Address of the Uniswap V3 pool contract to monitor. (String)
 pub async fn save_backtest_data(
     _config: &str,
     start_block: &u64,
@@ -33,7 +38,10 @@ pub async fn save_backtest_data(
     Ok(())
 }
 
-/// Load historical data from a csv file and do something with it.
+/// Load historical price data from a csv file as Vec<f64> and do something with it.
+/// # Arguments
+/// * `config` - Path to the config file. (String)
+/// * `file_path` - Path to the csv file. (String)
 pub async fn load_backtest_data(_config: &str, file_path: &str) -> Result<(), Box<dyn Error>> {
     let price_data = simulate::historic::import_price_from_csv(file_path)?;
     let price_ref = &price_data;

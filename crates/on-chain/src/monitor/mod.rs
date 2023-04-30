@@ -29,7 +29,7 @@ impl EventMonitor {
         let provider = utils::get_provider(rpc_type).await;
         Self { provider }
     }
-    /// Monitors all live events for a given contract from a given provider.
+    /// Monitors all live events for a given Uniswap V3 pool contract from a given provider.
     /// # Arguments
     /// * `contract_address` - Address of the contract to monitor. (String)
     /// * `contract_abi` - ABI of the contract to monitor. (Abi)
