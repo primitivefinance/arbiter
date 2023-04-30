@@ -95,7 +95,8 @@ impl HistoricalMonitor {
 
         let event_filter = Filter {
             address: Some(ethers::types::ValueOrArray::Array(vec![contract.address()])),
-            block_option: ethers::types::FilterBlockOption::Range { // Filter events between block range for above contract address
+            block_option: ethers::types::FilterBlockOption::Range {
+                // Filter events between block range for above contract address
                 from_block: Some(ethers::types::BlockNumber::Number(from_block.into())),
                 to_block: Some(ethers::types::BlockNumber::Number(to_block.into())),
             },
