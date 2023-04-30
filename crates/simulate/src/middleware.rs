@@ -19,6 +19,7 @@ impl Middleware for SimulationMiddleware {
     type Error = ProviderError;
     type Inner = Self;
 
+    /// Returns a reference to the inner middleware.
     fn inner(&self) -> &Self::Inner {
         self
     }
