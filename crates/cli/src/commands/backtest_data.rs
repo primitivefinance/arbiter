@@ -9,7 +9,7 @@ use on_chain::monitor::HistoricalMonitor;
 
 /// Save historical sqrt_price_x96 data from a Uniswap V3 pool contract to a csv file.
 /// # Arguments
-/// * `config` - Path to the config file. (String)
+/// * `config` - Path to the config file. (&str)
 /// * `start_block` - Start block to get data from. (u64)
 /// * `end_block` - End block to get data from. (u64)
 /// * `address` - Address of the Uniswap V3 pool contract to monitor. (String)
