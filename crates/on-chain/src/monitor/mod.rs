@@ -17,6 +17,8 @@ use futures::stream::StreamExt;
 pub mod utils;
 
 /// Houses a provider to talk to the chain.
+/// # Fields
+/// * `provider` - Provider to talk to the chain. (Arc<Provider<Http>>)
 pub struct EventMonitor {
     /// Provider to talk to the chain.
     pub provider: Arc<Provider<Http>>,
@@ -27,7 +29,10 @@ impl EventMonitor {
         let provider = utils::get_provider(rpc_type).await;
         Self { provider }
     }
-    /// Monitors events for a given contract from a given provider.
+    /// Monitors all live events for a given Uniswap V3 pool contract from a given provider.
+    /// # Arguments
+    /// * `contract_address` - Address of the contract to monitor. (String)
+    /// * `contract_abi` - ABI of the contract to monitor. (Abi)
     pub async fn monitor_events(
         &self,
         contract_address: &str,
@@ -46,7 +51,7 @@ impl EventMonitor {
 
         let mut event_stream = self
             .provider
-            .watch(&event_filter)
+            .watch(&event_filter) // stream events live
             .await
             .expect("Failed to create event stream");
 
@@ -58,6 +63,8 @@ impl EventMonitor {
 }
 
 /// Houses a provider to talk to the chain.
+/// # Fields
+/// * `provider` - Provider to talk to the chain. (Arc<Provider<Http>>)
 pub struct HistoricalMonitor {
     /// Provider to talk to the chain.
     pub provider: Arc<Provider<Http>>,
@@ -68,7 +75,14 @@ impl HistoricalMonitor {
         let provider = utils::get_provider(rpc_type).await;
         Self { provider }
     }
-    /// pulls historical events for a given contract from a given provider.
+    /// pulls historical swap event price data for a given contract from a given provider.
+    /// # Arguments
+    /// * `contract_address` - Address of the contract to monitor. (String)
+    /// * `contract_abi` - ABI of the contract to monitor. (Abi)
+    /// * `from_block` - Block number to start from. (u64)
+    /// * `to_block` - Block number to end at. (u64)
+    /// # Returns
+    /// * `Vec<U256>` - Vector of U256 values that represent the historical sqrt_price_x96 for all swap events between specified block range.
     pub async fn historical_monitor(
         &self,
         contract_address: &str,
@@ -82,6 +96,7 @@ impl HistoricalMonitor {
         let event_filter = Filter {
             address: Some(ethers::types::ValueOrArray::Array(vec![contract.address()])),
             block_option: ethers::types::FilterBlockOption::Range {
+                // Filter events between block range for above contract address
                 from_block: Some(ethers::types::BlockNumber::Number(from_block.into())),
                 to_block: Some(ethers::types::BlockNumber::Number(to_block.into())),
             },
@@ -95,13 +110,29 @@ impl HistoricalMonitor {
 
         let swap_event = "Swap";
 
+        /// Struct that represents the Swap event from the Uniswap V3 contract.
+        /// # Fields
+        /// * `sender` - Address of the sender.
+        /// * `recipient` - Address of the recipient.
+        /// * `amount0` - Amount of token0.
+        /// * `amount1` - Amount of token1.
+        /// * `sqrt_price_x96` - Price of the swap.
+        /// * `liquidity` - Liquidity of the swap.
+        /// * `tick` - Tick of the swap.
         pub struct Swap {
+            /// Address of the sender.
             pub sender: Address,
+            /// Address of the recipient.
             pub recipient: Address,
+            /// Amount of token0.
             pub amount0: I256,
+            /// Amount of token1.
             pub amount1: I256,
+            /// Price of the swap.
             pub sqrt_price_x96: U256,
+            /// Liquidity of the swap.
             pub liquidity: U256,
+            /// Tick of the swap.
             pub tick: i32,
         }
 
@@ -111,7 +142,7 @@ impl HistoricalMonitor {
             let log_topics: Vec<H256> = log.topics.clone();
             let log_data = log.data.0.into_iter().collect();
 
-            let decoded_swap_event = match contract
+            let decoded_swap_event = match contract // Decode Swap event from Uniswap V3 contract
                 .decode_event::<(H160, H160, I256, I256, U256, U256, i32)>(
                     swap_event, log_topics, log_data,
                 ) {
@@ -126,7 +157,11 @@ impl HistoricalMonitor {
         Ok(price_data)
     }
 
-    /// Converts sqrt_price_x96 to readable price
+    /// Converts sqrt_price_x96 from U256 to float64
+    /// # Arguments
+    /// * `price_data` - Vector of U256 values that represent the historical sqrt_price_x96 for all swap events between specified block range.
+    /// # Returns
+    /// * `Vec<f64>` - Vector of f64 values that represent the historical price for all swap events between specified block range.
     pub fn sqrt_price_x96_to_price(&self, price_data: Vec<u128>) -> Vec<f64> {
         let mut normalized_price_data: Vec<f64> = Vec::new();
 
@@ -139,6 +174,9 @@ impl HistoricalMonitor {
     }
 
     /// Save historical data to csv
+    /// # Arguments
+    /// * `price_data` - Vector of U256 values that represent the historical price.
+    /// * `file_path` - File path to save csv to.
     pub fn save_price_to_csv(
         &self,
         price_data: &Vec<U256>,

@@ -22,6 +22,9 @@ use crate::{
 
 #[derive(Debug)]
 /// Error type for the simulation manager.
+/// # Fields
+/// * `message` - Error message.
+/// * `output` - Byte output of the error.
 pub struct ManagerError {
     /// Error message.
     pub message: String,
@@ -32,12 +35,16 @@ pub struct ManagerError {
 impl Error for ManagerError {}
 
 impl Display for ManagerError {
+    /// Display the error message.
     fn fmt(&self, f: &mut Formatter) -> FmtResult {
         write!(f, "{}", self.message)
     }
 }
 
 /// Manages simulations.
+/// # Fields
+/// * `environment` - The simulation environment that the manager controls.
+/// * `agents` - The agents that are currently running in the simulation environment.
 pub struct SimulationManager {
     /// `SimulationEnvironment` that the simulation manager controls.
     pub environment: SimulationEnvironment,
@@ -46,6 +53,7 @@ pub struct SimulationManager {
 }
 
 impl Default for SimulationManager {
+    /// Constructor function to instantiate a manager that has a default admin user and a simulation environment.
     fn default() -> Self {
         Self::new()
     }
@@ -72,6 +80,9 @@ impl SimulationManager {
     }
 
     /// Adds and activates an agent to be put in the collection of agents under the manager's control.
+    /// # Arguments
+    /// * `new_agent` - The agent to be added to the collection of agents.
+    /// * `new_agent_address` - The address that the agent will be given.
     pub fn activate_agent(
         &mut self,
         new_agent: AgentType<NotActive>,
@@ -151,6 +162,10 @@ impl SimulationManager {
     }
 
     /// Takes an `ExecutionResult` and returns the raw bytes of the output that can then be decoded.
+    /// # Arguments
+    /// * `execution_result` - The `ExecutionResult` that we want to unpack.
+    /// # Returns
+    /// * `Ok(Bytes)` - The raw bytes of the output.
     pub fn unpack_execution(
         &self,
         execution_result: ExecutionResult,

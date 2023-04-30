@@ -114,7 +114,9 @@ impl Plotting for PriceProcess {
 /// * `volatility` - Volatility of the underlying asset. (f64)
 #[derive(Debug)]
 pub struct GBM {
+    /// Price drift of the underlying asset.
     drift: f64,
+    /// Volatility of the underlying asset.
     volatility: f64,
 }
 
@@ -158,8 +160,11 @@ impl GBM {
 /// * `mean_price` - Mean price of the underlying asset. (f64)
 #[derive(Debug)]
 pub struct OU {
+    /// Volatility of the underlying asset.
     volatility: f64,
+    /// Mean reversion speed of the underlying asset.
     mean_reversion_speed: f64,
+    /// Mean price of the underlying asset.
     mean_price: f64,
 }
 

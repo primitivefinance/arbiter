@@ -23,6 +23,12 @@ struct Args {
 }
 
 /// Subcommands for the Arbiter CLI.
+/// * `Sim` - Simulate a price path using a GBM or OU process
+/// * `Gbm` - Simulate a price path using a GBM process
+/// * `Ou` - Simulate a price path using an OU process
+/// * `Live` - Monitor live events from a Uniswap V3 pool contract
+/// * `ExportSwapRange` - Export swap data for a given block range
+/// * `ImportBacktest` - Import swap data from a csv file
 #[derive(Subcommand)]
 enum Commands {
     Sim {
@@ -66,7 +72,7 @@ enum Commands {
         #[arg(short = 'a', long, required = true)]
         address: String,
     },
-    Importbacktest {
+    ImportBacktest {
         /// Path to config.toml containing simulation parameterization (optional)
         #[arg(short, long, default_value = "./crates/cli/src/config.toml", num_args = 0..=1)]
         config: String,
@@ -111,7 +117,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
             backtest_data::save_backtest_data(config, start_block, end_block, address).await?;
         }
 
-        Some(Commands::Importbacktest { config, file_path }) => {
+        Some(Commands::ImportBacktest { config, file_path }) => {
             // Import swap price data from a csv file
             backtest_data::load_backtest_data(config, file_path).await?;
         }

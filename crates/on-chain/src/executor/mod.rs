@@ -11,8 +11,10 @@ use ethers::{
 use ethers_flashbots::*;
 use url::Url;
 
-/// Type that represents an `Executor`, a transaction executor designed to
-/// execute transactions.
+/// Houses the bundle and client information for execution.
+/// # Fields
+/// * `client` - Client that signs transactions. (SignerMiddleware<FlashbotsMiddleware<Provider<Http>, LocalWallet>, S>)
+/// * `bundle` - Bundle to be executed. (BundleRequest)
 #[derive(Debug)]
 pub struct Executor<S>
 where
@@ -25,8 +27,11 @@ where
 }
 
 /// Errors for bundle construction or execution.
+/// # Variants
+/// * `RelayParseError` - Error with parsing the Flashbots relay URL.
+/// * `SigningError` - Error with signing a transaction.
+/// * `BlockNumberError` - Error with fetching block number from middleware.
 #[derive(Debug)]
-
 pub enum Executor {
     /// Error with parsing the Flashbots relay URL.
     #[error(transparent)]
@@ -42,6 +47,10 @@ pub enum Executor {
 }
 
 /// Type that represents an execution result from either a send or simulation.
+/// # Variants
+/// * `Send` - Result from a send.
+/// * `Simulate` - Result from a simulation.
+/// * `Error` - Error from a send or simulation.
 #[deprecated(since = "0.0.1", note = "will be useful for actors in the future")]
 #[allow(warnings)]
 pub type ExecutionResult<T> = Result<T, FlashbotsMiddlewareError<Provider<Http>, LocalWallet>>;
@@ -81,6 +90,8 @@ impl<S: Signer> Architect<S> {
     }
 
     /// Add and sign a transaction to the bundle to be executed.
+    /// # Arguments
+    /// * `transaction` - Transaction to be added to the bundle.
     #[deprecated(since = "0.0.1", note = "will be useful for actors in the future")]
     #[allow(warnings)]
     pub async fn add_transactions(
@@ -100,6 +111,8 @@ impl<S: Signer> Architect<S> {
     }
 
     /// Simulate bundle execution.
+    /// # Returns
+    /// * `ExecutionResult<SimulatedBundle>` - Result of the simulation.
     #[deprecated(since = "0.0.1", note = "will be useful for actors in the future")]
     #[allow(warnings)]
     pub async fn simulate(&mut self) -> ExecutionResult<SimulatedBundle> {
@@ -107,6 +120,8 @@ impl<S: Signer> Architect<S> {
     }
 
     /// Send the bundle.
+    /// # Returns
+    /// * `ExecutionResult<PendingBundle>` - Result of the send.
     #[allow(warnings)]
     #[deprecated(since = "0.0.1", note = "will be useful for actors in the future")]
     pub async fn send(

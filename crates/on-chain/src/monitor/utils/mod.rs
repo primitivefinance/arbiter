@@ -6,6 +6,12 @@ use std::{collections::HashMap, env::var_os};
 use ethers::types::{Address, H160};
 
 /// Insert a token to the HashMap.
+/// # Arguments
+/// * `address` - Address of the token. (String)
+/// * `decimals` - Decimals of the token. (u16)
+/// * `name` - Name of the token. (String)
+/// * `is_stable` - Whether the token is a stablecoin. (bool)
+/// * `tokens` - HashMap of tokens. (HashMap<String, Token>)
 macro_rules! token_insert {
     (
         $address:expr,
@@ -23,6 +29,11 @@ macro_rules! token_insert {
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 /// Represents an ERC20 token.
+/// # Fields
+/// * `address` - Address of the token. (H160)
+/// * `decimals` - Decimals of the token. (u16)
+/// * `name` - Name of the token. (String)
+/// * `is_stable` - Whether the token is a stablecoin. (bool)
 pub struct Token {
     /// Address of the token.
     pub address: H160,
@@ -46,6 +57,8 @@ impl Token {
 }
 
 /// return hashmap, name = key, value = token object
+/// # Returns
+/// * `tokens` - HashMap of tokens. (HashMap<String, Token>)
 pub fn get_tokens() -> HashMap<String, Token> {
     let mut tokens = HashMap::new();
 
@@ -211,7 +224,11 @@ use ethers::{prelude::*, providers::Provider};
 //                 .unwrap(),
 //         ),
 //     };
-/// Get a default provider.
+/// Enumerator for different networks with rpc connetions.
+/// # Variants
+/// * `Mainnet` - Mainnet rpc
+/// * `Default` - Default rpc
+/// * `Goerli` - Goerli rpc
 #[derive(Debug, PartialEq)]
 pub enum RpcTypes {
     /// Mainet rpc
@@ -221,7 +238,9 @@ pub enum RpcTypes {
     /// Goerli rpc
     Goerli,
 }
-/// Get a specified provider.
+/// Get a specified provider based on network.
+/// # Arguments
+/// * `rpc_type` - The type of rpc to get.
 pub async fn get_provider(rpc_type: RpcTypes) -> Arc<Provider<Http>> {
     match rpc_type {
         RpcTypes::Mainnet => Arc::new(

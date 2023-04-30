@@ -46,6 +46,11 @@ impl DeploymentStatus for IsDeployed {
 
 #[derive(Debug, Clone)]
 /// A struct that wraps around the ethers `BaseContract` and adds some additional information relevant for revm and the simulation.
+/// # Fields
+/// * `address` - The address of the contract within the relevant [`SimulationEnvironment`].
+/// * `base_contract` - The ethers [`BaseContract`] that holds the ABI.
+/// * `bytecode` - The contract's deployed bytecode.
+/// * `constructor_arguments` - The constructor arguments for the contract.
 pub struct SimulationContract<DeployedState: DeploymentStatus> {
     /// The address of the contract within the relevant [`SimulationEnvironment`].
     pub address: DeployedState::Address,
@@ -73,6 +78,12 @@ impl SimulationContract<NotDeployed> {
 
     /// Deploy a contract to the current simulation environment and return a new [`SimulationContract<IsDeployed>`].
     /// Does not consume the current [`SimulationContract<NotDeployed>`] so that more copies can be deployed later.
+    /// # Arguments
+    /// * `simulation_environment` - The [`SimulationEnvironment`] to deploy the contract to.
+    /// * `deployer` - The [`AgentType`] that will deploy the contract.
+    /// * `constructor_arguments` - The constructor arguments for the contract.
+    /// # Returns
+    /// * `SimulationContract<IsDeployed>` - The deployed contract.
     pub fn deploy<T: Tokenize>(
         &self,
         simulation_environment: &mut SimulationEnvironment,
@@ -125,6 +136,11 @@ impl SimulationContract<NotDeployed> {
 
 impl SimulationContract<IsDeployed> {
     /// Encodes the arguments for a function call for the [`SimulationContract`].
+    /// # Arguments
+    /// * `function_name` - The name of the function to encode.
+    /// * `args` - The arguments to encode.
+    /// # Returns
+    /// * `Result<Bytes, AbiError>` - The encoded arguments.
     pub fn encode_function(
         &self,
         function_name: &str,
@@ -136,6 +152,11 @@ impl SimulationContract<IsDeployed> {
         }
     }
     /// Decodes the output of a function call for the [`SimulationContract`].
+    /// # Arguments
+    /// * `function_name` - The name of the function to decode.
+    /// * `value` - The bytecode to decode.
+    /// # Returns
+    /// * `Result<D, AbiError>` - The decoded output.
     pub fn decode_output<D: Detokenize>(
         &self,
         function_name: &str,
@@ -145,6 +166,12 @@ impl SimulationContract<IsDeployed> {
             .decode_output::<D, Bytes>(function_name, value)
     }
     /// Decodes the logs for an event with the [`SimulationContract`].
+    /// # Arguments
+    /// * `function_name` - The name of the event to decode.
+    /// * `log_topics` - The topics of the log.
+    /// * `log_data` - The data of the log.
+    /// # Returns
+    /// * `Result<D, AbiError>` - The decoded event logs.
     pub fn decode_event<D: Detokenize>(
         &self,
         function_name: &str,
