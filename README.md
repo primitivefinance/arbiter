@@ -35,20 +35,25 @@ For our next beta release, we will be focusing on the following features:
 
 First, clone the repository to your local environment so
 
-```
+```bash
 git clone https://github.com/primitivefinance/arbiter.git
 cd arbiter
-cargo build
+```
+
+Install arbiter on your system:
+
+```bash
+cargo install --path crates/cli --force
 ```
 
 With the `arbiter` binary generated, you can run commands such as:
-```
+```bash
 arbiter sim
 ```
 
 ## Generating Docs
 To see the documentation for Arbiter, after cloning the repo, you can run:
-```
+```bash
 cargo doc --workspace --no-deps --open
 ```
 This will generate and open the docs in your browser. From there, you can look at the documentation for each crate in the Arbiter workspace.
@@ -57,7 +62,7 @@ This will generate and open the docs in your browser. From there, you can look a
 
 In the `lib/` folder you can add additional smart contracts or regenerate Rust bindings. To do so, run the following from the Arbiter root directory:
 
-```
+```bash
 ./bind.sh
 ```
 
