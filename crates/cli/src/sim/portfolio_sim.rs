@@ -29,7 +29,7 @@ struct SimulationContracts(
 );
 
 /// Run a simulation.
-pub fn sim() -> Result<(), Box<dyn Error>> {
+pub fn portfolio_sim() -> Result<(), Box<dyn Error>> {
     // define the wad constant
     let decimals = 18_u8;
     let wad: U256 = U256::from(10_i64.pow(decimals as u32));
@@ -46,9 +46,9 @@ pub fn sim() -> Result<(), Box<dyn Error>> {
     let _admin = manager.agents.get("admin").unwrap();
 
     // Deploying Contracts
-    let contracts = deploy_sim_contracts(&mut manager, wad)?;
+    let contracts = deploy_portfolio_sim_contracts(&mut manager, wad)?;
 
-    intitalization_calls(&mut manager, contracts, decimals)?;
+    portfolio_sim_intitalization_calls(&mut manager, contracts, decimals)?;
 
     Ok(())
 }
@@ -59,7 +59,7 @@ pub fn sim() -> Result<(), Box<dyn Error>> {
 /// * `wad` - Wad constant to use for the simulation. (U256)
 /// # Returns
 /// * `SimulationContracts` - Contracts deployed to the simulation environment. (SimulationContracts)
-fn deploy_sim_contracts(
+fn deploy_portfolio_sim_contracts(
     manager: &mut SimulationManager,
     wad: U256,
 ) -> Result<SimulationContracts, Box<dyn Error>> {
@@ -149,7 +149,7 @@ fn deploy_sim_contracts(
 /// * `manager` - Simulation manager to deploy contracts to. (SimulationManager)
 /// * `contracts` - Contracts deployed to the simulation environment. (SimulationContracts)
 /// * `decimals` - Decimals to use for the simulation. (u8)
-fn intitalization_calls(
+fn portfolio_sim_intitalization_calls(
     manager: &mut SimulationManager,
     contracts: SimulationContracts,
     decimals: u8,
@@ -446,7 +446,7 @@ mod tests {
         let mut manager = SimulationManager::new();
 
         // Deploy the contracts
-        let contracts = deploy_sim_contracts(&mut manager, wad)?;
+        let contracts = deploy_portfolio_sim_contracts(&mut manager, wad)?;
         let SimulationContracts(
             arbiter_token_x,
             arbiter_token_y,
@@ -504,7 +504,7 @@ mod tests {
             _portfolio,
             _liquid_exchange_xy,
             _encoder_target,
-        ) = deploy_sim_contracts(&mut manager, wad)?;
+        ) = deploy_portfolio_sim_contracts(&mut manager, wad)?;
 
         // Folio encoding
         let token_x_ad = arbiter_token_x.address.as_fixed_bytes();
@@ -550,7 +550,7 @@ mod tests {
             portfolio,
             _liquid_exchange_xy,
             _encoder_target,
-        ) = deploy_sim_contracts(&mut manager, wad)?;
+        ) = deploy_portfolio_sim_contracts(&mut manager, wad)?;
 
         let admin = manager.agents.get("admin").unwrap();
         // Folio encoding // get args
