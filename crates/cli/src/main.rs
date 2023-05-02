@@ -10,6 +10,7 @@ use eyre::Result;
 
 mod commands;
 mod config;
+mod sim;
 
 #[derive(Parser)]
 #[command(name = "Arbiter")]
@@ -89,7 +90,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
     match &args.command {
         Some(Commands::Sim { config: _ }) => {
             // Create a [`SimulationManager`] that runs simulations in their `SimulationEnvironment`.
-            sim::sim()?;
+            sim::portfolio_sim::portfolio_sim()?;
         }
 
         Some(Commands::Ou { config }) => {
