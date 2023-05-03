@@ -285,8 +285,8 @@ fn portfolio_sim_intitalization_calls(
         100_u16,                          // pub vol: u16,
         65535_u16,                        // pub dur: u16,
         0_u16,                            // pub jit: u16,
-        u128::MAX,                        // pub max_price: u128,
-        1_u128,                           // pub price: u128,
+        10000000000000000000u128,         // pub max_price: u128,
+        10000000000000000000u128,         // pub price: u128,
     );
 
     let create_pool_call = portfolio.encode_function("createPool", create_pool_builder)?;
@@ -298,14 +298,14 @@ fn portfolio_sim_intitalization_calls(
     );
     assert!(create_pool_result.is_success());
 
-
     let create_pool_unpack = manager.unpack_execution(create_pool_result)?;
+    let pool_id: u64  = create_pair_unpack.into_iter().collect();
     let pool_id: u64  = portfolio.decode_output("createPool", create_pool_unpack)?;
     println!("created portfolio pool with pool ID: {:#?}", pool_id);
 
     let get_liquidity_args = (
         pool_id,   // pool_id: u64,
-        1000_i128,  // delta_liquidity: i128,
+        10000000000_i128,  // delta_liquidity: i128,
     );
     let get_liquidity_call = portfolio.encode_function("getLiquidityDeltas", get_liquidity_args)?;
     let get_liquidity_result = admin.call_contract(
@@ -322,11 +322,11 @@ fn portfolio_sim_intitalization_calls(
 
 
     let allocate_builder = (
-        true,      // use_max: bool,
-        pool_id,   // pool_id: u64,
-        1000_u128,   // delta_liquidity: u128,
-        liquidity_deltas.1,  // max_delta_asset: u128,
-        liquidity_deltas.0, // max_delta_quote: u128,
+        true,               // use_max: bool, // Usually set to false?
+        pool_id,            // pool_id: u64,
+        10000000000_i128,          // delta_liquidity: u128,
+        liquidity_deltas.0, // max_delta_asset: u128,
+        liquidity_deltas.1, // max_delta_quote: u128,
     );
 
     let allocate_call = portfolio.encode_function("allocate", allocate_builder)?;
