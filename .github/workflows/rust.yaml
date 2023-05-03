@@ -26,9 +26,6 @@ jobs:
       - name: cargo test
         run: cargo test --all --all-features --exclude bindings
 
-      - name: Upload coverage reports to Codecov
-        uses: codecov/codecov-action@v3
-
   lint:
     runs-on: ubuntu-latest
     steps:
@@ -52,3 +49,9 @@ jobs:
 
       - name: cargo clippy
         run: cargo clippy -- -A clippy::module_inception
+
+  coverage:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Upload coverage reports to Codecov
+        uses: codecov/codecov-action@v3
