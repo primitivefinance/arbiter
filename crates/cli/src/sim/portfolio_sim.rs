@@ -149,7 +149,6 @@ fn deploy_portfolio_sim_contracts(
 fn portfolio_sim_intitalization_calls(
     manager: &mut SimulationManager,
     contracts: SimulationContracts,
-    decimals: u8,
 ) -> Result<(), Box<dyn Error>> {
     let admin = manager.agents.get("admin").unwrap();
     // Get all the necessary users.
@@ -184,7 +183,7 @@ fn portfolio_sim_intitalization_calls(
         &arbiter_token_y,
         call_data,
         Uint::from(0),
-    ); // TODO: SOME KIND OF ERROR HANDLING IS NECESSARY FOR THESE TYPES OF CALLS
+    );
     println!(
         "Minted token_y to arber: {:#?}",
         execution_result.is_success()
@@ -206,6 +205,7 @@ fn portfolio_sim_intitalization_calls(
 
     // APROVALS
     // --------------------------------------------------------------------------------------------
+    //
     // aprove the liquid_exchange to spend the arbitrageur's token_x
     let approve_liquid_excahnge_args = (recast_address(liquid_exchange_xy.address), U256::MAX);
     let call_data = arbiter_token_x.encode_function("approve", approve_liquid_excahnge_args)?;
@@ -273,34 +273,22 @@ fn portfolio_sim_intitalization_calls(
         create_pair_call_data,
         Uint::from(0),
     );
-    assert_eq!(create_pair_result.is_success(), true);
+    assert!(create_pair_result.is_success(), true);
 
     let create_pair_unpack = manager.unpack_execution(create_pair_result)?;
     let pair_id: u32  = portfolio.decode_output("createPair", create_pair_unpack)?;
     println!("Created portfolio pair with Pair id: {:#?}", pair_id);
 
-    // let pair_id: u32 = pair_id.into_iter().collect().to_string().parse::<u32>().unwrap();
-
-
     let create_pool_builder = (
-        // pub pair_id: u32,
-        pair_id,
-        // pub controller: ::ethers::core::types::Address,
-        recast_address(admin.address()),
-        // pub priority_fee: u16,
-        100_u16,
-        // pub fee: u16,
-        100_u16,
-        // pub vol: u16,
-        100_u16,
-        // pub dur: u16,
-        65535_u16,
-        // pub jit: u16,
-        0_u16,
-        // pub max_price: u128,
-        u128::MAX,
-        // pub price: u128,
-        1_u128,
+        pair_id,                          // pub pair_id: u32
+        recast_address(admin.address()),  // pub controller: ::ethers::core::types::Address
+        100_u16,                          // pub priority_fee: u16,
+        100_u16,                          // pub fee: u16,
+        100_u16,                          // pub vol: u16,
+        65535_u16,                        // pub dur: u16,
+        0_u16,                            // pub jit: u16,
+        u128::MAX,                        // pub max_price: u128,
+        1_u128,                           // pub price: u128,
     );
 
     let create_pool_call = portfolio.encode_function("createPool", create_pool_builder)?;
@@ -440,24 +428,15 @@ mod tests {
     
     
         let create_pool_builder = (
-            // pub pair_id: u32,
-            pair_id,
-            // pub controller: ::ethers::core::types::Address,
-            recast_address(admin.address()),
-            // pub priority_fee: u16,
-            100_u16,
-            // pub fee: u16,
-            100_u16,
-            // pub vol: u16,
-            100_u16,
-            // pub dur: u16,
-            65535_u16,
-            // pub jit: u16,
-            0_u16,
-            // pub max_price: u128,
-            u128::MAX,
-            // pub price: u128,
-            1_u128,
+            pair_id,                          // pub pair_id: u32
+            recast_address(admin.address()),  // pub controller: ::ethers::core::types::Address
+            100_u16,                          // pub priority_fee: u16,
+            100_u16,                          // pub fee: u16,
+            100_u16,                          // pub vol: u16,
+            65535_u16,                        // pub dur: u16,
+            0_u16,                            // pub jit: u16,
+            u128::MAX,                        // pub max_price: u128,
+            1_u128,                           // pub price: u128,
         );
     
         let create_pool_call = portfolio.encode_function("createPool", create_pool_builder)?;
@@ -503,29 +482,18 @@ mod tests {
         let create_pair_unpack = manager.unpack_execution(create_pair_result)?;
         let pair_id: u32  = portfolio.decode_output("createPair", create_pair_unpack)?;
         println!("Created portfolio pair with Pair id: {:#?}", pair_id);
-    
-        // let pair_id: u32 = pair_id.into_iter().collect().to_string().parse::<u32>().unwrap();
-    
+        
     
         let create_pool_builder = (
-            // pub pair_id: u32,
-            pair_id,
-            // pub controller: ::ethers::core::types::Address,
-            recast_address(admin.address()),
-            // pub priority_fee: u16,
-            100_u16,
-            // pub fee: u16,
-            100_u16,
-            // pub vol: u16,
-            100_u16,
-            // pub dur: u16,
-            65535_u16,
-            // pub jit: u16,
-            0_u16,
-            // pub max_price: u128,
-            u128::MAX,
-            // pub price: u128,
-            1_u128,
+            pair_id,                          // pub pair_id: u32
+            recast_address(admin.address()),  // pub controller: ::ethers::core::types::Address
+            100_u16,                          // pub priority_fee: u16,
+            100_u16,                          // pub fee: u16,
+            100_u16,                          // pub vol: u16,
+            65535_u16,                        // pub dur: u16,
+            0_u16,                            // pub jit: u16,
+            u128::MAX,                        // pub max_price: u128,
+            1_u128,                           // pub price: u128,
         );
     
         let create_pool_call = portfolio.encode_function("createPool", create_pool_builder)?;
@@ -541,11 +509,11 @@ mod tests {
         println!("created portfolio pool with pool ID: {:#?}", pool_id);
 
         let allocate_builder = (
-            true,      // use_max: bool,
-            pool_id,   // pool_id: u64,
-            100_u64,   // delta_liquidity: u128,
+            true,       // use_max: bool,
+            pool_id,    // pool_id: u64,
+            100_u64,    // delta_liquidity: u128,
             1000_u128,  // max_delta_asset: u128,
-            1000_u128, // max_delta_quote: u128,
+            1000_u128,  // max_delta_quote: u128,
         );
     
         let allocate_call = portfolio.encode_function("allocate", allocate_builder)?;
