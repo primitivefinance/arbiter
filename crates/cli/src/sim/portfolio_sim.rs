@@ -5,10 +5,8 @@ use bindings::{
     arbiter_token, encoder_target, liquid_exchange, rmm01_portfolio, simple_registry,
     weth9,
 };
-use bytes::Bytes;
 use ethers::{
     prelude::{ U256},
-    types::{H160, H256},
 };
 use eyre::Result;
 use revm::primitives::{ruint::Uint, B160};
@@ -323,22 +321,22 @@ fn portfolio_sim_intitalization_calls(
     println!("liquidity deltas: {:#?}" ,liquidity_deltas);
 
 
-    // let allocate_builder = (
-    //     true,      // use_max: bool,
-    //     pool_id,   // pool_id: u64,
-    //     100_u64,   // delta_liquidity: u128,
-    //     1000_u128,  // max_delta_asset: u128,
-    //     1000_u128, // max_delta_quote: u128,
-    // );
+    let allocate_builder = (
+        true,      // use_max: bool,
+        pool_id,   // pool_id: u64,
+        1000_u128,   // delta_liquidity: u128,
+        liquidity_deltas.1,  // max_delta_asset: u128,
+        liquidity_deltas.0, // max_delta_quote: u128,
+    );
 
-    // let allocate_call = portfolio.encode_function("allocate", allocate_builder)?;
-    // let allocate_result = admin.call_contract(
-    //     &mut manager.environment,
-    //     &portfolio,
-    //     allocate_call,
-    //     Uint::from(0),
-    // );
-    // println!("allocate result: {:#?}", allocate_result.is_success());
+    let allocate_call = portfolio.encode_function("allocate", allocate_builder)?;
+    let allocate_result = admin.call_contract(
+        &mut manager.environment,
+        &portfolio,
+        allocate_call,
+        Uint::from(0),
+    );
+    println!("allocate result: {:#?}", allocate_result.is_success());
 
 
     Ok(())
