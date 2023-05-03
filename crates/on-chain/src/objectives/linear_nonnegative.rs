@@ -17,6 +17,7 @@ impl LinearNonnegative {
         } else {
             let mut conj = INFINITY;
         }
+        conj
     }
     /// Gradient of the Linear Nonnegative objective function.
     pub fn gradient(&self, v: Vec<f64>) -> Vec<f64> {
@@ -31,7 +32,7 @@ impl LinearNonnegative {
                 grad.push(INFINITY);
             }
         }
-        Ok(grad)
+        grad
     }
     /// Lower limit
     pub fn lower_limit(self) -> Vec<f64> {
@@ -47,6 +48,6 @@ impl LinearNonnegative {
         for i in 0..self.c.len() {
             limit.push(INFINITY);
         }
-        Ok(limit)
+        limit
     }
 }
