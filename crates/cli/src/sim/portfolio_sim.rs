@@ -2,13 +2,12 @@
 use std::error::Error;
 
 use bindings::{
-    arbiter_token, encoder_target, i_portfolio, liquid_exchange, rmm01_portfolio, simple_registry,
+    arbiter_token, encoder_target, liquid_exchange, rmm01_portfolio, simple_registry,
     weth9,
 };
 use bytes::Bytes;
 use ethers::{
-    abi::Token,
-    prelude::{BaseContract, U256},
+    prelude::{ U256},
     types::{H160, H256},
 };
 use eyre::Result;
@@ -21,7 +20,6 @@ use simulate::{
 };
 
 struct SimulationContracts(
-    SimulationContract<IsDeployed>,
     SimulationContract<IsDeployed>,
     SimulationContract<IsDeployed>,
     SimulationContract<IsDeployed>,
@@ -140,7 +138,6 @@ fn deploy_portfolio_sim_contracts(
         arbiter_token_y,
         portfolio,
         liquid_exchange_xy,
-        encoder_target,
     ))
 }
 
@@ -161,7 +158,6 @@ fn portfolio_sim_intitalization_calls(
         arbiter_token_y,
         portfolio,
         liquid_exchange_xy,
-        encoder_target,
     ) = contracts;
 
     let arbitrageur = manager.agents.get("arbitrageur").unwrap();
@@ -226,86 +222,64 @@ fn portfolio_sim_intitalization_calls(
     );
 
     // aprove the liquid_exchange to spend the arbitrageur's token_y
-    let call_data = arbiter_token_y.encode_function("approve", approve_liquid_excahnge_args)?;
-    let result = arbitrageur.call_contract(
+    let approval_call_liquid_exchange = arbiter_token_y.encode_function("approve", approve_liquid_excahnge_args)?;
+    let approval_call_result = arbitrageur.call_contract(
         &mut manager.environment,
         &arbiter_token_y,
-        call_data,
+        approval_call_liquid_exchange,
         Uint::from(0),
     );
     println!(
         "Aproved token_y to liquid_excahnge for arber: {:#?}",
-        result.is_success()
+        approval_call_result.is_success()
     );
 
     // aprove tokens on portfolio for arbitrageur
     let approve_portfolio_args = (recast_address(portfolio.address), U256::MAX);
     // Approve token_y
-    let call_data = arbiter_token_y.encode_function("approve", approve_portfolio_args)?;
-    let result = arbitrageur.call_contract(
+    let aprove_token_y_call_data = arbiter_token_y.encode_function("approve", approve_portfolio_args)?;
+    let approve_token_y_result = arbitrageur.call_contract(
         &mut manager.environment,
         &arbiter_token_y,
-        call_data,
+        aprove_token_y_call_data,
         Uint::from(0),
     );
     println!(
         "Aproved token_y to portfolio for arber: {:#?}",
-        result.is_success()
+        approve_token_y_result.is_success()
     );
     // approve token_x
-    let call_data = arbiter_token_x.encode_function("approve", approve_portfolio_args)?;
-    let result = arbitrageur.call_contract(
+    let approve_token_x_call_data = arbiter_token_x.encode_function("approve", approve_portfolio_args)?;
+    let approve_token_x_call_result = arbitrageur.call_contract(
         &mut manager.environment,
         &arbiter_token_x,
-        call_data,
+        approve_token_x_call_data,
         Uint::from(0),
     );
     println!(
         "Aproved token_y to portfolio for arber: {:#?}",
-        result.is_success()
+        approve_token_x_call_result.is_success()
     );
 
-    let encoder_args = (
+    let create_pair_args = (
         recast_address(arbiter_token_x.address),
         recast_address(arbiter_token_y.address),
     );
-    let encoder_create_pair_call_data =
-        encoder_target.encode_function("createPair", encoder_args)?;
-    let encoded_create_pair_result = admin.call_contract(
-        &mut manager.environment,
-        &encoder_target,
-        encoder_create_pair_call_data,
-        Uint::from(0),
-    );
-    // Encoder Target encoding
-    let encoded_data = manager.unpack_execution(encoded_create_pair_result)?;
-    let decoded_encoded_data: Bytes = encoder_target.decode_output("createPair", encoded_data)?;
-    let portfolio_create_pair_call_data: Bytes =
-        portfolio.encode_function("multiprocess", decoded_encoded_data)?;
-
-    // Use the encoder target encoding
-    let encoded_create_pair_result = admin.call_contract(
+    let create_pair_call_data =
+        portfolio.encode_function("createPair", create_pair_args)?;
+    let create_pair_result = admin.call_contract(
         &mut manager.environment,
         &portfolio,
-        portfolio_create_pair_call_data,
+        create_pair_call_data,
         Uint::from(0),
     );
-    println!(
-        "Encoded create pair with encoder target encoding: {:#?}",
-        encoded_create_pair_result.is_success()
-    );
-    let topics = encoded_create_pair_result.logs()[0].topics.clone();
-    let h256_vec: Vec<H256> = topics
-        .iter()
-        .map(|b256| H256::from_slice(b256.as_bytes()))
-        .collect();
-    let i_portfolio = BaseContract::from(i_portfolio::IPORTFOLIO_ABI.clone());
-    let data = encoded_create_pair_result.logs()[0].data.clone();
-    let pair_result: (Token, Token, Token, Token, Token) = i_portfolio
-        .decode_event("CreatePair", h256_vec, ethers::types::Bytes(data))
-        .unwrap();
-    println!("Decoded pairID: {:#?}", pair_result.0.to_string());
-    let pair_id: u32 = pair_result.0.to_string().parse::<u32>().unwrap();
+    assert_eq!(create_pair_result.is_success(), true);
+
+    let create_pair_unpack = manager.unpack_execution(create_pair_result)?;
+    let pair_id: u32  = portfolio.decode_output("createPair", create_pair_unpack)?;
+    println!("Pair id: {:#?}", pair_id);
+
+    // let pair_id: u32 = pair_id.into_iter().collect().to_string().parse::<u32>().unwrap();
     let encoded_pair = portfolio.encode_function("pairs", pair_id)?;
     let pairs = admin.call_contract(
         &mut manager.environment,
@@ -313,9 +287,9 @@ fn portfolio_sim_intitalization_calls(
         encoded_pair,
         Uint::from(0),
     );
-    let result = manager.unpack_execution(pairs)?;
+    let unpacked_pairs = manager.unpack_execution(pairs)?;
     let decoded_pairs_response: (H160, u8, H160, u8) =
-        i_portfolio.decode_output("pairs", result)?;
+        portfolio.decode_output("pairs", unpacked_pairs)?;
 
     assert!(decoded_pairs_response.0 == arbiter_token_x.address.into());
     assert!(decoded_pairs_response.2 == arbiter_token_y.address.into());
@@ -343,70 +317,60 @@ fn portfolio_sim_intitalization_calls(
         1_u128,
     );
 
-    let call = encoder_target.encode_function("createPool", create_pool_builder)?;
-    let result = admin.call_contract(
-        &mut manager.environment,
-        &encoder_target,
-        call,
-        Uint::from(0),
-    );
 
-    let result_object: Bytes = manager.unpack_execution(result)?;
-    let decoded_encoded_data: Bytes = encoder_target.decode_output("createPair", result_object)?;
-    println!(
-        "encoded_create_pool_result: {:#?}",
-        hex::encode(decoded_encoded_data.clone())
-    );
-    //
-    // `0x | CREATE_POOL (1 byte) | pairId (3 bytes) | controller (20 bytes) | priorityFee (2 bytes) | fee (2 bytes) | vol (2 bytes) | dur (2 bytes) | jit (2 bytes) | pointerPrice (1 byte) | powerMaxPrice (1 byte) | baseMaxPrice (? bytes) | powerPrice (1 byte) | basePrice (? bytes)`\
-    // 0b|000001|0000000000000000000000000000000000000001|0064|0064|0064|ffff|0000|3400|ffffffffffffffffffffffffffffffff0000000000000000000000000000000001
+    // //
+    // // `0x | CREATE_POOL (1 byte) | pairId (3 bytes) | controller (20 bytes) | priorityFee (2 bytes) | fee (2 bytes) | vol (2 bytes) | dur (2 bytes) | jit (2 bytes) | pointerPrice (1 byte) | powerMaxPrice (1 byte) | baseMaxPrice (? bytes) | powerPrice (1 byte) | basePrice (? bytes)`\
+    // // 0b|000001|0000000000000000000000000000000000000001|0064|0064|0064|ffff|0000|3400|ffffffffffffffffffffffffffffffff0000000000000000000000000000000001
 
-    let create_pool_call = portfolio.encode_function("multiprocess", decoded_encoded_data)?;
-    let result = admin.call_contract(
+    let create_pool_call = portfolio.encode_function("createPool", create_pool_builder)?;
+    let create_pool_result = admin.call_contract(
         &mut manager.environment,
         &portfolio,
         create_pool_call,
         Uint::from(0),
     );
-    assert!(result.is_success());
-    println!("pair_id: {:#?}", pair_result.0);
+    assert!(create_pool_result.is_success());
 
-    // @dev Decodes the parameters of a pool given its id.
-    // The pool id is expected to be encoded using the following format:\
-    // `0x | pairId (3 bytes) | isMutable (1 byte) | poolNonce (4 bytes)
-    // 0x|000001|00|00000001
-    let pool_id: Bytes = hex::decode("0000010000000001".as_bytes())?
-        .into_iter()
-        .collect();
-    //         let encoded_from_string: Bytes = hex::decode("0b0000010000000000000000000000000000000000000000000100010064ffff0001340000000000000000000de0b6b3a76400000000000000000000000de0b6b3a764".as_bytes())?.into_iter().collect();
 
-    println!("pool_id: {:#?}", pool_id);
+    let create_pool_unpack = manager.unpack_execution(create_pool_result)?;
+    let pair_id: u64  = portfolio.decode_output("createPool", create_pool_unpack)?;
+    println!("create pool unpacked: {:#?}", pair_id);
+    // // @dev Decodes the parameters of a pool given its id.
+    // // The pool id is expected to be encoded using the following format:\
+    // // `0x | pairId (3 bytes) | isMutable (1 byte) | poolNonce (4 bytes)
+    // // 0x|000001|00|00000001
+    // let pool_id: Bytes = hex::decode("0000010000000001".as_bytes())?
+    //     .into_iter()
+    //     .collect();
+    // //         let encoded_from_string: Bytes = hex::decode("0b0000010000000000000000000000000000000000000000000100010064ffff0001340000000000000000000de0b6b3a76400000000000000000000000de0b6b3a764".as_bytes())?.into_iter().collect();
 
-    let allocate_builder = (
-        // should_allocate: bool,
-        true,      // use_max: u8,
-        0u8,       // pool_id: u64,
-        100_u64,   // delta_liquidity: u128,
-        1000_u64,  // amount_0: u128,
-        1000_u128, // amount_1: u128,
-        1000_u128,
-    );
+    // println!("pool_id: {:#?}", pool_id);
 
-    let allocate_call = encoder_target.encode_function("allocateOrDeallocate", allocate_builder)?;
-    let allocate_encode_result = admin.call_contract(
-        &mut manager.environment,
-        &encoder_target,
-        allocate_call,
-        Uint::from(0),
-    );
-    assert!(allocate_encode_result.is_success());
-    let result_object: Bytes = manager.unpack_execution(allocate_encode_result)?;
-    let decoded_encoded_data: Bytes =
-        encoder_target.decode_output("allocateOrDeallocate", result_object)?;
-    println!(
-        "encoded_create_pool_result: {:#?}",
-        hex::encode(decoded_encoded_data)
-    );
+    // let allocate_builder = (
+    //     // should_allocate: bool,
+    //     true,      // use_max: u8,
+    //     0u8,       // pool_id: u64,
+    //     100_u64,   // delta_liquidity: u128,
+    //     1000_u64,  // amount_0: u128,
+    //     1000_u128, // amount_1: u128,
+    //     1000_u128,
+    // );
+
+    // let allocate_call = encoder_target.encode_function("allocateOrDeallocate", allocate_builder)?;
+    // let allocate_encode_result = admin.call_contract(
+    //     &mut manager.environment,
+    //     &encoder_target,
+    //     allocate_call,
+    //     Uint::from(0),
+    // );
+    // assert!(allocate_encode_result.is_success());
+    // let result_object: Bytes = manager.unpack_execution(allocate_encode_result)?;
+    // let decoded_encoded_data: Bytes =
+    //     encoder_target.decode_output("allocateOrDeallocate", result_object)?;
+    // println!(
+    //     "encoded_create_pool_result: {:#?}",
+    //     hex::encode(decoded_encoded_data)
+    // );
     // This is what we get, need to go over this with matt
     // |01|00|00|0000000000641c2d030000000000000000000000000000000103000000000000000000000000000000010300000000000000000000000000000001
     //  * `0x | ALLOCATE or DEALLOCATE (1 byte) | useMax (1 byte) | poolId (8 bytes) | pointerPowerDeltaAsset | pointerDeltaQuote | powerDeltaLiquidity (1 byte) | baseDeltaLiquidity (? bytes) | powerDeltaAsset (1 byte) | baseDeltaAsset (? bytes) | powerDeltaQuote (1 byte) | baseDeltaQuote (? bytes)`\
@@ -452,7 +416,6 @@ mod tests {
             arbiter_token_y,
             _portfolio,
             _liquid_exchange_xy,
-            encoder_target,
         ) = contracts;
         let admin = manager.agents.get("admin").unwrap();
         let encoder_args = (
@@ -466,26 +429,6 @@ mod tests {
         assert_eq!(
             encoder_args.1,
             H160::from_str("0x83769beeb7e5405ef0b7dc3c66c43e3a51a6d27f").unwrap()
-        );
-
-        let encoder_create_pair_call_data =
-            encoder_target.encode_function("createPair", encoder_args)?;
-
-        let encoded_create_pair_result = admin.call_contract(
-            &mut manager.environment,
-            &encoder_target,
-            encoder_create_pair_call_data,
-            Uint::from(0),
-        );
-        assert_eq!(encoded_create_pair_result.is_success(), true);
-
-        let encoded_data = manager.unpack_execution(encoded_create_pair_result)?;
-        let decoded_encoded_data: Bytes =
-            encoder_target.decode_output("createPair", encoded_data)?;
-
-        assert_eq!(
-            hex::encode(decoded_encoded_data.clone()),
-            "0c2c1de3b4dbb4adebebb5dcecae825be2a9fc6eb683769beeb7e5405ef0b7dc3c66c43e3a51a6d27f"
         );
         Ok(())
     }
@@ -503,7 +446,6 @@ mod tests {
             arbiter_token_y,
             _portfolio,
             _liquid_exchange_xy,
-            _encoder_target,
         ) = deploy_portfolio_sim_contracts(&mut manager, wad)?;
 
         // Folio encoding
@@ -549,7 +491,6 @@ mod tests {
             arbiter_token_y,
             portfolio,
             _liquid_exchange_xy,
-            _encoder_target,
         ) = deploy_portfolio_sim_contracts(&mut manager, wad)?;
 
         let admin = manager.agents.get("admin").unwrap();
