@@ -25,10 +25,18 @@ jobs:
           cache-on-failure: true
 
       - name: cargo test
-        run: cargo test --all --all-features --exclude bindings
+        run: |
+          cargo test --all --all-features --exclude bindings
+          bash <(curl -s https://codecov.io/bash)
+
+      - name: Run coverage using rust-grcov
+        uses: actions-rs/grcov@v0.1.5
 
       - name: Upload coverage reports to Codecov
         uses: codecov/codecov-action@v3
+        with:
+          env: ${{ secrets.CODECOV_TOKEN }}
+        # run:
         # run: |
         #   curl -Os https://uploader.codecov.io/latest/linux/codecov
         #   chmod +x codecov
