@@ -46,7 +46,7 @@ pub fn portfolio_sim() -> Result<(), Box<dyn Error>> {
     // Deploying Contracts
     let contracts = deploy_portfolio_sim_contracts(&mut manager, wad)?;
 
-    portfolio_sim_intitalization_calls(&mut manager, contracts, decimals)?;
+    portfolio_sim_intitalization_calls(&mut manager, contracts)?;
 
     Ok(())
 }
@@ -162,7 +162,7 @@ fn portfolio_sim_intitalization_calls(
     let arbitrageur = manager.agents.get("arbitrageur").unwrap();
 
     // Allocating new tokens to user by calling Arbiter Token's ERC20 'mint' instance.
-    let mint_amount = U256::from(10000000);
+    let mint_amount = U256::MAX;
     let input_arguments = (recast_address(arbitrageur.address()), mint_amount);
     let call_data = arbiter_token_x.encode_function("mint", input_arguments)?;
 
@@ -273,7 +273,7 @@ fn portfolio_sim_intitalization_calls(
         create_pair_call_data,
         Uint::from(0),
     );
-    assert!(create_pair_result.is_success(), true);
+    assert!(create_pair_result.is_success());
 
     let create_pair_unpack = manager.unpack_execution(create_pair_result)?;
     let pair_id: u32  = portfolio.decode_output("createPair", create_pair_unpack)?;
@@ -305,23 +305,41 @@ fn portfolio_sim_intitalization_calls(
     let pool_id: u64  = portfolio.decode_output("createPool", create_pool_unpack)?;
     println!("created portfolio pool with pool ID: {:#?}", pool_id);
 
-
-    let allocate_builder = (
-        true,      // use_max: bool,
+    let get_liquidity_args = (
         pool_id,   // pool_id: u64,
-        100_u64,   // delta_liquidity: u128,
-        1000_u128,  // max_delta_asset: u128,
-        1000_u128, // max_delta_quote: u128,
+        1000_i128,  // delta_liquidity: i128,
     );
-
-    let allocate_call = portfolio.encode_function("allocate", allocate_builder)?;
-    let allocate_result = admin.call_contract(
+    let get_liquidity_call = portfolio.encode_function("getLiquidityDeltas", get_liquidity_args)?;
+    let get_liquidity_result = admin.call_contract(
         &mut manager.environment,
         &portfolio,
-        allocate_call,
+        get_liquidity_call,
         Uint::from(0),
     );
-    println!("allocate result: {:#?}", allocate_result.is_success());
+    assert!(get_liquidity_result.is_success());
+
+    let get_liquidity_unpack = manager.unpack_execution(get_liquidity_result)?;
+    let liquidity_deltas: (u128, u128) = portfolio.decode_output("getLiquidityDeltas", get_liquidity_unpack)?;
+    println!("liquidity deltas: {:#?}" ,liquidity_deltas);
+
+
+    // let allocate_builder = (
+    //     true,      // use_max: bool,
+    //     pool_id,   // pool_id: u64,
+    //     100_u64,   // delta_liquidity: u128,
+    //     1000_u128,  // max_delta_asset: u128,
+    //     1000_u128, // max_delta_quote: u128,
+    // );
+
+    // let allocate_call = portfolio.encode_function("allocate", allocate_builder)?;
+    // let allocate_result = admin.call_contract(
+    //     &mut manager.environment,
+    //     &portfolio,
+    //     allocate_call,
+    //     Uint::from(0),
+    // );
+    // println!("allocate result: {:#?}", allocate_result.is_success());
+
 
     Ok(())
 }
