@@ -3,7 +3,7 @@ use std::f64::{INFINITY, EPSILON, sqrt};
 /// Basket Liquidation objective function.
 pub struct BasketLiquidation {
     /// Index token to swap into.
-    i: usize,
+    token_index: usize,
     /// DeltaIn vector of assets.
     delta_in: Vec<f64>,
 }
@@ -14,13 +14,13 @@ impl BasketLiquidation {
     }
     /// Conjugate utility of the Basket Liquidation objective function.
     pub fn conjugate_utility(&self, v: Vec<f64>) -> f64 {
-        if v[self.i-1] <= 1.0 {
+        if v[self.token_index-1] <= 1.0 {
             let mut vec = Vec::new();
-            for i in 0..self.delta_in.len() {
-                if i == self.i-1 {
+            for (i, delta) in self.delta_in.iter().enumerate() {
+                if i == self.token_index-1 {
                     vec.push(0.0);
                     } else {
-                    vec.push(self.delta_in[i]*self.v[i]);
+                    vec.push(delta*self.v[i]);
                 }
             }
             let mut conj = vec.iter().sum();
@@ -31,10 +31,10 @@ impl BasketLiquidation {
     }
     /// Gradient of the Basket Liquidation objective function.
     pub fn gradient(&self, v: Vec<f64>) -> Vec<f64> {
-        if v[self.i-1] <= 1.0 {
+        if v[self.token_index-1] <= 1.0 {
             let mut grad = Vec::new();
             for i in 0..self.delta_in.len() {
-                if i == self.i-1 {
+                if i == self.token_index-1 {
                     grad.push(0.0);
                     } else {
                     grad.push(self.delta_in[i]);
@@ -51,7 +51,7 @@ impl BasketLiquidation {
     /// Lower limit
     pub fn lower_limit(&self) -> Vec<f64> {
         let mut ret = vec![sqrt(EPSILON); self.delta_in.len()];
-        ret[self.i-1] = 1.0 + sqrt(EPSILON);
+        ret[self.token_index-1] = 1.0 + sqrt(EPSILON);
         ret
     }
     /// Upper limit
