@@ -299,7 +299,7 @@ fn portfolio_sim_intitalization_calls(
     assert!(create_pool_result.is_success());
 
     let create_pool_unpack = manager.unpack_execution(create_pool_result)?;
-    let pool_id: u64  = create_pair_unpack.into_iter().collect();
+    // let pool_id: u64  = create_pair_unpack.into_iter().collect();
     let pool_id: u64  = portfolio.decode_output("createPool", create_pool_unpack)?;
     println!("created portfolio pool with pool ID: {:#?}", pool_id);
 
@@ -324,7 +324,7 @@ fn portfolio_sim_intitalization_calls(
     let allocate_builder = (
         true,               // use_max: bool, // Usually set to false?
         pool_id,            // pool_id: u64,
-        10000000000_i128,          // delta_liquidity: u128,
+        10000000000_u128,          // delta_liquidity: u128,
         liquidity_deltas.0, // max_delta_asset: u128,
         liquidity_deltas.1, // max_delta_quote: u128,
     );
