@@ -9,6 +9,7 @@ use std::{
     fmt::{Display, Formatter, Result as FmtResult},
 };
 
+use bindings::arbiter_math;
 use bytes::Bytes;
 use crossbeam_channel::unbounded;
 use revm::primitives::{AccountInfo, Address, ExecutionResult, Log, Output, B160, U256};
@@ -18,7 +19,7 @@ use crate::{
         simple_arbitrageur::SimpleArbitrageur, user::User, AgentType, IsActive, NotActive,
         TransactSettings,
     },
-    environment::SimulationEnvironment,
+    environment::SimulationEnvironment, contract::{IsDeployed, SimulationContract},
 };
 
 #[derive(Debug)]
@@ -47,10 +48,12 @@ impl Display for ManagerError {
 /// * `environment` - The simulation environment that the manager controls.
 /// * `agents` - The agents that are currently running in the simulation environment.
 pub struct SimulationManager {
-    /// `SimulationEnvironment` that the simulation manager controls.
+    /// [`SimulationEnvironment`] that the simulation manager controls.
     pub environment: SimulationEnvironment,
-    /// The agents that are currently running in the simulation environment.
+    /// The agents that are currently running in the [`SimulationEnvironment`].
     pub agents: HashMap<String, AgentType<IsActive>>,
+    /// The collection of different [`SimulationContract`] that are currently deployed in the [`SimulationEnvironment`].
+    pub autodeployed_contracts: HashMap<String, SimulationContract<IsDeployed>>,
 }
 
 impl Default for SimulationManager {
@@ -67,12 +70,25 @@ impl SimulationManager {
         let mut simulation_manager = Self {
             environment: SimulationEnvironment::new(),
             agents: HashMap::new(),
+            autodeployed_contracts: HashMap::new(),
         };
         let admin = AgentType::User(User::new("admin", None));
         simulation_manager
             .activate_agent(admin, B160::from_low_u64_be(1))
             .unwrap(); // This unwrap should never fail.
+        simulation_manager.auto_deploy();
+
         simulation_manager
+    }
+
+    fn auto_deploy(&mut self) {
+        // Deploy `ArbiterMath`.
+        let arbiter_math = SimulationContract::new(
+            arbiter_math::ARBITERMATH_ABI.clone(),
+            arbiter_math::ARBITERMATH_BYTECODE.clone(),
+        );
+        let arbiter_math = arbiter_math.deploy(&mut self.environment, self.agents.get("admin").unwrap(), ());
+        self.autodeployed_contracts.insert("arbiter_math".to_string(), arbiter_math);
     }
 
     /// Run all agents concurrently in the current simulation environment.
