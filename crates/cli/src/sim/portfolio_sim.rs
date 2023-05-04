@@ -391,14 +391,16 @@ fn portfolio_sim_intitalization_calls(
     let decoded_amount_out: u128 = portfolio.decode_output("getAmountOut", unpacked_get_amount_out)?;
     println!("getAmountOut result: {:#?}", decoded_amount_out);
     let swap_args = (
-        false,        // pub use_max: bool,
-        pool_id,      // pub pool_id: u64,
-        1000000000_u128,     // pub input: u128, 
+        false,                  // pub use_max: bool,
+        pool_id,                // pub pool_id: u64,
+        1000000000_u128,        // pub input: u128, 
         decoded_amount_out,     // pub output: u128,
-        false,        // pub sell_asset: bool,
+        false,                  // pub sell_asset: bool,
     );
+    println!("Thing");
 
-    let swap_call_data = portfolio.encode_function("swap", swap_Args)?;
+    let swap_call_data = portfolio.encode_function("swap", swap_args)?;
+    println!("Thing1");
     let swap_result = admin.call_contract(&mut manager.environment,
         &portfolio,
         swap_call_data,
