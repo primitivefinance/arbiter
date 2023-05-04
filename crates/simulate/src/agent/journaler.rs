@@ -4,10 +4,11 @@
 
 use std::{
     sync::{Arc, Mutex},
-    thread::{self, JoinHandle},
+    thread::{self, JoinHandle}, fs::File,
 };
 
 use crossbeam_channel::Receiver;
+use csv::WriterBuilder;
 use revm::primitives::{Address, Log, U256};
 
 use super::{AgentStatus, Identifiable, IsActive, NotActive};
@@ -77,6 +78,7 @@ impl Journaler<IsActive> {
     pub fn journal_events(&self) -> JoinHandle<()> {
         let receiver = self.receiver();
         let event_filters = self.event_filters();
+        let filename = self.csv_name.clone();
         assert!(event_filters.len() == 1); // TODO: Allow journaler to have more than just a single event filter.
 
         thread::spawn(move || {
@@ -87,6 +89,9 @@ impl Journaler<IsActive> {
                     input,
                 )
             };
+            let file = File::create(filename).unwrap(); // TODO: Fix the error handling here.
+            let mut writer = WriterBuilder::new().from_writer(file);
+
             while let Ok(logs) = receiver.recv() {
                 // Get the logs and filter
                 let filtered_logs = filter_events(event_filters.clone(), logs);
@@ -102,8 +107,10 @@ impl Journaler<IsActive> {
                     println!("The value is: {:#?}", value);
                     let value = value.into_string().unwrap();
                     println!("Value is: {:#?}", value,);
+                    writer.serialize(value).unwrap(); // TODO: This error handling is bad.
                 }
             }
+            writer.flush().unwrap(); // TODO: This error handling is also bad.
             println!("Exited journaling writing thread!");
         })
     }
