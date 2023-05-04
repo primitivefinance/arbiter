@@ -4,7 +4,7 @@
 ![Github Actions](https://github.com/primitivefinance/arbiter/workflows/Rust/badge.svg)
 [![](https://dcbadge.vercel.app/api/server/primitive?style=flat)](https://discord.gg/primitive)
 [![Twitter Badge](https://badgen.net/badge/icon/twitter?icon=twitter&label)](https://twitter.com/primitivefi)
-[![Code Coverage] ()]
+[Code Coverage] (https://codecov.com)
 
 > Perform high speed modeling and economic fuzzing with EVM parity.
 
