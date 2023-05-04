@@ -14,8 +14,8 @@ use revm::primitives::{AccountInfo, Address, ExecutionResult, Log, Output, B160,
 
 use crate::{
     agent::{
-        simple_arbitrageur::SimpleArbitrageur, user::User, AgentType, IsActive, NotActive,
-        TransactSettings, journaler::Journaler,
+        journaler::Journaler, simple_arbitrageur::SimpleArbitrageur, user::User, AgentType,
+        IsActive, NotActive, TransactSettings,
     },
     environment::SimulationEnvironment,
 };

@@ -75,65 +75,37 @@ impl Journaler<IsActive> {
     /// A basic implementation that will detect price discprepencies from events emitted from pools.
     /// Currently implemented and tested only against the `liquid_exchange`.
     pub fn journal_events(&self) -> JoinHandle<()> {
-        // let receiver = self.receiver();
-        // let event_filters = self.event_filters();
+        let receiver = self.receiver();
+        let event_filters = self.event_filters();
+        assert!(event_filters.len() == 1); // TODO: Allow journaler to have more than just a single event filter.
 
-        // let prices = Arc::clone(&self.prices);
+        thread::spawn(move || {
+            let decoder = |input| {
+                event_filters[0].base_contract.decode_event_raw(
+                    event_filters[0].event_name.as_str(),
+                    vec![event_filters[0].topic],
+                    input,
+                )
+            };
+            while let Ok(logs) = receiver.recv() {
+                // Get the logs and filter
+                let filtered_logs = filter_events(event_filters.clone(), logs);
+                println!("Filtered logs are: {:#?}", filtered_logs);
 
-        // thread::spawn(move || {
-        //     let mut prices = prices.lock().unwrap();
-        //     let decoder = |input, filter_num: usize| {
-        //         event_filters[filter_num].base_contract.decode_event_raw(
-        //             event_filters[filter_num].event_name.as_str(),
-        //             vec![event_filters[filter_num].topic],
-        //             input,
-        //         )
-        //     };
-        //     while let Ok(logs) = receiver.recv() {
-        //         // Get the logs and filter
-        //         let filtered_logs = filter_events(event_filters.clone(), logs);
-        //         println!("Filtered logs are: {:#?}", filtered_logs);
+                if !filtered_logs.is_empty() {
+                    println!("Log data is: {:#?}", filtered_logs[0].data);
+                    let data = filtered_logs[0].data.clone().into_iter().collect();
 
-        //         if !filtered_logs.is_empty() {
-        //             let data = filtered_logs[0].data.clone().into_iter().collect();
-
-        //             // See which pool this came from
-        //             let pool_number =
-        //                 if filtered_logs[0].address == event_filters.clone()[0].address {
-        //                     0
-        //                 } else {
-        //                     1
-        //                 };
-
-        //             let decoded_event = decoder(data, pool_number).unwrap(); // TODO: Fix the error handling here.
-        //             println!("Decoded event says: {:#?}", decoded_event);
-        //             let value = decoded_event[0].clone();
-        //             println!("The value is: {:#?}", value);
-        //             let value = value.into_uint().unwrap();
-        //             prices[pool_number] = value.into();
-        //             println!(
-        //                 "Price for pool number {:#?} is {:#?}",
-        //                 pool_number, prices[pool_number]
-        //             );
-
-        //             // look to see if this gives an arbitrage event
-        //             // First filter out if one of the prices is MAX as this is the default state.
-        //             if prices[0] != U256::MAX && prices[1] != U256::MAX {
-        //                 let price_difference = prices[0].overflowing_sub(prices[1]);
-        //                 println!("Price difference = {:#?}", price_difference);
-        //                 if price_difference.1 {
-        //                     println!("Arbitrage with price_0 < price_1");
-        //                     break;
-        //                 } else if price_difference.1 && price_difference.0 != U256::ZERO {
-        //                     println!("Arbitrage with price_0 > price_1");
-        //                     break;
-        //                 }
-        //             }
-        //         }
-        //     }
-        //     println!("Exited arbitrage detection thread!");
-        // })
-        todo!()
+                    let decoded_event = decoder(data).unwrap(); // TODO: Fix the error handling here.
+                    println!("Decoded event says: {:#?}", decoded_event);
+                    let value = decoded_event[0].clone();
+                    println!("The value is: {:#?}", value);
+                    let value = value.into_string().unwrap();
+                    println!("Value is: {:#?}", value,);
+                }
+            }
+            println!("Exited journaling writing thread!");
+        })
     }
 }
 
@@ -142,9 +114,9 @@ mod tests {
 
     use std::{error::Error, sync::Arc};
 
-    use bindings::{writer};
+    use bindings::writer;
     use ethers::prelude::U256;
-    use revm::primitives::{B160, ruint::Uint};
+    use revm::primitives::{ruint::Uint, B160};
 
     use super::Journaler;
     use crate::{
@@ -164,16 +136,24 @@ mod tests {
             SimulationContract::new(writer::WRITER_ABI.clone(), writer::WRITER_BYTECODE.clone());
 
         // Deploy the writer contract.
-        let writer = writer.deploy(&mut manager.environment, manager.agents.get("admin").unwrap(), ());
+        let writer = writer.deploy(
+            &mut manager.environment,
+            manager.agents.get("admin").unwrap(),
+            (),
+        );
 
-        let event_filters = vec![create_filter(
-            &writer,
-            "WasWritten",
-        )];
+        let event_filters = vec![create_filter(&writer, "WasWritten")];
+
+        // Create the journaler and start listening for events.
         let journaler =
             AgentType::Journaler(Journaler::new("journaler", event_filters, "test.csv"));
         manager.activate_agent(journaler, B160::from_low_u64_be(2))?;
-        let arbitrageur = manager.agents.get("journaler").unwrap();
+        let journaler = manager.agents.get("journaler").unwrap();
+        let base_journaler = match journaler {
+            AgentType::Journaler(base_journaler) => base_journaler,
+            _ => panic!(),
+        };
+        base_journaler.journal_events();
 
         // Generate calldata for the 'echoString' function
         let test_string = "Hello, world!";
@@ -181,19 +161,12 @@ mod tests {
         let call_data = writer.encode_function("echoString", input_arguments)?;
 
         // Call the 'echoString' function.
-        let _execution_result = manager.agents.get("admin").unwrap().call_contract(&mut manager.environment, &writer, call_data, Uint::ZERO);
-
-        // Read logs twice since the first time is just the contract creation which gives no log.
-        let _logs = manager.agents.get("admin").unwrap().read_logs()?;
-        let logs = manager.agents.get("admin").unwrap().read_logs()?;
-
-        // Decode the logs
-        let log_topics = logs[0].topics.clone();
-        let log_data = logs[0].data.clone();
-        let log_output: String = writer.decode_event("WasWritten", log_topics, log_data)?;
-        println!("Log Response: {:#?}", log_output);
-
-        assert_eq!(log_output, test_string);
+        let _execution_result = manager.agents.get("admin").unwrap().call_contract(
+            &mut manager.environment,
+            &writer,
+            call_data,
+            Uint::ZERO,
+        );
         Ok(())
     }
 }

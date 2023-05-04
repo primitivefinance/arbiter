@@ -17,15 +17,15 @@ use crossbeam_channel::Receiver;
 use ethers::{prelude::BaseContract, types::H256};
 use revm::primitives::{AccountInfo, Address, ExecutionResult, Log, TransactTo, TxEnv, B160, U256};
 
-use self::{simple_arbitrageur::SimpleArbitrageur, user::User, journaler::Journaler};
+use self::{journaler::Journaler, simple_arbitrageur::SimpleArbitrageur, user::User};
 use crate::{
     contract::{IsDeployed, SimulationContract},
     environment::SimulationEnvironment,
 };
 
+pub mod journaler;
 pub mod simple_arbitrageur;
 pub mod user;
-pub mod journaler;
 
 #[derive(Debug)]
 /// Error type for the simulation manager.
