@@ -4,6 +4,5 @@ members = [
     "crates/cli",
     "crates/simulate",
     "crates/on-chain",
-    "crates/xtask",
 ]
 
