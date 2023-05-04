@@ -2,7 +2,7 @@
 use std::error::Error;
 
 use bindings::{
-    arbiter_token, liquid_exchange, rmm01_portfolio, simple_registry, weth9, shared_types::Order,
+    arbiter_token, liquid_exchange, rmm01_portfolio, simple_registry, weth9, shared_types::Order, i_portfolio,
 };
 use ethers::{prelude::U256, types::H160};
 use eyre::Result;
@@ -401,7 +401,7 @@ fn portfolio_sim_intitalization_calls(
     };
     println!("swap args: {:#?}", swap_args);
     // getting error on encoding
-    let swap_call_data = portfolio.encode_function("swap", swap_args)?;
+    let swap_call_data = i_portfolio.encode("swap", swap_args)?;
     println!("Thing1");
     let swap_result = admin.call_contract(&mut manager.environment,
         &portfolio,
