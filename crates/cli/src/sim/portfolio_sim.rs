@@ -188,6 +188,7 @@ fn portfolio_sim_intitalization_calls(
         call_data,
         Uint::from(0),
     );
+    assert!(execution_result.is_success());
 
     let mint_token_y_admin_arguments = (recast_address(admin.address()), mint_amount);
     let call_data = arbiter_token_y.encode_function("mint", mint_token_y_admin_arguments)?;
@@ -197,6 +198,7 @@ fn portfolio_sim_intitalization_calls(
         call_data,
         Uint::from(0),
     );
+    assert!(execution_result.is_success());
 
     // Mint max token_y to the liquid_exchange contract.
     let args = (recast_address(liquid_exchange_xy.address), u128::MAX);
@@ -334,7 +336,6 @@ fn portfolio_sim_intitalization_calls(
     assert!(create_pool_result.is_success());
 
     let create_pool_unpack = manager.unpack_execution(create_pool_result)?;
-    // let pool_id: u64  = create_pair_unpack.into_iter().collect();
     let pool_id: u64 = portfolio.decode_output("createPool", create_pool_unpack)?;
     println!("created portfolio pool with pool ID: {:#?}", pool_id);
 
@@ -354,7 +355,6 @@ fn portfolio_sim_intitalization_calls(
     let get_liquidity_unpack = manager.unpack_execution(get_liquidity_result)?;
     let liquidity_deltas: (u128, u128) =
         portfolio.decode_output("getLiquidityDeltas", get_liquidity_unpack)?;
-    println!("liquidity deltas: {:#?}", liquidity_deltas);
 
     let allocate_builder = (
         false,              // use_max: bool, // Usually set to false?
@@ -371,7 +371,8 @@ fn portfolio_sim_intitalization_calls(
         allocate_call,
         Uint::from(0),
     );
-    println!("allocate result: {:#?}", allocate_result.is_success());
+    assert!(allocate_result.is_success());
+    println!("allocate result: {:#?}", allocate_result);
 
     Ok(())
 }
