@@ -387,17 +387,24 @@ fn portfolio_sim_intitalization_calls(
     );
     assert!(get_amount_out_result.is_success());
     let unpacked_get_amount_out = manager.unpack_execution(get_amount_out_result)?;
-    println!("getAmountOut result: {:#?}", unpacked_get_amount_out);
-    let decoded_amount_out = portfolio.decode_output("getAmountOut", unpacked_get_amount_out)?;
+    println!("getAmountOut result: {:#?}", hex::encode(unpacked_get_amount_out.clone()));
+    let decoded_amount_out: u128 = portfolio.decode_output("getAmountOut", unpacked_get_amount_out)?;
     println!("getAmountOut result: {:#?}", decoded_amount_out);
-    let _swap_Args = (
+    let swap_args = (
         false,        // pub use_max: bool,
         pool_id,      // pub pool_id: u64,
-        100000000,     // pub input: u128, 
-        deltas.1,     // pub output: u128,
+        1000000000_u128,     // pub input: u128, 
+        decoded_amount_out,     // pub output: u128,
         false,        // pub sell_asset: bool,
     );
 
+    let swap_call_data = portfolio.encode_function("swap", swap_Args)?;
+    let swap_result = admin.call_contract(&mut manager.environment,
+        &portfolio,
+        swap_call_data,
+        Uint::from(0),
+    );
+    assert!(swap_result.is_success());
     Ok(())
 }
 
