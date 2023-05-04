@@ -25,6 +25,7 @@ use crate::{
 
 pub mod simple_arbitrageur;
 pub mod user;
+pub mod journaler;
 
 #[derive(Debug)]
 /// Error type for the simulation manager.
