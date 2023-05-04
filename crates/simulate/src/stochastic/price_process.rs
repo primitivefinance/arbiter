@@ -209,37 +209,56 @@ impl OU {
 #[cfg(test)]
 mod tests {
     use super::*;
- 
-  #[test]
-  fn seeded_randomness_test() {
-    let gbm = GBM::new(0.05, 0.3);
-    let price_process = PriceProcess::new(
-        PriceProcessType::GBM(gbm),
-        0.1,
-        "Days".to_string(), 
-        100, 
-        100.0, 
-        1);
-    // Test to see if same seed yields same result
-    let (time, prices) = price_process.generate_price_path();
-    let (time2, prices2) = price_process.generate_price_path();
-    assert_eq!(time, time2);
-    assert_eq!(prices, prices2);
-    // Test to see if different seed yields different result
-    let price_process_diff_seed = PriceProcess::new(
-        PriceProcessType::GBM(GBM::new(0.05, 0.3)),
-        0.1,
-        "Days".to_string(), 
-        100, 
-        100.0, 
-        2);
-    let (time3, prices3) = price_process_diff_seed.generate_price_path();
-    assert_eq!(time, time3);
-    assert_ne!(prices, prices3);
+
+    #[test]
+    fn seeded_randomness_test() {
+        let gbm = GBM::new(0.05, 0.3);
+        let price_process = PriceProcess::new(
+            PriceProcessType::GBM(gbm),
+            0.1,
+            "Days".to_string(),
+            100,
+            100.0,
+            1,
+        );
+        // Test to see if same seed yields same result
+        let (time, prices) = price_process.generate_price_path();
+        let (time2, prices2) = price_process.generate_price_path();
+        assert_eq!(time, time2);
+        assert_eq!(prices, prices2);
+        // Test to see if different seed yields different result
+        let price_process_diff_seed = PriceProcess::new(
+            PriceProcessType::GBM(GBM::new(0.05, 0.3)),
+            0.1,
+            "Days".to_string(),
+            100,
+            100.0,
+            2,
+        );
+        let (time3, prices3) = price_process_diff_seed.generate_price_path();
+        assert_eq!(time, time3);
+        assert_ne!(prices, prices3);
     }
 
     #[test]
     fn gbm_step_test() {
+        let gbm = GBM::new(0.05, 0.2);
+        let price_process = PriceProcess::new(
+            PriceProcessType::GBM(gbm),
+            0.01,
+            "1D".to_string(),
+            1,
+            100.0,
+            42,
+        );
+        let (_, prices) = price_process.generate_price_path();
+        let initial_price = prices[0];
+        let final_price = prices[1];
 
+        let mut rng = rand::rngs::StdRng::seed_from_u64(price_process.seed);
+        let expected_final_price = initial_price
+        // Check if the GBM is evolving as it should
+            * (1.0 + 0.05 * 0.01 + 0.2 * Normal::new(0.0, 1.0).sample(&mut rng) * (0.01_f64).sqrt());
+        assert_eq!(final_price, expected_final_price);
     }
 }
