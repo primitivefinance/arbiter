@@ -7,14 +7,16 @@ pub use writer::*;
     clippy::upper_case_acronyms,
     clippy::type_complexity,
     dead_code,
-    non_camel_case_types,
+    non_camel_case_types
 )]
 pub mod writer {
     #[rustfmt::skip]
     const __ABI: &str = "[{\"inputs\":[{\"internalType\":\"string\",\"name\":\"test_string\",\"type\":\"string\",\"components\":[],\"indexed\":false}],\"type\":\"event\",\"name\":\"WasWritten\",\"outputs\":[],\"anonymous\":false},{\"inputs\":[{\"internalType\":\"string\",\"name\":\"test_string\",\"type\":\"string\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"function\",\"name\":\"echoString\",\"outputs\":[{\"internalType\":\"string\",\"name\":\"\",\"type\":\"string\",\"components\":[]}]}]";
     ///The parsed JSON ABI of the contract.
-    pub static WRITER_ABI: ::ethers::contract::Lazy<::ethers::core::abi::Abi> = ::ethers::contract::Lazy::new(||
-    ::ethers::core::utils::__serde_json::from_str(__ABI).expect("ABI is always valid"));
+    pub static WRITER_ABI: ::ethers::contract::Lazy<::ethers::core::abi::Abi> =
+        ::ethers::contract::Lazy::new(|| {
+            ::ethers::core::utils::__serde_json::from_str(__ABI).expect("ABI is always valid")
+        });
     #[rustfmt::skip]
     const __BYTECODE: &[u8] = &[
         96,
@@ -971,38 +973,38 @@ pub mod writer {
         34,
         18,
         32,
-        4,
-        38,
-        18,
-        38,
-        170,
+        160,
+        21,
+        88,
+        252,
+        25,
         149,
-        59,
         251,
-        155,
-        232,
-        150,
-        97,
-        50,
-        67,
-        53,
-        154,
-        43,
-        105,
-        95,
-        20,
-        228,
-        49,
-        197,
-        209,
-        223,
-        214,
-        127,
-        184,
-        125,
-        115,
-        40,
-        42,
+        242,
+        204,
+        41,
+        163,
+        130,
+        16,
+        9,
+        101,
+        73,
+        102,
+        222,
+        56,
+        39,
+        221,
+        181,
+        215,
+        196,
+        10,
+        230,
+        86,
+        108,
+        190,
+        250,
+        249,
+        66,
         100,
         115,
         111,
@@ -1011,14 +1013,13 @@ pub mod writer {
         67,
         0,
         8,
-        17,
+        19,
         0,
         51,
     ];
     ///The bytecode of the contract.
-    pub static WRITER_BYTECODE: ::ethers::core::types::Bytes = ::ethers::core::types::Bytes::from_static(
-        __BYTECODE,
-    );
+    pub static WRITER_BYTECODE: ::ethers::core::types::Bytes =
+        ::ethers::core::types::Bytes::from_static(__BYTECODE);
     #[rustfmt::skip]
     const __DEPLOYED_BYTECODE: &[u8] = &[
         96,
@@ -1943,38 +1944,38 @@ pub mod writer {
         34,
         18,
         32,
-        4,
-        38,
-        18,
-        38,
-        170,
+        160,
+        21,
+        88,
+        252,
+        25,
         149,
-        59,
         251,
-        155,
-        232,
-        150,
-        97,
-        50,
-        67,
-        53,
-        154,
-        43,
-        105,
-        95,
-        20,
-        228,
-        49,
-        197,
-        209,
-        223,
-        214,
-        127,
-        184,
-        125,
-        115,
-        40,
-        42,
+        242,
+        204,
+        41,
+        163,
+        130,
+        16,
+        9,
+        101,
+        73,
+        102,
+        222,
+        56,
+        39,
+        221,
+        181,
+        215,
+        196,
+        10,
+        230,
+        86,
+        108,
+        190,
+        250,
+        249,
+        66,
         100,
         115,
         111,
@@ -1983,14 +1984,13 @@ pub mod writer {
         67,
         0,
         8,
-        17,
+        19,
         0,
         51,
     ];
     ///The deployed bytecode of the contract.
-    pub static WRITER_DEPLOYED_BYTECODE: ::ethers::core::types::Bytes = ::ethers::core::types::Bytes::from_static(
-        __DEPLOYED_BYTECODE,
-    );
+    pub static WRITER_DEPLOYED_BYTECODE: ::ethers::core::types::Bytes =
+        ::ethers::core::types::Bytes::from_static(__DEPLOYED_BYTECODE);
     pub struct Writer<M>(::ethers::contract::Contract<M>);
     impl<M> ::core::clone::Clone for Writer<M> {
         fn clone(&self) -> Self {
@@ -2010,7 +2010,9 @@ pub mod writer {
     }
     impl<M> ::core::fmt::Debug for Writer<M> {
         fn fmt(&self, f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
-            f.debug_tuple(stringify!(Writer)).field(&self.address()).finish()
+            f.debug_tuple(stringify!(Writer))
+                .field(&self.address())
+                .finish()
         }
     }
     impl<M: ::ethers::providers::Middleware> Writer<M> {
@@ -2020,13 +2022,11 @@ pub mod writer {
             address: T,
             client: ::std::sync::Arc<M>,
         ) -> Self {
-            Self(
-                ::ethers::contract::Contract::new(
-                    address.into(),
-                    WRITER_ABI.clone(),
-                    client,
-                ),
-            )
+            Self(::ethers::contract::Contract::new(
+                address.into(),
+                WRITER_ABI.clone(),
+                client,
+            ))
         }
         /// Constructs the general purpose `Deployer` instance based on the provided constructor arguments and sends it.
         /// Returns a new instance of a deployer that returns an instance of this contract after sending the transaction
@@ -2079,26 +2079,18 @@ pub mod writer {
         ///Gets the contract's `WasWritten` event
         pub fn was_written_filter(
             &self,
-        ) -> ::ethers::contract::builders::Event<
-            ::std::sync::Arc<M>,
-            M,
-            WasWrittenFilter,
-        > {
+        ) -> ::ethers::contract::builders::Event<::std::sync::Arc<M>, M, WasWrittenFilter> {
             self.0.event()
         }
         /// Returns an `Event` builder for all the events of this contract.
         pub fn events(
             &self,
-        ) -> ::ethers::contract::builders::Event<
-            ::std::sync::Arc<M>,
-            M,
-            WasWrittenFilter,
-        > {
-            self.0.event_with_filter(::core::default::Default::default())
+        ) -> ::ethers::contract::builders::Event<::std::sync::Arc<M>, M, WasWrittenFilter> {
+            self.0
+                .event_with_filter(::core::default::Default::default())
         }
     }
-    impl<M: ::ethers::providers::Middleware> From<::ethers::contract::Contract<M>>
-    for Writer<M> {
+    impl<M: ::ethers::providers::Middleware> From<::ethers::contract::Contract<M>> for Writer<M> {
         fn from(contract: ::ethers::contract::Contract<M>) -> Self {
             Self::new(contract.address(), contract.client())
         }
@@ -2111,7 +2103,7 @@ pub mod writer {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethevent(name = "WasWritten", abi = "WasWritten(string)")]
     pub struct WasWrittenFilter {
@@ -2126,7 +2118,7 @@ pub mod writer {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "echoString", abi = "echoString(string)")]
     pub struct EchoStringCall {
@@ -2141,7 +2133,7 @@ pub mod writer {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     pub struct EchoStringReturn(pub ::std::string::String);
 }
