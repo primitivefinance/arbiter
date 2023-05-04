@@ -10,14 +10,13 @@ pub mod historic;
 pub mod manager;
 pub mod stochastic;
 pub mod utils;
-pub mod math;
 
 #[cfg(test)]
 mod tests {
     use std::{error::Error, thread};
 
-    use bindings::{arbiter_token, writer};
-    use ethers::prelude::{H256, U256};
+    use bindings::{arbiter_token, writer, arbiter_math};
+    use ethers::{prelude::{H256, U256}, types::I256};
     use revm::primitives::{ruint::Uint, B160};
 
     use crate::{
@@ -326,6 +325,79 @@ mod tests {
         if admin_handle.join().is_err() {
             panic!("Thread panicked!");
         };
+        Ok(())
+    }
+
+    #[test]
+    fn arbiter_math() -> Result<(), Box<dyn Error>> {
+        // Create a `SimulationManager` where we can run simulations.
+        // This will also create an EVM instance associated to the manager.
+        let mut manager = SimulationManager::default();
+        let admin = manager.agents.get("admin").unwrap();
+        
+
+        // Get a SimulationContract for the Arbiter Math ABI and bytecode.
+        let arbiter_math = SimulationContract::new(
+            arbiter_math::ARBITERMATH_ABI.clone(),
+            arbiter_math::ARBITERMATH_BYTECODE.clone(),
+        );
+        let arbiter_math = arbiter_math.deploy(&mut manager.environment, admin, ());
+
+        // Test the cdf function.
+        let execution_result =
+            admin.call_contract(&mut manager.environment, &arbiter_math, arbiter_math.encode_function("cdf", I256::from(1))?, Uint::ZERO);
+        let unpacked_result = manager.unpack_execution(execution_result)?;
+        let output: I256 = arbiter_math.decode_output("cdf", unpacked_result)?;
+        println!("cdf(1) = {}", output);
+        assert_eq!(output, I256::from(500000000000000000u64));
+
+        // Test the pdf function.
+        let execution_result =
+            admin.call_contract(&mut manager.environment, &arbiter_math, arbiter_math.encode_function("pdf", I256::from(1))?, Uint::ZERO);
+        let unpacked_result = manager.unpack_execution(execution_result)?;
+        let output: I256 = arbiter_math.decode_output("pdf", unpacked_result)?;
+        println!("pdf(1) = {}", output);
+        assert_eq!(output, I256::from(398942280401432678u64));
+
+        // Test the ppf function.
+        let execution_result =
+            admin.call_contract(&mut manager.environment, &arbiter_math, arbiter_math.encode_function("ppf", I256::from(500000000000000000u64))?, Uint::ZERO);
+        let unpacked_result = manager.unpack_execution(execution_result)?;
+        let output: I256 = arbiter_math.decode_output("ppf", unpacked_result)?;
+        println!("ppf(0.5) = {}", output);
+
+        // Test the mulWadDown function.
+        let execution_result =
+            admin.call_contract(&mut manager.environment, &arbiter_math, arbiter_math.encode_function("mulWadDown", (U256::from(1_000_000_000_000_000_000_u128), U256::from(2)))?, Uint::ZERO);
+        let unpacked_result = manager.unpack_execution(execution_result)?;
+        let output: U256 = arbiter_math.decode_output("mulWadDown", unpacked_result)?;
+        println!("mulWadDown(1, 2) = {}", output);
+        assert_eq!(output, U256::from(2));
+
+        // Test the mulWadUp function.
+        let execution_result =
+            admin.call_contract(&mut manager.environment, &arbiter_math, arbiter_math.encode_function("mulWadUp", (U256::from(1_000_000_000_000_000_000_u128), U256::from(2)))?, Uint::ZERO);
+        let unpacked_result = manager.unpack_execution(execution_result)?;
+        let output: U256 = arbiter_math.decode_output("mulWadUp", unpacked_result)?;
+        println!("mulWadUp(1, 2) = {}", output);
+        assert_eq!(output, U256::from(2));
+
+        // Test the divWadDown function.
+        let execution_result =
+            admin.call_contract(&mut manager.environment, &arbiter_math, arbiter_math.encode_function("divWadDown", (U256::from(1_000_000_000_000_000_000_u128), U256::from(2)))?, Uint::ZERO);
+        let unpacked_result = manager.unpack_execution(execution_result)?;
+        let output: U256 = arbiter_math.decode_output("divWadDown", unpacked_result)?;
+        println!("divWadDown(1, 2) = {}", output);
+        assert_eq!(output, U256::from(500000000000000000000000000000000000_u128));
+
+        // Test the divWadUp function.
+        let execution_result =
+            admin.call_contract(&mut manager.environment, &arbiter_math, arbiter_math.encode_function("divWadUp", (U256::from(1_000_000_000_000_000_000_u128), U256::from(2)))?, Uint::ZERO);
+        let unpacked_result = manager.unpack_execution(execution_result)?;
+        let output: U256 = arbiter_math.decode_output("divWadUp", unpacked_result)?;
+        println!("divWadUp(1, 2) = {}", output);
+        assert_eq!(output, U256::from(500000000000000000000000000000000000_u128));
+
         Ok(())
     }
 }
