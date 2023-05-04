@@ -2,7 +2,7 @@
 use std::error::Error;
 
 use bindings::{
-    arbiter_token, encoder_target, liquid_exchange, rmm01_portfolio, simple_registry, weth9,
+    arbiter_token, liquid_exchange, rmm01_portfolio, simple_registry, weth9,
 };
 use ethers::prelude::U256;
 use eyre::Result;
@@ -120,14 +120,6 @@ fn deploy_portfolio_sim_contracts(
     );
     let liquid_exchange_xy = liquid_exchange.deploy(&mut manager.environment, admin, args);
 
-    // Deploy encoder target
-    let encoder_contract = SimulationContract::new(
-        encoder_target::ENCODERTARGET_ABI.clone(),
-        encoder_target::ENCODERTARGET_BYTECODE.clone(),
-    );
-    let encoder_target = encoder_contract.deploy(&mut manager.environment, admin, ());
-
-    println!("encoder target deployed at: {}", encoder_target.address);
     Ok(SimulationContracts(
         arbiter_token_x,
         arbiter_token_y,
@@ -158,7 +150,7 @@ fn portfolio_sim_intitalization_calls(
     let call_data = arbiter_token_x.encode_function("mint", input_arguments)?;
 
     // Call the 'mint' function to the arber. for token x
-    let execution_result = admin.call_contract(
+    let result_mint_x_for_arber = admin.call_contract(
         &mut manager.environment,
         &arbiter_token_x,
         call_data.clone(),
@@ -166,10 +158,10 @@ fn portfolio_sim_intitalization_calls(
     ); // TODO: SOME KIND OF ERROR HANDLING IS NECESSARY FOR THESE TYPES OF CALLS
     println!(
         "Minted token_x to arber {:#?}",
-        execution_result.is_success()
+        result_mint_x_for_arber.is_success()
     );
     // Call the `mint` function to the arber for token y.
-    let execution_result = admin.call_contract(
+    let result_mint_y_for_arber = admin.call_contract(
         &mut manager.environment,
         &arbiter_token_y,
         call_data,
@@ -177,9 +169,10 @@ fn portfolio_sim_intitalization_calls(
     );
     println!(
         "Minted token_y to arber: {:#?}",
-        execution_result.is_success()
+        result_mint_y_for_arber.is_success()
     );
 
+    // Call the `mint` function for the admin for token x.
     let mint_token_x_admin_arguments = (recast_address(admin.address()), mint_amount);
     let call_data = arbiter_token_x.encode_function("mint", mint_token_x_admin_arguments)?;
     let execution_result = admin.call_contract(
@@ -189,7 +182,7 @@ fn portfolio_sim_intitalization_calls(
         Uint::from(0),
     );
     assert!(execution_result.is_success());
-
+    // Call the `mint` function for the admin for token y.
     let mint_token_y_admin_arguments = (recast_address(admin.address()), mint_amount);
     let call_data = arbiter_token_y.encode_function("mint", mint_token_y_admin_arguments)?;
     let execution_result = admin.call_contract(
@@ -203,7 +196,7 @@ fn portfolio_sim_intitalization_calls(
     // Mint max token_y to the liquid_exchange contract.
     let args = (recast_address(liquid_exchange_xy.address), u128::MAX);
     let call_data = arbiter_token_y.encode_function("mint", args)?;
-    let result = admin.call_contract(
+    let mint_result_y_liquid_exchange = admin.call_contract(
         &mut manager.environment,
         &arbiter_token_y,
         call_data,
@@ -211,7 +204,7 @@ fn portfolio_sim_intitalization_calls(
     );
     println!(
         "Minted token_y to liquid_excahnge: {:#?}",
-        result.is_success()
+        mint_result_y_liquid_exchange.is_success()
     );
 
     // APROVALS
@@ -289,11 +282,11 @@ fn portfolio_sim_intitalization_calls(
     );
 
     println!(
-        "Aproved token_y to portfolio for arber: {:#?}",
+        "Aproved token_x to portfolio for arber: {:#?}",
         approve_token_x_call_result_arbitrageur.is_success()
     );
     println!(
-        "Aproved token_y to portfolio for admin: {:#?}",
+        "Aproved token_x to portfolio for admin: {:#?}",
         approve_token_x_call_result_admin.is_success()
     );
 
