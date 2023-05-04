@@ -4,6 +4,7 @@
 ![Github Actions](https://github.com/primitivefinance/arbiter/workflows/Rust/badge.svg)
 [![](https://dcbadge.vercel.app/api/server/primitive?style=flat)](https://discord.gg/primitive)
 [![Twitter Badge](https://badgen.net/badge/icon/twitter?icon=twitter&label)](https://twitter.com/primitivefi)
+[![codecov](https://codecov.io/gh/funkycadet/arbiter/branch/main/graph/badge.svg?token=UQ1SE0D9IN)](https://codecov.io/gh/funkycadet/arbiter)
 
 > Perform high speed modeling and economic fuzzing with EVM parity.
 
@@ -11,7 +12,7 @@ The Ethereum blockchain's execution environment, the Ethereum Virtual machine (E
 
 Financial engineers need to study a wide array of complex portfolio management strategies against thousands of market conditions, contract parameters, and agents. To configure such a rich simulation environment on a test network could be possible, but a more efficient choice for getting the most robust, yet quick, simulations would bypass any local networking and use a low level language's  implementation of the EVM.
 
-Arbiter is being primarily developed to be a tool in evaluating economic and game theoretic security of DeFi applications. 
+Arbiter is being primarily developed to be a tool in evaluating economic and game theoretic security of DeFi applications.
 
 Arbiter can be used for:
 - Evaluating the game theoretic and composable security of smart contracts in production environments (security firms and academics)
