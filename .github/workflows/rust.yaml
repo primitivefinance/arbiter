@@ -8,7 +8,6 @@ jobs:
     runs-on: ubuntu-latest
     env:
       ETH_RPC_URL: https://eth-mainnet.alchemyapi.io/v2/Lc7oIGYeL_QvInzI0Wiu_pOZZDEKBrdf
-      # CODECOV_TOKEN: ${CODECOV_TOKEN}
     steps:
       - name: Checkout sources
         uses: actions/checkout@v2
@@ -24,33 +23,19 @@ jobs:
         with:
           cache-on-failure: true
 
+      - name: Install cargo-llvm-cov
+        uses: taiki-e/install-action@cargo-llvm-cov
+
       - name: cargo test
         run: |
           cargo test --all --all-features --exclude bindings
+          cargo llvm-cov --all-features --workspace --lcov --output-path lcov.info
 
-  coverage:
-      name: Coverage
-      runs-on: ubuntu-latest
-      env:
-        CARGO_TERM_COLOR: always
-      steps:
-        - name: Checkout sources
-          uses: actions/checkout@v3
-
-        - name: Install Rust
-          run: rustup update stable
-
-        - name: Install cargo-llvm-cov
-          uses: taiki-e/install-action@cargo-llvm-cov
-
-        - name: Generate code coverage
-          run: cargo llvm-cov --all-features --workspace --lcov --output-path lcov.info
-
-        - name: Upload coverage reports to Codecov
-          uses: codecov/codecov-action@v3
-          with:
-            files: lcov.info
-            fail_ci_if_error: true
+      - name: Upload coverage reports to Codecov
+        uses: codecov/codecov-action@v3
+        with:
+          files: lcov.info
+          fail_ci_if_error: true
 
   lint:
     runs-on: ubuntu-latest
