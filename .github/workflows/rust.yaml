@@ -25,9 +25,9 @@ jobs:
         with:
           cache-on-failure: true
 
-      # - name: cargo test
-      #   run: |
-      #     cargo test --all --all-features --exclude bindings
+      - name: cargo test
+        run: |
+          cargo test --all --all-features --exclude bindings
 
       - name: Download grcov
         run: |
