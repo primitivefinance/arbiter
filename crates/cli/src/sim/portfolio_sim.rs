@@ -387,6 +387,7 @@ fn portfolio_sim_intitalization_calls(
     );
     assert!(get_amount_out_result.is_success());
     let unpacked_get_amount_out = manager.unpack_execution(get_amount_out_result)?;
+    println!("getAmountOut result: {:#?}", unpacked_get_amount_out);
     let decoded_amount_out = portfolio.decode_output("getAmountOut", unpacked_get_amount_out)?;
     println!("getAmountOut result: {:#?}", decoded_amount_out);
     let _swap_Args = (
