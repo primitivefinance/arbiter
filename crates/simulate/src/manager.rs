@@ -1,4 +1,5 @@
 #![warn(missing_docs)]
+#![warn(unsafe_code)]
 //! Simulation managers are used to manage the environments for a simulation.
 //! Managers are responsible for adding agents, running agents, deploying contracts, calling contracts, and reading logs.
 

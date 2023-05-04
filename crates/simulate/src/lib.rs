@@ -1,4 +1,5 @@
 #![warn(missing_docs)]
+#![warn(unsafe_code)]
 //! Lib crate for describing simulations.
 
 pub mod agent;
@@ -9,6 +10,7 @@ pub mod historic;
 pub mod manager;
 pub mod stochastic;
 pub mod utils;
+pub mod math;
 
 #[cfg(test)]
 mod tests {
