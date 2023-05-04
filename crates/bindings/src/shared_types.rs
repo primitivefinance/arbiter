@@ -1,3 +1,21 @@
+///`Order(bool,uint64,uint128,uint128,bool)`
+#[derive(
+    Clone,
+    ::ethers::contract::EthAbiType,
+    ::ethers::contract::EthAbiCodec,
+    Default,
+    Debug,
+    PartialEq,
+    Eq,
+    Hash
+)]
+pub struct Order {
+    pub use_max: bool,
+    pub pool_id: u64,
+    pub input: u128,
+    pub output: u128,
+    pub sell_asset: bool,
+}
 ///`PortfolioCurve(uint128,uint16,uint16,uint16,uint16,uint16,uint32,bool)`
 #[derive(
     Clone,
@@ -7,7 +25,7 @@
     Debug,
     PartialEq,
     Eq,
-    Hash,
+    Hash
 )]
 pub struct PortfolioCurve {
     pub max_price: u128,
@@ -28,7 +46,7 @@ pub struct PortfolioCurve {
     Debug,
     PartialEq,
     Eq,
-    Hash,
+    Hash
 )]
 pub struct PortfolioPair {
     pub token_asset: ::ethers::core::types::Address,

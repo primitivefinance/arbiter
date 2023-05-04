@@ -7,16 +7,14 @@ pub use iweth::*;
     clippy::upper_case_acronyms,
     clippy::type_complexity,
     dead_code,
-    non_camel_case_types
+    non_camel_case_types,
 )]
 pub mod iweth {
     #[rustfmt::skip]
     const __ABI: &str = "[{\"inputs\":[],\"stateMutability\":\"payable\",\"type\":\"function\",\"name\":\"deposit\",\"outputs\":[]},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"wad\",\"type\":\"uint256\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"function\",\"name\":\"withdraw\",\"outputs\":[]}]";
     ///The parsed JSON ABI of the contract.
-    pub static IWETH_ABI: ::ethers::contract::Lazy<::ethers::core::abi::Abi> =
-        ::ethers::contract::Lazy::new(|| {
-            ::ethers::core::utils::__serde_json::from_str(__ABI).expect("ABI is always valid")
-        });
+    pub static IWETH_ABI: ::ethers::contract::Lazy<::ethers::core::abi::Abi> = ::ethers::contract::Lazy::new(||
+    ::ethers::core::utils::__serde_json::from_str(__ABI).expect("ABI is always valid"));
     pub struct IWETH<M>(::ethers::contract::Contract<M>);
     impl<M> ::core::clone::Clone for IWETH<M> {
         fn clone(&self) -> Self {
@@ -36,9 +34,7 @@ pub mod iweth {
     }
     impl<M> ::core::fmt::Debug for IWETH<M> {
         fn fmt(&self, f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
-            f.debug_tuple(stringify!(IWETH))
-                .field(&self.address())
-                .finish()
+            f.debug_tuple(stringify!(IWETH)).field(&self.address()).finish()
         }
     }
     impl<M: ::ethers::providers::Middleware> IWETH<M> {
@@ -48,11 +44,13 @@ pub mod iweth {
             address: T,
             client: ::std::sync::Arc<M>,
         ) -> Self {
-            Self(::ethers::contract::Contract::new(
-                address.into(),
-                IWETH_ABI.clone(),
-                client,
-            ))
+            Self(
+                ::ethers::contract::Contract::new(
+                    address.into(),
+                    IWETH_ABI.clone(),
+                    client,
+                ),
+            )
         }
         ///Calls the contract's `deposit` (0xd0e30db0) function
         pub fn deposit(&self) -> ::ethers::contract::builders::ContractCall<M, ()> {
@@ -70,7 +68,8 @@ pub mod iweth {
                 .expect("method not found (this should never happen)")
         }
     }
-    impl<M: ::ethers::providers::Middleware> From<::ethers::contract::Contract<M>> for IWETH<M> {
+    impl<M: ::ethers::providers::Middleware> From<::ethers::contract::Contract<M>>
+    for IWETH<M> {
         fn from(contract: ::ethers::contract::Contract<M>) -> Self {
             Self::new(contract.address(), contract.client())
         }
@@ -84,7 +83,7 @@ pub mod iweth {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(name = "deposit", abi = "deposit()")]
     pub struct DepositCall;
@@ -97,7 +96,7 @@ pub mod iweth {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(name = "withdraw", abi = "withdraw(uint256)")]
     pub struct WithdrawCall {
@@ -114,10 +113,12 @@ pub mod iweth {
             data: impl AsRef<[u8]>,
         ) -> ::core::result::Result<Self, ::ethers::core::abi::AbiError> {
             let data = data.as_ref();
-            if let Ok(decoded) = <DepositCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded)
+                = <DepositCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::Deposit(decoded));
             }
-            if let Ok(decoded) = <WithdrawCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded)
+                = <WithdrawCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::Withdraw(decoded));
             }
             Err(::ethers::core::abi::Error::InvalidData.into())
@@ -127,7 +128,9 @@ pub mod iweth {
         fn encode(self) -> Vec<u8> {
             match self {
                 Self::Deposit(element) => ::ethers::core::abi::AbiEncode::encode(element),
-                Self::Withdraw(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::Withdraw(element) => {
+                    ::ethers::core::abi::AbiEncode::encode(element)
+                }
             }
         }
     }
