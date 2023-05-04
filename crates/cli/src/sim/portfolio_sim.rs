@@ -2,7 +2,7 @@
 use std::error::Error;
 
 use bindings::{
-    arbiter_token, liquid_exchange, rmm01_portfolio, simple_registry, weth9,
+    arbiter_token, liquid_exchange, rmm01_portfolio, simple_registry, weth9, shared_types::Order,
 };
 use ethers::{prelude::U256, types::H160};
 use eyre::Result;
@@ -390,15 +390,17 @@ fn portfolio_sim_intitalization_calls(
     println!("getAmountOut result: {:#?}", hex::encode(unpacked_get_amount_out.clone()));
     let decoded_amount_out: u128 = portfolio.decode_output("getAmountOut", unpacked_get_amount_out)?;
     println!("getAmountOut result: {:#?}", decoded_amount_out);
-    let swap_args = (
-        false,                  // pub use_max: bool,
-        pool_id,                // pub pool_id: u64,
-        1000000000_u128,        // pub input: u128, 
-        decoded_amount_out,     // pub output: u128,
-        false,                  // pub sell_asset: bool,
-    );
-    println!("Thing");
 
+    // for somereason we want this type
+    let swap_args = Order {
+        use_max: false,                  // pub use_max: bool,
+        pool_id,                // pub pool_id: u64,
+        input: 1000000000_u128,        // pub input: u128, 
+        output: decoded_amount_out,     // pub output: u128,
+        sell_asset: false,                  // pub sell_asset: bool,
+    };
+    println!("swap args: {:#?}", swap_args);
+    // getting error on encoding
     let swap_call_data = portfolio.encode_function("swap", swap_args)?;
     println!("Thing1");
     let swap_result = admin.call_contract(&mut manager.environment,
