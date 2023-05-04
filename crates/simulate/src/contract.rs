@@ -131,7 +131,6 @@ impl SimulationContract<NotDeployed> {
             base_contract: self.base_contract.clone(),
             constructor_arguments: tokenized_args,
         }
-
     }
 }
 

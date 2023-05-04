@@ -19,7 +19,8 @@ use crate::{
         simple_arbitrageur::SimpleArbitrageur, user::User, AgentType, IsActive, NotActive,
         TransactSettings,
     },
-    environment::SimulationEnvironment, contract::{IsDeployed, SimulationContract},
+    contract::{IsDeployed, SimulationContract},
+    environment::SimulationEnvironment,
 };
 
 #[derive(Debug)]
@@ -87,8 +88,10 @@ impl SimulationManager {
             arbiter_math::ARBITERMATH_ABI.clone(),
             arbiter_math::ARBITERMATH_BYTECODE.clone(),
         );
-        let arbiter_math = arbiter_math.deploy(&mut self.environment, self.agents.get("admin").unwrap(), ());
-        self.autodeployed_contracts.insert("arbiter_math".to_string(), arbiter_math);
+        let arbiter_math =
+            arbiter_math.deploy(&mut self.environment, self.agents.get("admin").unwrap(), ());
+        self.autodeployed_contracts
+            .insert("arbiter_math".to_string(), arbiter_math);
     }
 
     /// Run all agents concurrently in the current simulation environment.
