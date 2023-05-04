@@ -11,7 +11,7 @@ pub use gaussian::*;
 )]
 pub mod gaussian {
     #[rustfmt::skip]
-    const __ABI: &str = "[{\"inputs\":[],\"type\":\"error\",\"name\":\"Infinity\",\"outputs\":[]},{\"inputs\":[],\"type\":\"error\",\"name\":\"NegativeInfinity\",\"outputs\":[]},{\"inputs\":[],\"type\":\"error\",\"name\":\"OutOfBounds\",\"outputs\":[]},{\"inputs\":[],\"type\":\"error\",\"name\":\"Overflow\",\"outputs\":[]}]";
+    const __ABI: &str = "[{\"inputs\":[],\"type\":\"error\",\"name\":\"Infinity\",\"outputs\":[]},{\"inputs\":[],\"type\":\"error\",\"name\":\"NegativeInfinity\",\"outputs\":[]},{\"inputs\":[],\"type\":\"error\",\"name\":\"OutOfBounds\",\"outputs\":[]}]";
     ///The parsed JSON ABI of the contract.
     pub static GAUSSIAN_ABI: ::ethers::contract::Lazy<::ethers::core::abi::Abi> =
         ::ethers::contract::Lazy::new(|| {
@@ -117,38 +117,38 @@ pub mod gaussian {
         34,
         18,
         32,
-        114,
-        16,
-        132,
-        152,
-        112,
-        240,
-        208,
-        224,
-        69,
-        74,
-        111,
-        51,
         209,
-        89,
-        245,
-        86,
-        240,
-        247,
-        171,
-        243,
-        41,
+        234,
+        57,
+        72,
+        199,
+        255,
+        210,
+        84,
+        166,
+        235,
+        252,
         37,
-        153,
-        69,
-        4,
-        207,
-        195,
-        215,
-        240,
-        38,
-        75,
-        10,
+        34,
+        155,
+        64,
+        116,
+        135,
+        20,
+        24,
+        5,
+        246,
+        150,
+        217,
+        155,
+        60,
+        225,
+        143,
+        235,
+        31,
+        54,
+        54,
+        56,
         100,
         115,
         111,
@@ -157,7 +157,7 @@ pub mod gaussian {
         67,
         0,
         8,
-        13,
+        19,
         0,
         51,
     ];
@@ -209,38 +209,38 @@ pub mod gaussian {
         34,
         18,
         32,
-        114,
-        16,
-        132,
-        152,
-        112,
-        240,
-        208,
-        224,
-        69,
-        74,
-        111,
-        51,
         209,
-        89,
-        245,
-        86,
-        240,
-        247,
-        171,
-        243,
-        41,
+        234,
+        57,
+        72,
+        199,
+        255,
+        210,
+        84,
+        166,
+        235,
+        252,
         37,
-        153,
-        69,
-        4,
-        207,
-        195,
-        215,
-        240,
-        38,
-        75,
-        10,
+        34,
+        155,
+        64,
+        116,
+        135,
+        20,
+        24,
+        5,
+        246,
+        150,
+        217,
+        155,
+        60,
+        225,
+        143,
+        235,
+        31,
+        54,
+        54,
+        56,
         100,
         115,
         111,
@@ -249,7 +249,7 @@ pub mod gaussian {
         67,
         0,
         8,
-        13,
+        19,
         0,
         51,
     ];
@@ -377,26 +377,12 @@ pub mod gaussian {
     )]
     #[etherror(name = "OutOfBounds", abi = "OutOfBounds()")]
     pub struct OutOfBounds;
-    ///Custom Error type `Overflow` with signature `Overflow()` and selector `0x35278d12`
-    #[derive(
-        Clone,
-        ::ethers::contract::EthError,
-        ::ethers::contract::EthDisplay,
-        Default,
-        Debug,
-        PartialEq,
-        Eq,
-        Hash,
-    )]
-    #[etherror(name = "Overflow", abi = "Overflow()")]
-    pub struct Overflow;
     ///Container type for all of the contract's custom errors
     #[derive(Clone, ::ethers::contract::EthAbiType, Debug, PartialEq, Eq, Hash)]
     pub enum GaussianErrors {
         Infinity(Infinity),
         NegativeInfinity(NegativeInfinity),
         OutOfBounds(OutOfBounds),
-        Overflow(Overflow),
         /// The standard solidity revert string, with selector
         /// Error(string) -- 0x08c379a0
         RevertString(::std::string::String),
@@ -421,9 +407,6 @@ pub mod gaussian {
             if let Ok(decoded) = <OutOfBounds as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::OutOfBounds(decoded));
             }
-            if let Ok(decoded) = <Overflow as ::ethers::core::abi::AbiDecode>::decode(data) {
-                return Ok(Self::Overflow(decoded));
-            }
             Err(::ethers::core::abi::Error::InvalidData.into())
         }
     }
@@ -433,7 +416,6 @@ pub mod gaussian {
                 Self::Infinity(element) => ::ethers::core::abi::AbiEncode::encode(element),
                 Self::NegativeInfinity(element) => ::ethers::core::abi::AbiEncode::encode(element),
                 Self::OutOfBounds(element) => ::ethers::core::abi::AbiEncode::encode(element),
-                Self::Overflow(element) => ::ethers::core::abi::AbiEncode::encode(element),
                 Self::RevertString(s) => ::ethers::core::abi::AbiEncode::encode(s),
             }
         }
@@ -447,7 +429,6 @@ pub mod gaussian {
                     true
                 }
                 _ if selector == <OutOfBounds as ::ethers::contract::EthError>::selector() => true,
-                _ if selector == <Overflow as ::ethers::contract::EthError>::selector() => true,
                 _ => false,
             }
         }
@@ -458,7 +439,6 @@ pub mod gaussian {
                 Self::Infinity(element) => ::core::fmt::Display::fmt(element, f),
                 Self::NegativeInfinity(element) => ::core::fmt::Display::fmt(element, f),
                 Self::OutOfBounds(element) => ::core::fmt::Display::fmt(element, f),
-                Self::Overflow(element) => ::core::fmt::Display::fmt(element, f),
                 Self::RevertString(s) => ::core::fmt::Display::fmt(s, f),
             }
         }
@@ -481,11 +461,6 @@ pub mod gaussian {
     impl ::core::convert::From<OutOfBounds> for GaussianErrors {
         fn from(value: OutOfBounds) -> Self {
             Self::OutOfBounds(value)
-        }
-    }
-    impl ::core::convert::From<Overflow> for GaussianErrors {
-        fn from(value: Overflow) -> Self {
-            Self::Overflow(value)
         }
     }
 }

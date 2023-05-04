@@ -4,6 +4,7 @@
 //! Do not manually edit these files.
 //! These files may be overwritten by the codegen system at any time.
 pub mod account_lib;
+pub mod arbiter_math;
 pub mod arbiter_token;
 pub mod assembly_lib;
 pub mod bit_math;
@@ -17,7 +18,6 @@ pub mod fixed_point_math_lib;
 pub mod full_math;
 pub mod fvm_lib;
 pub mod gaussian;
-pub mod helper_invariant;
 pub mod i_portfolio;
 pub mod i_portfolio_actions;
 pub mod i_portfolio_events;
@@ -39,6 +39,7 @@ pub mod ierc20;
 pub mod ierc20_minimal;
 pub mod invariant;
 pub mod iweth;
+pub mod liquid_exchange;
 pub mod liquidity_math;
 pub mod low_gas_safe_math;
 pub mod migrations;
@@ -60,7 +61,6 @@ pub mod safe_transfer_lib;
 pub mod shared_types;
 pub mod simple_registry;
 pub mod sqrt_price_math;
-pub mod std_invariant;
 pub mod swap_math;
 pub mod tick;
 pub mod tick_bitmap;

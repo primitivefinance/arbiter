@@ -10,10 +10,6 @@ forge bind -C lib/portfolio/test/EncoderTarget.sol -b crates/bindings/ --crate-n
 echo "Generated bindings for encoder target"
 forge bind -C lib/canonical-weth/contracts -b crates/bindings/ --crate-name bindings --overwrite
 echo "Generated bindings for canonical-weth"
-forge bind -C lib/portfolio/lib/solmate/src/FixedPointMathLib.sol -b crates/bindings/ --crate-name bindings --overwrite
-echo "Generated bindings for FixedPointMathLib"
-forge bind -C lib/portfolio/lib/solstat/src/ -b crates/bindings/ --crate-name bindings --overwrite
-echo "Generated bindings for solstat"
 forge bind -C lib/arbiter/contracts -b crates/bindings/ --crate-name bindings --overwrite
 echo "Generated bindings for arbiter contracts"
 
