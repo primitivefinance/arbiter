@@ -2,9 +2,9 @@
 use std::error::Error;
 
 use bindings::{
-    arbiter_token, liquid_exchange, rmm01_portfolio, simple_registry, weth9, shared_types::Order, i_portfolio,
+    arbiter_token, liquid_exchange, rmm01_portfolio, simple_registry, weth9, shared_types::Order, i_portfolio_actions,
 };
-use ethers::{prelude::U256, types::H160};
+use ethers::{prelude::{U256, BaseContract}, types::H160};
 use eyre::Result;
 use revm::primitives::{ruint::Uint, B160};
 use simulate::{
@@ -394,14 +394,16 @@ fn portfolio_sim_intitalization_calls(
     // for somereason we want this type
     let swap_args = Order {
         use_max: false,                  // pub use_max: bool,
-        pool_id,                // pub pool_id: u64,
-        input: 1000000000_u128,        // pub input: u128, 
-        output: decoded_amount_out,     // pub output: u128,
-        sell_asset: false,                  // pub sell_asset: bool,
+        pool_id,                         // pub pool_id: u64,
+        input: 1000000000_u128,          // pub input: u128, 
+        output: decoded_amount_out,      // pub output: u128,
+        sell_asset: false,               // pub sell_asset: bool,
     };
     println!("swap args: {:#?}", swap_args);
+
+    let i_portfolio = BaseContract::from(i_portfolio_actions::IPORTFOLIOACTIONS_ABI.clone());
     // getting error on encoding
-    let swap_call_data = i_portfolio.encode("swap", swap_args)?;
+    let swap_call_data = i_portfolio.encode("swap", swap_args)?.into_iter().collect();
     println!("Thing1");
     let swap_result = admin.call_contract(&mut manager.environment,
         &portfolio,
