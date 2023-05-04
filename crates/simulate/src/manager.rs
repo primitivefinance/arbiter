@@ -74,6 +74,11 @@ impl SimulationManager {
         simulation_manager
     }
 
+    /// Stop the current simulation.
+    pub fn shut_down(&mut self) {
+        self.environment.event_senders.clear();
+    }
+
     /// Run all agents concurrently in the current simulation environment.
     pub fn run_agents() {
         todo!()

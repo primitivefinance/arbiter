@@ -3,13 +3,13 @@
 //! Describes the most basic type of user agent.
 
 use std::{
-    sync::{Arc, Mutex},
-    thread::{self, JoinHandle}, fs::File,
+    fs::File,
+    thread::{self, JoinHandle},
 };
 
 use crossbeam_channel::Receiver;
 use csv::WriterBuilder;
-use revm::primitives::{Address, Log, U256};
+use revm::primitives::{Address, Log};
 
 use super::{AgentStatus, Identifiable, IsActive, NotActive};
 use crate::agent::{filter_events, Agent, SimulationEventFilter, TransactSettings};
@@ -78,8 +78,14 @@ impl Journaler<IsActive> {
     pub fn journal_events(&self) -> JoinHandle<()> {
         let receiver = self.receiver();
         let event_filters = self.event_filters();
-        let filename = self.csv_name.clone();
         assert!(event_filters.len() == 1); // TODO: Allow journaler to have more than just a single event filter.
+
+        // Get the filename and create the writer.
+        let filename = self.csv_name.clone();
+        let file = File::create(filename).unwrap(); // TODO: Fix the error handling here.
+        let mut writer = WriterBuilder::new().from_writer(file);
+        // Label this column as "value"
+        writer.serialize("value").unwrap(); // TODO: Fix the error handling here.
 
         thread::spawn(move || {
             let decoder = |input| {
@@ -89,8 +95,6 @@ impl Journaler<IsActive> {
                     input,
                 )
             };
-            let file = File::create(filename).unwrap(); // TODO: Fix the error handling here.
-            let mut writer = WriterBuilder::new().from_writer(file);
 
             while let Ok(logs) = receiver.recv() {
                 // Get the logs and filter
@@ -119,18 +123,16 @@ impl Journaler<IsActive> {
 #[cfg(test)]
 mod tests {
 
-    use std::{error::Error, sync::Arc};
+    use std::error::Error;
 
     use bindings::writer;
-    use ethers::prelude::U256;
     use revm::primitives::{ruint::Uint, B160};
 
     use super::Journaler;
     use crate::{
-        agent::{create_filter, filter_events, Agent, AgentType},
+        agent::{create_filter, Agent, AgentType},
         contract::SimulationContract,
         manager::SimulationManager,
-        utils::recast_address,
     };
 
     #[test]
@@ -152,28 +154,34 @@ mod tests {
         let event_filters = vec![create_filter(&writer, "WasWritten")];
 
         // Create the journaler and start listening for events.
-        let journaler =
-            AgentType::Journaler(Journaler::new("journaler", event_filters, "test.csv"));
+        let filename = "test.csv";
+        let journaler = AgentType::Journaler(Journaler::new("journaler", event_filters, filename));
         manager.activate_agent(journaler, B160::from_low_u64_be(2))?;
         let journaler = manager.agents.get("journaler").unwrap();
         let base_journaler = match journaler {
             AgentType::Journaler(base_journaler) => base_journaler,
             _ => panic!(),
         };
-        base_journaler.journal_events();
+        let handle = base_journaler.journal_events();
+        let formatter = |index: usize| format!("Hello, world! and a number {}", index);
+        for index in 0..5 {
+            let _execution_result = manager.agents.get("admin").unwrap().call_contract(
+                &mut manager.environment,
+                &writer,
+                writer.encode_function("echoString", formatter(index))?,
+                Uint::ZERO,
+            );
+        }
+        manager.shut_down();
 
-        // Generate calldata for the 'echoString' function
-        let test_string = "Hello, world!";
-        let input_arguments = test_string.to_string();
-        let call_data = writer.encode_function("echoString", input_arguments)?;
-
-        // Call the 'echoString' function.
-        let _execution_result = manager.agents.get("admin").unwrap().call_contract(
-            &mut manager.environment,
-            &writer,
-            call_data,
-            Uint::ZERO,
-        );
+        // Check that the file was written to.
+        handle.join().unwrap();
+        let mut reader = csv::Reader::from_path(filename)?;
+        for (index, result) in reader.records().enumerate() {
+            let record = result?;
+            println!("Record is: {:#?}", record);
+            assert_eq!(record.as_slice().to_string(), formatter(index))
+        }
         Ok(())
     }
 }
