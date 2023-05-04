@@ -142,11 +142,11 @@ mod tests {
 
     use std::{error::Error, sync::Arc};
 
-    use bindings::{arbiter_token, liquid_exchange};
+    use bindings::{writer};
     use ethers::prelude::U256;
-    use revm::primitives::B160;
+    use revm::primitives::{B160, ruint::Uint};
 
-    use super::SimpleArbitrageur;
+    use super::Journaler;
     use crate::{
         agent::{create_filter, filter_events, Agent, AgentType},
         contract::SimulationContract,
@@ -158,20 +158,22 @@ mod tests {
     fn write_csv() -> Result<(), Box<dyn Error>> {
         // Set up the execution manager and a user address.
         let mut manager = SimulationManager::default();
-        let admin = manager.agents.get("admin").unwrap();
-        let environment = &mut manager.environment;
 
         // Get bytecode and abi for the writer contract.
         let writer =
             SimulationContract::new(writer::WRITER_ABI.clone(), writer::WRITER_BYTECODE.clone());
 
         // Deploy the writer contract.
-        let writer = writer.deploy(environment, admin, ());
+        let writer = writer.deploy(&mut manager.environment, manager.agents.get("admin").unwrap(), ());
 
         let event_filters = vec![create_filter(
             &writer,
             "WasWritten",
         )];
+        let journaler =
+            AgentType::Journaler(Journaler::new("journaler", event_filters, "test.csv"));
+        manager.activate_agent(journaler, B160::from_low_u64_be(2))?;
+        let arbitrageur = manager.agents.get("journaler").unwrap();
 
         // Generate calldata for the 'echoString' function
         let test_string = "Hello, world!";
@@ -179,11 +181,11 @@ mod tests {
         let call_data = writer.encode_function("echoString", input_arguments)?;
 
         // Call the 'echoString' function.
-        let _execution_result = admin.call_contract(environment, &writer, call_data, Uint::ZERO);
+        let _execution_result = manager.agents.get("admin").unwrap().call_contract(&mut manager.environment, &writer, call_data, Uint::ZERO);
 
         // Read logs twice since the first time is just the contract creation which gives no log.
-        let _logs = admin.read_logs()?;
-        let logs = admin.read_logs()?;
+        let _logs = manager.agents.get("admin").unwrap().read_logs()?;
+        let logs = manager.agents.get("admin").unwrap().read_logs()?;
 
         // Decode the logs
         let log_topics = logs[0].topics.clone();

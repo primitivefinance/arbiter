@@ -15,7 +15,7 @@ use revm::primitives::{AccountInfo, Address, ExecutionResult, Log, Output, B160,
 use crate::{
     agent::{
         simple_arbitrageur::SimpleArbitrageur, user::User, AgentType, IsActive, NotActive,
-        TransactSettings,
+        TransactSettings, journaler::Journaler,
     },
     environment::SimulationEnvironment,
 };
@@ -154,6 +154,24 @@ impl SimulationManager {
                 self.agents.insert(
                     new_simple_arbitrageur.name.clone(),
                     AgentType::SimpleArbitrageur(new_simple_arbitrageur),
+                );
+            }
+            AgentType::Journaler(journaler) => {
+                let new_journaler = Journaler::<IsActive> {
+                    name: journaler.name,
+                    address: new_agent_address,
+                    account_info,
+                    transact_settings: TransactSettings {
+                        gas_limit: u64::MAX,   // TODO: Users should have a gas limit.
+                        gas_price: U256::ZERO, // TODO: Users should have an associated gas price.
+                    },
+                    event_receiver,
+                    event_filters: journaler.event_filters,
+                    csv_name: journaler.csv_name,
+                };
+                self.agents.insert(
+                    new_journaler.name.clone(),
+                    AgentType::Journaler(new_journaler),
                 );
             }
         };

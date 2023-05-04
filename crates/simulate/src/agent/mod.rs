@@ -17,7 +17,7 @@ use crossbeam_channel::Receiver;
 use ethers::{prelude::BaseContract, types::H256};
 use revm::primitives::{AccountInfo, Address, ExecutionResult, Log, TransactTo, TxEnv, B160, U256};
 
-use self::{simple_arbitrageur::SimpleArbitrageur, user::User};
+use self::{simple_arbitrageur::SimpleArbitrageur, user::User, journaler::Journaler};
 use crate::{
     contract::{IsDeployed, SimulationContract},
     environment::SimulationEnvironment,
@@ -86,6 +86,8 @@ pub enum AgentType<AgentState: AgentStatus> {
     User(User<AgentState>),
     /// A [`SimpleArbitrageur`] is an agent that can perform arbitrage between two pools.
     SimpleArbitrageur(SimpleArbitrageur<AgentState>),
+    /// A [`Journaler`] is an agent that can be used to log events to a file.
+    Journaler(Journaler<AgentState>),
 }
 
 impl AgentType<IsActive> {
@@ -94,6 +96,7 @@ impl AgentType<IsActive> {
         match self {
             AgentType::User(inner) => inner,
             AgentType::SimpleArbitrageur(inner) => inner,
+            AgentType::Journaler(inner) => inner,
         }
     }
 }
@@ -104,6 +107,7 @@ impl AgentType<NotActive> {
         match self {
             AgentType::User(inner) => inner,
             AgentType::SimpleArbitrageur(inner) => inner,
+            AgentType::Journaler(inner) => inner,
         }
     }
 }
