@@ -205,3 +205,41 @@ impl OU {
         (time, prices)
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+ 
+  #[test]
+  fn seeded_randomness_test() {
+    let gbm = GBM::new(0.05, 0.3);
+    let price_process = PriceProcess::new(
+        PriceProcessType::GBM(gbm),
+        0.1,
+        "Days".to_string(), 
+        100, 
+        100.0, 
+        1);
+    // Test to see if same seed yields same result
+    let (time, prices) = price_process.generate_price_path();
+    let (time2, prices2) = price_process.generate_price_path();
+    assert_eq!(time, time2);
+    assert_eq!(prices, prices2);
+    // Test to see if different seed yields different result
+    let price_process_diff_seed = PriceProcess::new(
+        PriceProcessType::GBM(GBM::new(0.05, 0.3)),
+        0.1,
+        "Days".to_string(), 
+        100, 
+        100.0, 
+        2);
+    let (time3, prices3) = price_process_diff_seed.generate_price_path();
+    assert_eq!(time, time3);
+    assert_ne!(prices, prices3);
+    }
+
+    #[test]
+    fn gbm_step_test() {
+
+    }
+}
