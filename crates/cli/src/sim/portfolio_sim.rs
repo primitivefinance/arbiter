@@ -4,7 +4,7 @@ use std::error::Error;
 use bindings::{
     arbiter_token, liquid_exchange, rmm01_portfolio, simple_registry, weth9,
 };
-use ethers::prelude::U256;
+use ethers::{prelude::U256, types::H160};
 use eyre::Result;
 use revm::primitives::{ruint::Uint, B160};
 use simulate::{
@@ -365,7 +365,37 @@ fn portfolio_sim_intitalization_calls(
         Uint::from(0),
     );
     assert!(allocate_result.is_success());
-    println!("allocate result: {:#?}", allocate_result);
+
+    let unpacked_allocate = manager.unpack_execution(allocate_result)?;
+    let deltas: (u128, u128) = portfolio.decode_output("allocate", unpacked_allocate)?;
+    println!("allocate result: {:#?}", deltas);
+
+    // 498005301
+    // 4980053002
+    let get_amount_out_args: (u64, bool, U256, H160) = (
+        pool_id,                        // pool_id: u64,
+        true,                           // sell_asset: bool,
+        U256::from(100000000),          // amount_in: ::ethers::core::types::U256,
+        arbitrageur.address().into()           // swapper: ::ethers::core::types::Address,
+    );
+
+    let get_amount_out_call_data = portfolio.encode_function("getAmountOut", get_amount_out_args)?;
+    let get_amount_out_result = admin.call_contract(&mut manager.environment,
+        &portfolio,
+        get_amount_out_call_data,
+        Uint::from(0),
+    );
+    assert!(get_amount_out_result.is_success());
+    let unpacked_get_amount_out = manager.unpack_execution(get_amount_out_result)?;
+    let decoded_amount_out = portfolio.decode_output("getAmountOut", unpacked_get_amount_out)?;
+    println!("getAmountOut result: {:#?}", decoded_amount_out);
+    let _swap_Args = (
+        false,        // pub use_max: bool,
+        pool_id,      // pub pool_id: u64,
+        100000000,     // pub input: u128, 
+        deltas.1,     // pub output: u128,
+        false,        // pub sell_asset: bool,
+    );
 
     Ok(())
 }
@@ -480,6 +510,8 @@ mod tests {
             Uint::from(0),
         );
         assert!(create_pool_result.is_success());
+
+
         Ok(())
     }
 
