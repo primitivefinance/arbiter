@@ -1,10 +1,11 @@
 #![warn(missing_docs)]
-use std::error::Error;
+use std::{error::Error};
 
 use bindings::{
-    arbiter_token, liquid_exchange, rmm01_portfolio, simple_registry, weth9, shared_types::Order, i_portfolio_actions,
+    arbiter_token, liquid_exchange, rmm01_portfolio, simple_registry, weth9, shared_types::Order, i_portfolio_actions, portfolio_virtual
 };
-use ethers::{prelude::{U256, BaseContract}, types::H160};
+use bytes::Bytes;
+use ethers::{prelude::{U256, BaseContract}, types::H160, abi::{Token, Tokenize, ParamType, Function}};
 use eyre::Result;
 use revm::primitives::{ruint::Uint, B160};
 use simulate::{
@@ -380,6 +381,7 @@ fn portfolio_sim_intitalization_calls(
     );
 
     let get_amount_out_call_data = portfolio.encode_function("getAmountOut", get_amount_out_args)?;
+    println!("getAmountOut call data: {:#?}", hex::encode(get_amount_out_call_data.clone()));
     let get_amount_out_result = admin.call_contract(&mut manager.environment,
         &portfolio,
         get_amount_out_call_data,
@@ -392,25 +394,65 @@ fn portfolio_sim_intitalization_calls(
     println!("getAmountOut result: {:#?}", decoded_amount_out);
 
     // for somereason we want this type
-    let swap_args = Order {
+    let swap_args_order = (Order {
         use_max: false,                  // pub use_max: bool,
         pool_id,                         // pub pool_id: u64,
         input: 1000000000_u128,          // pub input: u128, 
         output: decoded_amount_out,      // pub output: u128,
         sell_asset: false,               // pub sell_asset: bool,
-    };
+    });
+
+    let swap_args = {(
+        false,                  // pub use_max: bool,
+        pool_id,                         // pub pool_id: u64,
+        1000000000_u128,          // pub input: u128, 
+        decoded_amount_out,      // pub output: u128,
+        false,               // pub sell_asset: bool,
+    )};
+
+    let magic_hexstring: Bytes = "64f14ef20000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000001010000000100000000000000000000000000000000000000000000000000000000009896800000000000000000000000000000000000000000000000000000000005e66f6f0000000000000000000000000000000000000000000000000000000000000001".into();
+    let bytes_from_chisle: Bytes = "64f14ef2000000000000000000000000000000000000000000000000000000000000002000000000000000000000000000000000000000000000000000000000000000a000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000010100000001000000000000000000000000000000000000000000000000000000003b9aca00000000000000000000000000000000000000000000000000000000003aef626e000000000000000000000000000000000000000000000000000000000".into();
+    let call_data: Bytes =  "64f14ef20000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000001010000000100000000000000000000000000000000000000000000000000000000009896800000000000000000000000000000000000000000000000000000000005e66f6f0000000000000000000000000000000000000000000000000000000000000001".into();
+    
+    // let byte_array:Bytes = hex::decode(bytes_from_chisle).expect("Decoding failed").into_iter().collect();
+    // println!("byte_array: {:#?}", byte_array);
+
+    // selector: 64f14ef2
+    // 0x0000000000000000000000000000000000000000000000000000000000000020
+    // 0x00000000000000000000000000000000000000000000000000000000000000a0
+    // 0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000010100000001000000000000000000000000000000000000000000000000000000003b9aca00000000000000000000000000000000000000000000000000000000003aef626e000000000000000000000000000000000000000000000000000000000
+    
     println!("swap args: {:#?}", swap_args);
 
-    let i_portfolio = BaseContract::from(i_portfolio_actions::IPORTFOLIOACTIONS_ABI.clone());
+    let portfolio_virtual = BaseContract::from(portfolio_virtual::PORTFOLIOVIRTUAL_ABI.clone());
+    //let sig = 0x64f14ef2
+    //let function_selector = portfolio_virtual.encode_with_selector(signature, args)
     // getting error on encoding
-    let swap_call_data = i_portfolio.encode("swap", swap_args)?.into_iter().collect();
-    println!("Thing1");
+
+
+    //let thing = portfolio_virtual.encode(name, args)
+    // let func = portfolio_virtual.abi().function("swap").unwrap();
+    // let tokens: Vec<Token> = swap_args_order.into_tokens();
+    // let len_tokens = tokens.len();
+    // println!("Tokens: {:#?}", len_tokens);
+    // let short_sig = hex::encode(func.short_signature());
+    // let params: Vec<ParamType> = func.inputs.iter().map(|p| p.kind.clone()).collect();
+    // let param_len = params.len();
+    // assert_eq!(len_tokens, param_len);
+    // println!("Short sig: {:#?}", short_sig);
+    // println!("Tokens: {:#?}", tokens);
+    // let thing = func.encode_input(&tokens)?;
+    // println!("Thing: {:#?}", thing);
+
+    // let swap_call_data = portfolio_virtual.encode("swap", swap_args_order)?;
+    // println!("Thing1");
     let swap_result = admin.call_contract(&mut manager.environment,
         &portfolio,
-        swap_call_data,
+        call_data.clone(),
         Uint::from(0),
     );
-    assert!(swap_result.is_success());
+    println!("Bytes From Chisle {:#?}", call_data);
+    println!("{:#?}", swap_result);
     Ok(())
 }
 
