@@ -1,8 +1,6 @@
 #![warn(missing_docs)]
 use std::error::Error;
 
-
-
 use bindings::{arbiter_token, liquid_exchange, rmm01_portfolio, simple_registry, weth9};
 use ethers::prelude::U256;
 use eyre::Result;
@@ -365,52 +363,6 @@ fn portfolio_sim_intitalization_calls(
         Uint::from(0),
     );
     assert!(allocate_result.is_success());
-
-    let unpacked_allocate = manager.unpack_execution(allocate_result)?;
-    let deltas: (u128, u128) = portfolio.decode_output("allocate", unpacked_allocate)?;
-    println!("allocate result: {:#?}", deltas);
-
-    // 498005301
-    // 4980053002
-    let get_amount_out_args: (u64, bool, U256, H160) = (
-        pool_id,                        // pool_id: u64,
-        true,                           // sell_asset: bool,
-        U256::from(100000000),          // amount_in: ::ethers::core::types::U256,
-        arbitrageur.address().into()           // swapper: ::ethers::core::types::Address,
-    );
-
-    let get_amount_out_call_data = portfolio.encode_function("getAmountOut", get_amount_out_args)?;
-    let get_amount_out_result = admin.call_contract(&mut manager.environment,
-        &portfolio,
-        get_amount_out_call_data,
-        Uint::from(0),
-    );
-    assert!(get_amount_out_result.is_success());
-    let unpacked_get_amount_out = manager.unpack_execution(get_amount_out_result)?;
-    println!("getAmountOut result: {:#?}", hex::encode(unpacked_get_amount_out.clone()));
-    let decoded_amount_out: u128 = portfolio.decode_output("getAmountOut", unpacked_get_amount_out)?;
-    println!("getAmountOut result: {:#?}", decoded_amount_out);
-
-    // for somereason we want this type
-    let swap_args = Order {
-        use_max: false,                  // pub use_max: bool,
-        pool_id,                         // pub pool_id: u64,
-        input: 1000000000_u128,          // pub input: u128, 
-        output: decoded_amount_out,      // pub output: u128,
-        sell_asset: false,               // pub sell_asset: bool,
-    };
-    println!("swap args: {:#?}", swap_args);
-
-    let i_portfolio = BaseContract::from(i_portfolio_actions::IPORTFOLIOACTIONS_ABI.clone());
-    // getting error on encoding
-    let swap_call_data = i_portfolio.encode("swap", swap_args)?.into_iter().collect();
-    println!("Thing1");
-    let swap_result = admin.call_contract(&mut manager.environment,
-        &portfolio,
-        swap_call_data,
-        Uint::from(0),
-    );
-    assert!(swap_result.is_success());
     Ok(())
 }
 
@@ -524,7 +476,6 @@ mod tests {
             Uint::from(0),
         );
         assert!(create_pool_result.is_success());
-
 
         Ok(())
     }
