@@ -478,7 +478,6 @@ mod tests {
             Uint::from(0),
         );
         assert!(create_pool_result.is_success());
-
         Ok(())
     }
 
