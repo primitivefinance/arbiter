@@ -363,6 +363,8 @@ fn portfolio_sim_intitalization_calls(
         Uint::from(0),
     );
     assert!(allocate_result.is_success());
+    println!("allocate result: {:#?}", allocate_result);
+
     Ok(())
 }
 
