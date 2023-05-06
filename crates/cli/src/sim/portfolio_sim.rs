@@ -7,7 +7,7 @@ use bindings::{
 use bytes::Bytes;
 use ethers::{prelude::{U256, BaseContract}, types::H160, abi::{Token, Tokenize, ParamType, Function}};
 use eyre::Result;
-use revm::primitives::{ruint::Uint, B160};
+use revm::primitives::{ruint::Uint, B160, ExecutionResult};
 use simulate::{
     agent::{user::User, Agent, AgentType},
     contract::{IsDeployed, SimulationContract},
@@ -373,10 +373,11 @@ fn portfolio_sim_intitalization_calls(
 
     // 498005301
     // 4980053002
+    let input_amount = 100000000;
     let get_amount_out_args: (u64, bool, U256, H160) = (
         pool_id,                        // pool_id: u64,
         true,                           // sell_asset: bool,
-        U256::from(100000000),          // amount_in: ::ethers::core::types::U256,
+        U256::from(input_amount),          // amount_in: ::ethers::core::types::U256,
         arbitrageur.address().into()           // swapper: ::ethers::core::types::Address,
     );
 
@@ -393,19 +394,19 @@ fn portfolio_sim_intitalization_calls(
     let decoded_amount_out: u128 = portfolio.decode_output("getAmountOut", unpacked_get_amount_out)?;
     println!("getAmountOut result: {:#?}", decoded_amount_out);
 
-    // for somereason we want this type
-    let swap_args_order = (Order {
-        use_max: false,                  // pub use_max: bool,
-        pool_id,                         // pub pool_id: u64,
-        input: 1000000000_u128,          // pub input: u128, 
-        output: decoded_amount_out,      // pub output: u128,
-        sell_asset: false,               // pub sell_asset: bool,
-    });
+    // // for somereason we want this type
+    // let swap_args_order = (Order {
+    //     use_max: false,                  // pub use_max: bool,
+    //     pool_id,                         // pub pool_id: u64,
+    //     input: input_amount as u128,          // pub input: u128, 
+    //     output: decoded_amount_out,      // pub output: u128,
+    //     sell_asset: false,               // pub sell_asset: bool,
+    // });
 
     let swap_args = {(
         false,                  // pub use_max: bool,
         pool_id,                         // pub pool_id: u64,
-        1000000000_u128,          // pub input: u128, 
+        input_amount as u128,          // pub input: u128, 
         decoded_amount_out,      // pub output: u128,
         false,               // pub sell_asset: bool,
     )};
@@ -447,11 +448,17 @@ fn portfolio_sim_intitalization_calls(
     // println!("Thing1");
     let swap_result = admin.call_contract(&mut manager.environment,
         &portfolio,
-        bytes_from_chisle.clone(),
+        portfolio.encode_function("swap", (swap_args,)).unwrap(),
         Uint::from(0),
     );
-    println!("Bytes From Chisle {:#?}", bytes_from_chisle);
+    let input_bytes: &[u8] = b"NH{q\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\x11";
+    let hex_string = hex::encode(input_bytes);
+    println!("Hex String: {:#?}", hex_string);
+    let unpacked_result = manager.unpack_execution(swap_result.clone())?;
+    let decoded_result: U256 = portfolio.decode_output("swap", unpacked_result)?;
+    // println!("Bytes From Chisle {:#?}", bytes_from_chisle);
     println!("{:#?}", swap_result);
+    println!("{:#?}", decoded_result);
     // gas is different 
     Ok(())
 }
