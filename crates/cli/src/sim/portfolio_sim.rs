@@ -411,10 +411,10 @@ fn portfolio_sim_intitalization_calls(
     )};
 
     // from cast
-    let magic_hexstring: Bytes = hex::decode("64f14ef20000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000001010000000100000000000000000000000000000000000000000000000000000000009896800000000000000000000000000000000000000000000000000000000005e66f6f0000000000000000000000000000000000000000000000000000000000000001".as_bytes())?.into_iter().collect();
-    let bytes_from_chisle: Bytes = "64f14ef2000000000000000000000000000000000000000000000000000000000000002000000000000000000000000000000000000000000000000000000000000000a000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000010100000001000000000000000000000000000000000000000000000000000000003b9aca00000000000000000000000000000000000000000000000000000000003aef626e00000000000000000000000000000000000000000000000000000000".as_bytes().to_owned().into_iter().collect();
-    // let byte_array:Bytes = hex::decode(bytes_from_chisle).expect("Decoding failed").into_iter().collect();
-    // println!("byte_array: {:#?}", byte_array);
+    // let magic_hexstring: Bytes = hex::decode("64f14ef20000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000001010000000100000000000000000000000000000000000000000000000000000000009896800000000000000000000000000000000000000000000000000000000005e66f6f0000000000000000000000000000000000000000000000000000000000000001".as_bytes())?.into_iter().collect();
+    // let bytes_from_chisle: Bytes = "64f14ef2000000000000000000000000000000000000000000000000000000000000002000000000000000000000000000000000000000000000000000000000000000a000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000010100000001000000000000000000000000000000000000000000000000000000003b9aca00000000000000000000000000000000000000000000000000000000003aef626e00000000000000000000000000000000000000000000000000000000".as_bytes().to_owned().into_iter().collect();
+    // // let byte_array:Bytes = hex::decode(bytes_from_chisle).expect("Decoding failed").into_iter().collect();
+    // // println!("byte_array: {:#?}", byte_array);
 
     // selector: 64f14ef2
     // 0x0000000000000000000000000000000000000000000000000000000000000020
@@ -423,7 +423,7 @@ fn portfolio_sim_intitalization_calls(
     
     println!("swap args: {:#?}", swap_args);
 
-    let _portfolio_virtual = BaseContract::from(portfolio_virtual::PORTFOLIOVIRTUAL_ABI.clone());
+    let portfolio_virtual = BaseContract::from(portfolio_virtual::PORTFOLIOVIRTUAL_ABI.clone());
     //let sig = 0x64f14ef2
     //let function_selector = portfolio_virtual.encode_with_selector(signature, args)
     // getting error on encoding
@@ -442,15 +442,15 @@ fn portfolio_sim_intitalization_calls(
     // println!("Tokens: {:#?}", tokens);
     // let thing = func.encode_input(&tokens)?;
     // println!("Thing: {:#?}", thing);
-
+    let call_date: Bytes = portfolio_virtual.encode("swap", swap_args)?.into_iter().collect();
     // let swap_call_data = portfolio_virtual.encode("swap", swap_args_order)?;
     // println!("Thing1");
     let swap_result = admin.call_contract(&mut manager.environment,
         &portfolio,
-        bytes_from_chisle.clone(),
+        call_date.clone(),
         Uint::from(0),
     );
-    println!("Bytes From Chisle {:#?}", bytes_from_chisle);
+    println!("Bytes From Chisle {:#?}", call_date);
     println!("{:#?}", swap_result);
     // gas is different 
     Ok(())
