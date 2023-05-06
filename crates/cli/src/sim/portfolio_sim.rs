@@ -322,7 +322,7 @@ fn portfolio_sim_intitalization_calls(
         duration: 65535_u16,                         // pub dur: u16,
         jit: 0_u16,                                  // pub jit: u16,
         max_price: 10_000_000_000_000_000_000u128,   // pub max_price: u128,
-        price:     10_000_000_000_000_000_000u128,   // pub price: u128,
+        price: 10_000_000_000_000_000_000u128,       // pub price: u128,
     };
     let create_pool_result = admin.call_contract(
         &mut manager.environment,
@@ -352,7 +352,10 @@ fn portfolio_sim_intitalization_calls(
     let get_liquidity_unpack = manager.unpack_execution(get_liquidity_result)?;
     let liquidity_deltas: (u128, u128) =
         portfolio.decode_output("getLiquidityDeltas", get_liquidity_unpack)?;
-    println!("Liquidity delta is {} for ARBX and {} for ARBY", liquidity_deltas.0, liquidity_deltas.1);
+    println!(
+        "Liquidity delta is {} for ARBX and {} for ARBY",
+        liquidity_deltas.0, liquidity_deltas.1
+    );
 
     // --------------------------------------------------------------------------------------------
     // PORTFOLIO POOL ALLOCATE
