@@ -384,7 +384,7 @@ fn portfolio_sim_intitalization_calls(
     // PORTFOLIO POOL SWAP
     // --------------------------------------------------------------------------------------------
     // Get the correct amount of ARBY to get from a certain amount of ARBX using `getAmountOut`
-    let input_amount = 100000000;
+    let input_amount = 100000;
     let get_amount_out_args: (u64, bool, U256, H160) = (
         pool_id,                      // pool_id: u64,
         true, // sell_asset: bool, // Setting this to true means we are selling ARBX for ARBY
@@ -405,6 +405,8 @@ fn portfolio_sim_intitalization_calls(
         "Inputting {} ARBX yields {} ARBY out.",
         input_amount, decoded_amount_out,
     );
+
+    // Construct the swap using the above amount
     let swap_args = (
         false,                // pub use_max: bool,
         pool_id,              // pub pool_id: u64,
