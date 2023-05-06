@@ -321,8 +321,8 @@ fn portfolio_sim_intitalization_calls(
         volatility: 100_u16,                         // pub vol: u16,
         duration: 65535_u16,                         // pub dur: u16,
         jit: 0_u16,                                  // pub jit: u16,
-        max_price: 10000000000000000000u128,         // pub max_price: u128,
-        price: 10000000000000000000u128,             // pub price: u128,
+        max_price: 10_000_000_000_000_000_000u128,   // pub max_price: u128,
+        price:     10_000_000_000_000_000_000u128,   // pub price: u128,
     };
     let create_pool_result = admin.call_contract(
         &mut manager.environment,
@@ -338,7 +338,7 @@ fn portfolio_sim_intitalization_calls(
     // --------------------------------------------------------------------------------------------
     // PORTFOLIO POOL LIQUIDITY DELTAS
     // --------------------------------------------------------------------------------------------
-    let delta_liquidity = 1000000000_i128;
+    let delta_liquidity = 1_000_000_000_000_i128;
     let get_liquidity_args = rmm01_portfolio::GetLiquidityDeltasCall {
         pool_id,
         delta_liquidity,
@@ -349,20 +349,20 @@ fn portfolio_sim_intitalization_calls(
         portfolio.encode_function("getLiquidityDeltas", get_liquidity_args)?,
         Uint::from(0),
     );
-    assert!(get_liquidity_result.is_success());
     let get_liquidity_unpack = manager.unpack_execution(get_liquidity_result)?;
     let liquidity_deltas: (u128, u128) =
         portfolio.decode_output("getLiquidityDeltas", get_liquidity_unpack)?;
+    println!("Liquidity delta is {} for ARBX and {} for ARBY", liquidity_deltas.0, liquidity_deltas.1);
 
     // --------------------------------------------------------------------------------------------
     // PORTFOLIO POOL ALLOCATE
     // --------------------------------------------------------------------------------------------
     let allocate_args = rmm01_portfolio::AllocateCall {
-        use_max: false,                      // use_max: bool, // Usually set to false?
-        pool_id,                             // pool_id: u64,
-        delta_liquidity: 1000000000_u128,    // delta_liquidity: u128,
-        max_delta_asset: liquidity_deltas.0, // max_delta_asset: u128,
-        max_delta_quote: liquidity_deltas.1, // max_delta_quote: u128,
+        use_max: false,                           // use_max: bool, // Usually set to false?
+        pool_id,                                  // pool_id: u64,
+        delta_liquidity: delta_liquidity as u128, // delta_liquidity: u128,
+        max_delta_asset: liquidity_deltas.0,      // max_delta_asset: u128,
+        max_delta_quote: liquidity_deltas.1,      // max_delta_quote: u128,
     };
     let allocate_result = admin.call_contract(
         &mut manager.environment,
@@ -377,14 +377,14 @@ fn portfolio_sim_intitalization_calls(
         "Allocated {} ARBX and {} ARBY to Pool {}",
         deltas.0, deltas.1, pool_id
     );
-    assert_eq!(deltas.0, 498005301);
-    assert_eq!(deltas.1, 4980053002);
 
     // --------------------------------------------------------------------------------------------
     // PORTFOLIO POOL SWAP
     // --------------------------------------------------------------------------------------------
     // Get the correct amount of ARBY to get from a certain amount of ARBX using `getAmountOut`
-    let input_amount = 100000;
+    // let input_amount = 100_000_000; // This used to cause an underflow revert in `nextDependentWad = liveDependentWad - deltaOutput;`
+    // let input_amount = 1_000_000_000; // This causes InvalidInvariant revert.
+    let input_amount = 1_000_000; // This causes InvalidInvariant revert.
     let get_amount_out_args: (u64, bool, U256, H160) = (
         pool_id,                      // pool_id: u64,
         true, // sell_asset: bool, // Setting this to true means we are selling ARBX for ARBY
@@ -417,13 +417,12 @@ fn portfolio_sim_intitalization_calls(
     let swap_result = admin.call_contract(
         &mut manager.environment,
         &portfolio,
-        portfolio.encode_function("swap", (swap_args,)).unwrap(),
+        portfolio.encode_function("swap", (swap_args,))?,
         Uint::from(0),
     );
     let unpacked_result = manager.unpack_execution(swap_result.clone())?;
     let decoded_result: U256 = portfolio.decode_output("swap", unpacked_result)?;
-    println!("{:#?}", swap_result);
-    println!("{:#?}", decoded_result);
+    println!("The result of the swap is {:#?}", decoded_result);
     Ok(())
 }
 

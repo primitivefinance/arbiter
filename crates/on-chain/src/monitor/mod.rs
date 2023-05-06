@@ -119,7 +119,7 @@ impl HistoricalMonitor {
         /// * `sqrt_price_x96` - Price of the swap.
         /// * `liquidity` - Liquidity of the swap.
         /// * `tick` - Tick of the swap.
-        pub struct Swap {
+        pub struct _Swap {
             /// Address of the sender.
             pub sender: Address,
             /// Address of the recipient.
