@@ -130,7 +130,7 @@ mod tests {
 
     use super::Journaler;
     use crate::{
-        agent::{create_filter, Agent, AgentType},
+        agent::{Agent, AgentType, SimulationEventFilter},
         contract::SimulationContract,
         manager::SimulationManager,
     };
@@ -151,7 +151,7 @@ mod tests {
             (),
         );
 
-        let event_filters = vec![create_filter(&writer, "WasWritten")];
+        let event_filters = vec![SimulationEventFilter::new(&writer, "WasWritten")];
 
         // Create the journaler and start listening for events.
         let filename = "test.csv";

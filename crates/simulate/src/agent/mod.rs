@@ -243,23 +243,25 @@ pub struct SimulationEventFilter {
     pub event_name: String,
 }
 
-/// Creates a filter for the agent to use to filter out events.
-pub fn create_filter(
-    contract: &SimulationContract<IsDeployed>,
-    event_name: &str,
-) -> SimulationEventFilter {
-    let topic = contract
-        .base_contract
-        .abi()
-        .event(event_name)
-        .unwrap()
-        .signature();
-    // let decoder = |input| contract.decode_event::<[Token]>(event_name, vec![topic.into()], input);
-    SimulationEventFilter {
-        address: contract.address,
-        topic,
-        base_contract: contract.base_contract.clone(),
-        event_name: event_name.to_string(),
+impl SimulationEventFilter {
+    /// Creates a filter for the agent to use to filter out events.
+    pub fn new(
+        contract: &SimulationContract<IsDeployed>,
+        event_name: &str,
+    ) -> SimulationEventFilter {
+        let topic = contract
+            .base_contract
+            .abi()
+            .event(event_name)
+            .unwrap()
+            .signature();
+        // let decoder = |input| contract.decode_event::<[Token]>(event_name, vec![topic.into()], input);
+        SimulationEventFilter {
+            address: contract.address,
+            topic,
+            base_contract: contract.base_contract.clone(),
+            event_name: event_name.to_string(),
+        }
     }
 }
 
@@ -294,7 +296,7 @@ mod tests {
     use revm::primitives::{ruint::Uint, B160};
 
     use crate::{
-        agent::{create_filter, user::User, Agent, AgentType},
+        agent::{user::User, Agent, AgentType, SimulationEventFilter},
         contract::SimulationContract,
         manager::SimulationManager,
     };
@@ -320,7 +322,7 @@ mod tests {
         let alice = User::new("alice", None);
         manager.activate_agent(AgentType::User(alice), B160::from_low_u64_be(2))?;
 
-        let event_filters = vec![create_filter(&writer, "WasWritten")];
+        let event_filters = vec![SimulationEventFilter::new(&writer, "WasWritten")];
         let bob = User::new("bob", Some(event_filters));
         manager.activate_agent(AgentType::User(bob), B160::from_low_u64_be(3))?;
 
@@ -388,7 +390,7 @@ mod tests {
         );
 
         // Create agent with a filter.
-        let event_filters = vec![create_filter(&arbt, "Approval")];
+        let event_filters = vec![SimulationEventFilter::new(&arbt, "Approval")];
         let alice = User::new("alice", Some(event_filters));
         manager.activate_agent(AgentType::User(alice), B160::from_low_u64_be(2))?;
         let alice = manager.agents.get("alice").unwrap();

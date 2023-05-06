@@ -146,7 +146,7 @@ mod tests {
 
     use super::SimpleArbitrageur;
     use crate::{
-        agent::{create_filter, filter_events, Agent, AgentType},
+        agent::{filter_events, Agent, AgentType, SimulationEventFilter},
         contract::SimulationContract,
         manager::SimulationManager,
         utils::recast_address,
@@ -221,8 +221,8 @@ mod tests {
 
         // Create a simple arbitrageur agent.
         let event_filters = vec![
-            create_filter(&liquid_exchange_xy0, "PriceChange"),
-            create_filter(&liquid_exchange_xy1, "PriceChange"),
+            SimulationEventFilter::new(&liquid_exchange_xy0, "PriceChange"),
+            SimulationEventFilter::new(&liquid_exchange_xy1, "PriceChange"),
         ];
 
         let arbitrageur =
@@ -363,8 +363,8 @@ mod tests {
 
         // Create a simple arbitrageur agent.
         let event_filters = vec![
-            create_filter(&liquid_exchange_xy0, "PriceChange"),
-            create_filter(&liquid_exchange_xy1, "PriceChange"),
+            SimulationEventFilter::new(&liquid_exchange_xy0, "PriceChange"),
+            SimulationEventFilter::new(&liquid_exchange_xy1, "PriceChange"),
         ];
         let arbitrageur =
             AgentType::SimpleArbitrageur(SimpleArbitrageur::new("arbitrageur", event_filters));

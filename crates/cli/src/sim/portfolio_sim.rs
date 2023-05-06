@@ -6,7 +6,7 @@ use ethers::prelude::U256;
 use eyre::Result;
 use revm::primitives::{ruint::Uint, B160};
 use simulate::{
-    agent::{user::User, Agent, AgentType},
+    agent::{user::User, Agent, AgentType, simple_arbitrageur::{self, SimpleArbitrageur}, NotActive, SimulationEventFilter},
     contract::{IsDeployed, SimulationContract},
     manager::SimulationManager,
     utils::recast_address,
@@ -366,6 +366,16 @@ fn portfolio_sim_intitalization_calls(
     println!("allocate result: {:#?}", allocate_result);
 
     Ok(())
+}
+
+fn create_arbitrageur<S: Into<String>>(liquid_exchange: SimulationContract<IsDeployed>, portfolio: SimulationContract<IsDeployed>, name: S) -> SimpleArbitrageur<NotActive> {
+    let mut event_filters = vec![];
+    event_filters.push(SimulationEventFilter::new(
+        &liquid_exchange,
+        "PriceChange",
+    ));
+    let arbitrageur = SimpleArbitrageur::new(name, event_filters);
+    arbitrageur
 }
 
 #[cfg(test)]
