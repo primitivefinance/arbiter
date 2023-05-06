@@ -1,13 +1,18 @@
 #![warn(missing_docs)]
-use std::{error::Error};
+use std::error::Error;
 
 use bindings::{
-    arbiter_token, liquid_exchange, rmm01_portfolio, simple_registry, weth9, shared_types::Order, i_portfolio_actions, portfolio_virtual
+    arbiter_token, i_portfolio_actions, liquid_exchange, portfolio_virtual, rmm01_portfolio,
+    shared_types::Order, simple_registry, weth9,
 };
 use bytes::Bytes;
-use ethers::{prelude::{U256, BaseContract}, types::H160, abi::{Token, Tokenize, ParamType, Function}};
+use ethers::{
+    abi::{Function, ParamType, Token, Tokenize},
+    prelude::{BaseContract, U256},
+    types::H160,
+};
 use eyre::Result;
-use revm::primitives::{ruint::Uint, B160, ExecutionResult};
+use revm::primitives::{ruint::Uint, ExecutionResult, B160};
 use simulate::{
     agent::{user::User, Agent, AgentType},
     contract::{IsDeployed, SimulationContract},
@@ -59,6 +64,7 @@ fn deploy_portfolio_sim_contracts(
 ) -> Result<SimulationContracts, Box<dyn Error>> {
     let decimals = 18_u8;
     let admin = manager.agents.get("admin").unwrap();
+
     // Deploy Weth
     let weth = SimulationContract::new(weth9::WETH9_ABI.clone(), weth9::WETH9_BYTECODE.clone());
     let weth = weth.deploy(&mut manager.environment, admin, ());
@@ -77,7 +83,6 @@ fn deploy_portfolio_sim_contracts(
         rmm01_portfolio::RMM01PORTFOLIO_ABI.clone(),
         rmm01_portfolio::RMM01PORTFOLIO_BYTECODE.clone(),
     );
-
     let portfolio_args = (
         recast_address(weth.address),
         recast_address(registry.address),
@@ -85,6 +90,7 @@ fn deploy_portfolio_sim_contracts(
     let portfolio = portfolio.deploy(&mut manager.environment, admin, portfolio_args);
     println!("Portfolio deployed at: {}", portfolio.address);
 
+    // Deploy Arbiter Tokens
     let arbiter_token = SimulationContract::new(
         arbiter_token::ARBITERTOKEN_ABI.clone(),
         arbiter_token::ARBITERTOKEN_BYTECODE.clone(),
@@ -93,18 +99,14 @@ fn deploy_portfolio_sim_contracts(
     // Choose name and symbol and combine into the constructor args required by ERC-20 contracts.
     let name = "ArbiterToken";
     let symbol = "ARBX";
-    let args = (name.to_string(), symbol.to_string(), decimals);
-
-    // Call the contract deployer and receive a IsDeployed version of SimulationContract that now has an address.
-    let arbiter_token_x = arbiter_token.deploy(&mut manager.environment, admin, args);
+    let arbx_args = (name.to_string(), symbol.to_string(), decimals);
+    let arbiter_token_x = arbiter_token.deploy(&mut manager.environment, admin, arbx_args);
     println!("Arbiter Token x deployed at: {}", arbiter_token_x.address);
 
     let name = "ArbiterTokenY";
     let symbol = "ARBY";
-    let args = (name.to_string(), symbol.to_string(), decimals);
-
-    // Call the contract deployer and receive a IsDeployed version of SimulationContract that now has an address.
-    let arbiter_token_y = arbiter_token.deploy(&mut manager.environment, admin, args);
+    let arby_args = (name.to_string(), symbol.to_string(), decimals);
+    let arbiter_token_y = arbiter_token.deploy(&mut manager.environment, admin, arby_args);
     println!("Arbiter Token Y deployed at: {}", arbiter_token_y.address);
 
     // Deploy LiquidExchange
@@ -114,12 +116,12 @@ fn deploy_portfolio_sim_contracts(
         liquid_exchange::LIQUIDEXCHANGE_ABI.clone(),
         liquid_exchange::LIQUIDEXCHANGE_BYTECODE.clone(),
     );
-    let args = (
+    let le_args = (
         recast_address(arbiter_token_x.address),
         recast_address(arbiter_token_y.address),
         initial_price,
     );
-    let liquid_exchange_xy = liquid_exchange.deploy(&mut manager.environment, admin, args);
+    let liquid_exchange_xy = liquid_exchange.deploy(&mut manager.environment, admin, le_args);
 
     Ok(SimulationContracts(
         arbiter_token_x,
@@ -139,33 +141,44 @@ fn portfolio_sim_intitalization_calls(
     contracts: SimulationContracts,
 ) -> Result<(), Box<dyn Error>> {
     let admin = manager.agents.get("admin").unwrap();
-    // Get all the necessary users.
+    let arbitrageur = manager.agents.get("arbitrageur").unwrap();
     let SimulationContracts(arbiter_token_x, arbiter_token_y, portfolio, liquid_exchange_xy) =
         contracts;
 
-    let arbitrageur = manager.agents.get("arbitrageur").unwrap();
-
+    // --------------------------------------------------------------------------------------------
+    // MINTING TOKENS
+    // --------------------------------------------------------------------------------------------
     // Allocating new tokens to user by calling Arbiter Token's ERC20 'mint' instance.
     let mint_amount = u128::MAX;
-    let input_arguments = (recast_address(arbitrageur.address()), mint_amount);
-    let call_data = arbiter_token_x.encode_function("mint", input_arguments)?;
 
     // Call the 'mint' function to the arber. for token x
     let result_mint_x_for_arber = admin.call_contract(
         &mut manager.environment,
         &arbiter_token_x,
-        call_data.clone(),
+        arbiter_token_x
+            .encode_function("mint", (recast_address(arbitrageur.address()), mint_amount))?,
         Uint::from(0),
-    ); // TODO: SOME KIND OF ERROR HANDLING IS NECESSARY FOR THESE TYPES OF CALLS
+    );
     println!(
         "Minted token_x to arber {:#?}",
         result_mint_x_for_arber.is_success()
     );
+    // Call the `mint` function for the admin for token x.
+    let mint_token_x_admin_arguments = (recast_address(admin.address()), mint_amount);
+    let execution_result = admin.call_contract(
+        &mut manager.environment,
+        &arbiter_token_x,
+        arbiter_token_x.encode_function("mint", (recast_address(admin.address()), mint_amount))?,
+        Uint::from(0),
+    );
+    assert!(execution_result.is_success());
+
     // Call the `mint` function to the arber for token y.
     let result_mint_y_for_arber = admin.call_contract(
         &mut manager.environment,
         &arbiter_token_y,
-        call_data,
+        arbiter_token_y
+            .encode_function("mint", (recast_address(arbitrageur.address()), mint_amount))?,
         Uint::from(0),
     );
     println!(
@@ -173,34 +186,23 @@ fn portfolio_sim_intitalization_calls(
         result_mint_y_for_arber.is_success()
     );
 
-    // Call the `mint` function for the admin for token x.
-    let mint_token_x_admin_arguments = (recast_address(admin.address()), mint_amount);
-    let call_data = arbiter_token_x.encode_function("mint", mint_token_x_admin_arguments)?;
-    let execution_result = admin.call_contract(
-        &mut manager.environment,
-        &arbiter_token_x,
-        call_data,
-        Uint::from(0),
-    );
-    assert!(execution_result.is_success());
     // Call the `mint` function for the admin for token y.
-    let mint_token_y_admin_arguments = (recast_address(admin.address()), mint_amount);
-    let call_data = arbiter_token_y.encode_function("mint", mint_token_y_admin_arguments)?;
     let execution_result = admin.call_contract(
         &mut manager.environment,
         &arbiter_token_y,
-        call_data,
+        arbiter_token_y.encode_function("mint", (recast_address(admin.address()), mint_amount))?,
         Uint::from(0),
     );
     assert!(execution_result.is_success());
 
-    // Mint max token_y to the liquid_exchange contract.
-    let args = (recast_address(liquid_exchange_xy.address), u128::MAX);
-    let call_data = arbiter_token_y.encode_function("mint", args)?;
+    // Mint large amount of token_y to the liquid_exchange contract.
     let mint_result_y_liquid_exchange = admin.call_contract(
         &mut manager.environment,
         &arbiter_token_y,
-        call_data,
+        arbiter_token_y.encode_function(
+            "mint",
+            (recast_address(liquid_exchange_xy.address), u128::MAX),
+        )?,
         Uint::from(0),
     );
     println!(
@@ -208,17 +210,16 @@ fn portfolio_sim_intitalization_calls(
         mint_result_y_liquid_exchange.is_success()
     );
 
+    // --------------------------------------------------------------------------------------------
     // APROVALS
     // --------------------------------------------------------------------------------------------
-    //
-    // aprove the liquid_exchange to spend the arbitrageur's token_x
-    let approve_liquid_excahnge_args = (recast_address(liquid_exchange_xy.address), U256::MAX);
-    let call_data = arbiter_token_x.encode_function("approve", approve_liquid_excahnge_args)?;
 
+    // ~~~ Liquid Exchange ~~~
+    // Approve the liquid_exchange to spend the arbitrageur's token_x
     let result = arbitrageur.call_contract(
         &mut manager.environment,
         &arbiter_token_x,
-        call_data,
+        arbiter_token_x.encode_function("approve", (recast_address(liquid_exchange_xy.address), U256::MAX))?,
         Uint::from(0),
     );
     println!(
@@ -226,105 +227,103 @@ fn portfolio_sim_intitalization_calls(
         result.is_success()
     );
 
-    // aprove the liquid_exchange to spend the arbitrageur's token_y
-    let approval_call_liquid_exchange =
-        arbiter_token_y.encode_function("approve", approve_liquid_excahnge_args)?;
-    let approval_call_result = arbitrageur.call_contract(
+    // Approve the liquid_exchange to spend the arbitrageur's token_y
+    let result = arbitrageur.call_contract(
         &mut manager.environment,
         &arbiter_token_y,
-        approval_call_liquid_exchange,
+        arbiter_token_y.encode_function("approve", (recast_address(liquid_exchange_xy.address), U256::MAX))?,
         Uint::from(0),
     );
     println!(
         "Aproved token_y to liquid_excahnge for arber: {:#?}",
-        approval_call_result.is_success()
+        result.is_success()
     );
 
-    // aprove tokens on portfolio for arbitrageur
-    let approve_portfolio_args = (recast_address(portfolio.address), U256::MAX);
-    // Approve token_y
-    let aprove_token_y_call_data =
-        arbiter_token_y.encode_function("approve", approve_portfolio_args)?;
+    // ~~~ Portfolio ~~~
+    // Approve the portfolio to spend the arbitrageur's token_x
+    let approve_token_x_result_arbitrageur = arbitrageur.call_contract(
+        &mut manager.environment,
+        &arbiter_token_x,
+        arbiter_token_x.encode_function("approve", (recast_address(portfolio.address), U256::MAX))?,
+        Uint::from(0),
+    );
+    println!(
+        "Aproved token_x to portfolio for arber: {:#?}",
+        approve_token_x_result_arbitrageur.is_success()
+    );
+
+    // Approve the portfolio to spend the admin's token_x
+    let approve_token_x_result_admin = admin.call_contract(
+        &mut manager.environment,
+        &arbiter_token_x,
+        arbiter_token_x.encode_function("approve", (recast_address(portfolio.address), U256::MAX))?,
+        Uint::from(0),
+    );
+    println!(
+        "Aproved token_x to portfolio for admin: {:#?}",
+        approve_token_x_result_admin.is_success()
+    );
+
+    // Approve the portfolio to spend the arbitrageur's token_y
     let approve_token_y_result_arbitrageur = arbitrageur.call_contract(
         &mut manager.environment,
         &arbiter_token_y,
-        aprove_token_y_call_data.clone(),
-        Uint::from(0),
-    );
-
-    let approve_token_y_result_admin = admin.call_contract(
-        &mut manager.environment,
-        &arbiter_token_y,
-        aprove_token_y_call_data.clone(),
+        arbiter_token_y.encode_function("approve", (recast_address(portfolio.address), U256::MAX))?,
         Uint::from(0),
     );
     println!(
         "Aproved token_y to portfolio for arber: {:#?}",
         approve_token_y_result_arbitrageur.is_success()
     );
+
+    // Approve the portfolio to spend the admin's token_y
+    let approve_token_y_result_admin = admin.call_contract(
+        &mut manager.environment,
+        &arbiter_token_y,
+        arbiter_token_y.encode_function("approve", (recast_address(portfolio.address), U256::MAX))?,
+        Uint::from(0),
+    );
     println!(
         "Aproved token_y to portfolio for admin: {:#?}",
         approve_token_y_result_admin.is_success()
     );
-    // approve token_x
-    let approve_token_x_call_data =
-        arbiter_token_x.encode_function("approve", approve_portfolio_args)?;
-    let approve_token_x_call_result_arbitrageur = arbitrageur.call_contract(
-        &mut manager.environment,
-        &arbiter_token_x,
-        approve_token_x_call_data.clone(),
-        Uint::from(0),
-    );
-    let approve_token_x_call_result_admin = admin.call_contract(
-        &mut manager.environment,
-        &arbiter_token_x,
-        approve_token_x_call_data.clone(),
-        Uint::from(0),
-    );
-
-    println!(
-        "Aproved token_x to portfolio for arber: {:#?}",
-        approve_token_x_call_result_arbitrageur.is_success()
-    );
-    println!(
-        "Aproved token_x to portfolio for admin: {:#?}",
-        approve_token_x_call_result_admin.is_success()
-    );
-
-    let create_pair_args = (
-        recast_address(arbiter_token_x.address),
-        recast_address(arbiter_token_y.address),
-    );
-    let create_pair_call_data = portfolio.encode_function("createPair", create_pair_args)?;
+    
+    // --------------------------------------------------------------------------------------------
+    // CREATE PORTFOLIO PAIR
+    // --------------------------------------------------------------------------------------------
+    let create_pair_args = rmm01_portfolio::CreatePairCall {
+        asset: recast_address(arbiter_token_x.address),
+        quote: recast_address(arbiter_token_y.address),
+    };
     let create_pair_result = admin.call_contract(
         &mut manager.environment,
         &portfolio,
-        create_pair_call_data,
+        portfolio.encode_function("createPair", create_pair_args)?,
         Uint::from(0),
     );
     assert!(create_pair_result.is_success());
-
     let create_pair_unpack = manager.unpack_execution(create_pair_result)?;
     let pair_id: u32 = portfolio.decode_output("createPair", create_pair_unpack)?;
     println!("Created portfolio pair with Pair id: {:#?}", pair_id);
 
-    let create_pool_builder = (
+    // --------------------------------------------------------------------------------------------
+    // CREATE PORTFOLIO PAIR
+    // --------------------------------------------------------------------------------------------
+    let create_pool_args = rmm01_portfolio::CreatePoolCall {
         pair_id,                         // pub pair_id: u32
-        recast_address(admin.address()), // pub controller: ::ethers::core::types::Address
-        100_u16,                         // pub priority_fee: u16,
-        100_u16,                         // pub fee: u16,
-        100_u16,                         // pub vol: u16,
-        65535_u16,                       // pub dur: u16,
-        0_u16,                           // pub jit: u16,
-        10000000000000000000u128,        // pub max_price: u128,
-        10000000000000000000u128,        // pub price: u128,
-    );
-
-    let create_pool_call = portfolio.encode_function("createPool", create_pool_builder)?;
+        controller: recast_address(admin.address()), // pub controller: ::ethers::core::types::Address
+        priority_fee: 100_u16,                         // pub priority_fee: u16,
+        fee: 100_u16,                         // pub fee: u16,
+        volatility: 100_u16,                         // pub vol: u16,
+        duration: 65535_u16,                       // pub dur: u16,
+        jit: 0_u16,                           // pub jit: u16,
+        max_price: 10000000000000000000u128,        // pub max_price: u128,
+        price: 10000000000000000000u128,        // pub price: u128,
+    };
     let create_pool_result = admin.call_contract(
         &mut manager.environment,
         &portfolio,
-        create_pool_call,
+        portfolio.encode_function("createPool", create_pool_args)?,
         Uint::from(0),
     );
     assert!(create_pool_result.is_success());
@@ -375,41 +374,52 @@ fn portfolio_sim_intitalization_calls(
     // 4980053002
     let input_amount = 100000000;
     let get_amount_out_args: (u64, bool, U256, H160) = (
-        pool_id,                        // pool_id: u64,
-        true,                           // sell_asset: bool,
-        U256::from(input_amount),          // amount_in: ::ethers::core::types::U256,
-        arbitrageur.address().into()           // swapper: ::ethers::core::types::Address,
+        pool_id,                      // pool_id: u64,
+        true,                         // sell_asset: bool,
+        U256::from(input_amount),     // amount_in: ::ethers::core::types::U256,
+        arbitrageur.address().into(), // swapper: ::ethers::core::types::Address,
     );
 
-    let get_amount_out_call_data = portfolio.encode_function("getAmountOut", get_amount_out_args)?;
-    println!("getAmountOut call data: {:#?}", hex::encode(get_amount_out_call_data.clone()));
-    let get_amount_out_result = admin.call_contract(&mut manager.environment,
+    let get_amount_out_call_data =
+        portfolio.encode_function("getAmountOut", get_amount_out_args)?;
+    println!(
+        "getAmountOut call data: {:#?}",
+        hex::encode(get_amount_out_call_data.clone())
+    );
+    let get_amount_out_result = admin.call_contract(
+        &mut manager.environment,
         &portfolio,
         get_amount_out_call_data,
         Uint::from(0),
     );
     assert!(get_amount_out_result.is_success());
     let unpacked_get_amount_out = manager.unpack_execution(get_amount_out_result)?;
-    println!("getAmountOut result: {:#?}", hex::encode(unpacked_get_amount_out.clone()));
-    let decoded_amount_out: u128 = portfolio.decode_output("getAmountOut", unpacked_get_amount_out)?;
+    println!(
+        "getAmountOut result: {:#?}",
+        hex::encode(unpacked_get_amount_out.clone())
+    );
+    let decoded_amount_out: u128 =
+        portfolio.decode_output("getAmountOut", unpacked_get_amount_out)?;
     println!("getAmountOut result: {:#?}", decoded_amount_out);
 
     // // for somereason we want this type
     // let swap_args_order = (Order {
     //     use_max: false,                  // pub use_max: bool,
     //     pool_id,                         // pub pool_id: u64,
-    //     input: input_amount as u128,          // pub input: u128, 
+    //     input: input_amount as u128,          // pub input: u128,
     //     output: decoded_amount_out,      // pub output: u128,
     //     sell_asset: false,               // pub sell_asset: bool,
     // });
 
-    let swap_args = {(
-        false,                  // pub use_max: bool,
-        pool_id,                         // pub pool_id: u64,
-        input_amount as u128,          // pub input: u128, 
-        decoded_amount_out,      // pub output: u128,
-        false,               // pub sell_asset: bool,
-    )};
+    let swap_args = {
+        (
+            false,                // pub use_max: bool,
+            pool_id,              // pub pool_id: u64,
+            input_amount as u128, // pub input: u128,
+            decoded_amount_out,   // pub output: u128,
+            false,                // pub sell_asset: bool,
+        )
+    };
 
     // from cast
     let magic_hexstring: Bytes = hex::decode("64f14ef20000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000001010000000100000000000000000000000000000000000000000000000000000000009896800000000000000000000000000000000000000000000000000000000005e66f6f0000000000000000000000000000000000000000000000000000000000000001".as_bytes())?.into_iter().collect();
@@ -421,14 +431,13 @@ fn portfolio_sim_intitalization_calls(
     // 0x0000000000000000000000000000000000000000000000000000000000000020
     // 0x00000000000000000000000000000000000000000000000000000000000000a0
     // 0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000010100000001000000000000000000000000000000000000000000000000000000003b9aca00000000000000000000000000000000000000000000000000000000003aef626e000000000000000000000000000000000000000000000000000000000
-    
+
     println!("swap args: {:#?}", swap_args);
 
     let _portfolio_virtual = BaseContract::from(portfolio_virtual::PORTFOLIOVIRTUAL_ABI.clone());
     //let sig = 0x64f14ef2
     //let function_selector = portfolio_virtual.encode_with_selector(signature, args)
     // getting error on encoding
-
 
     //let thing = portfolio_virtual.encode(name, args)
     // let func = portfolio_virtual.abi().function("swap").unwrap();
@@ -446,12 +455,14 @@ fn portfolio_sim_intitalization_calls(
 
     // let swap_call_data = portfolio_virtual.encode("swap", swap_args_order)?;
     // println!("Thing1");
-    let swap_result = admin.call_contract(&mut manager.environment,
+    let swap_result = admin.call_contract(
+        &mut manager.environment,
         &portfolio,
         portfolio.encode_function("swap", (swap_args,)).unwrap(),
         Uint::from(0),
     );
-    let input_bytes: &[u8] = b"NH{q\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\x11";
+    let input_bytes: &[u8] =
+        b"NH{q\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\x11";
     let hex_string = hex::encode(input_bytes);
     println!("Hex String: {:#?}", hex_string);
     let unpacked_result = manager.unpack_execution(swap_result.clone())?;
@@ -459,7 +470,7 @@ fn portfolio_sim_intitalization_calls(
     // println!("Bytes From Chisle {:#?}", bytes_from_chisle);
     println!("{:#?}", swap_result);
     println!("{:#?}", decoded_result);
-    // gas is different 
+    // gas is different
     Ok(())
 }
 
@@ -573,7 +584,6 @@ mod tests {
             Uint::from(0),
         );
         assert!(create_pool_result.is_success());
-
 
         Ok(())
     }
