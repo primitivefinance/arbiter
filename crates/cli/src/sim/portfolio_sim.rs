@@ -2,7 +2,7 @@
 use std::error::Error;
 
 use bindings::{arbiter_token, liquid_exchange, rmm01_portfolio, simple_registry, weth9};
-use ethers::{prelude::U256, types::H160};
+use ethers::{prelude::U256, types::{H160, I256}};
 use eyre::Result;
 use revm::primitives::{ruint::Uint, B160};
 use simulate::{
@@ -410,11 +410,13 @@ fn portfolio_sim_intitalization_calls(
     );
 
     // Construct the swap using the above amount
+    let amount_out = decoded_amount_out * 9 / 10;
+    println!("Decreased amount out is: {}", amount_out);
     let swap_args = (
         false,                // pub use_max: bool,
         pool_id,              // pub pool_id: u64,
         input_amount as u128, // pub input: u128,
-        decoded_amount_out,   // pub output: u128,
+        amount_out,   // pub output: u128,
         false,                // pub sell_asset: bool,
     );
     let swap_result = admin.call_contract(
@@ -423,8 +425,18 @@ fn portfolio_sim_intitalization_calls(
         portfolio.encode_function("swap", (swap_args,))?,
         Uint::from(0),
     );
-    let unpacked_result = manager.unpack_execution(swap_result.clone())?;
-    let decoded_result: U256 = portfolio.decode_output("swap", unpacked_result)?;
+    let unpacked_result = match manager.unpack_execution(swap_result.clone()) {
+        Ok(unpacked) => unpacked,
+        Err(e) => {
+            e.output.unwrap()
+        }
+    };
+    
+    // let decoded_result: U256 = portfolio.decode_output("swap", unpacked_result.clone())?;
+    // println!("The result of the swap is {:#?}", decoded_result);
+    let hex_value: u32 = 0x2125a168;
+    let selector: [u8; 4] = hex_value.to_be_bytes();
+    let decoded_result = portfolio.decode_error("InvalidInvariant".to_string(), unpacked_result);
     println!("The result of the swap is {:#?}", decoded_result);
     Ok(())
 }
