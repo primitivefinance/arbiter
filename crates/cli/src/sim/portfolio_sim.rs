@@ -252,7 +252,7 @@ fn portfolio_sim_intitalization_calls(
     let approve_token_y_result_admin = admin.call_contract(
         &mut manager.environment,
         &arbiter_token_y,
-        aprove_token_y_call_data.clone(),
+        aprove_token_y_call_data,
         Uint::from(0),
     );
     println!(
@@ -275,7 +275,7 @@ fn portfolio_sim_intitalization_calls(
     let approve_token_x_call_result_admin = admin.call_contract(
         &mut manager.environment,
         &arbiter_token_x,
-        approve_token_x_call_data.clone(),
+        approve_token_x_call_data,
         Uint::from(0),
     );
 
