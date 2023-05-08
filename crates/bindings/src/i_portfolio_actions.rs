@@ -7,19 +7,17 @@ pub use i_portfolio_actions::*;
     clippy::upper_case_acronyms,
     clippy::type_complexity,
     dead_code,
-    non_camel_case_types,
+    non_camel_case_types
 )]
 pub mod i_portfolio_actions {
     pub use super::super::shared_types::*;
     #[rustfmt::skip]
     const __ABI: &str = "[{\"inputs\":[{\"internalType\":\"bool\",\"name\":\"useMax\",\"type\":\"bool\",\"components\":[]},{\"internalType\":\"uint64\",\"name\":\"poolId\",\"type\":\"uint64\",\"components\":[]},{\"internalType\":\"uint128\",\"name\":\"deltaLiquidity\",\"type\":\"uint128\",\"components\":[]},{\"internalType\":\"uint128\",\"name\":\"maxDeltaAsset\",\"type\":\"uint128\",\"components\":[]},{\"internalType\":\"uint128\",\"name\":\"maxDeltaQuote\",\"type\":\"uint128\",\"components\":[]}],\"stateMutability\":\"payable\",\"type\":\"function\",\"name\":\"allocate\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"deltaAsset\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"deltaQuote\",\"type\":\"uint256\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"uint64\",\"name\":\"poolId\",\"type\":\"uint64\",\"components\":[]},{\"internalType\":\"uint16\",\"name\":\"priorityFee\",\"type\":\"uint16\",\"components\":[]},{\"internalType\":\"uint16\",\"name\":\"fee\",\"type\":\"uint16\",\"components\":[]},{\"internalType\":\"uint16\",\"name\":\"jit\",\"type\":\"uint16\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"function\",\"name\":\"changeParameters\",\"outputs\":[]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"token\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"function\",\"name\":\"claimFee\",\"outputs\":[]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"asset\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"address\",\"name\":\"quote\",\"type\":\"address\",\"components\":[]}],\"stateMutability\":\"payable\",\"type\":\"function\",\"name\":\"createPair\",\"outputs\":[{\"internalType\":\"uint24\",\"name\":\"pairId\",\"type\":\"uint24\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"uint24\",\"name\":\"pairId\",\"type\":\"uint24\",\"components\":[]},{\"internalType\":\"address\",\"name\":\"controller\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint16\",\"name\":\"priorityFee\",\"type\":\"uint16\",\"components\":[]},{\"internalType\":\"uint16\",\"name\":\"fee\",\"type\":\"uint16\",\"components\":[]},{\"internalType\":\"uint16\",\"name\":\"volatility\",\"type\":\"uint16\",\"components\":[]},{\"internalType\":\"uint16\",\"name\":\"duration\",\"type\":\"uint16\",\"components\":[]},{\"internalType\":\"uint16\",\"name\":\"jit\",\"type\":\"uint16\",\"components\":[]},{\"internalType\":\"uint128\",\"name\":\"maxPrice\",\"type\":\"uint128\",\"components\":[]},{\"internalType\":\"uint128\",\"name\":\"price\",\"type\":\"uint128\",\"components\":[]}],\"stateMutability\":\"payable\",\"type\":\"function\",\"name\":\"createPool\",\"outputs\":[{\"internalType\":\"uint64\",\"name\":\"poolId\",\"type\":\"uint64\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"bool\",\"name\":\"useMax\",\"type\":\"bool\",\"components\":[]},{\"internalType\":\"uint64\",\"name\":\"poolId\",\"type\":\"uint64\",\"components\":[]},{\"internalType\":\"uint128\",\"name\":\"deltaLiquidity\",\"type\":\"uint128\",\"components\":[]},{\"internalType\":\"uint128\",\"name\":\"minDeltaAsset\",\"type\":\"uint128\",\"components\":[]},{\"internalType\":\"uint128\",\"name\":\"minDeltaQuote\",\"type\":\"uint128\",\"components\":[]}],\"stateMutability\":\"payable\",\"type\":\"function\",\"name\":\"deallocate\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"deltaAsset\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"deltaQuote\",\"type\":\"uint256\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"bytes[]\",\"name\":\"data\",\"type\":\"bytes[]\",\"components\":[]}],\"stateMutability\":\"payable\",\"type\":\"function\",\"name\":\"multicall\",\"outputs\":[{\"internalType\":\"bytes[]\",\"name\":\"results\",\"type\":\"bytes[]\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"fee\",\"type\":\"uint256\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"function\",\"name\":\"setProtocolFee\",\"outputs\":[]},{\"inputs\":[{\"internalType\":\"struct Order\",\"name\":\"args\",\"type\":\"tuple\",\"components\":[{\"internalType\":\"bool\",\"name\":\"useMax\",\"type\":\"bool\",\"components\":[]},{\"internalType\":\"uint64\",\"name\":\"poolId\",\"type\":\"uint64\",\"components\":[]},{\"internalType\":\"uint128\",\"name\":\"input\",\"type\":\"uint128\",\"components\":[]},{\"internalType\":\"uint128\",\"name\":\"output\",\"type\":\"uint128\",\"components\":[]},{\"internalType\":\"bool\",\"name\":\"sellAsset\",\"type\":\"bool\",\"components\":[]}]}],\"stateMutability\":\"payable\",\"type\":\"function\",\"name\":\"swap\",\"outputs\":[{\"internalType\":\"uint64\",\"name\":\"poolId\",\"type\":\"uint64\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"input\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"output\",\"type\":\"uint256\",\"components\":[]}]}]";
     ///The parsed JSON ABI of the contract.
-    pub static IPORTFOLIOACTIONS_ABI: ::ethers::contract::Lazy<
-        ::ethers::core::abi::Abi,
-    > = ::ethers::contract::Lazy::new(|| {
-        ::ethers::core::utils::__serde_json::from_str(__ABI)
-            .expect("ABI is always valid")
-    });
+    pub static IPORTFOLIOACTIONS_ABI: ::ethers::contract::Lazy<::ethers::core::abi::Abi> =
+        ::ethers::contract::Lazy::new(|| {
+            ::ethers::core::utils::__serde_json::from_str(__ABI).expect("ABI is always valid")
+        });
     pub struct IPortfolioActions<M>(::ethers::contract::Contract<M>);
     impl<M> ::core::clone::Clone for IPortfolioActions<M> {
         fn clone(&self) -> Self {
@@ -39,7 +37,9 @@ pub mod i_portfolio_actions {
     }
     impl<M> ::core::fmt::Debug for IPortfolioActions<M> {
         fn fmt(&self, f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
-            f.debug_tuple(stringify!(IPortfolioActions)).field(&self.address()).finish()
+            f.debug_tuple(stringify!(IPortfolioActions))
+                .field(&self.address())
+                .finish()
         }
     }
     impl<M: ::ethers::providers::Middleware> IPortfolioActions<M> {
@@ -49,13 +49,11 @@ pub mod i_portfolio_actions {
             address: T,
             client: ::std::sync::Arc<M>,
         ) -> Self {
-            Self(
-                ::ethers::contract::Contract::new(
-                    address.into(),
-                    IPORTFOLIOACTIONS_ABI.clone(),
-                    client,
-                ),
-            )
+            Self(::ethers::contract::Contract::new(
+                address.into(),
+                IPORTFOLIOACTIONS_ABI.clone(),
+                client,
+            ))
         }
         ///Calls the contract's `allocate` (0x94c32b4a) function
         pub fn allocate(
@@ -72,7 +70,13 @@ pub mod i_portfolio_actions {
             self.0
                 .method_hash(
                     [148, 195, 43, 74],
-                    (use_max, pool_id, delta_liquidity, max_delta_asset, max_delta_quote),
+                    (
+                        use_max,
+                        pool_id,
+                        delta_liquidity,
+                        max_delta_asset,
+                        max_delta_quote,
+                    ),
                 )
                 .expect("method not found (this should never happen)")
         }
@@ -153,7 +157,13 @@ pub mod i_portfolio_actions {
             self.0
                 .method_hash(
                     [91, 197, 84, 100],
-                    (use_max, pool_id, delta_liquidity, min_delta_asset, min_delta_quote),
+                    (
+                        use_max,
+                        pool_id,
+                        delta_liquidity,
+                        min_delta_asset,
+                        min_delta_quote,
+                    ),
                 )
                 .expect("method not found (this should never happen)")
         }
@@ -184,7 +194,11 @@ pub mod i_portfolio_actions {
             args: Order,
         ) -> ::ethers::contract::builders::ContractCall<
             M,
-            (u64, ::ethers::core::types::U256, ::ethers::core::types::U256),
+            (
+                u64,
+                ::ethers::core::types::U256,
+                ::ethers::core::types::U256,
+            ),
         > {
             self.0
                 .method_hash([100, 241, 78, 242], (args,))
@@ -192,7 +206,8 @@ pub mod i_portfolio_actions {
         }
     }
     impl<M: ::ethers::providers::Middleware> From<::ethers::contract::Contract<M>>
-    for IPortfolioActions<M> {
+        for IPortfolioActions<M>
+    {
         fn from(contract: ::ethers::contract::Contract<M>) -> Self {
             Self::new(contract.address(), contract.client())
         }
@@ -206,9 +221,12 @@ pub mod i_portfolio_actions {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
-    #[ethcall(name = "allocate", abi = "allocate(bool,uint64,uint128,uint128,uint128)")]
+    #[ethcall(
+        name = "allocate",
+        abi = "allocate(bool,uint64,uint128,uint128,uint128)"
+    )]
     pub struct AllocateCall {
         pub use_max: bool,
         pub pool_id: u64,
@@ -225,7 +243,7 @@ pub mod i_portfolio_actions {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(
         name = "changeParameters",
@@ -246,7 +264,7 @@ pub mod i_portfolio_actions {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "claimFee", abi = "claimFee(address,uint256)")]
     pub struct ClaimFeeCall {
@@ -262,7 +280,7 @@ pub mod i_portfolio_actions {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "createPair", abi = "createPair(address,address)")]
     pub struct CreatePairCall {
@@ -278,7 +296,7 @@ pub mod i_portfolio_actions {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(
         name = "createPool",
@@ -304,7 +322,7 @@ pub mod i_portfolio_actions {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(
         name = "deallocate",
@@ -326,7 +344,7 @@ pub mod i_portfolio_actions {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "multicall", abi = "multicall(bytes[])")]
     pub struct MulticallCall {
@@ -341,7 +359,7 @@ pub mod i_portfolio_actions {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "setProtocolFee", abi = "setProtocolFee(uint256)")]
     pub struct SetProtocolFeeCall {
@@ -356,7 +374,7 @@ pub mod i_portfolio_actions {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "swap", abi = "swap((bool,uint64,uint128,uint128,bool))")]
     pub struct SwapCall {
@@ -380,42 +398,35 @@ pub mod i_portfolio_actions {
             data: impl AsRef<[u8]>,
         ) -> ::core::result::Result<Self, ::ethers::core::abi::AbiError> {
             let data = data.as_ref();
-            if let Ok(decoded)
-                = <AllocateCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <AllocateCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::Allocate(decoded));
             }
-            if let Ok(decoded)
-                = <ChangeParametersCall as ::ethers::core::abi::AbiDecode>::decode(
-                    data,
-                ) {
+            if let Ok(decoded) =
+                <ChangeParametersCall as ::ethers::core::abi::AbiDecode>::decode(data)
+            {
                 return Ok(Self::ChangeParameters(decoded));
             }
-            if let Ok(decoded)
-                = <ClaimFeeCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <ClaimFeeCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::ClaimFee(decoded));
             }
-            if let Ok(decoded)
-                = <CreatePairCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <CreatePairCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::CreatePair(decoded));
             }
-            if let Ok(decoded)
-                = <CreatePoolCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <CreatePoolCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::CreatePool(decoded));
             }
-            if let Ok(decoded)
-                = <DeallocateCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <DeallocateCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::Deallocate(decoded));
             }
-            if let Ok(decoded)
-                = <MulticallCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <MulticallCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::Multicall(decoded));
             }
-            if let Ok(decoded)
-                = <SetProtocolFeeCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) =
+                <SetProtocolFeeCall as ::ethers::core::abi::AbiDecode>::decode(data)
+            {
                 return Ok(Self::SetProtocolFee(decoded));
             }
-            if let Ok(decoded)
-                = <SwapCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <SwapCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::Swap(decoded));
             }
             Err(::ethers::core::abi::Error::InvalidData.into())
@@ -424,30 +435,14 @@ pub mod i_portfolio_actions {
     impl ::ethers::core::abi::AbiEncode for IPortfolioActionsCalls {
         fn encode(self) -> Vec<u8> {
             match self {
-                Self::Allocate(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
-                Self::ChangeParameters(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
-                Self::ClaimFee(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
-                Self::CreatePair(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
-                Self::CreatePool(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
-                Self::Deallocate(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
-                Self::Multicall(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
-                Self::SetProtocolFee(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
+                Self::Allocate(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::ChangeParameters(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::ClaimFee(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::CreatePair(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::CreatePool(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::Deallocate(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::Multicall(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::SetProtocolFee(element) => ::ethers::core::abi::AbiEncode::encode(element),
                 Self::Swap(element) => ::ethers::core::abi::AbiEncode::encode(element),
             }
         }
@@ -521,7 +516,7 @@ pub mod i_portfolio_actions {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     pub struct AllocateReturn {
         pub delta_asset: ::ethers::core::types::U256,
@@ -536,7 +531,7 @@ pub mod i_portfolio_actions {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     pub struct CreatePairReturn {
         pub pair_id: u32,
@@ -550,7 +545,7 @@ pub mod i_portfolio_actions {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     pub struct CreatePoolReturn {
         pub pool_id: u64,
@@ -564,7 +559,7 @@ pub mod i_portfolio_actions {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     pub struct DeallocateReturn {
         pub delta_asset: ::ethers::core::types::U256,
@@ -579,7 +574,7 @@ pub mod i_portfolio_actions {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     pub struct MulticallReturn {
         pub results: ::std::vec::Vec<::ethers::core::types::Bytes>,
@@ -593,7 +588,7 @@ pub mod i_portfolio_actions {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     pub struct SwapReturn {
         pub pool_id: u64,
