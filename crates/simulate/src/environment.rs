@@ -5,7 +5,7 @@
 use crossbeam_channel::Sender;
 use revm::{
     db::{CacheDB, EmptyDB},
-    primitives::{ExecutionResult, Log, TxEnv},
+    primitives::{ExecutionResult, Log, TxEnv, U256},
     EVM,
 };
 
@@ -25,6 +25,7 @@ impl SimulationEnvironment {
         let mut evm = EVM::new();
         let db = CacheDB::new(EmptyDB {});
         evm.env.cfg.limit_contract_code_size = Some(0x100000); // This is a large contract size limit, beware!
+        evm.env.block.gas_limit = U256::MAX;
         evm.database(db);
         let event_senders = vec![];
         Self { evm, event_senders }

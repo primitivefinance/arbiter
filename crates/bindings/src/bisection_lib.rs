@@ -1,4 +1,4 @@
-pub use fvm_lib::*;
+pub use bisection_lib::*;
 /// This module was auto-generated with ethers-rs Abigen.
 /// More information at: <https://github.com/gakonst/ethers-rs>
 #[allow(
@@ -9,39 +9,39 @@ pub use fvm_lib::*;
     dead_code,
     non_camel_case_types
 )]
-pub mod fvm_lib {
+pub mod bisection_lib {
     #[rustfmt::skip]
     const __ABI: &str = "[]";
     ///The parsed JSON ABI of the contract.
-    pub static FVMLIB_ABI: ::ethers::contract::Lazy<::ethers::core::abi::Abi> =
+    pub static BISECTIONLIB_ABI: ::ethers::contract::Lazy<::ethers::core::abi::Abi> =
         ::ethers::contract::Lazy::new(|| {
             ::ethers::core::utils::__serde_json::from_str(__ABI).expect("ABI is always valid")
         });
-    pub struct FVMLib<M>(::ethers::contract::Contract<M>);
-    impl<M> ::core::clone::Clone for FVMLib<M> {
+    pub struct BisectionLib<M>(::ethers::contract::Contract<M>);
+    impl<M> ::core::clone::Clone for BisectionLib<M> {
         fn clone(&self) -> Self {
             Self(::core::clone::Clone::clone(&self.0))
         }
     }
-    impl<M> ::core::ops::Deref for FVMLib<M> {
+    impl<M> ::core::ops::Deref for BisectionLib<M> {
         type Target = ::ethers::contract::Contract<M>;
         fn deref(&self) -> &Self::Target {
             &self.0
         }
     }
-    impl<M> ::core::ops::DerefMut for FVMLib<M> {
+    impl<M> ::core::ops::DerefMut for BisectionLib<M> {
         fn deref_mut(&mut self) -> &mut Self::Target {
             &mut self.0
         }
     }
-    impl<M> ::core::fmt::Debug for FVMLib<M> {
+    impl<M> ::core::fmt::Debug for BisectionLib<M> {
         fn fmt(&self, f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
-            f.debug_tuple(stringify!(FVMLib))
+            f.debug_tuple(stringify!(BisectionLib))
                 .field(&self.address())
                 .finish()
         }
     }
-    impl<M: ::ethers::providers::Middleware> FVMLib<M> {
+    impl<M: ::ethers::providers::Middleware> BisectionLib<M> {
         /// Creates a new contract instance with the specified `ethers` client at
         /// `address`. The contract derefs to a `ethers::Contract` object.
         pub fn new<T: Into<::ethers::core::types::Address>>(
@@ -50,12 +50,12 @@ pub mod fvm_lib {
         ) -> Self {
             Self(::ethers::contract::Contract::new(
                 address.into(),
-                FVMLIB_ABI.clone(),
+                BISECTIONLIB_ABI.clone(),
                 client,
             ))
         }
     }
-    impl<M: ::ethers::providers::Middleware> From<::ethers::contract::Contract<M>> for FVMLib<M> {
+    impl<M: ::ethers::providers::Middleware> From<::ethers::contract::Contract<M>> for BisectionLib<M> {
         fn from(contract: ::ethers::contract::Contract<M>) -> Self {
             Self::new(contract.address(), contract.client())
         }
