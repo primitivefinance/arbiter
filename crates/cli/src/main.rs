@@ -96,7 +96,7 @@ enum SimSubcommands {
     #[clap(about = "Runs portfolio simulation")]
     Portfolio,
     #[clap(about = "Runs Uniswap V3 simulation")]
-    UniswapV3,
+    Uniswap,
 }
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {
@@ -108,7 +108,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
                 SimSubcommands::Portfolio => {
                     sim::portfolio_sim::portfolio_sim()?;
                 }
-                SimSubcommands::UniswapV3 => {
+                SimSubcommands::Uniswap => {
                     sim::uniswap_sim::uniswap_sim()?;
                 }
             }
