@@ -2,10 +2,7 @@
 use std::error::Error;
 
 use bindings::{arbiter_token, liquid_exchange, rmm01_portfolio, simple_registry, weth9};
-use ethers::{
-    prelude::U256,
-    types::{H160, I256},
-};
+use ethers::{prelude::U256, types::I256};
 use eyre::Result;
 use revm::primitives::{ruint::Uint, B160};
 use simulate::{
@@ -340,7 +337,7 @@ fn portfolio_sim_intitalization_calls(
     // --------------------------------------------------------------------------------------------
     // PORTFOLIO POOL LIQUIDITY DELTAS
     // --------------------------------------------------------------------------------------------
-    let delta_liquidity = 1_000_000_000_000_i128;
+    let delta_liquidity = 10_i128.pow(19);
     let get_liquidity_args = rmm01_portfolio::GetLiquidityDeltasCall {
         pool_id,
         delta_liquidity,
@@ -387,14 +384,12 @@ fn portfolio_sim_intitalization_calls(
     // PORTFOLIO POOL SWAP
     // --------------------------------------------------------------------------------------------
     // Get the correct amount of ARBY to get from a certain amount of ARBX using `getAmountOut`
-    // let input_amount = 100_000_000; // This used to cause an underflow revert in `nextDependentWad = liveDependentWad - deltaOutput;`
-    // let input_amount = 1_000_000_000; // This causes InvalidInvariant revert.
     let input_amount = 1_000_000; // This causes InvalidInvariant revert.
     let get_amount_out_args = rmm01_portfolio::GetAmountOutCall {
         pool_id,                               // pool_id: u64,
-        sell_asset: true,                      // sell_asset: bool, // Setting this to true means we are selling ARBX for ARBY
-        amount_in: U256::from(input_amount),   // amount_in: ::ethers::core::types::U256,
-        liquidity_delta: I256::from(0),        // liquidity_delta: ::ethers::core::types::I256,
+        sell_asset: false, /* sell_asset: bool, // Setting this to true means we are selling ARBX for ARBY */
+        amount_in: U256::from(input_amount), // amount_in: ::ethers::core::types::U256,
+        liquidity_delta: I256::from(0), // liquidity_delta: ::ethers::core::types::I256,
         swapper: arbitrageur.address().into(), // swapper: ::ethers::core::types::Address,
     };
     let get_amount_out_result = admin.call_contract(
@@ -413,8 +408,7 @@ fn portfolio_sim_intitalization_calls(
     );
 
     // Construct the swap using the above amount
-    let amount_out = decoded_amount_out * 5 / 10;
-    println!("Decreased amount out is: {}", amount_out);
+    let amount_out = decoded_amount_out;
     let order = rmm01_portfolio::Order {
         input: input_amount as u128,
         output: amount_out,
@@ -429,14 +423,18 @@ fn portfolio_sim_intitalization_calls(
         portfolio.encode_function("swap", swap_args)?,
         Uint::from(0),
     );
-    let unpacked_result = match manager.unpack_execution(swap_result.clone()) {
-        Ok(unpacked) => unpacked,
-        Err(e) => e.output.unwrap(),
+    match manager.unpack_execution(swap_result) {
+        Ok(unpacked) => {
+            let swap_result: (u64, U256, U256) = portfolio.decode_output("swap", unpacked)?;
+            println!("Swap result is {:#?}", swap_result);
+        }
+        Err(e) => {
+            // This `InvalidInvariant` can pop up in multiple ways. Best to check for this.
+            let value = e.output.unwrap();
+            let decoded_result = portfolio.decode_error("InvalidInvariant".to_string(), value);
+            println!("The result of `InvalidInvariant` is: {:#?}", decoded_result)
+        }
     };
-
-    // let decoded_result: U256 = portfolio.decode_output("swap", unpacked_result.clone())?;
-    let decoded_result = portfolio.decode_error("InvalidInvariant".to_string(), unpacked_result);
-    println!("The result of the swap is {:#?}", decoded_result);
     Ok(())
 }
 

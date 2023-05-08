@@ -92,7 +92,6 @@ impl SimulationManager {
         if self
             .agents
             .values()
-            .into_iter()
             .any(|agent_in_db| agent_in_db.inner().address() == new_agent_address)
         {
             return Err(ManagerError {
@@ -104,7 +103,6 @@ impl SimulationManager {
         if self
             .agents
             .keys()
-            .into_iter()
             .any(|name_in_db| *name_in_db == new_agent.inner().name())
         {
             return Err(ManagerError {
