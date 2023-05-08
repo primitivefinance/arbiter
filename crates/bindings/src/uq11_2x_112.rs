@@ -1,4 +1,4 @@
-pub use tick_math::*;
+pub use uq11_2x_112::*;
 /// This module was auto-generated with ethers-rs Abigen.
 /// More information at: <https://github.com/gakonst/ethers-rs>
 #[allow(
@@ -9,18 +9,18 @@ pub use tick_math::*;
     dead_code,
     non_camel_case_types
 )]
-pub mod tick_math {
+pub mod uq11_2x_112 {
     #[rustfmt::skip]
     const __ABI: &str = "[]";
     ///The parsed JSON ABI of the contract.
-    pub static TICKMATH_ABI: ::ethers::contract::Lazy<::ethers::core::abi::Abi> =
+    pub static UQ112X112_ABI: ::ethers::contract::Lazy<::ethers::core::abi::Abi> =
         ::ethers::contract::Lazy::new(|| {
             ::ethers::core::utils::__serde_json::from_str(__ABI).expect("ABI is always valid")
         });
     #[rustfmt::skip]
     const __BYTECODE: &[u8] = &[
         96,
-        86,
+        85,
         96,
         35,
         96,
@@ -88,47 +88,46 @@ pub mod tick_math {
         253,
         254,
         162,
-        100,
-        105,
-        112,
-        102,
-        115,
+        101,
+        98,
+        122,
+        122,
+        114,
+        49,
         88,
-        34,
-        18,
         32,
-        51,
-        61,
-        73,
-        145,
-        150,
-        17,
-        88,
-        252,
-        100,
-        90,
-        192,
-        204,
+        115,
+        163,
+        248,
         138,
-        25,
-        150,
-        29,
-        15,
-        210,
-        124,
-        151,
-        217,
-        73,
-        226,
-        24,
-        89,
-        170,
-        148,
-        93,
-        135,
+        116,
+        191,
+        215,
+        239,
+        192,
+        224,
+        0,
         3,
-        158,
-        2,
+        66,
+        78,
+        246,
+        118,
+        244,
+        63,
+        190,
+        146,
+        113,
+        167,
+        243,
+        164,
+        110,
+        11,
+        195,
+        250,
+        250,
+        200,
+        232,
+        62,
         100,
         115,
         111,
@@ -136,13 +135,13 @@ pub mod tick_math {
         99,
         67,
         0,
-        7,
-        6,
+        5,
+        16,
         0,
-        51,
+        50,
     ];
     ///The bytecode of the contract.
-    pub static TICKMATH_BYTECODE: ::ethers::core::types::Bytes =
+    pub static UQ112X112_BYTECODE: ::ethers::core::types::Bytes =
         ::ethers::core::types::Bytes::from_static(__BYTECODE);
     #[rustfmt::skip]
     const __DEPLOYED_BYTECODE: &[u8] = &[
@@ -180,47 +179,46 @@ pub mod tick_math {
         253,
         254,
         162,
-        100,
-        105,
-        112,
-        102,
-        115,
+        101,
+        98,
+        122,
+        122,
+        114,
+        49,
         88,
-        34,
-        18,
         32,
-        51,
-        61,
-        73,
-        145,
-        150,
-        17,
-        88,
-        252,
-        100,
-        90,
-        192,
-        204,
+        115,
+        163,
+        248,
         138,
-        25,
-        150,
-        29,
-        15,
-        210,
-        124,
-        151,
-        217,
-        73,
-        226,
-        24,
-        89,
-        170,
-        148,
-        93,
-        135,
+        116,
+        191,
+        215,
+        239,
+        192,
+        224,
+        0,
         3,
-        158,
-        2,
+        66,
+        78,
+        246,
+        118,
+        244,
+        63,
+        190,
+        146,
+        113,
+        167,
+        243,
+        164,
+        110,
+        11,
+        195,
+        250,
+        250,
+        200,
+        232,
+        62,
         100,
         115,
         111,
@@ -228,39 +226,39 @@ pub mod tick_math {
         99,
         67,
         0,
-        7,
-        6,
+        5,
+        16,
         0,
-        51,
+        50,
     ];
     ///The deployed bytecode of the contract.
-    pub static TICKMATH_DEPLOYED_BYTECODE: ::ethers::core::types::Bytes =
+    pub static UQ112X112_DEPLOYED_BYTECODE: ::ethers::core::types::Bytes =
         ::ethers::core::types::Bytes::from_static(__DEPLOYED_BYTECODE);
-    pub struct TickMath<M>(::ethers::contract::Contract<M>);
-    impl<M> ::core::clone::Clone for TickMath<M> {
+    pub struct UQ112x112<M>(::ethers::contract::Contract<M>);
+    impl<M> ::core::clone::Clone for UQ112x112<M> {
         fn clone(&self) -> Self {
             Self(::core::clone::Clone::clone(&self.0))
         }
     }
-    impl<M> ::core::ops::Deref for TickMath<M> {
+    impl<M> ::core::ops::Deref for UQ112x112<M> {
         type Target = ::ethers::contract::Contract<M>;
         fn deref(&self) -> &Self::Target {
             &self.0
         }
     }
-    impl<M> ::core::ops::DerefMut for TickMath<M> {
+    impl<M> ::core::ops::DerefMut for UQ112x112<M> {
         fn deref_mut(&mut self) -> &mut Self::Target {
             &mut self.0
         }
     }
-    impl<M> ::core::fmt::Debug for TickMath<M> {
+    impl<M> ::core::fmt::Debug for UQ112x112<M> {
         fn fmt(&self, f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
-            f.debug_tuple(stringify!(TickMath))
+            f.debug_tuple(stringify!(UQ112x112))
                 .field(&self.address())
                 .finish()
         }
     }
-    impl<M: ::ethers::providers::Middleware> TickMath<M> {
+    impl<M: ::ethers::providers::Middleware> UQ112x112<M> {
         /// Creates a new contract instance with the specified `ethers` client at
         /// `address`. The contract derefs to a `ethers::Contract` object.
         pub fn new<T: Into<::ethers::core::types::Address>>(
@@ -269,7 +267,7 @@ pub mod tick_math {
         ) -> Self {
             Self(::ethers::contract::Contract::new(
                 address.into(),
-                TICKMATH_ABI.clone(),
+                UQ112X112_ABI.clone(),
                 client,
             ))
         }
@@ -304,8 +302,8 @@ pub mod tick_math {
             ::ethers::contract::ContractError<M>,
         > {
             let factory = ::ethers::contract::ContractFactory::new(
-                TICKMATH_ABI.clone(),
-                TICKMATH_BYTECODE.clone().into(),
+                UQ112X112_ABI.clone(),
+                UQ112X112_BYTECODE.clone().into(),
                 client,
             );
             let deployer = factory.deploy(constructor_args)?;
@@ -313,7 +311,7 @@ pub mod tick_math {
             Ok(deployer)
         }
     }
-    impl<M: ::ethers::providers::Middleware> From<::ethers::contract::Contract<M>> for TickMath<M> {
+    impl<M: ::ethers::providers::Middleware> From<::ethers::contract::Contract<M>> for UQ112x112<M> {
         fn from(contract: ::ethers::contract::Contract<M>) -> Self {
             Self::new(contract.address(), contract.client())
         }

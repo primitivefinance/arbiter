@@ -1,4 +1,4 @@
-pub use tick_math::*;
+pub use math::*;
 /// This module was auto-generated with ethers-rs Abigen.
 /// More information at: <https://github.com/gakonst/ethers-rs>
 #[allow(
@@ -9,18 +9,18 @@ pub use tick_math::*;
     dead_code,
     non_camel_case_types
 )]
-pub mod tick_math {
+pub mod math {
     #[rustfmt::skip]
     const __ABI: &str = "[]";
     ///The parsed JSON ABI of the contract.
-    pub static TICKMATH_ABI: ::ethers::contract::Lazy<::ethers::core::abi::Abi> =
+    pub static MATH_ABI: ::ethers::contract::Lazy<::ethers::core::abi::Abi> =
         ::ethers::contract::Lazy::new(|| {
             ::ethers::core::utils::__serde_json::from_str(__ABI).expect("ABI is always valid")
         });
     #[rustfmt::skip]
     const __BYTECODE: &[u8] = &[
         96,
-        86,
+        85,
         96,
         35,
         96,
@@ -88,47 +88,46 @@ pub mod tick_math {
         253,
         254,
         162,
-        100,
-        105,
-        112,
-        102,
-        115,
+        101,
+        98,
+        122,
+        122,
+        114,
+        49,
         88,
-        34,
-        18,
         32,
+        203,
+        171,
+        63,
         51,
-        61,
-        73,
-        145,
-        150,
-        17,
-        88,
-        252,
-        100,
-        90,
-        192,
-        204,
-        138,
-        25,
-        150,
-        29,
+        5,
         15,
-        210,
-        124,
-        151,
-        217,
-        73,
-        226,
-        24,
-        89,
+        62,
+        96,
+        111,
+        195,
+        43,
+        157,
+        81,
+        242,
+        147,
+        185,
+        145,
+        193,
+        25,
+        193,
+        206,
+        240,
+        120,
+        185,
+        42,
         170,
-        148,
-        93,
-        135,
-        3,
-        158,
-        2,
+        191,
+        96,
+        66,
+        62,
+        78,
+        239,
         100,
         115,
         111,
@@ -136,13 +135,13 @@ pub mod tick_math {
         99,
         67,
         0,
-        7,
-        6,
+        5,
+        16,
         0,
-        51,
+        50,
     ];
     ///The bytecode of the contract.
-    pub static TICKMATH_BYTECODE: ::ethers::core::types::Bytes =
+    pub static MATH_BYTECODE: ::ethers::core::types::Bytes =
         ::ethers::core::types::Bytes::from_static(__BYTECODE);
     #[rustfmt::skip]
     const __DEPLOYED_BYTECODE: &[u8] = &[
@@ -180,47 +179,46 @@ pub mod tick_math {
         253,
         254,
         162,
-        100,
-        105,
-        112,
-        102,
-        115,
+        101,
+        98,
+        122,
+        122,
+        114,
+        49,
         88,
-        34,
-        18,
         32,
+        203,
+        171,
+        63,
         51,
-        61,
-        73,
-        145,
-        150,
-        17,
-        88,
-        252,
-        100,
-        90,
-        192,
-        204,
-        138,
-        25,
-        150,
-        29,
+        5,
         15,
-        210,
-        124,
-        151,
-        217,
-        73,
-        226,
-        24,
-        89,
+        62,
+        96,
+        111,
+        195,
+        43,
+        157,
+        81,
+        242,
+        147,
+        185,
+        145,
+        193,
+        25,
+        193,
+        206,
+        240,
+        120,
+        185,
+        42,
         170,
-        148,
-        93,
-        135,
-        3,
-        158,
-        2,
+        191,
+        96,
+        66,
+        62,
+        78,
+        239,
         100,
         115,
         111,
@@ -228,39 +226,39 @@ pub mod tick_math {
         99,
         67,
         0,
-        7,
-        6,
+        5,
+        16,
         0,
-        51,
+        50,
     ];
     ///The deployed bytecode of the contract.
-    pub static TICKMATH_DEPLOYED_BYTECODE: ::ethers::core::types::Bytes =
+    pub static MATH_DEPLOYED_BYTECODE: ::ethers::core::types::Bytes =
         ::ethers::core::types::Bytes::from_static(__DEPLOYED_BYTECODE);
-    pub struct TickMath<M>(::ethers::contract::Contract<M>);
-    impl<M> ::core::clone::Clone for TickMath<M> {
+    pub struct Math<M>(::ethers::contract::Contract<M>);
+    impl<M> ::core::clone::Clone for Math<M> {
         fn clone(&self) -> Self {
             Self(::core::clone::Clone::clone(&self.0))
         }
     }
-    impl<M> ::core::ops::Deref for TickMath<M> {
+    impl<M> ::core::ops::Deref for Math<M> {
         type Target = ::ethers::contract::Contract<M>;
         fn deref(&self) -> &Self::Target {
             &self.0
         }
     }
-    impl<M> ::core::ops::DerefMut for TickMath<M> {
+    impl<M> ::core::ops::DerefMut for Math<M> {
         fn deref_mut(&mut self) -> &mut Self::Target {
             &mut self.0
         }
     }
-    impl<M> ::core::fmt::Debug for TickMath<M> {
+    impl<M> ::core::fmt::Debug for Math<M> {
         fn fmt(&self, f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
-            f.debug_tuple(stringify!(TickMath))
+            f.debug_tuple(stringify!(Math))
                 .field(&self.address())
                 .finish()
         }
     }
-    impl<M: ::ethers::providers::Middleware> TickMath<M> {
+    impl<M: ::ethers::providers::Middleware> Math<M> {
         /// Creates a new contract instance with the specified `ethers` client at
         /// `address`. The contract derefs to a `ethers::Contract` object.
         pub fn new<T: Into<::ethers::core::types::Address>>(
@@ -269,7 +267,7 @@ pub mod tick_math {
         ) -> Self {
             Self(::ethers::contract::Contract::new(
                 address.into(),
-                TICKMATH_ABI.clone(),
+                MATH_ABI.clone(),
                 client,
             ))
         }
@@ -304,8 +302,8 @@ pub mod tick_math {
             ::ethers::contract::ContractError<M>,
         > {
             let factory = ::ethers::contract::ContractFactory::new(
-                TICKMATH_ABI.clone(),
-                TICKMATH_BYTECODE.clone().into(),
+                MATH_ABI.clone(),
+                MATH_BYTECODE.clone().into(),
                 client,
             );
             let deployer = factory.deploy(constructor_args)?;
@@ -313,7 +311,7 @@ pub mod tick_math {
             Ok(deployer)
         }
     }
-    impl<M: ::ethers::providers::Middleware> From<::ethers::contract::Contract<M>> for TickMath<M> {
+    impl<M: ::ethers::providers::Middleware> From<::ethers::contract::Contract<M>> for Math<M> {
         fn from(contract: ::ethers::contract::Contract<M>) -> Self {
             Self::new(contract.address(), contract.client())
         }

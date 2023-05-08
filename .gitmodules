@@ -10,3 +10,6 @@
 [submodule "lib/portfolio"]
 	path = lib/portfolio
 	url = https://github.com/primitivefinance/portfolio
+[submodule "lib/v2-core"]
+	path = lib/v2-core
+	url = https://github.com/Uniswap/v2-core
