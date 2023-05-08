@@ -317,14 +317,13 @@ fn portfolio_sim_intitalization_calls(
     // CREATE PORTFOLIO POOL
     // --------------------------------------------------------------------------------------------
     let create_pool_args = rmm01_portfolio::CreatePoolCall {
-        pair_id,                                     // pub pair_id: u32
+        pair_id,                                      // pub pair_id: u32
         controller: recast_address(admin.address()), /* pub controller: ::ethers::core::types::Address */
         priority_fee: 100_u16,                       // pub priority_fee: u16,
         fee: 100_u16,                                // pub fee: u16,
         volatility: 100_u16,                         // pub vol: u16,
         duration: 65535_u16,                         // pub dur: u16,
-        jit: 0_u16,                                  // pub jit: u16,
-        max_price: 10_000_000_000_000_000_000u128,   // pub max_price: u128,
+        strike_price: 10_000_000_000_000_000_000u128, // pub max_price: u128,
         price: 10_000_000_000_000_000_000u128,       // pub price: u128,
     };
     let create_pool_result = admin.call_contract(
@@ -391,12 +390,13 @@ fn portfolio_sim_intitalization_calls(
     // let input_amount = 100_000_000; // This used to cause an underflow revert in `nextDependentWad = liveDependentWad - deltaOutput;`
     // let input_amount = 1_000_000_000; // This causes InvalidInvariant revert.
     let input_amount = 1_000_000; // This causes InvalidInvariant revert.
-    let get_amount_out_args: (u64, bool, U256, H160) = (
-        pool_id,                      // pool_id: u64,
-        true, // sell_asset: bool, // Setting this to true means we are selling ARBX for ARBY
-        U256::from(input_amount), // amount_in: ::ethers::core::types::U256,
-        arbitrageur.address().into(), // swapper: ::ethers::core::types::Address,
-    );
+    let get_amount_out_args = rmm01_portfolio::GetAmountOutCall {
+        pool_id,                               // pool_id: u64,
+        sell_asset: true,                      // sell_asset: bool, // Setting this to true means we are selling ARBX for ARBY
+        amount_in: U256::from(input_amount),   // amount_in: ::ethers::core::types::U256,
+        liquidity_delta: I256::from(0),        // liquidity_delta: ::ethers::core::types::I256,
+        swapper: arbitrageur.address().into(), // swapper: ::ethers::core::types::Address,
+    };
     let get_amount_out_result = admin.call_contract(
         &mut manager.environment,
         &portfolio,
@@ -413,19 +413,20 @@ fn portfolio_sim_intitalization_calls(
     );
 
     // Construct the swap using the above amount
-    let amount_out = decoded_amount_out * 9 / 10;
+    let amount_out = decoded_amount_out * 5 / 10;
     println!("Decreased amount out is: {}", amount_out);
-    let swap_args = (
-        false,                // pub use_max: bool,
-        pool_id,              // pub pool_id: u64,
-        input_amount as u128, // pub input: u128,
-        amount_out,           // pub output: u128,
-        false,                // pub sell_asset: bool,
-    );
+    let order = rmm01_portfolio::Order {
+        input: input_amount as u128,
+        output: amount_out,
+        use_max: false,
+        pool_id,
+        sell_asset: false,
+    };
+    let swap_args = (order,);
     let swap_result = admin.call_contract(
         &mut manager.environment,
         &portfolio,
-        portfolio.encode_function("swap", (swap_args,))?,
+        portfolio.encode_function("swap", swap_args)?,
         Uint::from(0),
     );
     let unpacked_result = match manager.unpack_execution(swap_result.clone()) {
@@ -434,9 +435,6 @@ fn portfolio_sim_intitalization_calls(
     };
 
     // let decoded_result: U256 = portfolio.decode_output("swap", unpacked_result.clone())?;
-    // println!("The result of the swap is {:#?}", decoded_result);
-    let hex_value: u32 = 0x2125a168;
-    let selector: [u8; 4] = hex_value.to_be_bytes();
     let decoded_result = portfolio.decode_error("InvalidInvariant".to_string(), unpacked_result);
     println!("The result of the swap is {:#?}", decoded_result);
     Ok(())
