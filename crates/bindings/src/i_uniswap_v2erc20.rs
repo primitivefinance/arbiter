@@ -1,4 +1,4 @@
-pub use ierc20::*;
+pub use i_uniswap_v2erc20::*;
 /// This module was auto-generated with ethers-rs Abigen.
 /// More information at: <https://github.com/gakonst/ethers-rs>
 #[allow(
@@ -9,35 +9,35 @@ pub use ierc20::*;
     dead_code,
     non_camel_case_types,
 )]
-pub mod ierc20 {
+pub mod i_uniswap_v2erc20 {
     #[rustfmt::skip]
-    const __ABI: &str = "[{\"inputs\":[{\"internalType\":\"address\",\"name\":\"owner\",\"type\":\"address\",\"components\":[],\"indexed\":true},{\"internalType\":\"address\",\"name\":\"spender\",\"type\":\"address\",\"components\":[],\"indexed\":true},{\"internalType\":\"uint256\",\"name\":\"value\",\"type\":\"uint256\",\"components\":[],\"indexed\":false}],\"type\":\"event\",\"name\":\"Approval\",\"outputs\":[],\"anonymous\":false},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"from\",\"type\":\"address\",\"components\":[],\"indexed\":true},{\"internalType\":\"address\",\"name\":\"to\",\"type\":\"address\",\"components\":[],\"indexed\":true},{\"internalType\":\"uint256\",\"name\":\"value\",\"type\":\"uint256\",\"components\":[],\"indexed\":false}],\"type\":\"event\",\"name\":\"Transfer\",\"outputs\":[],\"anonymous\":false},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"owner\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"address\",\"name\":\"spender\",\"type\":\"address\",\"components\":[]}],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"allowance\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"spender\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"value\",\"type\":\"uint256\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"function\",\"name\":\"approve\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"owner\",\"type\":\"address\",\"components\":[]}],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"balanceOf\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\",\"components\":[]}]},{\"inputs\":[],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"decimals\",\"outputs\":[{\"internalType\":\"uint8\",\"name\":\"\",\"type\":\"uint8\",\"components\":[]}]},{\"inputs\":[],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"name\",\"outputs\":[{\"internalType\":\"string\",\"name\":\"\",\"type\":\"string\",\"components\":[]}]},{\"inputs\":[],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"symbol\",\"outputs\":[{\"internalType\":\"string\",\"name\":\"\",\"type\":\"string\",\"components\":[]}]},{\"inputs\":[],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"totalSupply\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"to\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"value\",\"type\":\"uint256\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"function\",\"name\":\"transfer\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"from\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"address\",\"name\":\"to\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"value\",\"type\":\"uint256\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"function\",\"name\":\"transferFrom\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\",\"components\":[]}]}]";
+    const __ABI: &str = "[{\"inputs\":[{\"internalType\":\"address\",\"name\":\"owner\",\"type\":\"address\",\"components\":[],\"indexed\":true},{\"internalType\":\"address\",\"name\":\"spender\",\"type\":\"address\",\"components\":[],\"indexed\":true},{\"internalType\":\"uint256\",\"name\":\"value\",\"type\":\"uint256\",\"components\":[],\"indexed\":false}],\"type\":\"event\",\"name\":\"Approval\",\"outputs\":[],\"anonymous\":false},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"from\",\"type\":\"address\",\"components\":[],\"indexed\":true},{\"internalType\":\"address\",\"name\":\"to\",\"type\":\"address\",\"components\":[],\"indexed\":true},{\"internalType\":\"uint256\",\"name\":\"value\",\"type\":\"uint256\",\"components\":[],\"indexed\":false}],\"type\":\"event\",\"name\":\"Transfer\",\"outputs\":[],\"anonymous\":false},{\"inputs\":[],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"DOMAIN_SEPARATOR\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\",\"components\":[]}]},{\"inputs\":[],\"stateMutability\":\"pure\",\"type\":\"function\",\"name\":\"PERMIT_TYPEHASH\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"owner\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"address\",\"name\":\"spender\",\"type\":\"address\",\"components\":[]}],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"allowance\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"spender\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"value\",\"type\":\"uint256\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"function\",\"name\":\"approve\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"owner\",\"type\":\"address\",\"components\":[]}],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"balanceOf\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\",\"components\":[]}]},{\"inputs\":[],\"stateMutability\":\"pure\",\"type\":\"function\",\"name\":\"decimals\",\"outputs\":[{\"internalType\":\"uint8\",\"name\":\"\",\"type\":\"uint8\",\"components\":[]}]},{\"inputs\":[],\"stateMutability\":\"pure\",\"type\":\"function\",\"name\":\"name\",\"outputs\":[{\"internalType\":\"string\",\"name\":\"\",\"type\":\"string\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"owner\",\"type\":\"address\",\"components\":[]}],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"nonces\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"owner\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"address\",\"name\":\"spender\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"value\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"deadline\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"uint8\",\"name\":\"v\",\"type\":\"uint8\",\"components\":[]},{\"internalType\":\"bytes32\",\"name\":\"r\",\"type\":\"bytes32\",\"components\":[]},{\"internalType\":\"bytes32\",\"name\":\"s\",\"type\":\"bytes32\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"function\",\"name\":\"permit\",\"outputs\":[]},{\"inputs\":[],\"stateMutability\":\"pure\",\"type\":\"function\",\"name\":\"symbol\",\"outputs\":[{\"internalType\":\"string\",\"name\":\"\",\"type\":\"string\",\"components\":[]}]},{\"inputs\":[],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"totalSupply\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"to\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"value\",\"type\":\"uint256\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"function\",\"name\":\"transfer\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"from\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"address\",\"name\":\"to\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"value\",\"type\":\"uint256\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"function\",\"name\":\"transferFrom\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\",\"components\":[]}]}]";
     ///The parsed JSON ABI of the contract.
-    pub static IERC20_ABI: ::ethers::contract::Lazy<::ethers::core::abi::Abi> = ::ethers::contract::Lazy::new(||
+    pub static IUNISWAPV2ERC20_ABI: ::ethers::contract::Lazy<::ethers::core::abi::Abi> = ::ethers::contract::Lazy::new(||
     ::ethers::core::utils::__serde_json::from_str(__ABI).expect("ABI is always valid"));
-    pub struct IERC20<M>(::ethers::contract::Contract<M>);
-    impl<M> ::core::clone::Clone for IERC20<M> {
+    pub struct IUniswapV2ERC20<M>(::ethers::contract::Contract<M>);
+    impl<M> ::core::clone::Clone for IUniswapV2ERC20<M> {
         fn clone(&self) -> Self {
             Self(::core::clone::Clone::clone(&self.0))
         }
     }
-    impl<M> ::core::ops::Deref for IERC20<M> {
+    impl<M> ::core::ops::Deref for IUniswapV2ERC20<M> {
         type Target = ::ethers::contract::Contract<M>;
         fn deref(&self) -> &Self::Target {
             &self.0
         }
     }
-    impl<M> ::core::ops::DerefMut for IERC20<M> {
+    impl<M> ::core::ops::DerefMut for IUniswapV2ERC20<M> {
         fn deref_mut(&mut self) -> &mut Self::Target {
             &mut self.0
         }
     }
-    impl<M> ::core::fmt::Debug for IERC20<M> {
+    impl<M> ::core::fmt::Debug for IUniswapV2ERC20<M> {
         fn fmt(&self, f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
-            f.debug_tuple(stringify!(IERC20)).field(&self.address()).finish()
+            f.debug_tuple(stringify!(IUniswapV2ERC20)).field(&self.address()).finish()
         }
     }
-    impl<M: ::ethers::providers::Middleware> IERC20<M> {
+    impl<M: ::ethers::providers::Middleware> IUniswapV2ERC20<M> {
         /// Creates a new contract instance with the specified `ethers` client at
         /// `address`. The contract derefs to a `ethers::Contract` object.
         pub fn new<T: Into<::ethers::core::types::Address>>(
@@ -47,10 +47,26 @@ pub mod ierc20 {
             Self(
                 ::ethers::contract::Contract::new(
                     address.into(),
-                    IERC20_ABI.clone(),
+                    IUNISWAPV2ERC20_ABI.clone(),
                     client,
                 ),
             )
+        }
+        ///Calls the contract's `DOMAIN_SEPARATOR` (0x3644e515) function
+        pub fn domain_separator(
+            &self,
+        ) -> ::ethers::contract::builders::ContractCall<M, [u8; 32]> {
+            self.0
+                .method_hash([54, 68, 229, 21], ())
+                .expect("method not found (this should never happen)")
+        }
+        ///Calls the contract's `PERMIT_TYPEHASH` (0x30adf81f) function
+        pub fn permit_typehash(
+            &self,
+        ) -> ::ethers::contract::builders::ContractCall<M, [u8; 32]> {
+            self.0
+                .method_hash([48, 173, 248, 31], ())
+                .expect("method not found (this should never happen)")
         }
         ///Calls the contract's `allowance` (0xdd62ed3e) function
         pub fn allowance(
@@ -93,6 +109,33 @@ pub mod ierc20 {
         ) -> ::ethers::contract::builders::ContractCall<M, ::std::string::String> {
             self.0
                 .method_hash([6, 253, 222, 3], ())
+                .expect("method not found (this should never happen)")
+        }
+        ///Calls the contract's `nonces` (0x7ecebe00) function
+        pub fn nonces(
+            &self,
+            owner: ::ethers::core::types::Address,
+        ) -> ::ethers::contract::builders::ContractCall<M, ::ethers::core::types::U256> {
+            self.0
+                .method_hash([126, 206, 190, 0], owner)
+                .expect("method not found (this should never happen)")
+        }
+        ///Calls the contract's `permit` (0xd505accf) function
+        pub fn permit(
+            &self,
+            owner: ::ethers::core::types::Address,
+            spender: ::ethers::core::types::Address,
+            value: ::ethers::core::types::U256,
+            deadline: ::ethers::core::types::U256,
+            v: u8,
+            r: [u8; 32],
+            s: [u8; 32],
+        ) -> ::ethers::contract::builders::ContractCall<M, ()> {
+            self.0
+                .method_hash(
+                    [213, 5, 172, 207],
+                    (owner, spender, value, deadline, v, r, s),
+                )
                 .expect("method not found (this should never happen)")
         }
         ///Calls the contract's `symbol` (0x95d89b41) function
@@ -155,12 +198,16 @@ pub mod ierc20 {
         /// Returns an `Event` builder for all the events of this contract.
         pub fn events(
             &self,
-        ) -> ::ethers::contract::builders::Event<::std::sync::Arc<M>, M, IERC20Events> {
+        ) -> ::ethers::contract::builders::Event<
+            ::std::sync::Arc<M>,
+            M,
+            IUniswapV2ERC20Events,
+        > {
             self.0.event_with_filter(::core::default::Default::default())
         }
     }
     impl<M: ::ethers::providers::Middleware> From<::ethers::contract::Contract<M>>
-    for IERC20<M> {
+    for IUniswapV2ERC20<M> {
         fn from(contract: ::ethers::contract::Contract<M>) -> Self {
             Self::new(contract.address(), contract.client())
         }
@@ -203,24 +250,24 @@ pub mod ierc20 {
     }
     ///Container type for all of the contract's events
     #[derive(Clone, ::ethers::contract::EthAbiType, Debug, PartialEq, Eq, Hash)]
-    pub enum IERC20Events {
+    pub enum IUniswapV2ERC20Events {
         ApprovalFilter(ApprovalFilter),
         TransferFilter(TransferFilter),
     }
-    impl ::ethers::contract::EthLogDecode for IERC20Events {
+    impl ::ethers::contract::EthLogDecode for IUniswapV2ERC20Events {
         fn decode_log(
             log: &::ethers::core::abi::RawLog,
         ) -> ::core::result::Result<Self, ::ethers::core::abi::Error> {
             if let Ok(decoded) = ApprovalFilter::decode_log(log) {
-                return Ok(IERC20Events::ApprovalFilter(decoded));
+                return Ok(IUniswapV2ERC20Events::ApprovalFilter(decoded));
             }
             if let Ok(decoded) = TransferFilter::decode_log(log) {
-                return Ok(IERC20Events::TransferFilter(decoded));
+                return Ok(IUniswapV2ERC20Events::TransferFilter(decoded));
             }
             Err(::ethers::core::abi::Error::InvalidData)
         }
     }
-    impl ::core::fmt::Display for IERC20Events {
+    impl ::core::fmt::Display for IUniswapV2ERC20Events {
         fn fmt(&self, f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
             match self {
                 Self::ApprovalFilter(element) => ::core::fmt::Display::fmt(element, f),
@@ -228,16 +275,42 @@ pub mod ierc20 {
             }
         }
     }
-    impl ::core::convert::From<ApprovalFilter> for IERC20Events {
+    impl ::core::convert::From<ApprovalFilter> for IUniswapV2ERC20Events {
         fn from(value: ApprovalFilter) -> Self {
             Self::ApprovalFilter(value)
         }
     }
-    impl ::core::convert::From<TransferFilter> for IERC20Events {
+    impl ::core::convert::From<TransferFilter> for IUniswapV2ERC20Events {
         fn from(value: TransferFilter) -> Self {
             Self::TransferFilter(value)
         }
     }
+    ///Container type for all input parameters for the `DOMAIN_SEPARATOR` function with signature `DOMAIN_SEPARATOR()` and selector `0x3644e515`
+    #[derive(
+        Clone,
+        ::ethers::contract::EthCall,
+        ::ethers::contract::EthDisplay,
+        Default,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash
+    )]
+    #[ethcall(name = "DOMAIN_SEPARATOR", abi = "DOMAIN_SEPARATOR()")]
+    pub struct DomainSeparatorCall;
+    ///Container type for all input parameters for the `PERMIT_TYPEHASH` function with signature `PERMIT_TYPEHASH()` and selector `0x30adf81f`
+    #[derive(
+        Clone,
+        ::ethers::contract::EthCall,
+        ::ethers::contract::EthDisplay,
+        Default,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash
+    )]
+    #[ethcall(name = "PERMIT_TYPEHASH", abi = "PERMIT_TYPEHASH()")]
+    pub struct PermitTypehashCall;
     ///Container type for all input parameters for the `allowance` function with signature `allowance(address,address)` and selector `0xdd62ed3e`
     #[derive(
         Clone,
@@ -311,6 +384,45 @@ pub mod ierc20 {
     )]
     #[ethcall(name = "name", abi = "name()")]
     pub struct NameCall;
+    ///Container type for all input parameters for the `nonces` function with signature `nonces(address)` and selector `0x7ecebe00`
+    #[derive(
+        Clone,
+        ::ethers::contract::EthCall,
+        ::ethers::contract::EthDisplay,
+        Default,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash
+    )]
+    #[ethcall(name = "nonces", abi = "nonces(address)")]
+    pub struct NoncesCall {
+        pub owner: ::ethers::core::types::Address,
+    }
+    ///Container type for all input parameters for the `permit` function with signature `permit(address,address,uint256,uint256,uint8,bytes32,bytes32)` and selector `0xd505accf`
+    #[derive(
+        Clone,
+        ::ethers::contract::EthCall,
+        ::ethers::contract::EthDisplay,
+        Default,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash
+    )]
+    #[ethcall(
+        name = "permit",
+        abi = "permit(address,address,uint256,uint256,uint8,bytes32,bytes32)"
+    )]
+    pub struct PermitCall {
+        pub owner: ::ethers::core::types::Address,
+        pub spender: ::ethers::core::types::Address,
+        pub value: ::ethers::core::types::U256,
+        pub deadline: ::ethers::core::types::U256,
+        pub v: u8,
+        pub r: [u8; 32],
+        pub s: [u8; 32],
+    }
     ///Container type for all input parameters for the `symbol` function with signature `symbol()` and selector `0x95d89b41`
     #[derive(
         Clone,
@@ -372,22 +484,34 @@ pub mod ierc20 {
     }
     ///Container type for all of the contract's call
     #[derive(Clone, ::ethers::contract::EthAbiType, Debug, PartialEq, Eq, Hash)]
-    pub enum IERC20Calls {
+    pub enum IUniswapV2ERC20Calls {
+        DomainSeparator(DomainSeparatorCall),
+        PermitTypehash(PermitTypehashCall),
         Allowance(AllowanceCall),
         Approve(ApproveCall),
         BalanceOf(BalanceOfCall),
         Decimals(DecimalsCall),
         Name(NameCall),
+        Nonces(NoncesCall),
+        Permit(PermitCall),
         Symbol(SymbolCall),
         TotalSupply(TotalSupplyCall),
         Transfer(TransferCall),
         TransferFrom(TransferFromCall),
     }
-    impl ::ethers::core::abi::AbiDecode for IERC20Calls {
+    impl ::ethers::core::abi::AbiDecode for IUniswapV2ERC20Calls {
         fn decode(
             data: impl AsRef<[u8]>,
         ) -> ::core::result::Result<Self, ::ethers::core::abi::AbiError> {
             let data = data.as_ref();
+            if let Ok(decoded)
+                = <DomainSeparatorCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+                return Ok(Self::DomainSeparator(decoded));
+            }
+            if let Ok(decoded)
+                = <PermitTypehashCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+                return Ok(Self::PermitTypehash(decoded));
+            }
             if let Ok(decoded)
                 = <AllowanceCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::Allowance(decoded));
@@ -409,6 +533,14 @@ pub mod ierc20 {
                 return Ok(Self::Name(decoded));
             }
             if let Ok(decoded)
+                = <NoncesCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+                return Ok(Self::Nonces(decoded));
+            }
+            if let Ok(decoded)
+                = <PermitCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+                return Ok(Self::Permit(decoded));
+            }
+            if let Ok(decoded)
                 = <SymbolCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::Symbol(decoded));
             }
@@ -427,9 +559,15 @@ pub mod ierc20 {
             Err(::ethers::core::abi::Error::InvalidData.into())
         }
     }
-    impl ::ethers::core::abi::AbiEncode for IERC20Calls {
+    impl ::ethers::core::abi::AbiEncode for IUniswapV2ERC20Calls {
         fn encode(self) -> Vec<u8> {
             match self {
+                Self::DomainSeparator(element) => {
+                    ::ethers::core::abi::AbiEncode::encode(element)
+                }
+                Self::PermitTypehash(element) => {
+                    ::ethers::core::abi::AbiEncode::encode(element)
+                }
                 Self::Allowance(element) => {
                     ::ethers::core::abi::AbiEncode::encode(element)
                 }
@@ -441,6 +579,8 @@ pub mod ierc20 {
                     ::ethers::core::abi::AbiEncode::encode(element)
                 }
                 Self::Name(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::Nonces(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::Permit(element) => ::ethers::core::abi::AbiEncode::encode(element),
                 Self::Symbol(element) => ::ethers::core::abi::AbiEncode::encode(element),
                 Self::TotalSupply(element) => {
                     ::ethers::core::abi::AbiEncode::encode(element)
@@ -454,14 +594,18 @@ pub mod ierc20 {
             }
         }
     }
-    impl ::core::fmt::Display for IERC20Calls {
+    impl ::core::fmt::Display for IUniswapV2ERC20Calls {
         fn fmt(&self, f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
             match self {
+                Self::DomainSeparator(element) => ::core::fmt::Display::fmt(element, f),
+                Self::PermitTypehash(element) => ::core::fmt::Display::fmt(element, f),
                 Self::Allowance(element) => ::core::fmt::Display::fmt(element, f),
                 Self::Approve(element) => ::core::fmt::Display::fmt(element, f),
                 Self::BalanceOf(element) => ::core::fmt::Display::fmt(element, f),
                 Self::Decimals(element) => ::core::fmt::Display::fmt(element, f),
                 Self::Name(element) => ::core::fmt::Display::fmt(element, f),
+                Self::Nonces(element) => ::core::fmt::Display::fmt(element, f),
+                Self::Permit(element) => ::core::fmt::Display::fmt(element, f),
                 Self::Symbol(element) => ::core::fmt::Display::fmt(element, f),
                 Self::TotalSupply(element) => ::core::fmt::Display::fmt(element, f),
                 Self::Transfer(element) => ::core::fmt::Display::fmt(element, f),
@@ -469,51 +613,95 @@ pub mod ierc20 {
             }
         }
     }
-    impl ::core::convert::From<AllowanceCall> for IERC20Calls {
+    impl ::core::convert::From<DomainSeparatorCall> for IUniswapV2ERC20Calls {
+        fn from(value: DomainSeparatorCall) -> Self {
+            Self::DomainSeparator(value)
+        }
+    }
+    impl ::core::convert::From<PermitTypehashCall> for IUniswapV2ERC20Calls {
+        fn from(value: PermitTypehashCall) -> Self {
+            Self::PermitTypehash(value)
+        }
+    }
+    impl ::core::convert::From<AllowanceCall> for IUniswapV2ERC20Calls {
         fn from(value: AllowanceCall) -> Self {
             Self::Allowance(value)
         }
     }
-    impl ::core::convert::From<ApproveCall> for IERC20Calls {
+    impl ::core::convert::From<ApproveCall> for IUniswapV2ERC20Calls {
         fn from(value: ApproveCall) -> Self {
             Self::Approve(value)
         }
     }
-    impl ::core::convert::From<BalanceOfCall> for IERC20Calls {
+    impl ::core::convert::From<BalanceOfCall> for IUniswapV2ERC20Calls {
         fn from(value: BalanceOfCall) -> Self {
             Self::BalanceOf(value)
         }
     }
-    impl ::core::convert::From<DecimalsCall> for IERC20Calls {
+    impl ::core::convert::From<DecimalsCall> for IUniswapV2ERC20Calls {
         fn from(value: DecimalsCall) -> Self {
             Self::Decimals(value)
         }
     }
-    impl ::core::convert::From<NameCall> for IERC20Calls {
+    impl ::core::convert::From<NameCall> for IUniswapV2ERC20Calls {
         fn from(value: NameCall) -> Self {
             Self::Name(value)
         }
     }
-    impl ::core::convert::From<SymbolCall> for IERC20Calls {
+    impl ::core::convert::From<NoncesCall> for IUniswapV2ERC20Calls {
+        fn from(value: NoncesCall) -> Self {
+            Self::Nonces(value)
+        }
+    }
+    impl ::core::convert::From<PermitCall> for IUniswapV2ERC20Calls {
+        fn from(value: PermitCall) -> Self {
+            Self::Permit(value)
+        }
+    }
+    impl ::core::convert::From<SymbolCall> for IUniswapV2ERC20Calls {
         fn from(value: SymbolCall) -> Self {
             Self::Symbol(value)
         }
     }
-    impl ::core::convert::From<TotalSupplyCall> for IERC20Calls {
+    impl ::core::convert::From<TotalSupplyCall> for IUniswapV2ERC20Calls {
         fn from(value: TotalSupplyCall) -> Self {
             Self::TotalSupply(value)
         }
     }
-    impl ::core::convert::From<TransferCall> for IERC20Calls {
+    impl ::core::convert::From<TransferCall> for IUniswapV2ERC20Calls {
         fn from(value: TransferCall) -> Self {
             Self::Transfer(value)
         }
     }
-    impl ::core::convert::From<TransferFromCall> for IERC20Calls {
+    impl ::core::convert::From<TransferFromCall> for IUniswapV2ERC20Calls {
         fn from(value: TransferFromCall) -> Self {
             Self::TransferFrom(value)
         }
     }
+    ///Container type for all return fields from the `DOMAIN_SEPARATOR` function with signature `DOMAIN_SEPARATOR()` and selector `0x3644e515`
+    #[derive(
+        Clone,
+        ::ethers::contract::EthAbiType,
+        ::ethers::contract::EthAbiCodec,
+        Default,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash
+    )]
+    pub struct DomainSeparatorReturn(pub [u8; 32]);
+    ///Container type for all return fields from the `PERMIT_TYPEHASH` function with signature `PERMIT_TYPEHASH()` and selector `0x30adf81f`
+    #[derive(
+        Clone,
+        ::ethers::contract::EthAbiType,
+        ::ethers::contract::EthAbiCodec,
+        Default,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash
+    )]
+    pub struct PermitTypehashReturn(pub [u8; 32]);
     ///Container type for all return fields from the `allowance` function with signature `allowance(address,address)` and selector `0xdd62ed3e`
     #[derive(
         Clone,
@@ -574,6 +762,18 @@ pub mod ierc20 {
         Hash
     )]
     pub struct NameReturn(pub ::std::string::String);
+    ///Container type for all return fields from the `nonces` function with signature `nonces(address)` and selector `0x7ecebe00`
+    #[derive(
+        Clone,
+        ::ethers::contract::EthAbiType,
+        ::ethers::contract::EthAbiCodec,
+        Default,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash
+    )]
+    pub struct NoncesReturn(pub ::ethers::core::types::U256);
     ///Container type for all return fields from the `symbol` function with signature `symbol()` and selector `0x95d89b41`
     #[derive(
         Clone,
