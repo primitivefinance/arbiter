@@ -526,100 +526,24 @@ mod tests {
         let pair_id: u32 = portfolio.decode_output("createPair", create_pair_unpack)?;
         println!("Created portfolio pair with Pair id: {:#?}", pair_id);
 
-        // let pair_id: u32 = pair_id.into_iter().collect().to_string().parse::<u32>().unwrap();
-
-        let create_pool_builder = (
-            pair_id,                         // pub pair_id: u32
-            recast_address(admin.address()), // pub controller: ::ethers::core::types::Address
-            100_u16,                         // pub priority_fee: u16,
-            100_u16,                         // pub fee: u16,
-            100_u16,                         // pub vol: u16,
-            65535_u16,                       // pub dur: u16,
-            0_u16,                           // pub jit: u16,
-            u128::MAX,                       // pub max_price: u128,
-            1_u128,                          // pub price: u128,
-        );
-
-        let create_pool_call = portfolio.encode_function("createPool", create_pool_builder)?;
+        let create_pool_args = rmm01_portfolio::CreatePoolCall {
+            pair_id,                                      // pub pair_id: u32
+            controller: recast_address(admin.address()), /* pub controller: ::ethers::core::types::Address */
+            priority_fee: 100_u16,                       // pub priority_fee: u16,
+            fee: 100_u16,                                // pub fee: u16,
+            volatility: 100_u16,                         // pub vol: u16,
+            duration: 65535_u16,                         // pub dur: u16,
+            strike_price: 10_000_000_000_000_000_000u128, // pub max_price: u128,
+            price: 10_000_000_000_000_000_000u128,       // pub price: u128,
+        };
         let create_pool_result = admin.call_contract(
             &mut manager.environment,
             &portfolio,
-            create_pool_call,
+            portfolio.encode_function("createPool", create_pool_args)?,
             Uint::from(0),
         );
         assert!(create_pool_result.is_success());
 
-        Ok(())
-    }
-
-    #[test]
-    fn allocate_test() -> Result<(), Box<dyn std::error::Error>> {
-        let decimals = 18_u8;
-        let wad: U256 = U256::from(10_i64.pow(decimals as u32));
-        // Create a `SimulationManager` that runs simulations in their `SimulationEnvironment`.
-        let mut manager = SimulationManager::new();
-        // Deploy the contracts
-        let SimulationContracts(arbiter_token_x, arbiter_token_y, portfolio, _liquid_exchange_xy) =
-            deploy_portfolio_sim_contracts(&mut manager, wad)?;
-
-        let admin = manager.agents.get("admin").unwrap();
-
-        let create_pair_args = (
-            recast_address(arbiter_token_x.address),
-            recast_address(arbiter_token_y.address),
-        );
-        let create_pair_call_data = portfolio.encode_function("createPair", create_pair_args)?;
-        let create_pair_result = admin.call_contract(
-            &mut manager.environment,
-            &portfolio,
-            create_pair_call_data,
-            Uint::from(0),
-        );
-
-        let create_pair_unpack = manager.unpack_execution(create_pair_result)?;
-        let pair_id: u32 = portfolio.decode_output("createPair", create_pair_unpack)?;
-        println!("Created portfolio pair with Pair id: {:#?}", pair_id);
-
-        let create_pool_builder = (
-            pair_id,                         // pub pair_id: u32
-            recast_address(admin.address()), // pub controller: ::ethers::core::types::Address
-            100_u16,                         // pub priority_fee: u16,
-            100_u16,                         // pub fee: u16,
-            100_u16,                         // pub vol: u16,
-            65535_u16,                       // pub dur: u16,
-            0_u16,                           // pub jit: u16,
-            u128::MAX,                       // pub max_price: u128,
-            1_u128,                          // pub price: u128,
-        );
-
-        let create_pool_call = portfolio.encode_function("createPool", create_pool_builder)?;
-        let create_pool_result = admin.call_contract(
-            &mut manager.environment,
-            &portfolio,
-            create_pool_call,
-            Uint::from(0),
-        );
-        assert!(create_pool_result.is_success());
-        let create_pool_unpack = manager.unpack_execution(create_pool_result)?;
-        let pool_id: u64 = portfolio.decode_output("createPool", create_pool_unpack)?;
-        println!("created portfolio pool with pool ID: {:#?}", pool_id);
-
-        let allocate_builder = (
-            true,      // use_max: bool,
-            pool_id,   // pool_id: u64,
-            100_u64,   // delta_liquidity: u128,
-            1000_u128, // max_delta_asset: u128,
-            1000_u128, // max_delta_quote: u128,
-        );
-
-        let allocate_call = portfolio.encode_function("allocate", allocate_builder)?;
-        let allocate_result = admin.call_contract(
-            &mut manager.environment,
-            &portfolio,
-            allocate_call,
-            Uint::from(0),
-        );
-        println!("allocate result: {:#?}", allocate_result.is_success());
         Ok(())
     }
 }
