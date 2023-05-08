@@ -4,6 +4,7 @@
 //! Do not manually edit these files.
 //! These files may be overwritten by the codegen system at any time.
 pub mod account_lib;
+pub mod arbiter_math;
 pub mod arbiter_token;
 pub mod assembly_lib;
 pub mod bit_math;
