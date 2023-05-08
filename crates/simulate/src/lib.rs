@@ -15,7 +15,7 @@ pub mod utils;
 mod tests {
     use std::{error::Error, thread};
 
-    use bindings::{arbiter_math, arbiter_token, writer};
+    use bindings::{arbiter_token, writer};
     use ethers::{
         prelude::{H256, U256},
         types::I256,

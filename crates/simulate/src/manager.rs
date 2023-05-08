@@ -93,6 +93,7 @@ impl SimulationManager {
             arbiter_math.deploy(&mut self.environment, self.agents.get("admin").unwrap(), ());
         self.autodeployed_contracts
             .insert("arbiter_math".to_string(), arbiter_math);
+    }
 
     /// Stop the current simulation.
     pub fn shut_down(&mut self) {
