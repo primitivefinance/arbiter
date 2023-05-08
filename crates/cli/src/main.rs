@@ -82,8 +82,8 @@ enum Commands {
 #[clap(about = "Runs simulations")]
 struct SimArgs {
     /// Path to config.toml containing simulation parameterization (optional)
-    // #[arg(short, long, default_value = "./crates/cli/src/config.toml", num_args = 0..=1)]
-    // config: Option<String>,
+    #[arg(short, long, default_value = "./crates/cli/src/config.toml", num_args = 0..=1)]
+    config: Option<String>,
 
     /// Subcommands for `Sim`
     #[clap(subcommand)]
@@ -91,7 +91,7 @@ struct SimArgs {
 }
 
 /// Subcommands for `Sim`
-#[derive(Subcommand, Debug)]
+#[derive(Subcommand, Debug, PartialEq)]
 enum SimSubcommands {
     #[clap(about = "Runs portfolio simulation")]
     Portfolio,
@@ -151,4 +151,33 @@ async fn main() -> Result<(), Box<dyn Error>> {
     }
 
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use assert_cmd::Command;
+
+    use super::*;
+
+    fn setup_sim_command(args: Vec<&str>) -> Result<Commands, Box<dyn Error>> {
+        let args = Args::try_parse_from(args);
+        Ok(args?.command.unwrap())
+    }    
+    
+
+    #[test]
+    fn test_sim_portfolio() {
+        let mut cmd = Command::cargo_bin("arbiter").unwrap();
+        cmd.arg("sim").arg("portfolio");
+        let output = cmd.unwrap();
+        assert!(output.status.success());
+    }
+
+    #[test]
+    fn test_sim_uniswapv3() {
+        let mut cmd = Command::cargo_bin("arbiter").unwrap();
+        cmd.arg("sim").arg("uniswap");
+        let output = cmd.unwrap();
+        assert!(output.status.success());
+    }
 }
