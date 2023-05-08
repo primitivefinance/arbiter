@@ -35,9 +35,9 @@ jobs:
 
       - name: Bump patch version
         run: |
-          find . -name 'Cargo.toml' -execdir sh -c '
-            cargo bump patch
-            VERSION=$(cargo metadata --format-version 1 | jq -r ".packages[] | select(.manifest_path == \"$(pwd)/Cargo.toml\") | .version")
-            git add Cargo.toml
-            git commit -m "Bump version in $(dirname $(pwd)) to $VERSION" ' \;
+          cargo set-version --bump patch
+          VERSION=$(cargo metadata --format-version 1 | jq -r ".packages[] | select(.manifest_path == \"$(pwd)/Cargo.toml\") | .version")
+          echo "Updated version to $VERSION"
+          git add *.toml
+          git commit -m "Bump version in $(dirname $(pwd)) to $VERSION" ' \;
           git push
