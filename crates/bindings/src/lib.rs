@@ -6,16 +6,15 @@
 pub mod account_lib;
 pub mod arbiter_token;
 pub mod assembly_lib;
+pub mod bisection_lib;
 pub mod bit_math;
 pub mod echidna_erc20;
-pub mod encoder_target;
 pub mod erc20;
 pub mod fee_on_transfer_token;
 pub mod fixed_point_128;
 pub mod fixed_point_96;
 pub mod fixed_point_math_lib;
 pub mod full_math;
-pub mod fvm_lib;
 pub mod gaussian;
 pub mod i_portfolio;
 pub mod i_portfolio_actions;
