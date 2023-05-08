@@ -450,7 +450,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_create_pair_call() -> Result<(), Box<dyn std::error::Error>> {
+    fn create_pair() -> Result<(), Box<dyn std::error::Error>> {
         let decimals = 18_u8;
         let wad: U256 = U256::from(10_i64.pow(decimals as u32));
         // Create a `SimulationManager` that runs simulations in their `SimulationEnvironment`.
@@ -498,7 +498,7 @@ mod tests {
     }
 
     #[test]
-    fn test_create_pool_call() -> Result<(), Box<dyn std::error::Error>> {
+    fn create_pool() -> Result<(), Box<dyn std::error::Error>> {
         let decimals = 18_u8;
         let wad: U256 = U256::from(10_i64.pow(decimals as u32));
         // Create a `SimulationManager` that runs simulations in their `SimulationEnvironment`.
