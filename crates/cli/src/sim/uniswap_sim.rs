@@ -1,20 +1,15 @@
 #![warn(missing_docs)]
 use std::error::Error;
 
-use bindings::{
-    weth9,
-};
-use ethers::{
-    prelude::{ U256},
-};
+use bindings::weth9;
+use ethers::prelude::U256;
 use eyre::Result;
-use revm::primitives::{ B160};
+use revm::primitives::B160;
 use simulate::{
     agent::{user::User, AgentType},
     contract::{IsDeployed, SimulationContract},
     manager::SimulationManager,
 };
-
 
 /// Run a simulation.
 pub fn uniswap_sim() -> Result<(), Box<dyn Error>> {
@@ -72,6 +67,5 @@ fn _uniswap_sim_intitalization_calls(
     _contracts: SimulationContract<IsDeployed>,
     _decimals: u8,
 ) -> Result<(), Box<dyn Error>> {
-
     Ok(())
 }

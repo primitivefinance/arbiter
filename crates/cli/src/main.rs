@@ -4,7 +4,7 @@
 
 use std::error::Error;
 
-use clap::{CommandFactory, Parser, Subcommand, arg};
+use clap::{arg, CommandFactory, Parser, Subcommand};
 use commands::*;
 use eyre::Result;
 
@@ -103,16 +103,14 @@ async fn main() -> Result<(), Box<dyn Error>> {
     let args = Args::parse();
 
     match &args.command {
-        Some(Commands::Sim(sim_args)) => {
-            match &sim_args.subcommand {
-                SimSubcommands::Portfolio => {
-                    sim::portfolio_sim::portfolio_sim()?;
-                }
-                SimSubcommands::Uniswap => {
-                    sim::uniswap_sim::uniswap_sim()?;
-                }
+        Some(Commands::Sim(sim_args)) => match &sim_args.subcommand {
+            SimSubcommands::Portfolio => {
+                sim::portfolio_sim::portfolio_sim()?;
             }
-        }
+            SimSubcommands::Uniswap => {
+                sim::uniswap_sim::uniswap_sim()?;
+            }
+        },
 
         Some(Commands::Ou { config }) => {
             // Plot an OU price path
