@@ -4,7 +4,7 @@
 
 use std::error::Error;
 
-use clap::{CommandFactory, Parser, Subcommand};
+use clap::{arg, CommandFactory, Parser, Subcommand};
 use commands::*;
 use eyre::Result;
 
@@ -14,7 +14,7 @@ mod sim;
 
 #[derive(Parser)]
 #[command(name = "Arbiter")]
-#[command(version = "0.1.0")]
+#[command(version = env!("CARGO_PKG_VERSION"))]
 #[command(about = "Data analysis tool for decentralized exchanges.", long_about = None)]
 #[command(author)]
 struct Args {
@@ -32,12 +32,7 @@ struct Args {
 /// * `ImportBacktest` - Import swap data from a csv file
 #[derive(Subcommand)]
 enum Commands {
-    Sim {
-        /// Path to config.toml containing simulation parameterization (optional)
-        #[arg(short, long, default_value = "./crates/cli/src/config.toml", num_args = 0..=1)]
-        config: Option<String>,
-    },
-
+    Sim(SimArgs),
     Gbm {
         /// Path to config.toml containing simulation parameterization (optional)
         #[arg(short, long, default_value = "./crates/cli/src/config.toml", num_args = 0..=1)]
@@ -83,15 +78,39 @@ enum Commands {
     },
 }
 
+#[derive(Parser, Debug)]
+#[clap(about = "Runs simulations")]
+struct SimArgs {
+    /// Path to config.toml containing simulation parameterization (optional)
+    #[arg(short, long, default_value = "./crates/cli/src/config.toml", num_args = 0..=1)]
+    config: Option<String>,
+
+    /// Subcommands for `Sim`
+    #[clap(subcommand)]
+    subcommand: SimSubcommands,
+}
+
+/// Subcommands for `Sim`
+#[derive(Subcommand, Debug, PartialEq)]
+enum SimSubcommands {
+    #[clap(about = "Runs portfolio simulation")]
+    Portfolio,
+    #[clap(about = "Runs Uniswap V3 simulation")]
+    Uniswap,
+}
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {
     let args = Args::parse();
 
     match &args.command {
-        Some(Commands::Sim { config: _ }) => {
-            // Create a [`SimulationManager`] that runs simulations in their `SimulationEnvironment`.
-            sim::portfolio_sim::portfolio_sim()?;
-        }
+        Some(Commands::Sim(sim_args)) => match &sim_args.subcommand {
+            SimSubcommands::Portfolio => {
+                sim::portfolio_sim::portfolio_sim()?;
+            }
+            SimSubcommands::Uniswap => {
+                sim::uniswap_sim::uniswap_sim()?;
+            }
+        },
 
         Some(Commands::Ou { config }) => {
             // Plot an OU price path

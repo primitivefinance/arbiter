@@ -1,4 +1,5 @@
 #![warn(missing_docs)]
+#![warn(unsafe_code)]
 //! The environment that constitutes a simulation is handled here.
 
 use crossbeam_channel::Sender;
