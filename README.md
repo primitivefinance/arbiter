@@ -1,12 +1,12 @@
-# Arbiter
+<img width="529" alt="arbiter" src="https://user-images.githubusercontent.com/20118821/236929861-2a1fe071-0053-453c-ac86-224b32febcd6.png">
+
+> Perform high speed modeling and economic fuzzing with EVM parity.
 
 ![Github Actions](https://github.com/primitivefinance/arbiter/workflows/Rust/badge.svg)
 [![codecov](https://codecov.io/gh/funkycadet/arbiter/branch/main/graph/badge.svg?token=UQ1SE0D9IN)](https://codecov.io/gh/funkycadet/arbiter)
 ![](https://visitor-badge.laobi.icu/badge?page_id=arbiter)
 [![](https://dcbadge.vercel.app/api/server/primitive?style=flat)](https://discord.gg/primitive)
 [![Twitter Badge](https://badgen.net/badge/icon/twitter?icon=twitter&label)](https://twitter.com/primitivefi)
-
-> Perform high speed modeling and economic fuzzing with EVM parity.
 
 The Ethereum blockchain's execution environment, the Ethereum Virtual machine (EVM), contains a rich collection of decentralized applications. The EVM is stack machine that sequentially executes opcodes sent to it by users and smart contracts. Arbiter is a highly configurable rust interface over [revm](https://github.com/bluealloy/revm) which is a Rust implementation of the EVM stack machine logic. The purpose of Arbiter is to interface with arbitrary agents and contracts and run this all directly on a blazing-fast simulated EVM.
 
