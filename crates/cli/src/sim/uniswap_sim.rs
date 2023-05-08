@@ -20,13 +20,6 @@ use simulate::{
     utils::recast_address,
 };
 
-struct SimulationContracts(
-    SimulationContract<IsDeployed>,
-    SimulationContract<IsDeployed>,
-    SimulationContract<IsDeployed>,
-    SimulationContract<IsDeployed>,
-    SimulationContract<IsDeployed>,
-);
 
 /// Run a simulation.
 pub fn uniswap_sim() -> Result<(), Box<dyn Error>> {
@@ -62,13 +55,14 @@ pub fn uniswap_sim() -> Result<(), Box<dyn Error>> {
 fn deploy_uniswap_sim_contracts(
     manager: &mut SimulationManager,
     wad: U256,
-) -> Result<SimulationContracts, Box<dyn Error>> {
+) -> Result<SimulationContract<IsDeployed>, Box<dyn Error>> {
     let decimals = 18_u8;
     let admin = manager.agents.get("admin").unwrap();
     // Deploy Weth
     let weth = SimulationContract::new(weth9::WETH9_ABI.clone(), weth9::WETH9_BYTECODE.clone());
     let weth = weth.deploy(&mut manager.environment, admin, ());
     println!("WETH deployed at: {}", weth.address);
+    Ok(weth)
 
     // Deploy the registry contract.
 }
@@ -80,7 +74,7 @@ fn deploy_uniswap_sim_contracts(
 /// * `decimals` - Decimals to use for the simulation. (u8)
 fn uniswap_sim_intitalization_calls(
     manager: &mut SimulationManager,
-    contracts: SimulationContracts,
+    contracts: SimulationContract<IsDeployed>,
     decimals: u8,
 ) -> Result<(), Box<dyn Error>> {
 
