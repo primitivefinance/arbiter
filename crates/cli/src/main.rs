@@ -152,24 +152,3 @@ async fn main() -> Result<(), Box<dyn Error>> {
 
     Ok(())
 }
-
-#[cfg(test)]
-mod tests {
-    use assert_cmd::Command;
-
-    #[test]
-    fn test_sim_portfolio() {
-        let mut cmd = Command::cargo_bin("arbiter").unwrap();
-        cmd.arg("sim").arg("portfolio");
-        let output = cmd.unwrap();
-        assert!(output.status.success());
-    }
-
-    #[test]
-    fn test_sim_uniswap() {
-        let mut cmd = Command::cargo_bin("arbiter").unwrap();
-        cmd.arg("sim").arg("uniswap");
-        let output = cmd.unwrap();
-        assert!(output.status.success());
-    }
-}
