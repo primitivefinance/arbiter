@@ -7,16 +7,14 @@ pub use encoder_target::*;
     clippy::upper_case_acronyms,
     clippy::type_complexity,
     dead_code,
-    non_camel_case_types
+    non_camel_case_types,
 )]
 pub mod encoder_target {
     #[rustfmt::skip]
     const __ABI: &str = "[{\"inputs\":[{\"internalType\":\"bool\",\"name\":\"shouldAllocate\",\"type\":\"bool\",\"components\":[]},{\"internalType\":\"uint8\",\"name\":\"useMax\",\"type\":\"uint8\",\"components\":[]},{\"internalType\":\"uint64\",\"name\":\"poolId\",\"type\":\"uint64\",\"components\":[]},{\"internalType\":\"uint128\",\"name\":\"deltaLiquidity\",\"type\":\"uint128\",\"components\":[]},{\"internalType\":\"uint128\",\"name\":\"deltaAsset\",\"type\":\"uint128\",\"components\":[]},{\"internalType\":\"uint128\",\"name\":\"deltaQuote\",\"type\":\"uint128\",\"components\":[]}],\"stateMutability\":\"pure\",\"type\":\"function\",\"name\":\"allocateOrDeallocate\",\"outputs\":[{\"internalType\":\"bytes\",\"name\":\"data\",\"type\":\"bytes\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"asset\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"address\",\"name\":\"quote\",\"type\":\"address\",\"components\":[]}],\"stateMutability\":\"pure\",\"type\":\"function\",\"name\":\"createPair\",\"outputs\":[{\"internalType\":\"bytes\",\"name\":\"\",\"type\":\"bytes\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"uint24\",\"name\":\"pairId\",\"type\":\"uint24\",\"components\":[]},{\"internalType\":\"address\",\"name\":\"controller\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint16\",\"name\":\"priorityFee\",\"type\":\"uint16\",\"components\":[]},{\"internalType\":\"uint16\",\"name\":\"fee\",\"type\":\"uint16\",\"components\":[]},{\"internalType\":\"uint16\",\"name\":\"vol\",\"type\":\"uint16\",\"components\":[]},{\"internalType\":\"uint16\",\"name\":\"dur\",\"type\":\"uint16\",\"components\":[]},{\"internalType\":\"uint16\",\"name\":\"jit\",\"type\":\"uint16\",\"components\":[]},{\"internalType\":\"uint128\",\"name\":\"maxPrice\",\"type\":\"uint128\",\"components\":[]},{\"internalType\":\"uint128\",\"name\":\"price\",\"type\":\"uint128\",\"components\":[]}],\"stateMutability\":\"pure\",\"type\":\"function\",\"name\":\"createPool\",\"outputs\":[{\"internalType\":\"bytes\",\"name\":\"data\",\"type\":\"bytes\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"uint8\",\"name\":\"useMax\",\"type\":\"uint8\",\"components\":[]},{\"internalType\":\"uint64\",\"name\":\"poolId\",\"type\":\"uint64\",\"components\":[]},{\"internalType\":\"uint128\",\"name\":\"amount0\",\"type\":\"uint128\",\"components\":[]},{\"internalType\":\"uint128\",\"name\":\"amount1\",\"type\":\"uint128\",\"components\":[]},{\"internalType\":\"uint8\",\"name\":\"sellAsset\",\"type\":\"uint8\",\"components\":[]}],\"stateMutability\":\"pure\",\"type\":\"function\",\"name\":\"swap\",\"outputs\":[{\"internalType\":\"bytes\",\"name\":\"data\",\"type\":\"bytes\",\"components\":[]}]}]";
     ///The parsed JSON ABI of the contract.
-    pub static ENCODERTARGET_ABI: ::ethers::contract::Lazy<::ethers::core::abi::Abi> =
-        ::ethers::contract::Lazy::new(|| {
-            ::ethers::core::utils::__serde_json::from_str(__ABI).expect("ABI is always valid")
-        });
+    pub static ENCODERTARGET_ABI: ::ethers::contract::Lazy<::ethers::core::abi::Abi> = ::ethers::contract::Lazy::new(||
+    ::ethers::core::utils::__serde_json::from_str(__ABI).expect("ABI is always valid"));
     #[rustfmt::skip]
     const __BYTECODE: &[u8] = &[
         96,
@@ -2333,8 +2331,9 @@ pub mod encoder_target {
         51,
     ];
     ///The bytecode of the contract.
-    pub static ENCODERTARGET_BYTECODE: ::ethers::core::types::Bytes =
-        ::ethers::core::types::Bytes::from_static(__BYTECODE);
+    pub static ENCODERTARGET_BYTECODE: ::ethers::core::types::Bytes = ::ethers::core::types::Bytes::from_static(
+        __BYTECODE,
+    );
     #[rustfmt::skip]
     const __DEPLOYED_BYTECODE: &[u8] = &[
         96,
@@ -4619,8 +4618,9 @@ pub mod encoder_target {
         51,
     ];
     ///The deployed bytecode of the contract.
-    pub static ENCODERTARGET_DEPLOYED_BYTECODE: ::ethers::core::types::Bytes =
-        ::ethers::core::types::Bytes::from_static(__DEPLOYED_BYTECODE);
+    pub static ENCODERTARGET_DEPLOYED_BYTECODE: ::ethers::core::types::Bytes = ::ethers::core::types::Bytes::from_static(
+        __DEPLOYED_BYTECODE,
+    );
     pub struct EncoderTarget<M>(::ethers::contract::Contract<M>);
     impl<M> ::core::clone::Clone for EncoderTarget<M> {
         fn clone(&self) -> Self {
@@ -4640,9 +4640,7 @@ pub mod encoder_target {
     }
     impl<M> ::core::fmt::Debug for EncoderTarget<M> {
         fn fmt(&self, f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
-            f.debug_tuple(stringify!(EncoderTarget))
-                .field(&self.address())
-                .finish()
+            f.debug_tuple(stringify!(EncoderTarget)).field(&self.address()).finish()
         }
     }
     impl<M: ::ethers::providers::Middleware> EncoderTarget<M> {
@@ -4652,11 +4650,13 @@ pub mod encoder_target {
             address: T,
             client: ::std::sync::Arc<M>,
         ) -> Self {
-            Self(::ethers::contract::Contract::new(
-                address.into(),
-                ENCODERTARGET_ABI.clone(),
-                client,
-            ))
+            Self(
+                ::ethers::contract::Contract::new(
+                    address.into(),
+                    ENCODERTARGET_ABI.clone(),
+                    client,
+                ),
+            )
         }
         /// Constructs the general purpose `Deployer` instance based on the provided constructor arguments and sends it.
         /// Returns a new instance of a deployer that returns an instance of this contract after sending the transaction
@@ -4706,7 +4706,10 @@ pub mod encoder_target {
             delta_liquidity: u128,
             delta_asset: u128,
             delta_quote: u128,
-        ) -> ::ethers::contract::builders::ContractCall<M, ::ethers::core::types::Bytes> {
+        ) -> ::ethers::contract::builders::ContractCall<
+            M,
+            ::ethers::core::types::Bytes,
+        > {
             self.0
                 .method_hash(
                     [113, 181, 236, 123],
@@ -4726,7 +4729,10 @@ pub mod encoder_target {
             &self,
             asset: ::ethers::core::types::Address,
             quote: ::ethers::core::types::Address,
-        ) -> ::ethers::contract::builders::ContractCall<M, ::ethers::core::types::Bytes> {
+        ) -> ::ethers::contract::builders::ContractCall<
+            M,
+            ::ethers::core::types::Bytes,
+        > {
             self.0
                 .method_hash([201, 198, 83, 150], (asset, quote))
                 .expect("method not found (this should never happen)")
@@ -4743,7 +4749,10 @@ pub mod encoder_target {
             jit: u16,
             max_price: u128,
             price: u128,
-        ) -> ::ethers::contract::builders::ContractCall<M, ::ethers::core::types::Bytes> {
+        ) -> ::ethers::contract::builders::ContractCall<
+            M,
+            ::ethers::core::types::Bytes,
+        > {
             self.0
                 .method_hash(
                     [64, 181, 78, 142],
@@ -4769,7 +4778,10 @@ pub mod encoder_target {
             amount_0: u128,
             amount_1: u128,
             sell_asset: u8,
-        ) -> ::ethers::contract::builders::ContractCall<M, ::ethers::core::types::Bytes> {
+        ) -> ::ethers::contract::builders::ContractCall<
+            M,
+            ::ethers::core::types::Bytes,
+        > {
             self.0
                 .method_hash(
                     [87, 34, 245, 243],
@@ -4779,8 +4791,7 @@ pub mod encoder_target {
         }
     }
     impl<M: ::ethers::providers::Middleware> From<::ethers::contract::Contract<M>>
-        for EncoderTarget<M>
-    {
+    for EncoderTarget<M> {
         fn from(contract: ::ethers::contract::Contract<M>) -> Self {
             Self::new(contract.address(), contract.client())
         }
@@ -4794,7 +4805,7 @@ pub mod encoder_target {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(
         name = "allocateOrDeallocate",
@@ -4817,7 +4828,7 @@ pub mod encoder_target {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(name = "createPair", abi = "createPair(address,address)")]
     pub struct CreatePairCall {
@@ -4833,7 +4844,7 @@ pub mod encoder_target {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(
         name = "createPool",
@@ -4859,7 +4870,7 @@ pub mod encoder_target {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(name = "swap", abi = "swap(uint8,uint64,uint128,uint128,uint8)")]
     pub struct SwapCall {
@@ -4882,18 +4893,22 @@ pub mod encoder_target {
             data: impl AsRef<[u8]>,
         ) -> ::core::result::Result<Self, ::ethers::core::abi::AbiError> {
             let data = data.as_ref();
-            if let Ok(decoded) =
-                <AllocateOrDeallocateCall as ::ethers::core::abi::AbiDecode>::decode(data)
-            {
+            if let Ok(decoded)
+                = <AllocateOrDeallocateCall as ::ethers::core::abi::AbiDecode>::decode(
+                    data,
+                ) {
                 return Ok(Self::AllocateOrDeallocate(decoded));
             }
-            if let Ok(decoded) = <CreatePairCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded)
+                = <CreatePairCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::CreatePair(decoded));
             }
-            if let Ok(decoded) = <CreatePoolCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded)
+                = <CreatePoolCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::CreatePool(decoded));
             }
-            if let Ok(decoded) = <SwapCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded)
+                = <SwapCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::Swap(decoded));
             }
             Err(::ethers::core::abi::Error::InvalidData.into())
@@ -4905,8 +4920,12 @@ pub mod encoder_target {
                 Self::AllocateOrDeallocate(element) => {
                     ::ethers::core::abi::AbiEncode::encode(element)
                 }
-                Self::CreatePair(element) => ::ethers::core::abi::AbiEncode::encode(element),
-                Self::CreatePool(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::CreatePair(element) => {
+                    ::ethers::core::abi::AbiEncode::encode(element)
+                }
+                Self::CreatePool(element) => {
+                    ::ethers::core::abi::AbiEncode::encode(element)
+                }
                 Self::Swap(element) => ::ethers::core::abi::AbiEncode::encode(element),
             }
         }
@@ -4914,7 +4933,9 @@ pub mod encoder_target {
     impl ::core::fmt::Display for EncoderTargetCalls {
         fn fmt(&self, f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
             match self {
-                Self::AllocateOrDeallocate(element) => ::core::fmt::Display::fmt(element, f),
+                Self::AllocateOrDeallocate(element) => {
+                    ::core::fmt::Display::fmt(element, f)
+                }
                 Self::CreatePair(element) => ::core::fmt::Display::fmt(element, f),
                 Self::CreatePool(element) => ::core::fmt::Display::fmt(element, f),
                 Self::Swap(element) => ::core::fmt::Display::fmt(element, f),
@@ -4950,7 +4971,7 @@ pub mod encoder_target {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     pub struct AllocateOrDeallocateReturn {
         pub data: ::ethers::core::types::Bytes,
@@ -4964,7 +4985,7 @@ pub mod encoder_target {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     pub struct CreatePairReturn(pub ::ethers::core::types::Bytes);
     ///Container type for all return fields from the `createPool` function with signature `createPool(uint24,address,uint16,uint16,uint16,uint16,uint16,uint128,uint128)` and selector `0x40b54e8e`
@@ -4976,7 +4997,7 @@ pub mod encoder_target {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     pub struct CreatePoolReturn {
         pub data: ::ethers::core::types::Bytes,
@@ -4990,7 +5011,7 @@ pub mod encoder_target {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     pub struct SwapReturn {
         pub data: ::ethers::core::types::Bytes,
