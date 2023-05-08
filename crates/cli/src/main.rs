@@ -157,14 +157,6 @@ async fn main() -> Result<(), Box<dyn Error>> {
 mod tests {
     use assert_cmd::Command;
 
-    use super::*;
-
-    fn setup_sim_command(args: Vec<&str>) -> Result<Commands, Box<dyn Error>> {
-        let args = Args::try_parse_from(args);
-        Ok(args?.command.unwrap())
-    }    
-    
-
     #[test]
     fn test_sim_portfolio() {
         let mut cmd = Command::cargo_bin("arbiter").unwrap();
@@ -174,7 +166,7 @@ mod tests {
     }
 
     #[test]
-    fn test_sim_uniswapv3() {
+    fn test_sim_uniswap() {
         let mut cmd = Command::cargo_bin("arbiter").unwrap();
         cmd.arg("sim").arg("uniswap");
         let output = cmd.unwrap();
