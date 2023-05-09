@@ -1,8 +1,12 @@
 #![warn(missing_docs)]
 use std::error::Error;
 
+use ethers::types::U256;
 use eyre::Result;
-use simulate::manager::SimulationManager;
+use ruint::Uint;
+use simulate::{manager::SimulationManager, agent::{AgentType, Agent}, stochastic::price_process::{PriceProcess, PriceProcessType, OU}};
+
+use self::startup::SimulationContracts;
 
 pub mod arbitrage;
 pub mod startup;
@@ -14,6 +18,72 @@ pub fn run() -> Result<(), Box<dyn Error>> {
 
     // Run the startup script
     let (contracts, _pool_data, pool_id) = startup::run(&mut manager)?;
-    arbitrage::swap(&mut manager, &contracts.portfolio, pool_id)?;
+
+    // Start the arbitrageur
+    let arbitrageur = manager.agents.get("arbitrageur").unwrap();
+
+    // Have the arbitrageur check for arbitrage events.
+    let arbitrageur = match arbitrageur {
+        AgentType::SimpleArbitrageur(base_arbitrageur) => base_arbitrageur,
+        _ => panic!(),
+    };
+    arbitrageur.detect_arbitrage();
+
+    // Compute a swap
+    arbitrage::swap(
+        &mut manager,
+        &contracts.portfolio,
+        pool_id,
+        10_u128.pow(6),
+        false,
+    )?;
+
+    // Run the simulation
+    update_prices(&mut manager, &contracts)?;
+
+    Ok(())
+}
+
+/// Set prices for LiquidExchange in a loop.
+fn update_prices(manager: &mut SimulationManager, contracts: &SimulationContracts) -> Result<(), Box<dyn Error>> {
+    let admin = manager.agents.get("admin").unwrap();
+    let liquid_exchange_xy = &contracts.liquid_exchange_xy;
+    let ou = OU::new(0.001, 50.0, 1.0);
+    let price_process = PriceProcess::new(
+        PriceProcessType::OU(ou),
+        0.01,
+        "trade".to_string(),
+        5,
+        1.0,
+        1,
+    );
+    let prices = price_process.generate_price_path().1;
+    // println!("Prices: {:#?}", prices);
+
+    // Loop over and set prices on the liquid exchange from the oracle.
+    for price in prices {
+        println!("Price from price path: {}", price);
+        let wad_price = simulate::utils::float_to_wad(price);
+        println!("WAD price: {}", wad_price);
+        let call_data = liquid_exchange_xy.encode_function("setPrice", wad_price)?;
+        admin.call_contract(
+            &mut manager.environment,
+            liquid_exchange_xy,
+            call_data,
+            Uint::from(0),
+        );
+        // Check that the price is set correctly
+        let call_data = liquid_exchange_xy.encode_function("price", ())?;
+        let execution_result = admin.call_contract(
+            &mut manager.environment,
+            liquid_exchange_xy,
+            call_data,
+            Uint::from(0),
+        );
+        let value = manager.unpack_execution(execution_result)?;
+        let response: U256 = liquid_exchange_xy.decode_output("price", value)?;
+        println!("Price from the exchange: {}", response);
+        assert_eq!(response, wad_price);
+    }
     Ok(())
 }

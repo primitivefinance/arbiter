@@ -25,22 +25,24 @@ pub(crate) fn create_arbitrageur<S: Into<String>>(
         .unwrap();
 }
 
-pub(crate) fn swap(
+pub(crate) fn swap<T: Copy>(
     manager: &mut SimulationManager,
     portfolio: &SimulationContract<IsDeployed>,
     pool_id: u64,
-) -> Result<(), Box<dyn Error>> {
+    input_amount: T,
+    sell_asset: bool,
+) -> Result<(), Box<dyn Error>>
+where
+    ethers::types::U256: From<T>,
+    u128: From<T>,
+{
     let arbitrageur = manager.agents.get("arbitrageur").unwrap();
-    // --------------------------------------------------------------------------------------------
-    // PORTFOLIO POOL SWAP
-    // --------------------------------------------------------------------------------------------
     // Get the correct amount of ARBY to get from a certain amount of ARBX using `getAmountOut`
-    let input_amount = 1_000_000; // This causes InvalidInvariant revert.
     let get_amount_out_args = rmm01_portfolio::GetAmountOutCall {
         pool_id,                               // pool_id: u64,
-        sell_asset: false, /* sell_asset: bool, // Setting this to true means we are selling ARBX for ARBY */
-        amount_in: U256::from(input_amount), // amount_in: ::ethers::core::types::U256,
-        liquidity_delta: I256::from(0), // liquidity_delta: ::ethers::core::types::I256,
+        sell_asset,                            // sell_asset: bool. Setting this to true means we are selling ARBX for ARBY.
+        amount_in: U256::from(input_amount),   // amount_in: ::ethers::core::types::U256,
+        liquidity_delta: I256::from(0),        // liquidity_delta: ::ethers::core::types::I256,
         swapper: arbitrageur.address().into(), // swapper: ::ethers::core::types::Address,
     };
     let get_amount_out_result = arbitrageur.call_contract(
@@ -55,17 +57,18 @@ pub(crate) fn swap(
         portfolio.decode_output("getAmountOut", unpacked_get_amount_out)?;
     println!(
         "Inputting {} ARBX yields {} ARBY out.",
-        input_amount, decoded_amount_out,
+        U256::from(input_amount),
+        decoded_amount_out,
     );
 
     // Construct the swap using the above amount
     let amount_out = decoded_amount_out;
     let order = rmm01_portfolio::Order {
-        input: input_amount as u128,
+        input: u128::from(input_amount),
         output: amount_out,
         use_max: false,
         pool_id,
-        sell_asset: false,
+        sell_asset,
     };
     let swap_args = (order,);
     let swap_result = arbitrageur.call_contract(
