@@ -1,2 +1,2 @@
-pub mod portfolio_sim;
-pub mod uniswap_sim;
+pub mod portfolio;
+pub mod uniswap;

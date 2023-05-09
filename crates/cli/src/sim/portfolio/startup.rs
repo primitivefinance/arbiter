@@ -1,4 +1,3 @@
-#![warn(missing_docs)]
 use std::error::Error;
 
 use bindings::{arbiter_token, liquid_exchange, rmm01_portfolio, simple_registry, weth9};
@@ -6,7 +5,11 @@ use ethers::{prelude::U256, types::I256};
 use eyre::Result;
 use revm::primitives::{ruint::Uint, B160};
 use simulate::{
-    agent::{user::User, Agent, AgentType, simple_arbitrageur::{self, SimpleArbitrageur}, NotActive, SimulationEventFilter},
+    agent::{
+        simple_arbitrageur::{self, SimpleArbitrageur},
+        user::User,
+        Agent, AgentType, NotActive, SimulationEventFilter,
+    },
     contract::{IsDeployed, SimulationContract},
     manager::SimulationManager,
     stochastic::price_process::{PriceProcess, PriceProcessType, OU},
@@ -20,28 +23,12 @@ struct SimulationContracts(
     SimulationContract<IsDeployed>,
 );
 
-/// Run a simulation.
-pub fn portfolio_sim() -> Result<(), Box<dyn Error>> {
+pub(crate) fn run(manager: &mut SimulationManager) -> Result<(), Box<dyn Error>> {
     // define the wad constant
     let decimals = 18_u8;
     let wad: U256 = U256::from(10_i64.pow(decimals as u32));
-    // Create a `SimulationManager` that runs simulations in their `SimulationEnvironment`.
-    let mut manager = SimulationManager::new();
-
-    let user_name = "arbitrageur";
-    let user_address = B160::from_low_u64_be(2);
-    let arbitrageur = User::new(user_name, None);
-
-    manager.activate_agent(AgentType::User(arbitrageur), user_address)?;
-    let _arbitrageur = manager.agents.get(user_name).unwrap();
-    println!("Arbitrageur created at: {}", user_address);
-    let _admin = manager.agents.get("admin").unwrap();
-
-    // Deploying Contracts
-    let contracts = deploy_portfolio_sim_contracts(&mut manager, wad)?;
-
-    portfolio_sim_intitalization_calls(&mut manager, contracts)?;
-
+    let contracts = deploy_portfolio_sim_contracts(manager, wad)?;
+    portfolio_sim_intitalization_calls(manager, contracts)?;
     Ok(())
 }
 
@@ -482,15 +469,6 @@ fn portfolio_sim_intitalization_calls(
         }
     };
     Ok(())
-}
-
-fn create_arbitrageur<S: Into<String>>(liquid_exchange: SimulationContract<IsDeployed>, name: S) -> SimpleArbitrageur<NotActive> {
-    let mut event_filters = vec![SimulationEventFilter::new(
-        &liquid_exchange,
-        "PriceChange",
-    )];
-    let arbitrageur = SimpleArbitrageur::new(name, event_filters);
-    arbitrageur
 }
 
 #[cfg(test)]
