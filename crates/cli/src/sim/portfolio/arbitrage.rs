@@ -8,7 +8,7 @@ use simulate::{
     agent::{
         simple_arbitrageur::{self, SimpleArbitrageur},
         user::User,
-        Agent, AgentType, NotActive, SimulationEventFilter,
+        Agent, AgentType, NotActive, SimulationEventFilter, IsActive,
     },
     contract::{IsDeployed, SimulationContract},
     manager::SimulationManager,
@@ -17,12 +17,13 @@ use simulate::{
 };
 
 pub fn create_arbitrageur<S: Into<String>>(
-    liquid_exchange: SimulationContract<IsDeployed>,
+    manager: &mut SimulationManager,
+    liquid_exchange: &SimulationContract<IsDeployed>,
     name: S,
-) -> SimpleArbitrageur<NotActive> {
+) {
     let mut event_filters = vec![SimulationEventFilter::new(&liquid_exchange, "PriceChange")];
     let arbitrageur = SimpleArbitrageur::new(name, event_filters);
-    arbitrageur
+    manager.activate_agent(AgentType::SimpleArbitrageur(arbitrageur), B160::from_low_u64_be(2)).unwrap();
 }
 
 fn swap() {}

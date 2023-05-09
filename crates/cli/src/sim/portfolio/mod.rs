@@ -25,18 +25,6 @@ pub fn run() -> Result<(), Box<dyn Error>> {
     // Create a `SimulationManager` that runs simulations in their `SimulationEnvironment`.
     let mut manager = SimulationManager::new();
 
-    // Create an arbitrageur agent.
-    let user_name = "arbitrageur";
-    let arbitrageur = arbitrage::create_arbitrageur(liquid_exchange, user_name);
-
-
-    let user_address = B160::from_low_u64_be(2);
-    let arbitrageur = User::new(user_name, None);
-    manager.activate_agent(AgentType::User(arbitrageur), user_address)?;
-    let _arbitrageur = manager.agents.get(user_name).unwrap();
-    println!("Arbitrageur created at: {}", user_address);
-    let _admin = manager.agents.get("admin").unwrap();
-
     // Run the startup script
     startup::run(&mut manager)?;
 
