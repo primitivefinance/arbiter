@@ -9,6 +9,7 @@ use simulate::{
     agent::{user::User, Agent, AgentType, simple_arbitrageur::{self, SimpleArbitrageur}, NotActive, SimulationEventFilter},
     contract::{IsDeployed, SimulationContract},
     manager::SimulationManager,
+    stochastic::price_process::{PriceProcess, PriceProcessType, OU},
     utils::recast_address,
 };
 
@@ -102,8 +103,7 @@ fn deploy_portfolio_sim_contracts(
     println!("ARBY deployed at: {}", arbiter_token_y.address);
 
     // Deploy LiquidExchange
-    let price_to_check = 1000;
-    let initial_price = wad.checked_mul(U256::from(price_to_check)).unwrap();
+    let initial_price = wad.checked_mul(U256::from(1)).unwrap();
     let liquid_exchange = SimulationContract::new(
         liquid_exchange::LIQUIDEXCHANGE_ABI.clone(),
         liquid_exchange::LIQUIDEXCHANGE_BYTECODE.clone(),
@@ -314,14 +314,14 @@ fn portfolio_sim_intitalization_calls(
     // CREATE PORTFOLIO POOL
     // --------------------------------------------------------------------------------------------
     let create_pool_args = rmm01_portfolio::CreatePoolCall {
-        pair_id,                                      // pub pair_id: u32
+        pair_id,                                     // pub pair_id: u32
         controller: recast_address(admin.address()), /* pub controller: ::ethers::core::types::Address */
         priority_fee: 100_u16,                       // pub priority_fee: u16,
         fee: 100_u16,                                // pub fee: u16,
         volatility: 100_u16,                         // pub vol: u16,
         duration: 65535_u16,                         // pub dur: u16,
-        strike_price: 10_000_000_000_000_000_000u128, // pub max_price: u128,
-        price: 10_000_000_000_000_000_000u128,       // pub price: u128,
+        strike_price: 10_u128.pow(18),               // pub max_price: u128,
+        price: 10_u128.pow(18),                      // pub price: u128,
     };
     let create_pool_result = admin.call_contract(
         &mut manager.environment,
@@ -379,6 +379,52 @@ fn portfolio_sim_intitalization_calls(
         "Allocated {} ARBX and {} ARBY to Pool {}",
         deltas.0, deltas.1, pool_id
     );
+
+    // --------------------------------------------------------------------------------------------
+    // ARBITRAGEUR SET UP AND RUN
+    // --------------------------------------------------------------------------------------------
+    // TODO: Add this here before the loop
+
+    // --------------------------------------------------------------------------------------------
+    // LiquidExchange PRICE SETTING LOOP
+    // --------------------------------------------------------------------------------------------
+    let ou = OU::new(0.001, 50.0, 1.0);
+    let price_process = PriceProcess::new(
+        PriceProcessType::OU(ou),
+        0.01,
+        "trade".to_string(),
+        5,
+        1.0,
+        1,
+    );
+    let prices = price_process.generate_price_path().1;
+    // println!("Prices: {:#?}", prices);
+
+    // Loop over and set prices on the liquid exchange from the oracle.
+    for price in prices {
+        println!("Price from price path: {}", price);
+        let wad_price = simulate::utils::float_to_wad(price);
+        println!("WAD price: {}", wad_price);
+        let call_data = liquid_exchange_xy.encode_function("setPrice", wad_price)?;
+        admin.call_contract(
+            &mut manager.environment,
+            &liquid_exchange_xy,
+            call_data,
+            Uint::from(0),
+        );
+        // Check that the price is set correctly
+        let call_data = liquid_exchange_xy.encode_function("price", ())?;
+        let execution_result = admin.call_contract(
+            &mut manager.environment,
+            &liquid_exchange_xy,
+            call_data,
+            Uint::from(0),
+        );
+        let value = manager.unpack_execution(execution_result)?;
+        let response: U256 = liquid_exchange_xy.decode_output("price", value)?;
+        println!("Price from the exchange: {}", response);
+        assert_eq!(response, wad_price);
+    }
 
     // --------------------------------------------------------------------------------------------
     // PORTFOLIO POOL SWAP
