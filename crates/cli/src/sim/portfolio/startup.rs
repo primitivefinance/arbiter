@@ -51,28 +51,46 @@ pub(crate) fn run(
 
     // Deploy the contracts
     println!("🔧 Deploying contracts...");
+    println!("---------------------------------------");
     let contracts = deploy_contracts(manager, wad)?;
+    println!("---------------------------------------");
     println!("✅ Contracts deployed successfully!");
+    println!("");
 
-    println!("🔧 Creating the arbitrageur...");
+    println!("🔧 Creating the Arbitrageur...");
+    println!("---------------------------------------");
     arbitrage::create_arbitrageur(manager, &contracts.liquid_exchange_xy, "arbitrageur");
+    println!("---------------------------------------");
     println!("✅ Arbitrageur created successfully!");
+    println!("");
 
     println!("🔧 Minting tokens...");
+    println!("---------------------------------------");
     mint(manager, &contracts)?;
+    println!("---------------------------------------");
     println!("✅ Tokens minted successfully!");
+    println!("");
 
     println!("🔧 Approving tokens...");
+    println!("---------------------------------------");
     approve(manager, &contracts)?;
+    println!("---------------------------------------");
     println!("✅ Tokens approved successfully!");
+    println!("");
 
     println!("🔧 Initializing the pool...");
+    println!("---------------------------------------");
     let (pool_data, pool_id) = pool_intitalization(manager, &contracts)?;
+    println!("---------------------------------------");
     println!("✅ Pool initialized successfully! Pool ID: {}", pool_id);
+    println!("");
 
     println!("🔧 Allocating funds...");
+    println!("---------------------------------------");
     allocate(manager, &contracts, pool_id)?;
+    println!("---------------------------------------");
     println!("✅ Funds allocated successfully!");
+    println!("");
 
     Ok((contracts, pool_data, pool_id))
 }

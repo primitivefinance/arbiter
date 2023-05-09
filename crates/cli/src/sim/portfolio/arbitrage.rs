@@ -15,14 +15,16 @@ pub(crate) fn create_arbitrageur<S: Into<String>>(
     liquid_exchange: &SimulationContract<IsDeployed>,
     name: S,
 ) {
+    let address = B160::from_low_u64_be(2);
     let event_filters = vec![SimulationEventFilter::new(liquid_exchange, "PriceChange")];
     let arbitrageur = SimpleArbitrageur::new(name, event_filters);
     manager
         .activate_agent(
             AgentType::SimpleArbitrageur(arbitrageur),
-            B160::from_low_u64_be(2),
+            address,
         )
         .unwrap();
+    println!("Created Arbitrageur at address: {}.", address);
 }
 
 pub(crate) fn swap<T: Copy>(
