@@ -4,7 +4,11 @@ use std::error::Error;
 use ethers::types::U256;
 use eyre::Result;
 use ruint::Uint;
-use simulate::{manager::SimulationManager, agent::{AgentType, Agent}, stochastic::price_process::{PriceProcess, PriceProcessType, OU}};
+use simulate::{
+    agent::{Agent, AgentType},
+    manager::SimulationManager,
+    stochastic::price_process::{PriceProcess, PriceProcessType, OU},
+};
 
 use self::startup::SimulationContracts;
 
@@ -22,11 +26,40 @@ pub fn run() -> Result<(), Box<dyn Error>> {
     // Start the arbitrageur
     let arbitrageur = manager.agents.get("arbitrageur").unwrap();
 
-    // Have the arbitrageur check for arbitrage events.
+    // Intialize the arbitrageur
     let arbitrageur = match arbitrageur {
         AgentType::SimpleArbitrageur(base_arbitrageur) => base_arbitrageur,
         _ => panic!(),
     };
+    let liquid_exchange_xy_price = arbitrageur.call_contract(
+        &mut manager.environment,
+        &contracts.liquid_exchange_xy,
+        contracts.liquid_exchange_xy.encode_function("price", ())?,
+        Uint::ZERO,
+    );
+    let liquid_exchange_xy_price = manager.unpack_execution(liquid_exchange_xy_price)?;
+    let liquid_exchange_xy_price: U256 = contracts
+        .liquid_exchange_xy
+        .decode_output("price", liquid_exchange_xy_price)?;
+    let portfolio_price = arbitrageur.call_contract(
+        &mut manager.environment,
+        &contracts.portfolio,
+        contracts.portfolio.encode_function("getSpotPrice", (pool_id))?,
+        Uint::ZERO,
+    );
+    let portfolio_price = manager.unpack_execution(portfolio_price)?;
+    let portfolio_price: U256 = contracts
+        .liquid_exchange_xy
+        .decode_output("price", portfolio_price)?;
+
+    let mut prices = arbitrageur.prices.lock().unwrap();
+    prices[0] = liquid_exchange_xy_price.into();
+    prices[1] = portfolio_price.into();
+    drop(prices);
+
+    println!("Prices: {:#?}", arbitrageur.prices);
+
+    // Monitor for arbitrages.
     arbitrageur.detect_arbitrage();
 
     // Compute a swap
@@ -39,13 +72,16 @@ pub fn run() -> Result<(), Box<dyn Error>> {
     )?;
 
     // Run the simulation
-    update_prices(&mut manager, &contracts)?;
+    generate_prices(&mut manager, &contracts)?;
 
     Ok(())
 }
 
 /// Set prices for LiquidExchange in a loop.
-fn update_prices(manager: &mut SimulationManager, contracts: &SimulationContracts) -> Result<(), Box<dyn Error>> {
+fn generate_prices(
+    manager: &mut SimulationManager,
+    contracts: &SimulationContracts,
+) -> Result<(), Box<dyn Error>> {
     let admin = manager.agents.get("admin").unwrap();
     let liquid_exchange_xy = &contracts.liquid_exchange_xy;
     let ou = OU::new(0.001, 50.0, 1.0);

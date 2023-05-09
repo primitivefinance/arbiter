@@ -40,9 +40,9 @@ where
     // Get the correct amount of ARBY to get from a certain amount of ARBX using `getAmountOut`
     let get_amount_out_args = rmm01_portfolio::GetAmountOutCall {
         pool_id,                               // pool_id: u64,
-        sell_asset,                            // sell_asset: bool. Setting this to true means we are selling ARBX for ARBY.
-        amount_in: U256::from(input_amount),   // amount_in: ::ethers::core::types::U256,
-        liquidity_delta: I256::from(0),        // liquidity_delta: ::ethers::core::types::I256,
+        sell_asset, // sell_asset: bool. Setting this to true means we are selling ARBX for ARBY.
+        amount_in: U256::from(input_amount), // amount_in: ::ethers::core::types::U256,
+        liquidity_delta: I256::from(0), // liquidity_delta: ::ethers::core::types::I256,
         swapper: arbitrageur.address().into(), // swapper: ::ethers::core::types::Address,
     };
     let get_amount_out_result = arbitrageur.call_contract(
