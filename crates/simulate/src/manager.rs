@@ -1,4 +1,5 @@
 #![warn(missing_docs)]
+#![warn(unsafe_code)]
 //! Simulation managers are used to manage the environments for a simulation.
 //! Managers are responsible for adding agents, running agents, deploying contracts, calling contracts, and reading logs.
 
@@ -8,6 +9,7 @@ use std::{
     fmt::{Display, Formatter, Result as FmtResult},
 };
 
+use bindings::arbiter_math;
 use bytes::Bytes;
 use crossbeam_channel::unbounded;
 use revm::primitives::{AccountInfo, Address, ExecutionResult, Log, Output, B160, U256};
@@ -17,6 +19,7 @@ use crate::{
         journaler::Journaler, simple_arbitrageur::SimpleArbitrageur, user::User, AgentType,
         IsActive, NotActive, TransactSettings,
     },
+    contract::{IsDeployed, SimulationContract},
     environment::SimulationEnvironment,
 };
 
@@ -46,10 +49,12 @@ impl Display for ManagerError {
 /// * `environment` - The simulation environment that the manager controls.
 /// * `agents` - The agents that are currently running in the simulation environment.
 pub struct SimulationManager {
-    /// `SimulationEnvironment` that the simulation manager controls.
+    /// [`SimulationEnvironment`] that the simulation manager controls.
     pub environment: SimulationEnvironment,
-    /// The agents that are currently running in the simulation environment.
+    /// The agents that are currently running in the [`SimulationEnvironment`].
     pub agents: HashMap<String, AgentType<IsActive>>,
+    /// The collection of different [`SimulationContract`] that are currently deployed in the [`SimulationEnvironment`].
+    pub autodeployed_contracts: HashMap<String, SimulationContract<IsDeployed>>,
 }
 
 impl Default for SimulationManager {
@@ -66,12 +71,28 @@ impl SimulationManager {
         let mut simulation_manager = Self {
             environment: SimulationEnvironment::new(),
             agents: HashMap::new(),
+            autodeployed_contracts: HashMap::new(),
         };
         let admin = AgentType::User(User::new("admin", None));
         simulation_manager
             .activate_agent(admin, B160::from_low_u64_be(1))
             .unwrap(); // This unwrap should never fail.
+        simulation_manager.auto_deploy();
+
         simulation_manager
+    }
+
+    /// Deploy all contracts that are needed for any simulation.
+    fn auto_deploy(&mut self) {
+        // Deploy `ArbiterMath`.
+        let arbiter_math = SimulationContract::new(
+            arbiter_math::ARBITERMATH_ABI.clone(),
+            arbiter_math::ARBITERMATH_BYTECODE.clone(),
+        );
+        let arbiter_math =
+            arbiter_math.deploy(&mut self.environment, self.agents.get("admin").unwrap(), ());
+        self.autodeployed_contracts
+            .insert("arbiter_math".to_string(), arbiter_math);
     }
 
     /// Stop the current simulation.
@@ -97,7 +118,6 @@ impl SimulationManager {
         if self
             .agents
             .values()
-            .into_iter()
             .any(|agent_in_db| agent_in_db.inner().address() == new_agent_address)
         {
             return Err(ManagerError {
@@ -109,7 +129,6 @@ impl SimulationManager {
         if self
             .agents
             .keys()
-            .into_iter()
             .any(|name_in_db| *name_in_db == new_agent.inner().name())
         {
             return Err(ManagerError {

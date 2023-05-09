@@ -15,6 +15,7 @@ jobs:
         uses: actions/checkout@v2
         with:
           fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Setup Rust
         uses: actions-rs/toolchain@v1
@@ -25,9 +26,6 @@ jobs:
       - name: Install cargo-edit
         run: cargo install cargo-edit
 
-      - name: Install jq
-        run: sudo apt-get install -y jq
-
       - name: Configure Git
         run: |
           git config --global user.email "waylonjepsen1@gmail.com"
@@ -35,9 +33,7 @@ jobs:
 
       - name: Bump patch version
         run: |
-          find . -name 'Cargo.toml' -execdir sh -c '
-            cargo bump patch
-            VERSION=$(cargo metadata --format-version 1 | jq -r ".packages[] | select(.manifest_path == \"$(pwd)/Cargo.toml\") | .version")
-            git add Cargo.toml
-            git commit -m "Bump version in $(dirname $(pwd)) to $VERSION" ' \;
+          cargo set-version --bump patch
+          git add ./**/*.toml
+          git commit -m "Bump patch version"
           git push

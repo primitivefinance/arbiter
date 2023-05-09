@@ -185,4 +185,17 @@ impl SimulationContract<IsDeployed> {
         self.base_contract
             .decode_event(function_name, log_topics, log_data.into())
     }
+
+    /// Decodes the error for an error with the [`SimulationContract`].
+    /// # Arguments
+    /// * `name` - The name of the error to decode.
+    /// * `value` - The data of the error.
+    /// # Returns
+    /// * `Vec<Token>` - The raw decoded error.
+    pub fn decode_error(&self, name: String, value: Bytes) -> Vec<Token> {
+        let mut abi_errors = self.base_contract.abi().errors();
+        let predicate = |error: &&ethers::abi::ethabi::AbiError| error.name == name;
+        let error = abi_errors.find(predicate).unwrap();
+        error.decode(&value).unwrap()
+    }
 }

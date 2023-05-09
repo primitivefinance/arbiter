@@ -1,4 +1,5 @@
 #![warn(missing_docs)]
+#![warn(unsafe_code)]
 //! Lib crate for describing simulations.
 
 pub mod agent;
@@ -15,7 +16,10 @@ mod tests {
     use std::{error::Error, thread};
 
     use bindings::{arbiter_token, writer};
-    use ethers::prelude::{H256, U256};
+    use ethers::{
+        prelude::{H256, U256},
+        types::I256,
+    };
     use revm::primitives::{ruint::Uint, B160};
 
     use crate::{
@@ -167,8 +171,12 @@ mod tests {
         let _execution_result = admin.call_contract(environment, &writer, call_data, Uint::ZERO);
 
         // Read logs twice since the first time is just the contract creation which gives no log.
-        let _logs = admin.read_logs()?;
         let logs = admin.read_logs()?;
+        println!("Logs: {:#?}", logs);
+        let logs = admin.read_logs()?;
+        println!("Logs: {:#?}", logs);
+        let logs = admin.read_logs()?;
+        println!("Logs: {:#?}", logs);
 
         // Decode the logs
         let log_topics = logs[0].topics.clone();
@@ -210,7 +218,7 @@ mod tests {
                         println!("Got the right log in alice's thread!!");
                     }
                     1 => {
-                        println!("Decoding logs!");
+                        println!("Decoding nonempty logs!");
                         let log_topics: Vec<H256> = logs.clone()[0]
                             .topics
                             .clone()
@@ -225,7 +233,7 @@ mod tests {
                         println!("Got the right log in alice's thread!")
                     }
                     2 => {
-                        println!("Decoding logs!");
+                        println!("Decoding nonempty logs!");
                         let log_topics: Vec<H256> = logs.clone()[0]
                             .topics
                             .clone()
@@ -256,11 +264,11 @@ mod tests {
                 println!("Got logs in admin's thread!");
                 println!("{:?}", logs);
                 match i {
-                    0 => {
+                    0 | 1 => {
                         assert_eq!(logs, []);
                         println!("Got the right log in admin's thread!");
                     }
-                    1 => {
+                    2 => {
                         println!("Decoding logs!");
                         let log_topics: Vec<H256> = logs.clone()[0]
                             .topics
@@ -275,7 +283,7 @@ mod tests {
                         assert_eq!(log_output, "Hello, world!".to_string());
                         println!("Got the right log in admin's thread!")
                     }
-                    2 => {
+                    3 => {
                         println!("Decoding logs in admin's thread!");
                         let log_topics: Vec<H256> = logs.clone()[0]
                             .topics
@@ -293,7 +301,7 @@ mod tests {
                     _ => break,
                 }
                 i += 1;
-                if i == 3 {
+                if i == 4 {
                     break;
                 }
             }
@@ -324,6 +332,126 @@ mod tests {
         if admin_handle.join().is_err() {
             panic!("Thread panicked!");
         };
+        Ok(())
+    }
+
+    #[test]
+    fn auto_deploy() {
+        let manager = SimulationManager::new();
+        assert!(manager.autodeployed_contracts.get("arbiter_math").is_some());
+    }
+
+    #[test]
+    fn arbiter_math() -> Result<(), Box<dyn Error>> {
+        // Create a `SimulationManager` where we can run simulations.
+        // This will also create an EVM instance associated to the manager.
+        let mut manager = SimulationManager::default();
+        let admin = manager.agents.get("admin").unwrap();
+
+        // Get a SimulationContract for the Arbiter Math ABI and bytecode.
+        let arbiter_math = manager.autodeployed_contracts.get("arbiter_math").unwrap();
+
+        // Test the cdf function.
+        let execution_result = admin.call_contract(
+            &mut manager.environment,
+            &arbiter_math,
+            arbiter_math.encode_function("cdf", I256::from(1))?,
+            Uint::ZERO,
+        );
+        let unpacked_result = manager.unpack_execution(execution_result)?;
+        let output: I256 = arbiter_math.decode_output("cdf", unpacked_result)?;
+        println!("cdf(1) = {}", output);
+        assert_eq!(output, I256::from(500000000000000000u64));
+
+        // Test the pdf function.
+        let execution_result = admin.call_contract(
+            &mut manager.environment,
+            &arbiter_math,
+            arbiter_math.encode_function("pdf", I256::from(1))?,
+            Uint::ZERO,
+        );
+        let unpacked_result = manager.unpack_execution(execution_result)?;
+        let output: I256 = arbiter_math.decode_output("pdf", unpacked_result)?;
+        println!("pdf(1) = {}", output);
+        assert_eq!(output, I256::from(398942280401432678u64));
+
+        // Test the ppf function.
+        let execution_result = admin.call_contract(
+            &mut manager.environment,
+            &arbiter_math,
+            arbiter_math.encode_function("ppf", I256::from(500000000000000000u64))?,
+            Uint::ZERO,
+        );
+        let unpacked_result = manager.unpack_execution(execution_result)?;
+        let output: I256 = arbiter_math.decode_output("ppf", unpacked_result)?;
+        println!("ppf(0.5) = {}", output);
+
+        // Test the mulWadDown function.
+        let execution_result = admin.call_contract(
+            &mut manager.environment,
+            &arbiter_math,
+            arbiter_math.encode_function(
+                "mulWadDown",
+                (U256::from(1_000_000_000_000_000_000_u128), U256::from(2)),
+            )?,
+            Uint::ZERO,
+        );
+        let unpacked_result = manager.unpack_execution(execution_result)?;
+        let output: U256 = arbiter_math.decode_output("mulWadDown", unpacked_result)?;
+        println!("mulWadDown(1, 2) = {}", output);
+        assert_eq!(output, U256::from(2));
+
+        // Test the mulWadUp function.
+        let execution_result = admin.call_contract(
+            &mut manager.environment,
+            &arbiter_math,
+            arbiter_math.encode_function(
+                "mulWadUp",
+                (U256::from(1_000_000_000_000_000_000_u128), U256::from(2)),
+            )?,
+            Uint::ZERO,
+        );
+        let unpacked_result = manager.unpack_execution(execution_result)?;
+        let output: U256 = arbiter_math.decode_output("mulWadUp", unpacked_result)?;
+        println!("mulWadUp(1, 2) = {}", output);
+        assert_eq!(output, U256::from(2));
+
+        // Test the divWadDown function.
+        let execution_result = admin.call_contract(
+            &mut manager.environment,
+            &arbiter_math,
+            arbiter_math.encode_function(
+                "divWadDown",
+                (U256::from(1_000_000_000_000_000_000_u128), U256::from(2)),
+            )?,
+            Uint::ZERO,
+        );
+        let unpacked_result = manager.unpack_execution(execution_result)?;
+        let output: U256 = arbiter_math.decode_output("divWadDown", unpacked_result)?;
+        println!("divWadDown(1, 2) = {}", output);
+        assert_eq!(
+            output,
+            U256::from(500000000000000000000000000000000000_u128)
+        );
+
+        // Test the divWadUp function.
+        let execution_result = admin.call_contract(
+            &mut manager.environment,
+            &arbiter_math,
+            arbiter_math.encode_function(
+                "divWadUp",
+                (U256::from(1_000_000_000_000_000_000_u128), U256::from(2)),
+            )?,
+            Uint::ZERO,
+        );
+        let unpacked_result = manager.unpack_execution(execution_result)?;
+        let output: U256 = arbiter_math.decode_output("divWadUp", unpacked_result)?;
+        println!("divWadUp(1, 2) = {}", output);
+        assert_eq!(
+            output,
+            U256::from(500000000000000000000000000000000000_u128)
+        );
+
         Ok(())
     }
 }

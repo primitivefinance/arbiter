@@ -1,4 +1,4 @@
-pub use erc20::*;
+pub use uniswap_v2erc20::*;
 /// This module was auto-generated with ethers-rs Abigen.
 /// More information at: <https://github.com/gakonst/ethers-rs>
 #[allow(
@@ -9,11 +9,11 @@ pub use erc20::*;
     dead_code,
     non_camel_case_types
 )]
-pub mod erc20 {
+pub mod uniswap_v2erc20 {
     #[rustfmt::skip]
-    const __ABI: &str = "[{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"_totalSupply\",\"type\":\"uint256\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"constructor\",\"outputs\":[]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"owner\",\"type\":\"address\",\"components\":[],\"indexed\":true},{\"internalType\":\"address\",\"name\":\"spender\",\"type\":\"address\",\"components\":[],\"indexed\":true},{\"internalType\":\"uint256\",\"name\":\"value\",\"type\":\"uint256\",\"components\":[],\"indexed\":false}],\"type\":\"event\",\"name\":\"Approval\",\"outputs\":[],\"anonymous\":false},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"from\",\"type\":\"address\",\"components\":[],\"indexed\":true},{\"internalType\":\"address\",\"name\":\"to\",\"type\":\"address\",\"components\":[],\"indexed\":true},{\"internalType\":\"uint256\",\"name\":\"value\",\"type\":\"uint256\",\"components\":[],\"indexed\":false}],\"type\":\"event\",\"name\":\"Transfer\",\"outputs\":[],\"anonymous\":false},{\"inputs\":[],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"DOMAIN_SEPARATOR\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\",\"components\":[]}]},{\"inputs\":[],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"PERMIT_TYPEHASH\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\",\"components\":[]}],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"allowance\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"spender\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"value\",\"type\":\"uint256\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"function\",\"name\":\"approve\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\",\"components\":[]}],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"balanceOf\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\",\"components\":[]}]},{\"inputs\":[],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"decimals\",\"outputs\":[{\"internalType\":\"uint8\",\"name\":\"\",\"type\":\"uint8\",\"components\":[]}]},{\"inputs\":[],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"name\",\"outputs\":[{\"internalType\":\"string\",\"name\":\"\",\"type\":\"string\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\",\"components\":[]}],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"nonces\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"owner\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"address\",\"name\":\"spender\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"value\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"deadline\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"uint8\",\"name\":\"v\",\"type\":\"uint8\",\"components\":[]},{\"internalType\":\"bytes32\",\"name\":\"r\",\"type\":\"bytes32\",\"components\":[]},{\"internalType\":\"bytes32\",\"name\":\"s\",\"type\":\"bytes32\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"function\",\"name\":\"permit\",\"outputs\":[]},{\"inputs\":[],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"symbol\",\"outputs\":[{\"internalType\":\"string\",\"name\":\"\",\"type\":\"string\",\"components\":[]}]},{\"inputs\":[],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"totalSupply\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"to\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"value\",\"type\":\"uint256\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"function\",\"name\":\"transfer\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"from\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"address\",\"name\":\"to\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"value\",\"type\":\"uint256\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"function\",\"name\":\"transferFrom\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\",\"components\":[]}]}]";
+    const __ABI: &str = "[{\"inputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"constructor\",\"outputs\":[]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"owner\",\"type\":\"address\",\"components\":[],\"indexed\":true},{\"internalType\":\"address\",\"name\":\"spender\",\"type\":\"address\",\"components\":[],\"indexed\":true},{\"internalType\":\"uint256\",\"name\":\"value\",\"type\":\"uint256\",\"components\":[],\"indexed\":false}],\"type\":\"event\",\"name\":\"Approval\",\"outputs\":[],\"anonymous\":false},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"from\",\"type\":\"address\",\"components\":[],\"indexed\":true},{\"internalType\":\"address\",\"name\":\"to\",\"type\":\"address\",\"components\":[],\"indexed\":true},{\"internalType\":\"uint256\",\"name\":\"value\",\"type\":\"uint256\",\"components\":[],\"indexed\":false}],\"type\":\"event\",\"name\":\"Transfer\",\"outputs\":[],\"anonymous\":false},{\"inputs\":[],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"DOMAIN_SEPARATOR\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\",\"components\":[]}]},{\"inputs\":[],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"PERMIT_TYPEHASH\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\",\"components\":[]}],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"allowance\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"spender\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"value\",\"type\":\"uint256\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"function\",\"name\":\"approve\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\",\"components\":[]}],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"balanceOf\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\",\"components\":[]}]},{\"inputs\":[],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"decimals\",\"outputs\":[{\"internalType\":\"uint8\",\"name\":\"\",\"type\":\"uint8\",\"components\":[]}]},{\"inputs\":[],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"name\",\"outputs\":[{\"internalType\":\"string\",\"name\":\"\",\"type\":\"string\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\",\"components\":[]}],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"nonces\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"owner\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"address\",\"name\":\"spender\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"value\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"deadline\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"uint8\",\"name\":\"v\",\"type\":\"uint8\",\"components\":[]},{\"internalType\":\"bytes32\",\"name\":\"r\",\"type\":\"bytes32\",\"components\":[]},{\"internalType\":\"bytes32\",\"name\":\"s\",\"type\":\"bytes32\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"function\",\"name\":\"permit\",\"outputs\":[]},{\"inputs\":[],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"symbol\",\"outputs\":[{\"internalType\":\"string\",\"name\":\"\",\"type\":\"string\",\"components\":[]}]},{\"inputs\":[],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"totalSupply\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"to\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"value\",\"type\":\"uint256\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"function\",\"name\":\"transfer\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"from\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"address\",\"name\":\"to\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"value\",\"type\":\"uint256\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"function\",\"name\":\"transferFrom\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\",\"components\":[]}]}]";
     ///The parsed JSON ABI of the contract.
-    pub static ERC20_ABI: ::ethers::contract::Lazy<::ethers::core::abi::Abi> =
+    pub static UNISWAPV2ERC20_ABI: ::ethers::contract::Lazy<::ethers::core::abi::Abi> =
         ::ethers::contract::Lazy::new(|| {
             ::ethers::core::utils::__serde_json::from_str(__ABI).expect("ABI is always valid")
         });
@@ -40,50 +40,14 @@ pub mod erc20 {
         96,
         64,
         81,
-        97,
-        10,
-        251,
-        56,
-        3,
-        128,
-        97,
-        10,
-        251,
-        131,
-        57,
-        129,
-        129,
-        1,
-        96,
-        64,
-        82,
-        96,
-        32,
-        129,
-        16,
-        21,
-        97,
-        0,
-        51,
-        87,
-        96,
-        0,
-        128,
-        253,
-        91,
-        80,
-        81,
-        96,
-        64,
-        81,
         70,
         144,
         128,
         96,
         82,
         97,
-        10,
-        169,
+        9,
+        108,
         130,
         57,
         96,
@@ -280,293 +244,12 @@ pub mod erc20 {
         85,
         80,
         97,
-        1,
-        22,
-        51,
-        130,
-        96,
-        1,
-        96,
-        1,
-        96,
-        224,
-        27,
-        3,
-        97,
-        1,
-        28,
-        22,
-        86,
-        91,
-        80,
-        97,
-        2,
-        28,
-        86,
-        91,
-        97,
-        1,
-        53,
-        129,
-        96,
-        0,
-        84,
-        97,
-        1,
-        190,
-        96,
-        32,
-        27,
-        97,
-        7,
-        250,
-        23,
-        144,
-        145,
-        144,
-        96,
-        32,
-        28,
-        86,
-        91,
-        96,
-        0,
-        144,
-        129,
-        85,
-        96,
-        1,
-        96,
-        1,
-        96,
-        160,
-        27,
-        3,
-        131,
-        22,
-        129,
-        82,
-        96,
-        1,
-        96,
-        32,
-        144,
-        129,
-        82,
-        96,
-        64,
-        144,
-        145,
-        32,
-        84,
-        97,
-        1,
-        102,
-        145,
-        131,
-        144,
-        97,
-        7,
-        250,
-        97,
-        1,
-        190,
-        130,
-        27,
-        23,
-        144,
-        28,
-        86,
-        91,
-        96,
-        1,
-        96,
-        1,
-        96,
-        160,
-        27,
-        3,
-        131,
-        22,
-        96,
-        0,
-        129,
-        129,
-        82,
-        96,
-        1,
-        96,
-        32,
-        144,
-        129,
-        82,
-        96,
-        64,
-        128,
-        131,
-        32,
-        148,
-        144,
-        148,
-        85,
-        131,
-        81,
-        133,
-        129,
-        82,
-        147,
-        81,
-        146,
-        147,
-        145,
-        146,
-        127,
-        221,
-        242,
-        82,
-        173,
-        27,
-        226,
-        200,
-        155,
-        105,
-        194,
-        176,
-        104,
-        252,
-        55,
-        141,
-        170,
-        149,
-        43,
-        167,
-        241,
-        99,
-        196,
-        161,
-        22,
-        40,
-        245,
-        90,
-        77,
-        245,
-        35,
-        179,
-        239,
-        146,
-        129,
-        144,
-        3,
-        144,
-        145,
-        1,
-        144,
-        163,
-        80,
-        80,
-        86,
-        91,
-        128,
-        130,
-        1,
-        130,
-        129,
-        16,
-        21,
-        97,
-        2,
-        22,
-        87,
-        96,
-        64,
-        128,
-        81,
-        98,
-        70,
-        27,
-        205,
-        96,
-        229,
-        27,
-        129,
-        82,
-        96,
-        32,
-        96,
-        4,
-        130,
-        1,
-        82,
-        96,
-        20,
-        96,
-        36,
-        130,
-        1,
-        82,
-        127,
-        100,
-        115,
-        45,
-        109,
-        97,
-        116,
-        104,
-        45,
-        97,
-        100,
-        100,
-        45,
-        111,
-        118,
-        101,
-        114,
-        102,
-        108,
-        111,
-        119,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        96,
-        68,
-        130,
-        1,
-        82,
-        144,
-        81,
-        144,
-        129,
-        144,
-        3,
-        96,
-        100,
-        1,
-        144,
-        253,
-        91,
-        146,
-        145,
-        80,
-        80,
-        86,
-        91,
-        97,
         8,
         126,
         128,
         97,
-        2,
-        43,
+        0,
+        238,
         96,
         0,
         57,
@@ -2705,38 +2388,38 @@ pub mod erc20 {
         49,
         88,
         32,
-        4,
-        214,
-        82,
-        32,
-        117,
-        101,
-        166,
-        102,
+        150,
+        164,
+        30,
+        193,
+        122,
+        213,
+        111,
+        52,
+        74,
+        130,
+        142,
+        57,
+        17,
+        57,
+        185,
+        153,
         121,
-        4,
-        73,
-        49,
-        247,
-        230,
-        234,
-        5,
-        102,
-        136,
+        130,
+        233,
+        131,
+        39,
+        193,
+        2,
+        96,
+        48,
+        185,
+        43,
+        106,
+        192,
+        222,
+        241,
         239,
-        82,
-        23,
-        1,
-        33,
-        125,
-        247,
-        145,
-        20,
-        93,
-        139,
-        36,
-        165,
-        125,
         100,
         115,
         111,
@@ -2832,7 +2515,7 @@ pub mod erc20 {
         41,
     ];
     ///The bytecode of the contract.
-    pub static ERC20_BYTECODE: ::ethers::core::types::Bytes =
+    pub static UNISWAPV2ERC20_BYTECODE: ::ethers::core::types::Bytes =
         ::ethers::core::types::Bytes::from_static(__BYTECODE);
     #[rustfmt::skip]
     const __DEPLOYED_BYTECODE: &[u8] = &[
@@ -4967,38 +4650,38 @@ pub mod erc20 {
         49,
         88,
         32,
-        4,
-        214,
-        82,
-        32,
-        117,
-        101,
-        166,
-        102,
+        150,
+        164,
+        30,
+        193,
+        122,
+        213,
+        111,
+        52,
+        74,
+        130,
+        142,
+        57,
+        17,
+        57,
+        185,
+        153,
         121,
-        4,
-        73,
-        49,
-        247,
-        230,
-        234,
-        5,
-        102,
-        136,
+        130,
+        233,
+        131,
+        39,
+        193,
+        2,
+        96,
+        48,
+        185,
+        43,
+        106,
+        192,
+        222,
+        241,
         239,
-        82,
-        23,
-        1,
-        33,
-        125,
-        247,
-        145,
-        20,
-        93,
-        139,
-        36,
-        165,
-        125,
         100,
         115,
         111,
@@ -5012,33 +4695,33 @@ pub mod erc20 {
         50,
     ];
     ///The deployed bytecode of the contract.
-    pub static ERC20_DEPLOYED_BYTECODE: ::ethers::core::types::Bytes =
+    pub static UNISWAPV2ERC20_DEPLOYED_BYTECODE: ::ethers::core::types::Bytes =
         ::ethers::core::types::Bytes::from_static(__DEPLOYED_BYTECODE);
-    pub struct ERC20<M>(::ethers::contract::Contract<M>);
-    impl<M> ::core::clone::Clone for ERC20<M> {
+    pub struct UniswapV2ERC20<M>(::ethers::contract::Contract<M>);
+    impl<M> ::core::clone::Clone for UniswapV2ERC20<M> {
         fn clone(&self) -> Self {
             Self(::core::clone::Clone::clone(&self.0))
         }
     }
-    impl<M> ::core::ops::Deref for ERC20<M> {
+    impl<M> ::core::ops::Deref for UniswapV2ERC20<M> {
         type Target = ::ethers::contract::Contract<M>;
         fn deref(&self) -> &Self::Target {
             &self.0
         }
     }
-    impl<M> ::core::ops::DerefMut for ERC20<M> {
+    impl<M> ::core::ops::DerefMut for UniswapV2ERC20<M> {
         fn deref_mut(&mut self) -> &mut Self::Target {
             &mut self.0
         }
     }
-    impl<M> ::core::fmt::Debug for ERC20<M> {
+    impl<M> ::core::fmt::Debug for UniswapV2ERC20<M> {
         fn fmt(&self, f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
-            f.debug_tuple(stringify!(ERC20))
+            f.debug_tuple(stringify!(UniswapV2ERC20))
                 .field(&self.address())
                 .finish()
         }
     }
-    impl<M: ::ethers::providers::Middleware> ERC20<M> {
+    impl<M: ::ethers::providers::Middleware> UniswapV2ERC20<M> {
         /// Creates a new contract instance with the specified `ethers` client at
         /// `address`. The contract derefs to a `ethers::Contract` object.
         pub fn new<T: Into<::ethers::core::types::Address>>(
@@ -5047,7 +4730,7 @@ pub mod erc20 {
         ) -> Self {
             Self(::ethers::contract::Contract::new(
                 address.into(),
-                ERC20_ABI.clone(),
+                UNISWAPV2ERC20_ABI.clone(),
                 client,
             ))
         }
@@ -5082,8 +4765,8 @@ pub mod erc20 {
             ::ethers::contract::ContractError<M>,
         > {
             let factory = ::ethers::contract::ContractFactory::new(
-                ERC20_ABI.clone(),
-                ERC20_BYTECODE.clone().into(),
+                UNISWAPV2ERC20_ABI.clone(),
+                UNISWAPV2ERC20_BYTECODE.clone().into(),
                 client,
             );
             let deployer = factory.deploy(constructor_args)?;
@@ -5222,12 +4905,15 @@ pub mod erc20 {
         /// Returns an `Event` builder for all the events of this contract.
         pub fn events(
             &self,
-        ) -> ::ethers::contract::builders::Event<::std::sync::Arc<M>, M, ERC20Events> {
+        ) -> ::ethers::contract::builders::Event<::std::sync::Arc<M>, M, UniswapV2ERC20Events>
+        {
             self.0
                 .event_with_filter(::core::default::Default::default())
         }
     }
-    impl<M: ::ethers::providers::Middleware> From<::ethers::contract::Contract<M>> for ERC20<M> {
+    impl<M: ::ethers::providers::Middleware> From<::ethers::contract::Contract<M>>
+        for UniswapV2ERC20<M>
+    {
         fn from(contract: ::ethers::contract::Contract<M>) -> Self {
             Self::new(contract.address(), contract.client())
         }
@@ -5270,24 +4956,24 @@ pub mod erc20 {
     }
     ///Container type for all of the contract's events
     #[derive(Clone, ::ethers::contract::EthAbiType, Debug, PartialEq, Eq, Hash)]
-    pub enum ERC20Events {
+    pub enum UniswapV2ERC20Events {
         ApprovalFilter(ApprovalFilter),
         TransferFilter(TransferFilter),
     }
-    impl ::ethers::contract::EthLogDecode for ERC20Events {
+    impl ::ethers::contract::EthLogDecode for UniswapV2ERC20Events {
         fn decode_log(
             log: &::ethers::core::abi::RawLog,
         ) -> ::core::result::Result<Self, ::ethers::core::abi::Error> {
             if let Ok(decoded) = ApprovalFilter::decode_log(log) {
-                return Ok(ERC20Events::ApprovalFilter(decoded));
+                return Ok(UniswapV2ERC20Events::ApprovalFilter(decoded));
             }
             if let Ok(decoded) = TransferFilter::decode_log(log) {
-                return Ok(ERC20Events::TransferFilter(decoded));
+                return Ok(UniswapV2ERC20Events::TransferFilter(decoded));
             }
             Err(::ethers::core::abi::Error::InvalidData)
         }
     }
-    impl ::core::fmt::Display for ERC20Events {
+    impl ::core::fmt::Display for UniswapV2ERC20Events {
         fn fmt(&self, f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
             match self {
                 Self::ApprovalFilter(element) => ::core::fmt::Display::fmt(element, f),
@@ -5295,12 +4981,12 @@ pub mod erc20 {
             }
         }
     }
-    impl ::core::convert::From<ApprovalFilter> for ERC20Events {
+    impl ::core::convert::From<ApprovalFilter> for UniswapV2ERC20Events {
         fn from(value: ApprovalFilter) -> Self {
             Self::ApprovalFilter(value)
         }
     }
-    impl ::core::convert::From<TransferFilter> for ERC20Events {
+    impl ::core::convert::From<TransferFilter> for UniswapV2ERC20Events {
         fn from(value: TransferFilter) -> Self {
             Self::TransferFilter(value)
         }
@@ -5500,7 +5186,7 @@ pub mod erc20 {
     }
     ///Container type for all of the contract's call
     #[derive(Clone, ::ethers::contract::EthAbiType, Debug, PartialEq, Eq, Hash)]
-    pub enum ERC20Calls {
+    pub enum UniswapV2ERC20Calls {
         DomainSeparator(DomainSeparatorCall),
         PermitTypehash(PermitTypehashCall),
         Allowance(AllowanceCall),
@@ -5515,7 +5201,7 @@ pub mod erc20 {
         Transfer(TransferCall),
         TransferFrom(TransferFromCall),
     }
-    impl ::ethers::core::abi::AbiDecode for ERC20Calls {
+    impl ::ethers::core::abi::AbiDecode for UniswapV2ERC20Calls {
         fn decode(
             data: impl AsRef<[u8]>,
         ) -> ::core::result::Result<Self, ::ethers::core::abi::AbiError> {
@@ -5567,7 +5253,7 @@ pub mod erc20 {
             Err(::ethers::core::abi::Error::InvalidData.into())
         }
     }
-    impl ::ethers::core::abi::AbiEncode for ERC20Calls {
+    impl ::ethers::core::abi::AbiEncode for UniswapV2ERC20Calls {
         fn encode(self) -> Vec<u8> {
             match self {
                 Self::DomainSeparator(element) => ::ethers::core::abi::AbiEncode::encode(element),
@@ -5586,7 +5272,7 @@ pub mod erc20 {
             }
         }
     }
-    impl ::core::fmt::Display for ERC20Calls {
+    impl ::core::fmt::Display for UniswapV2ERC20Calls {
         fn fmt(&self, f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
             match self {
                 Self::DomainSeparator(element) => ::core::fmt::Display::fmt(element, f),
@@ -5605,67 +5291,67 @@ pub mod erc20 {
             }
         }
     }
-    impl ::core::convert::From<DomainSeparatorCall> for ERC20Calls {
+    impl ::core::convert::From<DomainSeparatorCall> for UniswapV2ERC20Calls {
         fn from(value: DomainSeparatorCall) -> Self {
             Self::DomainSeparator(value)
         }
     }
-    impl ::core::convert::From<PermitTypehashCall> for ERC20Calls {
+    impl ::core::convert::From<PermitTypehashCall> for UniswapV2ERC20Calls {
         fn from(value: PermitTypehashCall) -> Self {
             Self::PermitTypehash(value)
         }
     }
-    impl ::core::convert::From<AllowanceCall> for ERC20Calls {
+    impl ::core::convert::From<AllowanceCall> for UniswapV2ERC20Calls {
         fn from(value: AllowanceCall) -> Self {
             Self::Allowance(value)
         }
     }
-    impl ::core::convert::From<ApproveCall> for ERC20Calls {
+    impl ::core::convert::From<ApproveCall> for UniswapV2ERC20Calls {
         fn from(value: ApproveCall) -> Self {
             Self::Approve(value)
         }
     }
-    impl ::core::convert::From<BalanceOfCall> for ERC20Calls {
+    impl ::core::convert::From<BalanceOfCall> for UniswapV2ERC20Calls {
         fn from(value: BalanceOfCall) -> Self {
             Self::BalanceOf(value)
         }
     }
-    impl ::core::convert::From<DecimalsCall> for ERC20Calls {
+    impl ::core::convert::From<DecimalsCall> for UniswapV2ERC20Calls {
         fn from(value: DecimalsCall) -> Self {
             Self::Decimals(value)
         }
     }
-    impl ::core::convert::From<NameCall> for ERC20Calls {
+    impl ::core::convert::From<NameCall> for UniswapV2ERC20Calls {
         fn from(value: NameCall) -> Self {
             Self::Name(value)
         }
     }
-    impl ::core::convert::From<NoncesCall> for ERC20Calls {
+    impl ::core::convert::From<NoncesCall> for UniswapV2ERC20Calls {
         fn from(value: NoncesCall) -> Self {
             Self::Nonces(value)
         }
     }
-    impl ::core::convert::From<PermitCall> for ERC20Calls {
+    impl ::core::convert::From<PermitCall> for UniswapV2ERC20Calls {
         fn from(value: PermitCall) -> Self {
             Self::Permit(value)
         }
     }
-    impl ::core::convert::From<SymbolCall> for ERC20Calls {
+    impl ::core::convert::From<SymbolCall> for UniswapV2ERC20Calls {
         fn from(value: SymbolCall) -> Self {
             Self::Symbol(value)
         }
     }
-    impl ::core::convert::From<TotalSupplyCall> for ERC20Calls {
+    impl ::core::convert::From<TotalSupplyCall> for UniswapV2ERC20Calls {
         fn from(value: TotalSupplyCall) -> Self {
             Self::TotalSupply(value)
         }
     }
-    impl ::core::convert::From<TransferCall> for ERC20Calls {
+    impl ::core::convert::From<TransferCall> for UniswapV2ERC20Calls {
         fn from(value: TransferCall) -> Self {
             Self::Transfer(value)
         }
     }
-    impl ::core::convert::From<TransferFromCall> for ERC20Calls {
+    impl ::core::convert::From<TransferFromCall> for UniswapV2ERC20Calls {
         fn from(value: TransferFromCall) -> Self {
             Self::TransferFrom(value)
         }

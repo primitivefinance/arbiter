@@ -1,32 +1,15 @@
 #![warn(missing_docs)]
 use std::error::Error;
 
-use bindings::{
-    arbiter_token,
-    weth9,
-};
-use bytes::Bytes;
-use ethers::{
-    abi::Token,
-    prelude::{BaseContract, U256},
-    types::{H160, H256},
-};
+use bindings::weth9;
+use ethers::prelude::U256;
 use eyre::Result;
-use revm::primitives::{ruint::Uint, B160};
+use revm::primitives::B160;
 use simulate::{
-    agent::{user::User, Agent, AgentType},
+    agent::{user::User, AgentType},
     contract::{IsDeployed, SimulationContract},
     manager::SimulationManager,
-    utils::recast_address,
 };
-
-struct SimulationContracts(
-    SimulationContract<IsDeployed>,
-    SimulationContract<IsDeployed>,
-    SimulationContract<IsDeployed>,
-    SimulationContract<IsDeployed>,
-    SimulationContract<IsDeployed>,
-);
 
 /// Run a simulation.
 pub fn uniswap_sim() -> Result<(), Box<dyn Error>> {
@@ -48,7 +31,7 @@ pub fn uniswap_sim() -> Result<(), Box<dyn Error>> {
     // Deploying Contracts
     let contracts = deploy_uniswap_sim_contracts(&mut manager, wad)?;
 
-    uniswap_sim_intitalization_calls(&mut manager, contracts, decimals)?;
+    _uniswap_sim_intitalization_calls(&mut manager, contracts, decimals)?;
 
     Ok(())
 }
@@ -61,14 +44,15 @@ pub fn uniswap_sim() -> Result<(), Box<dyn Error>> {
 /// * `SimulationContracts` - Contracts deployed to the simulation environment. (SimulationContracts)
 fn deploy_uniswap_sim_contracts(
     manager: &mut SimulationManager,
-    wad: U256,
-) -> Result<SimulationContracts, Box<dyn Error>> {
-    let decimals = 18_u8;
+    _wad: U256,
+) -> Result<SimulationContract<IsDeployed>, Box<dyn Error>> {
+    let _decimals = 18_u8;
     let admin = manager.agents.get("admin").unwrap();
     // Deploy Weth
     let weth = SimulationContract::new(weth9::WETH9_ABI.clone(), weth9::WETH9_BYTECODE.clone());
     let weth = weth.deploy(&mut manager.environment, admin, ());
     println!("WETH deployed at: {}", weth.address);
+    Ok(weth)
 
     // Deploy the registry contract.
 }
@@ -78,11 +62,10 @@ fn deploy_uniswap_sim_contracts(
 /// * `manager` - Simulation manager to deploy contracts to. (SimulationManager)
 /// * `contracts` - Contracts deployed to the simulation environment. (SimulationContracts)
 /// * `decimals` - Decimals to use for the simulation. (u8)
-fn uniswap_sim_intitalization_calls(
-    manager: &mut SimulationManager,
-    contracts: SimulationContracts,
-    decimals: u8,
+fn _uniswap_sim_intitalization_calls(
+    _manager: &mut SimulationManager,
+    _contracts: SimulationContract<IsDeployed>,
+    _decimals: u8,
 ) -> Result<(), Box<dyn Error>> {
-
     Ok(())
 }

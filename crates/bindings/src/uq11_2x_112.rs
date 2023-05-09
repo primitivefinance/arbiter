@@ -1,4 +1,4 @@
-pub use rmm01_extended_lib::*;
+pub use uq11_2x_112::*;
 /// This module was auto-generated with ethers-rs Abigen.
 /// More information at: <https://github.com/gakonst/ethers-rs>
 #[allow(
@@ -9,20 +9,20 @@ pub use rmm01_extended_lib::*;
     dead_code,
     non_camel_case_types
 )]
-pub mod rmm01_extended_lib {
+pub mod uq11_2x_112 {
     #[rustfmt::skip]
     const __ABI: &str = "[]";
     ///The parsed JSON ABI of the contract.
-    pub static RMM01EXTENDEDLIB_ABI: ::ethers::contract::Lazy<::ethers::core::abi::Abi> =
+    pub static UQ112X112_ABI: ::ethers::contract::Lazy<::ethers::core::abi::Abi> =
         ::ethers::contract::Lazy::new(|| {
             ::ethers::core::utils::__serde_json::from_str(__ABI).expect("ABI is always valid")
         });
     #[rustfmt::skip]
     const __BYTECODE: &[u8] = &[
         96,
-        86,
+        85,
         96,
-        55,
+        35,
         96,
         11,
         130,
@@ -38,29 +38,9 @@ pub mod rmm01_extended_lib {
         115,
         20,
         96,
-        42,
+        22,
         87,
-        99,
-        78,
-        72,
-        123,
-        113,
-        96,
-        224,
-        27,
-        96,
-        0,
-        82,
-        96,
-        0,
-        96,
-        4,
-        82,
-        96,
-        36,
-        96,
-        0,
-        253,
+        254,
         91,
         48,
         96,
@@ -108,47 +88,46 @@ pub mod rmm01_extended_lib {
         253,
         254,
         162,
-        100,
-        105,
-        112,
-        102,
-        115,
+        101,
+        98,
+        122,
+        122,
+        114,
+        49,
         88,
-        34,
-        18,
         32,
-        71,
-        233,
-        206,
-        227,
-        252,
-        211,
-        172,
-        59,
-        2,
-        96,
-        94,
-        21,
-        123,
-        238,
-        213,
-        88,
-        21,
-        136,
-        39,
-        132,
-        177,
-        78,
-        253,
-        97,
-        25,
-        250,
+        115,
         163,
-        210,
-        198,
-        141,
-        18,
-        24,
+        248,
+        138,
+        116,
+        191,
+        215,
+        239,
+        192,
+        224,
+        0,
+        3,
+        66,
+        78,
+        246,
+        118,
+        244,
+        63,
+        190,
+        146,
+        113,
+        167,
+        243,
+        164,
+        110,
+        11,
+        195,
+        250,
+        250,
+        200,
+        232,
+        62,
         100,
         115,
         111,
@@ -156,13 +135,13 @@ pub mod rmm01_extended_lib {
         99,
         67,
         0,
-        8,
-        19,
+        5,
+        16,
         0,
-        51,
+        50,
     ];
     ///The bytecode of the contract.
-    pub static RMM01EXTENDEDLIB_BYTECODE: ::ethers::core::types::Bytes =
+    pub static UQ112X112_BYTECODE: ::ethers::core::types::Bytes =
         ::ethers::core::types::Bytes::from_static(__BYTECODE);
     #[rustfmt::skip]
     const __DEPLOYED_BYTECODE: &[u8] = &[
@@ -200,47 +179,46 @@ pub mod rmm01_extended_lib {
         253,
         254,
         162,
-        100,
-        105,
-        112,
-        102,
-        115,
+        101,
+        98,
+        122,
+        122,
+        114,
+        49,
         88,
-        34,
-        18,
         32,
-        71,
-        233,
-        206,
-        227,
-        252,
-        211,
-        172,
-        59,
-        2,
-        96,
-        94,
-        21,
-        123,
-        238,
-        213,
-        88,
-        21,
-        136,
-        39,
-        132,
-        177,
-        78,
-        253,
-        97,
-        25,
-        250,
+        115,
         163,
-        210,
-        198,
-        141,
-        18,
-        24,
+        248,
+        138,
+        116,
+        191,
+        215,
+        239,
+        192,
+        224,
+        0,
+        3,
+        66,
+        78,
+        246,
+        118,
+        244,
+        63,
+        190,
+        146,
+        113,
+        167,
+        243,
+        164,
+        110,
+        11,
+        195,
+        250,
+        250,
+        200,
+        232,
+        62,
         100,
         115,
         111,
@@ -248,39 +226,39 @@ pub mod rmm01_extended_lib {
         99,
         67,
         0,
-        8,
-        19,
+        5,
+        16,
         0,
-        51,
+        50,
     ];
     ///The deployed bytecode of the contract.
-    pub static RMM01EXTENDEDLIB_DEPLOYED_BYTECODE: ::ethers::core::types::Bytes =
+    pub static UQ112X112_DEPLOYED_BYTECODE: ::ethers::core::types::Bytes =
         ::ethers::core::types::Bytes::from_static(__DEPLOYED_BYTECODE);
-    pub struct RMM01ExtendedLib<M>(::ethers::contract::Contract<M>);
-    impl<M> ::core::clone::Clone for RMM01ExtendedLib<M> {
+    pub struct UQ112x112<M>(::ethers::contract::Contract<M>);
+    impl<M> ::core::clone::Clone for UQ112x112<M> {
         fn clone(&self) -> Self {
             Self(::core::clone::Clone::clone(&self.0))
         }
     }
-    impl<M> ::core::ops::Deref for RMM01ExtendedLib<M> {
+    impl<M> ::core::ops::Deref for UQ112x112<M> {
         type Target = ::ethers::contract::Contract<M>;
         fn deref(&self) -> &Self::Target {
             &self.0
         }
     }
-    impl<M> ::core::ops::DerefMut for RMM01ExtendedLib<M> {
+    impl<M> ::core::ops::DerefMut for UQ112x112<M> {
         fn deref_mut(&mut self) -> &mut Self::Target {
             &mut self.0
         }
     }
-    impl<M> ::core::fmt::Debug for RMM01ExtendedLib<M> {
+    impl<M> ::core::fmt::Debug for UQ112x112<M> {
         fn fmt(&self, f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
-            f.debug_tuple(stringify!(RMM01ExtendedLib))
+            f.debug_tuple(stringify!(UQ112x112))
                 .field(&self.address())
                 .finish()
         }
     }
-    impl<M: ::ethers::providers::Middleware> RMM01ExtendedLib<M> {
+    impl<M: ::ethers::providers::Middleware> UQ112x112<M> {
         /// Creates a new contract instance with the specified `ethers` client at
         /// `address`. The contract derefs to a `ethers::Contract` object.
         pub fn new<T: Into<::ethers::core::types::Address>>(
@@ -289,7 +267,7 @@ pub mod rmm01_extended_lib {
         ) -> Self {
             Self(::ethers::contract::Contract::new(
                 address.into(),
-                RMM01EXTENDEDLIB_ABI.clone(),
+                UQ112X112_ABI.clone(),
                 client,
             ))
         }
@@ -324,8 +302,8 @@ pub mod rmm01_extended_lib {
             ::ethers::contract::ContractError<M>,
         > {
             let factory = ::ethers::contract::ContractFactory::new(
-                RMM01EXTENDEDLIB_ABI.clone(),
-                RMM01EXTENDEDLIB_BYTECODE.clone().into(),
+                UQ112X112_ABI.clone(),
+                UQ112X112_BYTECODE.clone().into(),
                 client,
             );
             let deployer = factory.deploy(constructor_args)?;
@@ -333,9 +311,7 @@ pub mod rmm01_extended_lib {
             Ok(deployer)
         }
     }
-    impl<M: ::ethers::providers::Middleware> From<::ethers::contract::Contract<M>>
-        for RMM01ExtendedLib<M>
-    {
+    impl<M: ::ethers::providers::Middleware> From<::ethers::contract::Contract<M>> for UQ112x112<M> {
         fn from(contract: ::ethers::contract::Contract<M>) -> Self {
             Self::new(contract.address(), contract.client())
         }
