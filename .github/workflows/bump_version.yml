@@ -34,6 +34,6 @@ jobs:
       - name: Bump patch version
         run: |
           cargo set-version --bump patch
-          git add *.toml
+          git add ./**/*.toml
           git commit -m "Bump patch version"
           git push
