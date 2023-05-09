@@ -77,3 +77,5 @@ At the moment, this only builds the bindings for the contracts in the `lib/arbmo
 ## Contributing
 
 See our [Contributing Guidelines](https://github.com/primitivefinance/arbiter/blob/main/.github/CONTRIBUTING.md)
+
+## Test
