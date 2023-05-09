@@ -438,12 +438,11 @@ fn portfolio_sim_intitalization_calls(
     Ok(())
 }
 
-fn create_arbitrageur<S: Into<String>>(liquid_exchange: SimulationContract<IsDeployed>, portfolio: SimulationContract<IsDeployed>, name: S) -> SimpleArbitrageur<NotActive> {
-    let mut event_filters = vec![];
-    event_filters.push(SimulationEventFilter::new(
+fn create_arbitrageur<S: Into<String>>(liquid_exchange: SimulationContract<IsDeployed>, name: S) -> SimpleArbitrageur<NotActive> {
+    let mut event_filters = vec![SimulationEventFilter::new(
         &liquid_exchange,
         "PriceChange",
-    ));
+    )];
     let arbitrageur = SimpleArbitrageur::new(name, event_filters);
     arbitrageur
 }
