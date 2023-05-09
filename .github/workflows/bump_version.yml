@@ -35,7 +35,7 @@ jobs:
 
       - name: Bump patch version
         run: |
-          cargo set-version --bump patch
+          cargo --bump patch
           VERSION=$(cargo metadata --format-version 1 | jq -r ".packages[] | select(.manifest_path == \"$(pwd)/Cargo.toml\") | .version")
           echo "Updated version to $VERSION"
           git add *.toml
