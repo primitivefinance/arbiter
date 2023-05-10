@@ -1,7 +1,10 @@
 use std::error::Error;
 
 use bindings::rmm01_portfolio;
-use ethers::{prelude::U256, types::Sign, types::I256};
+use ethers::{
+    prelude::U256,
+    types::{Sign, I256},
+};
 use eyre::Result;
 use revm::primitives::{ruint::Uint, ExecutionResult, B160};
 use simulate::{
