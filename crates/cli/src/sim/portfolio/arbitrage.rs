@@ -50,7 +50,7 @@ pub(crate) fn compute_arb_size(
         )?,
         Uint::ZERO,
     );
-    let unpacked_result = manager.unpack_execution(execution_result)?;
+    let unpacked_result = manager.unpack_execution(execution_result.clone())?;
     let time_term: U256 = arbiter_math.decode_output("sqrt", unpacked_result)?;
     // compute sigma*sqrt(tau)
     let execution_result = admin.call_contract(
@@ -62,7 +62,7 @@ pub(crate) fn compute_arb_size(
         )?,
         Uint::ZERO,
     );
-    let unpacked_result = manager.unpack_execution(execution_result)?;
+    let unpacked_result = manager.unpack_execution(execution_result.clone())?;
     let sigma_sqrt_tau: U256 = arbiter_math.decode_output("mulWadUp", unpacked_result)?;
     // compute the ratio
     let execution_result = admin.call_contract(
@@ -74,7 +74,7 @@ pub(crate) fn compute_arb_size(
         )?,
         Uint::ZERO,
     );
-    let unpacked_result = manager.unpack_execution(execution_result)?;
+    let unpacked_result = manager.unpack_execution(execution_result.clone())?;
     let ratio: U256 = arbiter_math.decode_output("divWadUp", unpacked_result)?;
     // compute logarithm
     let execution_result = admin.call_contract(
@@ -86,7 +86,7 @@ pub(crate) fn compute_arb_size(
         )?,
         Uint::ZERO,
     );
-    let unpacked_result = manager.unpack_execution(execution_result)?;
+    let unpacked_result = manager.unpack_execution(execution_result.clone())?;
     let log: I256 = arbiter_math.decode_output("log", unpacked_result)?;
     let sign = log.sign();
     let unsigned_log = log.into_raw();
@@ -100,7 +100,7 @@ pub(crate) fn compute_arb_size(
         )?,
         Uint::ZERO,
     );
-    let unpacked_result = manager.unpack_execution(execution_result)?;
+    let unpacked_result = manager.unpack_execution(execution_result.clone())?;
     let output: U256 = arbiter_math.decode_output("mulWadUp", unpacked_result)?;
     
     let scaled_log = match sign {
@@ -117,7 +117,7 @@ pub(crate) fn compute_arb_size(
         )?,
         Uint::ZERO,
     );
-    let unpacked_result = manager.unpack_execution(execution_result)?;
+    let unpacked_result = manager.unpack_execution(execution_result.clone())?;
     let additional_term: U256 = arbiter_math.decode_output("mulWadDown", unpacked_result)?;
     // CDF input
     let cdf_input = scaled_log + I256::from_raw(additional_term);
@@ -131,7 +131,7 @@ pub(crate) fn compute_arb_size(
         )?,
         Uint::ZERO,
     );
-    let unpacked_result = manager.unpack_execution(execution_result)?;
+    let unpacked_result = manager.unpack_execution(execution_result.clone())?;
     let cdf_output: I256 = arbiter_math.decode_output("cdf", unpacked_result)?;
     // compute the arb size
     let x_reserves = admin.call_contract(
