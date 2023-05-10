@@ -12,7 +12,7 @@ use simulate::{
 };
 
 /// Run a simulation.
-pub fn uniswap_sim() -> Result<(), Box<dyn Error>> {
+pub fn run() -> Result<(), Box<dyn Error>> {
     // define the wad constant
     let decimals = 18_u8;
     let wad: U256 = U256::from(10_i64.pow(decimals as u32));

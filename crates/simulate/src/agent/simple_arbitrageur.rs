@@ -13,6 +13,15 @@ use revm::primitives::{Address, Log, U256};
 use super::{AgentStatus, Identifiable, IsActive, NotActive};
 use crate::agent::{filter_events, Agent, SimulationEventFilter, TransactSettings};
 
+/// Used to report back to another [`Agent`] what the next transaction of the [`SimpleArbitrageur`] should be.
+pub enum NextTx {
+    /// Arbitrageur is going to swap next.
+    Swap,
+    /// Arbitrageur is okay with a price update.
+    UpdatePrice,
+    /// Arbitrageur is asking for no action to take place for the moment.
+    None,
+}
 /// A user is an agent that can interact with the simulation environment generically.
 pub struct SimpleArbitrageur<AgentState: AgentStatus> {
     /// Name of the agent.
@@ -73,65 +82,106 @@ impl SimpleArbitrageur<NotActive> {
 impl SimpleArbitrageur<IsActive> {
     /// A basic implementation that will detect price discprepencies from events emitted from pools.
     /// Currently implemented and tested only against the `liquid_exchange`.
-    pub fn detect_arbitrage(&self) -> JoinHandle<()> {
+    pub fn detect_arbitrage(
+        &self,
+    ) -> (
+        JoinHandle<()>,
+        crossbeam_channel::Receiver<(NextTx, Option<bool>)>,
+    ) {
+        let (tx, rx) = crossbeam_channel::unbounded::<(NextTx, Option<bool>)>();
         let receiver = self.receiver();
         let event_filters = self.event_filters();
-
         let prices = Arc::clone(&self.prices);
 
-        thread::spawn(move || {
-            let mut prices = prices.lock().unwrap();
-            let decoder = |input, filter_num: usize| {
-                event_filters[filter_num].base_contract.decode_event_raw(
-                    event_filters[filter_num].event_name.as_str(),
-                    vec![event_filters[filter_num].topic],
-                    input,
-                )
-            };
-            while let Ok(logs) = receiver.recv() {
-                // Get the logs and filter
-                let filtered_logs = filter_events(event_filters.clone(), logs);
-                println!("Filtered logs are: {:#?}", filtered_logs);
+        (
+            thread::spawn(move || {
+                let decoder = |input, filter_num: usize| {
+                    event_filters[filter_num].base_contract.decode_event_raw(
+                        event_filters[filter_num].event_name.as_str(),
+                        vec![event_filters[filter_num].topic],
+                        input,
+                    )
+                };
+                while let Ok(logs) = receiver.recv() {
+                    // Get the logs and filter
+                    let filtered_logs = filter_events(event_filters.clone(), logs);
+                    // println!("Filtered logs are: {:#?}", filtered_logs);
 
-                if !filtered_logs.is_empty() {
-                    let data = filtered_logs[0].data.clone().into_iter().collect();
+                    if !filtered_logs.is_empty() {
+                        let data = filtered_logs[0].data.clone().into_iter().collect();
 
-                    // See which pool this came from
-                    let pool_number =
-                        if filtered_logs[0].address == event_filters.clone()[0].address {
-                            0
+                        // See which pool this came from
+                        let pool_number =
+                            if filtered_logs[0].address == event_filters.clone()[0].address {
+                                0
+                            } else {
+                                1
+                            };
+
+                        let decoded_event = decoder(data, pool_number).unwrap(); // TODO: Fix the error handling here.
+                                                                                 // println!("Decoded event says: {:#?}", decoded_event);
+                        let value = decoded_event[0].clone();
+                        // println!("The value is: {:#?}", value);
+                        let value = value.into_uint().unwrap();
+                        let mut prices = prices.lock().unwrap();
+                        prices[pool_number] = value.into();
+                        println!(
+                            "Price for pool number {:#?} is {:#?}",
+                            pool_number, prices[pool_number]
+                        );
+
+                        // look to see if this gives an arbitrage event
+                        // First filter out if one of the prices is MAX as this is the default state.
+                        if prices[0] != U256::MAX && prices[1] != U256::MAX {
+                            let price_difference = prices[0].overflowing_sub(prices[1]);
+                            println!("Price difference = {:#?}", price_difference);
+                            if price_difference.1 {
+                                println!("Arbitrage with price_0 < price_1.\nSending Swap.\n");
+                                match tx.send((NextTx::Swap, Some(false))) {
+                                    Ok(_) => {}
+                                    Err(_) => {
+                                        println!("Error sending arbitrage event to channel.\nReceiver must have stopped listening and no more prices are going to be sent.\nBreaking.\n");
+                                        break;
+                                    }
+                                }
+                                continue;
+                            } else if !price_difference.1 && price_difference.0 != U256::ZERO {
+                                println!("Arbitrage with price_0 > price_1.\nSending Swap.\n");
+                                match tx.send((NextTx::Swap, Some(true))) {
+                                    Ok(_) => {}
+                                    Err(_) => {
+                                        println!("Error sending arbitrage event to channel.\nReceiver must have stopped listening and no more prices are going to be sent.\nBreaking.\n");
+                                        break;
+                                    }
+                                }
+                                continue;
+                            }
                         } else {
-                            1
-                        };
-
-                    let decoded_event = decoder(data, pool_number).unwrap(); // TODO: Fix the error handling here.
-                    println!("Decoded event says: {:#?}", decoded_event);
-                    let value = decoded_event[0].clone();
-                    println!("The value is: {:#?}", value);
-                    let value = value.into_uint().unwrap();
-                    prices[pool_number] = value.into();
-                    println!(
-                        "Price for pool number {:#?} is {:#?}",
-                        pool_number, prices[pool_number]
-                    );
-
-                    // look to see if this gives an arbitrage event
-                    // First filter out if one of the prices is MAX as this is the default state.
-                    if prices[0] != U256::MAX && prices[1] != U256::MAX {
-                        let price_difference = prices[0].overflowing_sub(prices[1]);
-                        println!("Price difference = {:#?}", price_difference);
-                        if price_difference.1 {
-                            println!("Arbitrage with price_0 < price_1");
-                            break;
-                        } else if price_difference.1 && price_difference.0 != U256::ZERO {
-                            println!("Arbitrage with price_0 > price_1");
-                            break;
+                            println!("No arbitrage detected.\nSending UpdatePrice.\n");
+                            match tx.send((NextTx::UpdatePrice, None)) {
+                                Ok(_) => {}
+                                Err(_) => {
+                                    println!("Error sending arbitrage event to channel.\nReceiver must have stopped listening and no more prices are going to be sent.\nBreaking.\n");
+                                    break;
+                                }
+                            }
                         }
+                        drop(prices);
+                    } else {
+                        match tx.send((NextTx::None, None)) {
+                            Ok(_) => {}
+                            Err(_) => {
+                                println!("Error sending arbitrage event to channel.\nReceiver must have stopped listening and no more prices are going to be sent.\nBreaking.\n");
+                                break;
+                            }
+                        }
+                        println!("No relevant events found.\nSending None.\n");
                     }
                 }
-            }
-            println!("Exited arbitrage detection thread!");
-        })
+                println!("Exited arbitrage detection thread!");
+            }),
+            rx,
+        )
     }
 }
 
@@ -146,7 +196,9 @@ mod tests {
 
     use super::SimpleArbitrageur;
     use crate::{
-        agent::{create_filter, filter_events, Agent, AgentType},
+        agent::{
+            filter_events, simple_arbitrageur::NextTx, Agent, AgentType, SimulationEventFilter,
+        },
         contract::SimulationContract,
         manager::SimulationManager,
         utils::recast_address,
@@ -221,8 +273,8 @@ mod tests {
 
         // Create a simple arbitrageur agent.
         let event_filters = vec![
-            create_filter(&liquid_exchange_xy0, "PriceChange"),
-            create_filter(&liquid_exchange_xy1, "PriceChange"),
+            SimulationEventFilter::new(&liquid_exchange_xy0, "PriceChange"),
+            SimulationEventFilter::new(&liquid_exchange_xy1, "PriceChange"),
         ];
 
         let arbitrageur =
@@ -363,8 +415,8 @@ mod tests {
 
         // Create a simple arbitrageur agent.
         let event_filters = vec![
-            create_filter(&liquid_exchange_xy0, "PriceChange"),
-            create_filter(&liquid_exchange_xy1, "PriceChange"),
+            SimulationEventFilter::new(&liquid_exchange_xy0, "PriceChange"),
+            SimulationEventFilter::new(&liquid_exchange_xy1, "PriceChange"),
         ];
         let arbitrageur =
             AgentType::SimpleArbitrageur(SimpleArbitrageur::new("arbitrageur", event_filters));
@@ -385,9 +437,51 @@ mod tests {
         drop(prices);
 
         // Start the arbitrageur to detect price changes.
-        let arbitrage_detection_handle = base_arbitrageur.detect_arbitrage();
+        println!("Beginning arbitrage detection.");
+        let (arbitrage_detection_handle, rx) = base_arbitrageur.detect_arbitrage();
 
         // Make a price change to the first exchange.
+        // let mut index = 0;
+        // while let Ok((next_tx, ..)) = rx.recv() {
+        //     println!("Received a new message.");
+        //     if index == 0 {
+        //         match next_tx {
+        //             NextTx::None => continue,
+        //             _ => {
+        //                 let new_price0 = wad.checked_mul(U256::from(42069)).unwrap();
+        //                 let call_data =
+        //                     liquid_exchange_xy0.encode_function("setPrice", new_price0)?;
+        //                 manager.agents.get("admin").unwrap().call_contract(
+        //                     &mut manager.environment,
+        //                     &liquid_exchange_xy0,
+        //                     call_data,
+        //                     U256::zero().into(),
+        //                 );
+        //                 index += 1;
+        //                 continue;
+        //             }
+        //         }
+        //     } else {
+        //         // Make a price change to the second exchange.
+        //         match next_tx {
+        //             NextTx::None => continue,
+        //             _ => {
+        //                 let new_price1 = wad.checked_mul(U256::from(69420)).unwrap();
+        //                 let call_data =
+        //                     liquid_exchange_xy1.encode_function("setPrice", new_price1)?;
+        //                 manager.agents.get("admin").unwrap().call_contract(
+        //                     &mut manager.environment,
+        //                     &liquid_exchange_xy1,
+        //                     call_data,
+        //                     U256::zero().into(),
+
+        //                 );
+        //                 break;
+        //             }
+        //         }
+        //     }
+        // }
+
         let new_price0 = wad.checked_mul(U256::from(42069)).unwrap();
         let call_data = liquid_exchange_xy0.encode_function("setPrice", new_price0)?;
         manager.agents.get("admin").unwrap().call_contract(
@@ -406,8 +500,23 @@ mod tests {
             call_data,
             U256::zero().into(),
         );
-
-        arbitrage_detection_handle.join().unwrap(); // Block progress until all the events have been recorded
+        while let Ok((next_tx, ..)) = rx.recv() {
+            println!("Received a new message.");
+            match next_tx {
+                NextTx::None => {
+                    println!("None");
+                    continue;
+                }
+                NextTx::Swap => {
+                    println!("Swap");
+                    break;
+                }
+                NextTx::UpdatePrice => {
+                    println!("Update price");
+                    continue;
+                }
+            }
+        }
         let prices = Arc::clone(&base_arbitrageur.prices);
         let prices = prices.lock().unwrap();
         println!("Arbitrageur prices: {:#?}", prices);
@@ -419,6 +528,7 @@ mod tests {
             prices[1],
             wad.checked_mul(U256::from(69420)).unwrap().into()
         );
+        manager.shut_down();
 
         Ok(())
     }

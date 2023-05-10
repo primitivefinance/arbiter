@@ -105,10 +105,10 @@ async fn main() -> Result<(), Box<dyn Error>> {
     match &args.command {
         Some(Commands::Sim(sim_args)) => match &sim_args.subcommand {
             SimSubcommands::Portfolio => {
-                sim::portfolio_sim::portfolio_sim()?;
+                sim::portfolio::run()?;
             }
             SimSubcommands::Uniswap => {
-                sim::uniswap_sim::uniswap_sim()?;
+                sim::uniswap::run()?;
             }
         },
 
