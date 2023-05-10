@@ -108,7 +108,7 @@ fn generate_prices(
     // Update the first price
     let price = prices[0];
             println!("Updating price...");
-            // println!("Price from price path: {}", price);
+            println!("Price from price path: {}\n", price);
             let wad_price = simulate::utils::float_to_wad(price);
             // println!("WAD price: {}", wad_price);
             let call_data = liquid_exchange_xy.encode_function("setPrice", wad_price)?;
@@ -131,9 +131,13 @@ fn generate_prices(
     let mut index = 1;
     // Loop over and set prices on the liquid exchange from the oracle.
     while let Ok(can_update) = rx.recv() {
-        println!("Index: {}", index);
+        println!("Current index: {}", index);
+        if index >= prices.len() {
+            println!("Reached end of price path\n");
+            break;
+        } else
         if !can_update {
-            println!("Can't update prices");
+            println!("Can't update prices\n");
             continue;
         } else {
             let price = prices[index];

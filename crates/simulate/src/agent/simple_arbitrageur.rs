@@ -106,9 +106,9 @@ impl SimpleArbitrageur<IsActive> {
                             };
 
                         let decoded_event = decoder(data, pool_number).unwrap(); // TODO: Fix the error handling here.
-                        println!("Decoded event says: {:#?}", decoded_event);
+                        // println!("Decoded event says: {:#?}", decoded_event);
                         let value = decoded_event[0].clone();
-                        println!("The value is: {:#?}", value);
+                        // println!("The value is: {:#?}", value);
                         let value = value.into_uint().unwrap();
                         prices[pool_number] = value.into();
                         println!(
@@ -122,21 +122,21 @@ impl SimpleArbitrageur<IsActive> {
                             let price_difference = prices[0].overflowing_sub(prices[1]);
                             println!("Price difference = {:#?}", price_difference);
                             if price_difference.1 {
-                                println!("Arbitrage with price_0 < price_1");
+                                println!("Arbitrage with price_0 < price_1.\nSending true.\n");
                                 tx.send(true).unwrap();
                                 continue;
                             } else if !price_difference.1 && price_difference.0 != U256::ZERO {
-                                println!("Arbitrage with price_0 > price_1");
+                                println!("Arbitrage with price_0 > price_1.\nSending true.\n");
                                 tx.send(true).unwrap();
                                 continue;
                             }
                         } else {
-                            println!("No arbitrage detected");
+                            println!("No arbitrage detected.\nSending false.\n");
                             tx.send(true).unwrap();
                         }
                     } else {
                         tx.send(false).unwrap();
-                        println!("No relevant events found, sending false");
+                        println!("No relevant events found.\nSending false.\n");
                     }
                 }
                 println!("Exited arbitrage detection thread!");
