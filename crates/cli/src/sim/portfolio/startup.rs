@@ -31,8 +31,8 @@ pub(crate) fn run(
     arbitrage::create_arbitrageur(manager, &contracts.liquid_exchange_xy, "arbitrageur");
     mint(manager, &contracts)?;
     approve(manager, &contracts)?;
-    let (pool_data, pool_id) = pool_intitalization(manager, &contracts, pool_args, delta_liquidity)?;
-    allocate(manager, &contracts, pool_id)?;
+    let (pool_data, pool_id) = pool_intitalization(manager, &contracts, pool_args)?;
+    allocate(manager, &contracts, pool_id, delta_liquidity)?;
     Ok((contracts, pool_data, pool_id))
 }
 
@@ -300,7 +300,6 @@ fn pool_intitalization(
     manager: &mut SimulationManager,
     contracts: &SimulationContracts,
     pool_args: rmm01_portfolio::CreatePoolCall,
-    delta_liquidity: i128,
 ) -> Result<(rmm01_portfolio::CreatePoolCall, u64), Box<dyn Error>> {
     let admin = manager.agents.get("admin").unwrap();
     let SimulationContracts {
@@ -395,6 +394,7 @@ fn allocate(
     manager: &mut SimulationManager,
     contracts: &SimulationContracts,
     pool_id: u64,
+    delta_liquidity: i128,
 ) -> Result<(), Box<dyn Error>> {
     let admin = manager.agents.get("admin").unwrap();
     let SimulationContracts {

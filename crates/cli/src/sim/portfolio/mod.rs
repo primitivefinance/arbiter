@@ -3,6 +3,7 @@ use std::error::Error;
 
 use eyre::Result;
 use simulate::manager::SimulationManager;
+use bindings::rmm01_portfolio;
 
 pub mod arbitrage;
 pub mod startup;

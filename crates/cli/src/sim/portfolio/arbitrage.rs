@@ -1,4 +1,4 @@
-use std::{error::Error, intrinsics::volatile_copy_nonoverlapping_memory};
+use std::error::Error;
 
 use bindings::rmm01_portfolio;
 use ethers::{prelude::U256, types::I256, types::Sign};
@@ -29,6 +29,7 @@ pub(crate) fn compute_arb_size(
     target_price: U256,
     manager: &mut SimulationManager,
     pool_params: &rmm01_portfolio::CreatePoolCall,
+    delta_liquidity: i128,
     pool_id: u64,
     portfolio: &SimulationContract<IsDeployed>,
 ) -> Result<(), Box<dyn Error>> {
@@ -199,16 +200,16 @@ pub(crate) fn compute_arb_size(
         &arbiter_math,
         arbiter_math.encode_function(
             "invariant",
-            (U256::from(reserves.1), U256::from(reserves.0), strike, volatility, duration)
+            (U256::from(reserves.1), U256::from(reserves.0), strike, iv, duration)
         )?,
         Uint::ZERO,
     );
     let unpacked_result = manager.unpack_execution(execution_result.clone())?;
     let invariant: U256 = arbiter_math.decode_output("invariant", unpacked_result)?;
-    let b = cdf +I256::from_raw(invariant) - I256::from(reserves.1);
+    let b = cdf + I256::from_raw(invariant) - I256::from(reserves.1);
     let arb_amount_y = b.max(I256::from(0));
 
-    
+
     Ok(())
 }
 
