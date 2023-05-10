@@ -73,65 +73,76 @@ impl SimpleArbitrageur<NotActive> {
 impl SimpleArbitrageur<IsActive> {
     /// A basic implementation that will detect price discprepencies from events emitted from pools.
     /// Currently implemented and tested only against the `liquid_exchange`.
-    pub fn detect_arbitrage(&self) -> JoinHandle<()> {
+    pub fn detect_arbitrage(&self) -> (JoinHandle<()>, crossbeam_channel::Receiver<bool>) {
+        let (tx, rx) = crossbeam_channel::unbounded::<bool>();
         let receiver = self.receiver();
         let event_filters = self.event_filters();
-
         let prices = Arc::clone(&self.prices);
 
-        thread::spawn(move || {
-            let mut prices = prices.lock().unwrap();
-            let decoder = |input, filter_num: usize| {
-                event_filters[filter_num].base_contract.decode_event_raw(
-                    event_filters[filter_num].event_name.as_str(),
-                    vec![event_filters[filter_num].topic],
-                    input,
-                )
-            };
-            while let Ok(logs) = receiver.recv() {
-                // Get the logs and filter
-                let filtered_logs = filter_events(event_filters.clone(), logs);
-                println!("Filtered logs are: {:#?}", filtered_logs);
+        (
+            thread::spawn(move || {
+                let mut prices = prices.lock().unwrap();
+                let decoder = |input, filter_num: usize| {
+                    event_filters[filter_num].base_contract.decode_event_raw(
+                        event_filters[filter_num].event_name.as_str(),
+                        vec![event_filters[filter_num].topic],
+                        input,
+                    )
+                };
+                while let Ok(logs) = receiver.recv() {
+                    // Get the logs and filter
+                    let filtered_logs = filter_events(event_filters.clone(), logs);
+                    // println!("Filtered logs are: {:#?}", filtered_logs);
 
-                if !filtered_logs.is_empty() {
-                    let data = filtered_logs[0].data.clone().into_iter().collect();
+                    if !filtered_logs.is_empty() {
+                        let data = filtered_logs[0].data.clone().into_iter().collect();
 
-                    // See which pool this came from
-                    let pool_number =
-                        if filtered_logs[0].address == event_filters.clone()[0].address {
-                            0
+                        // See which pool this came from
+                        let pool_number =
+                            if filtered_logs[0].address == event_filters.clone()[0].address {
+                                0
+                            } else {
+                                1
+                            };
+
+                        let decoded_event = decoder(data, pool_number).unwrap(); // TODO: Fix the error handling here.
+                        println!("Decoded event says: {:#?}", decoded_event);
+                        let value = decoded_event[0].clone();
+                        println!("The value is: {:#?}", value);
+                        let value = value.into_uint().unwrap();
+                        prices[pool_number] = value.into();
+                        println!(
+                            "Price for pool number {:#?} is {:#?}",
+                            pool_number, prices[pool_number]
+                        );
+
+                        // look to see if this gives an arbitrage event
+                        // First filter out if one of the prices is MAX as this is the default state.
+                        if prices[0] != U256::MAX && prices[1] != U256::MAX {
+                            let price_difference = prices[0].overflowing_sub(prices[1]);
+                            println!("Price difference = {:#?}", price_difference);
+                            if price_difference.1 {
+                                println!("Arbitrage with price_0 < price_1");
+                                tx.send(true).unwrap();
+                                continue;
+                            } else if !price_difference.1 && price_difference.0 != U256::ZERO {
+                                println!("Arbitrage with price_0 > price_1");
+                                tx.send(true).unwrap();
+                                continue;
+                            }
                         } else {
-                            1
-                        };
-
-                    let decoded_event = decoder(data, pool_number).unwrap(); // TODO: Fix the error handling here.
-                    println!("Decoded event says: {:#?}", decoded_event);
-                    let value = decoded_event[0].clone();
-                    println!("The value is: {:#?}", value);
-                    let value = value.into_uint().unwrap();
-                    prices[pool_number] = value.into();
-                    println!(
-                        "Price for pool number {:#?} is {:#?}",
-                        pool_number, prices[pool_number]
-                    );
-
-                    // look to see if this gives an arbitrage event
-                    // First filter out if one of the prices is MAX as this is the default state.
-                    if prices[0] != U256::MAX && prices[1] != U256::MAX {
-                        let price_difference = prices[0].overflowing_sub(prices[1]);
-                        println!("Price difference = {:#?}", price_difference);
-                        if price_difference.1 {
-                            println!("Arbitrage with price_0 < price_1");
-                            break;
-                        } else if !price_difference.1 && price_difference.0 != U256::ZERO {
-                            println!("Arbitrage with price_0 > price_1");
-                            break;
+                            println!("No arbitrage detected");
+                            tx.send(true).unwrap();
                         }
+                    } else {
+                        tx.send(false).unwrap();
+                        println!("No relevant events found, sending false");
                     }
                 }
-            }
-            println!("Exited arbitrage detection thread!");
-        })
+                println!("Exited arbitrage detection thread!");
+            }),
+            rx,
+        )
     }
 }
 
