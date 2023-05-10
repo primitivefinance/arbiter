@@ -26,7 +26,6 @@ pub(crate) fn create_arbitrageur<S: Into<String>>(
 }
 
 pub(crate) fn compute_arb_size(
-    current_price: U256,
     target_price: U256,
     manager: &mut SimulationManager,
     pool_params: &rmm01_portfolio::CreatePoolCall,
@@ -90,7 +89,7 @@ pub(crate) fn compute_arb_size(
     let unpacked_result = manager.unpack_execution(execution_result)?;
     let log: I256 = arbiter_math.decode_output("log", unpacked_result)?;
     let sign = log.sign();
-    let unsigned_log = U256::from(log);
+    let unsigned_log = log.into_raw();
     // Scale logarithm
     let execution_result = admin.call_contract(
         &mut manager.environment,
@@ -105,8 +104,8 @@ pub(crate) fn compute_arb_size(
     let output: U256 = arbiter_math.decode_output("mulWadUp", unpacked_result)?;
     
     let scaled_log = match sign {
-        positive => I256::from(output) * I256::from(10_u128.pow(18)),
-        negative => I256::from(output) * I256::from(10_u128.pow(18)),
+        positive => I256::from_raw(output) * I256::from(10_u128.pow(18)),
+        negative => I256::from_raw(output) * I256::from(10_u128.pow(18)),
     };
     // compute the additional term 
     let execution_result = admin.call_contract(
@@ -121,7 +120,7 @@ pub(crate) fn compute_arb_size(
     let unpacked_result = manager.unpack_execution(execution_result)?;
     let additional_term: U256 = arbiter_math.decode_output("mulWadDown", unpacked_result)?;
     // CDF input
-    let cdf_input = scaled_log + I256::from(additional_term);
+    let cdf_input = scaled_log + I256::from_raw(additional_term);
     // compute the CDF
     let execution_result = admin.call_contract(
         &mut manager.environment,
@@ -143,7 +142,7 @@ pub(crate) fn compute_arb_size(
         );
     let unpacked_result = manager.unpack_execution(execution_result)?;
     let x_reserves: (u128, u128) = portfolio.decode_output("getVirtualReservesDec", unpacked_result)?;
-    let x_reserves = I256::from(x_reserves.0.as_i256());
+    let x_reserves = I256::from(x_reserves.0);
     let a = I256::from(10_u128.pow(18)) - cdf_output - x_reserves;
     let arb_amount_x = a.max(I256::from(0));
     Ok(())
