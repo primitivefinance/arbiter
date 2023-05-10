@@ -8,7 +8,6 @@ use simulate::{
     agent::Agent,
     contract::{IsDeployed, SimulationContract},
     manager::SimulationManager,
-    stochastic::price_process::{PriceProcess, PriceProcessType, OU},
     utils::recast_address,
 };
 
@@ -21,6 +20,23 @@ pub(crate) struct SimulationContracts {
     pub(crate) portfolio: SimulationContract<IsDeployed>,
 }
 
+// pub(crate) fn run(
+//     manager: &mut SimulationManager,
+// ) -> Result<(SimulationContracts, rmm01_portfolio::CreatePoolCall, u64), Box<dyn Error>> {
+//     // define the wad constant
+//     let decimals = 18_u8;
+//     let wad: U256 = U256::from(10_i64.pow(decimals as u32));
+
+//     // Deploy the contracts
+//     println!("Deploying contracts...");
+//     let contracts = deploy_contracts(manager, wad)?;
+//     arbitrage::create_arbitrageur(manager, &contracts.liquid_exchange_xy, "arbitrageur");
+//     mint(manager, &contracts)?;
+//     approve(manager, &contracts)?;
+//     let (pool_data, pool_id) = pool_intitalization(manager, &contracts)?;
+//     allocate(manager, &contracts, pool_id)?;
+//     Ok((contracts, pool_data, pool_id))
+// }
 pub(crate) fn run(
     manager: &mut SimulationManager,
     pool_args: PoolParams,
@@ -29,12 +45,47 @@ pub(crate) fn run(
     // define the wad constant
     let decimals = 18_u8;
     let wad: U256 = U256::from(10_i64.pow(decimals as u32));
+
+    println!("=======================================");
+    println!("🚀 Starting the Simulation 🚀");
+    println!("=======================================");
+
+    // Deploy the contracts
+    println!("🔧 Deploying contracts...");
+    println!("---------------------------------------");
     let contracts = deploy_contracts(manager, wad)?;
+    println!("---------------------------------------");
+    println!("✅ Contracts deployed successfully!\n");
+
+    println!("🔧 Creating the Arbitrageur...");
+    println!("---------------------------------------");
     arbitrage::create_arbitrageur(manager, &contracts.liquid_exchange_xy, "arbitrageur");
+    println!("---------------------------------------");
+    println!("✅ Arbitrageur created successfully!\n");
+
+    println!("🔧 Minting tokens...");
+    println!("---------------------------------------");
     mint(manager, &contracts)?;
+    println!("---------------------------------------");
+    println!("✅ Tokens minted successfully!\n");
+
+    println!("🔧 Approving tokens...");
+    println!("---------------------------------------");
     approve(manager, &contracts)?;
+    println!("---------------------------------------");
+    println!("✅ Tokens approved successfully!\n");
+
+    println!("🔧 Initializing the pool...");
+    println!("---------------------------------------");
     let (pool_data, pool_id) = pool_intitalization(manager, &contracts, pool_args)?;
+    println!("---------------------------------------");
+    println!("✅ Pool initialized successfully! Pool ID: {}\n", pool_id);
+
+    println!("🔧 Allocating funds...");
+    println!("---------------------------------------");
     allocate(manager, &contracts, pool_id, delta_liquidity)?;
+    println!("---------------------------------------");
+    println!("✅ Funds allocated successfully!\n");
     Ok((contracts, pool_data, pool_id))
 }
 
@@ -308,7 +359,7 @@ fn pool_intitalization(
         arbiter_token_x,
         arbiter_token_y,
         portfolio,
-        liquid_exchange_xy,
+        liquid_exchange_xy: _,
     } = contracts;
 
     // --------------------------------------------------------------------------------------------
@@ -359,52 +410,6 @@ fn pool_intitalization(
     let create_pool_unpack = manager.unpack_execution(create_pool_result)?;
     let pool_id: u64 = portfolio.decode_output("createPool", create_pool_unpack)?;
     println!("Created Portfolio pool with PoolID: {:#?}", pool_id);
-
-    // --------------------------------------------------------------------------------------------
-    // ARBITRAGEUR SET UP AND RUN
-    // --------------------------------------------------------------------------------------------
-    // TODO: Add this here before the loop
-
-    // --------------------------------------------------------------------------------------------
-    // LiquidExchange PRICE SETTING LOOP
-    // --------------------------------------------------------------------------------------------
-    let ou = OU::new(0.001, 50.0, 1.0);
-    let price_process = PriceProcess::new(
-        PriceProcessType::OU(ou),
-        0.01,
-        "trade".to_string(),
-        5,
-        1.0,
-        1,
-    );
-    let prices = price_process.generate_price_path().1;
-    // println!("Prices: {:#?}", prices);
-
-    // Loop over and set prices on the liquid exchange from the oracle.
-    for price in prices {
-        println!("Price from price path: {}", price);
-        let wad_price = simulate::utils::float_to_wad(price);
-        println!("WAD price: {}", wad_price);
-        let call_data = liquid_exchange_xy.encode_function("setPrice", wad_price)?;
-        admin.call_contract(
-            &mut manager.environment,
-            liquid_exchange_xy,
-            call_data,
-            Uint::from(0),
-        );
-        // Check that the price is set correctly
-        let call_data = liquid_exchange_xy.encode_function("price", ())?;
-        let execution_result = admin.call_contract(
-            &mut manager.environment,
-            liquid_exchange_xy,
-            call_data,
-            Uint::from(0),
-        );
-        let value = manager.unpack_execution(execution_result)?;
-        let response: U256 = liquid_exchange_xy.decode_output("price", value)?;
-        println!("Price from the exchange: {}", response);
-        assert_eq!(response, wad_price);
-    }
     Ok((create_pool_args, pool_id))
 }
 
