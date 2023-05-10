@@ -93,8 +93,8 @@ pub fn run() -> Result<(), Box<dyn Error>> {
                     &mut manager,
                     &contracts.portfolio,
                     pool_id,
-                    10_u128.pow(15), 
-                    sell_asset.unwrap(), 
+                    10_u128.pow(15),
+                    sell_asset.unwrap(),
                 )?;
                 // TODO: Update the price of the Portfolio pool.
                 update_price(&mut manager, liquid_exchange, price)?;
