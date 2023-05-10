@@ -12,7 +12,7 @@ use simulate::{
     utils::recast_address,
 };
 
-use super::arbitrage;
+use super::{arbitrage, PoolParams};
 
 pub(crate) struct SimulationContracts {
     pub(crate) arbiter_token_x: SimulationContract<IsDeployed>,
@@ -22,7 +22,7 @@ pub(crate) struct SimulationContracts {
 }
 
 pub(crate) fn run(
-    manager: &mut SimulationManager, pool_args: rmm01_portfolio::CreatePoolCall, delta_liquidity: i128,
+    manager: &mut SimulationManager, pool_args: PoolParams, delta_liquidity: i128,
 ) -> Result<(SimulationContracts, rmm01_portfolio::CreatePoolCall, u64), Box<dyn Error>> {
     // define the wad constant
     let decimals = 18_u8;
@@ -299,7 +299,7 @@ fn approve(
 fn pool_intitalization(
     manager: &mut SimulationManager,
     contracts: &SimulationContracts,
-    pool_args: rmm01_portfolio::CreatePoolCall,
+    pool_args: PoolParams,
 ) -> Result<(rmm01_portfolio::CreatePoolCall, u64), Box<dyn Error>> {
     let admin = manager.agents.get("admin").unwrap();
     let SimulationContracts {
@@ -330,7 +330,23 @@ fn pool_intitalization(
     // --------------------------------------------------------------------------------------------
     // CREATE PORTFOLIO POOL
     // --------------------------------------------------------------------------------------------
-    let create_pool_args = pool_args;
+    let priority_fee = pool_args.priority_fee;
+    let fee = pool_args.fee;
+    let volatility = pool_args.volatility;
+    let duration = pool_args.duration;
+    let strike_price = pool_args.strike;
+    let price = pool_args.price;
+    
+    let create_pool_args = rmm01_portfolio::CreatePoolCall {
+        pair_id,                                        // pub pair_id: u32
+        controller: recast_address(admin.address()),    /* pub controller: ::ethers::core::types::Address */
+        priority_fee,                          // pub priority_fee: u16,
+        fee,                                   // pub fee: u16,
+        volatility,                            // pub vol: u16,
+        duration,                            // pub dur: u16,
+        strike_price,                  // pub max_price: u128,
+        price,                         // pub price: u128,
+    };
     let create_pool_result = admin.call_contract(
         &mut manager.environment,
         portfolio,

@@ -3,26 +3,45 @@ use std::error::Error;
 
 use eyre::Result;
 use simulate::manager::SimulationManager;
-use bindings::rmm01_portfolio;
 
 pub mod arbitrage;
 pub mod startup;
+
+pub struct PoolParams {
+    priority_fee: u16,
+    fee: u16,
+    volatility: u16,
+    duration: u16,
+    strike: u128,
+    price: u128,
+}
+
+impl PoolParams {
+    pub fn new(
+        priority_fee: u16,
+        fee: u16,
+        volatility: u16,
+        duration: u16,
+        strike: u128,
+        price: u128,
+    ) -> Self {
+        Self {
+            priority_fee,
+            fee,
+            volatility,
+            duration,
+            strike,
+            price,
+        }
+    }
+}
 
 /// Run a simulation.
 pub fn run() -> Result<(), Box<dyn Error>> {
     // Create a `SimulationManager` that runs simulations in their `SimulationEnvironment`.
     let mut manager = SimulationManager::new();
     // Define the pool arguments
-    let pool_args = rmm01_portfolio::CreatePoolCall {
-        pair_id,                                        // pub pair_id: u32
-        controller: recast_address(admin.address()),    /* pub controller: ::ethers::core::types::Address */
-        priority_fee: 100_u16,                          // pub priority_fee: u16,
-        fee: 100_u16,                                   // pub fee: u16,
-        volatility: 100_u16,                            // pub vol: u16,
-        duration: 65535_u16,                            // pub dur: u16,
-        strike_price: 10_u128.pow(18),                  // pub max_price: u128,
-        price: 10_u128.pow(18),                         // pub price: u128,
-    };
+    let pool_args = PoolParams::new(100_u16, 100_u16, 100_u16, 65535_u16, 10_000_000_000_000_000_000u128, 10_000_000_000_000_000_000u128);
     // Define liquidity arguments
     let delta_liquidity = 10_i128.pow(19);
     // Run the startup script

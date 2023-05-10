@@ -25,6 +25,17 @@ pub(crate) fn create_arbitrageur<S: Into<String>>(
         .unwrap();
 }
 
+pub struct ComputeArbOutput {
+    sell_asset: bool,
+    input: U256,
+}
+
+impl ComputeArbOutput {
+    pub fn new(sell_asset: bool, input: U256) -> Self {
+        ComputeArbOutput { sell_asset, input }
+    }
+}
+
 pub(crate) fn compute_arb_size(
     target_price: U256,
     manager: &mut SimulationManager,
@@ -32,7 +43,7 @@ pub(crate) fn compute_arb_size(
     delta_liquidity: i128,
     pool_id: u64,
     portfolio: &SimulationContract<IsDeployed>,
-) -> Result<(), Box<dyn Error>> {
+) ->Result<ComputeArbOutput, Box<dyn Error>>  {
     let manager = manager;
     let admin = manager.agents.get("admin").unwrap();
     let arbiter_math = manager.autodeployed_contracts.get("arbiter_math").unwrap();
@@ -141,7 +152,7 @@ pub(crate) fn compute_arb_size(
          portfolio.encode_function("getVirtualReservesDec", pool_id)?, 
          Uint::ZERO,
         );
-    let unpacked_result = manager.unpack_execution(execution_result)?;
+    let unpacked_result = manager.unpack_execution(x_reserves)?;
     let reserves: (u128, u128) = portfolio.decode_output("getVirtualReservesDec", unpacked_result)?;
     let a = I256::from(10_u128.pow(18)) - cdf_output - I256::from(reserves.0);
     let arb_amount_x = a.max(I256::from(0));
@@ -208,9 +219,18 @@ pub(crate) fn compute_arb_size(
     let invariant: U256 = arbiter_math.decode_output("invariant", unpacked_result)?;
     let b = cdf + I256::from_raw(invariant) - I256::from(reserves.1);
     let arb_amount_y = b.max(I256::from(0));
-
-
-    Ok(())
+    // bool for which asset is being sold.
+    let fn_output: ComputeArbOutput;
+    if arb_amount_x >= I256::from(0) {
+        let sell_asset = true;
+        let input = arb_amount_x.into_raw();
+        fn_output = ComputeArbOutput::new(sell_asset, input);
+    } else {
+        let sell_asset = false;
+        let input = arb_amount_y.into_raw();
+        fn_output = ComputeArbOutput::new(sell_asset, input);
+    };
+    Ok(fn_output)
 }
 
 pub(crate) fn swap(
