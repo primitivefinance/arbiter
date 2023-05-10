@@ -34,4 +34,12 @@ contract ArbiterMath {
     function divWadUp(uint256 x, uint256 y) public pure returns (uint256 z) {
         z = FixedPointMathLib.divWadUp(x, y);
     }
+
+    function log(int256 x) public pure returns (int256 z) {
+        z = FixedPointMathLib.lnWad(x);
+    }
+
+    function sqrt(uint256 x) public pure returns (uint256 z) {
+        z = FixedPointMathLib.sqrt(x);
+    }
 }
