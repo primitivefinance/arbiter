@@ -1,7 +1,7 @@
 use std::error::Error;
 
 use bindings::rmm01_portfolio;
-use ethers::{prelude::U256, types::I256};
+use ethers::{prelude::U256, types::I256, types::Sign};
 use eyre::Result;
 use revm::primitives::{ruint::Uint, B160};
 use simulate::{
@@ -46,7 +46,7 @@ pub(crate) fn compute_arb_size(
         &arbiter_math,
         arbiter_math.encode_function(
             "sqrt",
-            (duration)
+            duration
         )?,
         Uint::ZERO,
     );
@@ -104,8 +104,8 @@ pub(crate) fn compute_arb_size(
     let output: U256 = arbiter_math.decode_output("mulWadUp", unpacked_result)?;
     
     let scaled_log = match sign {
-        positive => I256::from_raw(output) * I256::from(10_u128.pow(18)),
-        negative => I256::from_raw(output) * I256::from(10_u128.pow(18)),
+        Sign::Positive => I256::from_raw(output) * I256::from(10_u128.pow(18)),
+        Sign::Negative => I256::from_raw(output) * I256::from(10_u128.pow(18)) * I256::from(-1),
     };
     // compute the additional term 
     let execution_result = admin.call_contract(
@@ -141,9 +141,8 @@ pub(crate) fn compute_arb_size(
          Uint::ZERO,
         );
     let unpacked_result = manager.unpack_execution(execution_result)?;
-    let x_reserves: (u128, u128) = portfolio.decode_output("getVirtualReservesDec", unpacked_result)?;
-    let x_reserves = I256::from(x_reserves.0);
-    let a = I256::from(10_u128.pow(18)) - cdf_output - x_reserves;
+    let reserves: (u128, u128) = portfolio.decode_output("getVirtualReservesDec", unpacked_result)?;
+    let a = I256::from(10_u128.pow(18)) - cdf_output - I256::from(reserves.0);
     let arb_amount_x = a.max(I256::from(0));
     Ok(())
 }
