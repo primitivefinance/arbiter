@@ -22,7 +22,7 @@ pub(crate) struct SimulationContracts {
 }
 
 pub(crate) fn run(
-    manager: &mut SimulationManager,
+    manager: &mut SimulationManager, pool_args: rmm01_portfolio::CreatePoolCall, delta_liquidity: i128,
 ) -> Result<(SimulationContracts, rmm01_portfolio::CreatePoolCall, u64), Box<dyn Error>> {
     // define the wad constant
     let decimals = 18_u8;
@@ -31,7 +31,7 @@ pub(crate) fn run(
     arbitrage::create_arbitrageur(manager, &contracts.liquid_exchange_xy, "arbitrageur");
     mint(manager, &contracts)?;
     approve(manager, &contracts)?;
-    let (pool_data, pool_id) = pool_intitalization(manager, &contracts)?;
+    let (pool_data, pool_id) = pool_intitalization(manager, &contracts, pool_args, delta_liquidity)?;
     allocate(manager, &contracts, pool_id)?;
     Ok((contracts, pool_data, pool_id))
 }
@@ -299,6 +299,8 @@ fn approve(
 fn pool_intitalization(
     manager: &mut SimulationManager,
     contracts: &SimulationContracts,
+    pool_args: rmm01_portfolio::CreatePoolCall,
+    delta_liquidity: i128,
 ) -> Result<(rmm01_portfolio::CreatePoolCall, u64), Box<dyn Error>> {
     let admin = manager.agents.get("admin").unwrap();
     let SimulationContracts {
@@ -329,16 +331,7 @@ fn pool_intitalization(
     // --------------------------------------------------------------------------------------------
     // CREATE PORTFOLIO POOL
     // --------------------------------------------------------------------------------------------
-    let create_pool_args = rmm01_portfolio::CreatePoolCall {
-        pair_id,                                     // pub pair_id: u32
-        controller: recast_address(admin.address()), /* pub controller: ::ethers::core::types::Address */
-        priority_fee: 100_u16,                       // pub priority_fee: u16,
-        fee: 100_u16,                                // pub fee: u16,
-        volatility: 100_u16,                         // pub vol: u16,
-        duration: 65535_u16,                         // pub dur: u16,
-        strike_price: 10_u128.pow(18),               // pub max_price: u128,
-        price: 10_u128.pow(18),                      // pub price: u128,
-    };
+    let create_pool_args = pool_args;
     let create_pool_result = admin.call_contract(
         &mut manager.environment,
         portfolio,
@@ -413,7 +406,6 @@ fn allocate(
     // --------------------------------------------------------------------------------------------
     // PORTFOLIO POOL LIQUIDITY DELTAS
     // --------------------------------------------------------------------------------------------
-    let delta_liquidity = 10_i128.pow(19);
     let get_liquidity_args = rmm01_portfolio::GetLiquidityDeltasCall {
         pool_id,
         delta_liquidity,
