@@ -95,7 +95,6 @@ impl SimpleArbitrageur<IsActive> {
 
         (
             thread::spawn(move || {
-                let mut prices = prices.lock().unwrap();
                 let decoder = |input, filter_num: usize| {
                     event_filters[filter_num].base_contract.decode_event_raw(
                         event_filters[filter_num].event_name.as_str(),
@@ -124,6 +123,7 @@ impl SimpleArbitrageur<IsActive> {
                         let value = decoded_event[0].clone();
                         // println!("The value is: {:#?}", value);
                         let value = value.into_uint().unwrap();
+                        let mut prices = prices.lock().unwrap();
                         prices[pool_number] = value.into();
                         println!(
                             "Price for pool number {:#?} is {:#?}",
@@ -166,6 +166,7 @@ impl SimpleArbitrageur<IsActive> {
                                 }
                             }
                         }
+                        drop(prices);
                     } else {
                         match tx.send((NextTx::None, None)) {
                             Ok(_) => {}
@@ -195,7 +196,9 @@ mod tests {
 
     use super::SimpleArbitrageur;
     use crate::{
-        agent::{filter_events, Agent, AgentType, SimulationEventFilter},
+        agent::{
+            filter_events, simple_arbitrageur::NextTx, Agent, AgentType, SimulationEventFilter,
+        },
         contract::SimulationContract,
         manager::SimulationManager,
         utils::recast_address,
@@ -434,9 +437,51 @@ mod tests {
         drop(prices);
 
         // Start the arbitrageur to detect price changes.
-        let arbitrage_detection_handle = base_arbitrageur.detect_arbitrage();
+        println!("Beginning arbitrage detection.");
+        let (arbitrage_detection_handle, rx) = base_arbitrageur.detect_arbitrage();
 
         // Make a price change to the first exchange.
+        // let mut index = 0;
+        // while let Ok((next_tx, ..)) = rx.recv() {
+        //     println!("Received a new message.");
+        //     if index == 0 {
+        //         match next_tx {
+        //             NextTx::None => continue,
+        //             _ => {
+        //                 let new_price0 = wad.checked_mul(U256::from(42069)).unwrap();
+        //                 let call_data =
+        //                     liquid_exchange_xy0.encode_function("setPrice", new_price0)?;
+        //                 manager.agents.get("admin").unwrap().call_contract(
+        //                     &mut manager.environment,
+        //                     &liquid_exchange_xy0,
+        //                     call_data,
+        //                     U256::zero().into(),
+        //                 );
+        //                 index += 1;
+        //                 continue;
+        //             }
+        //         }
+        //     } else {
+        //         // Make a price change to the second exchange.
+        //         match next_tx {
+        //             NextTx::None => continue,
+        //             _ => {
+        //                 let new_price1 = wad.checked_mul(U256::from(69420)).unwrap();
+        //                 let call_data =
+        //                     liquid_exchange_xy1.encode_function("setPrice", new_price1)?;
+        //                 manager.agents.get("admin").unwrap().call_contract(
+        //                     &mut manager.environment,
+        //                     &liquid_exchange_xy1,
+        //                     call_data,
+        //                     U256::zero().into(),
+
+        //                 );
+        //                 break;
+        //             }
+        //         }
+        //     }
+        // }
+
         let new_price0 = wad.checked_mul(U256::from(42069)).unwrap();
         let call_data = liquid_exchange_xy0.encode_function("setPrice", new_price0)?;
         manager.agents.get("admin").unwrap().call_contract(
@@ -455,8 +500,23 @@ mod tests {
             call_data,
             U256::zero().into(),
         );
-
-        arbitrage_detection_handle.join().unwrap(); // Block progress until all the events have been recorded
+        while let Ok((next_tx, ..)) = rx.recv() {
+            println!("Received a new message.");
+            match next_tx {
+                NextTx::None => {
+                    println!("None");
+                    continue;
+                }
+                NextTx::Swap => {
+                    println!("Swap");
+                    break;
+                }
+                NextTx::UpdatePrice => {
+                    println!("Update price");
+                    continue;
+                }
+            }
+        }
         let prices = Arc::clone(&base_arbitrageur.prices);
         let prices = prices.lock().unwrap();
         println!("Arbitrageur prices: {:#?}", prices);
@@ -468,6 +528,7 @@ mod tests {
             prices[1],
             wad.checked_mul(U256::from(69420)).unwrap().into()
         );
+        manager.shut_down();
 
         Ok(())
     }
