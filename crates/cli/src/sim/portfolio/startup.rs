@@ -95,7 +95,6 @@ pub(crate) fn run(
     Ok((contracts, pool_data, pool_id))
 }
 
-
 /// Deploy the contracts to the simulation environment.
 /// # Arguments
 /// * `manager` - Simulation manager to deploy contracts to. (SimulationManager)
@@ -427,7 +426,7 @@ fn allocate(
     // --------------------------------------------------------------------------------------------
     // PORTFOLIO POOL LIQUIDITY DELTAS
     // --------------------------------------------------------------------------------------------
-    let delta_liquidity = 10_i128.pow(19);
+    let delta_liquidity = 10_i128.pow(21);
     let get_liquidity_args = rmm01_portfolio::GetLiquidityDeltasCall {
         pool_id,
         delta_liquidity,

@@ -123,7 +123,7 @@ impl SimpleArbitrageur<IsActive> {
                         if price_difference.1 {
                             println!("Arbitrage with price_0 < price_1");
                             break;
-                        } else if price_difference.1 && price_difference.0 != U256::ZERO {
+                        } else if !price_difference.1 && price_difference.0 != U256::ZERO {
                             println!("Arbitrage with price_0 > price_1");
                             break;
                         }

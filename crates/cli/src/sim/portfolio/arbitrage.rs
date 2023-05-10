@@ -19,10 +19,7 @@ pub(crate) fn create_arbitrageur<S: Into<String>>(
     let event_filters = vec![SimulationEventFilter::new(liquid_exchange, "PriceChange")];
     let arbitrageur = SimpleArbitrageur::new(name, event_filters);
     manager
-        .activate_agent(
-            AgentType::SimpleArbitrageur(arbitrageur),
-            address,
-        )
+        .activate_agent(AgentType::SimpleArbitrageur(arbitrageur), address)
         .unwrap();
     println!("Created Arbitrageur at address: {}.", address);
 }
@@ -57,11 +54,19 @@ where
     let unpacked_get_amount_out = manager.unpack_execution(get_amount_out_result)?;
     let decoded_amount_out: u128 =
         portfolio.decode_output("getAmountOut", unpacked_get_amount_out)?;
-    println!(
-        "Inputting {} ARBX yields {} ARBY out.",
-        U256::from(input_amount),
-        decoded_amount_out,
-    );
+    if sell_asset {
+        println!(
+            "Inputting {} ARBX yields {} ARBY out.",
+            U256::from(input_amount),
+            decoded_amount_out,
+        );
+    } else {
+        println!(
+            "Inputting {} ARBY yields {} ARBX out.",
+            U256::from(input_amount),
+            decoded_amount_out,
+        );
+    }
 
     // Construct the swap using the above amount
     let amount_out = decoded_amount_out;
