@@ -89,18 +89,25 @@ pub(crate) fn compute_arb_size(
     );
     let unpacked_result = manager.unpack_execution(execution_result)?;
     let log: I256 = arbiter_math.decode_output("log", unpacked_result)?;
+    let sign = log.sign();
+    let unsigned_log = U256::from(log);
     // Scale logarithm
     let execution_result = admin.call_contract(
         &mut manager.environment,
         &arbiter_math,
         arbiter_math.encode_function(
             "mulWadUp",
-            (U256::from(log), sigma_sqrt_tau)
+            (unsigned_log, sigma_sqrt_tau)
         )?,
         Uint::ZERO,
     );
     let unpacked_result = manager.unpack_execution(execution_result)?;
-    let scaled_log: U256 = arbiter_math.decode_output("mulWadUp", unpacked_result)?;
+    let output: U256 = arbiter_math.decode_output("mulWadUp", unpacked_result)?;
+    
+    let scaled_log = match sign {
+        positive => I256::from(output) * I256::from(10_u128.pow(18)),
+        negative => I256::from(output) * I256::from(10_u128.pow(18)),
+    };
     // compute the additional term 
     let execution_result = admin.call_contract(
         &mut manager.environment,
@@ -114,7 +121,7 @@ pub(crate) fn compute_arb_size(
     let unpacked_result = manager.unpack_execution(execution_result)?;
     let additional_term: U256 = arbiter_math.decode_output("mulWadDown", unpacked_result)?;
     // CDF input
-    let cdf_input = scaled_log + additional_term;
+    let cdf_input = scaled_log + I256::from(additional_term);
     // compute the CDF
     let execution_result = admin.call_contract(
         &mut manager.environment,
@@ -136,8 +143,9 @@ pub(crate) fn compute_arb_size(
         );
     let unpacked_result = manager.unpack_execution(execution_result)?;
     let x_reserves: (u128, u128) = portfolio.decode_output("getVirtualReservesDec", unpacked_result)?;
-
-    let a = cdf_output;
+    let x_reserves = I256::from(x_reserves.0.as_i256());
+    let a = I256::from(10_u128.pow(18)) - cdf_output - x_reserves;
+    let arb_amount_x = a.max(I256::from(0));
     Ok(())
 }
 
