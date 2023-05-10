@@ -95,13 +95,13 @@ pub(crate) fn compute_arb_size(
         &mut manager.environment,
         &arbiter_math,
         arbiter_math.encode_function(
-            "mulWadUp",
+            "divWadUp",
             (unsigned_log, sigma_sqrt_tau)
         )?,
         Uint::ZERO,
     );
     let unpacked_result = manager.unpack_execution(execution_result.clone())?;
-    let output: U256 = arbiter_math.decode_output("mulWadUp", unpacked_result)?;
+    let output: U256 = arbiter_math.decode_output("divWadUp", unpacked_result)?;
     
     let scaled_log = match sign {
         Sign::Positive => I256::from_raw(output) * I256::from(10_u128.pow(18)),
@@ -133,7 +133,7 @@ pub(crate) fn compute_arb_size(
     );
     let unpacked_result = manager.unpack_execution(execution_result.clone())?;
     let cdf_output: I256 = arbiter_math.decode_output("cdf", unpacked_result)?;
-    // compute the arb size
+    // call the reserve values
     let x_reserves = admin.call_contract(
         &mut manager.environment,
          &portfolio, 
@@ -144,6 +144,58 @@ pub(crate) fn compute_arb_size(
     let reserves: (u128, u128) = portfolio.decode_output("getVirtualReservesDec", unpacked_result)?;
     let a = I256::from(10_u128.pow(18)) - cdf_output - I256::from(reserves.0);
     let arb_amount_x = a.max(I256::from(0));
+
+    // --------------------------------------------------------------------------------------------
+    // GET ARBY ARBITRAGE AMOUNT
+    // --------------------------------------------------------------------------------------------
+
+    let x_temp = I256::from(10_u128.pow(18)) - cdf_output;
+    // compute ppf
+    let execution_result = admin.call_contract(
+        &mut manager.environment,
+        &arbiter_math,
+        arbiter_math.encode_function(
+            "ppf",
+            I256::from(10_u128.pow(18)) - x_temp
+        )?,
+        Uint::ZERO,
+    );
+    let unpacked_result = manager.unpack_execution(execution_result.clone())?;
+    let ppf_output: I256 = arbiter_math.decode_output("ppf", unpacked_result)?;
+
+    let cdf_input = ppf_output + I256::from_raw(sigma_sqrt_tau);
+    // compute the CDF
+    let execution_result = admin.call_contract(
+        &mut manager.environment,
+        &arbiter_math,
+        arbiter_math.encode_function(
+            "cdf", 
+            cdf_input
+        )?,
+        Uint::ZERO,
+    );
+    let unpacked_result = manager.unpack_execution(execution_result.clone())?;
+    let cdf_output: I256 = arbiter_math.decode_output("cdf", unpacked_result)?;
+    let cdf_sign = cdf_output.sign();
+    // scale the CDF
+    let execution_result = admin.call_contract(
+        &mut manager.environment,
+        &arbiter_math,
+        arbiter_math.encode_function(
+            "mulWadDown",
+            (cdf_output.into_raw(), strike)
+        )?,
+        Uint::ZERO,
+    );
+    let unpacked_result = manager.unpack_execution(execution_result.clone())?;
+    let scaled_cdf: U256 = arbiter_math.decode_output("mulWadDown", unpacked_result)?;
+    let cdf = match cdf_sign {
+        Sign::Positive => I256::from_raw(scaled_cdf),
+        Sign::Negative => I256::from_raw(scaled_cdf) * I256::from(-1),
+    };
+    let b = cdf - I256::from(reserves.1);
+
+
     Ok(())
 }
 

@@ -1,7 +1,7 @@
 pragma solidity ^0.8.17;
 import "solmate/utils/FixedPointMathLib.sol";
 import "portfolio/lib/solstat/src/Gaussian.sol";
-
+import "portfolio/lib/solstat/src/Invariant.sol";
 
 contract ArbiterMath {
     using FixedPointMathLib for int256;
@@ -41,5 +41,9 @@ contract ArbiterMath {
 
     function sqrt(uint256 x) public pure returns (uint256 z) {
         z = FixedPointMathLib.sqrt(x);
+    }
+
+    function invariant(uint256 R_y, uint256 R_x, uint256 stk, uint256 vol, uint256 tau) public pure returns (int256 k) {
+        k = Invariant.invariant(R_y, R_x, stk, vol, tau);
     }
 }
