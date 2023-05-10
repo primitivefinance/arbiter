@@ -3,7 +3,7 @@ use std::error::Error;
 use bindings::rmm01_portfolio;
 use ethers::{prelude::U256, types::I256, types::Sign};
 use eyre::Result;
-use revm::primitives::{ruint::Uint, B160};
+use revm::primitives::{ruint::Uint, B160, ExecutionResult};
 use simulate::{
     agent::{simple_arbitrageur::SimpleArbitrageur, Agent, AgentType, SimulationEventFilter},
     contract::{IsDeployed, SimulationContract},
@@ -145,6 +145,18 @@ pub(crate) fn compute_arb_size(
     );
     let unpacked_result = manager.unpack_execution(execution_result.clone())?;
     let cdf_output: I256 = arbiter_math.decode_output("cdf", unpacked_result)?;
+    let execution_result = admin.call_contract(
+        &mut manager.environment,
+        &arbiter_math,
+        arbiter_math.encode_function(
+            "mulWadDown",
+            (cdf_output.into_raw(), U256::from(delta_liquidity))
+        )?,
+        Uint::ZERO,
+    );
+    let unpacked_result = manager.unpack_execution(execution_result.clone())?;
+    let scaled_cdf: U256 = arbiter_math.decode_output("mulWadDown", unpacked_result)?;
+    let cdf = I256::from_raw(scaled_cdf);
     // call the reserve values
     let x_reserves = admin.call_contract(
         &mut manager.environment,
@@ -154,7 +166,8 @@ pub(crate) fn compute_arb_size(
         );
     let unpacked_result = manager.unpack_execution(x_reserves)?;
     let reserves: (u128, u128) = portfolio.decode_output("getVirtualReservesDec", unpacked_result)?;
-    let a = I256::from(10_u128.pow(18)) - cdf_output - I256::from(reserves.0);
+
+    let a = I256::from(delta_liquidity) - cdf - I256::from(reserves.0);
     let arb_amount_x = a.max(I256::from(0));
 
     // --------------------------------------------------------------------------------------------
@@ -196,6 +209,22 @@ pub(crate) fn compute_arb_size(
         arbiter_math.encode_function(
             "mulWadDown",
             (cdf_output.into_raw(), strike)
+        )?,
+        Uint::ZERO,
+    );
+    let unpacked_result = manager.unpack_execution(execution_result.clone())?;
+    let scaled_cdf: U256 = arbiter_math.decode_output("mulWadDown", unpacked_result)?;
+    let cdf = match cdf_sign {
+        Sign::Positive => I256::from_raw(scaled_cdf),
+        Sign::Negative => I256::from_raw(scaled_cdf) * I256::from(-1),
+    };
+    // scale by shares
+    let execution_result = admin.call_contract(
+        &mut manager.environment,
+        &arbiter_math,
+        arbiter_math.encode_function(
+            "mulWadDown",
+            (cdf.into_raw(), U256::from(delta_liquidity))
         )?,
         Uint::ZERO,
     );
