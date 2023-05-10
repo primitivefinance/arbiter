@@ -8,7 +8,6 @@ use simulate::{
     agent::Agent,
     contract::{IsDeployed, SimulationContract},
     manager::SimulationManager,
-    stochastic::price_process::{PriceProcess, PriceProcessType, OU},
     utils::recast_address,
 };
 
@@ -54,43 +53,37 @@ pub(crate) fn run(
     println!("---------------------------------------");
     let contracts = deploy_contracts(manager, wad)?;
     println!("---------------------------------------");
-    println!("✅ Contracts deployed successfully!");
-    println!("");
+    println!("✅ Contracts deployed successfully!\n");
 
     println!("🔧 Creating the Arbitrageur...");
     println!("---------------------------------------");
     arbitrage::create_arbitrageur(manager, &contracts.liquid_exchange_xy, "arbitrageur");
     println!("---------------------------------------");
-    println!("✅ Arbitrageur created successfully!");
-    println!("");
+    println!("✅ Arbitrageur created successfully!\n");
 
     println!("🔧 Minting tokens...");
     println!("---------------------------------------");
     mint(manager, &contracts)?;
     println!("---------------------------------------");
-    println!("✅ Tokens minted successfully!");
-    println!("");
+    println!("✅ Tokens minted successfully!\n");
 
     println!("🔧 Approving tokens...");
     println!("---------------------------------------");
     approve(manager, &contracts)?;
     println!("---------------------------------------");
-    println!("✅ Tokens approved successfully!");
-    println!("");
+    println!("✅ Tokens approved successfully!\n");
 
     println!("🔧 Initializing the pool...");
     println!("---------------------------------------");
     let (pool_data, pool_id) = pool_intitalization(manager, &contracts)?;
     println!("---------------------------------------");
-    println!("✅ Pool initialized successfully! Pool ID: {}", pool_id);
-    println!("");
+    println!("✅ Pool initialized successfully! Pool ID: {}\n", pool_id);
 
     println!("🔧 Allocating funds...");
     println!("---------------------------------------");
     allocate(manager, &contracts, pool_id)?;
     println!("---------------------------------------");
-    println!("✅ Funds allocated successfully!");
-    println!("");
+    println!("✅ Funds allocated successfully!\n");
 
     Ok((contracts, pool_data, pool_id))
 }
@@ -364,7 +357,7 @@ fn pool_intitalization(
         arbiter_token_x,
         arbiter_token_y,
         portfolio,
-        liquid_exchange_xy,
+        liquid_exchange_xy: _,
     } = contracts;
 
     // --------------------------------------------------------------------------------------------
