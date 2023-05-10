@@ -41,7 +41,14 @@ pub fn run() -> Result<(), Box<dyn Error>> {
     // Create a `SimulationManager` that runs simulations in their `SimulationEnvironment`.
     let mut manager = SimulationManager::new();
     // Define the pool arguments
-    let pool_args = PoolParams::new(100_u16, 100_u16, 100_u16, 65535_u16, 10_000_000_000_000_000_000u128, 10_000_000_000_000_000_000u128);
+    let pool_args = PoolParams::new(
+        100_u16,
+        100_u16,
+        100_u16,
+        65535_u16,
+        10_000_000_000_000_000_000u128,
+        10_000_000_000_000_000_000u128,
+    );
     // Define liquidity arguments
     let delta_liquidity = 10_i128.pow(19);
     // Run the startup script

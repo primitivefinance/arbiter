@@ -1,13 +1,14 @@
 use std::error::Error;
 
 use bindings::rmm01_portfolio;
-use ethers::{prelude::U256, types::I256, types::Sign};
+use ethers::{prelude::U256, types::Sign, types::I256};
 use eyre::Result;
-use revm::primitives::{ruint::Uint, B160, ExecutionResult};
+use revm::primitives::{ruint::Uint, ExecutionResult, B160};
 use simulate::{
     agent::{simple_arbitrageur::SimpleArbitrageur, Agent, AgentType, SimulationEventFilter},
     contract::{IsDeployed, SimulationContract},
-    manager::{SimulationManager, self}, utils::float_to_wad,
+    manager::{self, SimulationManager},
+    utils::float_to_wad,
 };
 
 pub(crate) fn create_arbitrageur<S: Into<String>>(
@@ -43,7 +44,7 @@ pub(crate) fn compute_arb_size(
     delta_liquidity: i128,
     pool_id: u64,
     portfolio: &SimulationContract<IsDeployed>,
-) ->Result<ComputeArbOutput, Box<dyn Error>>  {
+) -> Result<ComputeArbOutput, Box<dyn Error>> {
     let manager = manager;
     let admin = manager.agents.get("admin").unwrap();
     let arbiter_math = manager.autodeployed_contracts.get("arbiter_math").unwrap();
@@ -56,10 +57,7 @@ pub(crate) fn compute_arb_size(
     let execution_result = admin.call_contract(
         &mut manager.environment,
         &arbiter_math,
-        arbiter_math.encode_function(
-            "sqrt",
-            duration
-        )?,
+        arbiter_math.encode_function("sqrt", duration)?,
         Uint::ZERO,
     );
     let unpacked_result = manager.unpack_execution(execution_result.clone())?;
@@ -68,10 +66,7 @@ pub(crate) fn compute_arb_size(
     let execution_result = admin.call_contract(
         &mut manager.environment,
         &arbiter_math,
-        arbiter_math.encode_function(
-            "mulWadUp",
-            (iv, time_term)
-        )?,
+        arbiter_math.encode_function("mulWadUp", (iv, time_term))?,
         Uint::ZERO,
     );
     let unpacked_result = manager.unpack_execution(execution_result.clone())?;
@@ -80,10 +75,7 @@ pub(crate) fn compute_arb_size(
     let execution_result = admin.call_contract(
         &mut manager.environment,
         &arbiter_math,
-        arbiter_math.encode_function(
-            "divWadUp",
-            (target_price, strike)
-        )?,
+        arbiter_math.encode_function("divWadUp", (target_price, strike))?,
         Uint::ZERO,
     );
     let unpacked_result = manager.unpack_execution(execution_result.clone())?;
@@ -93,8 +85,7 @@ pub(crate) fn compute_arb_size(
         &mut manager.environment,
         &arbiter_math,
         arbiter_math.encode_function(
-            "log",
-            ratio // convert to I256
+            "log", ratio, // convert to I256
         )?,
         Uint::ZERO,
     );
@@ -106,26 +97,23 @@ pub(crate) fn compute_arb_size(
     let execution_result = admin.call_contract(
         &mut manager.environment,
         &arbiter_math,
-        arbiter_math.encode_function(
-            "divWadUp",
-            (unsigned_log, sigma_sqrt_tau)
-        )?,
+        arbiter_math.encode_function("divWadUp", (unsigned_log, sigma_sqrt_tau))?,
         Uint::ZERO,
     );
     let unpacked_result = manager.unpack_execution(execution_result.clone())?;
     let output: U256 = arbiter_math.decode_output("divWadUp", unpacked_result)?;
-    
+
     let scaled_log = match sign {
         Sign::Positive => I256::from_raw(output) * I256::from(10_u128.pow(18)),
         Sign::Negative => I256::from_raw(output) * I256::from(10_u128.pow(18)) * I256::from(-1),
     };
-    // compute the additional term 
+    // compute the additional term
     let execution_result = admin.call_contract(
         &mut manager.environment,
         &arbiter_math,
         arbiter_math.encode_function(
             "mulWadDown",
-            (U256::from(500_000_000_000_000_000_u128), sigma_sqrt_tau)
+            (U256::from(500_000_000_000_000_000_u128), sigma_sqrt_tau),
         )?,
         Uint::ZERO,
     );
@@ -137,10 +125,7 @@ pub(crate) fn compute_arb_size(
     let execution_result = admin.call_contract(
         &mut manager.environment,
         &arbiter_math,
-        arbiter_math.encode_function(
-            "cdf", 
-            cdf_input
-        )?,
+        arbiter_math.encode_function("cdf", cdf_input)?,
         Uint::ZERO,
     );
     let unpacked_result = manager.unpack_execution(execution_result.clone())?;
@@ -150,7 +135,7 @@ pub(crate) fn compute_arb_size(
         &arbiter_math,
         arbiter_math.encode_function(
             "mulWadDown",
-            (cdf_output.into_raw(), U256::from(delta_liquidity))
+            (cdf_output.into_raw(), U256::from(delta_liquidity)),
         )?,
         Uint::ZERO,
     );
@@ -160,12 +145,13 @@ pub(crate) fn compute_arb_size(
     // call the reserve values
     let x_reserves = admin.call_contract(
         &mut manager.environment,
-         &portfolio, 
-         portfolio.encode_function("getVirtualReservesDec", pool_id)?, 
-         Uint::ZERO,
-        );
+        &portfolio,
+        portfolio.encode_function("getVirtualReservesDec", pool_id)?,
+        Uint::ZERO,
+    );
     let unpacked_result = manager.unpack_execution(x_reserves)?;
-    let reserves: (u128, u128) = portfolio.decode_output("getVirtualReservesDec", unpacked_result)?;
+    let reserves: (u128, u128) =
+        portfolio.decode_output("getVirtualReservesDec", unpacked_result)?;
 
     let a = I256::from(delta_liquidity) - cdf - I256::from(reserves.0);
     let arb_amount_x = a.max(I256::from(0));
@@ -179,10 +165,7 @@ pub(crate) fn compute_arb_size(
     let execution_result = admin.call_contract(
         &mut manager.environment,
         &arbiter_math,
-        arbiter_math.encode_function(
-            "ppf",
-            I256::from(10_u128.pow(18)) - x_temp
-        )?,
+        arbiter_math.encode_function("ppf", I256::from(10_u128.pow(18)) - x_temp)?,
         Uint::ZERO,
     );
     let unpacked_result = manager.unpack_execution(execution_result.clone())?;
@@ -193,10 +176,7 @@ pub(crate) fn compute_arb_size(
     let execution_result = admin.call_contract(
         &mut manager.environment,
         &arbiter_math,
-        arbiter_math.encode_function(
-            "cdf", 
-            cdf_input
-        )?,
+        arbiter_math.encode_function("cdf", cdf_input)?,
         Uint::ZERO,
     );
     let unpacked_result = manager.unpack_execution(execution_result.clone())?;
@@ -206,10 +186,7 @@ pub(crate) fn compute_arb_size(
     let execution_result = admin.call_contract(
         &mut manager.environment,
         &arbiter_math,
-        arbiter_math.encode_function(
-            "mulWadDown",
-            (cdf_output.into_raw(), strike)
-        )?,
+        arbiter_math.encode_function("mulWadDown", (cdf_output.into_raw(), strike))?,
         Uint::ZERO,
     );
     let unpacked_result = manager.unpack_execution(execution_result.clone())?;
@@ -222,10 +199,8 @@ pub(crate) fn compute_arb_size(
     let execution_result = admin.call_contract(
         &mut manager.environment,
         &arbiter_math,
-        arbiter_math.encode_function(
-            "mulWadDown",
-            (cdf.into_raw(), U256::from(delta_liquidity))
-        )?,
+        arbiter_math
+            .encode_function("mulWadDown", (cdf.into_raw(), U256::from(delta_liquidity)))?,
         Uint::ZERO,
     );
     let unpacked_result = manager.unpack_execution(execution_result.clone())?;
@@ -240,7 +215,13 @@ pub(crate) fn compute_arb_size(
         &arbiter_math,
         arbiter_math.encode_function(
             "invariant",
-            (U256::from(reserves.1), U256::from(reserves.0), strike, iv, duration)
+            (
+                U256::from(reserves.1),
+                U256::from(reserves.0),
+                strike,
+                iv,
+                duration,
+            ),
         )?,
         Uint::ZERO,
     );

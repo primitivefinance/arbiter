@@ -456,36 +456,24 @@ mod tests {
         let execution_result = admin.call_contract(
             &mut manager.environment,
             &arbiter_math,
-            arbiter_math.encode_function(
-                "log",
-                I256::from(1_000_000_000_000_000_000_u128),
-            )?,
+            arbiter_math.encode_function("log", I256::from(1_000_000_000_000_000_000_u128))?,
             Uint::ZERO,
         );
         let unpacked_result = manager.unpack_execution(execution_result)?;
         let output: I256 = arbiter_math.decode_output("log", unpacked_result)?;
         println!("lnWad(0) = {}", output);
-        assert_eq!(
-            output,
-            I256::from(0)
-        );
+        assert_eq!(output, I256::from(0));
         // Test the sqrt function
         let execution_result = admin.call_contract(
             &mut manager.environment,
             &arbiter_math,
-            arbiter_math.encode_function(
-                "sqrt",
-                U256::from(1u128),
-            )?,
+            arbiter_math.encode_function("sqrt", U256::from(1u128))?,
             Uint::ZERO,
         );
         let unpacked_result = manager.unpack_execution(execution_result)?;
         let output: U256 = arbiter_math.decode_output("sqrt", unpacked_result)?;
-        println!("sqrt(0) = {}", output);
-        assert_eq!(
-            output,
-            U256::from(1u128)
-        );
+        println!("sqrt(1) = {}", output);
+        assert_eq!(output, U256::from(1u128));
         Ok(())
     }
 }
