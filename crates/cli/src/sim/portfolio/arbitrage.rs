@@ -1,4 +1,4 @@
-use std::error::Error;
+use std::{error::Error, intrinsics::volatile_copy_nonoverlapping_memory};
 
 use bindings::rmm01_portfolio;
 use ethers::{prelude::U256, types::I256, types::Sign};
@@ -193,9 +193,22 @@ pub(crate) fn compute_arb_size(
         Sign::Positive => I256::from_raw(scaled_cdf),
         Sign::Negative => I256::from_raw(scaled_cdf) * I256::from(-1),
     };
-    let b = cdf - I256::from(reserves.1);
+    // call invariant
+    let execution_result = admin.call_contract(
+        &mut manager.environment,
+        &arbiter_math,
+        arbiter_math.encode_function(
+            "invariant",
+            (U256::from(reserves.1), U256::from(reserves.0), strike, volatility, duration)
+        )?,
+        Uint::ZERO,
+    );
+    let unpacked_result = manager.unpack_execution(execution_result.clone())?;
+    let invariant: U256 = arbiter_math.decode_output("invariant", unpacked_result)?;
+    let b = cdf +I256::from_raw(invariant) - I256::from(reserves.1);
+    let arb_amount_y = b.max(I256::from(0));
 
-
+    
     Ok(())
 }
 
