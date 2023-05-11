@@ -1,71 +1,144 @@
 #![warn(missing_docs)]
 use std::error::Error;
 
-use bindings::weth9;
-use ethers::prelude::U256;
+use ethers::types::U256;
 use eyre::Result;
-use revm::primitives::B160;
+use ruint::Uint;
 use simulate::{
-    agent::{user::User, AgentType},
+    agent::{simple_arbitrageur::NextTx, Agent, AgentType},
     contract::{IsDeployed, SimulationContract},
     manager::SimulationManager,
+    stochastic::price_process::{PriceProcess, PriceProcessType, OU},
 };
+
+pub mod arbitrage;
+pub mod startup;
 
 /// Run a simulation.
 pub fn run() -> Result<(), Box<dyn Error>> {
-    // define the wad constant
-    let decimals = 18_u8;
-    let wad: U256 = U256::from(10_i64.pow(decimals as u32));
     // Create a `SimulationManager` that runs simulations in their `SimulationEnvironment`.
     let mut manager = SimulationManager::new();
 
-    let user_name = "arbitrageur";
-    let user_address = B160::from_low_u64_be(2);
-    let arbitrageur = User::new(user_name, None);
+    // Run the startup script
+    startup::run(&mut manager)?;
 
-    manager.activate_agent(AgentType::User(arbitrageur), user_address)?;
-    let _arbitrageur = manager.agents.get(user_name).unwrap();
-    println!("Arbitrageur created at: {}", user_address);
-    let _admin = manager.agents.get("admin").unwrap();
+    // // Start the arbitrageur
+    // let arbitrageur = manager.agents.get("arbitrageur").unwrap();
 
-    // Deploying Contracts
-    let contracts = deploy_uniswap_sim_contracts(&mut manager, wad)?;
+    // // Intialize the arbitrageur with the prices from the two exchanges.
+    // let arbitrageur = match arbitrageur {
+    //     AgentType::SimpleArbitrageur(base_arbitrageur) => base_arbitrageur,
+    //     _ => panic!(),
+    // };
+    // let liquid_exchange_xy_price = arbitrageur.call_contract(
+    //     &mut manager.environment,
+    //     &contracts.liquid_exchange_xy,
+    //     contracts.liquid_exchange_xy.encode_function("price", ())?,
+    //     Uint::ZERO,
+    // );
+    // let liquid_exchange_xy_price = manager.unpack_execution(liquid_exchange_xy_price)?;
+    // let liquid_exchange_xy_price: U256 = contracts
+    //     .liquid_exchange_xy
+    //     .decode_output("price", liquid_exchange_xy_price)?;
+    // let portfolio_price = arbitrageur.call_contract(
+    //     &mut manager.environment,
+    //     &contracts.uniswap,
+    //     contracts
+    //         .portfolio
+    //         .encode_function("getSpotPrice", pool_id)?,
+    //     Uint::ZERO,
+    // );
+    // let portfolio_price = manager.unpack_execution(portfolio_price)?;
+    // let portfolio_price: U256 = contracts
+    //     .liquid_exchange_xy
+    //     .decode_output("price", portfolio_price)?;
+    // let mut prices = arbitrageur.prices.lock().unwrap();
+    // prices[0] = liquid_exchange_xy_price.into();
+    // prices[1] = portfolio_price.into();
+    // drop(prices);
 
-    _uniswap_sim_intitalization_calls(&mut manager, contracts, decimals)?;
+    // println!("Initial prices for Arbitrageur: {:#?}", arbitrageur.prices);
+
+    // let (_handle, rx) = arbitrageur.detect_arbitrage();
+
+    // // Get prices
+    // let ou = OU::new(0.001, 50.0, 1.0);
+    // let price_process = PriceProcess::new(
+    //     PriceProcessType::OU(ou),
+    //     0.01,
+    //     "trade".to_string(),
+    //     5,
+    //     1.0,
+    //     1,
+    // );
+    // let prices = price_process.generate_price_path().1;
+
+    // // Run the simulation
+    // // Update the first price
+    // let liquid_exchange = &contracts.liquid_exchange_xy;
+    // let price = prices[0];
+    // update_price(&mut manager, liquid_exchange, price)?;
+    // let mut index: usize = 1;
+    // while let Ok((next_tx, sell_asset)) = rx.recv() {
+    //     println!("Entered Main's `while let` with index: {}", index);
+    //     if index >= prices.len() {
+    //         println!("Reached end of price path\n");
+    //         break;
+    //     }
+    //     let price = prices[index];
+
+    //     match next_tx {
+    //         NextTx::Swap => {
+    //             arbitrage::swap(
+    //                 &mut manager,
+    //                 &contracts.portfolio,
+    //                 pool_id,
+    //                 10_u128.pow(15),
+    //                 sell_asset.unwrap(),
+    //             )?;
+    //             // TODO: Update the price of the Portfolio pool.
+    //             update_price(&mut manager, liquid_exchange, price)?;
+    //             index += 1;
+    //             continue;
+    //         }
+    //         NextTx::UpdatePrice => {
+    //             update_price(&mut manager, liquid_exchange, price)?;
+    //             index += 1;
+    //             continue;
+    //         }
+    //         NextTx::None => {
+    //             println!("Can't update prices\n");
+    //             continue;
+    //         }
+    //     }
+    // }
+
+    // // handle.join().unwrap();
+
+    // println!("=======================================");
+    // println!("🎉 Simulation Completed 🎉");
+    // println!("=======================================");
 
     Ok(())
 }
 
-/// Deploy the contracts to the simulation environment.
-/// # Arguments
-/// * `manager` - Simulation manager to deploy contracts to. (SimulationManager)
-/// * `wad` - Wad constant to use for the simulation. (U256)
-/// # Returns
-/// * `SimulationContracts` - Contracts deployed to the simulation environment. (SimulationContracts)
-fn deploy_uniswap_sim_contracts(
+/// Update prices on the liquid exchange.
+fn update_price(
     manager: &mut SimulationManager,
-    _wad: U256,
-) -> Result<SimulationContract<IsDeployed>, Box<dyn Error>> {
-    let _decimals = 18_u8;
-    let admin = manager.agents.get("admin").unwrap();
-    // Deploy Weth
-    let weth = SimulationContract::new(weth9::WETH9_ABI.clone(), weth9::WETH9_BYTECODE.clone());
-    let weth = weth.deploy(&mut manager.environment, admin, ());
-    println!("WETH deployed at: {}", weth.address);
-    Ok(weth)
-
-    // Deploy the registry contract.
-}
-
-/// Calls the initialization functions of each contract.
-/// # Arguments
-/// * `manager` - Simulation manager to deploy contracts to. (SimulationManager)
-/// * `contracts` - Contracts deployed to the simulation environment. (SimulationContracts)
-/// * `decimals` - Decimals to use for the simulation. (u8)
-fn _uniswap_sim_intitalization_calls(
-    _manager: &mut SimulationManager,
-    _contracts: SimulationContract<IsDeployed>,
-    _decimals: u8,
+    liquid_exchange: &SimulationContract<IsDeployed>,
+    price: f64,
 ) -> Result<(), Box<dyn Error>> {
+    let admin = manager.agents.get("admin").unwrap();
+    println!("Updating price...");
+    println!("Price from price path: {}\n", price);
+    let wad_price = simulate::utils::float_to_wad(price);
+    // println!("WAD price: {}", wad_price);
+    let call_data = liquid_exchange.encode_function("setPrice", wad_price)?;
+    admin.call_contract(
+        &mut manager.environment,
+        liquid_exchange,
+        call_data,
+        Uint::from(0),
+    );
     Ok(())
 }
