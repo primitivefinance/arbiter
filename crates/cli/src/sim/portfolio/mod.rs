@@ -11,6 +11,7 @@ use simulate::{
     environment::SimulationEnvironment,
     manager::SimulationManager,
     stochastic::price_process::{PriceProcess, PriceProcessType, OU},
+    utils,
 };
 
 pub mod arbitrage;
@@ -112,7 +113,7 @@ pub fn run() -> Result<(), Box<dyn Error>> {
                 )?;
 
                 // Get new portfolio price
-                println!("Getting new portfolio price...");
+                println!("Getting new Portfolio price...");
                 let portfolio_price = arbitrageur.call_contract(
                     &mut manager.environment,
                     &contracts.portfolio,
@@ -131,7 +132,10 @@ pub fn run() -> Result<(), Box<dyn Error>> {
                 let portfolio_price: U256 = contracts
                     .portfolio
                     .decode_output("getSpotPrice", portfolio_price)?;
-                println!("New portfolio price: {}\n", portfolio_price);
+                println!(
+                    "New Portfolio price: {}\n",
+                    utils::wad_to_float(portfolio_price)
+                );
                 let mut prices = arbitrageur.prices.lock().unwrap();
                 prices[1] = portfolio_price.into();
                 drop(prices);
@@ -150,7 +154,7 @@ pub fn run() -> Result<(), Box<dyn Error>> {
                 continue;
             }
             NextTx::None => {
-                println!("Can't update prices\n");
+                println!("Can't update LiquidExchange prices.\n");
                 continue;
             }
         }
@@ -173,8 +177,8 @@ fn update_price(
     price: f64,
 ) -> Result<(), Box<dyn Error>> {
     // let admin = manager.agents.get("admin").unwrap();
-    println!("Updating price...");
-    println!("Price from price path: {}\n", price);
+    println!("Updating LiquidExchange price...");
+    println!("New LiquidExchange price: {}\n", price);
     let wad_price = simulate::utils::float_to_wad(price);
     // println!("WAD price: {}", wad_price);
     let call_data = liquid_exchange.encode_function("setPrice", wad_price)?;

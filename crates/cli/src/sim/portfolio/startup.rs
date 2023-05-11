@@ -388,7 +388,7 @@ fn pool_intitalization(
         fee: 100_u16,                                // pub fee: u16,
         volatility: 100_u16,                         // pub vol: u16,
         duration: 65535_u16,                         // pub dur: u16,
-        strike_price: 10_u128.pow(18),               // pub max_price: u128,
+        strike_price: 10_u128.pow(18),               // pub strike_price: u128,
         price: 10_u128.pow(18),                      // pub price: u128,
     };
     let create_pool_result = admin.call_contract(

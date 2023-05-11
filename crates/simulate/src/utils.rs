@@ -2,8 +2,7 @@
 //! Module for utility functionality.
 use std::{
     error::Error,
-    fmt::Result as FmtResult,
-    fmt::{Display, Formatter},
+    fmt::{Display, Formatter, Result as FmtResult},
 };
 
 use bytes::Bytes;
@@ -11,6 +10,7 @@ use ethers::prelude::{Address, U256};
 use revm::primitives::{ExecutionResult, Output, B160};
 
 #[derive(Debug)]
+/// Error type for the unpacking of a [`Output`].
 pub struct UnpackError {
     /// Error message.
     pub message: String,
@@ -44,6 +44,15 @@ pub fn recast_address(address: B160) -> Address {
 /// * `U256` - Converted U256 number.
 pub fn float_to_wad(x: f64) -> U256 {
     U256::from((x * 1e18) as u128)
+}
+
+/// Converts a float to a WAD fixed point prepared U256 number.
+/// # Arguments
+/// * `x` - WAD fixed point to convert. (U256)
+/// # Returns
+/// * `f64` - Converted WAD to float number.
+pub fn wad_to_float(x: U256) -> f64 {
+    x.as_u128() as f64 / 1e18
 }
 
 /// Takes an `ExecutionResult` and returns the raw bytes of the output that can then be decoded.

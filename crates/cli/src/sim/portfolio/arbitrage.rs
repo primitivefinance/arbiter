@@ -55,24 +55,22 @@ where
     );
     assert!(get_amount_out_result.is_success());
     let unpacked_get_amount_out = utils::unpack_execution(get_amount_out_result)?;
-    let decoded_amount_out: u128 =
-        portfolio.decode_output("getAmountOut", unpacked_get_amount_out)?;
+    let amount_out: u128 = portfolio.decode_output("getAmountOut", unpacked_get_amount_out)?;
     if sell_asset {
         println!(
             "Inputting {} ARBX yields {} ARBY out.",
             U256::from(input_amount),
-            decoded_amount_out,
+            amount_out,
         );
     } else {
         println!(
             "Inputting {} ARBY yields {} ARBX out.",
             U256::from(input_amount),
-            decoded_amount_out,
+            amount_out,
         );
     }
 
     // Construct the swap using the above amount
-    let amount_out = decoded_amount_out;
     let order = rmm01_portfolio::Order {
         input: u128::from(input_amount),
         output: amount_out,
@@ -93,6 +91,7 @@ where
             println!("Swap result is {:#?}", swap_result);
         }
         Err(e) => {
+            println!("Error with swap!: {:#?}", e);
             // This `InvalidInvariant` can pop up in multiple ways. Best to check for this.
             let value = e.output.unwrap();
             let decoded_result = portfolio.decode_error("InvalidInvariant".to_string(), value);

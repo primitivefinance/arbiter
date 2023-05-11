@@ -7,7 +7,7 @@ edition = "2021"
 
 [dependencies]
 # execution
-revm = "3.1.0"
+revm = "3.1.1"
 bytes = "1.4.0"
 
 # events
