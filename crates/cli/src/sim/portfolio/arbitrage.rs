@@ -57,9 +57,6 @@ pub(crate) fn compute_arb_size(
     let strike = U256::from(pool_params.strike);
     let iv = U256::from(pool_params.volatility) * U256::from(10_u128.pow(15));
     let duration = U256::from(pool_params.duration);
-    println!("Iv: {}", iv);
-    println!("Duration: {}", duration);
-    println!("Strike: {}", strike);
     let tau = U256::from(10_u128.pow(18));
     // compute time term
     let execution_result = admin.call_contract(
@@ -70,9 +67,7 @@ pub(crate) fn compute_arb_size(
     );
     let unpacked_result = manager.unpack_execution(execution_result.clone())?;
     let time_term: U256 = arbiter_math.decode_output("sqrt", unpacked_result)?;
-    println!("Time term before scaling: {}", time_term);
     let time = U256::from(10_u128.pow(9)) * time_term;
-    println!("Time term: {}", time);
     // compute sigma*sqrt(tau)
     let execution_result = admin.call_contract(
         &mut manager.environment,
@@ -93,7 +88,6 @@ pub(crate) fn compute_arb_size(
     let unpacked_result = manager.unpack_execution(execution_result.clone())?;
     let ratio: U256 = arbiter_math.decode_output("divWadUp", unpacked_result)?;
     let int_ratio = I256::from_raw(ratio); // positive to positive so this works fine
-    println!("Ratio: {}", ratio);
     // compute logarithm
     let execution_result = admin.call_contract(
         &mut manager.environment,
@@ -107,12 +101,10 @@ pub(crate) fn compute_arb_size(
     let log: I256 = arbiter_math.decode_output("log", unpacked_result)?;
     println!("Logarithm: {}", log);
     let sign = log.sign();
-    println!("Sign: {:?}", sign);
     let unsigned_log = match sign {
         Sign::Positive => log.into_raw(),
         Sign::Negative => (log * I256::from(-1)).into_raw(),
     };
-    println!("Unsigned logarithm: {}", unsigned_log);
     // Scale logarithm
     let execution_result = admin.call_contract(
         &mut manager.environment,
@@ -140,10 +132,8 @@ pub(crate) fn compute_arb_size(
     );
     let unpacked_result = manager.unpack_execution(execution_result.clone())?;
     let additional_term: U256 = arbiter_math.decode_output("mulWadDown", unpacked_result)?;
-    println!("Additional term: {}", additional_term);
     // CDF input
     let cdf_input = scaled_log + I256::from_raw(additional_term);
-    println!("CDF input: {}", cdf_input);
     // compute the CDF
     let execution_result = admin.call_contract(
         &mut manager.environment,
@@ -153,7 +143,6 @@ pub(crate) fn compute_arb_size(
     );
     let unpacked_result = manager.unpack_execution(execution_result.clone())?;
     let cdf_output: I256 = arbiter_math.decode_output("cdf", unpacked_result)?;
-    println!("CDF output: {}", cdf_output);
     let execution_result = admin.call_contract(
         &mut manager.environment,
         &arbiter_math,
@@ -177,19 +166,15 @@ pub(crate) fn compute_arb_size(
     let unpacked_result = manager.unpack_execution(x_reserves)?;
     let reserves: (u128, u128) =
         portfolio.decode_output("getVirtualReservesDec", unpacked_result)?;
-    println!("Reserves: {:#?}", reserves.0);
+    println!("x Reserves: {:#?}", reserves.0);
     let a = I256::from(delta_liquidity) - cdf - I256::from(reserves.0);
-    println!("LPT - cdf {}", I256::from(delta_liquidity) - cdf);
-    println!("A: {}", a);
     let arb_amount_x = a.max(I256::from(0));
     println!("Arb amount x: {}", arb_amount_x);
     // --------------------------------------------------------------------------------------------
     // GET ARBY ARBITRAGE AMOUNT
     // --------------------------------------------------------------------------------------------
     let ppf_output = cdf_input;
-    println!("PPF output: {}", ppf_output);
     let cdf_input = ppf_output - I256::from_raw(sigma_sqrt_tau);
-    println!("CDF input: {}", cdf_input);
     // compute the CDF
     let execution_result = admin.call_contract(
         &mut manager.environment,
@@ -240,7 +225,6 @@ pub(crate) fn compute_arb_size(
     let invariant: U256 = arbiter_math.decode_output("invariant", unpacked_result)?;
     println!("Invariant: {}", invariant);
     let b = cdf + I256::from_raw(invariant) - I256::from(reserves.1);
-    println!("B: {}", b);
     let arb_amount_y = b.max(I256::from(0));
     println!("Arb amount y: {}", arb_amount_y);
     // bool for which asset is being sold.
@@ -363,10 +347,7 @@ mod test {
             12_000_000_000_000_000_000u128,
             15_000_000_000_000_000_000u128,
         );
-        let g_u = U256::from(10_i128);
-        let g = I256::from_raw(g_u);
-        println!("G: {}", g);
-        println!("G_u: {}", g_u);
+        // Compute the arb size
         let results = compute_arb_size(
             reference_price,
             &mut manager,
