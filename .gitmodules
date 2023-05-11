@@ -4,12 +4,24 @@
 [submodule "lib/canonical-weth"]
 	path = lib/canonical-weth
 	url = https://github.com/gnosis/canonical-weth
-[submodule "lib/v3-core"]
-	path = lib/v3-core
-	url = https://github.com/Uniswap/v3-core
 [submodule "lib/portfolio"]
 	path = lib/portfolio
 	url = https://github.com/primitivefinance/portfolio
 [submodule "lib/v2-core"]
-	path = lib/v2-core
+	path = lib/uniswap/v2-core
 	url = https://github.com/Uniswap/v2-core
+[submodule "lib/uniswap/v2-periphery"]
+	path = lib/uniswap/v2-periphery
+	url = https://github.com/Uniswap/v2-periphery.git
+[submodule "lib/v3-core"]
+	path = lib/uniswap/v3-core
+	url = https://github.com/Uniswap/v3-core
+[submodule "lib/uniswap/v3-periphery"]
+	path = lib/uniswap/v3-periphery
+	url = https://github.com/Uniswap/v3-periphery.git
+[submodule "lib/uniswap/lib"]
+	path = lib/uniswap/lib
+	url = https://github.com/Uniswap/solidity-lib.git
+[submodule "lib/openzeppelin"]
+	path = lib/openzeppelin
+	url = https://github.com/OpenZeppelin/openzeppelin-contracts.git

@@ -1,5 +1,5 @@
 [profile.default] # all profiles inherit from this
-src = 'lib/'
+src = ''
 out = 'out/' # default
 test = 'test' # default
 libs = ['lib']
@@ -8,4 +8,6 @@ remappings = [
     '@forge-std/=lib/forge-std/src/',
     '@solmate/=lib/portfolio/lib/solmate/src/',
     '@solstat/=lib/solstat/src/',
+    '@uniswap/=lib/uniswap/',
+    '@openzeppelin/=lib/openzeppelin/',
 ]

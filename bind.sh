@@ -2,18 +2,20 @@
 
 forge install
 forge clean
-forge bind --skip "^UniswapV3.*" -C lib/v3-core/contracts -b crates/bindings/ --crate-name bindings --overwrite
-echo "Generated bindings for v3-core"
-forge bind -C lib/portfolio/contracts -b crates/bindings/ --crate-name bindings --overwrite
-echo "Generated bindings for portfolio"
-forge bind -C lib/portfolio/test/EncoderTarget.sol -b crates/bindings/ --crate-name bindings --overwrite
-echo "Generated bindings for encoder target"
-forge bind -C lib/canonical-weth/contracts -b crates/bindings/ --crate-name bindings --overwrite
-echo "Generated bindings for canonical-weth"
 forge bind -C lib/arbiter/contracts -b crates/bindings/ --crate-name bindings --overwrite
 echo "Generated bindings for arbiter contracts"
-forge bind -C lib/v2-core/contracts -b crates/bindings/ --crate-name bindings --overwrite
+forge bind -C lib/portfolio/contracts -b crates/bindings/ --crate-name bindings --overwrite
+echo "Generated bindings for portfolio"
+forge bind -C lib/canonical-weth/contracts -b crates/bindings/ --crate-name bindings --overwrite
+echo "Generated bindings for canonical-weth"
+forge bind -C lib/uniswap/v2-core/contracts -b crates/bindings/ --crate-name bindings --overwrite
 echo "Generated bindings for v2-core"
+forge bind -C lib/uniswap/v2-periphery/contracts -b crates/bindings/ --crate-name bindings --overwrite
+echo "Generated bindings for v2-periphery"
+forge bind --skip "^UniswapV3.*" -C lib/uniswap/v3-core/contracts -b crates/bindings/ --crate-name bindings --overwrite
+echo "Generated bindings for v3-core"
+# forge bind -C lib/uniswap/v3-periphery/contracts -b crates/bindings/ --crate-name bindings --overwrite
+# echo "Generated bindings for v3-periphery"
 
 rm -f crates/bindings/src/mock_time_uniswap_v3_pool_deployer.rs
 
