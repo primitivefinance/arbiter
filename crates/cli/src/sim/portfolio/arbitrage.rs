@@ -55,7 +55,7 @@ pub(crate) fn compute_arb_size(
     let arbiter_math = manager.autodeployed_contracts.get("arbiter_math").unwrap();
 
     let strike = U256::from(pool_params.strike);
-    let iv = U256::from(pool_params.volatility) * U256::from(10_u128.pow(18));
+    let iv = U256::from(pool_params.volatility) * U256::from(10_u128.pow(15));
     let duration = U256::from(pool_params.duration);
     println!("Iv: {}", iv);
     println!("Duration: {}", duration);
@@ -143,6 +143,7 @@ pub(crate) fn compute_arb_size(
     println!("Additional term: {}", additional_term);
     // CDF input
     let cdf_input = scaled_log + I256::from_raw(additional_term);
+    println!("CDF input: {}", cdf_input);
     // compute the CDF
     let execution_result = admin.call_contract(
         &mut manager.environment,
@@ -176,8 +177,9 @@ pub(crate) fn compute_arb_size(
     let unpacked_result = manager.unpack_execution(x_reserves)?;
     let reserves: (u128, u128) =
         portfolio.decode_output("getVirtualReservesDec", unpacked_result)?;
-    println!("Reserves: {:#?}", reserves);
+    println!("Reserves: {:#?}", reserves.0);
     let a = I256::from(delta_liquidity) - cdf - I256::from(reserves.0);
+    println!("LPT - cdf {}", I256::from(delta_liquidity) - cdf);
     println!("A: {}", a);
     let arb_amount_x = a.max(I256::from(0));
     println!("Arb amount x: {}", arb_amount_x);
@@ -187,6 +189,7 @@ pub(crate) fn compute_arb_size(
     let ppf_output = cdf_input;
     println!("PPF output: {}", ppf_output);
     let cdf_input = ppf_output - I256::from_raw(sigma_sqrt_tau);
+    println!("CDF input: {}", cdf_input);
     // compute the CDF
     let execution_result = admin.call_contract(
         &mut manager.environment,
@@ -205,6 +208,7 @@ pub(crate) fn compute_arb_size(
     );
     let unpacked_result = manager.unpack_execution(execution_result.clone())?;
     let scaled_cdf: U256 = arbiter_math.decode_output("mulWadDown", unpacked_result)?;
+    println!("Scaled CDF: {}", scaled_cdf);
     // scale by shares
     let execution_result = admin.call_contract(
         &mut manager.environment,
@@ -234,6 +238,7 @@ pub(crate) fn compute_arb_size(
     );
     let unpacked_result = manager.unpack_execution(execution_result.clone())?;
     let invariant: U256 = arbiter_math.decode_output("invariant", unpacked_result)?;
+    println!("Invariant: {}", invariant);
     let b = cdf + I256::from_raw(invariant) - I256::from(reserves.1);
     println!("B: {}", b);
     let arb_amount_y = b.max(I256::from(0));
@@ -335,13 +340,13 @@ mod test {
 
     #[test]
     fn test_arb_bool() -> Result<(), Box<dyn Error>> {
-        let reference_price = U256::from(10_u128.pow(19));
+        let reference_price = U256::from(10_000_000_000_000_000_000u128);
         let mut manager = SimulationManager::new();
         // pool config
         let pool_args = PoolParams::new(
-            100_u16,
-            100_u16,
-            100_u16,
+            1_u16,
+            1_u16,
+            10_u16,
             65535_u16,
             15_000_000_000_000_000_000u128,
             15_000_000_000_000_000_000u128,
