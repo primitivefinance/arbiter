@@ -3,10 +3,12 @@ use std::error::Error;
 
 use ethers::types::U256;
 use eyre::Result;
+use revm::primitives::ExecutionResult;
 use ruint::Uint;
 use simulate::{
     agent::{simple_arbitrageur::NextTx, Agent, AgentType},
     contract::{IsDeployed, SimulationContract},
+    environment::SimulationEnvironment,
     manager::SimulationManager,
     stochastic::price_process::{PriceProcess, PriceProcessType, OU},
 };
@@ -50,8 +52,8 @@ pub fn run() -> Result<(), Box<dyn Error>> {
     );
     let portfolio_price = manager.unpack_execution(portfolio_price)?;
     let portfolio_price: U256 = contracts
-        .liquid_exchange_xy
-        .decode_output("price", portfolio_price)?;
+        .portfolio
+        .decode_output("getSpotPrice", portfolio_price)?;
     let mut prices = arbitrageur.prices.lock().unwrap();
     prices[0] = liquid_exchange_xy_price.into();
     prices[1] = portfolio_price.into();
@@ -77,7 +79,12 @@ pub fn run() -> Result<(), Box<dyn Error>> {
     // Update the first price
     let liquid_exchange = &contracts.liquid_exchange_xy;
     let price = prices[0];
-    update_price(&mut manager, liquid_exchange, price)?;
+    update_price(
+        manager.agents.get("admin").unwrap(),
+        &mut manager.environment,
+        liquid_exchange,
+        price,
+    )?;
     let mut index: usize = 1;
     while let Ok((next_tx, sell_asset)) = rx.recv() {
         println!("Entered Main's `while let` with index: {}", index);
@@ -90,19 +97,55 @@ pub fn run() -> Result<(), Box<dyn Error>> {
         match next_tx {
             NextTx::Swap => {
                 arbitrage::swap(
-                    &mut manager,
+                    manager.agents.get("arbitrageur").unwrap(),
+                    &mut manager.environment,
                     &contracts.portfolio,
                     pool_id,
                     10_u128.pow(15),
                     sell_asset.unwrap(),
                 )?;
-                // TODO: Update the price of the Portfolio pool.
-                update_price(&mut manager, liquid_exchange, price)?;
+                update_price(
+                    manager.agents.get("admin").unwrap(),
+                    &mut manager.environment,
+                    liquid_exchange,
+                    price,
+                )?;
+
+                // Get new portfolio price
+                println!("Getting new portfolio price...");
+                let portfolio_price = arbitrageur.call_contract(
+                    &mut manager.environment,
+                    &contracts.portfolio,
+                    contracts
+                        .portfolio
+                        .encode_function("getSpotPrice", pool_id)?,
+                    Uint::ZERO,
+                );
+                let portfolio_price = match portfolio_price {
+                    ExecutionResult::Success { output, .. } => output.into_data(),
+                    _ => {
+                        println!("Error getting portfolio price.");
+                        break;
+                    }
+                };
+                let portfolio_price: U256 = contracts
+                    .portfolio
+                    .decode_output("getSpotPrice", portfolio_price)?;
+                println!("New portfolio price: {}\n", portfolio_price);
+                let mut prices = arbitrageur.prices.lock().unwrap();
+                prices[1] = portfolio_price.into();
+                drop(prices);
+                println!("Updated prices for Arbitrageur: {:#?}", arbitrageur.prices);
                 index += 1;
                 continue;
             }
             NextTx::UpdatePrice => {
-                update_price(&mut manager, liquid_exchange, price)?;
+                update_price(
+                    manager.agents.get("admin").unwrap(),
+                    &mut manager.environment,
+                    liquid_exchange,
+                    price,
+                )?;
                 index += 1;
                 continue;
             }
@@ -124,21 +167,17 @@ pub fn run() -> Result<(), Box<dyn Error>> {
 
 /// Update prices on the liquid exchange.
 fn update_price(
-    manager: &mut SimulationManager,
+    admin: &dyn Agent,
+    environment: &mut SimulationEnvironment,
     liquid_exchange: &SimulationContract<IsDeployed>,
     price: f64,
 ) -> Result<(), Box<dyn Error>> {
-    let admin = manager.agents.get("admin").unwrap();
+    // let admin = manager.agents.get("admin").unwrap();
     println!("Updating price...");
     println!("Price from price path: {}\n", price);
     let wad_price = simulate::utils::float_to_wad(price);
     // println!("WAD price: {}", wad_price);
     let call_data = liquid_exchange.encode_function("setPrice", wad_price)?;
-    admin.call_contract(
-        &mut manager.environment,
-        liquid_exchange,
-        call_data,
-        Uint::from(0),
-    );
+    admin.call_contract(environment, liquid_exchange, call_data, Uint::from(0));
     Ok(())
 }

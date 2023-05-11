@@ -7,7 +7,9 @@ use revm::primitives::{ruint::Uint, B160};
 use simulate::{
     agent::{simple_arbitrageur::SimpleArbitrageur, Agent, AgentType, SimulationEventFilter},
     contract::{IsDeployed, SimulationContract},
+    environment::SimulationEnvironment,
     manager::SimulationManager,
+    utils,
 };
 
 pub(crate) fn create_arbitrageur<S: Into<String>>(
@@ -25,7 +27,8 @@ pub(crate) fn create_arbitrageur<S: Into<String>>(
 }
 
 pub(crate) fn swap<T: Copy>(
-    manager: &mut SimulationManager,
+    arbitrageur: &dyn Agent,
+    environment: &mut SimulationEnvironment,
     portfolio: &SimulationContract<IsDeployed>,
     pool_id: u64,
     input_amount: T,
@@ -35,7 +38,7 @@ where
     ethers::types::U256: From<T>,
     u128: From<T>,
 {
-    let arbitrageur = manager.agents.get("arbitrageur").unwrap();
+    // let arbitrageur = manager.agents.get("arbitrageur").unwrap();
     // Get the correct amount of ARBY to get from a certain amount of ARBX using `getAmountOut`
     let get_amount_out_args = rmm01_portfolio::GetAmountOutCall {
         pool_id,                               // pool_id: u64,
@@ -45,13 +48,13 @@ where
         swapper: arbitrageur.address().into(), // swapper: ::ethers::core::types::Address,
     };
     let get_amount_out_result = arbitrageur.call_contract(
-        &mut manager.environment,
+        environment,
         portfolio,
         portfolio.encode_function("getAmountOut", get_amount_out_args)?,
         Uint::from(0),
     );
     assert!(get_amount_out_result.is_success());
-    let unpacked_get_amount_out = manager.unpack_execution(get_amount_out_result)?;
+    let unpacked_get_amount_out = utils::unpack_execution(get_amount_out_result)?;
     let decoded_amount_out: u128 =
         portfolio.decode_output("getAmountOut", unpacked_get_amount_out)?;
     if sell_asset {
@@ -79,12 +82,12 @@ where
     };
     let swap_args = (order,);
     let swap_result = arbitrageur.call_contract(
-        &mut manager.environment,
+        environment,
         portfolio,
         portfolio.encode_function("swap", swap_args)?,
         Uint::from(0),
     );
-    match manager.unpack_execution(swap_result) {
+    match utils::unpack_execution(swap_result) {
         Ok(unpacked) => {
             let swap_result: (u64, U256, U256) = portfolio.decode_output("swap", unpacked)?;
             println!("Swap result is {:#?}", swap_result);
