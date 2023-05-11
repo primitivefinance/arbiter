@@ -1,6 +1,6 @@
 [sim]
-number_of_price_paths = 100
-number_of_volatilities = 100
+price_paths = 100
+volatilities = 100
 timestep = 0.0027397
 timescale = "years"
 num_steps = 365
