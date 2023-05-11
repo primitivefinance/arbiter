@@ -178,22 +178,15 @@ pub(crate) fn compute_arb_size(
         portfolio.decode_output("getVirtualReservesDec", unpacked_result)?;
     println!("Reserves: {:#?}", reserves);
     let a = I256::from(delta_liquidity) - cdf - I256::from(reserves.0);
+    println!("A: {}", a);
     let arb_amount_x = a.max(I256::from(0));
     println!("Arb amount x: {}", arb_amount_x);
     // --------------------------------------------------------------------------------------------
     // GET ARBY ARBITRAGE AMOUNT
     // --------------------------------------------------------------------------------------------
-    // compute ppf
-    let execution_result = admin.call_contract(
-        &mut manager.environment,
-        &arbiter_math,
-        arbiter_math.encode_function("ppf", cdf_output)?,
-        Uint::ZERO,
-    );
-    let unpacked_result = manager.unpack_execution(execution_result.clone())?;
-    let ppf_output: I256 = arbiter_math.decode_output("ppf", unpacked_result)?;
+    let ppf_output = cdf_input;
     println!("PPF output: {}", ppf_output);
-    let cdf_input = ppf_output + I256::from_raw(sigma_sqrt_tau);
+    let cdf_input = ppf_output - I256::from_raw(sigma_sqrt_tau);
     // compute the CDF
     let execution_result = admin.call_contract(
         &mut manager.environment,
@@ -242,10 +235,12 @@ pub(crate) fn compute_arb_size(
     let unpacked_result = manager.unpack_execution(execution_result.clone())?;
     let invariant: U256 = arbiter_math.decode_output("invariant", unpacked_result)?;
     let b = cdf + I256::from_raw(invariant) - I256::from(reserves.1);
+    println!("B: {}", b);
     let arb_amount_y = b.max(I256::from(0));
+    println!("Arb amount y: {}", arb_amount_y);
     // bool for which asset is being sold.
     let fn_output: ComputeArbOutput;
-    if arb_amount_x >= I256::from(0) {
+    if arb_amount_x > I256::from(0) {
         let sell_asset = true;
         let input = arb_amount_x.into_raw();
         fn_output = ComputeArbOutput::new(sell_asset, input);
