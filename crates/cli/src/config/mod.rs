@@ -33,6 +33,10 @@ struct ConfigToml {
 
 #[derive(Serialize, Deserialize, Debug)]
 struct ConfigTomlSim {
+    /// Number of Price Paths
+    price_paths: usize,
+    /// Number of volatilities
+    volatilities: usize,
     /// Numerical timestep for the simulation (typically `1`)
     timestep: f64,
     /// Time in string interpretation
