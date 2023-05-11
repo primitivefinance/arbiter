@@ -14,6 +14,8 @@ use simulate::{
     utils::float_to_wad,
 };
 
+use super::PoolParams;
+
 pub(crate) fn create_arbitrageur<S: Into<String>>(
     manager: &mut SimulationManager,
     liquid_exchange: &SimulationContract<IsDeployed>,
@@ -42,7 +44,7 @@ impl ComputeArbOutput {
 pub(crate) fn compute_arb_size(
     target_price: U256,
     manager: &mut SimulationManager,
-    pool_params: &rmm01_portfolio::CreatePoolCall,
+    pool_params: PoolParams,
     delta_liquidity: i128,
     pool_id: u64,
     portfolio: &SimulationContract<IsDeployed>,
@@ -51,7 +53,7 @@ pub(crate) fn compute_arb_size(
     let admin = manager.agents.get("admin").unwrap();
     let arbiter_math = manager.autodeployed_contracts.get("arbiter_math").unwrap();
 
-    let strike = U256::from(pool_params.strike_price);
+    let strike = U256::from(pool_params.strike);
     let iv = U256::from(pool_params.volatility);
     let duration = U256::from(pool_params.duration);
 
@@ -64,11 +66,12 @@ pub(crate) fn compute_arb_size(
     );
     let unpacked_result = manager.unpack_execution(execution_result.clone())?;
     let time_term: U256 = arbiter_math.decode_output("sqrt", unpacked_result)?;
+    let time = U256::from(10_u128.pow(9)) * time_term;
     // compute sigma*sqrt(tau)
     let execution_result = admin.call_contract(
         &mut manager.environment,
         &arbiter_math,
-        arbiter_math.encode_function("mulWadUp", (iv, time_term))?,
+        arbiter_math.encode_function("mulWadUp", (iv, time))?,
         Uint::ZERO,
     );
     let unpacked_result = manager.unpack_execution(execution_result.clone())?;
@@ -318,4 +321,50 @@ where
         }
     };
     Ok(())
+}
+
+#[cfg(test)]
+mod test {
+    use std::error::Error;
+    use super::*;
+    use crate::sim::portfolio::startup;
+
+    #[test]
+    fn test_arb_bool() -> Result<(), Box<dyn Error>> {
+        let reference_price = U256::from(10_u128.pow(19));
+        let mut manager = SimulationManager::new();
+        // pool config
+        let pool_args = PoolParams::new(
+            100_u16,
+            100_u16,
+            100_u16,
+            65535_u16,
+            12_000_000_000_000_000_000u128,
+            15_000_000_000_000_000_000u128,
+        );
+        // liquidity config
+        let delta_liquidity = 10_i128.pow(18);
+        // Run the startup script
+        let (contracts, _pool_data, pool_id) = startup::run(&mut manager, pool_args, delta_liquidity)?;
+        let pool_args = PoolParams::new(
+            100_u16,
+            100_u16,
+            100_u16,
+            65535_u16,
+            12_000_000_000_000_000_000u128,
+            15_000_000_000_000_000_000u128,
+        );
+        let results = compute_arb_size(
+            reference_price,
+            &mut manager,
+            pool_args,
+            delta_liquidity,
+            pool_id,
+            &contracts.portfolio,
+        )?;
+        let sell_asset = results.sell_asset;
+        println!("Arb bool is: {}", sell_asset);
+        assert_eq!(sell_asset, true);
+        Ok(())
+    }
 }
