@@ -1,18 +1,16 @@
 use std::error::Error;
 
-
-use bindings::{rmm01_portfolio, portfolio_lib};
+use bindings::rmm01_portfolio;
 use ethers::{
     prelude::U256,
-    types::{Sign, I256}, solc::resolver::print,
+    types::{Sign, I256},
 };
 use eyre::Result;
-use revm::primitives::{ruint::Uint, ExecutionResult, B160};
+use revm::primitives::{ruint::Uint, B160};
 use simulate::{
     agent::{simple_arbitrageur::SimpleArbitrageur, Agent, AgentType, SimulationEventFilter},
     contract::{IsDeployed, SimulationContract},
-    manager::{self, SimulationManager},
-    utils::float_to_wad,
+    manager::{SimulationManager},
 };
 
 use super::PoolParams;
@@ -88,13 +86,11 @@ pub(crate) fn compute_arb_size(
     let unpacked_result = manager.unpack_execution(execution_result.clone())?;
     let ratio: U256 = arbiter_math.decode_output("divWadUp", unpacked_result)?;
     let int_ratio = I256::from_raw(ratio); // positive to positive so this works fine
-    // compute logarithm
+                                           // compute logarithm
     let execution_result = admin.call_contract(
         &mut manager.environment,
         &arbiter_math,
-        arbiter_math.encode_function(
-            "log", int_ratio,
-        )?,
+        arbiter_math.encode_function("log", int_ratio)?,
         Uint::ZERO,
     );
     let unpacked_result = manager.unpack_execution(execution_result.clone())?;
@@ -168,6 +164,7 @@ pub(crate) fn compute_arb_size(
         portfolio.decode_output("getVirtualReservesDec", unpacked_result)?;
     println!("x Reserves: {:#?}", reserves.0);
     let a = I256::from(delta_liquidity) - cdf - I256::from(reserves.0);
+    println!("A: {}", I256::from(delta_liquidity) - cdf);
     let arb_amount_x = a.max(I256::from(0));
     println!("Arb amount x: {}", arb_amount_x);
     // --------------------------------------------------------------------------------------------
@@ -198,8 +195,7 @@ pub(crate) fn compute_arb_size(
     let execution_result = admin.call_contract(
         &mut manager.environment,
         &arbiter_math,
-        arbiter_math
-            .encode_function("mulWadDown", (scaled_cdf, U256::from(delta_liquidity)))?,
+        arbiter_math.encode_function("mulWadDown", (scaled_cdf, U256::from(delta_liquidity)))?,
         Uint::ZERO,
     );
     let unpacked_result = manager.unpack_execution(execution_result.clone())?;
@@ -318,13 +314,13 @@ where
 
 #[cfg(test)]
 mod test {
-    use std::error::Error;
     use super::*;
     use crate::sim::portfolio::startup;
+    use std::error::Error;
 
     #[test]
     fn test_arb_bool() -> Result<(), Box<dyn Error>> {
-        let reference_price = U256::from(10_000_000_000_000_000_000u128);
+        let reference_price = U256::from(12_000_000_000_000_000_000u128);
         let mut manager = SimulationManager::new();
         // pool config
         let pool_args = PoolParams::new(
@@ -338,7 +334,8 @@ mod test {
         // liquidity config
         let delta_liquidity = 10_i128.pow(18);
         // Run the startup script
-        let (contracts, _pool_data, pool_id) = startup::run(&mut manager, pool_args, delta_liquidity)?;
+        let (contracts, _pool_data, pool_id) =
+            startup::run(&mut manager, pool_args, delta_liquidity)?;
         let pool_args = PoolParams::new(
             100_u16,
             100_u16,

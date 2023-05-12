@@ -7,16 +7,18 @@ pub use i_uniswap_v3_pool_derived_state::*;
     clippy::upper_case_acronyms,
     clippy::type_complexity,
     dead_code,
-    non_camel_case_types
+    non_camel_case_types,
 )]
 pub mod i_uniswap_v3_pool_derived_state {
     #[rustfmt::skip]
     const __ABI: &str = "[{\"inputs\":[{\"internalType\":\"uint32[]\",\"name\":\"secondsAgos\",\"type\":\"uint32[]\",\"components\":[]}],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"observe\",\"outputs\":[{\"internalType\":\"int56[]\",\"name\":\"tickCumulatives\",\"type\":\"int56[]\",\"components\":[]},{\"internalType\":\"uint160[]\",\"name\":\"secondsPerLiquidityCumulativeX128s\",\"type\":\"uint160[]\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"int24\",\"name\":\"tickLower\",\"type\":\"int24\",\"components\":[]},{\"internalType\":\"int24\",\"name\":\"tickUpper\",\"type\":\"int24\",\"components\":[]}],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"snapshotCumulativesInside\",\"outputs\":[{\"internalType\":\"int56\",\"name\":\"tickCumulativeInside\",\"type\":\"int56\",\"components\":[]},{\"internalType\":\"uint160\",\"name\":\"secondsPerLiquidityInsideX128\",\"type\":\"uint160\",\"components\":[]},{\"internalType\":\"uint32\",\"name\":\"secondsInside\",\"type\":\"uint32\",\"components\":[]}]}]";
     ///The parsed JSON ABI of the contract.
-    pub static IUNISWAPV3POOLDERIVEDSTATE_ABI: ::ethers::contract::Lazy<::ethers::core::abi::Abi> =
-        ::ethers::contract::Lazy::new(|| {
-            ::ethers::core::utils::__serde_json::from_str(__ABI).expect("ABI is always valid")
-        });
+    pub static IUNISWAPV3POOLDERIVEDSTATE_ABI: ::ethers::contract::Lazy<
+        ::ethers::core::abi::Abi,
+    > = ::ethers::contract::Lazy::new(|| {
+        ::ethers::core::utils::__serde_json::from_str(__ABI)
+            .expect("ABI is always valid")
+    });
     pub struct IUniswapV3PoolDerivedState<M>(::ethers::contract::Contract<M>);
     impl<M> ::core::clone::Clone for IUniswapV3PoolDerivedState<M> {
         fn clone(&self) -> Self {
@@ -48,11 +50,13 @@ pub mod i_uniswap_v3_pool_derived_state {
             address: T,
             client: ::std::sync::Arc<M>,
         ) -> Self {
-            Self(::ethers::contract::Contract::new(
-                address.into(),
-                IUNISWAPV3POOLDERIVEDSTATE_ABI.clone(),
-                client,
-            ))
+            Self(
+                ::ethers::contract::Contract::new(
+                    address.into(),
+                    IUNISWAPV3POOLDERIVEDSTATE_ABI.clone(),
+                    client,
+                ),
+            )
         }
         ///Calls the contract's `observe` (0x883bdbfd) function
         pub fn observe(
@@ -60,10 +64,7 @@ pub mod i_uniswap_v3_pool_derived_state {
             seconds_agos: ::std::vec::Vec<u32>,
         ) -> ::ethers::contract::builders::ContractCall<
             M,
-            (
-                ::std::vec::Vec<i64>,
-                ::std::vec::Vec<::ethers::core::types::U256>,
-            ),
+            (::std::vec::Vec<i64>, ::std::vec::Vec<::ethers::core::types::U256>),
         > {
             self.0
                 .method_hash([136, 59, 219, 253], seconds_agos)
@@ -74,16 +75,17 @@ pub mod i_uniswap_v3_pool_derived_state {
             &self,
             tick_lower: i32,
             tick_upper: i32,
-        ) -> ::ethers::contract::builders::ContractCall<M, (i64, ::ethers::core::types::U256, u32)>
-        {
+        ) -> ::ethers::contract::builders::ContractCall<
+            M,
+            (i64, ::ethers::core::types::U256, u32),
+        > {
             self.0
                 .method_hash([163, 136, 7, 242], (tick_lower, tick_upper))
                 .expect("method not found (this should never happen)")
         }
     }
     impl<M: ::ethers::providers::Middleware> From<::ethers::contract::Contract<M>>
-        for IUniswapV3PoolDerivedState<M>
-    {
+    for IUniswapV3PoolDerivedState<M> {
         fn from(contract: ::ethers::contract::Contract<M>) -> Self {
             Self::new(contract.address(), contract.client())
         }
@@ -97,7 +99,7 @@ pub mod i_uniswap_v3_pool_derived_state {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(name = "observe", abi = "observe(uint32[])")]
     pub struct ObserveCall {
@@ -112,7 +114,7 @@ pub mod i_uniswap_v3_pool_derived_state {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(
         name = "snapshotCumulativesInside",
@@ -133,12 +135,14 @@ pub mod i_uniswap_v3_pool_derived_state {
             data: impl AsRef<[u8]>,
         ) -> ::core::result::Result<Self, ::ethers::core::abi::AbiError> {
             let data = data.as_ref();
-            if let Ok(decoded) = <ObserveCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded)
+                = <ObserveCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::Observe(decoded));
             }
-            if let Ok(decoded) =
-                <SnapshotCumulativesInsideCall as ::ethers::core::abi::AbiDecode>::decode(data)
-            {
+            if let Ok(decoded)
+                = <SnapshotCumulativesInsideCall as ::ethers::core::abi::AbiDecode>::decode(
+                    data,
+                ) {
                 return Ok(Self::SnapshotCumulativesInside(decoded));
             }
             Err(::ethers::core::abi::Error::InvalidData.into())
@@ -158,7 +162,9 @@ pub mod i_uniswap_v3_pool_derived_state {
         fn fmt(&self, f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
             match self {
                 Self::Observe(element) => ::core::fmt::Display::fmt(element, f),
-                Self::SnapshotCumulativesInside(element) => ::core::fmt::Display::fmt(element, f),
+                Self::SnapshotCumulativesInside(element) => {
+                    ::core::fmt::Display::fmt(element, f)
+                }
             }
         }
     }
@@ -167,7 +173,8 @@ pub mod i_uniswap_v3_pool_derived_state {
             Self::Observe(value)
         }
     }
-    impl ::core::convert::From<SnapshotCumulativesInsideCall> for IUniswapV3PoolDerivedStateCalls {
+    impl ::core::convert::From<SnapshotCumulativesInsideCall>
+    for IUniswapV3PoolDerivedStateCalls {
         fn from(value: SnapshotCumulativesInsideCall) -> Self {
             Self::SnapshotCumulativesInside(value)
         }
@@ -181,11 +188,13 @@ pub mod i_uniswap_v3_pool_derived_state {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     pub struct ObserveReturn {
         pub tick_cumulatives: ::std::vec::Vec<i64>,
-        pub seconds_per_liquidity_cumulative_x12_8s: ::std::vec::Vec<::ethers::core::types::U256>,
+        pub seconds_per_liquidity_cumulative_x12_8s: ::std::vec::Vec<
+            ::ethers::core::types::U256,
+        >,
     }
     ///Container type for all return fields from the `snapshotCumulativesInside` function with signature `snapshotCumulativesInside(int24,int24)` and selector `0xa38807f2`
     #[derive(
@@ -196,7 +205,7 @@ pub mod i_uniswap_v3_pool_derived_state {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     pub struct SnapshotCumulativesInsideReturn {
         pub tick_cumulative_inside: i64,

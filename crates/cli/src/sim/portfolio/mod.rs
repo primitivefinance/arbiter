@@ -179,6 +179,6 @@ fn update_price(
         call_data,
         Uint::from(0),
     );
-  
+
     Ok(())
 }
