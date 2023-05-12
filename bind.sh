@@ -1,6 +1,5 @@
 #!/bin/bash
 
-forge install
 forge clean
 forge bind -C lib/arbiter/contracts -b crates/bindings/ --crate-name bindings --overwrite
 echo "Generated bindings for arbiter contracts"
@@ -14,8 +13,11 @@ forge bind -C lib/uniswap/v2-periphery/contracts -b crates/bindings/ --crate-nam
 echo "Generated bindings for v2-periphery"
 forge bind --skip "^UniswapV3.*" -C lib/uniswap/v3-core/contracts -b crates/bindings/ --crate-name bindings --overwrite
 echo "Generated bindings for v3-core"
-# forge bind -C lib/uniswap/v3-periphery/contracts -b crates/bindings/ --crate-name bindings --overwrite
-# echo "Generated bindings for v3-periphery"
+# Note that the periphery contracts need openzeppelin 3.4.2-solc-0.7
+# UniswapV3 periphery contracts need additional packages to compile, so we run this
+cd lib/uniswap/v3-periphery/ && npm install && cd ../../../
+forge bind -C lib/uniswap/v3-periphery/contracts -b crates/bindings/ --crate-name bindings --overwrite
+echo "Generated bindings for v3-periphery"
 
 rm -f crates/bindings/src/mock_time_uniswap_v3_pool_deployer.rs
 
