@@ -8,14 +8,16 @@
 	path = lib/portfolio
 	url = https://github.com/primitivefinance/portfolio
 [submodule "lib/v2-core"]
-	path = lib/uniswap/v2-core
+	path = lib/v2-core
 	url = https://github.com/Uniswap/v2-core
+	branch = v1.0.1
 [submodule "lib/uniswap/v2-periphery"]
 	path = lib/uniswap/v2-periphery
 	url = https://github.com/Uniswap/v2-periphery.git
 [submodule "lib/v3-core"]
-	path = lib/uniswap/v3-core
+	path = lib/v3-core
 	url = https://github.com/Uniswap/v3-core
+	branch = v1.0.0
 [submodule "lib/uniswap/v3-periphery"]
 	path = lib/uniswap/v3-periphery
 	url = https://github.com/Uniswap/v3-periphery.git
@@ -25,3 +27,14 @@
 [submodule "lib/openzeppelin"]
 	path = lib/openzeppelin
 	url = https://github.com/OpenZeppelin/openzeppelin-contracts.git
+[submodule "lib/openzeppelin-contracts"]
+	path = lib/openzeppelin-contracts
+	url = https://github.com/OpenZeppelin/openzeppelin-contracts
+	branch = v3.4.2-solc-0.7
+[submodule "lib/v2-periphery"]
+	path = lib/v2-periphery
+	url = https://github.com/Uniswap/v2-periphery
+[submodule "lib/v3-periphery"]
+	path = lib/v3-periphery
+	url = https://github.com/Uniswap/v3-periphery
+	branch = v1.3.0
