@@ -7,16 +7,18 @@ pub use mock_observations::*;
     clippy::upper_case_acronyms,
     clippy::type_complexity,
     dead_code,
-    non_camel_case_types
+    non_camel_case_types,
 )]
 pub mod mock_observations {
     #[rustfmt::skip]
     const __ABI: &str = "[{\"inputs\":[{\"internalType\":\"uint32[4]\",\"name\":\"_blockTimestamps\",\"type\":\"uint32[4]\",\"components\":[]},{\"internalType\":\"int56[4]\",\"name\":\"_tickCumulatives\",\"type\":\"int56[4]\",\"components\":[]},{\"internalType\":\"uint128[4]\",\"name\":\"_secondsPerLiquidityCumulativeX128s\",\"type\":\"uint128[4]\",\"components\":[]},{\"internalType\":\"bool[4]\",\"name\":\"_initializeds\",\"type\":\"bool[4]\",\"components\":[]},{\"internalType\":\"int24\",\"name\":\"_tick\",\"type\":\"int24\",\"components\":[]},{\"internalType\":\"uint16\",\"name\":\"_observationCardinality\",\"type\":\"uint16\",\"components\":[]},{\"internalType\":\"uint16\",\"name\":\"_observationIndex\",\"type\":\"uint16\",\"components\":[]},{\"internalType\":\"bool\",\"name\":\"_lastObservationCurrentTimestamp\",\"type\":\"bool\",\"components\":[]},{\"internalType\":\"uint128\",\"name\":\"_liquidity\",\"type\":\"uint128\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"constructor\",\"outputs\":[]},{\"inputs\":[],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"liquidity\",\"outputs\":[{\"internalType\":\"uint128\",\"name\":\"\",\"type\":\"uint128\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"index\",\"type\":\"uint256\",\"components\":[]}],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"observations\",\"outputs\":[{\"internalType\":\"uint32\",\"name\":\"\",\"type\":\"uint32\",\"components\":[]},{\"internalType\":\"int56\",\"name\":\"\",\"type\":\"int56\",\"components\":[]},{\"internalType\":\"uint160\",\"name\":\"\",\"type\":\"uint160\",\"components\":[]},{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\",\"components\":[]}]},{\"inputs\":[],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"slot0\",\"outputs\":[{\"internalType\":\"uint160\",\"name\":\"\",\"type\":\"uint160\",\"components\":[]},{\"internalType\":\"int24\",\"name\":\"\",\"type\":\"int24\",\"components\":[]},{\"internalType\":\"uint16\",\"name\":\"\",\"type\":\"uint16\",\"components\":[]},{\"internalType\":\"uint16\",\"name\":\"\",\"type\":\"uint16\",\"components\":[]},{\"internalType\":\"uint16\",\"name\":\"\",\"type\":\"uint16\",\"components\":[]},{\"internalType\":\"uint8\",\"name\":\"\",\"type\":\"uint8\",\"components\":[]},{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\",\"components\":[]}]}]";
     ///The parsed JSON ABI of the contract.
-    pub static MOCKOBSERVATIONS_ABI: ::ethers::contract::Lazy<::ethers::core::abi::Abi> =
-        ::ethers::contract::Lazy::new(|| {
-            ::ethers::core::utils::__serde_json::from_str(__ABI).expect("ABI is always valid")
-        });
+    pub static MOCKOBSERVATIONS_ABI: ::ethers::contract::Lazy<
+        ::ethers::core::abi::Abi,
+    > = ::ethers::contract::Lazy::new(|| {
+        ::ethers::core::utils::__serde_json::from_str(__ABI)
+            .expect("ABI is always valid")
+    });
     #[rustfmt::skip]
     const __BYTECODE: &[u8] = &[
         96,
@@ -1217,8 +1219,9 @@ pub mod mock_observations {
         51,
     ];
     ///The bytecode of the contract.
-    pub static MOCKOBSERVATIONS_BYTECODE: ::ethers::core::types::Bytes =
-        ::ethers::core::types::Bytes::from_static(__BYTECODE);
+    pub static MOCKOBSERVATIONS_BYTECODE: ::ethers::core::types::Bytes = ::ethers::core::types::Bytes::from_static(
+        __BYTECODE,
+    );
     #[rustfmt::skip]
     const __DEPLOYED_BYTECODE: &[u8] = &[
         96,
@@ -1844,8 +1847,9 @@ pub mod mock_observations {
         51,
     ];
     ///The deployed bytecode of the contract.
-    pub static MOCKOBSERVATIONS_DEPLOYED_BYTECODE: ::ethers::core::types::Bytes =
-        ::ethers::core::types::Bytes::from_static(__DEPLOYED_BYTECODE);
+    pub static MOCKOBSERVATIONS_DEPLOYED_BYTECODE: ::ethers::core::types::Bytes = ::ethers::core::types::Bytes::from_static(
+        __DEPLOYED_BYTECODE,
+    );
     pub struct MockObservations<M>(::ethers::contract::Contract<M>);
     impl<M> ::core::clone::Clone for MockObservations<M> {
         fn clone(&self) -> Self {
@@ -1865,9 +1869,7 @@ pub mod mock_observations {
     }
     impl<M> ::core::fmt::Debug for MockObservations<M> {
         fn fmt(&self, f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
-            f.debug_tuple(stringify!(MockObservations))
-                .field(&self.address())
-                .finish()
+            f.debug_tuple(stringify!(MockObservations)).field(&self.address()).finish()
         }
     }
     impl<M: ::ethers::providers::Middleware> MockObservations<M> {
@@ -1877,11 +1879,13 @@ pub mod mock_observations {
             address: T,
             client: ::std::sync::Arc<M>,
         ) -> Self {
-            Self(::ethers::contract::Contract::new(
-                address.into(),
-                MOCKOBSERVATIONS_ABI.clone(),
-                client,
-            ))
+            Self(
+                ::ethers::contract::Contract::new(
+                    address.into(),
+                    MOCKOBSERVATIONS_ABI.clone(),
+                    client,
+                ),
+            )
         }
         /// Constructs the general purpose `Deployer` instance based on the provided constructor arguments and sends it.
         /// Returns a new instance of a deployer that returns an instance of this contract after sending the transaction
@@ -1953,8 +1957,7 @@ pub mod mock_observations {
         }
     }
     impl<M: ::ethers::providers::Middleware> From<::ethers::contract::Contract<M>>
-        for MockObservations<M>
-    {
+    for MockObservations<M> {
         fn from(contract: ::ethers::contract::Contract<M>) -> Self {
             Self::new(contract.address(), contract.client())
         }
@@ -1968,7 +1971,7 @@ pub mod mock_observations {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(name = "liquidity", abi = "liquidity()")]
     pub struct LiquidityCall;
@@ -1981,7 +1984,7 @@ pub mod mock_observations {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(name = "observations", abi = "observations(uint256)")]
     pub struct ObservationsCall {
@@ -1996,7 +1999,7 @@ pub mod mock_observations {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(name = "slot0", abi = "slot0()")]
     pub struct Slot0Call;
@@ -2012,14 +2015,16 @@ pub mod mock_observations {
             data: impl AsRef<[u8]>,
         ) -> ::core::result::Result<Self, ::ethers::core::abi::AbiError> {
             let data = data.as_ref();
-            if let Ok(decoded) = <LiquidityCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded)
+                = <LiquidityCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::Liquidity(decoded));
             }
-            if let Ok(decoded) = <ObservationsCall as ::ethers::core::abi::AbiDecode>::decode(data)
-            {
+            if let Ok(decoded)
+                = <ObservationsCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::Observations(decoded));
             }
-            if let Ok(decoded) = <Slot0Call as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded)
+                = <Slot0Call as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::Slot0(decoded));
             }
             Err(::ethers::core::abi::Error::InvalidData.into())
@@ -2028,8 +2033,12 @@ pub mod mock_observations {
     impl ::ethers::core::abi::AbiEncode for MockObservationsCalls {
         fn encode(self) -> Vec<u8> {
             match self {
-                Self::Liquidity(element) => ::ethers::core::abi::AbiEncode::encode(element),
-                Self::Observations(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::Liquidity(element) => {
+                    ::ethers::core::abi::AbiEncode::encode(element)
+                }
+                Self::Observations(element) => {
+                    ::ethers::core::abi::AbiEncode::encode(element)
+                }
                 Self::Slot0(element) => ::ethers::core::abi::AbiEncode::encode(element),
             }
         }
@@ -2067,7 +2076,7 @@ pub mod mock_observations {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     pub struct LiquidityReturn(pub u128);
     ///Container type for all return fields from the `observations` function with signature `observations(uint256)` and selector `0x252c09d7`
@@ -2079,9 +2088,14 @@ pub mod mock_observations {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
-    pub struct ObservationsReturn(pub u32, pub i64, pub ::ethers::core::types::U256, pub bool);
+    pub struct ObservationsReturn(
+        pub u32,
+        pub i64,
+        pub ::ethers::core::types::U256,
+        pub bool,
+    );
     ///Container type for all return fields from the `slot0` function with signature `slot0()` and selector `0x3850c7bd`
     #[derive(
         Clone,
@@ -2091,7 +2105,7 @@ pub mod mock_observations {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     pub struct Slot0Return(
         pub ::ethers::core::types::U256,

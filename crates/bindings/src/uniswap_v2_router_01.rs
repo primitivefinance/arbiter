@@ -7,16 +7,18 @@ pub use uniswap_v2_router_01::*;
     clippy::upper_case_acronyms,
     clippy::type_complexity,
     dead_code,
-    non_camel_case_types
+    non_camel_case_types,
 )]
 pub mod uniswap_v2_router_01 {
     #[rustfmt::skip]
     const __ABI: &str = "[{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_factory\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"address\",\"name\":\"_WETH\",\"type\":\"address\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"constructor\",\"outputs\":[]},{\"inputs\":[],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"WETH\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"tokenA\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"address\",\"name\":\"tokenB\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"amountADesired\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"amountBDesired\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"amountAMin\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"amountBMin\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"address\",\"name\":\"to\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"deadline\",\"type\":\"uint256\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"function\",\"name\":\"addLiquidity\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"amountA\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"amountB\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"liquidity\",\"type\":\"uint256\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"token\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"amountTokenDesired\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"amountTokenMin\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"amountETHMin\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"address\",\"name\":\"to\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"deadline\",\"type\":\"uint256\",\"components\":[]}],\"stateMutability\":\"payable\",\"type\":\"function\",\"name\":\"addLiquidityETH\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"amountToken\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"amountETH\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"liquidity\",\"type\":\"uint256\",\"components\":[]}]},{\"inputs\":[],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"factory\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"amountOut\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"reserveIn\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"reserveOut\",\"type\":\"uint256\",\"components\":[]}],\"stateMutability\":\"pure\",\"type\":\"function\",\"name\":\"getAmountIn\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"amountIn\",\"type\":\"uint256\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"amountIn\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"reserveIn\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"reserveOut\",\"type\":\"uint256\",\"components\":[]}],\"stateMutability\":\"pure\",\"type\":\"function\",\"name\":\"getAmountOut\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"amountOut\",\"type\":\"uint256\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"amountOut\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"address[]\",\"name\":\"path\",\"type\":\"address[]\",\"components\":[]}],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"getAmountsIn\",\"outputs\":[{\"internalType\":\"uint256[]\",\"name\":\"amounts\",\"type\":\"uint256[]\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"amountIn\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"address[]\",\"name\":\"path\",\"type\":\"address[]\",\"components\":[]}],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"getAmountsOut\",\"outputs\":[{\"internalType\":\"uint256[]\",\"name\":\"amounts\",\"type\":\"uint256[]\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"amountA\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"reserveA\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"reserveB\",\"type\":\"uint256\",\"components\":[]}],\"stateMutability\":\"pure\",\"type\":\"function\",\"name\":\"quote\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"amountB\",\"type\":\"uint256\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"tokenA\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"address\",\"name\":\"tokenB\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"liquidity\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"amountAMin\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"amountBMin\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"address\",\"name\":\"to\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"deadline\",\"type\":\"uint256\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"function\",\"name\":\"removeLiquidity\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"amountA\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"amountB\",\"type\":\"uint256\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"token\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"liquidity\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"amountTokenMin\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"amountETHMin\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"address\",\"name\":\"to\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"deadline\",\"type\":\"uint256\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"function\",\"name\":\"removeLiquidityETH\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"amountToken\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"amountETH\",\"type\":\"uint256\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"token\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"liquidity\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"amountTokenMin\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"amountETHMin\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"address\",\"name\":\"to\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"deadline\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"bool\",\"name\":\"approveMax\",\"type\":\"bool\",\"components\":[]},{\"internalType\":\"uint8\",\"name\":\"v\",\"type\":\"uint8\",\"components\":[]},{\"internalType\":\"bytes32\",\"name\":\"r\",\"type\":\"bytes32\",\"components\":[]},{\"internalType\":\"bytes32\",\"name\":\"s\",\"type\":\"bytes32\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"function\",\"name\":\"removeLiquidityETHWithPermit\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"amountToken\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"amountETH\",\"type\":\"uint256\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"tokenA\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"address\",\"name\":\"tokenB\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"liquidity\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"amountAMin\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"amountBMin\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"address\",\"name\":\"to\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"deadline\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"bool\",\"name\":\"approveMax\",\"type\":\"bool\",\"components\":[]},{\"internalType\":\"uint8\",\"name\":\"v\",\"type\":\"uint8\",\"components\":[]},{\"internalType\":\"bytes32\",\"name\":\"r\",\"type\":\"bytes32\",\"components\":[]},{\"internalType\":\"bytes32\",\"name\":\"s\",\"type\":\"bytes32\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"function\",\"name\":\"removeLiquidityWithPermit\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"amountA\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"amountB\",\"type\":\"uint256\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"amountOut\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"address[]\",\"name\":\"path\",\"type\":\"address[]\",\"components\":[]},{\"internalType\":\"address\",\"name\":\"to\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"deadline\",\"type\":\"uint256\",\"components\":[]}],\"stateMutability\":\"payable\",\"type\":\"function\",\"name\":\"swapETHForExactTokens\",\"outputs\":[{\"internalType\":\"uint256[]\",\"name\":\"amounts\",\"type\":\"uint256[]\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"amountOutMin\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"address[]\",\"name\":\"path\",\"type\":\"address[]\",\"components\":[]},{\"internalType\":\"address\",\"name\":\"to\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"deadline\",\"type\":\"uint256\",\"components\":[]}],\"stateMutability\":\"payable\",\"type\":\"function\",\"name\":\"swapExactETHForTokens\",\"outputs\":[{\"internalType\":\"uint256[]\",\"name\":\"amounts\",\"type\":\"uint256[]\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"amountIn\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"amountOutMin\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"address[]\",\"name\":\"path\",\"type\":\"address[]\",\"components\":[]},{\"internalType\":\"address\",\"name\":\"to\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"deadline\",\"type\":\"uint256\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"function\",\"name\":\"swapExactTokensForETH\",\"outputs\":[{\"internalType\":\"uint256[]\",\"name\":\"amounts\",\"type\":\"uint256[]\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"amountIn\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"amountOutMin\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"address[]\",\"name\":\"path\",\"type\":\"address[]\",\"components\":[]},{\"internalType\":\"address\",\"name\":\"to\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"deadline\",\"type\":\"uint256\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"function\",\"name\":\"swapExactTokensForTokens\",\"outputs\":[{\"internalType\":\"uint256[]\",\"name\":\"amounts\",\"type\":\"uint256[]\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"amountOut\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"amountInMax\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"address[]\",\"name\":\"path\",\"type\":\"address[]\",\"components\":[]},{\"internalType\":\"address\",\"name\":\"to\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"deadline\",\"type\":\"uint256\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"function\",\"name\":\"swapTokensForExactETH\",\"outputs\":[{\"internalType\":\"uint256[]\",\"name\":\"amounts\",\"type\":\"uint256[]\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"amountOut\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"amountInMax\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"address[]\",\"name\":\"path\",\"type\":\"address[]\",\"components\":[]},{\"internalType\":\"address\",\"name\":\"to\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"deadline\",\"type\":\"uint256\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"function\",\"name\":\"swapTokensForExactTokens\",\"outputs\":[{\"internalType\":\"uint256[]\",\"name\":\"amounts\",\"type\":\"uint256[]\",\"components\":[]}]},{\"inputs\":[],\"stateMutability\":\"payable\",\"type\":\"receive\",\"outputs\":[]}]";
     ///The parsed JSON ABI of the contract.
-    pub static UNISWAPV2ROUTER01_ABI: ::ethers::contract::Lazy<::ethers::core::abi::Abi> =
-        ::ethers::contract::Lazy::new(|| {
-            ::ethers::core::utils::__serde_json::from_str(__ABI).expect("ABI is always valid")
-        });
+    pub static UNISWAPV2ROUTER01_ABI: ::ethers::contract::Lazy<
+        ::ethers::core::abi::Abi,
+    > = ::ethers::contract::Lazy::new(|| {
+        ::ethers::core::utils::__serde_json::from_str(__ABI)
+            .expect("ABI is always valid")
+    });
     #[rustfmt::skip]
     const __BYTECODE: &[u8] = &[
         96,
@@ -42,13 +44,13 @@ pub mod uniswap_v2_router_01 {
         81,
         97,
         54,
-        73,
+        23,
         56,
         3,
         128,
         97,
         54,
-        73,
+        23,
         131,
         57,
         129,
@@ -118,8 +120,8 @@ pub mod uniswap_v2_router_01 {
         96,
         28,
         97,
-        53,
-        13,
+        52,
+        219,
         97,
         1,
         60,
@@ -329,8 +331,8 @@ pub mod uniswap_v2_router_01 {
         82,
         80,
         97,
-        53,
-        13,
+        52,
+        219,
         96,
         0,
         243,
@@ -2867,7 +2869,7 @@ pub mod uniswap_v2_router_01 {
         32,
         97,
         52,
-        184,
+        134,
         131,
         57,
         129,
@@ -3169,7 +3171,7 @@ pub mod uniswap_v2_router_01 {
         32,
         97,
         52,
-        184,
+        134,
         131,
         57,
         129,
@@ -3316,7 +3318,7 @@ pub mod uniswap_v2_router_01 {
         32,
         97,
         51,
-        239,
+        189,
         131,
         57,
         129,
@@ -3502,7 +3504,7 @@ pub mod uniswap_v2_router_01 {
         128,
         97,
         52,
-        53,
+        3,
         96,
         43,
         145,
@@ -4286,7 +4288,7 @@ pub mod uniswap_v2_router_01 {
         32,
         97,
         52,
-        184,
+        134,
         131,
         57,
         129,
@@ -4472,7 +4474,7 @@ pub mod uniswap_v2_router_01 {
         128,
         97,
         52,
-        53,
+        3,
         96,
         43,
         145,
@@ -4617,7 +4619,7 @@ pub mod uniswap_v2_router_01 {
         32,
         97,
         52,
-        184,
+        134,
         131,
         57,
         129,
@@ -4764,7 +4766,7 @@ pub mod uniswap_v2_router_01 {
         32,
         97,
         51,
-        239,
+        189,
         131,
         57,
         129,
@@ -4947,7 +4949,7 @@ pub mod uniswap_v2_router_01 {
         128,
         97,
         51,
-        200,
+        150,
         96,
         39,
         145,
@@ -5013,7 +5015,7 @@ pub mod uniswap_v2_router_01 {
         32,
         97,
         52,
-        184,
+        134,
         131,
         57,
         129,
@@ -5157,7 +5159,7 @@ pub mod uniswap_v2_router_01 {
         32,
         97,
         51,
-        239,
+        189,
         131,
         57,
         129,
@@ -5343,7 +5345,7 @@ pub mod uniswap_v2_router_01 {
         128,
         97,
         52,
-        53,
+        3,
         96,
         43,
         145,
@@ -5893,7 +5895,7 @@ pub mod uniswap_v2_router_01 {
         32,
         97,
         52,
-        184,
+        134,
         131,
         57,
         129,
@@ -6076,7 +6078,7 @@ pub mod uniswap_v2_router_01 {
         128,
         97,
         51,
-        200,
+        150,
         96,
         39,
         145,
@@ -6192,7 +6194,7 @@ pub mod uniswap_v2_router_01 {
         32,
         97,
         52,
-        184,
+        134,
         131,
         57,
         129,
@@ -6624,8 +6626,8 @@ pub mod uniswap_v2_router_01 {
         1,
         128,
         97,
-        52,
-        15,
+        51,
+        221,
         96,
         38,
         145,
@@ -6688,7 +6690,7 @@ pub mod uniswap_v2_router_01 {
         128,
         97,
         51,
-        85,
+        35,
         96,
         38,
         145,
@@ -7131,7 +7133,7 @@ pub mod uniswap_v2_router_01 {
         32,
         97,
         52,
-        184,
+        134,
         131,
         57,
         129,
@@ -7447,7 +7449,7 @@ pub mod uniswap_v2_router_01 {
         32,
         97,
         52,
-        184,
+        134,
         131,
         57,
         129,
@@ -8121,7 +8123,7 @@ pub mod uniswap_v2_router_01 {
         32,
         97,
         52,
-        184,
+        134,
         131,
         57,
         129,
@@ -8265,7 +8267,7 @@ pub mod uniswap_v2_router_01 {
         32,
         97,
         51,
-        239,
+        189,
         131,
         57,
         129,
@@ -8448,7 +8450,7 @@ pub mod uniswap_v2_router_01 {
         128,
         97,
         51,
-        200,
+        150,
         96,
         39,
         145,
@@ -9286,7 +9288,7 @@ pub mod uniswap_v2_router_01 {
         128,
         97,
         52,
-        96,
+        46,
         96,
         45,
         145,
@@ -9536,7 +9538,7 @@ pub mod uniswap_v2_router_01 {
         128,
         97,
         50,
-        252,
+        202,
         96,
         52,
         145,
@@ -9605,7 +9607,7 @@ pub mod uniswap_v2_router_01 {
         128,
         97,
         52,
-        141,
+        91,
         96,
         43,
         145,
@@ -9680,7 +9682,7 @@ pub mod uniswap_v2_router_01 {
         128,
         97,
         51,
-        123,
+        73,
         96,
         40,
         145,
@@ -10646,7 +10648,7 @@ pub mod uniswap_v2_router_01 {
         128,
         97,
         50,
-        203,
+        153,
         96,
         49,
         145,
@@ -11528,7 +11530,7 @@ pub mod uniswap_v2_router_01 {
         131,
         97,
         49,
-        94,
+        44,
         86,
         91,
         132,
@@ -11612,7 +11614,7 @@ pub mod uniswap_v2_router_01 {
         128,
         97,
         51,
-        163,
+        113,
         96,
         37,
         145,
@@ -11687,7 +11689,7 @@ pub mod uniswap_v2_router_01 {
         128,
         97,
         51,
-        123,
+        73,
         96,
         40,
         145,
@@ -11803,8 +11805,8 @@ pub mod uniswap_v2_router_01 {
         1,
         128,
         97,
-        51,
-        48,
+        50,
+        254,
         96,
         37,
         145,
@@ -12450,7 +12452,7 @@ pub mod uniswap_v2_router_01 {
         128,
         97,
         51,
-        85,
+        35,
         96,
         38,
         145,
@@ -12548,8 +12550,8 @@ pub mod uniswap_v2_router_01 {
         1,
         128,
         97,
-        52,
-        15,
+        51,
+        221,
         96,
         38,
         145,
@@ -12899,77 +12901,27 @@ pub mod uniswap_v2_router_01 {
         253,
         91,
         80,
-        128,
-        81,
         96,
-        32,
-        144,
-        145,
         1,
-        81,
-        109,
-        255,
-        255,
-        255,
-        255,
-        255,
-        255,
-        255,
-        255,
-        255,
-        255,
-        255,
-        255,
-        255,
-        255,
-        145,
-        130,
-        22,
+        149,
+        80,
+        133,
+        148,
+        80,
+        97,
+        49,
+        36,
         147,
         80,
-        22,
-        144,
         80,
-        96,
-        1,
-        96,
-        1,
-        96,
-        160,
-        27,
-        3,
-        135,
-        129,
-        22,
-        144,
-        132,
-        22,
-        20,
-        97,
-        49,
-        76,
-        87,
-        128,
-        130,
-        97,
-        49,
-        79,
+        80,
+        80,
         86,
         91,
-        129,
-        129,
-        91,
-        144,
-        153,
-        144,
-        152,
+        147,
         80,
-        150,
-        80,
-        80,
-        80,
-        80,
-        80,
+        147,
+        145,
         80,
         80,
         86,
@@ -12981,7 +12933,7 @@ pub mod uniswap_v2_router_01 {
         17,
         97,
         49,
-        158,
+        108,
         87,
         96,
         64,
@@ -13018,7 +12970,7 @@ pub mod uniswap_v2_router_01 {
         128,
         97,
         50,
-        159,
+        109,
         96,
         44,
         145,
@@ -13046,7 +12998,7 @@ pub mod uniswap_v2_router_01 {
         21,
         97,
         49,
-        174,
+        124,
         87,
         80,
         96,
@@ -13056,7 +13008,7 @@ pub mod uniswap_v2_router_01 {
         91,
         97,
         49,
-        233,
+        183,
         87,
         96,
         64,
@@ -13093,7 +13045,7 @@ pub mod uniswap_v2_router_01 {
         128,
         97,
         51,
-        123,
+        73,
         96,
         40,
         145,
@@ -13116,14 +13068,14 @@ pub mod uniswap_v2_router_01 {
         96,
         0,
         97,
-        50,
-        13,
+        49,
+        219,
         97,
         3,
         232,
         97,
-        50,
-        1,
+        49,
+        207,
         134,
         136,
         99,
@@ -13154,14 +13106,14 @@ pub mod uniswap_v2_router_01 {
         96,
         0,
         97,
-        50,
-        39,
+        49,
+        245,
         97,
         3,
         229,
         97,
-        50,
-        1,
+        49,
+        207,
         134,
         137,
         99,
@@ -13171,7 +13123,7 @@ pub mod uniswap_v2_router_01 {
         255,
         97,
         50,
-        78,
+        28,
         22,
         86,
         91,
@@ -13179,7 +13131,7 @@ pub mod uniswap_v2_router_01 {
         80,
         97,
         50,
-        68,
+        18,
         96,
         1,
         130,
@@ -13187,7 +13139,7 @@ pub mod uniswap_v2_router_01 {
         129,
         97,
         50,
-        55,
+        5,
         87,
         254,
         91,
@@ -13873,38 +13825,38 @@ pub mod uniswap_v2_router_01 {
         34,
         18,
         32,
-        230,
-        93,
-        83,
-        245,
-        4,
-        123,
-        177,
-        120,
-        135,
-        176,
-        192,
-        78,
-        154,
-        242,
-        104,
-        118,
-        212,
-        39,
-        14,
-        91,
-        0,
+        193,
+        163,
+        195,
+        6,
+        197,
+        113,
+        233,
+        218,
+        231,
+        13,
+        251,
+        36,
+        121,
+        3,
+        79,
+        40,
         80,
-        170,
-        81,
-        222,
-        90,
-        243,
-        250,
+        229,
+        79,
+        159,
+        104,
+        175,
+        160,
+        218,
+        231,
+        103,
+        125,
+        42,
+        160,
+        97,
+        102,
         131,
-        45,
-        91,
-        168,
         100,
         115,
         111,
@@ -13918,8 +13870,9 @@ pub mod uniswap_v2_router_01 {
         51,
     ];
     ///The bytecode of the contract.
-    pub static UNISWAPV2ROUTER01_BYTECODE: ::ethers::core::types::Bytes =
-        ::ethers::core::types::Bytes::from_static(__BYTECODE);
+    pub static UNISWAPV2ROUTER01_BYTECODE: ::ethers::core::types::Bytes = ::ethers::core::types::Bytes::from_static(
+        __BYTECODE,
+    );
     #[rustfmt::skip]
     const __DEPLOYED_BYTECODE: &[u8] = &[
         96,
@@ -16454,7 +16407,7 @@ pub mod uniswap_v2_router_01 {
         32,
         97,
         52,
-        184,
+        134,
         131,
         57,
         129,
@@ -16756,7 +16709,7 @@ pub mod uniswap_v2_router_01 {
         32,
         97,
         52,
-        184,
+        134,
         131,
         57,
         129,
@@ -16903,7 +16856,7 @@ pub mod uniswap_v2_router_01 {
         32,
         97,
         51,
-        239,
+        189,
         131,
         57,
         129,
@@ -17089,7 +17042,7 @@ pub mod uniswap_v2_router_01 {
         128,
         97,
         52,
-        53,
+        3,
         96,
         43,
         145,
@@ -17873,7 +17826,7 @@ pub mod uniswap_v2_router_01 {
         32,
         97,
         52,
-        184,
+        134,
         131,
         57,
         129,
@@ -18059,7 +18012,7 @@ pub mod uniswap_v2_router_01 {
         128,
         97,
         52,
-        53,
+        3,
         96,
         43,
         145,
@@ -18204,7 +18157,7 @@ pub mod uniswap_v2_router_01 {
         32,
         97,
         52,
-        184,
+        134,
         131,
         57,
         129,
@@ -18351,7 +18304,7 @@ pub mod uniswap_v2_router_01 {
         32,
         97,
         51,
-        239,
+        189,
         131,
         57,
         129,
@@ -18534,7 +18487,7 @@ pub mod uniswap_v2_router_01 {
         128,
         97,
         51,
-        200,
+        150,
         96,
         39,
         145,
@@ -18600,7 +18553,7 @@ pub mod uniswap_v2_router_01 {
         32,
         97,
         52,
-        184,
+        134,
         131,
         57,
         129,
@@ -18744,7 +18697,7 @@ pub mod uniswap_v2_router_01 {
         32,
         97,
         51,
-        239,
+        189,
         131,
         57,
         129,
@@ -18930,7 +18883,7 @@ pub mod uniswap_v2_router_01 {
         128,
         97,
         52,
-        53,
+        3,
         96,
         43,
         145,
@@ -19480,7 +19433,7 @@ pub mod uniswap_v2_router_01 {
         32,
         97,
         52,
-        184,
+        134,
         131,
         57,
         129,
@@ -19663,7 +19616,7 @@ pub mod uniswap_v2_router_01 {
         128,
         97,
         51,
-        200,
+        150,
         96,
         39,
         145,
@@ -19779,7 +19732,7 @@ pub mod uniswap_v2_router_01 {
         32,
         97,
         52,
-        184,
+        134,
         131,
         57,
         129,
@@ -20211,8 +20164,8 @@ pub mod uniswap_v2_router_01 {
         1,
         128,
         97,
-        52,
-        15,
+        51,
+        221,
         96,
         38,
         145,
@@ -20275,7 +20228,7 @@ pub mod uniswap_v2_router_01 {
         128,
         97,
         51,
-        85,
+        35,
         96,
         38,
         145,
@@ -20718,7 +20671,7 @@ pub mod uniswap_v2_router_01 {
         32,
         97,
         52,
-        184,
+        134,
         131,
         57,
         129,
@@ -21034,7 +20987,7 @@ pub mod uniswap_v2_router_01 {
         32,
         97,
         52,
-        184,
+        134,
         131,
         57,
         129,
@@ -21708,7 +21661,7 @@ pub mod uniswap_v2_router_01 {
         32,
         97,
         52,
-        184,
+        134,
         131,
         57,
         129,
@@ -21852,7 +21805,7 @@ pub mod uniswap_v2_router_01 {
         32,
         97,
         51,
-        239,
+        189,
         131,
         57,
         129,
@@ -22035,7 +21988,7 @@ pub mod uniswap_v2_router_01 {
         128,
         97,
         51,
-        200,
+        150,
         96,
         39,
         145,
@@ -22873,7 +22826,7 @@ pub mod uniswap_v2_router_01 {
         128,
         97,
         52,
-        96,
+        46,
         96,
         45,
         145,
@@ -23123,7 +23076,7 @@ pub mod uniswap_v2_router_01 {
         128,
         97,
         50,
-        252,
+        202,
         96,
         52,
         145,
@@ -23192,7 +23145,7 @@ pub mod uniswap_v2_router_01 {
         128,
         97,
         52,
-        141,
+        91,
         96,
         43,
         145,
@@ -23267,7 +23220,7 @@ pub mod uniswap_v2_router_01 {
         128,
         97,
         51,
-        123,
+        73,
         96,
         40,
         145,
@@ -24233,7 +24186,7 @@ pub mod uniswap_v2_router_01 {
         128,
         97,
         50,
-        203,
+        153,
         96,
         49,
         145,
@@ -25115,7 +25068,7 @@ pub mod uniswap_v2_router_01 {
         131,
         97,
         49,
-        94,
+        44,
         86,
         91,
         132,
@@ -25199,7 +25152,7 @@ pub mod uniswap_v2_router_01 {
         128,
         97,
         51,
-        163,
+        113,
         96,
         37,
         145,
@@ -25274,7 +25227,7 @@ pub mod uniswap_v2_router_01 {
         128,
         97,
         51,
-        123,
+        73,
         96,
         40,
         145,
@@ -25390,8 +25343,8 @@ pub mod uniswap_v2_router_01 {
         1,
         128,
         97,
-        51,
-        48,
+        50,
+        254,
         96,
         37,
         145,
@@ -26037,7 +25990,7 @@ pub mod uniswap_v2_router_01 {
         128,
         97,
         51,
-        85,
+        35,
         96,
         38,
         145,
@@ -26135,8 +26088,8 @@ pub mod uniswap_v2_router_01 {
         1,
         128,
         97,
-        52,
-        15,
+        51,
+        221,
         96,
         38,
         145,
@@ -26486,77 +26439,27 @@ pub mod uniswap_v2_router_01 {
         253,
         91,
         80,
-        128,
-        81,
         96,
-        32,
-        144,
-        145,
         1,
-        81,
-        109,
-        255,
-        255,
-        255,
-        255,
-        255,
-        255,
-        255,
-        255,
-        255,
-        255,
-        255,
-        255,
-        255,
-        255,
-        145,
-        130,
-        22,
+        149,
+        80,
+        133,
+        148,
+        80,
+        97,
+        49,
+        36,
         147,
         80,
-        22,
-        144,
         80,
-        96,
-        1,
-        96,
-        1,
-        96,
-        160,
-        27,
-        3,
-        135,
-        129,
-        22,
-        144,
-        132,
-        22,
-        20,
-        97,
-        49,
-        76,
-        87,
-        128,
-        130,
-        97,
-        49,
-        79,
+        80,
+        80,
         86,
         91,
-        129,
-        129,
-        91,
-        144,
-        153,
-        144,
-        152,
+        147,
         80,
-        150,
-        80,
-        80,
-        80,
-        80,
-        80,
+        147,
+        145,
         80,
         80,
         86,
@@ -26568,7 +26471,7 @@ pub mod uniswap_v2_router_01 {
         17,
         97,
         49,
-        158,
+        108,
         87,
         96,
         64,
@@ -26605,7 +26508,7 @@ pub mod uniswap_v2_router_01 {
         128,
         97,
         50,
-        159,
+        109,
         96,
         44,
         145,
@@ -26633,7 +26536,7 @@ pub mod uniswap_v2_router_01 {
         21,
         97,
         49,
-        174,
+        124,
         87,
         80,
         96,
@@ -26643,7 +26546,7 @@ pub mod uniswap_v2_router_01 {
         91,
         97,
         49,
-        233,
+        183,
         87,
         96,
         64,
@@ -26680,7 +26583,7 @@ pub mod uniswap_v2_router_01 {
         128,
         97,
         51,
-        123,
+        73,
         96,
         40,
         145,
@@ -26703,14 +26606,14 @@ pub mod uniswap_v2_router_01 {
         96,
         0,
         97,
-        50,
-        13,
+        49,
+        219,
         97,
         3,
         232,
         97,
-        50,
-        1,
+        49,
+        207,
         134,
         136,
         99,
@@ -26741,14 +26644,14 @@ pub mod uniswap_v2_router_01 {
         96,
         0,
         97,
-        50,
-        39,
+        49,
+        245,
         97,
         3,
         229,
         97,
-        50,
-        1,
+        49,
+        207,
         134,
         137,
         99,
@@ -26758,7 +26661,7 @@ pub mod uniswap_v2_router_01 {
         255,
         97,
         50,
-        78,
+        28,
         22,
         86,
         91,
@@ -26766,7 +26669,7 @@ pub mod uniswap_v2_router_01 {
         80,
         97,
         50,
-        68,
+        18,
         96,
         1,
         130,
@@ -26774,7 +26677,7 @@ pub mod uniswap_v2_router_01 {
         129,
         97,
         50,
-        55,
+        5,
         87,
         254,
         91,
@@ -27460,38 +27363,38 @@ pub mod uniswap_v2_router_01 {
         34,
         18,
         32,
-        230,
-        93,
-        83,
-        245,
-        4,
-        123,
-        177,
-        120,
-        135,
-        176,
-        192,
-        78,
-        154,
-        242,
-        104,
-        118,
-        212,
-        39,
-        14,
-        91,
-        0,
+        193,
+        163,
+        195,
+        6,
+        197,
+        113,
+        233,
+        218,
+        231,
+        13,
+        251,
+        36,
+        121,
+        3,
+        79,
+        40,
         80,
-        170,
-        81,
-        222,
-        90,
-        243,
-        250,
+        229,
+        79,
+        159,
+        104,
+        175,
+        160,
+        218,
+        231,
+        103,
+        125,
+        42,
+        160,
+        97,
+        102,
         131,
-        45,
-        91,
-        168,
         100,
         115,
         111,
@@ -27505,8 +27408,9 @@ pub mod uniswap_v2_router_01 {
         51,
     ];
     ///The deployed bytecode of the contract.
-    pub static UNISWAPV2ROUTER01_DEPLOYED_BYTECODE: ::ethers::core::types::Bytes =
-        ::ethers::core::types::Bytes::from_static(__DEPLOYED_BYTECODE);
+    pub static UNISWAPV2ROUTER01_DEPLOYED_BYTECODE: ::ethers::core::types::Bytes = ::ethers::core::types::Bytes::from_static(
+        __DEPLOYED_BYTECODE,
+    );
     pub struct UniswapV2Router01<M>(::ethers::contract::Contract<M>);
     impl<M> ::core::clone::Clone for UniswapV2Router01<M> {
         fn clone(&self) -> Self {
@@ -27526,9 +27430,7 @@ pub mod uniswap_v2_router_01 {
     }
     impl<M> ::core::fmt::Debug for UniswapV2Router01<M> {
         fn fmt(&self, f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
-            f.debug_tuple(stringify!(UniswapV2Router01))
-                .field(&self.address())
-                .finish()
+            f.debug_tuple(stringify!(UniswapV2Router01)).field(&self.address()).finish()
         }
     }
     impl<M: ::ethers::providers::Middleware> UniswapV2Router01<M> {
@@ -27538,11 +27440,13 @@ pub mod uniswap_v2_router_01 {
             address: T,
             client: ::std::sync::Arc<M>,
         ) -> Self {
-            Self(::ethers::contract::Contract::new(
-                address.into(),
-                UNISWAPV2ROUTER01_ABI.clone(),
-                client,
-            ))
+            Self(
+                ::ethers::contract::Contract::new(
+                    address.into(),
+                    UNISWAPV2ROUTER01_ABI.clone(),
+                    client,
+                ),
+            )
         }
         /// Constructs the general purpose `Deployer` instance based on the provided constructor arguments and sends it.
         /// Returns a new instance of a deployer that returns an instance of this contract after sending the transaction
@@ -27586,7 +27490,10 @@ pub mod uniswap_v2_router_01 {
         ///Calls the contract's `WETH` (0xad5c4648) function
         pub fn weth(
             &self,
-        ) -> ::ethers::contract::builders::ContractCall<M, ::ethers::core::types::Address> {
+        ) -> ::ethers::contract::builders::ContractCall<
+            M,
+            ::ethers::core::types::Address,
+        > {
             self.0
                 .method_hash([173, 92, 70, 72], ())
                 .expect("method not found (this should never happen)")
@@ -27660,7 +27567,10 @@ pub mod uniswap_v2_router_01 {
         ///Calls the contract's `factory` (0xc45a0155) function
         pub fn factory(
             &self,
-        ) -> ::ethers::contract::builders::ContractCall<M, ::ethers::core::types::Address> {
+        ) -> ::ethers::contract::builders::ContractCall<
+            M,
+            ::ethers::core::types::Address,
+        > {
             self.0
                 .method_hash([196, 90, 1, 85], ())
                 .expect("method not found (this should never happen)")
@@ -27769,14 +27679,7 @@ pub mod uniswap_v2_router_01 {
             self.0
                 .method_hash(
                     [2, 117, 28, 236],
-                    (
-                        token,
-                        liquidity,
-                        amount_token_min,
-                        amount_eth_min,
-                        to,
-                        deadline,
-                    ),
+                    (token, liquidity, amount_token_min, amount_eth_min, to, deadline),
                 )
                 .expect("method not found (this should never happen)")
         }
@@ -27960,8 +27863,7 @@ pub mod uniswap_v2_router_01 {
         }
     }
     impl<M: ::ethers::providers::Middleware> From<::ethers::contract::Contract<M>>
-        for UniswapV2Router01<M>
-    {
+    for UniswapV2Router01<M> {
         fn from(contract: ::ethers::contract::Contract<M>) -> Self {
             Self::new(contract.address(), contract.client())
         }
@@ -27975,7 +27877,7 @@ pub mod uniswap_v2_router_01 {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(name = "WETH", abi = "WETH()")]
     pub struct WethCall;
@@ -27988,7 +27890,7 @@ pub mod uniswap_v2_router_01 {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(
         name = "addLiquidity",
@@ -28013,7 +27915,7 @@ pub mod uniswap_v2_router_01 {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(
         name = "addLiquidityETH",
@@ -28036,7 +27938,7 @@ pub mod uniswap_v2_router_01 {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(name = "factory", abi = "factory()")]
     pub struct FactoryCall;
@@ -28049,7 +27951,7 @@ pub mod uniswap_v2_router_01 {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(name = "getAmountIn", abi = "getAmountIn(uint256,uint256,uint256)")]
     pub struct GetAmountInCall {
@@ -28066,7 +27968,7 @@ pub mod uniswap_v2_router_01 {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(name = "getAmountOut", abi = "getAmountOut(uint256,uint256,uint256)")]
     pub struct GetAmountOutCall {
@@ -28083,7 +27985,7 @@ pub mod uniswap_v2_router_01 {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(name = "getAmountsIn", abi = "getAmountsIn(uint256,address[])")]
     pub struct GetAmountsInCall {
@@ -28099,7 +28001,7 @@ pub mod uniswap_v2_router_01 {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(name = "getAmountsOut", abi = "getAmountsOut(uint256,address[])")]
     pub struct GetAmountsOutCall {
@@ -28115,7 +28017,7 @@ pub mod uniswap_v2_router_01 {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(name = "quote", abi = "quote(uint256,uint256,uint256)")]
     pub struct QuoteCall {
@@ -28132,7 +28034,7 @@ pub mod uniswap_v2_router_01 {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(
         name = "removeLiquidity",
@@ -28156,7 +28058,7 @@ pub mod uniswap_v2_router_01 {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(
         name = "removeLiquidityETH",
@@ -28179,7 +28081,7 @@ pub mod uniswap_v2_router_01 {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(
         name = "removeLiquidityETHWithPermit",
@@ -28206,7 +28108,7 @@ pub mod uniswap_v2_router_01 {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(
         name = "removeLiquidityWithPermit",
@@ -28234,7 +28136,7 @@ pub mod uniswap_v2_router_01 {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(
         name = "swapETHForExactTokens",
@@ -28255,7 +28157,7 @@ pub mod uniswap_v2_router_01 {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(
         name = "swapExactETHForTokens",
@@ -28276,7 +28178,7 @@ pub mod uniswap_v2_router_01 {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(
         name = "swapExactTokensForETH",
@@ -28298,7 +28200,7 @@ pub mod uniswap_v2_router_01 {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(
         name = "swapExactTokensForTokens",
@@ -28320,7 +28222,7 @@ pub mod uniswap_v2_router_01 {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(
         name = "swapTokensForExactETH",
@@ -28342,7 +28244,7 @@ pub mod uniswap_v2_router_01 {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(
         name = "swapTokensForExactTokens",
@@ -28383,87 +28285,98 @@ pub mod uniswap_v2_router_01 {
             data: impl AsRef<[u8]>,
         ) -> ::core::result::Result<Self, ::ethers::core::abi::AbiError> {
             let data = data.as_ref();
-            if let Ok(decoded) = <WethCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded)
+                = <WethCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::Weth(decoded));
             }
-            if let Ok(decoded) = <AddLiquidityCall as ::ethers::core::abi::AbiDecode>::decode(data)
-            {
+            if let Ok(decoded)
+                = <AddLiquidityCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::AddLiquidity(decoded));
             }
-            if let Ok(decoded) =
-                <AddLiquidityETHCall as ::ethers::core::abi::AbiDecode>::decode(data)
-            {
+            if let Ok(decoded)
+                = <AddLiquidityETHCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::AddLiquidityETH(decoded));
             }
-            if let Ok(decoded) = <FactoryCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded)
+                = <FactoryCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::Factory(decoded));
             }
-            if let Ok(decoded) = <GetAmountInCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded)
+                = <GetAmountInCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::GetAmountIn(decoded));
             }
-            if let Ok(decoded) = <GetAmountOutCall as ::ethers::core::abi::AbiDecode>::decode(data)
-            {
+            if let Ok(decoded)
+                = <GetAmountOutCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::GetAmountOut(decoded));
             }
-            if let Ok(decoded) = <GetAmountsInCall as ::ethers::core::abi::AbiDecode>::decode(data)
-            {
+            if let Ok(decoded)
+                = <GetAmountsInCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::GetAmountsIn(decoded));
             }
-            if let Ok(decoded) = <GetAmountsOutCall as ::ethers::core::abi::AbiDecode>::decode(data)
-            {
+            if let Ok(decoded)
+                = <GetAmountsOutCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::GetAmountsOut(decoded));
             }
-            if let Ok(decoded) = <QuoteCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded)
+                = <QuoteCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::Quote(decoded));
             }
-            if let Ok(decoded) =
-                <RemoveLiquidityCall as ::ethers::core::abi::AbiDecode>::decode(data)
-            {
+            if let Ok(decoded)
+                = <RemoveLiquidityCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::RemoveLiquidity(decoded));
             }
-            if let Ok(decoded) =
-                <RemoveLiquidityETHCall as ::ethers::core::abi::AbiDecode>::decode(data)
-            {
+            if let Ok(decoded)
+                = <RemoveLiquidityETHCall as ::ethers::core::abi::AbiDecode>::decode(
+                    data,
+                ) {
                 return Ok(Self::RemoveLiquidityETH(decoded));
             }
-            if let Ok(decoded) =
-                <RemoveLiquidityETHWithPermitCall as ::ethers::core::abi::AbiDecode>::decode(data)
-            {
+            if let Ok(decoded)
+                = <RemoveLiquidityETHWithPermitCall as ::ethers::core::abi::AbiDecode>::decode(
+                    data,
+                ) {
                 return Ok(Self::RemoveLiquidityETHWithPermit(decoded));
             }
-            if let Ok(decoded) =
-                <RemoveLiquidityWithPermitCall as ::ethers::core::abi::AbiDecode>::decode(data)
-            {
+            if let Ok(decoded)
+                = <RemoveLiquidityWithPermitCall as ::ethers::core::abi::AbiDecode>::decode(
+                    data,
+                ) {
                 return Ok(Self::RemoveLiquidityWithPermit(decoded));
             }
-            if let Ok(decoded) =
-                <SwapETHForExactTokensCall as ::ethers::core::abi::AbiDecode>::decode(data)
-            {
+            if let Ok(decoded)
+                = <SwapETHForExactTokensCall as ::ethers::core::abi::AbiDecode>::decode(
+                    data,
+                ) {
                 return Ok(Self::SwapETHForExactTokens(decoded));
             }
-            if let Ok(decoded) =
-                <SwapExactETHForTokensCall as ::ethers::core::abi::AbiDecode>::decode(data)
-            {
+            if let Ok(decoded)
+                = <SwapExactETHForTokensCall as ::ethers::core::abi::AbiDecode>::decode(
+                    data,
+                ) {
                 return Ok(Self::SwapExactETHForTokens(decoded));
             }
-            if let Ok(decoded) =
-                <SwapExactTokensForETHCall as ::ethers::core::abi::AbiDecode>::decode(data)
-            {
+            if let Ok(decoded)
+                = <SwapExactTokensForETHCall as ::ethers::core::abi::AbiDecode>::decode(
+                    data,
+                ) {
                 return Ok(Self::SwapExactTokensForETH(decoded));
             }
-            if let Ok(decoded) =
-                <SwapExactTokensForTokensCall as ::ethers::core::abi::AbiDecode>::decode(data)
-            {
+            if let Ok(decoded)
+                = <SwapExactTokensForTokensCall as ::ethers::core::abi::AbiDecode>::decode(
+                    data,
+                ) {
                 return Ok(Self::SwapExactTokensForTokens(decoded));
             }
-            if let Ok(decoded) =
-                <SwapTokensForExactETHCall as ::ethers::core::abi::AbiDecode>::decode(data)
-            {
+            if let Ok(decoded)
+                = <SwapTokensForExactETHCall as ::ethers::core::abi::AbiDecode>::decode(
+                    data,
+                ) {
                 return Ok(Self::SwapTokensForExactETH(decoded));
             }
-            if let Ok(decoded) =
-                <SwapTokensForExactTokensCall as ::ethers::core::abi::AbiDecode>::decode(data)
-            {
+            if let Ok(decoded)
+                = <SwapTokensForExactTokensCall as ::ethers::core::abi::AbiDecode>::decode(
+                    data,
+                ) {
                 return Ok(Self::SwapTokensForExactTokens(decoded));
             }
             Err(::ethers::core::abi::Error::InvalidData.into())
@@ -28473,15 +28386,29 @@ pub mod uniswap_v2_router_01 {
         fn encode(self) -> Vec<u8> {
             match self {
                 Self::Weth(element) => ::ethers::core::abi::AbiEncode::encode(element),
-                Self::AddLiquidity(element) => ::ethers::core::abi::AbiEncode::encode(element),
-                Self::AddLiquidityETH(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::AddLiquidity(element) => {
+                    ::ethers::core::abi::AbiEncode::encode(element)
+                }
+                Self::AddLiquidityETH(element) => {
+                    ::ethers::core::abi::AbiEncode::encode(element)
+                }
                 Self::Factory(element) => ::ethers::core::abi::AbiEncode::encode(element),
-                Self::GetAmountIn(element) => ::ethers::core::abi::AbiEncode::encode(element),
-                Self::GetAmountOut(element) => ::ethers::core::abi::AbiEncode::encode(element),
-                Self::GetAmountsIn(element) => ::ethers::core::abi::AbiEncode::encode(element),
-                Self::GetAmountsOut(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::GetAmountIn(element) => {
+                    ::ethers::core::abi::AbiEncode::encode(element)
+                }
+                Self::GetAmountOut(element) => {
+                    ::ethers::core::abi::AbiEncode::encode(element)
+                }
+                Self::GetAmountsIn(element) => {
+                    ::ethers::core::abi::AbiEncode::encode(element)
+                }
+                Self::GetAmountsOut(element) => {
+                    ::ethers::core::abi::AbiEncode::encode(element)
+                }
                 Self::Quote(element) => ::ethers::core::abi::AbiEncode::encode(element),
-                Self::RemoveLiquidity(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::RemoveLiquidity(element) => {
+                    ::ethers::core::abi::AbiEncode::encode(element)
+                }
                 Self::RemoveLiquidityETH(element) => {
                     ::ethers::core::abi::AbiEncode::encode(element)
                 }
@@ -28525,17 +28452,33 @@ pub mod uniswap_v2_router_01 {
                 Self::GetAmountsOut(element) => ::core::fmt::Display::fmt(element, f),
                 Self::Quote(element) => ::core::fmt::Display::fmt(element, f),
                 Self::RemoveLiquidity(element) => ::core::fmt::Display::fmt(element, f),
-                Self::RemoveLiquidityETH(element) => ::core::fmt::Display::fmt(element, f),
+                Self::RemoveLiquidityETH(element) => {
+                    ::core::fmt::Display::fmt(element, f)
+                }
                 Self::RemoveLiquidityETHWithPermit(element) => {
                     ::core::fmt::Display::fmt(element, f)
                 }
-                Self::RemoveLiquidityWithPermit(element) => ::core::fmt::Display::fmt(element, f),
-                Self::SwapETHForExactTokens(element) => ::core::fmt::Display::fmt(element, f),
-                Self::SwapExactETHForTokens(element) => ::core::fmt::Display::fmt(element, f),
-                Self::SwapExactTokensForETH(element) => ::core::fmt::Display::fmt(element, f),
-                Self::SwapExactTokensForTokens(element) => ::core::fmt::Display::fmt(element, f),
-                Self::SwapTokensForExactETH(element) => ::core::fmt::Display::fmt(element, f),
-                Self::SwapTokensForExactTokens(element) => ::core::fmt::Display::fmt(element, f),
+                Self::RemoveLiquidityWithPermit(element) => {
+                    ::core::fmt::Display::fmt(element, f)
+                }
+                Self::SwapETHForExactTokens(element) => {
+                    ::core::fmt::Display::fmt(element, f)
+                }
+                Self::SwapExactETHForTokens(element) => {
+                    ::core::fmt::Display::fmt(element, f)
+                }
+                Self::SwapExactTokensForETH(element) => {
+                    ::core::fmt::Display::fmt(element, f)
+                }
+                Self::SwapExactTokensForTokens(element) => {
+                    ::core::fmt::Display::fmt(element, f)
+                }
+                Self::SwapTokensForExactETH(element) => {
+                    ::core::fmt::Display::fmt(element, f)
+                }
+                Self::SwapTokensForExactTokens(element) => {
+                    ::core::fmt::Display::fmt(element, f)
+                }
             }
         }
     }
@@ -28594,12 +28537,14 @@ pub mod uniswap_v2_router_01 {
             Self::RemoveLiquidityETH(value)
         }
     }
-    impl ::core::convert::From<RemoveLiquidityETHWithPermitCall> for UniswapV2Router01Calls {
+    impl ::core::convert::From<RemoveLiquidityETHWithPermitCall>
+    for UniswapV2Router01Calls {
         fn from(value: RemoveLiquidityETHWithPermitCall) -> Self {
             Self::RemoveLiquidityETHWithPermit(value)
         }
     }
-    impl ::core::convert::From<RemoveLiquidityWithPermitCall> for UniswapV2Router01Calls {
+    impl ::core::convert::From<RemoveLiquidityWithPermitCall>
+    for UniswapV2Router01Calls {
         fn from(value: RemoveLiquidityWithPermitCall) -> Self {
             Self::RemoveLiquidityWithPermit(value)
         }
@@ -28643,7 +28588,7 @@ pub mod uniswap_v2_router_01 {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     pub struct WethReturn(pub ::ethers::core::types::Address);
     ///Container type for all return fields from the `addLiquidity` function with signature `addLiquidity(address,address,uint256,uint256,uint256,uint256,address,uint256)` and selector `0xe8e33700`
@@ -28655,7 +28600,7 @@ pub mod uniswap_v2_router_01 {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     pub struct AddLiquidityReturn {
         pub amount_a: ::ethers::core::types::U256,
@@ -28671,7 +28616,7 @@ pub mod uniswap_v2_router_01 {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     pub struct AddLiquidityETHReturn {
         pub amount_token: ::ethers::core::types::U256,
@@ -28687,7 +28632,7 @@ pub mod uniswap_v2_router_01 {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     pub struct FactoryReturn(pub ::ethers::core::types::Address);
     ///Container type for all return fields from the `getAmountIn` function with signature `getAmountIn(uint256,uint256,uint256)` and selector `0x85f8c259`
@@ -28699,7 +28644,7 @@ pub mod uniswap_v2_router_01 {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     pub struct GetAmountInReturn {
         pub amount_in: ::ethers::core::types::U256,
@@ -28713,7 +28658,7 @@ pub mod uniswap_v2_router_01 {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     pub struct GetAmountOutReturn {
         pub amount_out: ::ethers::core::types::U256,
@@ -28727,7 +28672,7 @@ pub mod uniswap_v2_router_01 {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     pub struct GetAmountsInReturn {
         pub amounts: ::std::vec::Vec<::ethers::core::types::U256>,
@@ -28741,7 +28686,7 @@ pub mod uniswap_v2_router_01 {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     pub struct GetAmountsOutReturn {
         pub amounts: ::std::vec::Vec<::ethers::core::types::U256>,
@@ -28755,7 +28700,7 @@ pub mod uniswap_v2_router_01 {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     pub struct QuoteReturn {
         pub amount_b: ::ethers::core::types::U256,
@@ -28769,7 +28714,7 @@ pub mod uniswap_v2_router_01 {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     pub struct RemoveLiquidityReturn {
         pub amount_a: ::ethers::core::types::U256,
@@ -28784,7 +28729,7 @@ pub mod uniswap_v2_router_01 {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     pub struct RemoveLiquidityETHReturn {
         pub amount_token: ::ethers::core::types::U256,
@@ -28799,7 +28744,7 @@ pub mod uniswap_v2_router_01 {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     pub struct RemoveLiquidityETHWithPermitReturn {
         pub amount_token: ::ethers::core::types::U256,
@@ -28814,7 +28759,7 @@ pub mod uniswap_v2_router_01 {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     pub struct RemoveLiquidityWithPermitReturn {
         pub amount_a: ::ethers::core::types::U256,
@@ -28829,7 +28774,7 @@ pub mod uniswap_v2_router_01 {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     pub struct SwapETHForExactTokensReturn {
         pub amounts: ::std::vec::Vec<::ethers::core::types::U256>,
@@ -28843,7 +28788,7 @@ pub mod uniswap_v2_router_01 {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     pub struct SwapExactETHForTokensReturn {
         pub amounts: ::std::vec::Vec<::ethers::core::types::U256>,
@@ -28857,7 +28802,7 @@ pub mod uniswap_v2_router_01 {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     pub struct SwapExactTokensForETHReturn {
         pub amounts: ::std::vec::Vec<::ethers::core::types::U256>,
@@ -28871,7 +28816,7 @@ pub mod uniswap_v2_router_01 {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     pub struct SwapExactTokensForTokensReturn {
         pub amounts: ::std::vec::Vec<::ethers::core::types::U256>,
@@ -28885,7 +28830,7 @@ pub mod uniswap_v2_router_01 {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     pub struct SwapTokensForExactETHReturn {
         pub amounts: ::std::vec::Vec<::ethers::core::types::U256>,
@@ -28899,7 +28844,7 @@ pub mod uniswap_v2_router_01 {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     pub struct SwapTokensForExactTokensReturn {
         pub amounts: ::std::vec::Vec<::ethers::core::types::U256>,

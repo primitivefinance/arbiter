@@ -1,7 +1,8 @@
 use std::error::Error;
 
 use bindings::{
-    arbiter_token, liquid_exchange, rmm01_portfolio, simple_registry, uniswap_v2_factory, weth9,
+    arbiter_token, liquid_exchange, liquidity_amounts::LiquidityAmounts, rmm01_portfolio,
+    simple_registry, uniswap_v2_factory, uniswap_v2_router_02, weth9,
 };
 use ethers::{
     prelude::U256,
@@ -10,7 +11,7 @@ use ethers::{
 use eyre::Result;
 use revm::primitives::ruint::Uint;
 use simulate::{
-    agent::Agent,
+    agent::{Agent, SimulationEventFilter},
     contract::{IsDeployed, SimulationContract},
     manager::SimulationManager,
     utils::recast_address,
@@ -22,7 +23,8 @@ pub(crate) struct SimulationContracts {
     pub(crate) arbiter_token_x: SimulationContract<IsDeployed>,
     pub(crate) arbiter_token_y: SimulationContract<IsDeployed>,
     pub(crate) liquid_exchange_xy: SimulationContract<IsDeployed>,
-    pub(crate) uniswap: SimulationContract<IsDeployed>,
+    pub(crate) uniswap_factory: SimulationContract<IsDeployed>,
+    pub(crate) uniswap_router: SimulationContract<IsDeployed>,
 }
 
 // pub(crate) fn run(
@@ -70,12 +72,13 @@ pub(crate) fn run(manager: &mut SimulationManager) -> Result<(), Box<dyn Error>>
     println!("---------------------------------------");
     println!("✅ Tokens minted successfully!\n");
 
+    // Create a pair so that we can mint funds to this address properly with allowances.
     println!("🔧 Initializing a pair...");
     println!("---------------------------------------");
     let pair_address = pair_intitalization(manager, &contracts)?;
     println!("---------------------------------------");
     println!(
-        "✅ Pair initialized successfully! Pair Address: {}\n",
+        "✅ Pair initialized successfully!\nPair Address: {}\n",
         pair_address
     );
 
@@ -87,7 +90,7 @@ pub(crate) fn run(manager: &mut SimulationManager) -> Result<(), Box<dyn Error>>
 
     println!("🔧 Allocating funds...");
     println!("---------------------------------------");
-    allocate(manager, &contracts, pair_address)?;
+    allocate(manager, &contracts)?;
     println!("---------------------------------------");
     println!("✅ Funds allocated successfully!\n");
 
@@ -122,15 +125,28 @@ fn deploy_contracts(
     println!("Simple registry deployed at: {}", registry.address);
 
     // Deploy the UniswapV2 Factory contract.
-    let uniswap = SimulationContract::new(
+    let uniswap_factory = SimulationContract::new(
         uniswap_v2_factory::UNISWAPV2FACTORY_ABI.clone(),
         uniswap_v2_factory::UNISWAPV2FACTORY_BYTECODE.clone(),
     );
-    let uniswap_args = (
-        H160::from_low_u64_be(0), // The feeToSetter address is not used in the simulation.
+    let uniswap_factory_args = 
+        H160::from_low_u64_be(0) // The feeToSetter address is not used in the simulation.
+    ;
+    let uniswap_factory =
+        uniswap_factory.deploy(&mut manager.environment, admin, uniswap_factory_args);
+    println!("UniswapV2 Factory deployed at: {}", uniswap_factory.address);
+
+    // Deploy the UniswapV2 Router contract.
+    let uniswap_router = SimulationContract::new(
+        uniswap_v2_router_02::UNISWAPV2ROUTER02_ABI.clone(),
+        uniswap_v2_router_02::UNISWAPV2ROUTER02_BYTECODE.clone(),
     );
-    let uniswap = uniswap.deploy(&mut manager.environment, admin, uniswap_args);
-    println!("UniswapV2 Factory deployed at: {}", uniswap.address);
+    let uniswap_router_args = (
+        recast_address(uniswap_factory.address),
+        recast_address(weth.address),
+    );
+    let uniswap_router =
+        uniswap_router.deploy(&mut manager.environment, admin, uniswap_router_args);
 
     // Deploy Arbiter Tokens
     let arbiter_token = SimulationContract::new(
@@ -167,7 +183,8 @@ fn deploy_contracts(
     Ok(SimulationContracts {
         arbiter_token_x,
         arbiter_token_y,
-        uniswap,
+        uniswap_factory,
+        uniswap_router,
         liquid_exchange_xy,
     })
 }
@@ -181,7 +198,8 @@ fn mint(
     let SimulationContracts {
         arbiter_token_x,
         arbiter_token_y,
-        uniswap: _,
+        uniswap_factory: _,
+        uniswap_router: _,
         liquid_exchange_xy,
     } = contracts;
     // Allocating new tokens to user by calling Arbiter Token's ERC20 'mint' instance.
@@ -261,7 +279,8 @@ fn approve(
     let SimulationContracts {
         arbiter_token_x,
         arbiter_token_y,
-        uniswap,
+        uniswap_factory: _,
+        uniswap_router: _,
         liquid_exchange_xy,
     } = contracts;
     // ~~~ Liquid Exchange ~~~
@@ -296,7 +315,7 @@ fn approve(
     );
 
     // ~~~ Uniswap ~~~
-    // Approve the uniswap to spend the arbitrageur's token_x
+    // Approve the uniswap to spend the arbitrageur's token_x to the pair address
     let approve_token_x_result_arbitrageur = arbitrageur.call_contract(
         &mut manager.environment,
         arbiter_token_x,
@@ -359,7 +378,8 @@ fn pair_intitalization(
     let SimulationContracts {
         arbiter_token_x,
         arbiter_token_y,
-        uniswap,
+        uniswap_factory,
+        uniswap_router: _,
         liquid_exchange_xy: _,
     } = contracts;
 
@@ -372,73 +392,66 @@ fn pair_intitalization(
     };
     let create_pair_result = admin.call_contract(
         &mut manager.environment,
-        uniswap,
-        uniswap.encode_function("createPair", create_pair_args)?,
+        uniswap_factory,
+        uniswap_factory.encode_function("createPair", create_pair_args.clone())?,
         Uint::from(0),
     );
     assert!(create_pair_result.is_success());
     let create_pair_unpack = manager.unpack_execution(create_pair_result)?;
-    let pair_address: Address = uniswap.decode_output("createPair", create_pair_unpack)?;
+    let pair_address: Address = uniswap_factory.decode_output("createPair", create_pair_unpack)?;
     println!("Created Uniswap pair with address: {:#?}", pair_address);
+
+    let event_filter = SimulationEventFilter::new(
+        uniswap_factory,
+        "PairCreated",
+    );
+    
+    while let Ok(logs) = admin.read_logs() {
+        println!("Logs: {:#?}", logs);
+        if logs.len() == 0 {
+            continue;
+        }
+        let event = uniswap_factory.decode_event::<(Address,Address,Address,U256)>("PairCreated", logs[0].clone().topics, logs[0].clone().data);
+        println!("PairCreated event: {:#?}", event);
+    };
     Ok(pair_address)
 }
 
 fn allocate(
     manager: &mut SimulationManager,
     contracts: &SimulationContracts,
-    pool_id: u64,
 ) -> Result<(), Box<dyn Error>> {
     let admin = manager.agents.get("admin").unwrap();
     let SimulationContracts {
-        arbiter_token_x: _,
-        arbiter_token_y: _,
-        uniswap,
+        arbiter_token_x,
+        arbiter_token_y,
+        uniswap_factory: _,
+        uniswap_router,
         liquid_exchange_xy: _,
     } = contracts;
-    // --------------------------------------------------------------------------------------------
-    // PORTFOLIO POOL LIQUIDITY DELTAS
-    // --------------------------------------------------------------------------------------------
     let delta_liquidity = 10_i128.pow(21);
-    let get_liquidity_args = rmm01_portfolio::GetLiquidityDeltasCall {
-        pool_id,
-        delta_liquidity,
+    let add_liquidity_args = uniswap_v2_router_02::AddLiquidityCall {
+        token_a: recast_address(arbiter_token_x.address),
+        token_b: recast_address(arbiter_token_y.address),
+        amount_a_desired: U256::from(delta_liquidity),
+        amount_b_desired: U256::from(delta_liquidity),
+        amount_a_min: U256::from(delta_liquidity),
+        amount_b_min: U256::from(delta_liquidity),
+        to: recast_address(admin.address()),
+        deadline: U256::MAX,
     };
-    let get_liquidity_result = admin.call_contract(
+    let add_liquidity_result = admin.call_contract(
         &mut manager.environment,
-        portfolio,
-        portfolio.encode_function("getLiquidityDeltas", get_liquidity_args)?,
+        uniswap_router,
+        uniswap_router.encode_function("addLiquidity", add_liquidity_args)?, // TODO: We can definitely just combine the 2nd and 3rd inputs
         Uint::from(0),
     );
-    let get_liquidity_unpack = manager.unpack_execution(get_liquidity_result)?;
-    let liquidity_deltas: (u128, u128) =
-        portfolio.decode_output("getLiquidityDeltas", get_liquidity_unpack)?;
+    let add_liquidity_unpack = manager.unpack_execution(add_liquidity_result)?;
+    let (amount_a, amount_b, liquidity): (U256, U256, U256) =
+        uniswap_router.decode_output("addLiquidity", add_liquidity_unpack)?;
     println!(
-        "Liquidity delta is {} for ARBX and {} for ARBY",
-        liquidity_deltas.0, liquidity_deltas.1
-    );
-
-    // --------------------------------------------------------------------------------------------
-    // PORTFOLIO POOL ALLOCATE
-    // --------------------------------------------------------------------------------------------
-    let allocate_args = rmm01_portfolio::AllocateCall {
-        use_max: false,                           // use_max: bool, // Usually set to false?
-        pool_id,                                  // pool_id: u64,
-        delta_liquidity: delta_liquidity as u128, // delta_liquidity: u128,
-        max_delta_asset: liquidity_deltas.0,      // max_delta_asset: u128,
-        max_delta_quote: liquidity_deltas.1,      // max_delta_quote: u128,
-    };
-    let allocate_result = admin.call_contract(
-        &mut manager.environment,
-        portfolio,
-        portfolio.encode_function("allocate", allocate_args)?,
-        Uint::from(0),
-    );
-    assert!(allocate_result.is_success());
-    let unpacked_allocate = manager.unpack_execution(allocate_result)?;
-    let deltas: (u128, u128) = portfolio.decode_output("allocate", unpacked_allocate)?;
-    println!(
-        "Allocated {} ARBX and {} ARBY to Pool {}",
-        deltas.0, deltas.1, pool_id
+        "Add {} ARBX and {} ARBY for {} LP tokens",
+        amount_a, amount_b, liquidity
     );
     Ok(())
 }

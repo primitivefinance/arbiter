@@ -7,16 +7,18 @@ pub use router_event_emitter::*;
     clippy::upper_case_acronyms,
     clippy::type_complexity,
     dead_code,
-    non_camel_case_types
+    non_camel_case_types,
 )]
 pub mod router_event_emitter {
     #[rustfmt::skip]
     const __ABI: &str = "[{\"inputs\":[{\"internalType\":\"uint256[]\",\"name\":\"amounts\",\"type\":\"uint256[]\",\"components\":[],\"indexed\":false}],\"type\":\"event\",\"name\":\"Amounts\",\"outputs\":[],\"anonymous\":false},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"router\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"amountOut\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"address[]\",\"name\":\"path\",\"type\":\"address[]\",\"components\":[]},{\"internalType\":\"address\",\"name\":\"to\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"deadline\",\"type\":\"uint256\",\"components\":[]}],\"stateMutability\":\"payable\",\"type\":\"function\",\"name\":\"swapETHForExactTokens\",\"outputs\":[]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"router\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"amountOutMin\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"address[]\",\"name\":\"path\",\"type\":\"address[]\",\"components\":[]},{\"internalType\":\"address\",\"name\":\"to\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"deadline\",\"type\":\"uint256\",\"components\":[]}],\"stateMutability\":\"payable\",\"type\":\"function\",\"name\":\"swapExactETHForTokens\",\"outputs\":[]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"router\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"amountIn\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"amountOutMin\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"address[]\",\"name\":\"path\",\"type\":\"address[]\",\"components\":[]},{\"internalType\":\"address\",\"name\":\"to\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"deadline\",\"type\":\"uint256\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"function\",\"name\":\"swapExactTokensForETH\",\"outputs\":[]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"router\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"amountIn\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"amountOutMin\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"address[]\",\"name\":\"path\",\"type\":\"address[]\",\"components\":[]},{\"internalType\":\"address\",\"name\":\"to\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"deadline\",\"type\":\"uint256\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"function\",\"name\":\"swapExactTokensForTokens\",\"outputs\":[]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"router\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"amountOut\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"amountInMax\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"address[]\",\"name\":\"path\",\"type\":\"address[]\",\"components\":[]},{\"internalType\":\"address\",\"name\":\"to\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"deadline\",\"type\":\"uint256\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"function\",\"name\":\"swapTokensForExactETH\",\"outputs\":[]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"router\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"amountOut\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"amountInMax\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"address[]\",\"name\":\"path\",\"type\":\"address[]\",\"components\":[]},{\"internalType\":\"address\",\"name\":\"to\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"deadline\",\"type\":\"uint256\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"function\",\"name\":\"swapTokensForExactTokens\",\"outputs\":[]},{\"inputs\":[],\"stateMutability\":\"payable\",\"type\":\"receive\",\"outputs\":[]}]";
     ///The parsed JSON ABI of the contract.
-    pub static ROUTEREVENTEMITTER_ABI: ::ethers::contract::Lazy<::ethers::core::abi::Abi> =
-        ::ethers::contract::Lazy::new(|| {
-            ::ethers::core::utils::__serde_json::from_str(__ABI).expect("ABI is always valid")
-        });
+    pub static ROUTEREVENTEMITTER_ABI: ::ethers::contract::Lazy<
+        ::ethers::core::abi::Abi,
+    > = ::ethers::contract::Lazy::new(|| {
+        ::ethers::core::utils::__serde_json::from_str(__ABI)
+            .expect("ABI is always valid")
+    });
     #[rustfmt::skip]
     const __BYTECODE: &[u8] = &[
         96,
@@ -3298,38 +3300,38 @@ pub mod router_event_emitter {
         34,
         18,
         32,
-        22,
-        181,
-        241,
-        155,
-        197,
-        45,
-        68,
-        132,
-        7,
-        162,
-        120,
-        142,
-        104,
-        24,
-        236,
-        126,
-        187,
-        127,
         192,
-        84,
-        188,
-        244,
-        53,
-        204,
-        146,
-        220,
-        145,
-        181,
-        37,
-        82,
-        2,
+        105,
+        208,
+        63,
+        193,
+        136,
+        78,
+        122,
+        75,
+        184,
+        249,
+        148,
+        18,
         185,
+        101,
+        176,
+        27,
+        191,
+        97,
+        146,
+        251,
+        43,
+        33,
+        126,
+        65,
+        135,
+        252,
+        248,
+        89,
+        143,
+        62,
+        139,
         100,
         115,
         111,
@@ -3343,8 +3345,9 @@ pub mod router_event_emitter {
         51,
     ];
     ///The bytecode of the contract.
-    pub static ROUTEREVENTEMITTER_BYTECODE: ::ethers::core::types::Bytes =
-        ::ethers::core::types::Bytes::from_static(__BYTECODE);
+    pub static ROUTEREVENTEMITTER_BYTECODE: ::ethers::core::types::Bytes = ::ethers::core::types::Bytes::from_static(
+        __BYTECODE,
+    );
     #[rustfmt::skip]
     const __DEPLOYED_BYTECODE: &[u8] = &[
         96,
@@ -6594,38 +6597,38 @@ pub mod router_event_emitter {
         34,
         18,
         32,
-        22,
-        181,
-        241,
-        155,
-        197,
-        45,
-        68,
-        132,
-        7,
-        162,
-        120,
-        142,
-        104,
-        24,
-        236,
-        126,
-        187,
-        127,
         192,
-        84,
-        188,
-        244,
-        53,
-        204,
-        146,
-        220,
-        145,
-        181,
-        37,
-        82,
-        2,
+        105,
+        208,
+        63,
+        193,
+        136,
+        78,
+        122,
+        75,
+        184,
+        249,
+        148,
+        18,
         185,
+        101,
+        176,
+        27,
+        191,
+        97,
+        146,
+        251,
+        43,
+        33,
+        126,
+        65,
+        135,
+        252,
+        248,
+        89,
+        143,
+        62,
+        139,
         100,
         115,
         111,
@@ -6639,8 +6642,9 @@ pub mod router_event_emitter {
         51,
     ];
     ///The deployed bytecode of the contract.
-    pub static ROUTEREVENTEMITTER_DEPLOYED_BYTECODE: ::ethers::core::types::Bytes =
-        ::ethers::core::types::Bytes::from_static(__DEPLOYED_BYTECODE);
+    pub static ROUTEREVENTEMITTER_DEPLOYED_BYTECODE: ::ethers::core::types::Bytes = ::ethers::core::types::Bytes::from_static(
+        __DEPLOYED_BYTECODE,
+    );
     pub struct RouterEventEmitter<M>(::ethers::contract::Contract<M>);
     impl<M> ::core::clone::Clone for RouterEventEmitter<M> {
         fn clone(&self) -> Self {
@@ -6660,9 +6664,7 @@ pub mod router_event_emitter {
     }
     impl<M> ::core::fmt::Debug for RouterEventEmitter<M> {
         fn fmt(&self, f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
-            f.debug_tuple(stringify!(RouterEventEmitter))
-                .field(&self.address())
-                .finish()
+            f.debug_tuple(stringify!(RouterEventEmitter)).field(&self.address()).finish()
         }
     }
     impl<M: ::ethers::providers::Middleware> RouterEventEmitter<M> {
@@ -6672,11 +6674,13 @@ pub mod router_event_emitter {
             address: T,
             client: ::std::sync::Arc<M>,
         ) -> Self {
-            Self(::ethers::contract::Contract::new(
-                address.into(),
-                ROUTEREVENTEMITTER_ABI.clone(),
-                client,
-            ))
+            Self(
+                ::ethers::contract::Contract::new(
+                    address.into(),
+                    ROUTEREVENTEMITTER_ABI.clone(),
+                    client,
+                ),
+            )
         }
         /// Constructs the general purpose `Deployer` instance based on the provided constructor arguments and sends it.
         /// Returns a new instance of a deployer that returns an instance of this contract after sending the transaction
@@ -6727,7 +6731,10 @@ pub mod router_event_emitter {
             deadline: ::ethers::core::types::U256,
         ) -> ::ethers::contract::builders::ContractCall<M, ()> {
             self.0
-                .method_hash([176, 95, 87, 158], (router, amount_out, path, to, deadline))
+                .method_hash(
+                    [176, 95, 87, 158],
+                    (router, amount_out, path, to, deadline),
+                )
                 .expect("method not found (this should never happen)")
         }
         ///Calls the contract's `swapExactETHForTokens` (0xfde1adda) function
@@ -6824,13 +6831,11 @@ pub mod router_event_emitter {
         pub fn events(
             &self,
         ) -> ::ethers::contract::builders::Event<::std::sync::Arc<M>, M, AmountsFilter> {
-            self.0
-                .event_with_filter(::core::default::Default::default())
+            self.0.event_with_filter(::core::default::Default::default())
         }
     }
     impl<M: ::ethers::providers::Middleware> From<::ethers::contract::Contract<M>>
-        for RouterEventEmitter<M>
-    {
+    for RouterEventEmitter<M> {
         fn from(contract: ::ethers::contract::Contract<M>) -> Self {
             Self::new(contract.address(), contract.client())
         }
@@ -6843,7 +6848,7 @@ pub mod router_event_emitter {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethevent(name = "Amounts", abi = "Amounts(uint256[])")]
     pub struct AmountsFilter {
@@ -6858,7 +6863,7 @@ pub mod router_event_emitter {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(
         name = "swapETHForExactTokens",
@@ -6880,7 +6885,7 @@ pub mod router_event_emitter {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(
         name = "swapExactETHForTokens",
@@ -6902,7 +6907,7 @@ pub mod router_event_emitter {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(
         name = "swapExactTokensForETH",
@@ -6925,7 +6930,7 @@ pub mod router_event_emitter {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(
         name = "swapExactTokensForTokens",
@@ -6948,7 +6953,7 @@ pub mod router_event_emitter {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(
         name = "swapTokensForExactETH",
@@ -6971,7 +6976,7 @@ pub mod router_event_emitter {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(
         name = "swapTokensForExactTokens",
@@ -7000,34 +7005,40 @@ pub mod router_event_emitter {
             data: impl AsRef<[u8]>,
         ) -> ::core::result::Result<Self, ::ethers::core::abi::AbiError> {
             let data = data.as_ref();
-            if let Ok(decoded) =
-                <SwapETHForExactTokensCall as ::ethers::core::abi::AbiDecode>::decode(data)
-            {
+            if let Ok(decoded)
+                = <SwapETHForExactTokensCall as ::ethers::core::abi::AbiDecode>::decode(
+                    data,
+                ) {
                 return Ok(Self::SwapETHForExactTokens(decoded));
             }
-            if let Ok(decoded) =
-                <SwapExactETHForTokensCall as ::ethers::core::abi::AbiDecode>::decode(data)
-            {
+            if let Ok(decoded)
+                = <SwapExactETHForTokensCall as ::ethers::core::abi::AbiDecode>::decode(
+                    data,
+                ) {
                 return Ok(Self::SwapExactETHForTokens(decoded));
             }
-            if let Ok(decoded) =
-                <SwapExactTokensForETHCall as ::ethers::core::abi::AbiDecode>::decode(data)
-            {
+            if let Ok(decoded)
+                = <SwapExactTokensForETHCall as ::ethers::core::abi::AbiDecode>::decode(
+                    data,
+                ) {
                 return Ok(Self::SwapExactTokensForETH(decoded));
             }
-            if let Ok(decoded) =
-                <SwapExactTokensForTokensCall as ::ethers::core::abi::AbiDecode>::decode(data)
-            {
+            if let Ok(decoded)
+                = <SwapExactTokensForTokensCall as ::ethers::core::abi::AbiDecode>::decode(
+                    data,
+                ) {
                 return Ok(Self::SwapExactTokensForTokens(decoded));
             }
-            if let Ok(decoded) =
-                <SwapTokensForExactETHCall as ::ethers::core::abi::AbiDecode>::decode(data)
-            {
+            if let Ok(decoded)
+                = <SwapTokensForExactETHCall as ::ethers::core::abi::AbiDecode>::decode(
+                    data,
+                ) {
                 return Ok(Self::SwapTokensForExactETH(decoded));
             }
-            if let Ok(decoded) =
-                <SwapTokensForExactTokensCall as ::ethers::core::abi::AbiDecode>::decode(data)
-            {
+            if let Ok(decoded)
+                = <SwapTokensForExactTokensCall as ::ethers::core::abi::AbiDecode>::decode(
+                    data,
+                ) {
                 return Ok(Self::SwapTokensForExactTokens(decoded));
             }
             Err(::ethers::core::abi::Error::InvalidData.into())
@@ -7060,12 +7071,24 @@ pub mod router_event_emitter {
     impl ::core::fmt::Display for RouterEventEmitterCalls {
         fn fmt(&self, f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
             match self {
-                Self::SwapETHForExactTokens(element) => ::core::fmt::Display::fmt(element, f),
-                Self::SwapExactETHForTokens(element) => ::core::fmt::Display::fmt(element, f),
-                Self::SwapExactTokensForETH(element) => ::core::fmt::Display::fmt(element, f),
-                Self::SwapExactTokensForTokens(element) => ::core::fmt::Display::fmt(element, f),
-                Self::SwapTokensForExactETH(element) => ::core::fmt::Display::fmt(element, f),
-                Self::SwapTokensForExactTokens(element) => ::core::fmt::Display::fmt(element, f),
+                Self::SwapETHForExactTokens(element) => {
+                    ::core::fmt::Display::fmt(element, f)
+                }
+                Self::SwapExactETHForTokens(element) => {
+                    ::core::fmt::Display::fmt(element, f)
+                }
+                Self::SwapExactTokensForETH(element) => {
+                    ::core::fmt::Display::fmt(element, f)
+                }
+                Self::SwapExactTokensForTokens(element) => {
+                    ::core::fmt::Display::fmt(element, f)
+                }
+                Self::SwapTokensForExactETH(element) => {
+                    ::core::fmt::Display::fmt(element, f)
+                }
+                Self::SwapTokensForExactTokens(element) => {
+                    ::core::fmt::Display::fmt(element, f)
+                }
             }
         }
     }
@@ -7084,7 +7107,8 @@ pub mod router_event_emitter {
             Self::SwapExactTokensForETH(value)
         }
     }
-    impl ::core::convert::From<SwapExactTokensForTokensCall> for RouterEventEmitterCalls {
+    impl ::core::convert::From<SwapExactTokensForTokensCall>
+    for RouterEventEmitterCalls {
         fn from(value: SwapExactTokensForTokensCall) -> Self {
             Self::SwapExactTokensForTokens(value)
         }
@@ -7094,7 +7118,8 @@ pub mod router_event_emitter {
             Self::SwapTokensForExactETH(value)
         }
     }
-    impl ::core::convert::From<SwapTokensForExactTokensCall> for RouterEventEmitterCalls {
+    impl ::core::convert::From<SwapTokensForExactTokensCall>
+    for RouterEventEmitterCalls {
         fn from(value: SwapTokensForExactTokensCall) -> Self {
             Self::SwapTokensForExactTokens(value)
         }

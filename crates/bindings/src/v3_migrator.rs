@@ -7,17 +7,15 @@ pub use v3_migrator::*;
     clippy::upper_case_acronyms,
     clippy::type_complexity,
     dead_code,
-    non_camel_case_types
+    non_camel_case_types,
 )]
 pub mod v3_migrator {
     pub use super::super::shared_types::*;
     #[rustfmt::skip]
     const __ABI: &str = "[{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_factory\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"address\",\"name\":\"_WETH9\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"address\",\"name\":\"_nonfungiblePositionManager\",\"type\":\"address\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"constructor\",\"outputs\":[]},{\"inputs\":[],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"WETH9\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"token0\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"address\",\"name\":\"token1\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint24\",\"name\":\"fee\",\"type\":\"uint24\",\"components\":[]},{\"internalType\":\"uint160\",\"name\":\"sqrtPriceX96\",\"type\":\"uint160\",\"components\":[]}],\"stateMutability\":\"payable\",\"type\":\"function\",\"name\":\"createAndInitializePoolIfNecessary\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"pool\",\"type\":\"address\",\"components\":[]}]},{\"inputs\":[],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"factory\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"struct IV3Migrator.MigrateParams\",\"name\":\"params\",\"type\":\"tuple\",\"components\":[{\"internalType\":\"address\",\"name\":\"pair\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"liquidityToMigrate\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"uint8\",\"name\":\"percentageToMigrate\",\"type\":\"uint8\",\"components\":[]},{\"internalType\":\"address\",\"name\":\"token0\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"address\",\"name\":\"token1\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint24\",\"name\":\"fee\",\"type\":\"uint24\",\"components\":[]},{\"internalType\":\"int24\",\"name\":\"tickLower\",\"type\":\"int24\",\"components\":[]},{\"internalType\":\"int24\",\"name\":\"tickUpper\",\"type\":\"int24\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"amount0Min\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"amount1Min\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"address\",\"name\":\"recipient\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"deadline\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"bool\",\"name\":\"refundAsETH\",\"type\":\"bool\",\"components\":[]}]}],\"stateMutability\":\"nonpayable\",\"type\":\"function\",\"name\":\"migrate\",\"outputs\":[]},{\"inputs\":[{\"internalType\":\"bytes[]\",\"name\":\"data\",\"type\":\"bytes[]\",\"components\":[]}],\"stateMutability\":\"payable\",\"type\":\"function\",\"name\":\"multicall\",\"outputs\":[{\"internalType\":\"bytes[]\",\"name\":\"results\",\"type\":\"bytes[]\",\"components\":[]}]},{\"inputs\":[],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"nonfungiblePositionManager\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"token\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"value\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"deadline\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"uint8\",\"name\":\"v\",\"type\":\"uint8\",\"components\":[]},{\"internalType\":\"bytes32\",\"name\":\"r\",\"type\":\"bytes32\",\"components\":[]},{\"internalType\":\"bytes32\",\"name\":\"s\",\"type\":\"bytes32\",\"components\":[]}],\"stateMutability\":\"payable\",\"type\":\"function\",\"name\":\"selfPermit\",\"outputs\":[]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"token\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"nonce\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"expiry\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"uint8\",\"name\":\"v\",\"type\":\"uint8\",\"components\":[]},{\"internalType\":\"bytes32\",\"name\":\"r\",\"type\":\"bytes32\",\"components\":[]},{\"internalType\":\"bytes32\",\"name\":\"s\",\"type\":\"bytes32\",\"components\":[]}],\"stateMutability\":\"payable\",\"type\":\"function\",\"name\":\"selfPermitAllowed\",\"outputs\":[]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"token\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"nonce\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"expiry\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"uint8\",\"name\":\"v\",\"type\":\"uint8\",\"components\":[]},{\"internalType\":\"bytes32\",\"name\":\"r\",\"type\":\"bytes32\",\"components\":[]},{\"internalType\":\"bytes32\",\"name\":\"s\",\"type\":\"bytes32\",\"components\":[]}],\"stateMutability\":\"payable\",\"type\":\"function\",\"name\":\"selfPermitAllowedIfNecessary\",\"outputs\":[]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"token\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"value\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"deadline\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"uint8\",\"name\":\"v\",\"type\":\"uint8\",\"components\":[]},{\"internalType\":\"bytes32\",\"name\":\"r\",\"type\":\"bytes32\",\"components\":[]},{\"internalType\":\"bytes32\",\"name\":\"s\",\"type\":\"bytes32\",\"components\":[]}],\"stateMutability\":\"payable\",\"type\":\"function\",\"name\":\"selfPermitIfNecessary\",\"outputs\":[]},{\"inputs\":[],\"stateMutability\":\"payable\",\"type\":\"receive\",\"outputs\":[]}]";
     ///The parsed JSON ABI of the contract.
-    pub static V3MIGRATOR_ABI: ::ethers::contract::Lazy<::ethers::core::abi::Abi> =
-        ::ethers::contract::Lazy::new(|| {
-            ::ethers::core::utils::__serde_json::from_str(__ABI).expect("ABI is always valid")
-        });
+    pub static V3MIGRATOR_ABI: ::ethers::contract::Lazy<::ethers::core::abi::Abi> = ::ethers::contract::Lazy::new(||
+    ::ethers::core::utils::__serde_json::from_str(__ABI).expect("ABI is always valid"));
     #[rustfmt::skip]
     const __BYTECODE: &[u8] = &[
         96,
@@ -6732,8 +6730,9 @@ pub mod v3_migrator {
         51,
     ];
     ///The bytecode of the contract.
-    pub static V3MIGRATOR_BYTECODE: ::ethers::core::types::Bytes =
-        ::ethers::core::types::Bytes::from_static(__BYTECODE);
+    pub static V3MIGRATOR_BYTECODE: ::ethers::core::types::Bytes = ::ethers::core::types::Bytes::from_static(
+        __BYTECODE,
+    );
     #[rustfmt::skip]
     const __DEPLOYED_BYTECODE: &[u8] = &[
         96,
@@ -13146,8 +13145,9 @@ pub mod v3_migrator {
         51,
     ];
     ///The deployed bytecode of the contract.
-    pub static V3MIGRATOR_DEPLOYED_BYTECODE: ::ethers::core::types::Bytes =
-        ::ethers::core::types::Bytes::from_static(__DEPLOYED_BYTECODE);
+    pub static V3MIGRATOR_DEPLOYED_BYTECODE: ::ethers::core::types::Bytes = ::ethers::core::types::Bytes::from_static(
+        __DEPLOYED_BYTECODE,
+    );
     pub struct V3Migrator<M>(::ethers::contract::Contract<M>);
     impl<M> ::core::clone::Clone for V3Migrator<M> {
         fn clone(&self) -> Self {
@@ -13167,9 +13167,7 @@ pub mod v3_migrator {
     }
     impl<M> ::core::fmt::Debug for V3Migrator<M> {
         fn fmt(&self, f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
-            f.debug_tuple(stringify!(V3Migrator))
-                .field(&self.address())
-                .finish()
+            f.debug_tuple(stringify!(V3Migrator)).field(&self.address()).finish()
         }
     }
     impl<M: ::ethers::providers::Middleware> V3Migrator<M> {
@@ -13179,11 +13177,13 @@ pub mod v3_migrator {
             address: T,
             client: ::std::sync::Arc<M>,
         ) -> Self {
-            Self(::ethers::contract::Contract::new(
-                address.into(),
-                V3MIGRATOR_ABI.clone(),
-                client,
-            ))
+            Self(
+                ::ethers::contract::Contract::new(
+                    address.into(),
+                    V3MIGRATOR_ABI.clone(),
+                    client,
+                ),
+            )
         }
         /// Constructs the general purpose `Deployer` instance based on the provided constructor arguments and sends it.
         /// Returns a new instance of a deployer that returns an instance of this contract after sending the transaction
@@ -13227,7 +13227,10 @@ pub mod v3_migrator {
         ///Calls the contract's `WETH9` (0x4aa4a4fc) function
         pub fn weth9(
             &self,
-        ) -> ::ethers::contract::builders::ContractCall<M, ::ethers::core::types::Address> {
+        ) -> ::ethers::contract::builders::ContractCall<
+            M,
+            ::ethers::core::types::Address,
+        > {
             self.0
                 .method_hash([74, 164, 164, 252], ())
                 .expect("method not found (this should never happen)")
@@ -13239,7 +13242,10 @@ pub mod v3_migrator {
             token_1: ::ethers::core::types::Address,
             fee: u32,
             sqrt_price_x96: ::ethers::core::types::U256,
-        ) -> ::ethers::contract::builders::ContractCall<M, ::ethers::core::types::Address> {
+        ) -> ::ethers::contract::builders::ContractCall<
+            M,
+            ::ethers::core::types::Address,
+        > {
             self.0
                 .method_hash([19, 234, 213, 98], (token_0, token_1, fee, sqrt_price_x96))
                 .expect("method not found (this should never happen)")
@@ -13247,7 +13253,10 @@ pub mod v3_migrator {
         ///Calls the contract's `factory` (0xc45a0155) function
         pub fn factory(
             &self,
-        ) -> ::ethers::contract::builders::ContractCall<M, ::ethers::core::types::Address> {
+        ) -> ::ethers::contract::builders::ContractCall<
+            M,
+            ::ethers::core::types::Address,
+        > {
             self.0
                 .method_hash([196, 90, 1, 85], ())
                 .expect("method not found (this should never happen)")
@@ -13276,7 +13285,10 @@ pub mod v3_migrator {
         ///Calls the contract's `nonfungiblePositionManager` (0xb44a2722) function
         pub fn nonfungible_position_manager(
             &self,
-        ) -> ::ethers::contract::builders::ContractCall<M, ::ethers::core::types::Address> {
+        ) -> ::ethers::contract::builders::ContractCall<
+            M,
+            ::ethers::core::types::Address,
+        > {
             self.0
                 .method_hash([180, 74, 39, 34], ())
                 .expect("method not found (this should never happen)")
@@ -13338,7 +13350,8 @@ pub mod v3_migrator {
                 .expect("method not found (this should never happen)")
         }
     }
-    impl<M: ::ethers::providers::Middleware> From<::ethers::contract::Contract<M>> for V3Migrator<M> {
+    impl<M: ::ethers::providers::Middleware> From<::ethers::contract::Contract<M>>
+    for V3Migrator<M> {
         fn from(contract: ::ethers::contract::Contract<M>) -> Self {
             Self::new(contract.address(), contract.client())
         }
@@ -13352,7 +13365,7 @@ pub mod v3_migrator {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(name = "WETH9", abi = "WETH9()")]
     pub struct Weth9Call;
@@ -13365,7 +13378,7 @@ pub mod v3_migrator {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(
         name = "createAndInitializePoolIfNecessary",
@@ -13386,7 +13399,7 @@ pub mod v3_migrator {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(name = "factory", abi = "factory()")]
     pub struct FactoryCall;
@@ -13408,7 +13421,7 @@ pub mod v3_migrator {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(name = "multicall", abi = "multicall(bytes[])")]
     pub struct MulticallCall {
@@ -13423,12 +13436,9 @@ pub mod v3_migrator {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
-    #[ethcall(
-        name = "nonfungiblePositionManager",
-        abi = "nonfungiblePositionManager()"
-    )]
+    #[ethcall(name = "nonfungiblePositionManager", abi = "nonfungiblePositionManager()")]
     pub struct NonfungiblePositionManagerCall;
     ///Container type for all input parameters for the `selfPermit` function with signature `selfPermit(address,uint256,uint256,uint8,bytes32,bytes32)` and selector `0xf3995c67`
     #[derive(
@@ -13439,7 +13449,7 @@ pub mod v3_migrator {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(
         name = "selfPermit",
@@ -13462,7 +13472,7 @@ pub mod v3_migrator {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(
         name = "selfPermitAllowed",
@@ -13485,7 +13495,7 @@ pub mod v3_migrator {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(
         name = "selfPermitAllowedIfNecessary",
@@ -13508,7 +13518,7 @@ pub mod v3_migrator {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(
         name = "selfPermitIfNecessary",
@@ -13541,46 +13551,54 @@ pub mod v3_migrator {
             data: impl AsRef<[u8]>,
         ) -> ::core::result::Result<Self, ::ethers::core::abi::AbiError> {
             let data = data.as_ref();
-            if let Ok(decoded) = <Weth9Call as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded)
+                = <Weth9Call as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::Weth9(decoded));
             }
-            if let Ok(decoded) =
-                <CreateAndInitializePoolIfNecessaryCall as ::ethers::core::abi::AbiDecode>::decode(
+            if let Ok(decoded)
+                = <CreateAndInitializePoolIfNecessaryCall as ::ethers::core::abi::AbiDecode>::decode(
                     data,
-                )
-            {
+                ) {
                 return Ok(Self::CreateAndInitializePoolIfNecessary(decoded));
             }
-            if let Ok(decoded) = <FactoryCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded)
+                = <FactoryCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::Factory(decoded));
             }
-            if let Ok(decoded) = <MigrateCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded)
+                = <MigrateCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::Migrate(decoded));
             }
-            if let Ok(decoded) = <MulticallCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded)
+                = <MulticallCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::Multicall(decoded));
             }
-            if let Ok(decoded) =
-                <NonfungiblePositionManagerCall as ::ethers::core::abi::AbiDecode>::decode(data)
-            {
+            if let Ok(decoded)
+                = <NonfungiblePositionManagerCall as ::ethers::core::abi::AbiDecode>::decode(
+                    data,
+                ) {
                 return Ok(Self::NonfungiblePositionManager(decoded));
             }
-            if let Ok(decoded) = <SelfPermitCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded)
+                = <SelfPermitCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::SelfPermit(decoded));
             }
-            if let Ok(decoded) =
-                <SelfPermitAllowedCall as ::ethers::core::abi::AbiDecode>::decode(data)
-            {
+            if let Ok(decoded)
+                = <SelfPermitAllowedCall as ::ethers::core::abi::AbiDecode>::decode(
+                    data,
+                ) {
                 return Ok(Self::SelfPermitAllowed(decoded));
             }
-            if let Ok(decoded) =
-                <SelfPermitAllowedIfNecessaryCall as ::ethers::core::abi::AbiDecode>::decode(data)
-            {
+            if let Ok(decoded)
+                = <SelfPermitAllowedIfNecessaryCall as ::ethers::core::abi::AbiDecode>::decode(
+                    data,
+                ) {
                 return Ok(Self::SelfPermitAllowedIfNecessary(decoded));
             }
-            if let Ok(decoded) =
-                <SelfPermitIfNecessaryCall as ::ethers::core::abi::AbiDecode>::decode(data)
-            {
+            if let Ok(decoded)
+                = <SelfPermitIfNecessaryCall as ::ethers::core::abi::AbiDecode>::decode(
+                    data,
+                ) {
                 return Ok(Self::SelfPermitIfNecessary(decoded));
             }
             Err(::ethers::core::abi::Error::InvalidData.into())
@@ -13595,12 +13613,18 @@ pub mod v3_migrator {
                 }
                 Self::Factory(element) => ::ethers::core::abi::AbiEncode::encode(element),
                 Self::Migrate(element) => ::ethers::core::abi::AbiEncode::encode(element),
-                Self::Multicall(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::Multicall(element) => {
+                    ::ethers::core::abi::AbiEncode::encode(element)
+                }
                 Self::NonfungiblePositionManager(element) => {
                     ::ethers::core::abi::AbiEncode::encode(element)
                 }
-                Self::SelfPermit(element) => ::ethers::core::abi::AbiEncode::encode(element),
-                Self::SelfPermitAllowed(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::SelfPermit(element) => {
+                    ::ethers::core::abi::AbiEncode::encode(element)
+                }
+                Self::SelfPermitAllowed(element) => {
+                    ::ethers::core::abi::AbiEncode::encode(element)
+                }
                 Self::SelfPermitAllowedIfNecessary(element) => {
                     ::ethers::core::abi::AbiEncode::encode(element)
                 }
@@ -13620,13 +13644,17 @@ pub mod v3_migrator {
                 Self::Factory(element) => ::core::fmt::Display::fmt(element, f),
                 Self::Migrate(element) => ::core::fmt::Display::fmt(element, f),
                 Self::Multicall(element) => ::core::fmt::Display::fmt(element, f),
-                Self::NonfungiblePositionManager(element) => ::core::fmt::Display::fmt(element, f),
+                Self::NonfungiblePositionManager(element) => {
+                    ::core::fmt::Display::fmt(element, f)
+                }
                 Self::SelfPermit(element) => ::core::fmt::Display::fmt(element, f),
                 Self::SelfPermitAllowed(element) => ::core::fmt::Display::fmt(element, f),
                 Self::SelfPermitAllowedIfNecessary(element) => {
                     ::core::fmt::Display::fmt(element, f)
                 }
-                Self::SelfPermitIfNecessary(element) => ::core::fmt::Display::fmt(element, f),
+                Self::SelfPermitIfNecessary(element) => {
+                    ::core::fmt::Display::fmt(element, f)
+                }
             }
         }
     }
@@ -13635,7 +13663,8 @@ pub mod v3_migrator {
             Self::Weth9(value)
         }
     }
-    impl ::core::convert::From<CreateAndInitializePoolIfNecessaryCall> for V3MigratorCalls {
+    impl ::core::convert::From<CreateAndInitializePoolIfNecessaryCall>
+    for V3MigratorCalls {
         fn from(value: CreateAndInitializePoolIfNecessaryCall) -> Self {
             Self::CreateAndInitializePoolIfNecessary(value)
         }
@@ -13689,7 +13718,7 @@ pub mod v3_migrator {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     pub struct Weth9Return(pub ::ethers::core::types::Address);
     ///Container type for all return fields from the `createAndInitializePoolIfNecessary` function with signature `createAndInitializePoolIfNecessary(address,address,uint24,uint160)` and selector `0x13ead562`
@@ -13701,7 +13730,7 @@ pub mod v3_migrator {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     pub struct CreateAndInitializePoolIfNecessaryReturn {
         pub pool: ::ethers::core::types::Address,
@@ -13715,7 +13744,7 @@ pub mod v3_migrator {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     pub struct FactoryReturn(pub ::ethers::core::types::Address);
     ///Container type for all return fields from the `multicall` function with signature `multicall(bytes[])` and selector `0xac9650d8`
@@ -13727,7 +13756,7 @@ pub mod v3_migrator {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     pub struct MulticallReturn {
         pub results: ::std::vec::Vec<::ethers::core::types::Bytes>,
@@ -13741,7 +13770,7 @@ pub mod v3_migrator {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     pub struct NonfungiblePositionManagerReturn(pub ::ethers::core::types::Address);
 }

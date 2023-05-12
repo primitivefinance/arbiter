@@ -7,16 +7,18 @@ pub use example_sliding_window_oracle::*;
     clippy::upper_case_acronyms,
     clippy::type_complexity,
     dead_code,
-    non_camel_case_types
+    non_camel_case_types,
 )]
 pub mod example_sliding_window_oracle {
     #[rustfmt::skip]
     const __ABI: &str = "[{\"inputs\":[{\"internalType\":\"address\",\"name\":\"factory_\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"windowSize_\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"uint8\",\"name\":\"granularity_\",\"type\":\"uint8\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"constructor\",\"outputs\":[]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"tokenIn\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"amountIn\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"address\",\"name\":\"tokenOut\",\"type\":\"address\",\"components\":[]}],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"consult\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"amountOut\",\"type\":\"uint256\",\"components\":[]}]},{\"inputs\":[],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"factory\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\",\"components\":[]}]},{\"inputs\":[],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"granularity\",\"outputs\":[{\"internalType\":\"uint8\",\"name\":\"\",\"type\":\"uint8\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"timestamp\",\"type\":\"uint256\",\"components\":[]}],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"observationIndexOf\",\"outputs\":[{\"internalType\":\"uint8\",\"name\":\"index\",\"type\":\"uint8\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\",\"components\":[]}],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"pairObservations\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"timestamp\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"price0Cumulative\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"price1Cumulative\",\"type\":\"uint256\",\"components\":[]}]},{\"inputs\":[],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"periodSize\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"tokenA\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"address\",\"name\":\"tokenB\",\"type\":\"address\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"function\",\"name\":\"update\",\"outputs\":[]},{\"inputs\":[],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"windowSize\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\",\"components\":[]}]}]";
     ///The parsed JSON ABI of the contract.
-    pub static EXAMPLESLIDINGWINDOWORACLE_ABI: ::ethers::contract::Lazy<::ethers::core::abi::Abi> =
-        ::ethers::contract::Lazy::new(|| {
-            ::ethers::core::utils::__serde_json::from_str(__ABI).expect("ABI is always valid")
-        });
+    pub static EXAMPLESLIDINGWINDOWORACLE_ABI: ::ethers::contract::Lazy<
+        ::ethers::core::abi::Abi,
+    > = ::ethers::contract::Lazy::new(|| {
+        ::ethers::core::utils::__serde_json::from_str(__ABI)
+            .expect("ABI is always valid")
+    });
     #[rustfmt::skip]
     const __BYTECODE: &[u8] = &[
         97,
@@ -4135,38 +4137,38 @@ pub mod example_sliding_window_oracle {
         34,
         18,
         32,
-        75,
         216,
-        1,
+        164,
+        126,
+        237,
         181,
-        210,
-        169,
+        167,
+        39,
+        118,
+        44,
+        24,
+        130,
+        224,
+        121,
+        218,
         136,
-        154,
-        199,
-        78,
-        28,
-        64,
-        133,
-        132,
-        97,
-        134,
-        54,
-        34,
-        238,
-        132,
-        232,
-        80,
-        221,
-        111,
-        55,
-        236,
-        74,
-        105,
-        139,
-        149,
-        228,
+        120,
+        197,
         247,
+        167,
+        134,
+        208,
+        75,
+        218,
+        147,
+        209,
+        115,
+        233,
+        37,
+        169,
+        186,
+        133,
+        69,
         100,
         115,
         111,
@@ -4228,8 +4230,9 @@ pub mod example_sliding_window_oracle {
         69,
     ];
     ///The bytecode of the contract.
-    pub static EXAMPLESLIDINGWINDOWORACLE_BYTECODE: ::ethers::core::types::Bytes =
-        ::ethers::core::types::Bytes::from_static(__BYTECODE);
+    pub static EXAMPLESLIDINGWINDOWORACLE_BYTECODE: ::ethers::core::types::Bytes = ::ethers::core::types::Bytes::from_static(
+        __BYTECODE,
+    );
     #[rustfmt::skip]
     const __DEPLOYED_BYTECODE: &[u8] = &[
         96,
@@ -7933,38 +7936,38 @@ pub mod example_sliding_window_oracle {
         34,
         18,
         32,
-        75,
         216,
-        1,
+        164,
+        126,
+        237,
         181,
-        210,
-        169,
+        167,
+        39,
+        118,
+        44,
+        24,
+        130,
+        224,
+        121,
+        218,
         136,
-        154,
-        199,
-        78,
-        28,
-        64,
-        133,
-        132,
-        97,
-        134,
-        54,
-        34,
-        238,
-        132,
-        232,
-        80,
-        221,
-        111,
-        55,
-        236,
-        74,
-        105,
-        139,
-        149,
-        228,
+        120,
+        197,
         247,
+        167,
+        134,
+        208,
+        75,
+        218,
+        147,
+        209,
+        115,
+        233,
+        37,
+        169,
+        186,
+        133,
+        69,
         100,
         115,
         111,
@@ -7978,8 +7981,9 @@ pub mod example_sliding_window_oracle {
         51,
     ];
     ///The deployed bytecode of the contract.
-    pub static EXAMPLESLIDINGWINDOWORACLE_DEPLOYED_BYTECODE: ::ethers::core::types::Bytes =
-        ::ethers::core::types::Bytes::from_static(__DEPLOYED_BYTECODE);
+    pub static EXAMPLESLIDINGWINDOWORACLE_DEPLOYED_BYTECODE: ::ethers::core::types::Bytes = ::ethers::core::types::Bytes::from_static(
+        __DEPLOYED_BYTECODE,
+    );
     pub struct ExampleSlidingWindowOracle<M>(::ethers::contract::Contract<M>);
     impl<M> ::core::clone::Clone for ExampleSlidingWindowOracle<M> {
         fn clone(&self) -> Self {
@@ -8011,11 +8015,13 @@ pub mod example_sliding_window_oracle {
             address: T,
             client: ::std::sync::Arc<M>,
         ) -> Self {
-            Self(::ethers::contract::Contract::new(
-                address.into(),
-                EXAMPLESLIDINGWINDOWORACLE_ABI.clone(),
-                client,
-            ))
+            Self(
+                ::ethers::contract::Contract::new(
+                    address.into(),
+                    EXAMPLESLIDINGWINDOWORACLE_ABI.clone(),
+                    client,
+                ),
+            )
         }
         /// Constructs the general purpose `Deployer` instance based on the provided constructor arguments and sends it.
         /// Returns a new instance of a deployer that returns an instance of this contract after sending the transaction
@@ -8070,7 +8076,10 @@ pub mod example_sliding_window_oracle {
         ///Calls the contract's `factory` (0xc45a0155) function
         pub fn factory(
             &self,
-        ) -> ::ethers::contract::builders::ContractCall<M, ::ethers::core::types::Address> {
+        ) -> ::ethers::contract::builders::ContractCall<
+            M,
+            ::ethers::core::types::Address,
+        > {
             self.0
                 .method_hash([196, 90, 1, 85], ())
                 .expect("method not found (this should never happen)")
@@ -8135,8 +8144,7 @@ pub mod example_sliding_window_oracle {
         }
     }
     impl<M: ::ethers::providers::Middleware> From<::ethers::contract::Contract<M>>
-        for ExampleSlidingWindowOracle<M>
-    {
+    for ExampleSlidingWindowOracle<M> {
         fn from(contract: ::ethers::contract::Contract<M>) -> Self {
             Self::new(contract.address(), contract.client())
         }
@@ -8150,7 +8158,7 @@ pub mod example_sliding_window_oracle {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(name = "consult", abi = "consult(address,uint256,address)")]
     pub struct ConsultCall {
@@ -8167,7 +8175,7 @@ pub mod example_sliding_window_oracle {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(name = "factory", abi = "factory()")]
     pub struct FactoryCall;
@@ -8180,7 +8188,7 @@ pub mod example_sliding_window_oracle {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(name = "granularity", abi = "granularity()")]
     pub struct GranularityCall;
@@ -8193,7 +8201,7 @@ pub mod example_sliding_window_oracle {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(name = "observationIndexOf", abi = "observationIndexOf(uint256)")]
     pub struct ObservationIndexOfCall {
@@ -8208,7 +8216,7 @@ pub mod example_sliding_window_oracle {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(name = "pairObservations", abi = "pairObservations(address,uint256)")]
     pub struct PairObservationsCall(
@@ -8224,7 +8232,7 @@ pub mod example_sliding_window_oracle {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(name = "periodSize", abi = "periodSize()")]
     pub struct PeriodSizeCall;
@@ -8237,7 +8245,7 @@ pub mod example_sliding_window_oracle {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(name = "update", abi = "update(address,address)")]
     pub struct UpdateCall {
@@ -8253,7 +8261,7 @@ pub mod example_sliding_window_oracle {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(name = "windowSize", abi = "windowSize()")]
     pub struct WindowSizeCall;
@@ -8274,32 +8282,40 @@ pub mod example_sliding_window_oracle {
             data: impl AsRef<[u8]>,
         ) -> ::core::result::Result<Self, ::ethers::core::abi::AbiError> {
             let data = data.as_ref();
-            if let Ok(decoded) = <ConsultCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded)
+                = <ConsultCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::Consult(decoded));
             }
-            if let Ok(decoded) = <FactoryCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded)
+                = <FactoryCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::Factory(decoded));
             }
-            if let Ok(decoded) = <GranularityCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded)
+                = <GranularityCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::Granularity(decoded));
             }
-            if let Ok(decoded) =
-                <ObservationIndexOfCall as ::ethers::core::abi::AbiDecode>::decode(data)
-            {
+            if let Ok(decoded)
+                = <ObservationIndexOfCall as ::ethers::core::abi::AbiDecode>::decode(
+                    data,
+                ) {
                 return Ok(Self::ObservationIndexOf(decoded));
             }
-            if let Ok(decoded) =
-                <PairObservationsCall as ::ethers::core::abi::AbiDecode>::decode(data)
-            {
+            if let Ok(decoded)
+                = <PairObservationsCall as ::ethers::core::abi::AbiDecode>::decode(
+                    data,
+                ) {
                 return Ok(Self::PairObservations(decoded));
             }
-            if let Ok(decoded) = <PeriodSizeCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded)
+                = <PeriodSizeCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::PeriodSize(decoded));
             }
-            if let Ok(decoded) = <UpdateCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded)
+                = <UpdateCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::Update(decoded));
             }
-            if let Ok(decoded) = <WindowSizeCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded)
+                = <WindowSizeCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::WindowSize(decoded));
             }
             Err(::ethers::core::abi::Error::InvalidData.into())
@@ -8310,14 +8326,22 @@ pub mod example_sliding_window_oracle {
             match self {
                 Self::Consult(element) => ::ethers::core::abi::AbiEncode::encode(element),
                 Self::Factory(element) => ::ethers::core::abi::AbiEncode::encode(element),
-                Self::Granularity(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::Granularity(element) => {
+                    ::ethers::core::abi::AbiEncode::encode(element)
+                }
                 Self::ObservationIndexOf(element) => {
                     ::ethers::core::abi::AbiEncode::encode(element)
                 }
-                Self::PairObservations(element) => ::ethers::core::abi::AbiEncode::encode(element),
-                Self::PeriodSize(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::PairObservations(element) => {
+                    ::ethers::core::abi::AbiEncode::encode(element)
+                }
+                Self::PeriodSize(element) => {
+                    ::ethers::core::abi::AbiEncode::encode(element)
+                }
                 Self::Update(element) => ::ethers::core::abi::AbiEncode::encode(element),
-                Self::WindowSize(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::WindowSize(element) => {
+                    ::ethers::core::abi::AbiEncode::encode(element)
+                }
             }
         }
     }
@@ -8327,7 +8351,9 @@ pub mod example_sliding_window_oracle {
                 Self::Consult(element) => ::core::fmt::Display::fmt(element, f),
                 Self::Factory(element) => ::core::fmt::Display::fmt(element, f),
                 Self::Granularity(element) => ::core::fmt::Display::fmt(element, f),
-                Self::ObservationIndexOf(element) => ::core::fmt::Display::fmt(element, f),
+                Self::ObservationIndexOf(element) => {
+                    ::core::fmt::Display::fmt(element, f)
+                }
                 Self::PairObservations(element) => ::core::fmt::Display::fmt(element, f),
                 Self::PeriodSize(element) => ::core::fmt::Display::fmt(element, f),
                 Self::Update(element) => ::core::fmt::Display::fmt(element, f),
@@ -8350,12 +8376,14 @@ pub mod example_sliding_window_oracle {
             Self::Granularity(value)
         }
     }
-    impl ::core::convert::From<ObservationIndexOfCall> for ExampleSlidingWindowOracleCalls {
+    impl ::core::convert::From<ObservationIndexOfCall>
+    for ExampleSlidingWindowOracleCalls {
         fn from(value: ObservationIndexOfCall) -> Self {
             Self::ObservationIndexOf(value)
         }
     }
-    impl ::core::convert::From<PairObservationsCall> for ExampleSlidingWindowOracleCalls {
+    impl ::core::convert::From<PairObservationsCall>
+    for ExampleSlidingWindowOracleCalls {
         fn from(value: PairObservationsCall) -> Self {
             Self::PairObservations(value)
         }
@@ -8384,7 +8412,7 @@ pub mod example_sliding_window_oracle {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     pub struct ConsultReturn {
         pub amount_out: ::ethers::core::types::U256,
@@ -8398,7 +8426,7 @@ pub mod example_sliding_window_oracle {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     pub struct FactoryReturn(pub ::ethers::core::types::Address);
     ///Container type for all return fields from the `granularity` function with signature `granularity()` and selector `0x556f0dc7`
@@ -8410,7 +8438,7 @@ pub mod example_sliding_window_oracle {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     pub struct GranularityReturn(pub u8);
     ///Container type for all return fields from the `observationIndexOf` function with signature `observationIndexOf(uint256)` and selector `0xdbaad32f`
@@ -8422,7 +8450,7 @@ pub mod example_sliding_window_oracle {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     pub struct ObservationIndexOfReturn {
         pub index: u8,
@@ -8436,7 +8464,7 @@ pub mod example_sliding_window_oracle {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     pub struct PairObservationsReturn {
         pub timestamp: ::ethers::core::types::U256,
@@ -8452,7 +8480,7 @@ pub mod example_sliding_window_oracle {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     pub struct PeriodSizeReturn(pub ::ethers::core::types::U256);
     ///Container type for all return fields from the `windowSize` function with signature `windowSize()` and selector `0x8a14117a`
@@ -8464,7 +8492,7 @@ pub mod example_sliding_window_oracle {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     pub struct WindowSizeReturn(pub ::ethers::core::types::U256);
 }

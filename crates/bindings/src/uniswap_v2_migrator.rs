@@ -7,16 +7,18 @@ pub use uniswap_v2_migrator::*;
     clippy::upper_case_acronyms,
     clippy::type_complexity,
     dead_code,
-    non_camel_case_types
+    non_camel_case_types,
 )]
 pub mod uniswap_v2_migrator {
     #[rustfmt::skip]
     const __ABI: &str = "[{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_factoryV1\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"address\",\"name\":\"_router\",\"type\":\"address\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"constructor\",\"outputs\":[]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"token\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"amountTokenMin\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"amountETHMin\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"address\",\"name\":\"to\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"deadline\",\"type\":\"uint256\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"function\",\"name\":\"migrate\",\"outputs\":[]},{\"inputs\":[],\"stateMutability\":\"payable\",\"type\":\"receive\",\"outputs\":[]}]";
     ///The parsed JSON ABI of the contract.
-    pub static UNISWAPV2MIGRATOR_ABI: ::ethers::contract::Lazy<::ethers::core::abi::Abi> =
-        ::ethers::contract::Lazy::new(|| {
-            ::ethers::core::utils::__serde_json::from_str(__ABI).expect("ABI is always valid")
-        });
+    pub static UNISWAPV2MIGRATOR_ABI: ::ethers::contract::Lazy<
+        ::ethers::core::abi::Abi,
+    > = ::ethers::contract::Lazy::new(|| {
+        ::ethers::core::utils::__serde_json::from_str(__ABI)
+            .expect("ABI is always valid")
+    });
     #[rustfmt::skip]
     const __BYTECODE: &[u8] = &[
         96,
@@ -2348,38 +2350,38 @@ pub mod uniswap_v2_migrator {
         34,
         18,
         32,
-        229,
-        52,
+        5,
+        225,
+        102,
+        248,
+        14,
+        202,
+        87,
         74,
-        4,
-        123,
+        55,
         129,
-        112,
-        129,
-        56,
-        199,
-        32,
-        114,
-        155,
-        23,
-        149,
-        147,
-        132,
-        62,
-        76,
-        16,
-        56,
-        124,
-        41,
+        122,
+        178,
+        25,
         48,
-        216,
-        139,
-        188,
-        43,
-        89,
-        184,
-        230,
-        154,
+        238,
+        152,
+        149,
+        88,
+        201,
+        201,
+        118,
+        45,
+        212,
+        104,
+        11,
+        219,
+        136,
+        50,
+        73,
+        56,
+        203,
+        238,
         100,
         115,
         111,
@@ -2393,8 +2395,9 @@ pub mod uniswap_v2_migrator {
         51,
     ];
     ///The bytecode of the contract.
-    pub static UNISWAPV2MIGRATOR_BYTECODE: ::ethers::core::types::Bytes =
-        ::ethers::core::types::Bytes::from_static(__BYTECODE);
+    pub static UNISWAPV2MIGRATOR_BYTECODE: ::ethers::core::types::Bytes = ::ethers::core::types::Bytes::from_static(
+        __BYTECODE,
+    );
     #[rustfmt::skip]
     const __DEPLOYED_BYTECODE: &[u8] = &[
         96,
@@ -4591,38 +4594,38 @@ pub mod uniswap_v2_migrator {
         34,
         18,
         32,
-        229,
-        52,
+        5,
+        225,
+        102,
+        248,
+        14,
+        202,
+        87,
         74,
-        4,
-        123,
+        55,
         129,
-        112,
-        129,
-        56,
-        199,
-        32,
-        114,
-        155,
-        23,
-        149,
-        147,
-        132,
-        62,
-        76,
-        16,
-        56,
-        124,
-        41,
+        122,
+        178,
+        25,
         48,
-        216,
-        139,
-        188,
-        43,
-        89,
-        184,
-        230,
-        154,
+        238,
+        152,
+        149,
+        88,
+        201,
+        201,
+        118,
+        45,
+        212,
+        104,
+        11,
+        219,
+        136,
+        50,
+        73,
+        56,
+        203,
+        238,
         100,
         115,
         111,
@@ -4636,8 +4639,9 @@ pub mod uniswap_v2_migrator {
         51,
     ];
     ///The deployed bytecode of the contract.
-    pub static UNISWAPV2MIGRATOR_DEPLOYED_BYTECODE: ::ethers::core::types::Bytes =
-        ::ethers::core::types::Bytes::from_static(__DEPLOYED_BYTECODE);
+    pub static UNISWAPV2MIGRATOR_DEPLOYED_BYTECODE: ::ethers::core::types::Bytes = ::ethers::core::types::Bytes::from_static(
+        __DEPLOYED_BYTECODE,
+    );
     pub struct UniswapV2Migrator<M>(::ethers::contract::Contract<M>);
     impl<M> ::core::clone::Clone for UniswapV2Migrator<M> {
         fn clone(&self) -> Self {
@@ -4657,9 +4661,7 @@ pub mod uniswap_v2_migrator {
     }
     impl<M> ::core::fmt::Debug for UniswapV2Migrator<M> {
         fn fmt(&self, f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
-            f.debug_tuple(stringify!(UniswapV2Migrator))
-                .field(&self.address())
-                .finish()
+            f.debug_tuple(stringify!(UniswapV2Migrator)).field(&self.address()).finish()
         }
     }
     impl<M: ::ethers::providers::Middleware> UniswapV2Migrator<M> {
@@ -4669,11 +4671,13 @@ pub mod uniswap_v2_migrator {
             address: T,
             client: ::std::sync::Arc<M>,
         ) -> Self {
-            Self(::ethers::contract::Contract::new(
-                address.into(),
-                UNISWAPV2MIGRATOR_ABI.clone(),
-                client,
-            ))
+            Self(
+                ::ethers::contract::Contract::new(
+                    address.into(),
+                    UNISWAPV2MIGRATOR_ABI.clone(),
+                    client,
+                ),
+            )
         }
         /// Constructs the general purpose `Deployer` instance based on the provided constructor arguments and sends it.
         /// Returns a new instance of a deployer that returns an instance of this contract after sending the transaction
@@ -4732,8 +4736,7 @@ pub mod uniswap_v2_migrator {
         }
     }
     impl<M: ::ethers::providers::Middleware> From<::ethers::contract::Contract<M>>
-        for UniswapV2Migrator<M>
-    {
+    for UniswapV2Migrator<M> {
         fn from(contract: ::ethers::contract::Contract<M>) -> Self {
             Self::new(contract.address(), contract.client())
         }
@@ -4747,7 +4750,7 @@ pub mod uniswap_v2_migrator {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(
         name = "migrate",

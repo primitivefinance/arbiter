@@ -7,7 +7,7 @@ pub use mock_time_nonfungible_position_manager::*;
     clippy::upper_case_acronyms,
     clippy::type_complexity,
     dead_code,
-    non_camel_case_types
+    non_camel_case_types,
 )]
 pub mod mock_time_nonfungible_position_manager {
     pub use super::super::shared_types::*;
@@ -17,7 +17,8 @@ pub mod mock_time_nonfungible_position_manager {
     pub static MOCKTIMENONFUNGIBLEPOSITIONMANAGER_ABI: ::ethers::contract::Lazy<
         ::ethers::core::abi::Abi,
     > = ::ethers::contract::Lazy::new(|| {
-        ::ethers::core::utils::__serde_json::from_str(__ABI).expect("ABI is always valid")
+        ::ethers::core::utils::__serde_json::from_str(__ABI)
+            .expect("ABI is always valid")
     });
     #[rustfmt::skip]
     const __BYTECODE: &[u8] = &[
@@ -23981,8 +23982,9 @@ pub mod mock_time_nonfungible_position_manager {
         51,
     ];
     ///The bytecode of the contract.
-    pub static MOCKTIMENONFUNGIBLEPOSITIONMANAGER_BYTECODE: ::ethers::core::types::Bytes =
-        ::ethers::core::types::Bytes::from_static(__BYTECODE);
+    pub static MOCKTIMENONFUNGIBLEPOSITIONMANAGER_BYTECODE: ::ethers::core::types::Bytes = ::ethers::core::types::Bytes::from_static(
+        __BYTECODE,
+    );
     #[rustfmt::skip]
     const __DEPLOYED_BYTECODE: &[u8] = &[
         96,
@@ -47002,8 +47004,9 @@ pub mod mock_time_nonfungible_position_manager {
         51,
     ];
     ///The deployed bytecode of the contract.
-    pub static MOCKTIMENONFUNGIBLEPOSITIONMANAGER_DEPLOYED_BYTECODE: ::ethers::core::types::Bytes =
-        ::ethers::core::types::Bytes::from_static(__DEPLOYED_BYTECODE);
+    pub static MOCKTIMENONFUNGIBLEPOSITIONMANAGER_DEPLOYED_BYTECODE: ::ethers::core::types::Bytes = ::ethers::core::types::Bytes::from_static(
+        __DEPLOYED_BYTECODE,
+    );
     pub struct MockTimeNonfungiblePositionManager<M>(::ethers::contract::Contract<M>);
     impl<M> ::core::clone::Clone for MockTimeNonfungiblePositionManager<M> {
         fn clone(&self) -> Self {
@@ -47035,11 +47038,13 @@ pub mod mock_time_nonfungible_position_manager {
             address: T,
             client: ::std::sync::Arc<M>,
         ) -> Self {
-            Self(::ethers::contract::Contract::new(
-                address.into(),
-                MOCKTIMENONFUNGIBLEPOSITIONMANAGER_ABI.clone(),
-                client,
-            ))
+            Self(
+                ::ethers::contract::Contract::new(
+                    address.into(),
+                    MOCKTIMENONFUNGIBLEPOSITIONMANAGER_ABI.clone(),
+                    client,
+                ),
+            )
         }
         /// Constructs the general purpose `Deployer` instance based on the provided constructor arguments and sends it.
         /// Returns a new instance of a deployer that returns an instance of this contract after sending the transaction
@@ -47081,13 +47086,17 @@ pub mod mock_time_nonfungible_position_manager {
             Ok(deployer)
         }
         ///Calls the contract's `DOMAIN_SEPARATOR` (0x3644e515) function
-        pub fn domain_separator(&self) -> ::ethers::contract::builders::ContractCall<M, [u8; 32]> {
+        pub fn domain_separator(
+            &self,
+        ) -> ::ethers::contract::builders::ContractCall<M, [u8; 32]> {
             self.0
                 .method_hash([54, 68, 229, 21], ())
                 .expect("method not found (this should never happen)")
         }
         ///Calls the contract's `PERMIT_TYPEHASH` (0x30adf81f) function
-        pub fn permit_typehash(&self) -> ::ethers::contract::builders::ContractCall<M, [u8; 32]> {
+        pub fn permit_typehash(
+            &self,
+        ) -> ::ethers::contract::builders::ContractCall<M, [u8; 32]> {
             self.0
                 .method_hash([48, 173, 248, 31], ())
                 .expect("method not found (this should never happen)")
@@ -47095,7 +47104,10 @@ pub mod mock_time_nonfungible_position_manager {
         ///Calls the contract's `WETH9` (0x4aa4a4fc) function
         pub fn weth9(
             &self,
-        ) -> ::ethers::contract::builders::ContractCall<M, ::ethers::core::types::Address> {
+        ) -> ::ethers::contract::builders::ContractCall<
+            M,
+            ::ethers::core::types::Address,
+        > {
             self.0
                 .method_hash([74, 164, 164, 252], ())
                 .expect("method not found (this should never happen)")
@@ -47155,7 +47167,10 @@ pub mod mock_time_nonfungible_position_manager {
             token_1: ::ethers::core::types::Address,
             fee: u32,
             sqrt_price_x96: ::ethers::core::types::U256,
-        ) -> ::ethers::contract::builders::ContractCall<M, ::ethers::core::types::Address> {
+        ) -> ::ethers::contract::builders::ContractCall<
+            M,
+            ::ethers::core::types::Address,
+        > {
             self.0
                 .method_hash([19, 234, 213, 98], (token_0, token_1, fee, sqrt_price_x96))
                 .expect("method not found (this should never happen)")
@@ -47175,7 +47190,10 @@ pub mod mock_time_nonfungible_position_manager {
         ///Calls the contract's `factory` (0xc45a0155) function
         pub fn factory(
             &self,
-        ) -> ::ethers::contract::builders::ContractCall<M, ::ethers::core::types::Address> {
+        ) -> ::ethers::contract::builders::ContractCall<
+            M,
+            ::ethers::core::types::Address,
+        > {
             self.0
                 .method_hash([196, 90, 1, 85], ())
                 .expect("method not found (this should never happen)")
@@ -47184,7 +47202,10 @@ pub mod mock_time_nonfungible_position_manager {
         pub fn get_approved(
             &self,
             token_id: ::ethers::core::types::U256,
-        ) -> ::ethers::contract::builders::ContractCall<M, ::ethers::core::types::Address> {
+        ) -> ::ethers::contract::builders::ContractCall<
+            M,
+            ::ethers::core::types::Address,
+        > {
             self.0
                 .method_hash([8, 24, 18, 252], token_id)
                 .expect("method not found (this should never happen)")
@@ -47195,11 +47216,7 @@ pub mod mock_time_nonfungible_position_manager {
             params: IncreaseLiquidityParams,
         ) -> ::ethers::contract::builders::ContractCall<
             M,
-            (
-                u128,
-                ::ethers::core::types::U256,
-                ::ethers::core::types::U256,
-            ),
+            (u128, ::ethers::core::types::U256, ::ethers::core::types::U256),
         > {
             self.0
                 .method_hash([33, 159, 93, 23], (params,))
@@ -47245,7 +47262,9 @@ pub mod mock_time_nonfungible_position_manager {
                 .expect("method not found (this should never happen)")
         }
         ///Calls the contract's `name` (0x06fdde03) function
-        pub fn name(&self) -> ::ethers::contract::builders::ContractCall<M, ::std::string::String> {
+        pub fn name(
+            &self,
+        ) -> ::ethers::contract::builders::ContractCall<M, ::std::string::String> {
             self.0
                 .method_hash([6, 253, 222, 3], ())
                 .expect("method not found (this should never happen)")
@@ -47254,7 +47273,10 @@ pub mod mock_time_nonfungible_position_manager {
         pub fn owner_of(
             &self,
             token_id: ::ethers::core::types::U256,
-        ) -> ::ethers::contract::builders::ContractCall<M, ::ethers::core::types::Address> {
+        ) -> ::ethers::contract::builders::ContractCall<
+            M,
+            ::ethers::core::types::Address,
+        > {
             self.0
                 .method_hash([99, 82, 33, 30], token_id)
                 .expect("method not found (this should never happen)")
@@ -47270,7 +47292,10 @@ pub mod mock_time_nonfungible_position_manager {
             s: [u8; 32],
         ) -> ::ethers::contract::builders::ContractCall<M, ()> {
             self.0
-                .method_hash([122, 194, 255, 123], (spender, token_id, deadline, v, r, s))
+                .method_hash(
+                    [122, 194, 255, 123],
+                    (spender, token_id, deadline, v, r, s),
+                )
                 .expect("method not found (this should never happen)")
         }
         ///Calls the contract's `positions` (0x99fbab88) function
@@ -47501,14 +47526,21 @@ pub mod mock_time_nonfungible_position_manager {
         ///Gets the contract's `Approval` event
         pub fn approval_filter(
             &self,
-        ) -> ::ethers::contract::builders::Event<::std::sync::Arc<M>, M, ApprovalFilter> {
+        ) -> ::ethers::contract::builders::Event<
+            ::std::sync::Arc<M>,
+            M,
+            ApprovalFilter,
+        > {
             self.0.event()
         }
         ///Gets the contract's `ApprovalForAll` event
         pub fn approval_for_all_filter(
             &self,
-        ) -> ::ethers::contract::builders::Event<::std::sync::Arc<M>, M, ApprovalForAllFilter>
-        {
+        ) -> ::ethers::contract::builders::Event<
+            ::std::sync::Arc<M>,
+            M,
+            ApprovalForAllFilter,
+        > {
             self.0.event()
         }
         ///Gets the contract's `Collect` event
@@ -47520,21 +47552,31 @@ pub mod mock_time_nonfungible_position_manager {
         ///Gets the contract's `DecreaseLiquidity` event
         pub fn decrease_liquidity_filter(
             &self,
-        ) -> ::ethers::contract::builders::Event<::std::sync::Arc<M>, M, DecreaseLiquidityFilter>
-        {
+        ) -> ::ethers::contract::builders::Event<
+            ::std::sync::Arc<M>,
+            M,
+            DecreaseLiquidityFilter,
+        > {
             self.0.event()
         }
         ///Gets the contract's `IncreaseLiquidity` event
         pub fn increase_liquidity_filter(
             &self,
-        ) -> ::ethers::contract::builders::Event<::std::sync::Arc<M>, M, IncreaseLiquidityFilter>
-        {
+        ) -> ::ethers::contract::builders::Event<
+            ::std::sync::Arc<M>,
+            M,
+            IncreaseLiquidityFilter,
+        > {
             self.0.event()
         }
         ///Gets the contract's `Transfer` event
         pub fn transfer_filter(
             &self,
-        ) -> ::ethers::contract::builders::Event<::std::sync::Arc<M>, M, TransferFilter> {
+        ) -> ::ethers::contract::builders::Event<
+            ::std::sync::Arc<M>,
+            M,
+            TransferFilter,
+        > {
             self.0.event()
         }
         /// Returns an `Event` builder for all the events of this contract.
@@ -47545,13 +47587,11 @@ pub mod mock_time_nonfungible_position_manager {
             M,
             MockTimeNonfungiblePositionManagerEvents,
         > {
-            self.0
-                .event_with_filter(::core::default::Default::default())
+            self.0.event_with_filter(::core::default::Default::default())
         }
     }
     impl<M: ::ethers::providers::Middleware> From<::ethers::contract::Contract<M>>
-        for MockTimeNonfungiblePositionManager<M>
-    {
+    for MockTimeNonfungiblePositionManager<M> {
         fn from(contract: ::ethers::contract::Contract<M>) -> Self {
             Self::new(contract.address(), contract.client())
         }
@@ -47564,7 +47604,7 @@ pub mod mock_time_nonfungible_position_manager {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethevent(name = "Approval", abi = "Approval(address,address,uint256)")]
     pub struct ApprovalFilter {
@@ -47583,7 +47623,7 @@ pub mod mock_time_nonfungible_position_manager {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethevent(name = "ApprovalForAll", abi = "ApprovalForAll(address,address,bool)")]
     pub struct ApprovalForAllFilter {
@@ -47601,7 +47641,7 @@ pub mod mock_time_nonfungible_position_manager {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethevent(name = "Collect", abi = "Collect(uint256,address,uint256,uint256)")]
     pub struct CollectFilter {
@@ -47619,7 +47659,7 @@ pub mod mock_time_nonfungible_position_manager {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethevent(
         name = "DecreaseLiquidity",
@@ -47640,7 +47680,7 @@ pub mod mock_time_nonfungible_position_manager {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethevent(
         name = "IncreaseLiquidity",
@@ -47661,7 +47701,7 @@ pub mod mock_time_nonfungible_position_manager {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethevent(name = "Transfer", abi = "Transfer(address,address,uint256)")]
     pub struct TransferFilter {
@@ -47687,32 +47727,40 @@ pub mod mock_time_nonfungible_position_manager {
             log: &::ethers::core::abi::RawLog,
         ) -> ::core::result::Result<Self, ::ethers::core::abi::Error> {
             if let Ok(decoded) = ApprovalFilter::decode_log(log) {
-                return Ok(MockTimeNonfungiblePositionManagerEvents::ApprovalFilter(
-                    decoded,
-                ));
+                return Ok(
+                    MockTimeNonfungiblePositionManagerEvents::ApprovalFilter(decoded),
+                );
             }
             if let Ok(decoded) = ApprovalForAllFilter::decode_log(log) {
-                return Ok(MockTimeNonfungiblePositionManagerEvents::ApprovalForAllFilter(decoded));
+                return Ok(
+                    MockTimeNonfungiblePositionManagerEvents::ApprovalForAllFilter(
+                        decoded,
+                    ),
+                );
             }
             if let Ok(decoded) = CollectFilter::decode_log(log) {
-                return Ok(MockTimeNonfungiblePositionManagerEvents::CollectFilter(
-                    decoded,
-                ));
+                return Ok(
+                    MockTimeNonfungiblePositionManagerEvents::CollectFilter(decoded),
+                );
             }
             if let Ok(decoded) = DecreaseLiquidityFilter::decode_log(log) {
                 return Ok(
-                    MockTimeNonfungiblePositionManagerEvents::DecreaseLiquidityFilter(decoded),
+                    MockTimeNonfungiblePositionManagerEvents::DecreaseLiquidityFilter(
+                        decoded,
+                    ),
                 );
             }
             if let Ok(decoded) = IncreaseLiquidityFilter::decode_log(log) {
                 return Ok(
-                    MockTimeNonfungiblePositionManagerEvents::IncreaseLiquidityFilter(decoded),
+                    MockTimeNonfungiblePositionManagerEvents::IncreaseLiquidityFilter(
+                        decoded,
+                    ),
                 );
             }
             if let Ok(decoded) = TransferFilter::decode_log(log) {
-                return Ok(MockTimeNonfungiblePositionManagerEvents::TransferFilter(
-                    decoded,
-                ));
+                return Ok(
+                    MockTimeNonfungiblePositionManagerEvents::TransferFilter(decoded),
+                );
             }
             Err(::ethers::core::abi::Error::InvalidData)
         }
@@ -47721,40 +47769,52 @@ pub mod mock_time_nonfungible_position_manager {
         fn fmt(&self, f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
             match self {
                 Self::ApprovalFilter(element) => ::core::fmt::Display::fmt(element, f),
-                Self::ApprovalForAllFilter(element) => ::core::fmt::Display::fmt(element, f),
+                Self::ApprovalForAllFilter(element) => {
+                    ::core::fmt::Display::fmt(element, f)
+                }
                 Self::CollectFilter(element) => ::core::fmt::Display::fmt(element, f),
-                Self::DecreaseLiquidityFilter(element) => ::core::fmt::Display::fmt(element, f),
-                Self::IncreaseLiquidityFilter(element) => ::core::fmt::Display::fmt(element, f),
+                Self::DecreaseLiquidityFilter(element) => {
+                    ::core::fmt::Display::fmt(element, f)
+                }
+                Self::IncreaseLiquidityFilter(element) => {
+                    ::core::fmt::Display::fmt(element, f)
+                }
                 Self::TransferFilter(element) => ::core::fmt::Display::fmt(element, f),
             }
         }
     }
-    impl ::core::convert::From<ApprovalFilter> for MockTimeNonfungiblePositionManagerEvents {
+    impl ::core::convert::From<ApprovalFilter>
+    for MockTimeNonfungiblePositionManagerEvents {
         fn from(value: ApprovalFilter) -> Self {
             Self::ApprovalFilter(value)
         }
     }
-    impl ::core::convert::From<ApprovalForAllFilter> for MockTimeNonfungiblePositionManagerEvents {
+    impl ::core::convert::From<ApprovalForAllFilter>
+    for MockTimeNonfungiblePositionManagerEvents {
         fn from(value: ApprovalForAllFilter) -> Self {
             Self::ApprovalForAllFilter(value)
         }
     }
-    impl ::core::convert::From<CollectFilter> for MockTimeNonfungiblePositionManagerEvents {
+    impl ::core::convert::From<CollectFilter>
+    for MockTimeNonfungiblePositionManagerEvents {
         fn from(value: CollectFilter) -> Self {
             Self::CollectFilter(value)
         }
     }
-    impl ::core::convert::From<DecreaseLiquidityFilter> for MockTimeNonfungiblePositionManagerEvents {
+    impl ::core::convert::From<DecreaseLiquidityFilter>
+    for MockTimeNonfungiblePositionManagerEvents {
         fn from(value: DecreaseLiquidityFilter) -> Self {
             Self::DecreaseLiquidityFilter(value)
         }
     }
-    impl ::core::convert::From<IncreaseLiquidityFilter> for MockTimeNonfungiblePositionManagerEvents {
+    impl ::core::convert::From<IncreaseLiquidityFilter>
+    for MockTimeNonfungiblePositionManagerEvents {
         fn from(value: IncreaseLiquidityFilter) -> Self {
             Self::IncreaseLiquidityFilter(value)
         }
     }
-    impl ::core::convert::From<TransferFilter> for MockTimeNonfungiblePositionManagerEvents {
+    impl ::core::convert::From<TransferFilter>
+    for MockTimeNonfungiblePositionManagerEvents {
         fn from(value: TransferFilter) -> Self {
             Self::TransferFilter(value)
         }
@@ -47768,7 +47828,7 @@ pub mod mock_time_nonfungible_position_manager {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(name = "DOMAIN_SEPARATOR", abi = "DOMAIN_SEPARATOR()")]
     pub struct DomainSeparatorCall;
@@ -47781,7 +47841,7 @@ pub mod mock_time_nonfungible_position_manager {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(name = "PERMIT_TYPEHASH", abi = "PERMIT_TYPEHASH()")]
     pub struct PermitTypehashCall;
@@ -47794,7 +47854,7 @@ pub mod mock_time_nonfungible_position_manager {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(name = "WETH9", abi = "WETH9()")]
     pub struct Weth9Call;
@@ -47807,7 +47867,7 @@ pub mod mock_time_nonfungible_position_manager {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(name = "approve", abi = "approve(address,uint256)")]
     pub struct ApproveCall {
@@ -47823,7 +47883,7 @@ pub mod mock_time_nonfungible_position_manager {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(name = "balanceOf", abi = "balanceOf(address)")]
     pub struct BalanceOfCall {
@@ -47838,7 +47898,7 @@ pub mod mock_time_nonfungible_position_manager {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(name = "baseURI", abi = "baseURI()")]
     pub struct BaseURICall;
@@ -47851,7 +47911,7 @@ pub mod mock_time_nonfungible_position_manager {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(name = "burn", abi = "burn(uint256)")]
     pub struct BurnCall {
@@ -47866,7 +47926,7 @@ pub mod mock_time_nonfungible_position_manager {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(name = "collect", abi = "collect((uint256,address,uint128,uint128))")]
     pub struct CollectCall {
@@ -47881,7 +47941,7 @@ pub mod mock_time_nonfungible_position_manager {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(
         name = "createAndInitializePoolIfNecessary",
@@ -47902,7 +47962,7 @@ pub mod mock_time_nonfungible_position_manager {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(
         name = "decreaseLiquidity",
@@ -47920,7 +47980,7 @@ pub mod mock_time_nonfungible_position_manager {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(name = "factory", abi = "factory()")]
     pub struct FactoryCall;
@@ -47933,7 +47993,7 @@ pub mod mock_time_nonfungible_position_manager {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(name = "getApproved", abi = "getApproved(uint256)")]
     pub struct GetApprovedCall {
@@ -47948,7 +48008,7 @@ pub mod mock_time_nonfungible_position_manager {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(
         name = "increaseLiquidity",
@@ -47966,7 +48026,7 @@ pub mod mock_time_nonfungible_position_manager {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(name = "isApprovedForAll", abi = "isApprovedForAll(address,address)")]
     pub struct IsApprovedForAllCall {
@@ -47982,7 +48042,7 @@ pub mod mock_time_nonfungible_position_manager {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(
         name = "mint",
@@ -48000,7 +48060,7 @@ pub mod mock_time_nonfungible_position_manager {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(name = "multicall", abi = "multicall(bytes[])")]
     pub struct MulticallCall {
@@ -48015,7 +48075,7 @@ pub mod mock_time_nonfungible_position_manager {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(name = "name", abi = "name()")]
     pub struct NameCall;
@@ -48028,7 +48088,7 @@ pub mod mock_time_nonfungible_position_manager {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(name = "ownerOf", abi = "ownerOf(uint256)")]
     pub struct OwnerOfCall {
@@ -48043,7 +48103,7 @@ pub mod mock_time_nonfungible_position_manager {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(
         name = "permit",
@@ -48066,7 +48126,7 @@ pub mod mock_time_nonfungible_position_manager {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(name = "positions", abi = "positions(uint256)")]
     pub struct PositionsCall {
@@ -48081,7 +48141,7 @@ pub mod mock_time_nonfungible_position_manager {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(name = "refundETH", abi = "refundETH()")]
     pub struct RefundETHCall;
@@ -48094,7 +48154,7 @@ pub mod mock_time_nonfungible_position_manager {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(
         name = "safeTransferFrom",
@@ -48114,7 +48174,7 @@ pub mod mock_time_nonfungible_position_manager {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(
         name = "safeTransferFrom",
@@ -48135,7 +48195,7 @@ pub mod mock_time_nonfungible_position_manager {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(
         name = "selfPermit",
@@ -48158,7 +48218,7 @@ pub mod mock_time_nonfungible_position_manager {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(
         name = "selfPermitAllowed",
@@ -48181,7 +48241,7 @@ pub mod mock_time_nonfungible_position_manager {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(
         name = "selfPermitAllowedIfNecessary",
@@ -48204,7 +48264,7 @@ pub mod mock_time_nonfungible_position_manager {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(
         name = "selfPermitIfNecessary",
@@ -48227,7 +48287,7 @@ pub mod mock_time_nonfungible_position_manager {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(name = "setApprovalForAll", abi = "setApprovalForAll(address,bool)")]
     pub struct SetApprovalForAllCall {
@@ -48243,7 +48303,7 @@ pub mod mock_time_nonfungible_position_manager {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(name = "setTime", abi = "setTime(uint256)")]
     pub struct SetTimeCall {
@@ -48258,7 +48318,7 @@ pub mod mock_time_nonfungible_position_manager {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(name = "supportsInterface", abi = "supportsInterface(bytes4)")]
     pub struct SupportsInterfaceCall {
@@ -48273,7 +48333,7 @@ pub mod mock_time_nonfungible_position_manager {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(name = "sweepToken", abi = "sweepToken(address,uint256,address)")]
     pub struct SweepTokenCall {
@@ -48290,7 +48350,7 @@ pub mod mock_time_nonfungible_position_manager {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(name = "symbol", abi = "symbol()")]
     pub struct SymbolCall;
@@ -48303,7 +48363,7 @@ pub mod mock_time_nonfungible_position_manager {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(name = "tokenByIndex", abi = "tokenByIndex(uint256)")]
     pub struct TokenByIndexCall {
@@ -48318,7 +48378,7 @@ pub mod mock_time_nonfungible_position_manager {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(
         name = "tokenOfOwnerByIndex",
@@ -48337,7 +48397,7 @@ pub mod mock_time_nonfungible_position_manager {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(name = "tokenURI", abi = "tokenURI(uint256)")]
     pub struct TokenURICall {
@@ -48352,7 +48412,7 @@ pub mod mock_time_nonfungible_position_manager {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(name = "totalSupply", abi = "totalSupply()")]
     pub struct TotalSupplyCall;
@@ -48365,7 +48425,7 @@ pub mod mock_time_nonfungible_position_manager {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(name = "transferFrom", abi = "transferFrom(address,address,uint256)")]
     pub struct TransferFromCall {
@@ -48382,7 +48442,7 @@ pub mod mock_time_nonfungible_position_manager {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(
         name = "uniswapV3MintCallback",
@@ -48402,7 +48462,7 @@ pub mod mock_time_nonfungible_position_manager {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(name = "unwrapWETH9", abi = "unwrapWETH9(uint256,address)")]
     pub struct UnwrapWETH9Call {
@@ -48457,157 +48517,186 @@ pub mod mock_time_nonfungible_position_manager {
             data: impl AsRef<[u8]>,
         ) -> ::core::result::Result<Self, ::ethers::core::abi::AbiError> {
             let data = data.as_ref();
-            if let Ok(decoded) =
-                <DomainSeparatorCall as ::ethers::core::abi::AbiDecode>::decode(data)
-            {
+            if let Ok(decoded)
+                = <DomainSeparatorCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::DomainSeparator(decoded));
             }
-            if let Ok(decoded) =
-                <PermitTypehashCall as ::ethers::core::abi::AbiDecode>::decode(data)
-            {
+            if let Ok(decoded)
+                = <PermitTypehashCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::PermitTypehash(decoded));
             }
-            if let Ok(decoded) = <Weth9Call as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded)
+                = <Weth9Call as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::Weth9(decoded));
             }
-            if let Ok(decoded) = <ApproveCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded)
+                = <ApproveCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::Approve(decoded));
             }
-            if let Ok(decoded) = <BalanceOfCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded)
+                = <BalanceOfCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::BalanceOf(decoded));
             }
-            if let Ok(decoded) = <BaseURICall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded)
+                = <BaseURICall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::BaseURI(decoded));
             }
-            if let Ok(decoded) = <BurnCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded)
+                = <BurnCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::Burn(decoded));
             }
-            if let Ok(decoded) = <CollectCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded)
+                = <CollectCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::Collect(decoded));
             }
-            if let Ok(decoded) =
-                <CreateAndInitializePoolIfNecessaryCall as ::ethers::core::abi::AbiDecode>::decode(
+            if let Ok(decoded)
+                = <CreateAndInitializePoolIfNecessaryCall as ::ethers::core::abi::AbiDecode>::decode(
                     data,
-                )
-            {
+                ) {
                 return Ok(Self::CreateAndInitializePoolIfNecessary(decoded));
             }
-            if let Ok(decoded) =
-                <DecreaseLiquidityCall as ::ethers::core::abi::AbiDecode>::decode(data)
-            {
+            if let Ok(decoded)
+                = <DecreaseLiquidityCall as ::ethers::core::abi::AbiDecode>::decode(
+                    data,
+                ) {
                 return Ok(Self::DecreaseLiquidity(decoded));
             }
-            if let Ok(decoded) = <FactoryCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded)
+                = <FactoryCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::Factory(decoded));
             }
-            if let Ok(decoded) = <GetApprovedCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded)
+                = <GetApprovedCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::GetApproved(decoded));
             }
-            if let Ok(decoded) =
-                <IncreaseLiquidityCall as ::ethers::core::abi::AbiDecode>::decode(data)
-            {
+            if let Ok(decoded)
+                = <IncreaseLiquidityCall as ::ethers::core::abi::AbiDecode>::decode(
+                    data,
+                ) {
                 return Ok(Self::IncreaseLiquidity(decoded));
             }
-            if let Ok(decoded) =
-                <IsApprovedForAllCall as ::ethers::core::abi::AbiDecode>::decode(data)
-            {
+            if let Ok(decoded)
+                = <IsApprovedForAllCall as ::ethers::core::abi::AbiDecode>::decode(
+                    data,
+                ) {
                 return Ok(Self::IsApprovedForAll(decoded));
             }
-            if let Ok(decoded) = <MintCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded)
+                = <MintCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::Mint(decoded));
             }
-            if let Ok(decoded) = <MulticallCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded)
+                = <MulticallCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::Multicall(decoded));
             }
-            if let Ok(decoded) = <NameCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded)
+                = <NameCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::Name(decoded));
             }
-            if let Ok(decoded) = <OwnerOfCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded)
+                = <OwnerOfCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::OwnerOf(decoded));
             }
-            if let Ok(decoded) = <PermitCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded)
+                = <PermitCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::Permit(decoded));
             }
-            if let Ok(decoded) = <PositionsCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded)
+                = <PositionsCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::Positions(decoded));
             }
-            if let Ok(decoded) = <RefundETHCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded)
+                = <RefundETHCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::RefundETH(decoded));
             }
-            if let Ok(decoded) =
-                <SafeTransferFromCall as ::ethers::core::abi::AbiDecode>::decode(data)
-            {
+            if let Ok(decoded)
+                = <SafeTransferFromCall as ::ethers::core::abi::AbiDecode>::decode(
+                    data,
+                ) {
                 return Ok(Self::SafeTransferFrom(decoded));
             }
-            if let Ok(decoded) =
-                <SafeTransferFromWithFromAndToAndDataCall as ::ethers::core::abi::AbiDecode>::decode(
+            if let Ok(decoded)
+                = <SafeTransferFromWithFromAndToAndDataCall as ::ethers::core::abi::AbiDecode>::decode(
                     data,
-                )
-            {
+                ) {
                 return Ok(Self::SafeTransferFromWithFromAndToAndData(decoded));
             }
-            if let Ok(decoded) = <SelfPermitCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded)
+                = <SelfPermitCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::SelfPermit(decoded));
             }
-            if let Ok(decoded) =
-                <SelfPermitAllowedCall as ::ethers::core::abi::AbiDecode>::decode(data)
-            {
+            if let Ok(decoded)
+                = <SelfPermitAllowedCall as ::ethers::core::abi::AbiDecode>::decode(
+                    data,
+                ) {
                 return Ok(Self::SelfPermitAllowed(decoded));
             }
-            if let Ok(decoded) =
-                <SelfPermitAllowedIfNecessaryCall as ::ethers::core::abi::AbiDecode>::decode(data)
-            {
+            if let Ok(decoded)
+                = <SelfPermitAllowedIfNecessaryCall as ::ethers::core::abi::AbiDecode>::decode(
+                    data,
+                ) {
                 return Ok(Self::SelfPermitAllowedIfNecessary(decoded));
             }
-            if let Ok(decoded) =
-                <SelfPermitIfNecessaryCall as ::ethers::core::abi::AbiDecode>::decode(data)
-            {
+            if let Ok(decoded)
+                = <SelfPermitIfNecessaryCall as ::ethers::core::abi::AbiDecode>::decode(
+                    data,
+                ) {
                 return Ok(Self::SelfPermitIfNecessary(decoded));
             }
-            if let Ok(decoded) =
-                <SetApprovalForAllCall as ::ethers::core::abi::AbiDecode>::decode(data)
-            {
+            if let Ok(decoded)
+                = <SetApprovalForAllCall as ::ethers::core::abi::AbiDecode>::decode(
+                    data,
+                ) {
                 return Ok(Self::SetApprovalForAll(decoded));
             }
-            if let Ok(decoded) = <SetTimeCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded)
+                = <SetTimeCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::SetTime(decoded));
             }
-            if let Ok(decoded) =
-                <SupportsInterfaceCall as ::ethers::core::abi::AbiDecode>::decode(data)
-            {
+            if let Ok(decoded)
+                = <SupportsInterfaceCall as ::ethers::core::abi::AbiDecode>::decode(
+                    data,
+                ) {
                 return Ok(Self::SupportsInterface(decoded));
             }
-            if let Ok(decoded) = <SweepTokenCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded)
+                = <SweepTokenCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::SweepToken(decoded));
             }
-            if let Ok(decoded) = <SymbolCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded)
+                = <SymbolCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::Symbol(decoded));
             }
-            if let Ok(decoded) = <TokenByIndexCall as ::ethers::core::abi::AbiDecode>::decode(data)
-            {
+            if let Ok(decoded)
+                = <TokenByIndexCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::TokenByIndex(decoded));
             }
-            if let Ok(decoded) =
-                <TokenOfOwnerByIndexCall as ::ethers::core::abi::AbiDecode>::decode(data)
-            {
+            if let Ok(decoded)
+                = <TokenOfOwnerByIndexCall as ::ethers::core::abi::AbiDecode>::decode(
+                    data,
+                ) {
                 return Ok(Self::TokenOfOwnerByIndex(decoded));
             }
-            if let Ok(decoded) = <TokenURICall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded)
+                = <TokenURICall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::TokenURI(decoded));
             }
-            if let Ok(decoded) = <TotalSupplyCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded)
+                = <TotalSupplyCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::TotalSupply(decoded));
             }
-            if let Ok(decoded) = <TransferFromCall as ::ethers::core::abi::AbiDecode>::decode(data)
-            {
+            if let Ok(decoded)
+                = <TransferFromCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::TransferFrom(decoded));
             }
-            if let Ok(decoded) =
-                <UniswapV3MintCallbackCall as ::ethers::core::abi::AbiDecode>::decode(data)
-            {
+            if let Ok(decoded)
+                = <UniswapV3MintCallbackCall as ::ethers::core::abi::AbiDecode>::decode(
+                    data,
+                ) {
                 return Ok(Self::UniswapV3MintCallback(decoded));
             }
-            if let Ok(decoded) = <UnwrapWETH9Call as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded)
+                = <UnwrapWETH9Call as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::UnwrapWETH9(decoded));
             }
             Err(::ethers::core::abi::Error::InvalidData.into())
@@ -48616,57 +48705,99 @@ pub mod mock_time_nonfungible_position_manager {
     impl ::ethers::core::abi::AbiEncode for MockTimeNonfungiblePositionManagerCalls {
         fn encode(self) -> Vec<u8> {
             match self {
-                Self::DomainSeparator(element) => ::ethers::core::abi::AbiEncode::encode(element),
-                Self::PermitTypehash(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::DomainSeparator(element) => {
+                    ::ethers::core::abi::AbiEncode::encode(element)
+                }
+                Self::PermitTypehash(element) => {
+                    ::ethers::core::abi::AbiEncode::encode(element)
+                }
                 Self::Weth9(element) => ::ethers::core::abi::AbiEncode::encode(element),
                 Self::Approve(element) => ::ethers::core::abi::AbiEncode::encode(element),
-                Self::BalanceOf(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::BalanceOf(element) => {
+                    ::ethers::core::abi::AbiEncode::encode(element)
+                }
                 Self::BaseURI(element) => ::ethers::core::abi::AbiEncode::encode(element),
                 Self::Burn(element) => ::ethers::core::abi::AbiEncode::encode(element),
                 Self::Collect(element) => ::ethers::core::abi::AbiEncode::encode(element),
                 Self::CreateAndInitializePoolIfNecessary(element) => {
                     ::ethers::core::abi::AbiEncode::encode(element)
                 }
-                Self::DecreaseLiquidity(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::DecreaseLiquidity(element) => {
+                    ::ethers::core::abi::AbiEncode::encode(element)
+                }
                 Self::Factory(element) => ::ethers::core::abi::AbiEncode::encode(element),
-                Self::GetApproved(element) => ::ethers::core::abi::AbiEncode::encode(element),
-                Self::IncreaseLiquidity(element) => ::ethers::core::abi::AbiEncode::encode(element),
-                Self::IsApprovedForAll(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::GetApproved(element) => {
+                    ::ethers::core::abi::AbiEncode::encode(element)
+                }
+                Self::IncreaseLiquidity(element) => {
+                    ::ethers::core::abi::AbiEncode::encode(element)
+                }
+                Self::IsApprovedForAll(element) => {
+                    ::ethers::core::abi::AbiEncode::encode(element)
+                }
                 Self::Mint(element) => ::ethers::core::abi::AbiEncode::encode(element),
-                Self::Multicall(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::Multicall(element) => {
+                    ::ethers::core::abi::AbiEncode::encode(element)
+                }
                 Self::Name(element) => ::ethers::core::abi::AbiEncode::encode(element),
                 Self::OwnerOf(element) => ::ethers::core::abi::AbiEncode::encode(element),
                 Self::Permit(element) => ::ethers::core::abi::AbiEncode::encode(element),
-                Self::Positions(element) => ::ethers::core::abi::AbiEncode::encode(element),
-                Self::RefundETH(element) => ::ethers::core::abi::AbiEncode::encode(element),
-                Self::SafeTransferFrom(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::Positions(element) => {
+                    ::ethers::core::abi::AbiEncode::encode(element)
+                }
+                Self::RefundETH(element) => {
+                    ::ethers::core::abi::AbiEncode::encode(element)
+                }
+                Self::SafeTransferFrom(element) => {
+                    ::ethers::core::abi::AbiEncode::encode(element)
+                }
                 Self::SafeTransferFromWithFromAndToAndData(element) => {
                     ::ethers::core::abi::AbiEncode::encode(element)
                 }
-                Self::SelfPermit(element) => ::ethers::core::abi::AbiEncode::encode(element),
-                Self::SelfPermitAllowed(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::SelfPermit(element) => {
+                    ::ethers::core::abi::AbiEncode::encode(element)
+                }
+                Self::SelfPermitAllowed(element) => {
+                    ::ethers::core::abi::AbiEncode::encode(element)
+                }
                 Self::SelfPermitAllowedIfNecessary(element) => {
                     ::ethers::core::abi::AbiEncode::encode(element)
                 }
                 Self::SelfPermitIfNecessary(element) => {
                     ::ethers::core::abi::AbiEncode::encode(element)
                 }
-                Self::SetApprovalForAll(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::SetApprovalForAll(element) => {
+                    ::ethers::core::abi::AbiEncode::encode(element)
+                }
                 Self::SetTime(element) => ::ethers::core::abi::AbiEncode::encode(element),
-                Self::SupportsInterface(element) => ::ethers::core::abi::AbiEncode::encode(element),
-                Self::SweepToken(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::SupportsInterface(element) => {
+                    ::ethers::core::abi::AbiEncode::encode(element)
+                }
+                Self::SweepToken(element) => {
+                    ::ethers::core::abi::AbiEncode::encode(element)
+                }
                 Self::Symbol(element) => ::ethers::core::abi::AbiEncode::encode(element),
-                Self::TokenByIndex(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::TokenByIndex(element) => {
+                    ::ethers::core::abi::AbiEncode::encode(element)
+                }
                 Self::TokenOfOwnerByIndex(element) => {
                     ::ethers::core::abi::AbiEncode::encode(element)
                 }
-                Self::TokenURI(element) => ::ethers::core::abi::AbiEncode::encode(element),
-                Self::TotalSupply(element) => ::ethers::core::abi::AbiEncode::encode(element),
-                Self::TransferFrom(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::TokenURI(element) => {
+                    ::ethers::core::abi::AbiEncode::encode(element)
+                }
+                Self::TotalSupply(element) => {
+                    ::ethers::core::abi::AbiEncode::encode(element)
+                }
+                Self::TransferFrom(element) => {
+                    ::ethers::core::abi::AbiEncode::encode(element)
+                }
                 Self::UniswapV3MintCallback(element) => {
                     ::ethers::core::abi::AbiEncode::encode(element)
                 }
-                Self::UnwrapWETH9(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::UnwrapWETH9(element) => {
+                    ::ethers::core::abi::AbiEncode::encode(element)
+                }
             }
         }
     }
@@ -48705,28 +48836,36 @@ pub mod mock_time_nonfungible_position_manager {
                 Self::SelfPermitAllowedIfNecessary(element) => {
                     ::core::fmt::Display::fmt(element, f)
                 }
-                Self::SelfPermitIfNecessary(element) => ::core::fmt::Display::fmt(element, f),
+                Self::SelfPermitIfNecessary(element) => {
+                    ::core::fmt::Display::fmt(element, f)
+                }
                 Self::SetApprovalForAll(element) => ::core::fmt::Display::fmt(element, f),
                 Self::SetTime(element) => ::core::fmt::Display::fmt(element, f),
                 Self::SupportsInterface(element) => ::core::fmt::Display::fmt(element, f),
                 Self::SweepToken(element) => ::core::fmt::Display::fmt(element, f),
                 Self::Symbol(element) => ::core::fmt::Display::fmt(element, f),
                 Self::TokenByIndex(element) => ::core::fmt::Display::fmt(element, f),
-                Self::TokenOfOwnerByIndex(element) => ::core::fmt::Display::fmt(element, f),
+                Self::TokenOfOwnerByIndex(element) => {
+                    ::core::fmt::Display::fmt(element, f)
+                }
                 Self::TokenURI(element) => ::core::fmt::Display::fmt(element, f),
                 Self::TotalSupply(element) => ::core::fmt::Display::fmt(element, f),
                 Self::TransferFrom(element) => ::core::fmt::Display::fmt(element, f),
-                Self::UniswapV3MintCallback(element) => ::core::fmt::Display::fmt(element, f),
+                Self::UniswapV3MintCallback(element) => {
+                    ::core::fmt::Display::fmt(element, f)
+                }
                 Self::UnwrapWETH9(element) => ::core::fmt::Display::fmt(element, f),
             }
         }
     }
-    impl ::core::convert::From<DomainSeparatorCall> for MockTimeNonfungiblePositionManagerCalls {
+    impl ::core::convert::From<DomainSeparatorCall>
+    for MockTimeNonfungiblePositionManagerCalls {
         fn from(value: DomainSeparatorCall) -> Self {
             Self::DomainSeparator(value)
         }
     }
-    impl ::core::convert::From<PermitTypehashCall> for MockTimeNonfungiblePositionManagerCalls {
+    impl ::core::convert::From<PermitTypehashCall>
+    for MockTimeNonfungiblePositionManagerCalls {
         fn from(value: PermitTypehashCall) -> Self {
             Self::PermitTypehash(value)
         }
@@ -48741,7 +48880,8 @@ pub mod mock_time_nonfungible_position_manager {
             Self::Approve(value)
         }
     }
-    impl ::core::convert::From<BalanceOfCall> for MockTimeNonfungiblePositionManagerCalls {
+    impl ::core::convert::From<BalanceOfCall>
+    for MockTimeNonfungiblePositionManagerCalls {
         fn from(value: BalanceOfCall) -> Self {
             Self::BalanceOf(value)
         }
@@ -48762,13 +48902,13 @@ pub mod mock_time_nonfungible_position_manager {
         }
     }
     impl ::core::convert::From<CreateAndInitializePoolIfNecessaryCall>
-        for MockTimeNonfungiblePositionManagerCalls
-    {
+    for MockTimeNonfungiblePositionManagerCalls {
         fn from(value: CreateAndInitializePoolIfNecessaryCall) -> Self {
             Self::CreateAndInitializePoolIfNecessary(value)
         }
     }
-    impl ::core::convert::From<DecreaseLiquidityCall> for MockTimeNonfungiblePositionManagerCalls {
+    impl ::core::convert::From<DecreaseLiquidityCall>
+    for MockTimeNonfungiblePositionManagerCalls {
         fn from(value: DecreaseLiquidityCall) -> Self {
             Self::DecreaseLiquidity(value)
         }
@@ -48778,17 +48918,20 @@ pub mod mock_time_nonfungible_position_manager {
             Self::Factory(value)
         }
     }
-    impl ::core::convert::From<GetApprovedCall> for MockTimeNonfungiblePositionManagerCalls {
+    impl ::core::convert::From<GetApprovedCall>
+    for MockTimeNonfungiblePositionManagerCalls {
         fn from(value: GetApprovedCall) -> Self {
             Self::GetApproved(value)
         }
     }
-    impl ::core::convert::From<IncreaseLiquidityCall> for MockTimeNonfungiblePositionManagerCalls {
+    impl ::core::convert::From<IncreaseLiquidityCall>
+    for MockTimeNonfungiblePositionManagerCalls {
         fn from(value: IncreaseLiquidityCall) -> Self {
             Self::IncreaseLiquidity(value)
         }
     }
-    impl ::core::convert::From<IsApprovedForAllCall> for MockTimeNonfungiblePositionManagerCalls {
+    impl ::core::convert::From<IsApprovedForAllCall>
+    for MockTimeNonfungiblePositionManagerCalls {
         fn from(value: IsApprovedForAllCall) -> Self {
             Self::IsApprovedForAll(value)
         }
@@ -48798,7 +48941,8 @@ pub mod mock_time_nonfungible_position_manager {
             Self::Mint(value)
         }
     }
-    impl ::core::convert::From<MulticallCall> for MockTimeNonfungiblePositionManagerCalls {
+    impl ::core::convert::From<MulticallCall>
+    for MockTimeNonfungiblePositionManagerCalls {
         fn from(value: MulticallCall) -> Self {
             Self::Multicall(value)
         }
@@ -48818,51 +48962,56 @@ pub mod mock_time_nonfungible_position_manager {
             Self::Permit(value)
         }
     }
-    impl ::core::convert::From<PositionsCall> for MockTimeNonfungiblePositionManagerCalls {
+    impl ::core::convert::From<PositionsCall>
+    for MockTimeNonfungiblePositionManagerCalls {
         fn from(value: PositionsCall) -> Self {
             Self::Positions(value)
         }
     }
-    impl ::core::convert::From<RefundETHCall> for MockTimeNonfungiblePositionManagerCalls {
+    impl ::core::convert::From<RefundETHCall>
+    for MockTimeNonfungiblePositionManagerCalls {
         fn from(value: RefundETHCall) -> Self {
             Self::RefundETH(value)
         }
     }
-    impl ::core::convert::From<SafeTransferFromCall> for MockTimeNonfungiblePositionManagerCalls {
+    impl ::core::convert::From<SafeTransferFromCall>
+    for MockTimeNonfungiblePositionManagerCalls {
         fn from(value: SafeTransferFromCall) -> Self {
             Self::SafeTransferFrom(value)
         }
     }
     impl ::core::convert::From<SafeTransferFromWithFromAndToAndDataCall>
-        for MockTimeNonfungiblePositionManagerCalls
-    {
+    for MockTimeNonfungiblePositionManagerCalls {
         fn from(value: SafeTransferFromWithFromAndToAndDataCall) -> Self {
             Self::SafeTransferFromWithFromAndToAndData(value)
         }
     }
-    impl ::core::convert::From<SelfPermitCall> for MockTimeNonfungiblePositionManagerCalls {
+    impl ::core::convert::From<SelfPermitCall>
+    for MockTimeNonfungiblePositionManagerCalls {
         fn from(value: SelfPermitCall) -> Self {
             Self::SelfPermit(value)
         }
     }
-    impl ::core::convert::From<SelfPermitAllowedCall> for MockTimeNonfungiblePositionManagerCalls {
+    impl ::core::convert::From<SelfPermitAllowedCall>
+    for MockTimeNonfungiblePositionManagerCalls {
         fn from(value: SelfPermitAllowedCall) -> Self {
             Self::SelfPermitAllowed(value)
         }
     }
     impl ::core::convert::From<SelfPermitAllowedIfNecessaryCall>
-        for MockTimeNonfungiblePositionManagerCalls
-    {
+    for MockTimeNonfungiblePositionManagerCalls {
         fn from(value: SelfPermitAllowedIfNecessaryCall) -> Self {
             Self::SelfPermitAllowedIfNecessary(value)
         }
     }
-    impl ::core::convert::From<SelfPermitIfNecessaryCall> for MockTimeNonfungiblePositionManagerCalls {
+    impl ::core::convert::From<SelfPermitIfNecessaryCall>
+    for MockTimeNonfungiblePositionManagerCalls {
         fn from(value: SelfPermitIfNecessaryCall) -> Self {
             Self::SelfPermitIfNecessary(value)
         }
     }
-    impl ::core::convert::From<SetApprovalForAllCall> for MockTimeNonfungiblePositionManagerCalls {
+    impl ::core::convert::From<SetApprovalForAllCall>
+    for MockTimeNonfungiblePositionManagerCalls {
         fn from(value: SetApprovalForAllCall) -> Self {
             Self::SetApprovalForAll(value)
         }
@@ -48872,12 +49021,14 @@ pub mod mock_time_nonfungible_position_manager {
             Self::SetTime(value)
         }
     }
-    impl ::core::convert::From<SupportsInterfaceCall> for MockTimeNonfungiblePositionManagerCalls {
+    impl ::core::convert::From<SupportsInterfaceCall>
+    for MockTimeNonfungiblePositionManagerCalls {
         fn from(value: SupportsInterfaceCall) -> Self {
             Self::SupportsInterface(value)
         }
     }
-    impl ::core::convert::From<SweepTokenCall> for MockTimeNonfungiblePositionManagerCalls {
+    impl ::core::convert::From<SweepTokenCall>
+    for MockTimeNonfungiblePositionManagerCalls {
         fn from(value: SweepTokenCall) -> Self {
             Self::SweepToken(value)
         }
@@ -48887,37 +49038,44 @@ pub mod mock_time_nonfungible_position_manager {
             Self::Symbol(value)
         }
     }
-    impl ::core::convert::From<TokenByIndexCall> for MockTimeNonfungiblePositionManagerCalls {
+    impl ::core::convert::From<TokenByIndexCall>
+    for MockTimeNonfungiblePositionManagerCalls {
         fn from(value: TokenByIndexCall) -> Self {
             Self::TokenByIndex(value)
         }
     }
-    impl ::core::convert::From<TokenOfOwnerByIndexCall> for MockTimeNonfungiblePositionManagerCalls {
+    impl ::core::convert::From<TokenOfOwnerByIndexCall>
+    for MockTimeNonfungiblePositionManagerCalls {
         fn from(value: TokenOfOwnerByIndexCall) -> Self {
             Self::TokenOfOwnerByIndex(value)
         }
     }
-    impl ::core::convert::From<TokenURICall> for MockTimeNonfungiblePositionManagerCalls {
+    impl ::core::convert::From<TokenURICall>
+    for MockTimeNonfungiblePositionManagerCalls {
         fn from(value: TokenURICall) -> Self {
             Self::TokenURI(value)
         }
     }
-    impl ::core::convert::From<TotalSupplyCall> for MockTimeNonfungiblePositionManagerCalls {
+    impl ::core::convert::From<TotalSupplyCall>
+    for MockTimeNonfungiblePositionManagerCalls {
         fn from(value: TotalSupplyCall) -> Self {
             Self::TotalSupply(value)
         }
     }
-    impl ::core::convert::From<TransferFromCall> for MockTimeNonfungiblePositionManagerCalls {
+    impl ::core::convert::From<TransferFromCall>
+    for MockTimeNonfungiblePositionManagerCalls {
         fn from(value: TransferFromCall) -> Self {
             Self::TransferFrom(value)
         }
     }
-    impl ::core::convert::From<UniswapV3MintCallbackCall> for MockTimeNonfungiblePositionManagerCalls {
+    impl ::core::convert::From<UniswapV3MintCallbackCall>
+    for MockTimeNonfungiblePositionManagerCalls {
         fn from(value: UniswapV3MintCallbackCall) -> Self {
             Self::UniswapV3MintCallback(value)
         }
     }
-    impl ::core::convert::From<UnwrapWETH9Call> for MockTimeNonfungiblePositionManagerCalls {
+    impl ::core::convert::From<UnwrapWETH9Call>
+    for MockTimeNonfungiblePositionManagerCalls {
         fn from(value: UnwrapWETH9Call) -> Self {
             Self::UnwrapWETH9(value)
         }
@@ -48931,7 +49089,7 @@ pub mod mock_time_nonfungible_position_manager {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     pub struct DomainSeparatorReturn(pub [u8; 32]);
     ///Container type for all return fields from the `PERMIT_TYPEHASH` function with signature `PERMIT_TYPEHASH()` and selector `0x30adf81f`
@@ -48943,7 +49101,7 @@ pub mod mock_time_nonfungible_position_manager {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     pub struct PermitTypehashReturn(pub [u8; 32]);
     ///Container type for all return fields from the `WETH9` function with signature `WETH9()` and selector `0x4aa4a4fc`
@@ -48955,7 +49113,7 @@ pub mod mock_time_nonfungible_position_manager {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     pub struct Weth9Return(pub ::ethers::core::types::Address);
     ///Container type for all return fields from the `balanceOf` function with signature `balanceOf(address)` and selector `0x70a08231`
@@ -48967,7 +49125,7 @@ pub mod mock_time_nonfungible_position_manager {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     pub struct BalanceOfReturn(pub ::ethers::core::types::U256);
     ///Container type for all return fields from the `baseURI` function with signature `baseURI()` and selector `0x6c0360eb`
@@ -48979,7 +49137,7 @@ pub mod mock_time_nonfungible_position_manager {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     pub struct BaseURIReturn(pub ::std::string::String);
     ///Container type for all return fields from the `collect` function with signature `collect((uint256,address,uint128,uint128))` and selector `0xfc6f7865`
@@ -48991,7 +49149,7 @@ pub mod mock_time_nonfungible_position_manager {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     pub struct CollectReturn {
         pub amount_0: ::ethers::core::types::U256,
@@ -49006,7 +49164,7 @@ pub mod mock_time_nonfungible_position_manager {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     pub struct CreateAndInitializePoolIfNecessaryReturn {
         pub pool: ::ethers::core::types::Address,
@@ -49020,7 +49178,7 @@ pub mod mock_time_nonfungible_position_manager {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     pub struct DecreaseLiquidityReturn {
         pub amount_0: ::ethers::core::types::U256,
@@ -49035,7 +49193,7 @@ pub mod mock_time_nonfungible_position_manager {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     pub struct FactoryReturn(pub ::ethers::core::types::Address);
     ///Container type for all return fields from the `getApproved` function with signature `getApproved(uint256)` and selector `0x081812fc`
@@ -49047,7 +49205,7 @@ pub mod mock_time_nonfungible_position_manager {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     pub struct GetApprovedReturn(pub ::ethers::core::types::Address);
     ///Container type for all return fields from the `increaseLiquidity` function with signature `increaseLiquidity((uint256,uint256,uint256,uint256,uint256,uint256))` and selector `0x219f5d17`
@@ -49059,7 +49217,7 @@ pub mod mock_time_nonfungible_position_manager {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     pub struct IncreaseLiquidityReturn {
         pub liquidity: u128,
@@ -49075,7 +49233,7 @@ pub mod mock_time_nonfungible_position_manager {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     pub struct IsApprovedForAllReturn(pub bool);
     ///Container type for all return fields from the `mint` function with signature `mint((address,address,uint24,int24,int24,uint256,uint256,uint256,uint256,address,uint256))` and selector `0x88316456`
@@ -49087,7 +49245,7 @@ pub mod mock_time_nonfungible_position_manager {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     pub struct MintReturn {
         pub token_id: ::ethers::core::types::U256,
@@ -49104,7 +49262,7 @@ pub mod mock_time_nonfungible_position_manager {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     pub struct MulticallReturn {
         pub results: ::std::vec::Vec<::ethers::core::types::Bytes>,
@@ -49118,7 +49276,7 @@ pub mod mock_time_nonfungible_position_manager {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     pub struct NameReturn(pub ::std::string::String);
     ///Container type for all return fields from the `ownerOf` function with signature `ownerOf(uint256)` and selector `0x6352211e`
@@ -49130,7 +49288,7 @@ pub mod mock_time_nonfungible_position_manager {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     pub struct OwnerOfReturn(pub ::ethers::core::types::Address);
     ///Container type for all return fields from the `positions` function with signature `positions(uint256)` and selector `0x99fbab88`
@@ -49142,7 +49300,7 @@ pub mod mock_time_nonfungible_position_manager {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     pub struct PositionsReturn {
         pub nonce: u128,
@@ -49167,7 +49325,7 @@ pub mod mock_time_nonfungible_position_manager {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     pub struct SupportsInterfaceReturn(pub bool);
     ///Container type for all return fields from the `symbol` function with signature `symbol()` and selector `0x95d89b41`
@@ -49179,7 +49337,7 @@ pub mod mock_time_nonfungible_position_manager {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     pub struct SymbolReturn(pub ::std::string::String);
     ///Container type for all return fields from the `tokenByIndex` function with signature `tokenByIndex(uint256)` and selector `0x4f6ccce7`
@@ -49191,7 +49349,7 @@ pub mod mock_time_nonfungible_position_manager {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     pub struct TokenByIndexReturn(pub ::ethers::core::types::U256);
     ///Container type for all return fields from the `tokenOfOwnerByIndex` function with signature `tokenOfOwnerByIndex(address,uint256)` and selector `0x2f745c59`
@@ -49203,7 +49361,7 @@ pub mod mock_time_nonfungible_position_manager {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     pub struct TokenOfOwnerByIndexReturn(pub ::ethers::core::types::U256);
     ///Container type for all return fields from the `tokenURI` function with signature `tokenURI(uint256)` and selector `0xc87b56dd`
@@ -49215,7 +49373,7 @@ pub mod mock_time_nonfungible_position_manager {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     pub struct TokenURIReturn(pub ::std::string::String);
     ///Container type for all return fields from the `totalSupply` function with signature `totalSupply()` and selector `0x18160ddd`
@@ -49227,7 +49385,7 @@ pub mod mock_time_nonfungible_position_manager {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     pub struct TotalSupplyReturn(pub ::ethers::core::types::U256);
 }

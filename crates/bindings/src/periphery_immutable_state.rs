@@ -7,16 +7,18 @@ pub use periphery_immutable_state::*;
     clippy::upper_case_acronyms,
     clippy::type_complexity,
     dead_code,
-    non_camel_case_types
+    non_camel_case_types,
 )]
 pub mod periphery_immutable_state {
     #[rustfmt::skip]
     const __ABI: &str = "[{\"inputs\":[],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"WETH9\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\",\"components\":[]}]},{\"inputs\":[],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"factory\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\",\"components\":[]}]}]";
     ///The parsed JSON ABI of the contract.
-    pub static PERIPHERYIMMUTABLESTATE_ABI: ::ethers::contract::Lazy<::ethers::core::abi::Abi> =
-        ::ethers::contract::Lazy::new(|| {
-            ::ethers::core::utils::__serde_json::from_str(__ABI).expect("ABI is always valid")
-        });
+    pub static PERIPHERYIMMUTABLESTATE_ABI: ::ethers::contract::Lazy<
+        ::ethers::core::abi::Abi,
+    > = ::ethers::contract::Lazy::new(|| {
+        ::ethers::core::utils::__serde_json::from_str(__ABI)
+            .expect("ABI is always valid")
+    });
     pub struct PeripheryImmutableState<M>(::ethers::contract::Contract<M>);
     impl<M> ::core::clone::Clone for PeripheryImmutableState<M> {
         fn clone(&self) -> Self {
@@ -48,16 +50,21 @@ pub mod periphery_immutable_state {
             address: T,
             client: ::std::sync::Arc<M>,
         ) -> Self {
-            Self(::ethers::contract::Contract::new(
-                address.into(),
-                PERIPHERYIMMUTABLESTATE_ABI.clone(),
-                client,
-            ))
+            Self(
+                ::ethers::contract::Contract::new(
+                    address.into(),
+                    PERIPHERYIMMUTABLESTATE_ABI.clone(),
+                    client,
+                ),
+            )
         }
         ///Calls the contract's `WETH9` (0x4aa4a4fc) function
         pub fn weth9(
             &self,
-        ) -> ::ethers::contract::builders::ContractCall<M, ::ethers::core::types::Address> {
+        ) -> ::ethers::contract::builders::ContractCall<
+            M,
+            ::ethers::core::types::Address,
+        > {
             self.0
                 .method_hash([74, 164, 164, 252], ())
                 .expect("method not found (this should never happen)")
@@ -65,15 +72,17 @@ pub mod periphery_immutable_state {
         ///Calls the contract's `factory` (0xc45a0155) function
         pub fn factory(
             &self,
-        ) -> ::ethers::contract::builders::ContractCall<M, ::ethers::core::types::Address> {
+        ) -> ::ethers::contract::builders::ContractCall<
+            M,
+            ::ethers::core::types::Address,
+        > {
             self.0
                 .method_hash([196, 90, 1, 85], ())
                 .expect("method not found (this should never happen)")
         }
     }
     impl<M: ::ethers::providers::Middleware> From<::ethers::contract::Contract<M>>
-        for PeripheryImmutableState<M>
-    {
+    for PeripheryImmutableState<M> {
         fn from(contract: ::ethers::contract::Contract<M>) -> Self {
             Self::new(contract.address(), contract.client())
         }
@@ -87,7 +96,7 @@ pub mod periphery_immutable_state {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(name = "WETH9", abi = "WETH9()")]
     pub struct Weth9Call;
@@ -100,7 +109,7 @@ pub mod periphery_immutable_state {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(name = "factory", abi = "factory()")]
     pub struct FactoryCall;
@@ -115,10 +124,12 @@ pub mod periphery_immutable_state {
             data: impl AsRef<[u8]>,
         ) -> ::core::result::Result<Self, ::ethers::core::abi::AbiError> {
             let data = data.as_ref();
-            if let Ok(decoded) = <Weth9Call as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded)
+                = <Weth9Call as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::Weth9(decoded));
             }
-            if let Ok(decoded) = <FactoryCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded)
+                = <FactoryCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::Factory(decoded));
             }
             Err(::ethers::core::abi::Error::InvalidData.into())
@@ -159,7 +170,7 @@ pub mod periphery_immutable_state {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     pub struct Weth9Return(pub ::ethers::core::types::Address);
     ///Container type for all return fields from the `factory` function with signature `factory()` and selector `0xc45a0155`
@@ -171,7 +182,7 @@ pub mod periphery_immutable_state {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     pub struct FactoryReturn(pub ::ethers::core::types::Address);
 }

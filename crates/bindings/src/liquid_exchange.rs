@@ -7,16 +7,14 @@ pub use liquid_exchange::*;
     clippy::upper_case_acronyms,
     clippy::type_complexity,
     dead_code,
-    non_camel_case_types
+    non_camel_case_types,
 )]
 pub mod liquid_exchange {
     #[rustfmt::skip]
     const __ABI: &str = "[{\"inputs\":[{\"internalType\":\"address\",\"name\":\"arbiterTokenX_\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"address\",\"name\":\"arbiterTokenY_\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"price_\",\"type\":\"uint256\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"constructor\",\"outputs\":[]},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"price\",\"type\":\"uint256\",\"components\":[],\"indexed\":false}],\"type\":\"event\",\"name\":\"PriceChange\",\"outputs\":[],\"anonymous\":false},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"tokenIn\",\"type\":\"address\",\"components\":[],\"indexed\":false},{\"internalType\":\"address\",\"name\":\"tokenOut\",\"type\":\"address\",\"components\":[],\"indexed\":false},{\"internalType\":\"uint256\",\"name\":\"amountIn\",\"type\":\"uint256\",\"components\":[],\"indexed\":false},{\"internalType\":\"uint256\",\"name\":\"amountOut\",\"type\":\"uint256\",\"components\":[],\"indexed\":false},{\"internalType\":\"address\",\"name\":\"to\",\"type\":\"address\",\"components\":[],\"indexed\":false}],\"type\":\"event\",\"name\":\"Swap\",\"outputs\":[],\"anonymous\":false},{\"inputs\":[],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"admin\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\",\"components\":[]}]},{\"inputs\":[],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"arbiterTokenX\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\",\"components\":[]}]},{\"inputs\":[],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"arbiterTokenY\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\",\"components\":[]}]},{\"inputs\":[],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"price\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"_price\",\"type\":\"uint256\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"function\",\"name\":\"setPrice\",\"outputs\":[]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"tokenIn\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"amountIn\",\"type\":\"uint256\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"function\",\"name\":\"swap\",\"outputs\":[]}]";
     ///The parsed JSON ABI of the contract.
-    pub static LIQUIDEXCHANGE_ABI: ::ethers::contract::Lazy<::ethers::core::abi::Abi> =
-        ::ethers::contract::Lazy::new(|| {
-            ::ethers::core::utils::__serde_json::from_str(__ABI).expect("ABI is always valid")
-        });
+    pub static LIQUIDEXCHANGE_ABI: ::ethers::contract::Lazy<::ethers::core::abi::Abi> = ::ethers::contract::Lazy::new(||
+    ::ethers::core::utils::__serde_json::from_str(__ABI).expect("ABI is always valid"));
     #[rustfmt::skip]
     const __BYTECODE: &[u8] = &[
         96,
@@ -1476,38 +1474,38 @@ pub mod liquid_exchange {
         34,
         18,
         32,
-        18,
-        101,
-        181,
+        225,
+        152,
+        67,
         45,
-        98,
-        78,
-        97,
-        64,
-        65,
-        74,
-        146,
-        196,
-        49,
-        3,
-        115,
-        46,
-        65,
+        68,
+        129,
+        130,
         147,
-        109,
-        25,
-        17,
-        90,
-        229,
-        84,
-        60,
-        183,
-        240,
-        227,
-        8,
-        173,
-        61,
-        59,
+        16,
+        13,
+        252,
+        127,
+        165,
+        249,
+        193,
+        154,
+        248,
+        170,
+        107,
+        119,
+        176,
+        85,
+        161,
+        119,
+        123,
+        221,
+        22,
+        22,
+        247,
+        243,
+        131,
+        156,
         100,
         115,
         111,
@@ -1521,8 +1519,9 @@ pub mod liquid_exchange {
         51,
     ];
     ///The bytecode of the contract.
-    pub static LIQUIDEXCHANGE_BYTECODE: ::ethers::core::types::Bytes =
-        ::ethers::core::types::Bytes::from_static(__BYTECODE);
+    pub static LIQUIDEXCHANGE_BYTECODE: ::ethers::core::types::Bytes = ::ethers::core::types::Bytes::from_static(
+        __BYTECODE,
+    );
     #[rustfmt::skip]
     const __DEPLOYED_BYTECODE: &[u8] = &[
         96,
@@ -2765,38 +2764,38 @@ pub mod liquid_exchange {
         34,
         18,
         32,
-        18,
-        101,
-        181,
+        225,
+        152,
+        67,
         45,
-        98,
-        78,
-        97,
-        64,
-        65,
-        74,
-        146,
-        196,
-        49,
-        3,
-        115,
-        46,
-        65,
+        68,
+        129,
+        130,
         147,
-        109,
-        25,
-        17,
-        90,
-        229,
-        84,
-        60,
-        183,
-        240,
-        227,
-        8,
-        173,
-        61,
-        59,
+        16,
+        13,
+        252,
+        127,
+        165,
+        249,
+        193,
+        154,
+        248,
+        170,
+        107,
+        119,
+        176,
+        85,
+        161,
+        119,
+        123,
+        221,
+        22,
+        22,
+        247,
+        243,
+        131,
+        156,
         100,
         115,
         111,
@@ -2810,8 +2809,9 @@ pub mod liquid_exchange {
         51,
     ];
     ///The deployed bytecode of the contract.
-    pub static LIQUIDEXCHANGE_DEPLOYED_BYTECODE: ::ethers::core::types::Bytes =
-        ::ethers::core::types::Bytes::from_static(__DEPLOYED_BYTECODE);
+    pub static LIQUIDEXCHANGE_DEPLOYED_BYTECODE: ::ethers::core::types::Bytes = ::ethers::core::types::Bytes::from_static(
+        __DEPLOYED_BYTECODE,
+    );
     pub struct LiquidExchange<M>(::ethers::contract::Contract<M>);
     impl<M> ::core::clone::Clone for LiquidExchange<M> {
         fn clone(&self) -> Self {
@@ -2831,9 +2831,7 @@ pub mod liquid_exchange {
     }
     impl<M> ::core::fmt::Debug for LiquidExchange<M> {
         fn fmt(&self, f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
-            f.debug_tuple(stringify!(LiquidExchange))
-                .field(&self.address())
-                .finish()
+            f.debug_tuple(stringify!(LiquidExchange)).field(&self.address()).finish()
         }
     }
     impl<M: ::ethers::providers::Middleware> LiquidExchange<M> {
@@ -2843,11 +2841,13 @@ pub mod liquid_exchange {
             address: T,
             client: ::std::sync::Arc<M>,
         ) -> Self {
-            Self(::ethers::contract::Contract::new(
-                address.into(),
-                LIQUIDEXCHANGE_ABI.clone(),
-                client,
-            ))
+            Self(
+                ::ethers::contract::Contract::new(
+                    address.into(),
+                    LIQUIDEXCHANGE_ABI.clone(),
+                    client,
+                ),
+            )
         }
         /// Constructs the general purpose `Deployer` instance based on the provided constructor arguments and sends it.
         /// Returns a new instance of a deployer that returns an instance of this contract after sending the transaction
@@ -2891,7 +2891,10 @@ pub mod liquid_exchange {
         ///Calls the contract's `admin` (0xf851a440) function
         pub fn admin(
             &self,
-        ) -> ::ethers::contract::builders::ContractCall<M, ::ethers::core::types::Address> {
+        ) -> ::ethers::contract::builders::ContractCall<
+            M,
+            ::ethers::core::types::Address,
+        > {
             self.0
                 .method_hash([248, 81, 164, 64], ())
                 .expect("method not found (this should never happen)")
@@ -2899,7 +2902,10 @@ pub mod liquid_exchange {
         ///Calls the contract's `arbiterTokenX` (0x3b204948) function
         pub fn arbiter_token_x(
             &self,
-        ) -> ::ethers::contract::builders::ContractCall<M, ::ethers::core::types::Address> {
+        ) -> ::ethers::contract::builders::ContractCall<
+            M,
+            ::ethers::core::types::Address,
+        > {
             self.0
                 .method_hash([59, 32, 73, 72], ())
                 .expect("method not found (this should never happen)")
@@ -2907,7 +2913,10 @@ pub mod liquid_exchange {
         ///Calls the contract's `arbiterTokenY` (0xd0c472ec) function
         pub fn arbiter_token_y(
             &self,
-        ) -> ::ethers::contract::builders::ContractCall<M, ::ethers::core::types::Address> {
+        ) -> ::ethers::contract::builders::ContractCall<
+            M,
+            ::ethers::core::types::Address,
+        > {
             self.0
                 .method_hash([208, 196, 114, 236], ())
                 .expect("method not found (this should never happen)")
@@ -2942,8 +2951,11 @@ pub mod liquid_exchange {
         ///Gets the contract's `PriceChange` event
         pub fn price_change_filter(
             &self,
-        ) -> ::ethers::contract::builders::Event<::std::sync::Arc<M>, M, PriceChangeFilter>
-        {
+        ) -> ::ethers::contract::builders::Event<
+            ::std::sync::Arc<M>,
+            M,
+            PriceChangeFilter,
+        > {
             self.0.event()
         }
         ///Gets the contract's `Swap` event
@@ -2955,15 +2967,16 @@ pub mod liquid_exchange {
         /// Returns an `Event` builder for all the events of this contract.
         pub fn events(
             &self,
-        ) -> ::ethers::contract::builders::Event<::std::sync::Arc<M>, M, LiquidExchangeEvents>
-        {
-            self.0
-                .event_with_filter(::core::default::Default::default())
+        ) -> ::ethers::contract::builders::Event<
+            ::std::sync::Arc<M>,
+            M,
+            LiquidExchangeEvents,
+        > {
+            self.0.event_with_filter(::core::default::Default::default())
         }
     }
     impl<M: ::ethers::providers::Middleware> From<::ethers::contract::Contract<M>>
-        for LiquidExchange<M>
-    {
+    for LiquidExchange<M> {
         fn from(contract: ::ethers::contract::Contract<M>) -> Self {
             Self::new(contract.address(), contract.client())
         }
@@ -2976,7 +2989,7 @@ pub mod liquid_exchange {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethevent(name = "PriceChange", abi = "PriceChange(uint256)")]
     pub struct PriceChangeFilter {
@@ -2990,7 +3003,7 @@ pub mod liquid_exchange {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethevent(name = "Swap", abi = "Swap(address,address,uint256,uint256,address)")]
     pub struct SwapFilter {
@@ -3046,7 +3059,7 @@ pub mod liquid_exchange {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(name = "admin", abi = "admin()")]
     pub struct AdminCall;
@@ -3059,7 +3072,7 @@ pub mod liquid_exchange {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(name = "arbiterTokenX", abi = "arbiterTokenX()")]
     pub struct ArbiterTokenXCall;
@@ -3072,7 +3085,7 @@ pub mod liquid_exchange {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(name = "arbiterTokenY", abi = "arbiterTokenY()")]
     pub struct ArbiterTokenYCall;
@@ -3085,7 +3098,7 @@ pub mod liquid_exchange {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(name = "price", abi = "price()")]
     pub struct PriceCall;
@@ -3098,7 +3111,7 @@ pub mod liquid_exchange {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(name = "setPrice", abi = "setPrice(uint256)")]
     pub struct SetPriceCall {
@@ -3113,7 +3126,7 @@ pub mod liquid_exchange {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(name = "swap", abi = "swap(address,uint256)")]
     pub struct SwapCall {
@@ -3135,24 +3148,28 @@ pub mod liquid_exchange {
             data: impl AsRef<[u8]>,
         ) -> ::core::result::Result<Self, ::ethers::core::abi::AbiError> {
             let data = data.as_ref();
-            if let Ok(decoded) = <AdminCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded)
+                = <AdminCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::Admin(decoded));
             }
-            if let Ok(decoded) = <ArbiterTokenXCall as ::ethers::core::abi::AbiDecode>::decode(data)
-            {
+            if let Ok(decoded)
+                = <ArbiterTokenXCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::ArbiterTokenX(decoded));
             }
-            if let Ok(decoded) = <ArbiterTokenYCall as ::ethers::core::abi::AbiDecode>::decode(data)
-            {
+            if let Ok(decoded)
+                = <ArbiterTokenYCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::ArbiterTokenY(decoded));
             }
-            if let Ok(decoded) = <PriceCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded)
+                = <PriceCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::Price(decoded));
             }
-            if let Ok(decoded) = <SetPriceCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded)
+                = <SetPriceCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::SetPrice(decoded));
             }
-            if let Ok(decoded) = <SwapCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded)
+                = <SwapCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::Swap(decoded));
             }
             Err(::ethers::core::abi::Error::InvalidData.into())
@@ -3162,10 +3179,16 @@ pub mod liquid_exchange {
         fn encode(self) -> Vec<u8> {
             match self {
                 Self::Admin(element) => ::ethers::core::abi::AbiEncode::encode(element),
-                Self::ArbiterTokenX(element) => ::ethers::core::abi::AbiEncode::encode(element),
-                Self::ArbiterTokenY(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::ArbiterTokenX(element) => {
+                    ::ethers::core::abi::AbiEncode::encode(element)
+                }
+                Self::ArbiterTokenY(element) => {
+                    ::ethers::core::abi::AbiEncode::encode(element)
+                }
                 Self::Price(element) => ::ethers::core::abi::AbiEncode::encode(element),
-                Self::SetPrice(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::SetPrice(element) => {
+                    ::ethers::core::abi::AbiEncode::encode(element)
+                }
                 Self::Swap(element) => ::ethers::core::abi::AbiEncode::encode(element),
             }
         }
@@ -3221,7 +3244,7 @@ pub mod liquid_exchange {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     pub struct AdminReturn(pub ::ethers::core::types::Address);
     ///Container type for all return fields from the `arbiterTokenX` function with signature `arbiterTokenX()` and selector `0x3b204948`
@@ -3233,7 +3256,7 @@ pub mod liquid_exchange {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     pub struct ArbiterTokenXReturn(pub ::ethers::core::types::Address);
     ///Container type for all return fields from the `arbiterTokenY` function with signature `arbiterTokenY()` and selector `0xd0c472ec`
@@ -3245,7 +3268,7 @@ pub mod liquid_exchange {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     pub struct ArbiterTokenYReturn(pub ::ethers::core::types::Address);
     ///Container type for all return fields from the `price` function with signature `price()` and selector `0xa035b1fe`
@@ -3257,7 +3280,7 @@ pub mod liquid_exchange {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     pub struct PriceReturn(pub ::ethers::core::types::U256);
 }

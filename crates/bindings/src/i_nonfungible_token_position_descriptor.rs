@@ -7,7 +7,7 @@ pub use i_nonfungible_token_position_descriptor::*;
     clippy::upper_case_acronyms,
     clippy::type_complexity,
     dead_code,
-    non_camel_case_types
+    non_camel_case_types,
 )]
 pub mod i_nonfungible_token_position_descriptor {
     #[rustfmt::skip]
@@ -16,7 +16,8 @@ pub mod i_nonfungible_token_position_descriptor {
     pub static INONFUNGIBLETOKENPOSITIONDESCRIPTOR_ABI: ::ethers::contract::Lazy<
         ::ethers::core::abi::Abi,
     > = ::ethers::contract::Lazy::new(|| {
-        ::ethers::core::utils::__serde_json::from_str(__ABI).expect("ABI is always valid")
+        ::ethers::core::utils::__serde_json::from_str(__ABI)
+            .expect("ABI is always valid")
     });
     pub struct INonfungibleTokenPositionDescriptor<M>(::ethers::contract::Contract<M>);
     impl<M> ::core::clone::Clone for INonfungibleTokenPositionDescriptor<M> {
@@ -49,11 +50,13 @@ pub mod i_nonfungible_token_position_descriptor {
             address: T,
             client: ::std::sync::Arc<M>,
         ) -> Self {
-            Self(::ethers::contract::Contract::new(
-                address.into(),
-                INONFUNGIBLETOKENPOSITIONDESCRIPTOR_ABI.clone(),
-                client,
-            ))
+            Self(
+                ::ethers::contract::Contract::new(
+                    address.into(),
+                    INONFUNGIBLETOKENPOSITIONDESCRIPTOR_ABI.clone(),
+                    client,
+                ),
+            )
         }
         ///Calls the contract's `tokenURI` (0xe9dc6375) function
         pub fn token_uri(
@@ -67,8 +70,7 @@ pub mod i_nonfungible_token_position_descriptor {
         }
     }
     impl<M: ::ethers::providers::Middleware> From<::ethers::contract::Contract<M>>
-        for INonfungibleTokenPositionDescriptor<M>
-    {
+    for INonfungibleTokenPositionDescriptor<M> {
         fn from(contract: ::ethers::contract::Contract<M>) -> Self {
             Self::new(contract.address(), contract.client())
         }
@@ -82,7 +84,7 @@ pub mod i_nonfungible_token_position_descriptor {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(name = "tokenURI", abi = "tokenURI(address,uint256)")]
     pub struct TokenURICall {
@@ -98,7 +100,7 @@ pub mod i_nonfungible_token_position_descriptor {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     pub struct TokenURIReturn(pub ::std::string::String);
 }

@@ -7,16 +7,14 @@ pub use fixed_point::*;
     clippy::upper_case_acronyms,
     clippy::type_complexity,
     dead_code,
-    non_camel_case_types
+    non_camel_case_types,
 )]
 pub mod fixed_point {
     #[rustfmt::skip]
     const __ABI: &str = "[{\"inputs\":[],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"Q112\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\",\"components\":[]}]},{\"inputs\":[],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"RESOLUTION\",\"outputs\":[{\"internalType\":\"uint8\",\"name\":\"\",\"type\":\"uint8\",\"components\":[]}]}]";
     ///The parsed JSON ABI of the contract.
-    pub static FIXEDPOINT_ABI: ::ethers::contract::Lazy<::ethers::core::abi::Abi> =
-        ::ethers::contract::Lazy::new(|| {
-            ::ethers::core::utils::__serde_json::from_str(__ABI).expect("ABI is always valid")
-        });
+    pub static FIXEDPOINT_ABI: ::ethers::contract::Lazy<::ethers::core::abi::Abi> = ::ethers::contract::Lazy::new(||
+    ::ethers::core::utils::__serde_json::from_str(__ABI).expect("ABI is always valid"));
     #[rustfmt::skip]
     const __BYTECODE: &[u8] = &[
         96,
@@ -198,38 +196,38 @@ pub mod fixed_point {
         34,
         18,
         32,
-        28,
-        13,
-        57,
-        28,
-        0,
-        209,
-        189,
-        55,
-        42,
-        197,
-        160,
-        101,
+        74,
+        140,
         6,
-        249,
-        21,
-        176,
-        62,
+        139,
+        69,
+        183,
         194,
-        192,
-        12,
-        128,
-        119,
-        40,
-        40,
-        45,
-        21,
-        214,
-        145,
-        31,
-        34,
+        61,
+        110,
+        228,
+        157,
+        102,
         118,
-        30,
+        137,
+        91,
+        3,
+        130,
+        209,
+        133,
+        103,
+        4,
+        98,
+        62,
+        84,
+        186,
+        218,
+        202,
+        191,
+        161,
+        230,
+        52,
+        74,
         100,
         115,
         111,
@@ -243,8 +241,9 @@ pub mod fixed_point {
         51,
     ];
     ///The bytecode of the contract.
-    pub static FIXEDPOINT_BYTECODE: ::ethers::core::types::Bytes =
-        ::ethers::core::types::Bytes::from_static(__BYTECODE);
+    pub static FIXEDPOINT_BYTECODE: ::ethers::core::types::Bytes = ::ethers::core::types::Bytes::from_static(
+        __BYTECODE,
+    );
     #[rustfmt::skip]
     const __DEPLOYED_BYTECODE: &[u8] = &[
         115,
@@ -389,38 +388,38 @@ pub mod fixed_point {
         34,
         18,
         32,
-        28,
-        13,
-        57,
-        28,
-        0,
-        209,
-        189,
-        55,
-        42,
-        197,
-        160,
-        101,
+        74,
+        140,
         6,
-        249,
-        21,
-        176,
-        62,
+        139,
+        69,
+        183,
         194,
-        192,
-        12,
-        128,
-        119,
-        40,
-        40,
-        45,
-        21,
-        214,
-        145,
-        31,
-        34,
+        61,
+        110,
+        228,
+        157,
+        102,
         118,
-        30,
+        137,
+        91,
+        3,
+        130,
+        209,
+        133,
+        103,
+        4,
+        98,
+        62,
+        84,
+        186,
+        218,
+        202,
+        191,
+        161,
+        230,
+        52,
+        74,
         100,
         115,
         111,
@@ -434,8 +433,9 @@ pub mod fixed_point {
         51,
     ];
     ///The deployed bytecode of the contract.
-    pub static FIXEDPOINT_DEPLOYED_BYTECODE: ::ethers::core::types::Bytes =
-        ::ethers::core::types::Bytes::from_static(__DEPLOYED_BYTECODE);
+    pub static FIXEDPOINT_DEPLOYED_BYTECODE: ::ethers::core::types::Bytes = ::ethers::core::types::Bytes::from_static(
+        __DEPLOYED_BYTECODE,
+    );
     pub struct FixedPoint<M>(::ethers::contract::Contract<M>);
     impl<M> ::core::clone::Clone for FixedPoint<M> {
         fn clone(&self) -> Self {
@@ -455,9 +455,7 @@ pub mod fixed_point {
     }
     impl<M> ::core::fmt::Debug for FixedPoint<M> {
         fn fmt(&self, f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
-            f.debug_tuple(stringify!(FixedPoint))
-                .field(&self.address())
-                .finish()
+            f.debug_tuple(stringify!(FixedPoint)).field(&self.address()).finish()
         }
     }
     impl<M: ::ethers::providers::Middleware> FixedPoint<M> {
@@ -467,11 +465,13 @@ pub mod fixed_point {
             address: T,
             client: ::std::sync::Arc<M>,
         ) -> Self {
-            Self(::ethers::contract::Contract::new(
-                address.into(),
-                FIXEDPOINT_ABI.clone(),
-                client,
-            ))
+            Self(
+                ::ethers::contract::Contract::new(
+                    address.into(),
+                    FIXEDPOINT_ABI.clone(),
+                    client,
+                ),
+            )
         }
         /// Constructs the general purpose `Deployer` instance based on the provided constructor arguments and sends it.
         /// Returns a new instance of a deployer that returns an instance of this contract after sending the transaction
@@ -527,7 +527,8 @@ pub mod fixed_point {
                 .expect("method not found (this should never happen)")
         }
     }
-    impl<M: ::ethers::providers::Middleware> From<::ethers::contract::Contract<M>> for FixedPoint<M> {
+    impl<M: ::ethers::providers::Middleware> From<::ethers::contract::Contract<M>>
+    for FixedPoint<M> {
         fn from(contract: ::ethers::contract::Contract<M>) -> Self {
             Self::new(contract.address(), contract.client())
         }
@@ -541,7 +542,7 @@ pub mod fixed_point {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(name = "Q112", abi = "Q112()")]
     pub struct Q112Call;
@@ -554,7 +555,7 @@ pub mod fixed_point {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(name = "RESOLUTION", abi = "RESOLUTION()")]
     pub struct ResolutionCall;
@@ -569,10 +570,12 @@ pub mod fixed_point {
             data: impl AsRef<[u8]>,
         ) -> ::core::result::Result<Self, ::ethers::core::abi::AbiError> {
             let data = data.as_ref();
-            if let Ok(decoded) = <Q112Call as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded)
+                = <Q112Call as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::Q112(decoded));
             }
-            if let Ok(decoded) = <ResolutionCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded)
+                = <ResolutionCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::Resolution(decoded));
             }
             Err(::ethers::core::abi::Error::InvalidData.into())
@@ -582,7 +585,9 @@ pub mod fixed_point {
         fn encode(self) -> Vec<u8> {
             match self {
                 Self::Q112(element) => ::ethers::core::abi::AbiEncode::encode(element),
-                Self::Resolution(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::Resolution(element) => {
+                    ::ethers::core::abi::AbiEncode::encode(element)
+                }
             }
         }
     }
@@ -613,7 +618,7 @@ pub mod fixed_point {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     pub struct Q112Return(pub ::ethers::core::types::U256);
     ///Container type for all return fields from the `RESOLUTION` function with signature `RESOLUTION()` and selector `0x552f888a`
@@ -625,7 +630,7 @@ pub mod fixed_point {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     pub struct ResolutionReturn(pub u8);
 }

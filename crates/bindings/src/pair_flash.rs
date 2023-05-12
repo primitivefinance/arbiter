@@ -7,16 +7,14 @@ pub use pair_flash::*;
     clippy::upper_case_acronyms,
     clippy::type_complexity,
     dead_code,
-    non_camel_case_types
+    non_camel_case_types,
 )]
 pub mod pair_flash {
     #[rustfmt::skip]
     const __ABI: &str = "[{\"inputs\":[{\"internalType\":\"contract ISwapRouter\",\"name\":\"_swapRouter\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"address\",\"name\":\"_factory\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"address\",\"name\":\"_WETH9\",\"type\":\"address\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"constructor\",\"outputs\":[]},{\"inputs\":[],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"WETH9\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\",\"components\":[]}]},{\"inputs\":[],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"factory\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"struct PairFlash.FlashParams\",\"name\":\"params\",\"type\":\"tuple\",\"components\":[{\"internalType\":\"address\",\"name\":\"token0\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"address\",\"name\":\"token1\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint24\",\"name\":\"fee1\",\"type\":\"uint24\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"amount0\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"amount1\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"uint24\",\"name\":\"fee2\",\"type\":\"uint24\",\"components\":[]},{\"internalType\":\"uint24\",\"name\":\"fee3\",\"type\":\"uint24\",\"components\":[]}]}],\"stateMutability\":\"nonpayable\",\"type\":\"function\",\"name\":\"initFlash\",\"outputs\":[]},{\"inputs\":[],\"stateMutability\":\"payable\",\"type\":\"function\",\"name\":\"refundETH\",\"outputs\":[]},{\"inputs\":[],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"swapRouter\",\"outputs\":[{\"internalType\":\"contract ISwapRouter\",\"name\":\"\",\"type\":\"address\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"token\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"amountMinimum\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"address\",\"name\":\"recipient\",\"type\":\"address\",\"components\":[]}],\"stateMutability\":\"payable\",\"type\":\"function\",\"name\":\"sweepToken\",\"outputs\":[]},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"fee0\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"fee1\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"bytes\",\"name\":\"data\",\"type\":\"bytes\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"function\",\"name\":\"uniswapV3FlashCallback\",\"outputs\":[]},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"amountMinimum\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"address\",\"name\":\"recipient\",\"type\":\"address\",\"components\":[]}],\"stateMutability\":\"payable\",\"type\":\"function\",\"name\":\"unwrapWETH9\",\"outputs\":[]},{\"inputs\":[],\"stateMutability\":\"payable\",\"type\":\"receive\",\"outputs\":[]}]";
     ///The parsed JSON ABI of the contract.
-    pub static PAIRFLASH_ABI: ::ethers::contract::Lazy<::ethers::core::abi::Abi> =
-        ::ethers::contract::Lazy::new(|| {
-            ::ethers::core::utils::__serde_json::from_str(__ABI).expect("ABI is always valid")
-        });
+    pub static PAIRFLASH_ABI: ::ethers::contract::Lazy<::ethers::core::abi::Abi> = ::ethers::contract::Lazy::new(||
+    ::ethers::core::utils::__serde_json::from_str(__ABI).expect("ABI is always valid"));
     #[rustfmt::skip]
     const __BYTECODE: &[u8] = &[
         96,
@@ -5681,8 +5679,9 @@ pub mod pair_flash {
         51,
     ];
     ///The bytecode of the contract.
-    pub static PAIRFLASH_BYTECODE: ::ethers::core::types::Bytes =
-        ::ethers::core::types::Bytes::from_static(__BYTECODE);
+    pub static PAIRFLASH_BYTECODE: ::ethers::core::types::Bytes = ::ethers::core::types::Bytes::from_static(
+        __BYTECODE,
+    );
     #[rustfmt::skip]
     const __DEPLOYED_BYTECODE: &[u8] = &[
         96,
@@ -11034,8 +11033,9 @@ pub mod pair_flash {
         51,
     ];
     ///The deployed bytecode of the contract.
-    pub static PAIRFLASH_DEPLOYED_BYTECODE: ::ethers::core::types::Bytes =
-        ::ethers::core::types::Bytes::from_static(__DEPLOYED_BYTECODE);
+    pub static PAIRFLASH_DEPLOYED_BYTECODE: ::ethers::core::types::Bytes = ::ethers::core::types::Bytes::from_static(
+        __DEPLOYED_BYTECODE,
+    );
     pub struct PairFlash<M>(::ethers::contract::Contract<M>);
     impl<M> ::core::clone::Clone for PairFlash<M> {
         fn clone(&self) -> Self {
@@ -11055,9 +11055,7 @@ pub mod pair_flash {
     }
     impl<M> ::core::fmt::Debug for PairFlash<M> {
         fn fmt(&self, f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
-            f.debug_tuple(stringify!(PairFlash))
-                .field(&self.address())
-                .finish()
+            f.debug_tuple(stringify!(PairFlash)).field(&self.address()).finish()
         }
     }
     impl<M: ::ethers::providers::Middleware> PairFlash<M> {
@@ -11067,11 +11065,13 @@ pub mod pair_flash {
             address: T,
             client: ::std::sync::Arc<M>,
         ) -> Self {
-            Self(::ethers::contract::Contract::new(
-                address.into(),
-                PAIRFLASH_ABI.clone(),
-                client,
-            ))
+            Self(
+                ::ethers::contract::Contract::new(
+                    address.into(),
+                    PAIRFLASH_ABI.clone(),
+                    client,
+                ),
+            )
         }
         /// Constructs the general purpose `Deployer` instance based on the provided constructor arguments and sends it.
         /// Returns a new instance of a deployer that returns an instance of this contract after sending the transaction
@@ -11115,7 +11115,10 @@ pub mod pair_flash {
         ///Calls the contract's `WETH9` (0x4aa4a4fc) function
         pub fn weth9(
             &self,
-        ) -> ::ethers::contract::builders::ContractCall<M, ::ethers::core::types::Address> {
+        ) -> ::ethers::contract::builders::ContractCall<
+            M,
+            ::ethers::core::types::Address,
+        > {
             self.0
                 .method_hash([74, 164, 164, 252], ())
                 .expect("method not found (this should never happen)")
@@ -11123,7 +11126,10 @@ pub mod pair_flash {
         ///Calls the contract's `factory` (0xc45a0155) function
         pub fn factory(
             &self,
-        ) -> ::ethers::contract::builders::ContractCall<M, ::ethers::core::types::Address> {
+        ) -> ::ethers::contract::builders::ContractCall<
+            M,
+            ::ethers::core::types::Address,
+        > {
             self.0
                 .method_hash([196, 90, 1, 85], ())
                 .expect("method not found (this should never happen)")
@@ -11146,7 +11152,10 @@ pub mod pair_flash {
         ///Calls the contract's `swapRouter` (0xc31c9c07) function
         pub fn swap_router(
             &self,
-        ) -> ::ethers::contract::builders::ContractCall<M, ::ethers::core::types::Address> {
+        ) -> ::ethers::contract::builders::ContractCall<
+            M,
+            ::ethers::core::types::Address,
+        > {
             self.0
                 .method_hash([195, 28, 156, 7], ())
                 .expect("method not found (this should never happen)")
@@ -11184,7 +11193,8 @@ pub mod pair_flash {
                 .expect("method not found (this should never happen)")
         }
     }
-    impl<M: ::ethers::providers::Middleware> From<::ethers::contract::Contract<M>> for PairFlash<M> {
+    impl<M: ::ethers::providers::Middleware> From<::ethers::contract::Contract<M>>
+    for PairFlash<M> {
         fn from(contract: ::ethers::contract::Contract<M>) -> Self {
             Self::new(contract.address(), contract.client())
         }
@@ -11198,7 +11208,7 @@ pub mod pair_flash {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(name = "WETH9", abi = "WETH9()")]
     pub struct Weth9Call;
@@ -11211,7 +11221,7 @@ pub mod pair_flash {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(name = "factory", abi = "factory()")]
     pub struct FactoryCall;
@@ -11224,7 +11234,7 @@ pub mod pair_flash {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(
         name = "initFlash",
@@ -11242,7 +11252,7 @@ pub mod pair_flash {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(name = "refundETH", abi = "refundETH()")]
     pub struct RefundETHCall;
@@ -11255,7 +11265,7 @@ pub mod pair_flash {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(name = "swapRouter", abi = "swapRouter()")]
     pub struct SwapRouterCall;
@@ -11268,7 +11278,7 @@ pub mod pair_flash {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(name = "sweepToken", abi = "sweepToken(address,uint256,address)")]
     pub struct SweepTokenCall {
@@ -11285,7 +11295,7 @@ pub mod pair_flash {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(
         name = "uniswapV3FlashCallback",
@@ -11305,7 +11315,7 @@ pub mod pair_flash {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(name = "unwrapWETH9", abi = "unwrapWETH9(uint256,address)")]
     pub struct UnwrapWETH9Call {
@@ -11329,30 +11339,38 @@ pub mod pair_flash {
             data: impl AsRef<[u8]>,
         ) -> ::core::result::Result<Self, ::ethers::core::abi::AbiError> {
             let data = data.as_ref();
-            if let Ok(decoded) = <Weth9Call as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded)
+                = <Weth9Call as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::Weth9(decoded));
             }
-            if let Ok(decoded) = <FactoryCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded)
+                = <FactoryCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::Factory(decoded));
             }
-            if let Ok(decoded) = <InitFlashCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded)
+                = <InitFlashCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::InitFlash(decoded));
             }
-            if let Ok(decoded) = <RefundETHCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded)
+                = <RefundETHCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::RefundETH(decoded));
             }
-            if let Ok(decoded) = <SwapRouterCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded)
+                = <SwapRouterCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::SwapRouter(decoded));
             }
-            if let Ok(decoded) = <SweepTokenCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded)
+                = <SweepTokenCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::SweepToken(decoded));
             }
-            if let Ok(decoded) =
-                <UniswapV3FlashCallbackCall as ::ethers::core::abi::AbiDecode>::decode(data)
-            {
+            if let Ok(decoded)
+                = <UniswapV3FlashCallbackCall as ::ethers::core::abi::AbiDecode>::decode(
+                    data,
+                ) {
                 return Ok(Self::UniswapV3FlashCallback(decoded));
             }
-            if let Ok(decoded) = <UnwrapWETH9Call as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded)
+                = <UnwrapWETH9Call as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::UnwrapWETH9(decoded));
             }
             Err(::ethers::core::abi::Error::InvalidData.into())
@@ -11363,14 +11381,24 @@ pub mod pair_flash {
             match self {
                 Self::Weth9(element) => ::ethers::core::abi::AbiEncode::encode(element),
                 Self::Factory(element) => ::ethers::core::abi::AbiEncode::encode(element),
-                Self::InitFlash(element) => ::ethers::core::abi::AbiEncode::encode(element),
-                Self::RefundETH(element) => ::ethers::core::abi::AbiEncode::encode(element),
-                Self::SwapRouter(element) => ::ethers::core::abi::AbiEncode::encode(element),
-                Self::SweepToken(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::InitFlash(element) => {
+                    ::ethers::core::abi::AbiEncode::encode(element)
+                }
+                Self::RefundETH(element) => {
+                    ::ethers::core::abi::AbiEncode::encode(element)
+                }
+                Self::SwapRouter(element) => {
+                    ::ethers::core::abi::AbiEncode::encode(element)
+                }
+                Self::SweepToken(element) => {
+                    ::ethers::core::abi::AbiEncode::encode(element)
+                }
                 Self::UniswapV3FlashCallback(element) => {
                     ::ethers::core::abi::AbiEncode::encode(element)
                 }
-                Self::UnwrapWETH9(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::UnwrapWETH9(element) => {
+                    ::ethers::core::abi::AbiEncode::encode(element)
+                }
             }
         }
     }
@@ -11383,7 +11411,9 @@ pub mod pair_flash {
                 Self::RefundETH(element) => ::core::fmt::Display::fmt(element, f),
                 Self::SwapRouter(element) => ::core::fmt::Display::fmt(element, f),
                 Self::SweepToken(element) => ::core::fmt::Display::fmt(element, f),
-                Self::UniswapV3FlashCallback(element) => ::core::fmt::Display::fmt(element, f),
+                Self::UniswapV3FlashCallback(element) => {
+                    ::core::fmt::Display::fmt(element, f)
+                }
                 Self::UnwrapWETH9(element) => ::core::fmt::Display::fmt(element, f),
             }
         }
@@ -11437,7 +11467,7 @@ pub mod pair_flash {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     pub struct Weth9Return(pub ::ethers::core::types::Address);
     ///Container type for all return fields from the `factory` function with signature `factory()` and selector `0xc45a0155`
@@ -11449,7 +11479,7 @@ pub mod pair_flash {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     pub struct FactoryReturn(pub ::ethers::core::types::Address);
     ///Container type for all return fields from the `swapRouter` function with signature `swapRouter()` and selector `0xc31c9c07`
@@ -11461,7 +11491,7 @@ pub mod pair_flash {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     pub struct SwapRouterReturn(pub ::ethers::core::types::Address);
     ///`FlashParams(address,address,uint24,uint256,uint256,uint24,uint24)`
@@ -11473,7 +11503,7 @@ pub mod pair_flash {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     pub struct FlashParams {
         pub token_0: ::ethers::core::types::Address,

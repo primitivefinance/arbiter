@@ -7,16 +7,14 @@ pub use bisection_lib::*;
     clippy::upper_case_acronyms,
     clippy::type_complexity,
     dead_code,
-    non_camel_case_types
+    non_camel_case_types,
 )]
 pub mod bisection_lib {
     #[rustfmt::skip]
     const __ABI: &str = "[]";
     ///The parsed JSON ABI of the contract.
-    pub static BISECTIONLIB_ABI: ::ethers::contract::Lazy<::ethers::core::abi::Abi> =
-        ::ethers::contract::Lazy::new(|| {
-            ::ethers::core::utils::__serde_json::from_str(__ABI).expect("ABI is always valid")
-        });
+    pub static BISECTIONLIB_ABI: ::ethers::contract::Lazy<::ethers::core::abi::Abi> = ::ethers::contract::Lazy::new(||
+    ::ethers::core::utils::__serde_json::from_str(__ABI).expect("ABI is always valid"));
     pub struct BisectionLib<M>(::ethers::contract::Contract<M>);
     impl<M> ::core::clone::Clone for BisectionLib<M> {
         fn clone(&self) -> Self {
@@ -36,9 +34,7 @@ pub mod bisection_lib {
     }
     impl<M> ::core::fmt::Debug for BisectionLib<M> {
         fn fmt(&self, f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
-            f.debug_tuple(stringify!(BisectionLib))
-                .field(&self.address())
-                .finish()
+            f.debug_tuple(stringify!(BisectionLib)).field(&self.address()).finish()
         }
     }
     impl<M: ::ethers::providers::Middleware> BisectionLib<M> {
@@ -48,14 +44,17 @@ pub mod bisection_lib {
             address: T,
             client: ::std::sync::Arc<M>,
         ) -> Self {
-            Self(::ethers::contract::Contract::new(
-                address.into(),
-                BISECTIONLIB_ABI.clone(),
-                client,
-            ))
+            Self(
+                ::ethers::contract::Contract::new(
+                    address.into(),
+                    BISECTIONLIB_ABI.clone(),
+                    client,
+                ),
+            )
         }
     }
-    impl<M: ::ethers::providers::Middleware> From<::ethers::contract::Contract<M>> for BisectionLib<M> {
+    impl<M: ::ethers::providers::Middleware> From<::ethers::contract::Contract<M>>
+    for BisectionLib<M> {
         fn from(contract: ::ethers::contract::Contract<M>) -> Self {
             Self::new(contract.address(), contract.client())
         }

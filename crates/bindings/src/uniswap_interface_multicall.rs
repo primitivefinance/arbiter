@@ -7,16 +7,18 @@ pub use uniswap_interface_multicall::*;
     clippy::upper_case_acronyms,
     clippy::type_complexity,
     dead_code,
-    non_camel_case_types
+    non_camel_case_types,
 )]
 pub mod uniswap_interface_multicall {
     #[rustfmt::skip]
     const __ABI: &str = "[{\"inputs\":[],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"getCurrentBlockTimestamp\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"timestamp\",\"type\":\"uint256\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"addr\",\"type\":\"address\",\"components\":[]}],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"getEthBalance\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"balance\",\"type\":\"uint256\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"struct UniswapInterfaceMulticall.Call[]\",\"name\":\"calls\",\"type\":\"tuple[]\",\"components\":[{\"internalType\":\"address\",\"name\":\"target\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"gasLimit\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"bytes\",\"name\":\"callData\",\"type\":\"bytes\",\"components\":[]}]}],\"stateMutability\":\"nonpayable\",\"type\":\"function\",\"name\":\"multicall\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"blockNumber\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"struct UniswapInterfaceMulticall.Result[]\",\"name\":\"returnData\",\"type\":\"tuple[]\",\"components\":[{\"internalType\":\"bool\",\"name\":\"success\",\"type\":\"bool\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"gasUsed\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"bytes\",\"name\":\"returnData\",\"type\":\"bytes\",\"components\":[]}]}]}]";
     ///The parsed JSON ABI of the contract.
-    pub static UNISWAPINTERFACEMULTICALL_ABI: ::ethers::contract::Lazy<::ethers::core::abi::Abi> =
-        ::ethers::contract::Lazy::new(|| {
-            ::ethers::core::utils::__serde_json::from_str(__ABI).expect("ABI is always valid")
-        });
+    pub static UNISWAPINTERFACEMULTICALL_ABI: ::ethers::contract::Lazy<
+        ::ethers::core::abi::Abi,
+    > = ::ethers::contract::Lazy::new(|| {
+        ::ethers::core::utils::__serde_json::from_str(__ABI)
+            .expect("ABI is always valid")
+    });
     #[rustfmt::skip]
     const __BYTECODE: &[u8] = &[
         96,
@@ -1348,8 +1350,9 @@ pub mod uniswap_interface_multicall {
         51,
     ];
     ///The bytecode of the contract.
-    pub static UNISWAPINTERFACEMULTICALL_BYTECODE: ::ethers::core::types::Bytes =
-        ::ethers::core::types::Bytes::from_static(__BYTECODE);
+    pub static UNISWAPINTERFACEMULTICALL_BYTECODE: ::ethers::core::types::Bytes = ::ethers::core::types::Bytes::from_static(
+        __BYTECODE,
+    );
     #[rustfmt::skip]
     const __DEPLOYED_BYTECODE: &[u8] = &[
         96,
@@ -2649,8 +2652,9 @@ pub mod uniswap_interface_multicall {
         51,
     ];
     ///The deployed bytecode of the contract.
-    pub static UNISWAPINTERFACEMULTICALL_DEPLOYED_BYTECODE: ::ethers::core::types::Bytes =
-        ::ethers::core::types::Bytes::from_static(__DEPLOYED_BYTECODE);
+    pub static UNISWAPINTERFACEMULTICALL_DEPLOYED_BYTECODE: ::ethers::core::types::Bytes = ::ethers::core::types::Bytes::from_static(
+        __DEPLOYED_BYTECODE,
+    );
     pub struct UniswapInterfaceMulticall<M>(::ethers::contract::Contract<M>);
     impl<M> ::core::clone::Clone for UniswapInterfaceMulticall<M> {
         fn clone(&self) -> Self {
@@ -2682,11 +2686,13 @@ pub mod uniswap_interface_multicall {
             address: T,
             client: ::std::sync::Arc<M>,
         ) -> Self {
-            Self(::ethers::contract::Contract::new(
-                address.into(),
-                UNISWAPINTERFACEMULTICALL_ABI.clone(),
-                client,
-            ))
+            Self(
+                ::ethers::contract::Contract::new(
+                    address.into(),
+                    UNISWAPINTERFACEMULTICALL_ABI.clone(),
+                    client,
+                ),
+            )
         }
         /// Constructs the general purpose `Deployer` instance based on the provided constructor arguments and sends it.
         /// Returns a new instance of a deployer that returns an instance of this contract after sending the transaction
@@ -2758,8 +2764,7 @@ pub mod uniswap_interface_multicall {
         }
     }
     impl<M: ::ethers::providers::Middleware> From<::ethers::contract::Contract<M>>
-        for UniswapInterfaceMulticall<M>
-    {
+    for UniswapInterfaceMulticall<M> {
         fn from(contract: ::ethers::contract::Contract<M>) -> Self {
             Self::new(contract.address(), contract.client())
         }
@@ -2773,7 +2778,7 @@ pub mod uniswap_interface_multicall {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(name = "getCurrentBlockTimestamp", abi = "getCurrentBlockTimestamp()")]
     pub struct GetCurrentBlockTimestampCall;
@@ -2786,7 +2791,7 @@ pub mod uniswap_interface_multicall {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(name = "getEthBalance", abi = "getEthBalance(address)")]
     pub struct GetEthBalanceCall {
@@ -2801,7 +2806,7 @@ pub mod uniswap_interface_multicall {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(name = "multicall", abi = "multicall((address,uint256,bytes)[])")]
     pub struct MulticallCall {
@@ -2819,16 +2824,18 @@ pub mod uniswap_interface_multicall {
             data: impl AsRef<[u8]>,
         ) -> ::core::result::Result<Self, ::ethers::core::abi::AbiError> {
             let data = data.as_ref();
-            if let Ok(decoded) =
-                <GetCurrentBlockTimestampCall as ::ethers::core::abi::AbiDecode>::decode(data)
-            {
+            if let Ok(decoded)
+                = <GetCurrentBlockTimestampCall as ::ethers::core::abi::AbiDecode>::decode(
+                    data,
+                ) {
                 return Ok(Self::GetCurrentBlockTimestamp(decoded));
             }
-            if let Ok(decoded) = <GetEthBalanceCall as ::ethers::core::abi::AbiDecode>::decode(data)
-            {
+            if let Ok(decoded)
+                = <GetEthBalanceCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::GetEthBalance(decoded));
             }
-            if let Ok(decoded) = <MulticallCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded)
+                = <MulticallCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::Multicall(decoded));
             }
             Err(::ethers::core::abi::Error::InvalidData.into())
@@ -2840,21 +2847,28 @@ pub mod uniswap_interface_multicall {
                 Self::GetCurrentBlockTimestamp(element) => {
                     ::ethers::core::abi::AbiEncode::encode(element)
                 }
-                Self::GetEthBalance(element) => ::ethers::core::abi::AbiEncode::encode(element),
-                Self::Multicall(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::GetEthBalance(element) => {
+                    ::ethers::core::abi::AbiEncode::encode(element)
+                }
+                Self::Multicall(element) => {
+                    ::ethers::core::abi::AbiEncode::encode(element)
+                }
             }
         }
     }
     impl ::core::fmt::Display for UniswapInterfaceMulticallCalls {
         fn fmt(&self, f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
             match self {
-                Self::GetCurrentBlockTimestamp(element) => ::core::fmt::Display::fmt(element, f),
+                Self::GetCurrentBlockTimestamp(element) => {
+                    ::core::fmt::Display::fmt(element, f)
+                }
                 Self::GetEthBalance(element) => ::core::fmt::Display::fmt(element, f),
                 Self::Multicall(element) => ::core::fmt::Display::fmt(element, f),
             }
         }
     }
-    impl ::core::convert::From<GetCurrentBlockTimestampCall> for UniswapInterfaceMulticallCalls {
+    impl ::core::convert::From<GetCurrentBlockTimestampCall>
+    for UniswapInterfaceMulticallCalls {
         fn from(value: GetCurrentBlockTimestampCall) -> Self {
             Self::GetCurrentBlockTimestamp(value)
         }
@@ -2878,7 +2892,7 @@ pub mod uniswap_interface_multicall {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     pub struct GetCurrentBlockTimestampReturn {
         pub timestamp: ::ethers::core::types::U256,
@@ -2892,7 +2906,7 @@ pub mod uniswap_interface_multicall {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     pub struct GetEthBalanceReturn {
         pub balance: ::ethers::core::types::U256,
@@ -2906,7 +2920,7 @@ pub mod uniswap_interface_multicall {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     pub struct MulticallReturn {
         pub block_number: ::ethers::core::types::U256,
@@ -2921,7 +2935,7 @@ pub mod uniswap_interface_multicall {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     pub struct Call {
         pub target: ::ethers::core::types::Address,
@@ -2937,7 +2951,7 @@ pub mod uniswap_interface_multicall {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     pub struct Result {
         pub success: bool,

@@ -7,16 +7,14 @@ pub use mock_observable::*;
     clippy::upper_case_acronyms,
     clippy::type_complexity,
     dead_code,
-    non_camel_case_types
+    non_camel_case_types,
 )]
 pub mod mock_observable {
     #[rustfmt::skip]
     const __ABI: &str = "[{\"inputs\":[{\"internalType\":\"uint32[]\",\"name\":\"secondsAgos\",\"type\":\"uint32[]\",\"components\":[]},{\"internalType\":\"int56[]\",\"name\":\"tickCumulatives\",\"type\":\"int56[]\",\"components\":[]},{\"internalType\":\"uint160[]\",\"name\":\"secondsPerLiquidityCumulativeX128s\",\"type\":\"uint160[]\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"constructor\",\"outputs\":[]},{\"inputs\":[{\"internalType\":\"uint32[]\",\"name\":\"secondsAgos\",\"type\":\"uint32[]\",\"components\":[]}],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"observe\",\"outputs\":[{\"internalType\":\"int56[]\",\"name\":\"tickCumulatives\",\"type\":\"int56[]\",\"components\":[]},{\"internalType\":\"uint160[]\",\"name\":\"secondsPerLiquidityCumulativeX128s\",\"type\":\"uint160[]\",\"components\":[]}]}]";
     ///The parsed JSON ABI of the contract.
-    pub static MOCKOBSERVABLE_ABI: ::ethers::contract::Lazy<::ethers::core::abi::Abi> =
-        ::ethers::contract::Lazy::new(|| {
-            ::ethers::core::utils::__serde_json::from_str(__ABI).expect("ABI is always valid")
-        });
+    pub static MOCKOBSERVABLE_ABI: ::ethers::contract::Lazy<::ethers::core::abi::Abi> = ::ethers::contract::Lazy::new(||
+    ::ethers::core::utils::__serde_json::from_str(__ABI).expect("ABI is always valid"));
     #[rustfmt::skip]
     const __BYTECODE: &[u8] = &[
         96,
@@ -1889,8 +1887,9 @@ pub mod mock_observable {
         51,
     ];
     ///The bytecode of the contract.
-    pub static MOCKOBSERVABLE_BYTECODE: ::ethers::core::types::Bytes =
-        ::ethers::core::types::Bytes::from_static(__BYTECODE);
+    pub static MOCKOBSERVABLE_BYTECODE: ::ethers::core::types::Bytes = ::ethers::core::types::Bytes::from_static(
+        __BYTECODE,
+    );
     #[rustfmt::skip]
     const __DEPLOYED_BYTECODE: &[u8] = &[
         96,
@@ -2710,8 +2709,9 @@ pub mod mock_observable {
         51,
     ];
     ///The deployed bytecode of the contract.
-    pub static MOCKOBSERVABLE_DEPLOYED_BYTECODE: ::ethers::core::types::Bytes =
-        ::ethers::core::types::Bytes::from_static(__DEPLOYED_BYTECODE);
+    pub static MOCKOBSERVABLE_DEPLOYED_BYTECODE: ::ethers::core::types::Bytes = ::ethers::core::types::Bytes::from_static(
+        __DEPLOYED_BYTECODE,
+    );
     pub struct MockObservable<M>(::ethers::contract::Contract<M>);
     impl<M> ::core::clone::Clone for MockObservable<M> {
         fn clone(&self) -> Self {
@@ -2731,9 +2731,7 @@ pub mod mock_observable {
     }
     impl<M> ::core::fmt::Debug for MockObservable<M> {
         fn fmt(&self, f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
-            f.debug_tuple(stringify!(MockObservable))
-                .field(&self.address())
-                .finish()
+            f.debug_tuple(stringify!(MockObservable)).field(&self.address()).finish()
         }
     }
     impl<M: ::ethers::providers::Middleware> MockObservable<M> {
@@ -2743,11 +2741,13 @@ pub mod mock_observable {
             address: T,
             client: ::std::sync::Arc<M>,
         ) -> Self {
-            Self(::ethers::contract::Contract::new(
-                address.into(),
-                MOCKOBSERVABLE_ABI.clone(),
-                client,
-            ))
+            Self(
+                ::ethers::contract::Contract::new(
+                    address.into(),
+                    MOCKOBSERVABLE_ABI.clone(),
+                    client,
+                ),
+            )
         }
         /// Constructs the general purpose `Deployer` instance based on the provided constructor arguments and sends it.
         /// Returns a new instance of a deployer that returns an instance of this contract after sending the transaction
@@ -2794,10 +2794,7 @@ pub mod mock_observable {
             seconds_agos: ::std::vec::Vec<u32>,
         ) -> ::ethers::contract::builders::ContractCall<
             M,
-            (
-                ::std::vec::Vec<i64>,
-                ::std::vec::Vec<::ethers::core::types::U256>,
-            ),
+            (::std::vec::Vec<i64>, ::std::vec::Vec<::ethers::core::types::U256>),
         > {
             self.0
                 .method_hash([136, 59, 219, 253], seconds_agos)
@@ -2805,8 +2802,7 @@ pub mod mock_observable {
         }
     }
     impl<M: ::ethers::providers::Middleware> From<::ethers::contract::Contract<M>>
-        for MockObservable<M>
-    {
+    for MockObservable<M> {
         fn from(contract: ::ethers::contract::Contract<M>) -> Self {
             Self::new(contract.address(), contract.client())
         }
@@ -2820,7 +2816,7 @@ pub mod mock_observable {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(name = "observe", abi = "observe(uint32[])")]
     pub struct ObserveCall {
@@ -2835,10 +2831,12 @@ pub mod mock_observable {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     pub struct ObserveReturn {
         pub tick_cumulatives: ::std::vec::Vec<i64>,
-        pub seconds_per_liquidity_cumulative_x12_8s: ::std::vec::Vec<::ethers::core::types::U256>,
+        pub seconds_per_liquidity_cumulative_x12_8s: ::std::vec::Vec<
+            ::ethers::core::types::U256,
+        >,
     }
 }

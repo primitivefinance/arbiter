@@ -7,16 +7,14 @@ pub use ierc1271::*;
     clippy::upper_case_acronyms,
     clippy::type_complexity,
     dead_code,
-    non_camel_case_types
+    non_camel_case_types,
 )]
 pub mod ierc1271 {
     #[rustfmt::skip]
     const __ABI: &str = "[{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"hash\",\"type\":\"bytes32\",\"components\":[]},{\"internalType\":\"bytes\",\"name\":\"signature\",\"type\":\"bytes\",\"components\":[]}],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"isValidSignature\",\"outputs\":[{\"internalType\":\"bytes4\",\"name\":\"magicValue\",\"type\":\"bytes4\",\"components\":[]}]}]";
     ///The parsed JSON ABI of the contract.
-    pub static IERC1271_ABI: ::ethers::contract::Lazy<::ethers::core::abi::Abi> =
-        ::ethers::contract::Lazy::new(|| {
-            ::ethers::core::utils::__serde_json::from_str(__ABI).expect("ABI is always valid")
-        });
+    pub static IERC1271_ABI: ::ethers::contract::Lazy<::ethers::core::abi::Abi> = ::ethers::contract::Lazy::new(||
+    ::ethers::core::utils::__serde_json::from_str(__ABI).expect("ABI is always valid"));
     pub struct IERC1271<M>(::ethers::contract::Contract<M>);
     impl<M> ::core::clone::Clone for IERC1271<M> {
         fn clone(&self) -> Self {
@@ -36,9 +34,7 @@ pub mod ierc1271 {
     }
     impl<M> ::core::fmt::Debug for IERC1271<M> {
         fn fmt(&self, f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
-            f.debug_tuple(stringify!(IERC1271))
-                .field(&self.address())
-                .finish()
+            f.debug_tuple(stringify!(IERC1271)).field(&self.address()).finish()
         }
     }
     impl<M: ::ethers::providers::Middleware> IERC1271<M> {
@@ -48,11 +44,13 @@ pub mod ierc1271 {
             address: T,
             client: ::std::sync::Arc<M>,
         ) -> Self {
-            Self(::ethers::contract::Contract::new(
-                address.into(),
-                IERC1271_ABI.clone(),
-                client,
-            ))
+            Self(
+                ::ethers::contract::Contract::new(
+                    address.into(),
+                    IERC1271_ABI.clone(),
+                    client,
+                ),
+            )
         }
         ///Calls the contract's `isValidSignature` (0x1626ba7e) function
         pub fn is_valid_signature(
@@ -65,7 +63,8 @@ pub mod ierc1271 {
                 .expect("method not found (this should never happen)")
         }
     }
-    impl<M: ::ethers::providers::Middleware> From<::ethers::contract::Contract<M>> for IERC1271<M> {
+    impl<M: ::ethers::providers::Middleware> From<::ethers::contract::Contract<M>>
+    for IERC1271<M> {
         fn from(contract: ::ethers::contract::Contract<M>) -> Self {
             Self::new(contract.address(), contract.client())
         }
@@ -79,7 +78,7 @@ pub mod ierc1271 {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(name = "isValidSignature", abi = "isValidSignature(bytes32,bytes)")]
     pub struct IsValidSignatureCall {
@@ -95,7 +94,7 @@ pub mod ierc1271 {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     pub struct IsValidSignatureReturn {
         pub magic_value: [u8; 4],

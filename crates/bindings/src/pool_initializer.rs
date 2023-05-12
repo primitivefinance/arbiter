@@ -7,16 +7,14 @@ pub use pool_initializer::*;
     clippy::upper_case_acronyms,
     clippy::type_complexity,
     dead_code,
-    non_camel_case_types
+    non_camel_case_types,
 )]
 pub mod pool_initializer {
     #[rustfmt::skip]
     const __ABI: &str = "[{\"inputs\":[],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"WETH9\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"token0\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"address\",\"name\":\"token1\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint24\",\"name\":\"fee\",\"type\":\"uint24\",\"components\":[]},{\"internalType\":\"uint160\",\"name\":\"sqrtPriceX96\",\"type\":\"uint160\",\"components\":[]}],\"stateMutability\":\"payable\",\"type\":\"function\",\"name\":\"createAndInitializePoolIfNecessary\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"pool\",\"type\":\"address\",\"components\":[]}]},{\"inputs\":[],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"factory\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\",\"components\":[]}]}]";
     ///The parsed JSON ABI of the contract.
-    pub static POOLINITIALIZER_ABI: ::ethers::contract::Lazy<::ethers::core::abi::Abi> =
-        ::ethers::contract::Lazy::new(|| {
-            ::ethers::core::utils::__serde_json::from_str(__ABI).expect("ABI is always valid")
-        });
+    pub static POOLINITIALIZER_ABI: ::ethers::contract::Lazy<::ethers::core::abi::Abi> = ::ethers::contract::Lazy::new(||
+    ::ethers::core::utils::__serde_json::from_str(__ABI).expect("ABI is always valid"));
     pub struct PoolInitializer<M>(::ethers::contract::Contract<M>);
     impl<M> ::core::clone::Clone for PoolInitializer<M> {
         fn clone(&self) -> Self {
@@ -36,9 +34,7 @@ pub mod pool_initializer {
     }
     impl<M> ::core::fmt::Debug for PoolInitializer<M> {
         fn fmt(&self, f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
-            f.debug_tuple(stringify!(PoolInitializer))
-                .field(&self.address())
-                .finish()
+            f.debug_tuple(stringify!(PoolInitializer)).field(&self.address()).finish()
         }
     }
     impl<M: ::ethers::providers::Middleware> PoolInitializer<M> {
@@ -48,16 +44,21 @@ pub mod pool_initializer {
             address: T,
             client: ::std::sync::Arc<M>,
         ) -> Self {
-            Self(::ethers::contract::Contract::new(
-                address.into(),
-                POOLINITIALIZER_ABI.clone(),
-                client,
-            ))
+            Self(
+                ::ethers::contract::Contract::new(
+                    address.into(),
+                    POOLINITIALIZER_ABI.clone(),
+                    client,
+                ),
+            )
         }
         ///Calls the contract's `WETH9` (0x4aa4a4fc) function
         pub fn weth9(
             &self,
-        ) -> ::ethers::contract::builders::ContractCall<M, ::ethers::core::types::Address> {
+        ) -> ::ethers::contract::builders::ContractCall<
+            M,
+            ::ethers::core::types::Address,
+        > {
             self.0
                 .method_hash([74, 164, 164, 252], ())
                 .expect("method not found (this should never happen)")
@@ -69,7 +70,10 @@ pub mod pool_initializer {
             token_1: ::ethers::core::types::Address,
             fee: u32,
             sqrt_price_x96: ::ethers::core::types::U256,
-        ) -> ::ethers::contract::builders::ContractCall<M, ::ethers::core::types::Address> {
+        ) -> ::ethers::contract::builders::ContractCall<
+            M,
+            ::ethers::core::types::Address,
+        > {
             self.0
                 .method_hash([19, 234, 213, 98], (token_0, token_1, fee, sqrt_price_x96))
                 .expect("method not found (this should never happen)")
@@ -77,15 +81,17 @@ pub mod pool_initializer {
         ///Calls the contract's `factory` (0xc45a0155) function
         pub fn factory(
             &self,
-        ) -> ::ethers::contract::builders::ContractCall<M, ::ethers::core::types::Address> {
+        ) -> ::ethers::contract::builders::ContractCall<
+            M,
+            ::ethers::core::types::Address,
+        > {
             self.0
                 .method_hash([196, 90, 1, 85], ())
                 .expect("method not found (this should never happen)")
         }
     }
     impl<M: ::ethers::providers::Middleware> From<::ethers::contract::Contract<M>>
-        for PoolInitializer<M>
-    {
+    for PoolInitializer<M> {
         fn from(contract: ::ethers::contract::Contract<M>) -> Self {
             Self::new(contract.address(), contract.client())
         }
@@ -99,7 +105,7 @@ pub mod pool_initializer {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(name = "WETH9", abi = "WETH9()")]
     pub struct Weth9Call;
@@ -112,7 +118,7 @@ pub mod pool_initializer {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(
         name = "createAndInitializePoolIfNecessary",
@@ -133,7 +139,7 @@ pub mod pool_initializer {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(name = "factory", abi = "factory()")]
     pub struct FactoryCall;
@@ -149,17 +155,18 @@ pub mod pool_initializer {
             data: impl AsRef<[u8]>,
         ) -> ::core::result::Result<Self, ::ethers::core::abi::AbiError> {
             let data = data.as_ref();
-            if let Ok(decoded) = <Weth9Call as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded)
+                = <Weth9Call as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::Weth9(decoded));
             }
-            if let Ok(decoded) =
-                <CreateAndInitializePoolIfNecessaryCall as ::ethers::core::abi::AbiDecode>::decode(
+            if let Ok(decoded)
+                = <CreateAndInitializePoolIfNecessaryCall as ::ethers::core::abi::AbiDecode>::decode(
                     data,
-                )
-            {
+                ) {
                 return Ok(Self::CreateAndInitializePoolIfNecessary(decoded));
             }
-            if let Ok(decoded) = <FactoryCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded)
+                = <FactoryCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::Factory(decoded));
             }
             Err(::ethers::core::abi::Error::InvalidData.into())
@@ -192,7 +199,8 @@ pub mod pool_initializer {
             Self::Weth9(value)
         }
     }
-    impl ::core::convert::From<CreateAndInitializePoolIfNecessaryCall> for PoolInitializerCalls {
+    impl ::core::convert::From<CreateAndInitializePoolIfNecessaryCall>
+    for PoolInitializerCalls {
         fn from(value: CreateAndInitializePoolIfNecessaryCall) -> Self {
             Self::CreateAndInitializePoolIfNecessary(value)
         }
@@ -211,7 +219,7 @@ pub mod pool_initializer {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     pub struct Weth9Return(pub ::ethers::core::types::Address);
     ///Container type for all return fields from the `createAndInitializePoolIfNecessary` function with signature `createAndInitializePoolIfNecessary(address,address,uint24,uint160)` and selector `0x13ead562`
@@ -223,7 +231,7 @@ pub mod pool_initializer {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     pub struct CreateAndInitializePoolIfNecessaryReturn {
         pub pool: ::ethers::core::types::Address,
@@ -237,7 +245,7 @@ pub mod pool_initializer {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     pub struct FactoryReturn(pub ::ethers::core::types::Address);
 }

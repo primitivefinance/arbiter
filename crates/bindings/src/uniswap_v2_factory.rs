@@ -7,16 +7,18 @@ pub use uniswap_v2_factory::*;
     clippy::upper_case_acronyms,
     clippy::type_complexity,
     dead_code,
-    non_camel_case_types
+    non_camel_case_types,
 )]
 pub mod uniswap_v2_factory {
     #[rustfmt::skip]
     const __ABI: &str = "[{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_feeToSetter\",\"type\":\"address\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"constructor\",\"outputs\":[]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"token0\",\"type\":\"address\",\"components\":[],\"indexed\":true},{\"internalType\":\"address\",\"name\":\"token1\",\"type\":\"address\",\"components\":[],\"indexed\":true},{\"internalType\":\"address\",\"name\":\"pair\",\"type\":\"address\",\"components\":[],\"indexed\":false},{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\",\"components\":[],\"indexed\":false}],\"type\":\"event\",\"name\":\"PairCreated\",\"outputs\":[],\"anonymous\":false},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\",\"components\":[]}],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"allPairs\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\",\"components\":[]}]},{\"inputs\":[],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"allPairsLength\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"tokenA\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"address\",\"name\":\"tokenB\",\"type\":\"address\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"function\",\"name\":\"createPair\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"pair\",\"type\":\"address\",\"components\":[]}]},{\"inputs\":[],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"feeTo\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\",\"components\":[]}]},{\"inputs\":[],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"feeToSetter\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\",\"components\":[]}],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"getPair\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_feeTo\",\"type\":\"address\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"function\",\"name\":\"setFeeTo\",\"outputs\":[]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_feeToSetter\",\"type\":\"address\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"function\",\"name\":\"setFeeToSetter\",\"outputs\":[]}]";
     ///The parsed JSON ABI of the contract.
-    pub static UNISWAPV2FACTORY_ABI: ::ethers::contract::Lazy<::ethers::core::abi::Abi> =
-        ::ethers::contract::Lazy::new(|| {
-            ::ethers::core::utils::__serde_json::from_str(__ABI).expect("ABI is always valid")
-        });
+    pub static UNISWAPV2FACTORY_ABI: ::ethers::contract::Lazy<
+        ::ethers::core::abi::Abi,
+    > = ::ethers::contract::Lazy::new(|| {
+        ::ethers::core::utils::__serde_json::from_str(__ABI)
+            .expect("ABI is always valid")
+    });
     #[rustfmt::skip]
     const __BYTECODE: &[u8] = &[
         96,
@@ -42,13 +44,13 @@ pub mod uniswap_v2_factory {
         81,
         97,
         42,
-        169,
+        185,
         56,
         3,
         128,
         97,
         42,
-        169,
+        185,
         131,
         57,
         129,
@@ -106,7 +108,7 @@ pub mod uniswap_v2_factory {
         85,
         97,
         42,
-        70,
+        86,
         128,
         97,
         0,
@@ -1701,7 +1703,7 @@ pub mod uniswap_v2_factory {
         91,
         97,
         35,
-        216,
+        232,
         128,
         97,
         6,
@@ -1718,6 +1720,22 @@ pub mod uniswap_v2_factory {
         64,
         82,
         96,
+        8,
+        128,
+        84,
+        96,
+        1,
+        96,
+        1,
+        96,
+        224,
+        27,
+        3,
+        25,
+        22,
+        144,
+        85,
+        96,
         1,
         96,
         12,
@@ -1727,7 +1745,7 @@ pub mod uniswap_v2_factory {
         21,
         97,
         0,
-        21,
+        37,
         87,
         96,
         0,
@@ -1745,7 +1763,7 @@ pub mod uniswap_v2_factory {
         82,
         97,
         35,
-        134,
+        150,
         130,
         57,
         96,
@@ -1965,7 +1983,7 @@ pub mod uniswap_v2_factory {
         128,
         97,
         1,
-        5,
+        21,
         96,
         0,
         57,
@@ -10763,38 +10781,38 @@ pub mod uniswap_v2_factory {
         49,
         88,
         32,
-        247,
-        149,
-        80,
-        123,
-        84,
-        194,
-        28,
-        141,
-        197,
-        65,
-        150,
-        147,
-        87,
+        180,
+        55,
+        30,
+        108,
+        192,
+        61,
+        242,
+        226,
+        39,
+        43,
+        44,
         53,
         160,
-        244,
-        68,
-        210,
-        143,
-        188,
-        229,
+        24,
+        125,
+        213,
+        21,
+        204,
+        206,
+        184,
+        208,
+        206,
+        104,
+        110,
+        162,
+        27,
+        16,
+        99,
+        25,
         72,
-        117,
-        41,
-        245,
-        219,
-        40,
-        215,
-        128,
-        77,
-        180,
-        178,
+        71,
+        237,
         100,
         115,
         111,
@@ -10897,38 +10915,38 @@ pub mod uniswap_v2_factory {
         49,
         88,
         32,
-        119,
-        119,
-        234,
-        59,
-        33,
-        44,
-        247,
-        164,
-        187,
         163,
-        109,
-        216,
-        245,
-        44,
-        155,
-        140,
-        153,
-        250,
-        186,
-        90,
-        152,
-        240,
-        135,
-        248,
-        18,
-        90,
+        84,
+        131,
+        110,
         108,
-        52,
-        37,
-        182,
-        123,
-        116,
+        38,
+        231,
+        160,
+        192,
+        129,
+        27,
+        72,
+        253,
+        233,
+        230,
+        210,
+        238,
+        146,
+        197,
+        176,
+        203,
+        245,
+        137,
+        191,
+        9,
+        16,
+        133,
+        118,
+        247,
+        248,
+        80,
+        217,
         100,
         115,
         111,
@@ -10942,8 +10960,9 @@ pub mod uniswap_v2_factory {
         50,
     ];
     ///The bytecode of the contract.
-    pub static UNISWAPV2FACTORY_BYTECODE: ::ethers::core::types::Bytes =
-        ::ethers::core::types::Bytes::from_static(__BYTECODE);
+    pub static UNISWAPV2FACTORY_BYTECODE: ::ethers::core::types::Bytes = ::ethers::core::types::Bytes::from_static(
+        __BYTECODE,
+    );
     #[rustfmt::skip]
     const __DEPLOYED_BYTECODE: &[u8] = &[
         96,
@@ -12529,7 +12548,7 @@ pub mod uniswap_v2_factory {
         91,
         97,
         35,
-        216,
+        232,
         128,
         97,
         6,
@@ -12546,6 +12565,22 @@ pub mod uniswap_v2_factory {
         64,
         82,
         96,
+        8,
+        128,
+        84,
+        96,
+        1,
+        96,
+        1,
+        96,
+        224,
+        27,
+        3,
+        25,
+        22,
+        144,
+        85,
+        96,
         1,
         96,
         12,
@@ -12555,7 +12590,7 @@ pub mod uniswap_v2_factory {
         21,
         97,
         0,
-        21,
+        37,
         87,
         96,
         0,
@@ -12573,7 +12608,7 @@ pub mod uniswap_v2_factory {
         82,
         97,
         35,
-        134,
+        150,
         130,
         57,
         96,
@@ -12793,7 +12828,7 @@ pub mod uniswap_v2_factory {
         128,
         97,
         1,
-        5,
+        21,
         96,
         0,
         57,
@@ -21591,38 +21626,38 @@ pub mod uniswap_v2_factory {
         49,
         88,
         32,
-        247,
-        149,
-        80,
-        123,
-        84,
-        194,
-        28,
-        141,
-        197,
-        65,
-        150,
-        147,
-        87,
+        180,
+        55,
+        30,
+        108,
+        192,
+        61,
+        242,
+        226,
+        39,
+        43,
+        44,
         53,
         160,
-        244,
-        68,
-        210,
-        143,
-        188,
-        229,
+        24,
+        125,
+        213,
+        21,
+        204,
+        206,
+        184,
+        208,
+        206,
+        104,
+        110,
+        162,
+        27,
+        16,
+        99,
+        25,
         72,
-        117,
-        41,
-        245,
-        219,
-        40,
-        215,
-        128,
-        77,
-        180,
-        178,
+        71,
+        237,
         100,
         115,
         111,
@@ -21725,38 +21760,38 @@ pub mod uniswap_v2_factory {
         49,
         88,
         32,
-        119,
-        119,
-        234,
-        59,
-        33,
-        44,
-        247,
-        164,
-        187,
         163,
-        109,
-        216,
-        245,
-        44,
-        155,
-        140,
-        153,
-        250,
-        186,
-        90,
-        152,
-        240,
-        135,
-        248,
-        18,
-        90,
+        84,
+        131,
+        110,
         108,
-        52,
-        37,
-        182,
-        123,
-        116,
+        38,
+        231,
+        160,
+        192,
+        129,
+        27,
+        72,
+        253,
+        233,
+        230,
+        210,
+        238,
+        146,
+        197,
+        176,
+        203,
+        245,
+        137,
+        191,
+        9,
+        16,
+        133,
+        118,
+        247,
+        248,
+        80,
+        217,
         100,
         115,
         111,
@@ -21770,8 +21805,9 @@ pub mod uniswap_v2_factory {
         50,
     ];
     ///The deployed bytecode of the contract.
-    pub static UNISWAPV2FACTORY_DEPLOYED_BYTECODE: ::ethers::core::types::Bytes =
-        ::ethers::core::types::Bytes::from_static(__DEPLOYED_BYTECODE);
+    pub static UNISWAPV2FACTORY_DEPLOYED_BYTECODE: ::ethers::core::types::Bytes = ::ethers::core::types::Bytes::from_static(
+        __DEPLOYED_BYTECODE,
+    );
     pub struct UniswapV2Factory<M>(::ethers::contract::Contract<M>);
     impl<M> ::core::clone::Clone for UniswapV2Factory<M> {
         fn clone(&self) -> Self {
@@ -21791,9 +21827,7 @@ pub mod uniswap_v2_factory {
     }
     impl<M> ::core::fmt::Debug for UniswapV2Factory<M> {
         fn fmt(&self, f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
-            f.debug_tuple(stringify!(UniswapV2Factory))
-                .field(&self.address())
-                .finish()
+            f.debug_tuple(stringify!(UniswapV2Factory)).field(&self.address()).finish()
         }
     }
     impl<M: ::ethers::providers::Middleware> UniswapV2Factory<M> {
@@ -21803,11 +21837,13 @@ pub mod uniswap_v2_factory {
             address: T,
             client: ::std::sync::Arc<M>,
         ) -> Self {
-            Self(::ethers::contract::Contract::new(
-                address.into(),
-                UNISWAPV2FACTORY_ABI.clone(),
-                client,
-            ))
+            Self(
+                ::ethers::contract::Contract::new(
+                    address.into(),
+                    UNISWAPV2FACTORY_ABI.clone(),
+                    client,
+                ),
+            )
         }
         /// Constructs the general purpose `Deployer` instance based on the provided constructor arguments and sends it.
         /// Returns a new instance of a deployer that returns an instance of this contract after sending the transaction
@@ -21852,7 +21888,10 @@ pub mod uniswap_v2_factory {
         pub fn all_pairs(
             &self,
             p0: ::ethers::core::types::U256,
-        ) -> ::ethers::contract::builders::ContractCall<M, ::ethers::core::types::Address> {
+        ) -> ::ethers::contract::builders::ContractCall<
+            M,
+            ::ethers::core::types::Address,
+        > {
             self.0
                 .method_hash([30, 61, 209, 139], p0)
                 .expect("method not found (this should never happen)")
@@ -21870,7 +21909,10 @@ pub mod uniswap_v2_factory {
             &self,
             token_a: ::ethers::core::types::Address,
             token_b: ::ethers::core::types::Address,
-        ) -> ::ethers::contract::builders::ContractCall<M, ::ethers::core::types::Address> {
+        ) -> ::ethers::contract::builders::ContractCall<
+            M,
+            ::ethers::core::types::Address,
+        > {
             self.0
                 .method_hash([201, 198, 83, 150], (token_a, token_b))
                 .expect("method not found (this should never happen)")
@@ -21878,7 +21920,10 @@ pub mod uniswap_v2_factory {
         ///Calls the contract's `feeTo` (0x017e7e58) function
         pub fn fee_to(
             &self,
-        ) -> ::ethers::contract::builders::ContractCall<M, ::ethers::core::types::Address> {
+        ) -> ::ethers::contract::builders::ContractCall<
+            M,
+            ::ethers::core::types::Address,
+        > {
             self.0
                 .method_hash([1, 126, 126, 88], ())
                 .expect("method not found (this should never happen)")
@@ -21886,7 +21931,10 @@ pub mod uniswap_v2_factory {
         ///Calls the contract's `feeToSetter` (0x094b7415) function
         pub fn fee_to_setter(
             &self,
-        ) -> ::ethers::contract::builders::ContractCall<M, ::ethers::core::types::Address> {
+        ) -> ::ethers::contract::builders::ContractCall<
+            M,
+            ::ethers::core::types::Address,
+        > {
             self.0
                 .method_hash([9, 75, 116, 21], ())
                 .expect("method not found (this should never happen)")
@@ -21896,7 +21944,10 @@ pub mod uniswap_v2_factory {
             &self,
             p0: ::ethers::core::types::Address,
             p1: ::ethers::core::types::Address,
-        ) -> ::ethers::contract::builders::ContractCall<M, ::ethers::core::types::Address> {
+        ) -> ::ethers::contract::builders::ContractCall<
+            M,
+            ::ethers::core::types::Address,
+        > {
             self.0
                 .method_hash([230, 164, 57, 5], (p0, p1))
                 .expect("method not found (this should never happen)")
@@ -21922,22 +21973,26 @@ pub mod uniswap_v2_factory {
         ///Gets the contract's `PairCreated` event
         pub fn pair_created_filter(
             &self,
-        ) -> ::ethers::contract::builders::Event<::std::sync::Arc<M>, M, PairCreatedFilter>
-        {
+        ) -> ::ethers::contract::builders::Event<
+            ::std::sync::Arc<M>,
+            M,
+            PairCreatedFilter,
+        > {
             self.0.event()
         }
         /// Returns an `Event` builder for all the events of this contract.
         pub fn events(
             &self,
-        ) -> ::ethers::contract::builders::Event<::std::sync::Arc<M>, M, PairCreatedFilter>
-        {
-            self.0
-                .event_with_filter(::core::default::Default::default())
+        ) -> ::ethers::contract::builders::Event<
+            ::std::sync::Arc<M>,
+            M,
+            PairCreatedFilter,
+        > {
+            self.0.event_with_filter(::core::default::Default::default())
         }
     }
     impl<M: ::ethers::providers::Middleware> From<::ethers::contract::Contract<M>>
-        for UniswapV2Factory<M>
-    {
+    for UniswapV2Factory<M> {
         fn from(contract: ::ethers::contract::Contract<M>) -> Self {
             Self::new(contract.address(), contract.client())
         }
@@ -21950,7 +22005,7 @@ pub mod uniswap_v2_factory {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethevent(
         name = "PairCreated",
@@ -21973,7 +22028,7 @@ pub mod uniswap_v2_factory {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(name = "allPairs", abi = "allPairs(uint256)")]
     pub struct AllPairsCall(pub ::ethers::core::types::U256);
@@ -21986,7 +22041,7 @@ pub mod uniswap_v2_factory {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(name = "allPairsLength", abi = "allPairsLength()")]
     pub struct AllPairsLengthCall;
@@ -21999,7 +22054,7 @@ pub mod uniswap_v2_factory {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(name = "createPair", abi = "createPair(address,address)")]
     pub struct CreatePairCall {
@@ -22015,7 +22070,7 @@ pub mod uniswap_v2_factory {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(name = "feeTo", abi = "feeTo()")]
     pub struct FeeToCall;
@@ -22028,7 +22083,7 @@ pub mod uniswap_v2_factory {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(name = "feeToSetter", abi = "feeToSetter()")]
     pub struct FeeToSetterCall;
@@ -22041,7 +22096,7 @@ pub mod uniswap_v2_factory {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(name = "getPair", abi = "getPair(address,address)")]
     pub struct GetPairCall(
@@ -22057,7 +22112,7 @@ pub mod uniswap_v2_factory {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(name = "setFeeTo", abi = "setFeeTo(address)")]
     pub struct SetFeeToCall {
@@ -22072,7 +22127,7 @@ pub mod uniswap_v2_factory {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(name = "setFeeToSetter", abi = "setFeeToSetter(address)")]
     pub struct SetFeeToSetterCall {
@@ -22095,32 +22150,36 @@ pub mod uniswap_v2_factory {
             data: impl AsRef<[u8]>,
         ) -> ::core::result::Result<Self, ::ethers::core::abi::AbiError> {
             let data = data.as_ref();
-            if let Ok(decoded) = <AllPairsCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded)
+                = <AllPairsCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::AllPairs(decoded));
             }
-            if let Ok(decoded) =
-                <AllPairsLengthCall as ::ethers::core::abi::AbiDecode>::decode(data)
-            {
+            if let Ok(decoded)
+                = <AllPairsLengthCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::AllPairsLength(decoded));
             }
-            if let Ok(decoded) = <CreatePairCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded)
+                = <CreatePairCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::CreatePair(decoded));
             }
-            if let Ok(decoded) = <FeeToCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded)
+                = <FeeToCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::FeeTo(decoded));
             }
-            if let Ok(decoded) = <FeeToSetterCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded)
+                = <FeeToSetterCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::FeeToSetter(decoded));
             }
-            if let Ok(decoded) = <GetPairCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded)
+                = <GetPairCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::GetPair(decoded));
             }
-            if let Ok(decoded) = <SetFeeToCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded)
+                = <SetFeeToCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::SetFeeTo(decoded));
             }
-            if let Ok(decoded) =
-                <SetFeeToSetterCall as ::ethers::core::abi::AbiDecode>::decode(data)
-            {
+            if let Ok(decoded)
+                = <SetFeeToSetterCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::SetFeeToSetter(decoded));
             }
             Err(::ethers::core::abi::Error::InvalidData.into())
@@ -22129,14 +22188,26 @@ pub mod uniswap_v2_factory {
     impl ::ethers::core::abi::AbiEncode for UniswapV2FactoryCalls {
         fn encode(self) -> Vec<u8> {
             match self {
-                Self::AllPairs(element) => ::ethers::core::abi::AbiEncode::encode(element),
-                Self::AllPairsLength(element) => ::ethers::core::abi::AbiEncode::encode(element),
-                Self::CreatePair(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::AllPairs(element) => {
+                    ::ethers::core::abi::AbiEncode::encode(element)
+                }
+                Self::AllPairsLength(element) => {
+                    ::ethers::core::abi::AbiEncode::encode(element)
+                }
+                Self::CreatePair(element) => {
+                    ::ethers::core::abi::AbiEncode::encode(element)
+                }
                 Self::FeeTo(element) => ::ethers::core::abi::AbiEncode::encode(element),
-                Self::FeeToSetter(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::FeeToSetter(element) => {
+                    ::ethers::core::abi::AbiEncode::encode(element)
+                }
                 Self::GetPair(element) => ::ethers::core::abi::AbiEncode::encode(element),
-                Self::SetFeeTo(element) => ::ethers::core::abi::AbiEncode::encode(element),
-                Self::SetFeeToSetter(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::SetFeeTo(element) => {
+                    ::ethers::core::abi::AbiEncode::encode(element)
+                }
+                Self::SetFeeToSetter(element) => {
+                    ::ethers::core::abi::AbiEncode::encode(element)
+                }
             }
         }
     }
@@ -22203,7 +22274,7 @@ pub mod uniswap_v2_factory {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     pub struct AllPairsReturn(pub ::ethers::core::types::Address);
     ///Container type for all return fields from the `allPairsLength` function with signature `allPairsLength()` and selector `0x574f2ba3`
@@ -22215,7 +22286,7 @@ pub mod uniswap_v2_factory {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     pub struct AllPairsLengthReturn(pub ::ethers::core::types::U256);
     ///Container type for all return fields from the `createPair` function with signature `createPair(address,address)` and selector `0xc9c65396`
@@ -22227,7 +22298,7 @@ pub mod uniswap_v2_factory {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     pub struct CreatePairReturn {
         pub pair: ::ethers::core::types::Address,
@@ -22241,7 +22312,7 @@ pub mod uniswap_v2_factory {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     pub struct FeeToReturn(pub ::ethers::core::types::Address);
     ///Container type for all return fields from the `feeToSetter` function with signature `feeToSetter()` and selector `0x094b7415`
@@ -22253,7 +22324,7 @@ pub mod uniswap_v2_factory {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     pub struct FeeToSetterReturn(pub ::ethers::core::types::Address);
     ///Container type for all return fields from the `getPair` function with signature `getPair(address,address)` and selector `0xe6a43905`
@@ -22265,7 +22336,7 @@ pub mod uniswap_v2_factory {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     pub struct GetPairReturn(pub ::ethers::core::types::Address);
 }

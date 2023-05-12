@@ -7,16 +7,14 @@ pub use ierc721_receiver::*;
     clippy::upper_case_acronyms,
     clippy::type_complexity,
     dead_code,
-    non_camel_case_types
+    non_camel_case_types,
 )]
 pub mod ierc721_receiver {
     #[rustfmt::skip]
     const __ABI: &str = "[{\"inputs\":[{\"internalType\":\"address\",\"name\":\"operator\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"address\",\"name\":\"from\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"tokenId\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"bytes\",\"name\":\"data\",\"type\":\"bytes\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"function\",\"name\":\"onERC721Received\",\"outputs\":[{\"internalType\":\"bytes4\",\"name\":\"\",\"type\":\"bytes4\",\"components\":[]}]}]";
     ///The parsed JSON ABI of the contract.
-    pub static IERC721RECEIVER_ABI: ::ethers::contract::Lazy<::ethers::core::abi::Abi> =
-        ::ethers::contract::Lazy::new(|| {
-            ::ethers::core::utils::__serde_json::from_str(__ABI).expect("ABI is always valid")
-        });
+    pub static IERC721RECEIVER_ABI: ::ethers::contract::Lazy<::ethers::core::abi::Abi> = ::ethers::contract::Lazy::new(||
+    ::ethers::core::utils::__serde_json::from_str(__ABI).expect("ABI is always valid"));
     pub struct IERC721Receiver<M>(::ethers::contract::Contract<M>);
     impl<M> ::core::clone::Clone for IERC721Receiver<M> {
         fn clone(&self) -> Self {
@@ -36,9 +34,7 @@ pub mod ierc721_receiver {
     }
     impl<M> ::core::fmt::Debug for IERC721Receiver<M> {
         fn fmt(&self, f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
-            f.debug_tuple(stringify!(IERC721Receiver))
-                .field(&self.address())
-                .finish()
+            f.debug_tuple(stringify!(IERC721Receiver)).field(&self.address()).finish()
         }
     }
     impl<M: ::ethers::providers::Middleware> IERC721Receiver<M> {
@@ -48,11 +44,13 @@ pub mod ierc721_receiver {
             address: T,
             client: ::std::sync::Arc<M>,
         ) -> Self {
-            Self(::ethers::contract::Contract::new(
-                address.into(),
-                IERC721RECEIVER_ABI.clone(),
-                client,
-            ))
+            Self(
+                ::ethers::contract::Contract::new(
+                    address.into(),
+                    IERC721RECEIVER_ABI.clone(),
+                    client,
+                ),
+            )
         }
         ///Calls the contract's `onERC721Received` (0x150b7a02) function
         pub fn on_erc721_received(
@@ -68,8 +66,7 @@ pub mod ierc721_receiver {
         }
     }
     impl<M: ::ethers::providers::Middleware> From<::ethers::contract::Contract<M>>
-        for IERC721Receiver<M>
-    {
+    for IERC721Receiver<M> {
         fn from(contract: ::ethers::contract::Contract<M>) -> Self {
             Self::new(contract.address(), contract.client())
         }
@@ -83,7 +80,7 @@ pub mod ierc721_receiver {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(
         name = "onERC721Received",
@@ -104,7 +101,7 @@ pub mod ierc721_receiver {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     pub struct OnERC721ReceivedReturn(pub [u8; 4]);
 }

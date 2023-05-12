@@ -7,17 +7,15 @@ pub use i_swap_router::*;
     clippy::upper_case_acronyms,
     clippy::type_complexity,
     dead_code,
-    non_camel_case_types
+    non_camel_case_types,
 )]
 pub mod i_swap_router {
     pub use super::super::shared_types::*;
     #[rustfmt::skip]
     const __ABI: &str = "[{\"inputs\":[{\"internalType\":\"struct ISwapRouter.ExactInputParams\",\"name\":\"params\",\"type\":\"tuple\",\"components\":[{\"internalType\":\"bytes\",\"name\":\"path\",\"type\":\"bytes\",\"components\":[]},{\"internalType\":\"address\",\"name\":\"recipient\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"deadline\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"amountIn\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"amountOutMinimum\",\"type\":\"uint256\",\"components\":[]}]}],\"stateMutability\":\"payable\",\"type\":\"function\",\"name\":\"exactInput\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"amountOut\",\"type\":\"uint256\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"struct ISwapRouter.ExactInputSingleParams\",\"name\":\"params\",\"type\":\"tuple\",\"components\":[{\"internalType\":\"address\",\"name\":\"tokenIn\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"address\",\"name\":\"tokenOut\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint24\",\"name\":\"fee\",\"type\":\"uint24\",\"components\":[]},{\"internalType\":\"address\",\"name\":\"recipient\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"deadline\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"amountIn\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"amountOutMinimum\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"uint160\",\"name\":\"sqrtPriceLimitX96\",\"type\":\"uint160\",\"components\":[]}]}],\"stateMutability\":\"payable\",\"type\":\"function\",\"name\":\"exactInputSingle\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"amountOut\",\"type\":\"uint256\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"struct ISwapRouter.ExactOutputParams\",\"name\":\"params\",\"type\":\"tuple\",\"components\":[{\"internalType\":\"bytes\",\"name\":\"path\",\"type\":\"bytes\",\"components\":[]},{\"internalType\":\"address\",\"name\":\"recipient\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"deadline\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"amountOut\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"amountInMaximum\",\"type\":\"uint256\",\"components\":[]}]}],\"stateMutability\":\"payable\",\"type\":\"function\",\"name\":\"exactOutput\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"amountIn\",\"type\":\"uint256\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"struct ISwapRouter.ExactOutputSingleParams\",\"name\":\"params\",\"type\":\"tuple\",\"components\":[{\"internalType\":\"address\",\"name\":\"tokenIn\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"address\",\"name\":\"tokenOut\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint24\",\"name\":\"fee\",\"type\":\"uint24\",\"components\":[]},{\"internalType\":\"address\",\"name\":\"recipient\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"deadline\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"amountOut\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"amountInMaximum\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"uint160\",\"name\":\"sqrtPriceLimitX96\",\"type\":\"uint160\",\"components\":[]}]}],\"stateMutability\":\"payable\",\"type\":\"function\",\"name\":\"exactOutputSingle\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"amountIn\",\"type\":\"uint256\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"int256\",\"name\":\"amount0Delta\",\"type\":\"int256\",\"components\":[]},{\"internalType\":\"int256\",\"name\":\"amount1Delta\",\"type\":\"int256\",\"components\":[]},{\"internalType\":\"bytes\",\"name\":\"data\",\"type\":\"bytes\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"function\",\"name\":\"uniswapV3SwapCallback\",\"outputs\":[]}]";
     ///The parsed JSON ABI of the contract.
-    pub static ISWAPROUTER_ABI: ::ethers::contract::Lazy<::ethers::core::abi::Abi> =
-        ::ethers::contract::Lazy::new(|| {
-            ::ethers::core::utils::__serde_json::from_str(__ABI).expect("ABI is always valid")
-        });
+    pub static ISWAPROUTER_ABI: ::ethers::contract::Lazy<::ethers::core::abi::Abi> = ::ethers::contract::Lazy::new(||
+    ::ethers::core::utils::__serde_json::from_str(__ABI).expect("ABI is always valid"));
     pub struct ISwapRouter<M>(::ethers::contract::Contract<M>);
     impl<M> ::core::clone::Clone for ISwapRouter<M> {
         fn clone(&self) -> Self {
@@ -37,9 +35,7 @@ pub mod i_swap_router {
     }
     impl<M> ::core::fmt::Debug for ISwapRouter<M> {
         fn fmt(&self, f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
-            f.debug_tuple(stringify!(ISwapRouter))
-                .field(&self.address())
-                .finish()
+            f.debug_tuple(stringify!(ISwapRouter)).field(&self.address()).finish()
         }
     }
     impl<M: ::ethers::providers::Middleware> ISwapRouter<M> {
@@ -49,11 +45,13 @@ pub mod i_swap_router {
             address: T,
             client: ::std::sync::Arc<M>,
         ) -> Self {
-            Self(::ethers::contract::Contract::new(
-                address.into(),
-                ISWAPROUTER_ABI.clone(),
-                client,
-            ))
+            Self(
+                ::ethers::contract::Contract::new(
+                    address.into(),
+                    ISWAPROUTER_ABI.clone(),
+                    client,
+                ),
+            )
         }
         ///Calls the contract's `exactInput` (0xc04b8d59) function
         pub fn exact_input(
@@ -103,7 +101,8 @@ pub mod i_swap_router {
                 .expect("method not found (this should never happen)")
         }
     }
-    impl<M: ::ethers::providers::Middleware> From<::ethers::contract::Contract<M>> for ISwapRouter<M> {
+    impl<M: ::ethers::providers::Middleware> From<::ethers::contract::Contract<M>>
+    for ISwapRouter<M> {
         fn from(contract: ::ethers::contract::Contract<M>) -> Self {
             Self::new(contract.address(), contract.client())
         }
@@ -117,7 +116,7 @@ pub mod i_swap_router {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(
         name = "exactInput",
@@ -135,7 +134,7 @@ pub mod i_swap_router {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(
         name = "exactInputSingle",
@@ -153,7 +152,7 @@ pub mod i_swap_router {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(
         name = "exactOutput",
@@ -171,7 +170,7 @@ pub mod i_swap_router {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(
         name = "exactOutputSingle",
@@ -189,7 +188,7 @@ pub mod i_swap_router {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(
         name = "uniswapV3SwapCallback",
@@ -214,25 +213,30 @@ pub mod i_swap_router {
             data: impl AsRef<[u8]>,
         ) -> ::core::result::Result<Self, ::ethers::core::abi::AbiError> {
             let data = data.as_ref();
-            if let Ok(decoded) = <ExactInputCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded)
+                = <ExactInputCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::ExactInput(decoded));
             }
-            if let Ok(decoded) =
-                <ExactInputSingleCall as ::ethers::core::abi::AbiDecode>::decode(data)
-            {
+            if let Ok(decoded)
+                = <ExactInputSingleCall as ::ethers::core::abi::AbiDecode>::decode(
+                    data,
+                ) {
                 return Ok(Self::ExactInputSingle(decoded));
             }
-            if let Ok(decoded) = <ExactOutputCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded)
+                = <ExactOutputCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::ExactOutput(decoded));
             }
-            if let Ok(decoded) =
-                <ExactOutputSingleCall as ::ethers::core::abi::AbiDecode>::decode(data)
-            {
+            if let Ok(decoded)
+                = <ExactOutputSingleCall as ::ethers::core::abi::AbiDecode>::decode(
+                    data,
+                ) {
                 return Ok(Self::ExactOutputSingle(decoded));
             }
-            if let Ok(decoded) =
-                <UniswapV3SwapCallbackCall as ::ethers::core::abi::AbiDecode>::decode(data)
-            {
+            if let Ok(decoded)
+                = <UniswapV3SwapCallbackCall as ::ethers::core::abi::AbiDecode>::decode(
+                    data,
+                ) {
                 return Ok(Self::UniswapV3SwapCallback(decoded));
             }
             Err(::ethers::core::abi::Error::InvalidData.into())
@@ -241,10 +245,18 @@ pub mod i_swap_router {
     impl ::ethers::core::abi::AbiEncode for ISwapRouterCalls {
         fn encode(self) -> Vec<u8> {
             match self {
-                Self::ExactInput(element) => ::ethers::core::abi::AbiEncode::encode(element),
-                Self::ExactInputSingle(element) => ::ethers::core::abi::AbiEncode::encode(element),
-                Self::ExactOutput(element) => ::ethers::core::abi::AbiEncode::encode(element),
-                Self::ExactOutputSingle(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::ExactInput(element) => {
+                    ::ethers::core::abi::AbiEncode::encode(element)
+                }
+                Self::ExactInputSingle(element) => {
+                    ::ethers::core::abi::AbiEncode::encode(element)
+                }
+                Self::ExactOutput(element) => {
+                    ::ethers::core::abi::AbiEncode::encode(element)
+                }
+                Self::ExactOutputSingle(element) => {
+                    ::ethers::core::abi::AbiEncode::encode(element)
+                }
                 Self::UniswapV3SwapCallback(element) => {
                     ::ethers::core::abi::AbiEncode::encode(element)
                 }
@@ -258,7 +270,9 @@ pub mod i_swap_router {
                 Self::ExactInputSingle(element) => ::core::fmt::Display::fmt(element, f),
                 Self::ExactOutput(element) => ::core::fmt::Display::fmt(element, f),
                 Self::ExactOutputSingle(element) => ::core::fmt::Display::fmt(element, f),
-                Self::UniswapV3SwapCallback(element) => ::core::fmt::Display::fmt(element, f),
+                Self::UniswapV3SwapCallback(element) => {
+                    ::core::fmt::Display::fmt(element, f)
+                }
             }
         }
     }
@@ -296,7 +310,7 @@ pub mod i_swap_router {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     pub struct ExactInputReturn {
         pub amount_out: ::ethers::core::types::U256,
@@ -310,7 +324,7 @@ pub mod i_swap_router {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     pub struct ExactInputSingleReturn {
         pub amount_out: ::ethers::core::types::U256,
@@ -324,7 +338,7 @@ pub mod i_swap_router {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     pub struct ExactOutputReturn {
         pub amount_in: ::ethers::core::types::U256,
@@ -338,7 +352,7 @@ pub mod i_swap_router {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     pub struct ExactOutputSingleReturn {
         pub amount_in: ::ethers::core::types::U256,

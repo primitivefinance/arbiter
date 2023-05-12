@@ -7,7 +7,7 @@
     Debug,
     PartialEq,
     Eq,
-    Hash,
+    Hash
 )]
 pub struct CollectParams {
     pub token_id: ::ethers::core::types::U256,
@@ -24,7 +24,7 @@ pub struct CollectParams {
     Debug,
     PartialEq,
     Eq,
-    Hash,
+    Hash
 )]
 pub struct DecreaseLiquidityParams {
     pub token_id: ::ethers::core::types::U256,
@@ -42,7 +42,7 @@ pub struct DecreaseLiquidityParams {
     Debug,
     PartialEq,
     Eq,
-    Hash,
+    Hash
 )]
 pub struct IncreaseLiquidityParams {
     pub token_id: ::ethers::core::types::U256,
@@ -61,7 +61,7 @@ pub struct IncreaseLiquidityParams {
     Debug,
     PartialEq,
     Eq,
-    Hash,
+    Hash
 )]
 pub struct MintParams {
     pub token_0: ::ethers::core::types::Address,
@@ -85,7 +85,7 @@ pub struct MintParams {
     Debug,
     PartialEq,
     Eq,
-    Hash,
+    Hash
 )]
 pub struct QuoteExactInputSingleParams {
     pub token_in: ::ethers::core::types::Address,
@@ -103,7 +103,7 @@ pub struct QuoteExactInputSingleParams {
     Debug,
     PartialEq,
     Eq,
-    Hash,
+    Hash
 )]
 pub struct QuoteExactOutputSingleParams {
     pub token_in: ::ethers::core::types::Address,
@@ -121,7 +121,7 @@ pub struct QuoteExactOutputSingleParams {
     Debug,
     PartialEq,
     Eq,
-    Hash,
+    Hash
 )]
 pub struct ExactInputParams {
     pub path: ::ethers::core::types::Bytes,
@@ -139,7 +139,7 @@ pub struct ExactInputParams {
     Debug,
     PartialEq,
     Eq,
-    Hash,
+    Hash
 )]
 pub struct ExactInputSingleParams {
     pub token_in: ::ethers::core::types::Address,
@@ -160,7 +160,7 @@ pub struct ExactInputSingleParams {
     Debug,
     PartialEq,
     Eq,
-    Hash,
+    Hash
 )]
 pub struct ExactOutputParams {
     pub path: ::ethers::core::types::Bytes,
@@ -178,7 +178,7 @@ pub struct ExactOutputParams {
     Debug,
     PartialEq,
     Eq,
-    Hash,
+    Hash
 )]
 pub struct ExactOutputSingleParams {
     pub token_in: ::ethers::core::types::Address,
@@ -199,7 +199,7 @@ pub struct ExactOutputSingleParams {
     Debug,
     PartialEq,
     Eq,
-    Hash,
+    Hash
 )]
 pub struct PopulatedTick {
     pub tick: i32,
@@ -215,7 +215,7 @@ pub struct PopulatedTick {
     Debug,
     PartialEq,
     Eq,
-    Hash,
+    Hash
 )]
 pub struct MigrateParams {
     pub pair: ::ethers::core::types::Address,
@@ -241,7 +241,7 @@ pub struct MigrateParams {
     Debug,
     PartialEq,
     Eq,
-    Hash,
+    Hash
 )]
 pub struct Order {
     pub input: u128,
@@ -259,7 +259,7 @@ pub struct Order {
     Debug,
     PartialEq,
     Eq,
-    Hash,
+    Hash
 )]
 pub struct PortfolioCurve {
     pub strike_price: u128,
@@ -278,7 +278,7 @@ pub struct PortfolioCurve {
     Debug,
     PartialEq,
     Eq,
-    Hash,
+    Hash
 )]
 pub struct PortfolioPair {
     pub token_asset: ::ethers::core::types::Address,

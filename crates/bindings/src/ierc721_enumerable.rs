@@ -7,16 +7,18 @@ pub use ierc721_enumerable::*;
     clippy::upper_case_acronyms,
     clippy::type_complexity,
     dead_code,
-    non_camel_case_types
+    non_camel_case_types,
 )]
 pub mod ierc721_enumerable {
     #[rustfmt::skip]
     const __ABI: &str = "[{\"inputs\":[{\"internalType\":\"address\",\"name\":\"owner\",\"type\":\"address\",\"components\":[],\"indexed\":true},{\"internalType\":\"address\",\"name\":\"approved\",\"type\":\"address\",\"components\":[],\"indexed\":true},{\"internalType\":\"uint256\",\"name\":\"tokenId\",\"type\":\"uint256\",\"components\":[],\"indexed\":true}],\"type\":\"event\",\"name\":\"Approval\",\"outputs\":[],\"anonymous\":false},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"owner\",\"type\":\"address\",\"components\":[],\"indexed\":true},{\"internalType\":\"address\",\"name\":\"operator\",\"type\":\"address\",\"components\":[],\"indexed\":true},{\"internalType\":\"bool\",\"name\":\"approved\",\"type\":\"bool\",\"components\":[],\"indexed\":false}],\"type\":\"event\",\"name\":\"ApprovalForAll\",\"outputs\":[],\"anonymous\":false},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"from\",\"type\":\"address\",\"components\":[],\"indexed\":true},{\"internalType\":\"address\",\"name\":\"to\",\"type\":\"address\",\"components\":[],\"indexed\":true},{\"internalType\":\"uint256\",\"name\":\"tokenId\",\"type\":\"uint256\",\"components\":[],\"indexed\":true}],\"type\":\"event\",\"name\":\"Transfer\",\"outputs\":[],\"anonymous\":false},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"to\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"tokenId\",\"type\":\"uint256\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"function\",\"name\":\"approve\",\"outputs\":[]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"owner\",\"type\":\"address\",\"components\":[]}],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"balanceOf\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"balance\",\"type\":\"uint256\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"tokenId\",\"type\":\"uint256\",\"components\":[]}],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"getApproved\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"operator\",\"type\":\"address\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"owner\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"address\",\"name\":\"operator\",\"type\":\"address\",\"components\":[]}],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"isApprovedForAll\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"tokenId\",\"type\":\"uint256\",\"components\":[]}],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"ownerOf\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"owner\",\"type\":\"address\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"from\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"address\",\"name\":\"to\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"tokenId\",\"type\":\"uint256\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"function\",\"name\":\"safeTransferFrom\",\"outputs\":[]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"from\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"address\",\"name\":\"to\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"tokenId\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"bytes\",\"name\":\"data\",\"type\":\"bytes\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"function\",\"name\":\"safeTransferFrom\",\"outputs\":[]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"operator\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"bool\",\"name\":\"_approved\",\"type\":\"bool\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"function\",\"name\":\"setApprovalForAll\",\"outputs\":[]},{\"inputs\":[{\"internalType\":\"bytes4\",\"name\":\"interfaceId\",\"type\":\"bytes4\",\"components\":[]}],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"supportsInterface\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"index\",\"type\":\"uint256\",\"components\":[]}],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"tokenByIndex\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"owner\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"index\",\"type\":\"uint256\",\"components\":[]}],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"tokenOfOwnerByIndex\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"tokenId\",\"type\":\"uint256\",\"components\":[]}]},{\"inputs\":[],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"totalSupply\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"from\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"address\",\"name\":\"to\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"tokenId\",\"type\":\"uint256\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"function\",\"name\":\"transferFrom\",\"outputs\":[]}]";
     ///The parsed JSON ABI of the contract.
-    pub static IERC721ENUMERABLE_ABI: ::ethers::contract::Lazy<::ethers::core::abi::Abi> =
-        ::ethers::contract::Lazy::new(|| {
-            ::ethers::core::utils::__serde_json::from_str(__ABI).expect("ABI is always valid")
-        });
+    pub static IERC721ENUMERABLE_ABI: ::ethers::contract::Lazy<
+        ::ethers::core::abi::Abi,
+    > = ::ethers::contract::Lazy::new(|| {
+        ::ethers::core::utils::__serde_json::from_str(__ABI)
+            .expect("ABI is always valid")
+    });
     pub struct IERC721Enumerable<M>(::ethers::contract::Contract<M>);
     impl<M> ::core::clone::Clone for IERC721Enumerable<M> {
         fn clone(&self) -> Self {
@@ -36,9 +38,7 @@ pub mod ierc721_enumerable {
     }
     impl<M> ::core::fmt::Debug for IERC721Enumerable<M> {
         fn fmt(&self, f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
-            f.debug_tuple(stringify!(IERC721Enumerable))
-                .field(&self.address())
-                .finish()
+            f.debug_tuple(stringify!(IERC721Enumerable)).field(&self.address()).finish()
         }
     }
     impl<M: ::ethers::providers::Middleware> IERC721Enumerable<M> {
@@ -48,11 +48,13 @@ pub mod ierc721_enumerable {
             address: T,
             client: ::std::sync::Arc<M>,
         ) -> Self {
-            Self(::ethers::contract::Contract::new(
-                address.into(),
-                IERC721ENUMERABLE_ABI.clone(),
-                client,
-            ))
+            Self(
+                ::ethers::contract::Contract::new(
+                    address.into(),
+                    IERC721ENUMERABLE_ABI.clone(),
+                    client,
+                ),
+            )
         }
         ///Calls the contract's `approve` (0x095ea7b3) function
         pub fn approve(
@@ -77,7 +79,10 @@ pub mod ierc721_enumerable {
         pub fn get_approved(
             &self,
             token_id: ::ethers::core::types::U256,
-        ) -> ::ethers::contract::builders::ContractCall<M, ::ethers::core::types::Address> {
+        ) -> ::ethers::contract::builders::ContractCall<
+            M,
+            ::ethers::core::types::Address,
+        > {
             self.0
                 .method_hash([8, 24, 18, 252], token_id)
                 .expect("method not found (this should never happen)")
@@ -96,7 +101,10 @@ pub mod ierc721_enumerable {
         pub fn owner_of(
             &self,
             token_id: ::ethers::core::types::U256,
-        ) -> ::ethers::contract::builders::ContractCall<M, ::ethers::core::types::Address> {
+        ) -> ::ethers::contract::builders::ContractCall<
+            M,
+            ::ethers::core::types::Address,
+        > {
             self.0
                 .method_hash([99, 82, 33, 30], token_id)
                 .expect("method not found (this should never happen)")
@@ -184,34 +192,46 @@ pub mod ierc721_enumerable {
         ///Gets the contract's `Approval` event
         pub fn approval_filter(
             &self,
-        ) -> ::ethers::contract::builders::Event<::std::sync::Arc<M>, M, ApprovalFilter> {
+        ) -> ::ethers::contract::builders::Event<
+            ::std::sync::Arc<M>,
+            M,
+            ApprovalFilter,
+        > {
             self.0.event()
         }
         ///Gets the contract's `ApprovalForAll` event
         pub fn approval_for_all_filter(
             &self,
-        ) -> ::ethers::contract::builders::Event<::std::sync::Arc<M>, M, ApprovalForAllFilter>
-        {
+        ) -> ::ethers::contract::builders::Event<
+            ::std::sync::Arc<M>,
+            M,
+            ApprovalForAllFilter,
+        > {
             self.0.event()
         }
         ///Gets the contract's `Transfer` event
         pub fn transfer_filter(
             &self,
-        ) -> ::ethers::contract::builders::Event<::std::sync::Arc<M>, M, TransferFilter> {
+        ) -> ::ethers::contract::builders::Event<
+            ::std::sync::Arc<M>,
+            M,
+            TransferFilter,
+        > {
             self.0.event()
         }
         /// Returns an `Event` builder for all the events of this contract.
         pub fn events(
             &self,
-        ) -> ::ethers::contract::builders::Event<::std::sync::Arc<M>, M, IERC721EnumerableEvents>
-        {
-            self.0
-                .event_with_filter(::core::default::Default::default())
+        ) -> ::ethers::contract::builders::Event<
+            ::std::sync::Arc<M>,
+            M,
+            IERC721EnumerableEvents,
+        > {
+            self.0.event_with_filter(::core::default::Default::default())
         }
     }
     impl<M: ::ethers::providers::Middleware> From<::ethers::contract::Contract<M>>
-        for IERC721Enumerable<M>
-    {
+    for IERC721Enumerable<M> {
         fn from(contract: ::ethers::contract::Contract<M>) -> Self {
             Self::new(contract.address(), contract.client())
         }
@@ -224,7 +244,7 @@ pub mod ierc721_enumerable {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethevent(name = "Approval", abi = "Approval(address,address,uint256)")]
     pub struct ApprovalFilter {
@@ -243,7 +263,7 @@ pub mod ierc721_enumerable {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethevent(name = "ApprovalForAll", abi = "ApprovalForAll(address,address,bool)")]
     pub struct ApprovalForAllFilter {
@@ -261,7 +281,7 @@ pub mod ierc721_enumerable {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethevent(name = "Transfer", abi = "Transfer(address,address,uint256)")]
     pub struct TransferFilter {
@@ -299,7 +319,9 @@ pub mod ierc721_enumerable {
         fn fmt(&self, f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
             match self {
                 Self::ApprovalFilter(element) => ::core::fmt::Display::fmt(element, f),
-                Self::ApprovalForAllFilter(element) => ::core::fmt::Display::fmt(element, f),
+                Self::ApprovalForAllFilter(element) => {
+                    ::core::fmt::Display::fmt(element, f)
+                }
                 Self::TransferFilter(element) => ::core::fmt::Display::fmt(element, f),
             }
         }
@@ -328,7 +350,7 @@ pub mod ierc721_enumerable {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(name = "approve", abi = "approve(address,uint256)")]
     pub struct ApproveCall {
@@ -344,7 +366,7 @@ pub mod ierc721_enumerable {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(name = "balanceOf", abi = "balanceOf(address)")]
     pub struct BalanceOfCall {
@@ -359,7 +381,7 @@ pub mod ierc721_enumerable {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(name = "getApproved", abi = "getApproved(uint256)")]
     pub struct GetApprovedCall {
@@ -374,7 +396,7 @@ pub mod ierc721_enumerable {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(name = "isApprovedForAll", abi = "isApprovedForAll(address,address)")]
     pub struct IsApprovedForAllCall {
@@ -390,7 +412,7 @@ pub mod ierc721_enumerable {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(name = "ownerOf", abi = "ownerOf(uint256)")]
     pub struct OwnerOfCall {
@@ -405,7 +427,7 @@ pub mod ierc721_enumerable {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(
         name = "safeTransferFrom",
@@ -425,7 +447,7 @@ pub mod ierc721_enumerable {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(
         name = "safeTransferFrom",
@@ -446,7 +468,7 @@ pub mod ierc721_enumerable {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(name = "setApprovalForAll", abi = "setApprovalForAll(address,bool)")]
     pub struct SetApprovalForAllCall {
@@ -462,7 +484,7 @@ pub mod ierc721_enumerable {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(name = "supportsInterface", abi = "supportsInterface(bytes4)")]
     pub struct SupportsInterfaceCall {
@@ -477,7 +499,7 @@ pub mod ierc721_enumerable {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(name = "tokenByIndex", abi = "tokenByIndex(uint256)")]
     pub struct TokenByIndexCall {
@@ -492,7 +514,7 @@ pub mod ierc721_enumerable {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(
         name = "tokenOfOwnerByIndex",
@@ -511,7 +533,7 @@ pub mod ierc721_enumerable {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(name = "totalSupply", abi = "totalSupply()")]
     pub struct TotalSupplyCall;
@@ -524,7 +546,7 @@ pub mod ierc721_enumerable {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(name = "transferFrom", abi = "transferFrom(address,address,uint256)")]
     pub struct TransferFromCall {
@@ -554,59 +576,68 @@ pub mod ierc721_enumerable {
             data: impl AsRef<[u8]>,
         ) -> ::core::result::Result<Self, ::ethers::core::abi::AbiError> {
             let data = data.as_ref();
-            if let Ok(decoded) = <ApproveCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded)
+                = <ApproveCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::Approve(decoded));
             }
-            if let Ok(decoded) = <BalanceOfCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded)
+                = <BalanceOfCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::BalanceOf(decoded));
             }
-            if let Ok(decoded) = <GetApprovedCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded)
+                = <GetApprovedCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::GetApproved(decoded));
             }
-            if let Ok(decoded) =
-                <IsApprovedForAllCall as ::ethers::core::abi::AbiDecode>::decode(data)
-            {
+            if let Ok(decoded)
+                = <IsApprovedForAllCall as ::ethers::core::abi::AbiDecode>::decode(
+                    data,
+                ) {
                 return Ok(Self::IsApprovedForAll(decoded));
             }
-            if let Ok(decoded) = <OwnerOfCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded)
+                = <OwnerOfCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::OwnerOf(decoded));
             }
-            if let Ok(decoded) =
-                <SafeTransferFromCall as ::ethers::core::abi::AbiDecode>::decode(data)
-            {
+            if let Ok(decoded)
+                = <SafeTransferFromCall as ::ethers::core::abi::AbiDecode>::decode(
+                    data,
+                ) {
                 return Ok(Self::SafeTransferFrom(decoded));
             }
-            if let Ok(decoded) =
-                <SafeTransferFromWithFromAndToAndDataCall as ::ethers::core::abi::AbiDecode>::decode(
+            if let Ok(decoded)
+                = <SafeTransferFromWithFromAndToAndDataCall as ::ethers::core::abi::AbiDecode>::decode(
                     data,
-                )
-            {
+                ) {
                 return Ok(Self::SafeTransferFromWithFromAndToAndData(decoded));
             }
-            if let Ok(decoded) =
-                <SetApprovalForAllCall as ::ethers::core::abi::AbiDecode>::decode(data)
-            {
+            if let Ok(decoded)
+                = <SetApprovalForAllCall as ::ethers::core::abi::AbiDecode>::decode(
+                    data,
+                ) {
                 return Ok(Self::SetApprovalForAll(decoded));
             }
-            if let Ok(decoded) =
-                <SupportsInterfaceCall as ::ethers::core::abi::AbiDecode>::decode(data)
-            {
+            if let Ok(decoded)
+                = <SupportsInterfaceCall as ::ethers::core::abi::AbiDecode>::decode(
+                    data,
+                ) {
                 return Ok(Self::SupportsInterface(decoded));
             }
-            if let Ok(decoded) = <TokenByIndexCall as ::ethers::core::abi::AbiDecode>::decode(data)
-            {
+            if let Ok(decoded)
+                = <TokenByIndexCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::TokenByIndex(decoded));
             }
-            if let Ok(decoded) =
-                <TokenOfOwnerByIndexCall as ::ethers::core::abi::AbiDecode>::decode(data)
-            {
+            if let Ok(decoded)
+                = <TokenOfOwnerByIndexCall as ::ethers::core::abi::AbiDecode>::decode(
+                    data,
+                ) {
                 return Ok(Self::TokenOfOwnerByIndex(decoded));
             }
-            if let Ok(decoded) = <TotalSupplyCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded)
+                = <TotalSupplyCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::TotalSupply(decoded));
             }
-            if let Ok(decoded) = <TransferFromCall as ::ethers::core::abi::AbiDecode>::decode(data)
-            {
+            if let Ok(decoded)
+                = <TransferFromCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::TransferFrom(decoded));
             }
             Err(::ethers::core::abi::Error::InvalidData.into())
@@ -616,22 +647,40 @@ pub mod ierc721_enumerable {
         fn encode(self) -> Vec<u8> {
             match self {
                 Self::Approve(element) => ::ethers::core::abi::AbiEncode::encode(element),
-                Self::BalanceOf(element) => ::ethers::core::abi::AbiEncode::encode(element),
-                Self::GetApproved(element) => ::ethers::core::abi::AbiEncode::encode(element),
-                Self::IsApprovedForAll(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::BalanceOf(element) => {
+                    ::ethers::core::abi::AbiEncode::encode(element)
+                }
+                Self::GetApproved(element) => {
+                    ::ethers::core::abi::AbiEncode::encode(element)
+                }
+                Self::IsApprovedForAll(element) => {
+                    ::ethers::core::abi::AbiEncode::encode(element)
+                }
                 Self::OwnerOf(element) => ::ethers::core::abi::AbiEncode::encode(element),
-                Self::SafeTransferFrom(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::SafeTransferFrom(element) => {
+                    ::ethers::core::abi::AbiEncode::encode(element)
+                }
                 Self::SafeTransferFromWithFromAndToAndData(element) => {
                     ::ethers::core::abi::AbiEncode::encode(element)
                 }
-                Self::SetApprovalForAll(element) => ::ethers::core::abi::AbiEncode::encode(element),
-                Self::SupportsInterface(element) => ::ethers::core::abi::AbiEncode::encode(element),
-                Self::TokenByIndex(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::SetApprovalForAll(element) => {
+                    ::ethers::core::abi::AbiEncode::encode(element)
+                }
+                Self::SupportsInterface(element) => {
+                    ::ethers::core::abi::AbiEncode::encode(element)
+                }
+                Self::TokenByIndex(element) => {
+                    ::ethers::core::abi::AbiEncode::encode(element)
+                }
                 Self::TokenOfOwnerByIndex(element) => {
                     ::ethers::core::abi::AbiEncode::encode(element)
                 }
-                Self::TotalSupply(element) => ::ethers::core::abi::AbiEncode::encode(element),
-                Self::TransferFrom(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::TotalSupply(element) => {
+                    ::ethers::core::abi::AbiEncode::encode(element)
+                }
+                Self::TransferFrom(element) => {
+                    ::ethers::core::abi::AbiEncode::encode(element)
+                }
             }
         }
     }
@@ -650,7 +699,9 @@ pub mod ierc721_enumerable {
                 Self::SetApprovalForAll(element) => ::core::fmt::Display::fmt(element, f),
                 Self::SupportsInterface(element) => ::core::fmt::Display::fmt(element, f),
                 Self::TokenByIndex(element) => ::core::fmt::Display::fmt(element, f),
-                Self::TokenOfOwnerByIndex(element) => ::core::fmt::Display::fmt(element, f),
+                Self::TokenOfOwnerByIndex(element) => {
+                    ::core::fmt::Display::fmt(element, f)
+                }
                 Self::TotalSupply(element) => ::core::fmt::Display::fmt(element, f),
                 Self::TransferFrom(element) => ::core::fmt::Display::fmt(element, f),
             }
@@ -686,7 +737,8 @@ pub mod ierc721_enumerable {
             Self::SafeTransferFrom(value)
         }
     }
-    impl ::core::convert::From<SafeTransferFromWithFromAndToAndDataCall> for IERC721EnumerableCalls {
+    impl ::core::convert::From<SafeTransferFromWithFromAndToAndDataCall>
+    for IERC721EnumerableCalls {
         fn from(value: SafeTransferFromWithFromAndToAndDataCall) -> Self {
             Self::SafeTransferFromWithFromAndToAndData(value)
         }
@@ -730,7 +782,7 @@ pub mod ierc721_enumerable {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     pub struct BalanceOfReturn {
         pub balance: ::ethers::core::types::U256,
@@ -744,7 +796,7 @@ pub mod ierc721_enumerable {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     pub struct GetApprovedReturn {
         pub operator: ::ethers::core::types::Address,
@@ -758,7 +810,7 @@ pub mod ierc721_enumerable {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     pub struct IsApprovedForAllReturn(pub bool);
     ///Container type for all return fields from the `ownerOf` function with signature `ownerOf(uint256)` and selector `0x6352211e`
@@ -770,7 +822,7 @@ pub mod ierc721_enumerable {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     pub struct OwnerOfReturn {
         pub owner: ::ethers::core::types::Address,
@@ -784,7 +836,7 @@ pub mod ierc721_enumerable {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     pub struct SupportsInterfaceReturn(pub bool);
     ///Container type for all return fields from the `tokenByIndex` function with signature `tokenByIndex(uint256)` and selector `0x4f6ccce7`
@@ -796,7 +848,7 @@ pub mod ierc721_enumerable {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     pub struct TokenByIndexReturn(pub ::ethers::core::types::U256);
     ///Container type for all return fields from the `tokenOfOwnerByIndex` function with signature `tokenOfOwnerByIndex(address,uint256)` and selector `0x2f745c59`
@@ -808,7 +860,7 @@ pub mod ierc721_enumerable {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     pub struct TokenOfOwnerByIndexReturn {
         pub token_id: ::ethers::core::types::U256,
@@ -822,7 +874,7 @@ pub mod ierc721_enumerable {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     pub struct TotalSupplyReturn(pub ::ethers::core::types::U256);
 }

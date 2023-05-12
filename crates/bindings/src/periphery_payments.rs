@@ -7,16 +7,18 @@ pub use periphery_payments::*;
     clippy::upper_case_acronyms,
     clippy::type_complexity,
     dead_code,
-    non_camel_case_types
+    non_camel_case_types,
 )]
 pub mod periphery_payments {
     #[rustfmt::skip]
     const __ABI: &str = "[{\"inputs\":[],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"WETH9\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\",\"components\":[]}]},{\"inputs\":[],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"factory\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\",\"components\":[]}]},{\"inputs\":[],\"stateMutability\":\"payable\",\"type\":\"function\",\"name\":\"refundETH\",\"outputs\":[]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"token\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"amountMinimum\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"address\",\"name\":\"recipient\",\"type\":\"address\",\"components\":[]}],\"stateMutability\":\"payable\",\"type\":\"function\",\"name\":\"sweepToken\",\"outputs\":[]},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"amountMinimum\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"address\",\"name\":\"recipient\",\"type\":\"address\",\"components\":[]}],\"stateMutability\":\"payable\",\"type\":\"function\",\"name\":\"unwrapWETH9\",\"outputs\":[]},{\"inputs\":[],\"stateMutability\":\"payable\",\"type\":\"receive\",\"outputs\":[]}]";
     ///The parsed JSON ABI of the contract.
-    pub static PERIPHERYPAYMENTS_ABI: ::ethers::contract::Lazy<::ethers::core::abi::Abi> =
-        ::ethers::contract::Lazy::new(|| {
-            ::ethers::core::utils::__serde_json::from_str(__ABI).expect("ABI is always valid")
-        });
+    pub static PERIPHERYPAYMENTS_ABI: ::ethers::contract::Lazy<
+        ::ethers::core::abi::Abi,
+    > = ::ethers::contract::Lazy::new(|| {
+        ::ethers::core::utils::__serde_json::from_str(__ABI)
+            .expect("ABI is always valid")
+    });
     pub struct PeripheryPayments<M>(::ethers::contract::Contract<M>);
     impl<M> ::core::clone::Clone for PeripheryPayments<M> {
         fn clone(&self) -> Self {
@@ -36,9 +38,7 @@ pub mod periphery_payments {
     }
     impl<M> ::core::fmt::Debug for PeripheryPayments<M> {
         fn fmt(&self, f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
-            f.debug_tuple(stringify!(PeripheryPayments))
-                .field(&self.address())
-                .finish()
+            f.debug_tuple(stringify!(PeripheryPayments)).field(&self.address()).finish()
         }
     }
     impl<M: ::ethers::providers::Middleware> PeripheryPayments<M> {
@@ -48,16 +48,21 @@ pub mod periphery_payments {
             address: T,
             client: ::std::sync::Arc<M>,
         ) -> Self {
-            Self(::ethers::contract::Contract::new(
-                address.into(),
-                PERIPHERYPAYMENTS_ABI.clone(),
-                client,
-            ))
+            Self(
+                ::ethers::contract::Contract::new(
+                    address.into(),
+                    PERIPHERYPAYMENTS_ABI.clone(),
+                    client,
+                ),
+            )
         }
         ///Calls the contract's `WETH9` (0x4aa4a4fc) function
         pub fn weth9(
             &self,
-        ) -> ::ethers::contract::builders::ContractCall<M, ::ethers::core::types::Address> {
+        ) -> ::ethers::contract::builders::ContractCall<
+            M,
+            ::ethers::core::types::Address,
+        > {
             self.0
                 .method_hash([74, 164, 164, 252], ())
                 .expect("method not found (this should never happen)")
@@ -65,7 +70,10 @@ pub mod periphery_payments {
         ///Calls the contract's `factory` (0xc45a0155) function
         pub fn factory(
             &self,
-        ) -> ::ethers::contract::builders::ContractCall<M, ::ethers::core::types::Address> {
+        ) -> ::ethers::contract::builders::ContractCall<
+            M,
+            ::ethers::core::types::Address,
+        > {
             self.0
                 .method_hash([196, 90, 1, 85], ())
                 .expect("method not found (this should never happen)")
@@ -99,8 +107,7 @@ pub mod periphery_payments {
         }
     }
     impl<M: ::ethers::providers::Middleware> From<::ethers::contract::Contract<M>>
-        for PeripheryPayments<M>
-    {
+    for PeripheryPayments<M> {
         fn from(contract: ::ethers::contract::Contract<M>) -> Self {
             Self::new(contract.address(), contract.client())
         }
@@ -114,7 +121,7 @@ pub mod periphery_payments {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(name = "WETH9", abi = "WETH9()")]
     pub struct Weth9Call;
@@ -127,7 +134,7 @@ pub mod periphery_payments {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(name = "factory", abi = "factory()")]
     pub struct FactoryCall;
@@ -140,7 +147,7 @@ pub mod periphery_payments {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(name = "refundETH", abi = "refundETH()")]
     pub struct RefundETHCall;
@@ -153,7 +160,7 @@ pub mod periphery_payments {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(name = "sweepToken", abi = "sweepToken(address,uint256,address)")]
     pub struct SweepTokenCall {
@@ -170,7 +177,7 @@ pub mod periphery_payments {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(name = "unwrapWETH9", abi = "unwrapWETH9(uint256,address)")]
     pub struct UnwrapWETH9Call {
@@ -191,19 +198,24 @@ pub mod periphery_payments {
             data: impl AsRef<[u8]>,
         ) -> ::core::result::Result<Self, ::ethers::core::abi::AbiError> {
             let data = data.as_ref();
-            if let Ok(decoded) = <Weth9Call as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded)
+                = <Weth9Call as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::Weth9(decoded));
             }
-            if let Ok(decoded) = <FactoryCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded)
+                = <FactoryCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::Factory(decoded));
             }
-            if let Ok(decoded) = <RefundETHCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded)
+                = <RefundETHCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::RefundETH(decoded));
             }
-            if let Ok(decoded) = <SweepTokenCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded)
+                = <SweepTokenCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::SweepToken(decoded));
             }
-            if let Ok(decoded) = <UnwrapWETH9Call as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded)
+                = <UnwrapWETH9Call as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::UnwrapWETH9(decoded));
             }
             Err(::ethers::core::abi::Error::InvalidData.into())
@@ -214,9 +226,15 @@ pub mod periphery_payments {
             match self {
                 Self::Weth9(element) => ::ethers::core::abi::AbiEncode::encode(element),
                 Self::Factory(element) => ::ethers::core::abi::AbiEncode::encode(element),
-                Self::RefundETH(element) => ::ethers::core::abi::AbiEncode::encode(element),
-                Self::SweepToken(element) => ::ethers::core::abi::AbiEncode::encode(element),
-                Self::UnwrapWETH9(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::RefundETH(element) => {
+                    ::ethers::core::abi::AbiEncode::encode(element)
+                }
+                Self::SweepToken(element) => {
+                    ::ethers::core::abi::AbiEncode::encode(element)
+                }
+                Self::UnwrapWETH9(element) => {
+                    ::ethers::core::abi::AbiEncode::encode(element)
+                }
             }
         }
     }
@@ -265,7 +283,7 @@ pub mod periphery_payments {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     pub struct Weth9Return(pub ::ethers::core::types::Address);
     ///Container type for all return fields from the `factory` function with signature `factory()` and selector `0xc45a0155`
@@ -277,7 +295,7 @@ pub mod periphery_payments {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     pub struct FactoryReturn(pub ::ethers::core::types::Address);
 }

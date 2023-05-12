@@ -7,16 +7,14 @@ pub use arbiter_math::*;
     clippy::upper_case_acronyms,
     clippy::type_complexity,
     dead_code,
-    non_camel_case_types
+    non_camel_case_types,
 )]
 pub mod arbiter_math {
     #[rustfmt::skip]
     const __ABI: &str = "[{\"inputs\":[],\"type\":\"error\",\"name\":\"Infinity\",\"outputs\":[]},{\"inputs\":[],\"type\":\"error\",\"name\":\"Min\",\"outputs\":[]},{\"inputs\":[],\"type\":\"error\",\"name\":\"NegativeInfinity\",\"outputs\":[]},{\"inputs\":[],\"type\":\"error\",\"name\":\"OutOfBounds\",\"outputs\":[]},{\"inputs\":[{\"internalType\":\"int256\",\"name\":\"input\",\"type\":\"int256\",\"components\":[]}],\"stateMutability\":\"pure\",\"type\":\"function\",\"name\":\"cdf\",\"outputs\":[{\"internalType\":\"int256\",\"name\":\"output\",\"type\":\"int256\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"x\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"y\",\"type\":\"uint256\",\"components\":[]}],\"stateMutability\":\"pure\",\"type\":\"function\",\"name\":\"divWadDown\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"z\",\"type\":\"uint256\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"x\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"y\",\"type\":\"uint256\",\"components\":[]}],\"stateMutability\":\"pure\",\"type\":\"function\",\"name\":\"divWadUp\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"z\",\"type\":\"uint256\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"x\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"y\",\"type\":\"uint256\",\"components\":[]}],\"stateMutability\":\"pure\",\"type\":\"function\",\"name\":\"mulWadDown\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"z\",\"type\":\"uint256\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"x\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"y\",\"type\":\"uint256\",\"components\":[]}],\"stateMutability\":\"pure\",\"type\":\"function\",\"name\":\"mulWadUp\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"z\",\"type\":\"uint256\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"int256\",\"name\":\"input\",\"type\":\"int256\",\"components\":[]}],\"stateMutability\":\"pure\",\"type\":\"function\",\"name\":\"pdf\",\"outputs\":[{\"internalType\":\"int256\",\"name\":\"output\",\"type\":\"int256\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"int256\",\"name\":\"input\",\"type\":\"int256\",\"components\":[]}],\"stateMutability\":\"pure\",\"type\":\"function\",\"name\":\"ppf\",\"outputs\":[{\"internalType\":\"int256\",\"name\":\"output\",\"type\":\"int256\",\"components\":[]}]}]";
     ///The parsed JSON ABI of the contract.
-    pub static ARBITERMATH_ABI: ::ethers::contract::Lazy<::ethers::core::abi::Abi> =
-        ::ethers::contract::Lazy::new(|| {
-            ::ethers::core::utils::__serde_json::from_str(__ABI).expect("ABI is always valid")
-        });
+    pub static ARBITERMATH_ABI: ::ethers::contract::Lazy<::ethers::core::abi::Abi> = ::ethers::contract::Lazy::new(||
+    ::ethers::core::utils::__serde_json::from_str(__ABI).expect("ABI is always valid"));
     #[rustfmt::skip]
     const __BYTECODE: &[u8] = &[
         96,
@@ -3751,38 +3749,38 @@ pub mod arbiter_math {
         34,
         18,
         32,
-        131,
-        238,
-        147,
-        25,
-        70,
-        136,
-        20,
-        22,
-        155,
-        60,
-        95,
-        14,
-        128,
-        238,
-        141,
-        187,
-        237,
-        21,
-        50,
-        103,
+        230,
+        162,
         87,
-        169,
-        49,
-        15,
-        145,
-        160,
-        13,
-        241,
-        236,
-        234,
-        108,
-        98,
+        176,
+        56,
+        47,
+        192,
+        205,
+        147,
+        229,
+        34,
+        0,
+        51,
+        148,
+        161,
+        33,
+        218,
+        181,
+        176,
+        195,
+        228,
+        69,
+        29,
+        79,
+        30,
+        4,
+        107,
+        255,
+        112,
+        63,
+        164,
+        142,
         100,
         115,
         111,
@@ -3796,8 +3794,9 @@ pub mod arbiter_math {
         51,
     ];
     ///The bytecode of the contract.
-    pub static ARBITERMATH_BYTECODE: ::ethers::core::types::Bytes =
-        ::ethers::core::types::Bytes::from_static(__BYTECODE);
+    pub static ARBITERMATH_BYTECODE: ::ethers::core::types::Bytes = ::ethers::core::types::Bytes::from_static(
+        __BYTECODE,
+    );
     #[rustfmt::skip]
     const __DEPLOYED_BYTECODE: &[u8] = &[
         96,
@@ -7500,38 +7499,38 @@ pub mod arbiter_math {
         34,
         18,
         32,
-        131,
-        238,
-        147,
-        25,
-        70,
-        136,
-        20,
-        22,
-        155,
-        60,
-        95,
-        14,
-        128,
-        238,
-        141,
-        187,
-        237,
-        21,
-        50,
-        103,
+        230,
+        162,
         87,
-        169,
-        49,
-        15,
-        145,
-        160,
-        13,
-        241,
-        236,
-        234,
-        108,
-        98,
+        176,
+        56,
+        47,
+        192,
+        205,
+        147,
+        229,
+        34,
+        0,
+        51,
+        148,
+        161,
+        33,
+        218,
+        181,
+        176,
+        195,
+        228,
+        69,
+        29,
+        79,
+        30,
+        4,
+        107,
+        255,
+        112,
+        63,
+        164,
+        142,
         100,
         115,
         111,
@@ -7545,8 +7544,9 @@ pub mod arbiter_math {
         51,
     ];
     ///The deployed bytecode of the contract.
-    pub static ARBITERMATH_DEPLOYED_BYTECODE: ::ethers::core::types::Bytes =
-        ::ethers::core::types::Bytes::from_static(__DEPLOYED_BYTECODE);
+    pub static ARBITERMATH_DEPLOYED_BYTECODE: ::ethers::core::types::Bytes = ::ethers::core::types::Bytes::from_static(
+        __DEPLOYED_BYTECODE,
+    );
     pub struct ArbiterMath<M>(::ethers::contract::Contract<M>);
     impl<M> ::core::clone::Clone for ArbiterMath<M> {
         fn clone(&self) -> Self {
@@ -7566,9 +7566,7 @@ pub mod arbiter_math {
     }
     impl<M> ::core::fmt::Debug for ArbiterMath<M> {
         fn fmt(&self, f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
-            f.debug_tuple(stringify!(ArbiterMath))
-                .field(&self.address())
-                .finish()
+            f.debug_tuple(stringify!(ArbiterMath)).field(&self.address()).finish()
         }
     }
     impl<M: ::ethers::providers::Middleware> ArbiterMath<M> {
@@ -7578,11 +7576,13 @@ pub mod arbiter_math {
             address: T,
             client: ::std::sync::Arc<M>,
         ) -> Self {
-            Self(::ethers::contract::Contract::new(
-                address.into(),
-                ARBITERMATH_ABI.clone(),
-                client,
-            ))
+            Self(
+                ::ethers::contract::Contract::new(
+                    address.into(),
+                    ARBITERMATH_ABI.clone(),
+                    client,
+                ),
+            )
         }
         /// Constructs the general purpose `Deployer` instance based on the provided constructor arguments and sends it.
         /// Returns a new instance of a deployer that returns an instance of this contract after sending the transaction
@@ -7691,7 +7691,8 @@ pub mod arbiter_math {
                 .expect("method not found (this should never happen)")
         }
     }
-    impl<M: ::ethers::providers::Middleware> From<::ethers::contract::Contract<M>> for ArbiterMath<M> {
+    impl<M: ::ethers::providers::Middleware> From<::ethers::contract::Contract<M>>
+    for ArbiterMath<M> {
         fn from(contract: ::ethers::contract::Contract<M>) -> Self {
             Self::new(contract.address(), contract.client())
         }
@@ -7705,7 +7706,7 @@ pub mod arbiter_math {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[etherror(name = "Infinity", abi = "Infinity()")]
     pub struct Infinity;
@@ -7718,7 +7719,7 @@ pub mod arbiter_math {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[etherror(name = "Min", abi = "Min()")]
     pub struct Min;
@@ -7731,7 +7732,7 @@ pub mod arbiter_math {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[etherror(name = "NegativeInfinity", abi = "NegativeInfinity()")]
     pub struct NegativeInfinity;
@@ -7744,7 +7745,7 @@ pub mod arbiter_math {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[etherror(name = "OutOfBounds", abi = "OutOfBounds()")]
     pub struct OutOfBounds;
@@ -7764,22 +7765,25 @@ pub mod arbiter_math {
             data: impl AsRef<[u8]>,
         ) -> ::core::result::Result<Self, ::ethers::core::abi::AbiError> {
             let data = data.as_ref();
-            if let Ok(decoded) =
-                <::std::string::String as ::ethers::core::abi::AbiDecode>::decode(data)
-            {
+            if let Ok(decoded)
+                = <::std::string::String as ::ethers::core::abi::AbiDecode>::decode(
+                    data,
+                ) {
                 return Ok(Self::RevertString(decoded));
             }
-            if let Ok(decoded) = <Infinity as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded)
+                = <Infinity as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::Infinity(decoded));
             }
             if let Ok(decoded) = <Min as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::Min(decoded));
             }
-            if let Ok(decoded) = <NegativeInfinity as ::ethers::core::abi::AbiDecode>::decode(data)
-            {
+            if let Ok(decoded)
+                = <NegativeInfinity as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::NegativeInfinity(decoded));
             }
-            if let Ok(decoded) = <OutOfBounds as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded)
+                = <OutOfBounds as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::OutOfBounds(decoded));
             }
             Err(::ethers::core::abi::Error::InvalidData.into())
@@ -7788,10 +7792,16 @@ pub mod arbiter_math {
     impl ::ethers::core::abi::AbiEncode for ArbiterMathErrors {
         fn encode(self) -> ::std::vec::Vec<u8> {
             match self {
-                Self::Infinity(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::Infinity(element) => {
+                    ::ethers::core::abi::AbiEncode::encode(element)
+                }
                 Self::Min(element) => ::ethers::core::abi::AbiEncode::encode(element),
-                Self::NegativeInfinity(element) => ::ethers::core::abi::AbiEncode::encode(element),
-                Self::OutOfBounds(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::NegativeInfinity(element) => {
+                    ::ethers::core::abi::AbiEncode::encode(element)
+                }
+                Self::OutOfBounds(element) => {
+                    ::ethers::core::abi::AbiEncode::encode(element)
+                }
                 Self::RevertString(s) => ::ethers::core::abi::AbiEncode::encode(s),
             }
         }
@@ -7800,12 +7810,17 @@ pub mod arbiter_math {
         fn valid_selector(selector: [u8; 4]) -> bool {
             match selector {
                 [0x08, 0xc3, 0x79, 0xa0] => true,
-                _ if selector == <Infinity as ::ethers::contract::EthError>::selector() => true,
-                _ if selector == <Min as ::ethers::contract::EthError>::selector() => true,
-                _ if selector == <NegativeInfinity as ::ethers::contract::EthError>::selector() => {
+                _ if selector
+                    == <Infinity as ::ethers::contract::EthError>::selector() => true,
+                _ if selector == <Min as ::ethers::contract::EthError>::selector() => {
                     true
                 }
-                _ if selector == <OutOfBounds as ::ethers::contract::EthError>::selector() => true,
+                _ if selector
+                    == <NegativeInfinity as ::ethers::contract::EthError>::selector() => {
+                    true
+                }
+                _ if selector
+                    == <OutOfBounds as ::ethers::contract::EthError>::selector() => true,
                 _ => false,
             }
         }
@@ -7855,7 +7870,7 @@ pub mod arbiter_math {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(name = "cdf", abi = "cdf(int256)")]
     pub struct CdfCall {
@@ -7870,7 +7885,7 @@ pub mod arbiter_math {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(name = "divWadDown", abi = "divWadDown(uint256,uint256)")]
     pub struct DivWadDownCall {
@@ -7886,7 +7901,7 @@ pub mod arbiter_math {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(name = "divWadUp", abi = "divWadUp(uint256,uint256)")]
     pub struct DivWadUpCall {
@@ -7902,7 +7917,7 @@ pub mod arbiter_math {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(name = "mulWadDown", abi = "mulWadDown(uint256,uint256)")]
     pub struct MulWadDownCall {
@@ -7918,7 +7933,7 @@ pub mod arbiter_math {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(name = "mulWadUp", abi = "mulWadUp(uint256,uint256)")]
     pub struct MulWadUpCall {
@@ -7934,7 +7949,7 @@ pub mod arbiter_math {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(name = "pdf", abi = "pdf(int256)")]
     pub struct PdfCall {
@@ -7949,7 +7964,7 @@ pub mod arbiter_math {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(name = "ppf", abi = "ppf(int256)")]
     pub struct PpfCall {
@@ -7971,25 +7986,32 @@ pub mod arbiter_math {
             data: impl AsRef<[u8]>,
         ) -> ::core::result::Result<Self, ::ethers::core::abi::AbiError> {
             let data = data.as_ref();
-            if let Ok(decoded) = <CdfCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded)
+                = <CdfCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::Cdf(decoded));
             }
-            if let Ok(decoded) = <DivWadDownCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded)
+                = <DivWadDownCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::DivWadDown(decoded));
             }
-            if let Ok(decoded) = <DivWadUpCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded)
+                = <DivWadUpCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::DivWadUp(decoded));
             }
-            if let Ok(decoded) = <MulWadDownCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded)
+                = <MulWadDownCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::MulWadDown(decoded));
             }
-            if let Ok(decoded) = <MulWadUpCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded)
+                = <MulWadUpCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::MulWadUp(decoded));
             }
-            if let Ok(decoded) = <PdfCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded)
+                = <PdfCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::Pdf(decoded));
             }
-            if let Ok(decoded) = <PpfCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded)
+                = <PpfCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::Ppf(decoded));
             }
             Err(::ethers::core::abi::Error::InvalidData.into())
@@ -7999,10 +8021,18 @@ pub mod arbiter_math {
         fn encode(self) -> Vec<u8> {
             match self {
                 Self::Cdf(element) => ::ethers::core::abi::AbiEncode::encode(element),
-                Self::DivWadDown(element) => ::ethers::core::abi::AbiEncode::encode(element),
-                Self::DivWadUp(element) => ::ethers::core::abi::AbiEncode::encode(element),
-                Self::MulWadDown(element) => ::ethers::core::abi::AbiEncode::encode(element),
-                Self::MulWadUp(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::DivWadDown(element) => {
+                    ::ethers::core::abi::AbiEncode::encode(element)
+                }
+                Self::DivWadUp(element) => {
+                    ::ethers::core::abi::AbiEncode::encode(element)
+                }
+                Self::MulWadDown(element) => {
+                    ::ethers::core::abi::AbiEncode::encode(element)
+                }
+                Self::MulWadUp(element) => {
+                    ::ethers::core::abi::AbiEncode::encode(element)
+                }
                 Self::Pdf(element) => ::ethers::core::abi::AbiEncode::encode(element),
                 Self::Ppf(element) => ::ethers::core::abi::AbiEncode::encode(element),
             }
@@ -8065,7 +8095,7 @@ pub mod arbiter_math {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     pub struct CdfReturn {
         pub output: ::ethers::core::types::I256,
@@ -8079,7 +8109,7 @@ pub mod arbiter_math {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     pub struct DivWadDownReturn {
         pub z: ::ethers::core::types::U256,
@@ -8093,7 +8123,7 @@ pub mod arbiter_math {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     pub struct DivWadUpReturn {
         pub z: ::ethers::core::types::U256,
@@ -8107,7 +8137,7 @@ pub mod arbiter_math {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     pub struct MulWadDownReturn {
         pub z: ::ethers::core::types::U256,
@@ -8121,7 +8151,7 @@ pub mod arbiter_math {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     pub struct MulWadUpReturn {
         pub z: ::ethers::core::types::U256,
@@ -8135,7 +8165,7 @@ pub mod arbiter_math {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     pub struct PdfReturn {
         pub output: ::ethers::core::types::I256,
@@ -8149,7 +8179,7 @@ pub mod arbiter_math {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     pub struct PpfReturn {
         pub output: ::ethers::core::types::I256,

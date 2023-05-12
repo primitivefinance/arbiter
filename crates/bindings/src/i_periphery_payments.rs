@@ -7,16 +7,18 @@ pub use i_periphery_payments::*;
     clippy::upper_case_acronyms,
     clippy::type_complexity,
     dead_code,
-    non_camel_case_types
+    non_camel_case_types,
 )]
 pub mod i_periphery_payments {
     #[rustfmt::skip]
     const __ABI: &str = "[{\"inputs\":[],\"stateMutability\":\"payable\",\"type\":\"function\",\"name\":\"refundETH\",\"outputs\":[]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"token\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"amountMinimum\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"address\",\"name\":\"recipient\",\"type\":\"address\",\"components\":[]}],\"stateMutability\":\"payable\",\"type\":\"function\",\"name\":\"sweepToken\",\"outputs\":[]},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"amountMinimum\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"address\",\"name\":\"recipient\",\"type\":\"address\",\"components\":[]}],\"stateMutability\":\"payable\",\"type\":\"function\",\"name\":\"unwrapWETH9\",\"outputs\":[]}]";
     ///The parsed JSON ABI of the contract.
-    pub static IPERIPHERYPAYMENTS_ABI: ::ethers::contract::Lazy<::ethers::core::abi::Abi> =
-        ::ethers::contract::Lazy::new(|| {
-            ::ethers::core::utils::__serde_json::from_str(__ABI).expect("ABI is always valid")
-        });
+    pub static IPERIPHERYPAYMENTS_ABI: ::ethers::contract::Lazy<
+        ::ethers::core::abi::Abi,
+    > = ::ethers::contract::Lazy::new(|| {
+        ::ethers::core::utils::__serde_json::from_str(__ABI)
+            .expect("ABI is always valid")
+    });
     pub struct IPeripheryPayments<M>(::ethers::contract::Contract<M>);
     impl<M> ::core::clone::Clone for IPeripheryPayments<M> {
         fn clone(&self) -> Self {
@@ -36,9 +38,7 @@ pub mod i_periphery_payments {
     }
     impl<M> ::core::fmt::Debug for IPeripheryPayments<M> {
         fn fmt(&self, f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
-            f.debug_tuple(stringify!(IPeripheryPayments))
-                .field(&self.address())
-                .finish()
+            f.debug_tuple(stringify!(IPeripheryPayments)).field(&self.address()).finish()
         }
     }
     impl<M: ::ethers::providers::Middleware> IPeripheryPayments<M> {
@@ -48,11 +48,13 @@ pub mod i_periphery_payments {
             address: T,
             client: ::std::sync::Arc<M>,
         ) -> Self {
-            Self(::ethers::contract::Contract::new(
-                address.into(),
-                IPERIPHERYPAYMENTS_ABI.clone(),
-                client,
-            ))
+            Self(
+                ::ethers::contract::Contract::new(
+                    address.into(),
+                    IPERIPHERYPAYMENTS_ABI.clone(),
+                    client,
+                ),
+            )
         }
         ///Calls the contract's `refundETH` (0x12210e8a) function
         pub fn refund_eth(&self) -> ::ethers::contract::builders::ContractCall<M, ()> {
@@ -83,8 +85,7 @@ pub mod i_periphery_payments {
         }
     }
     impl<M: ::ethers::providers::Middleware> From<::ethers::contract::Contract<M>>
-        for IPeripheryPayments<M>
-    {
+    for IPeripheryPayments<M> {
         fn from(contract: ::ethers::contract::Contract<M>) -> Self {
             Self::new(contract.address(), contract.client())
         }
@@ -98,7 +99,7 @@ pub mod i_periphery_payments {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(name = "refundETH", abi = "refundETH()")]
     pub struct RefundETHCall;
@@ -111,7 +112,7 @@ pub mod i_periphery_payments {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(name = "sweepToken", abi = "sweepToken(address,uint256,address)")]
     pub struct SweepTokenCall {
@@ -128,7 +129,7 @@ pub mod i_periphery_payments {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(name = "unwrapWETH9", abi = "unwrapWETH9(uint256,address)")]
     pub struct UnwrapWETH9Call {
@@ -147,13 +148,16 @@ pub mod i_periphery_payments {
             data: impl AsRef<[u8]>,
         ) -> ::core::result::Result<Self, ::ethers::core::abi::AbiError> {
             let data = data.as_ref();
-            if let Ok(decoded) = <RefundETHCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded)
+                = <RefundETHCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::RefundETH(decoded));
             }
-            if let Ok(decoded) = <SweepTokenCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded)
+                = <SweepTokenCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::SweepToken(decoded));
             }
-            if let Ok(decoded) = <UnwrapWETH9Call as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded)
+                = <UnwrapWETH9Call as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::UnwrapWETH9(decoded));
             }
             Err(::ethers::core::abi::Error::InvalidData.into())
@@ -162,9 +166,15 @@ pub mod i_periphery_payments {
     impl ::ethers::core::abi::AbiEncode for IPeripheryPaymentsCalls {
         fn encode(self) -> Vec<u8> {
             match self {
-                Self::RefundETH(element) => ::ethers::core::abi::AbiEncode::encode(element),
-                Self::SweepToken(element) => ::ethers::core::abi::AbiEncode::encode(element),
-                Self::UnwrapWETH9(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::RefundETH(element) => {
+                    ::ethers::core::abi::AbiEncode::encode(element)
+                }
+                Self::SweepToken(element) => {
+                    ::ethers::core::abi::AbiEncode::encode(element)
+                }
+                Self::UnwrapWETH9(element) => {
+                    ::ethers::core::abi::AbiEncode::encode(element)
+                }
             }
         }
     }

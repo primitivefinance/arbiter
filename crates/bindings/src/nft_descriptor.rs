@@ -7,16 +7,14 @@ pub use nft_descriptor::*;
     clippy::upper_case_acronyms,
     clippy::type_complexity,
     dead_code,
-    non_camel_case_types
+    non_camel_case_types,
 )]
 pub mod nft_descriptor {
     #[rustfmt::skip]
     const __ABI: &str = "[{\"inputs\":[{\"internalType\":\"struct NFTDescriptor.ConstructTokenURIParams\",\"name\":\"params\",\"type\":\"tuple\",\"components\":[{\"internalType\":\"uint256\",\"name\":\"tokenId\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"address\",\"name\":\"quoteTokenAddress\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"address\",\"name\":\"baseTokenAddress\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"string\",\"name\":\"quoteTokenSymbol\",\"type\":\"string\",\"components\":[]},{\"internalType\":\"string\",\"name\":\"baseTokenSymbol\",\"type\":\"string\",\"components\":[]},{\"internalType\":\"uint8\",\"name\":\"quoteTokenDecimals\",\"type\":\"uint8\",\"components\":[]},{\"internalType\":\"uint8\",\"name\":\"baseTokenDecimals\",\"type\":\"uint8\",\"components\":[]},{\"internalType\":\"bool\",\"name\":\"flipRatio\",\"type\":\"bool\",\"components\":[]},{\"internalType\":\"int24\",\"name\":\"tickLower\",\"type\":\"int24\",\"components\":[]},{\"internalType\":\"int24\",\"name\":\"tickUpper\",\"type\":\"int24\",\"components\":[]},{\"internalType\":\"int24\",\"name\":\"tickCurrent\",\"type\":\"int24\",\"components\":[]},{\"internalType\":\"int24\",\"name\":\"tickSpacing\",\"type\":\"int24\",\"components\":[]},{\"internalType\":\"uint24\",\"name\":\"fee\",\"type\":\"uint24\",\"components\":[]},{\"internalType\":\"address\",\"name\":\"poolAddress\",\"type\":\"address\",\"components\":[]}]}],\"stateMutability\":\"pure\",\"type\":\"function\",\"name\":\"constructTokenURI\",\"outputs\":[{\"internalType\":\"string\",\"name\":\"\",\"type\":\"string\",\"components\":[]}]}]";
     ///The parsed JSON ABI of the contract.
-    pub static NFTDESCRIPTOR_ABI: ::ethers::contract::Lazy<::ethers::core::abi::Abi> =
-        ::ethers::contract::Lazy::new(|| {
-            ::ethers::core::utils::__serde_json::from_str(__ABI).expect("ABI is always valid")
-        });
+    pub static NFTDESCRIPTOR_ABI: ::ethers::contract::Lazy<::ethers::core::abi::Abi> = ::ethers::contract::Lazy::new(||
+    ::ethers::core::utils::__serde_json::from_str(__ABI).expect("ABI is always valid"));
     #[rustfmt::skip]
     const __BYTECODE: &[u8] = &[
         97,
@@ -23432,8 +23430,9 @@ pub mod nft_descriptor {
         51,
     ];
     ///The bytecode of the contract.
-    pub static NFTDESCRIPTOR_BYTECODE: ::ethers::core::types::Bytes =
-        ::ethers::core::types::Bytes::from_static(__BYTECODE);
+    pub static NFTDESCRIPTOR_BYTECODE: ::ethers::core::types::Bytes = ::ethers::core::types::Bytes::from_static(
+        __BYTECODE,
+    );
     #[rustfmt::skip]
     const __DEPLOYED_BYTECODE: &[u8] = &[
         115,
@@ -46811,8 +46810,9 @@ pub mod nft_descriptor {
         51,
     ];
     ///The deployed bytecode of the contract.
-    pub static NFTDESCRIPTOR_DEPLOYED_BYTECODE: ::ethers::core::types::Bytes =
-        ::ethers::core::types::Bytes::from_static(__DEPLOYED_BYTECODE);
+    pub static NFTDESCRIPTOR_DEPLOYED_BYTECODE: ::ethers::core::types::Bytes = ::ethers::core::types::Bytes::from_static(
+        __DEPLOYED_BYTECODE,
+    );
     pub struct NFTDescriptor<M>(::ethers::contract::Contract<M>);
     impl<M> ::core::clone::Clone for NFTDescriptor<M> {
         fn clone(&self) -> Self {
@@ -46832,9 +46832,7 @@ pub mod nft_descriptor {
     }
     impl<M> ::core::fmt::Debug for NFTDescriptor<M> {
         fn fmt(&self, f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
-            f.debug_tuple(stringify!(NFTDescriptor))
-                .field(&self.address())
-                .finish()
+            f.debug_tuple(stringify!(NFTDescriptor)).field(&self.address()).finish()
         }
     }
     impl<M: ::ethers::providers::Middleware> NFTDescriptor<M> {
@@ -46844,11 +46842,13 @@ pub mod nft_descriptor {
             address: T,
             client: ::std::sync::Arc<M>,
         ) -> Self {
-            Self(::ethers::contract::Contract::new(
-                address.into(),
-                NFTDESCRIPTOR_ABI.clone(),
-                client,
-            ))
+            Self(
+                ::ethers::contract::Contract::new(
+                    address.into(),
+                    NFTDESCRIPTOR_ABI.clone(),
+                    client,
+                ),
+            )
         }
         /// Constructs the general purpose `Deployer` instance based on the provided constructor arguments and sends it.
         /// Returns a new instance of a deployer that returns an instance of this contract after sending the transaction
@@ -46900,8 +46900,7 @@ pub mod nft_descriptor {
         }
     }
     impl<M: ::ethers::providers::Middleware> From<::ethers::contract::Contract<M>>
-        for NFTDescriptor<M>
-    {
+    for NFTDescriptor<M> {
         fn from(contract: ::ethers::contract::Contract<M>) -> Self {
             Self::new(contract.address(), contract.client())
         }
@@ -46927,7 +46926,7 @@ pub mod nft_descriptor {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     pub struct ConstructTokenURIParams {
         pub token_id: ::ethers::core::types::U256,

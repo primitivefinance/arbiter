@@ -7,16 +7,14 @@ pub use self_permit::*;
     clippy::upper_case_acronyms,
     clippy::type_complexity,
     dead_code,
-    non_camel_case_types
+    non_camel_case_types,
 )]
 pub mod self_permit {
     #[rustfmt::skip]
     const __ABI: &str = "[{\"inputs\":[{\"internalType\":\"address\",\"name\":\"token\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"value\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"deadline\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"uint8\",\"name\":\"v\",\"type\":\"uint8\",\"components\":[]},{\"internalType\":\"bytes32\",\"name\":\"r\",\"type\":\"bytes32\",\"components\":[]},{\"internalType\":\"bytes32\",\"name\":\"s\",\"type\":\"bytes32\",\"components\":[]}],\"stateMutability\":\"payable\",\"type\":\"function\",\"name\":\"selfPermit\",\"outputs\":[]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"token\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"nonce\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"expiry\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"uint8\",\"name\":\"v\",\"type\":\"uint8\",\"components\":[]},{\"internalType\":\"bytes32\",\"name\":\"r\",\"type\":\"bytes32\",\"components\":[]},{\"internalType\":\"bytes32\",\"name\":\"s\",\"type\":\"bytes32\",\"components\":[]}],\"stateMutability\":\"payable\",\"type\":\"function\",\"name\":\"selfPermitAllowed\",\"outputs\":[]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"token\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"nonce\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"expiry\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"uint8\",\"name\":\"v\",\"type\":\"uint8\",\"components\":[]},{\"internalType\":\"bytes32\",\"name\":\"r\",\"type\":\"bytes32\",\"components\":[]},{\"internalType\":\"bytes32\",\"name\":\"s\",\"type\":\"bytes32\",\"components\":[]}],\"stateMutability\":\"payable\",\"type\":\"function\",\"name\":\"selfPermitAllowedIfNecessary\",\"outputs\":[]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"token\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"value\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"deadline\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"uint8\",\"name\":\"v\",\"type\":\"uint8\",\"components\":[]},{\"internalType\":\"bytes32\",\"name\":\"r\",\"type\":\"bytes32\",\"components\":[]},{\"internalType\":\"bytes32\",\"name\":\"s\",\"type\":\"bytes32\",\"components\":[]}],\"stateMutability\":\"payable\",\"type\":\"function\",\"name\":\"selfPermitIfNecessary\",\"outputs\":[]}]";
     ///The parsed JSON ABI of the contract.
-    pub static SELFPERMIT_ABI: ::ethers::contract::Lazy<::ethers::core::abi::Abi> =
-        ::ethers::contract::Lazy::new(|| {
-            ::ethers::core::utils::__serde_json::from_str(__ABI).expect("ABI is always valid")
-        });
+    pub static SELFPERMIT_ABI: ::ethers::contract::Lazy<::ethers::core::abi::Abi> = ::ethers::contract::Lazy::new(||
+    ::ethers::core::utils::__serde_json::from_str(__ABI).expect("ABI is always valid"));
     pub struct SelfPermit<M>(::ethers::contract::Contract<M>);
     impl<M> ::core::clone::Clone for SelfPermit<M> {
         fn clone(&self) -> Self {
@@ -36,9 +34,7 @@ pub mod self_permit {
     }
     impl<M> ::core::fmt::Debug for SelfPermit<M> {
         fn fmt(&self, f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
-            f.debug_tuple(stringify!(SelfPermit))
-                .field(&self.address())
-                .finish()
+            f.debug_tuple(stringify!(SelfPermit)).field(&self.address()).finish()
         }
     }
     impl<M: ::ethers::providers::Middleware> SelfPermit<M> {
@@ -48,11 +44,13 @@ pub mod self_permit {
             address: T,
             client: ::std::sync::Arc<M>,
         ) -> Self {
-            Self(::ethers::contract::Contract::new(
-                address.into(),
-                SELFPERMIT_ABI.clone(),
-                client,
-            ))
+            Self(
+                ::ethers::contract::Contract::new(
+                    address.into(),
+                    SELFPERMIT_ABI.clone(),
+                    client,
+                ),
+            )
         }
         ///Calls the contract's `selfPermit` (0xf3995c67) function
         pub fn self_permit(
@@ -111,7 +109,8 @@ pub mod self_permit {
                 .expect("method not found (this should never happen)")
         }
     }
-    impl<M: ::ethers::providers::Middleware> From<::ethers::contract::Contract<M>> for SelfPermit<M> {
+    impl<M: ::ethers::providers::Middleware> From<::ethers::contract::Contract<M>>
+    for SelfPermit<M> {
         fn from(contract: ::ethers::contract::Contract<M>) -> Self {
             Self::new(contract.address(), contract.client())
         }
@@ -125,7 +124,7 @@ pub mod self_permit {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(
         name = "selfPermit",
@@ -148,7 +147,7 @@ pub mod self_permit {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(
         name = "selfPermitAllowed",
@@ -171,7 +170,7 @@ pub mod self_permit {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(
         name = "selfPermitAllowedIfNecessary",
@@ -194,7 +193,7 @@ pub mod self_permit {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(
         name = "selfPermitIfNecessary",
@@ -221,22 +220,26 @@ pub mod self_permit {
             data: impl AsRef<[u8]>,
         ) -> ::core::result::Result<Self, ::ethers::core::abi::AbiError> {
             let data = data.as_ref();
-            if let Ok(decoded) = <SelfPermitCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded)
+                = <SelfPermitCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::SelfPermit(decoded));
             }
-            if let Ok(decoded) =
-                <SelfPermitAllowedCall as ::ethers::core::abi::AbiDecode>::decode(data)
-            {
+            if let Ok(decoded)
+                = <SelfPermitAllowedCall as ::ethers::core::abi::AbiDecode>::decode(
+                    data,
+                ) {
                 return Ok(Self::SelfPermitAllowed(decoded));
             }
-            if let Ok(decoded) =
-                <SelfPermitAllowedIfNecessaryCall as ::ethers::core::abi::AbiDecode>::decode(data)
-            {
+            if let Ok(decoded)
+                = <SelfPermitAllowedIfNecessaryCall as ::ethers::core::abi::AbiDecode>::decode(
+                    data,
+                ) {
                 return Ok(Self::SelfPermitAllowedIfNecessary(decoded));
             }
-            if let Ok(decoded) =
-                <SelfPermitIfNecessaryCall as ::ethers::core::abi::AbiDecode>::decode(data)
-            {
+            if let Ok(decoded)
+                = <SelfPermitIfNecessaryCall as ::ethers::core::abi::AbiDecode>::decode(
+                    data,
+                ) {
                 return Ok(Self::SelfPermitIfNecessary(decoded));
             }
             Err(::ethers::core::abi::Error::InvalidData.into())
@@ -245,8 +248,12 @@ pub mod self_permit {
     impl ::ethers::core::abi::AbiEncode for SelfPermitCalls {
         fn encode(self) -> Vec<u8> {
             match self {
-                Self::SelfPermit(element) => ::ethers::core::abi::AbiEncode::encode(element),
-                Self::SelfPermitAllowed(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::SelfPermit(element) => {
+                    ::ethers::core::abi::AbiEncode::encode(element)
+                }
+                Self::SelfPermitAllowed(element) => {
+                    ::ethers::core::abi::AbiEncode::encode(element)
+                }
                 Self::SelfPermitAllowedIfNecessary(element) => {
                     ::ethers::core::abi::AbiEncode::encode(element)
                 }
@@ -264,7 +271,9 @@ pub mod self_permit {
                 Self::SelfPermitAllowedIfNecessary(element) => {
                     ::core::fmt::Display::fmt(element, f)
                 }
-                Self::SelfPermitIfNecessary(element) => ::core::fmt::Display::fmt(element, f),
+                Self::SelfPermitIfNecessary(element) => {
+                    ::core::fmt::Display::fmt(element, f)
+                }
             }
         }
     }

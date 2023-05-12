@@ -7,16 +7,14 @@ pub use chain_id::*;
     clippy::upper_case_acronyms,
     clippy::type_complexity,
     dead_code,
-    non_camel_case_types
+    non_camel_case_types,
 )]
 pub mod chain_id {
     #[rustfmt::skip]
     const __ABI: &str = "[]";
     ///The parsed JSON ABI of the contract.
-    pub static CHAINID_ABI: ::ethers::contract::Lazy<::ethers::core::abi::Abi> =
-        ::ethers::contract::Lazy::new(|| {
-            ::ethers::core::utils::__serde_json::from_str(__ABI).expect("ABI is always valid")
-        });
+    pub static CHAINID_ABI: ::ethers::contract::Lazy<::ethers::core::abi::Abi> = ::ethers::contract::Lazy::new(||
+    ::ethers::core::utils::__serde_json::from_str(__ABI).expect("ABI is always valid"));
     #[rustfmt::skip]
     const __BYTECODE: &[u8] = &[
         96,
@@ -142,8 +140,9 @@ pub mod chain_id {
         51,
     ];
     ///The bytecode of the contract.
-    pub static CHAINID_BYTECODE: ::ethers::core::types::Bytes =
-        ::ethers::core::types::Bytes::from_static(__BYTECODE);
+    pub static CHAINID_BYTECODE: ::ethers::core::types::Bytes = ::ethers::core::types::Bytes::from_static(
+        __BYTECODE,
+    );
     #[rustfmt::skip]
     const __DEPLOYED_BYTECODE: &[u8] = &[
         115,
@@ -234,8 +233,9 @@ pub mod chain_id {
         51,
     ];
     ///The deployed bytecode of the contract.
-    pub static CHAINID_DEPLOYED_BYTECODE: ::ethers::core::types::Bytes =
-        ::ethers::core::types::Bytes::from_static(__DEPLOYED_BYTECODE);
+    pub static CHAINID_DEPLOYED_BYTECODE: ::ethers::core::types::Bytes = ::ethers::core::types::Bytes::from_static(
+        __DEPLOYED_BYTECODE,
+    );
     pub struct ChainId<M>(::ethers::contract::Contract<M>);
     impl<M> ::core::clone::Clone for ChainId<M> {
         fn clone(&self) -> Self {
@@ -255,9 +255,7 @@ pub mod chain_id {
     }
     impl<M> ::core::fmt::Debug for ChainId<M> {
         fn fmt(&self, f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
-            f.debug_tuple(stringify!(ChainId))
-                .field(&self.address())
-                .finish()
+            f.debug_tuple(stringify!(ChainId)).field(&self.address()).finish()
         }
     }
     impl<M: ::ethers::providers::Middleware> ChainId<M> {
@@ -267,11 +265,13 @@ pub mod chain_id {
             address: T,
             client: ::std::sync::Arc<M>,
         ) -> Self {
-            Self(::ethers::contract::Contract::new(
-                address.into(),
-                CHAINID_ABI.clone(),
-                client,
-            ))
+            Self(
+                ::ethers::contract::Contract::new(
+                    address.into(),
+                    CHAINID_ABI.clone(),
+                    client,
+                ),
+            )
         }
         /// Constructs the general purpose `Deployer` instance based on the provided constructor arguments and sends it.
         /// Returns a new instance of a deployer that returns an instance of this contract after sending the transaction
@@ -313,7 +313,8 @@ pub mod chain_id {
             Ok(deployer)
         }
     }
-    impl<M: ::ethers::providers::Middleware> From<::ethers::contract::Contract<M>> for ChainId<M> {
+    impl<M: ::ethers::providers::Middleware> From<::ethers::contract::Contract<M>>
+    for ChainId<M> {
         fn from(contract: ::ethers::contract::Contract<M>) -> Self {
             Self::new(contract.address(), contract.client())
         }

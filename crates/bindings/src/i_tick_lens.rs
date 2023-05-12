@@ -7,17 +7,15 @@ pub use i_tick_lens::*;
     clippy::upper_case_acronyms,
     clippy::type_complexity,
     dead_code,
-    non_camel_case_types
+    non_camel_case_types,
 )]
 pub mod i_tick_lens {
     pub use super::super::shared_types::*;
     #[rustfmt::skip]
     const __ABI: &str = "[{\"inputs\":[{\"internalType\":\"address\",\"name\":\"pool\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"int16\",\"name\":\"tickBitmapIndex\",\"type\":\"int16\",\"components\":[]}],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"getPopulatedTicksInWord\",\"outputs\":[{\"internalType\":\"struct ITickLens.PopulatedTick[]\",\"name\":\"populatedTicks\",\"type\":\"tuple[]\",\"components\":[{\"internalType\":\"int24\",\"name\":\"tick\",\"type\":\"int24\",\"components\":[]},{\"internalType\":\"int128\",\"name\":\"liquidityNet\",\"type\":\"int128\",\"components\":[]},{\"internalType\":\"uint128\",\"name\":\"liquidityGross\",\"type\":\"uint128\",\"components\":[]}]}]}]";
     ///The parsed JSON ABI of the contract.
-    pub static ITICKLENS_ABI: ::ethers::contract::Lazy<::ethers::core::abi::Abi> =
-        ::ethers::contract::Lazy::new(|| {
-            ::ethers::core::utils::__serde_json::from_str(__ABI).expect("ABI is always valid")
-        });
+    pub static ITICKLENS_ABI: ::ethers::contract::Lazy<::ethers::core::abi::Abi> = ::ethers::contract::Lazy::new(||
+    ::ethers::core::utils::__serde_json::from_str(__ABI).expect("ABI is always valid"));
     pub struct ITickLens<M>(::ethers::contract::Contract<M>);
     impl<M> ::core::clone::Clone for ITickLens<M> {
         fn clone(&self) -> Self {
@@ -37,9 +35,7 @@ pub mod i_tick_lens {
     }
     impl<M> ::core::fmt::Debug for ITickLens<M> {
         fn fmt(&self, f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
-            f.debug_tuple(stringify!(ITickLens))
-                .field(&self.address())
-                .finish()
+            f.debug_tuple(stringify!(ITickLens)).field(&self.address()).finish()
         }
     }
     impl<M: ::ethers::providers::Middleware> ITickLens<M> {
@@ -49,24 +45,30 @@ pub mod i_tick_lens {
             address: T,
             client: ::std::sync::Arc<M>,
         ) -> Self {
-            Self(::ethers::contract::Contract::new(
-                address.into(),
-                ITICKLENS_ABI.clone(),
-                client,
-            ))
+            Self(
+                ::ethers::contract::Contract::new(
+                    address.into(),
+                    ITICKLENS_ABI.clone(),
+                    client,
+                ),
+            )
         }
         ///Calls the contract's `getPopulatedTicksInWord` (0x351fb478) function
         pub fn get_populated_ticks_in_word(
             &self,
             pool: ::ethers::core::types::Address,
             tick_bitmap_index: i16,
-        ) -> ::ethers::contract::builders::ContractCall<M, ::std::vec::Vec<PopulatedTick>> {
+        ) -> ::ethers::contract::builders::ContractCall<
+            M,
+            ::std::vec::Vec<PopulatedTick>,
+        > {
             self.0
                 .method_hash([53, 31, 180, 120], (pool, tick_bitmap_index))
                 .expect("method not found (this should never happen)")
         }
     }
-    impl<M: ::ethers::providers::Middleware> From<::ethers::contract::Contract<M>> for ITickLens<M> {
+    impl<M: ::ethers::providers::Middleware> From<::ethers::contract::Contract<M>>
+    for ITickLens<M> {
         fn from(contract: ::ethers::contract::Contract<M>) -> Self {
             Self::new(contract.address(), contract.client())
         }
@@ -80,7 +82,7 @@ pub mod i_tick_lens {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(
         name = "getPopulatedTicksInWord",
@@ -99,7 +101,7 @@ pub mod i_tick_lens {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     pub struct GetPopulatedTicksInWordReturn {
         pub populated_ticks: ::std::vec::Vec<PopulatedTick>,

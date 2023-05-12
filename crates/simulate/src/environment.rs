@@ -44,7 +44,7 @@ impl SimulationEnvironment {
             Err(_) => panic!("failed"),
         };
         self.echo_logs(execution_result.logs());
-
+        
         execution_result
     }
     /// Echo the logs to the event channel.
