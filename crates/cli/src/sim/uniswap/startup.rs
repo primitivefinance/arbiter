@@ -413,6 +413,9 @@ fn pair_intitalization(
         }
         let event = uniswap_factory.decode_event::<(Address,Address,Address,U256)>("PairCreated", logs[0].clone().topics, logs[0].clone().data);
         println!("PairCreated event: {:#?}", event);
+        if event.is_ok() {
+            break;
+        }
     };
     Ok(pair_address)
 }
