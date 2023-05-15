@@ -10,7 +10,7 @@ use revm::primitives::{ruint::Uint, B160};
 use simulate::{
     agent::{simple_arbitrageur::SimpleArbitrageur, Agent, AgentType, SimulationEventFilter},
     contract::{IsDeployed, SimulationContract},
-    manager::{SimulationManager},
+    manager::SimulationManager,
 };
 
 use super::PoolParams;
@@ -53,7 +53,8 @@ pub(crate) fn compute_arb_size(
     let arbiter_math = manager.autodeployed_contracts.get("arbiter_math").unwrap();
 
     let strike = U256::from(pool_params.strike);
-    let iv = U256::from(pool_params.volatility) * U256::from(10_u128.pow(18)) / U256::from(10u128.pow(4));
+    let iv = U256::from(pool_params.volatility) * U256::from(10_u128.pow(18))
+        / U256::from(10u128.pow(4));
     let tau = U256::from(31556953u128);
     // compute the ratio
     let int_ratio = I256::from_raw(ratio);
@@ -81,10 +82,8 @@ pub(crate) fn compute_arb_size(
     let execution_result = admin.call_contract(
         &mut manager.environment,
         &arbiter_math,
-        arbiter_math.encode_function(
-            "mulWadDown",
-            (U256::from(500_000_000_000_000_000_u128), iv),
-        )?,
+        arbiter_math
+            .encode_function("mulWadDown", (U256::from(500_000_000_000_000_000_u128), iv))?,
         Uint::ZERO,
     );
     let unpacked_result = manager.unpack_execution(execution_result.clone())?;
@@ -113,7 +112,7 @@ pub(crate) fn compute_arb_size(
         portfolio.decode_output("getVirtualReservesDec", unpacked_result)?;
     let a = I256::from(delta_liquidity) - cdf - I256::from(reserves.0);
     let arb_amount_x = a.max(I256::from(0));
-    
+
     // --------------------------------------------------------------------------------------------
     // GET ARBY ARBITRAGE AMOUNT
     // --------------------------------------------------------------------------------------------
@@ -151,7 +150,10 @@ pub(crate) fn compute_arb_size(
     let execution_result = admin.call_contract(
         &mut manager.environment,
         &arbiter_math,
-        arbiter_math.encode_function("divWadUp", (U256::from(reserves.0), U256::from(delta_liquidity)))?,
+        arbiter_math.encode_function(
+            "divWadUp",
+            (U256::from(reserves.0), U256::from(delta_liquidity)),
+        )?,
         Uint::ZERO,
     );
     let unpacked_result = manager.unpack_execution(execution_result.clone())?;
@@ -160,7 +162,10 @@ pub(crate) fn compute_arb_size(
     let execution_result = admin.call_contract(
         &mut manager.environment,
         &arbiter_math,
-        arbiter_math.encode_function("divWadUp", (U256::from(reserves.1), U256::from(delta_liquidity)))?,
+        arbiter_math.encode_function(
+            "divWadUp",
+            (U256::from(reserves.1), U256::from(delta_liquidity)),
+        )?,
         Uint::ZERO,
     );
     let unpacked_result = manager.unpack_execution(execution_result.clone())?;
@@ -169,16 +174,7 @@ pub(crate) fn compute_arb_size(
     let execution_result = admin.call_contract(
         &mut manager.environment,
         &arbiter_math,
-        arbiter_math.encode_function(
-            "invariant",
-            (
-                y_reserve,
-                x_reserve,
-                strike,
-                iv,
-                tau,
-            ),
-        )?,
+        arbiter_math.encode_function("invariant", (y_reserve, x_reserve, strike, iv, tau))?,
         Uint::ZERO,
     );
     let unpacked_result = manager.unpack_execution(execution_result.clone())?;
@@ -314,7 +310,7 @@ mod test {
             delta_liquidity,
             pool_id,
             &contracts.portfolio,
-            ratio
+            ratio,
         )?;
         let sell_asset = results.sell_asset;
         println!("Arb bool is: {}", sell_asset);

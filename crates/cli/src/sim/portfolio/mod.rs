@@ -62,7 +62,8 @@ pub fn run() -> Result<(), Box<dyn Error>> {
     // Define liquidity arguments
     let delta_liquidity = 10_i128.pow(19);
     // Run the startup script
-    let (contracts, _pool_data, pool_id) = startup::run(&mut manager, pool_args.clone(), delta_liquidity)?;
+    let (contracts, _pool_data, pool_id) =
+        startup::run(&mut manager, pool_args.clone(), delta_liquidity)?;
 
     // Start the arbitrageur
     let arbitrageur = manager.agents.get("arbitrageur").unwrap();
@@ -129,7 +130,14 @@ pub fn run() -> Result<(), Box<dyn Error>> {
         let price = prices[index];
         assert!(price > 0.0);
         let ratio = U256::from((price * 1_000_000_000_000_000_000.0_f64).round() as i128);
-        let arb_amount = compute_arb_size(&mut manager, pool_args.clone(), delta_liquidity, pool_id, &contracts.portfolio, ratio)?;
+        let arb_amount = compute_arb_size(
+            &mut manager,
+            pool_args.clone(),
+            delta_liquidity,
+            pool_id,
+            &contracts.portfolio,
+            ratio,
+        )?;
         let input = arb_amount.input.as_u128();
         let sell_asset = arb_amount.sell_asset;
         match next_tx {
