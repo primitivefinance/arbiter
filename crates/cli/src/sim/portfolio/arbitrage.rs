@@ -47,6 +47,7 @@ pub(crate) fn compute_arb_size(
     delta_liquidity: i128,
     pool_id: u64,
     portfolio: &SimulationContract<IsDeployed>,
+    ratio: U256,
 ) -> Result<ComputeArbOutput, Box<dyn Error>> {
     let manager = manager;
     let admin = manager.agents.get("admin").unwrap();
@@ -77,16 +78,9 @@ pub(crate) fn compute_arb_size(
     let sigma_sqrt_tau: U256 = arbiter_math.decode_output("mulWadUp", unpacked_result)?;
     println!("Sigma*sqrt(tau): {}", sigma_sqrt_tau);
     // compute the ratio
-    let execution_result = admin.call_contract(
-        &mut manager.environment,
-        &arbiter_math,
-        arbiter_math.encode_function("divWadUp", (target_price, strike))?,
-        Uint::ZERO,
-    );
-    let unpacked_result = manager.unpack_execution(execution_result.clone())?;
-    let ratio: U256 = arbiter_math.decode_output("divWadUp", unpacked_result)?;
-    let int_ratio = I256::from_raw(ratio); // positive to positive so this works fine
-                                           // compute logarithm
+    let int_ratio = I256::from_raw(ratio);
+    println!{"{}", int_ratio};
+    // compute logarithm
     let execution_result = admin.call_contract(
         &mut manager.environment,
         &arbiter_math,
@@ -105,11 +99,11 @@ pub(crate) fn compute_arb_size(
     let execution_result = admin.call_contract(
         &mut manager.environment,
         &arbiter_math,
-        arbiter_math.encode_function("divWadUp", (unsigned_log, sigma_sqrt_tau))?,
+        arbiter_math.encode_function("divWadDown", (unsigned_log, sigma_sqrt_tau))?,
         Uint::ZERO,
     );
     let unpacked_result = manager.unpack_execution(execution_result.clone())?;
-    let output: U256 = arbiter_math.decode_output("divWadUp", unpacked_result)?;
+    let output: U256 = arbiter_math.decode_output("divWadDown", unpacked_result)?;
 
     let scaled_log = match sign {
         Sign::Positive => I256::from_raw(output),
@@ -320,7 +314,7 @@ mod test {
 
     #[test]
     fn test_arb_bool() -> Result<(), Box<dyn Error>> {
-        let reference_price = U256::from(12_000_000_000_000_000_000u128);
+        let reference_price = U256::from(16_000_000_000_000_000_000u128);
         let mut manager = SimulationManager::new();
         // pool config
         let pool_args = PoolParams::new(
@@ -331,6 +325,8 @@ mod test {
             15_000_000_000_000_000_000u128,
             15_000_000_000_000_000_000u128,
         );
+        let h = reference_price * U256::from(10u128.pow(18)) / U256::from(pool_args.strike);
+        println!{"{}",h};
         // liquidity config
         let delta_liquidity = 10_i128.pow(18);
         // Run the startup script
@@ -352,6 +348,7 @@ mod test {
             delta_liquidity,
             pool_id,
             &contracts.portfolio,
+            h
         )?;
         let sell_asset = results.sell_asset;
         println!("Arb bool is: {}", sell_asset);

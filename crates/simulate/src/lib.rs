@@ -456,7 +456,7 @@ mod tests {
         let execution_result = admin.call_contract(
             &mut manager.environment,
             &arbiter_math,
-            arbiter_math.encode_function("log", I256::from(1_000_000_000_000_000_000_u128))?,
+            arbiter_math.encode_function("log", I256::from(800_000_000_000_000_000_u128))?,
             Uint::ZERO,
         );
         let unpacked_result = manager.unpack_execution(execution_result)?;
