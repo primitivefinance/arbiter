@@ -30,8 +30,8 @@ pub(crate) fn create_arbitrageur<S: Into<String>>(
 }
 
 pub struct ComputeArbOutput {
-    sell_asset: bool,
-    input: U256,
+    pub sell_asset: bool,
+    pub input: U256,
 }
 
 impl ComputeArbOutput {
@@ -147,6 +147,24 @@ pub(crate) fn compute_arb_size(
     let unpacked_result = manager.unpack_execution(execution_result.clone())?;
     let scaled_cdf: U256 = arbiter_math.decode_output("mulWadDown", unpacked_result)?;
     let cdf = I256::from_raw(scaled_cdf);
+    // unscale reserves by shares
+    let execution_result = admin.call_contract(
+        &mut manager.environment,
+        &arbiter_math,
+        arbiter_math.encode_function("divWadUp", (U256::from(reserves.0), U256::from(delta_liquidity)))?,
+        Uint::ZERO,
+    );
+    let unpacked_result = manager.unpack_execution(execution_result.clone())?;
+    let x_reserve: U256 = arbiter_math.decode_output("divWadUp", unpacked_result)?;
+
+    let execution_result = admin.call_contract(
+        &mut manager.environment,
+        &arbiter_math,
+        arbiter_math.encode_function("divWadUp", (U256::from(reserves.1), U256::from(delta_liquidity)))?,
+        Uint::ZERO,
+    );
+    let unpacked_result = manager.unpack_execution(execution_result.clone())?;
+    let y_reserve: U256 = arbiter_math.decode_output("divWadUp", unpacked_result)?;
     // call invariant
     let execution_result = admin.call_contract(
         &mut manager.environment,
@@ -154,8 +172,8 @@ pub(crate) fn compute_arb_size(
         arbiter_math.encode_function(
             "invariant",
             (
-                U256::from(reserves.1),
-                U256::from(reserves.0),
+                y_reserve,
+                x_reserve,
                 strike,
                 iv,
                 tau,
@@ -264,7 +282,7 @@ mod test {
 
     #[test]
     fn test_arb_bool() -> Result<(), Box<dyn Error>> {
-        let reference_price = U256::from(14_999_999_999_999_999_999u128);
+        let reference_price = U256::from(14_900_000_000_000_000_000u128);
         let mut manager = SimulationManager::new();
         // pool config
         let pool_args = PoolParams::new(
@@ -300,6 +318,7 @@ mod test {
         )?;
         let sell_asset = results.sell_asset;
         println!("Arb bool is: {}", sell_asset);
+        println!("Arb Amount {}", results.input);
         assert_eq!(sell_asset, true);
         Ok(())
     }

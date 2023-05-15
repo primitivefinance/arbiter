@@ -11,9 +11,12 @@ use simulate::{
     stochastic::price_process::{PriceProcess, PriceProcessType, OU},
 };
 
+use crate::sim::portfolio::arbitrage::compute_arb_size;
+
 pub mod arbitrage;
 pub mod startup;
 
+#[derive(Clone)]
 pub struct PoolParams {
     priority_fee: u16,
     fee: u16,
@@ -59,7 +62,7 @@ pub fn run() -> Result<(), Box<dyn Error>> {
     // Define liquidity arguments
     let delta_liquidity = 10_i128.pow(19);
     // Run the startup script
-    let (contracts, _pool_data, pool_id) = startup::run(&mut manager, pool_args, delta_liquidity)?;
+    let (contracts, _pool_data, pool_id) = startup::run(&mut manager, pool_args.clone(), delta_liquidity)?;
 
     // Start the arbitrageur
     let arbitrageur = manager.agents.get("arbitrageur").unwrap();
@@ -111,7 +114,6 @@ pub fn run() -> Result<(), Box<dyn Error>> {
         1,
     );
     let prices = price_process.generate_price_path().1;
-
     // Run the simulation
     // Update the first price
     let liquid_exchange = &contracts.liquid_exchange_xy;
@@ -125,15 +127,19 @@ pub fn run() -> Result<(), Box<dyn Error>> {
             break;
         }
         let price = prices[index];
-
+        assert!(price > 0.0);
+        let ratio = U256::from((price * 1_000_000_000_000_000_000.0_f64).round() as i128);
+        let arb_amount = compute_arb_size(&mut manager, pool_args.clone(), delta_liquidity, pool_id, &contracts.portfolio, ratio)?;
+        let input = arb_amount.input.as_u128();
+        let sell_asset = arb_amount.sell_asset;
         match next_tx {
             NextTx::Swap => {
                 arbitrage::swap(
                     &mut manager,
                     &contracts.portfolio,
                     pool_id,
-                    10_u128.pow(15),
-                    sell_asset.unwrap(),
+                    input,
+                    sell_asset,
                 )?;
                 // TODO: Update the price of the Portfolio pool.
                 update_price(&mut manager, liquid_exchange, price)?;
