@@ -41,7 +41,6 @@ impl ComputeArbOutput {
 }
 
 pub(crate) fn compute_arb_size(
-    target_price: U256,
     manager: &mut SimulationManager,
     pool_params: PoolParams,
     delta_liquidity: i128,
@@ -54,32 +53,10 @@ pub(crate) fn compute_arb_size(
     let arbiter_math = manager.autodeployed_contracts.get("arbiter_math").unwrap();
 
     let strike = U256::from(pool_params.strike);
-    let iv = U256::from(pool_params.volatility) * U256::from(10_u128.pow(15));
-    let duration = U256::from(pool_params.duration);
-    let tau = U256::from(10_u128.pow(18));
-    // compute time term
-    let execution_result = admin.call_contract(
-        &mut manager.environment,
-        &arbiter_math,
-        arbiter_math.encode_function("sqrt", tau)?,
-        Uint::ZERO,
-    );
-    let unpacked_result = manager.unpack_execution(execution_result.clone())?;
-    let time_term: U256 = arbiter_math.decode_output("sqrt", unpacked_result)?;
-    let time = U256::from(10_u128.pow(9)) * time_term;
-    // compute sigma*sqrt(tau)
-    let execution_result = admin.call_contract(
-        &mut manager.environment,
-        &arbiter_math,
-        arbiter_math.encode_function("mulWadUp", (iv, time))?,
-        Uint::ZERO,
-    );
-    let unpacked_result = manager.unpack_execution(execution_result.clone())?;
-    let sigma_sqrt_tau: U256 = arbiter_math.decode_output("mulWadUp", unpacked_result)?;
-    println!("Sigma*sqrt(tau): {}", sigma_sqrt_tau);
+    let iv = U256::from(pool_params.volatility) * U256::from(10_u128.pow(18)) / U256::from(10u128.pow(4));
+    let tau = U256::from(31556953u128);
     // compute the ratio
     let int_ratio = I256::from_raw(ratio);
-    println!{"{}", int_ratio};
     // compute logarithm
     let execution_result = admin.call_contract(
         &mut manager.environment,
@@ -89,34 +66,24 @@ pub(crate) fn compute_arb_size(
     );
     let unpacked_result = manager.unpack_execution(execution_result.clone())?;
     let log: I256 = arbiter_math.decode_output("log", unpacked_result)?;
-    println!("Logarithm: {}", log);
     let sign = log.sign();
     let unsigned_log = match sign {
         Sign::Positive => log.into_raw(),
         Sign::Negative => (log * I256::from(-1)).into_raw(),
     };
     // Scale logarithm
-    let execution_result = admin.call_contract(
-        &mut manager.environment,
-        &arbiter_math,
-        arbiter_math.encode_function("divWadDown", (unsigned_log, sigma_sqrt_tau))?,
-        Uint::ZERO,
-    );
-    let unpacked_result = manager.unpack_execution(execution_result.clone())?;
-    let output: U256 = arbiter_math.decode_output("divWadDown", unpacked_result)?;
-
+    let output = unsigned_log * U256::from(10u128.pow(18)) / iv;
     let scaled_log = match sign {
         Sign::Positive => I256::from_raw(output),
         Sign::Negative => I256::from_raw(output) * I256::from(-1),
     };
-    println!("Scaled logarithm: {}", scaled_log);
     // compute the additional term
     let execution_result = admin.call_contract(
         &mut manager.environment,
         &arbiter_math,
         arbiter_math.encode_function(
             "mulWadDown",
-            (U256::from(500_000_000_000_000_000_u128), sigma_sqrt_tau),
+            (U256::from(500_000_000_000_000_000_u128), iv),
         )?,
         Uint::ZERO,
     );
@@ -133,19 +100,7 @@ pub(crate) fn compute_arb_size(
     );
     let unpacked_result = manager.unpack_execution(execution_result.clone())?;
     let cdf_output: I256 = arbiter_math.decode_output("cdf", unpacked_result)?;
-    let execution_result = admin.call_contract(
-        &mut manager.environment,
-        &arbiter_math,
-        arbiter_math.encode_function(
-            "mulWadDown",
-            (cdf_output.into_raw(), U256::from(delta_liquidity)), // works because cdf always positive
-        )?,
-        Uint::ZERO,
-    );
-    let unpacked_result = manager.unpack_execution(execution_result.clone())?;
-    let scaled_cdf: U256 = arbiter_math.decode_output("mulWadDown", unpacked_result)?;
-    let cdf = I256::from_raw(scaled_cdf);
-    println!("CDF: {}", cdf);
+    let cdf = cdf_output * I256::from(delta_liquidity) / I256::from(10_u128.pow(18));
     // call the reserve values
     let x_reserves = admin.call_contract(
         &mut manager.environment,
@@ -156,16 +111,14 @@ pub(crate) fn compute_arb_size(
     let unpacked_result = manager.unpack_execution(x_reserves)?;
     let reserves: (u128, u128) =
         portfolio.decode_output("getVirtualReservesDec", unpacked_result)?;
-    println!("x Reserves: {:#?}", reserves.0);
     let a = I256::from(delta_liquidity) - cdf - I256::from(reserves.0);
-    println!("A: {}", I256::from(delta_liquidity) - cdf);
     let arb_amount_x = a.max(I256::from(0));
-    println!("Arb amount x: {}", arb_amount_x);
+    
     // --------------------------------------------------------------------------------------------
     // GET ARBY ARBITRAGE AMOUNT
     // --------------------------------------------------------------------------------------------
     let ppf_output = cdf_input;
-    let cdf_input = ppf_output - I256::from_raw(sigma_sqrt_tau);
+    let cdf_input = ppf_output - I256::from_raw(iv);
     // compute the CDF
     let execution_result = admin.call_contract(
         &mut manager.environment,
@@ -184,7 +137,6 @@ pub(crate) fn compute_arb_size(
     );
     let unpacked_result = manager.unpack_execution(execution_result.clone())?;
     let scaled_cdf: U256 = arbiter_math.decode_output("mulWadDown", unpacked_result)?;
-    println!("Scaled CDF: {}", scaled_cdf);
     // scale by shares
     let execution_result = admin.call_contract(
         &mut manager.environment,
@@ -206,17 +158,15 @@ pub(crate) fn compute_arb_size(
                 U256::from(reserves.0),
                 strike,
                 iv,
-                duration,
+                tau,
             ),
         )?,
         Uint::ZERO,
     );
     let unpacked_result = manager.unpack_execution(execution_result.clone())?;
     let invariant: U256 = arbiter_math.decode_output("invariant", unpacked_result)?;
-    println!("Invariant: {}", invariant);
     let b = cdf + I256::from_raw(invariant) - I256::from(reserves.1);
     let arb_amount_y = b.max(I256::from(0));
-    println!("Arb amount y: {}", arb_amount_y);
     // bool for which asset is being sold.
     let fn_output: ComputeArbOutput;
     if arb_amount_x > I256::from(0) {
@@ -314,41 +264,39 @@ mod test {
 
     #[test]
     fn test_arb_bool() -> Result<(), Box<dyn Error>> {
-        let reference_price = U256::from(16_000_000_000_000_000_000u128);
+        let reference_price = U256::from(14_999_999_999_999_999_999u128);
         let mut manager = SimulationManager::new();
         // pool config
         let pool_args = PoolParams::new(
             1_u16,
             1_u16,
-            10_u16,
+            1_u16,
             65535_u16,
             15_000_000_000_000_000_000u128,
             15_000_000_000_000_000_000u128,
         );
-        let h = reference_price * U256::from(10u128.pow(18)) / U256::from(pool_args.strike);
-        println!{"{}",h};
+        let ratio = reference_price * U256::from(10u128.pow(18)) / U256::from(pool_args.strike);
         // liquidity config
         let delta_liquidity = 10_i128.pow(18);
         // Run the startup script
         let (contracts, _pool_data, pool_id) =
             startup::run(&mut manager, pool_args, delta_liquidity)?;
         let pool_args = PoolParams::new(
-            100_u16,
-            100_u16,
-            100_u16,
+            1_u16,
+            1_u16,
+            1_u16,
             65535_u16,
-            12_000_000_000_000_000_000u128,
+            15_000_000_000_000_000_000u128,
             15_000_000_000_000_000_000u128,
         );
         // Compute the arb size
         let results = compute_arb_size(
-            reference_price,
             &mut manager,
             pool_args,
             delta_liquidity,
             pool_id,
             &contracts.portfolio,
-            h
+            ratio
         )?;
         let sell_asset = results.sell_asset;
         println!("Arb bool is: {}", sell_asset);
