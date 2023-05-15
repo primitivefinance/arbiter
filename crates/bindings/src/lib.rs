@@ -150,7 +150,6 @@ pub mod shared_types;
 pub mod signed_safe_math;
 pub mod simple_registry;
 pub mod sqrt_price_math;
-pub mod sqrt_price_math_partial;
 pub mod strings;
 pub mod swap_math;
 pub mod swap_router;

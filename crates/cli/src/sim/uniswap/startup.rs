@@ -90,7 +90,7 @@ pub(crate) fn run(manager: &mut SimulationManager) -> Result<(), Box<dyn Error>>
 
     println!("🔧 Allocating funds...");
     println!("---------------------------------------");
-    allocate(manager, &contracts)?;
+    allocate(manager, &contracts, pair_address)?;
     println!("---------------------------------------");
     println!("✅ Funds allocated successfully!\n");
 
@@ -423,12 +423,13 @@ fn pair_intitalization(
 fn allocate(
     manager: &mut SimulationManager,
     contracts: &SimulationContracts,
+    pair_address: Address,
 ) -> Result<(), Box<dyn Error>> {
     let admin = manager.agents.get("admin").unwrap();
     let SimulationContracts {
         arbiter_token_x,
         arbiter_token_y,
-        uniswap_factory: _,
+        uniswap_factory,
         uniswap_router,
         liquid_exchange_xy: _,
     } = contracts;
@@ -443,6 +444,30 @@ fn allocate(
         to: recast_address(admin.address()),
         deadline: U256::MAX,
     };
+    let allPairs = admin.call_contract(
+        &mut manager.environment,
+        uniswap_factory,
+        uniswap_factory.encode_function("allPairs", (U256::from(0),))?,
+        Uint::from(0),
+    );
+    let pair = admin.call_contract(
+        &mut manager.environment,
+        uniswap_factory,
+        uniswap_factory.encode_function("getPair", (recast_address(arbiter_token_x.address), recast_address(arbiter_token_y.address)))?,
+        Uint::from(0),
+    );
+    // convert pair_address to B160
+    let codehash = manager.environment.evm.db().unwrap().accounts
+        .get(&revm::primitives::B160::from_slice(pair_address.as_bytes()))
+        .unwrap()
+        .info.code_hash.clone();
+    
+
+    println!("codehash: {:#?}", codehash);
+    println!("allPairs: {:#?}", allPairs);
+    println!("pair: {:#?}", pair);
+    //println!("pairFor: {:#?}", pairFor);
+
     let add_liquidity_result = admin.call_contract(
         &mut manager.environment,
         uniswap_router,

@@ -15,7 +15,7 @@ use revm::{
 /// * `event_senders` - The senders on the event channel that is used to send events to the agents and simulation manager.
 pub struct SimulationEnvironment {
     /// The EVM that is used for the simulation.
-    pub(crate) evm: EVM<CacheDB<EmptyDB>>,
+    pub evm: EVM<CacheDB<EmptyDB>>,
     /// The sender on the event channel that is used to send events to the agents and simulation manager.
     pub(crate) event_senders: Vec<Sender<Vec<Log>>>,
 }
@@ -44,7 +44,7 @@ impl SimulationEnvironment {
             Err(_) => panic!("failed"),
         };
         self.echo_logs(execution_result.logs());
-        
+
         execution_result
     }
     /// Echo the logs to the event channel.

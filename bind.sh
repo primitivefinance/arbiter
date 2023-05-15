@@ -5,35 +5,35 @@ forge clean
 forge install --no-commit https://github.com/OpenZeppelin/openzeppelin-contracts@v3.4.2-solc-0.7
 
 # Arbiter contracts don't need to be installed, but we need to generate bindings for them
-forge bind -C lib/arbiter/contracts -b crates/bindings/ --crate-name bindings --overwrite
+forge bind --contracts lib/arbiter/contracts --revert-strings debug -b crates/bindings/ --crate-name bindings --overwrite
 echo "Generated bindings for arbiter contracts"
 
 # Get the latest version of the portfolio contracts and generate bindings
 forge install --no-commit https://github.com/primitivefinance/portfolio
-forge bind -C lib/portfolio/contracts -b crates/bindings/ --crate-name bindings --overwrite
+forge bind --contracts lib/portfolio/contracts --revert-strings debug -b crates/bindings/ --crate-name bindings --overwrite
 echo "Generated bindings for portfolio"
 
 # Get the canonical weth contracts and generate bindings
 forge install --no-commit https://github.com/gnosis/canonical-weth
-forge bind -C lib/canonical-weth/contracts -b crates/bindings/ --crate-name bindings --overwrite
+forge bind --contracts lib/canonical-weth/contracts --revert-strings debug -b crates/bindings/ --crate-name bindings --overwrite
 echo "Generated bindings for canonical-weth"
 
 # Get the UniswapV2 core and periphery contracts and generate bindings
 forge install --no-commit https://github.com/Uniswap/v2-core
-forge install --no-commit https://github.com/Uniswap/v2-periphery
-forge bind -C lib/uniswap/v2-core/contracts -b crates/bindings/ --crate-name bindings --overwrite
+#forge install --no-commit https://github.com/Uniswap/v2-periphery
+forge bind --contracts lib/v2-core/contracts --use solc:0.5.16 --evm-version istanbul --optimize --optimizer-runs 999999 --revert-strings debug -b crates/bindings/ --crate-name bindings --overwrite
 echo "Generated bindings for v2-core"
-forge bind -C lib/uniswap/v2-periphery/contracts -b crates/bindings/ --crate-name bindings --overwrite
+forge bind --contracts lib/v2-periphery/contracts --optimize --optimizer-runs 999999 --revert-strings debug -b crates/bindings/ --crate-name bindings --overwrite
 echo "Generated bindings for v2-periphery"
 
 # Get the UniswapV3 core and periphery contracts and generate bindings (we ignore a specific contract that doesn't bind properly)
 forge install --no-commit https://github.com/Uniswap/v3-core
 forge install --no-commit https://github.com/Uniswap/v3-periphery
-forge bind --skip "^UniswapV3.*" -C lib/uniswap/v3-core/contracts -b crates/bindings/ --crate-name bindings --overwrite
+forge bind --skip "^UniswapV3.*" --contracts lib/v3-core/contracts --revert-strings debug -b crates/bindings/ --crate-name bindings --overwrite
 echo "Generated bindings for v3-core"
 # UniswapV3 periphery contracts need additional packages to compile, so we run this
-cd lib/uniswap/v3-periphery/ && npm install && cd ../../../
-forge bind -C lib/uniswap/v3-periphery/contracts -b crates/bindings/ --crate-name bindings --overwrite
+cd lib/v3-periphery/ && yarn && cd ../../
+forge bind --contracts lib/v3-periphery/contracts --revert-strings debug -b crates/bindings/ --crate-name bindings --overwrite
 echo "Generated bindings for v3-periphery"
 
 rm -f crates/bindings/src/mock_time_uniswap_v3_pool_deployer.rs
