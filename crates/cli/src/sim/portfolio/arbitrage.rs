@@ -61,11 +61,11 @@ pub(crate) fn compute_arb_size(
     // compute logarithm
     let execution_result = admin.call_contract(
         &mut manager.environment,
-        &arbiter_math,
+        arbiter_math,
         arbiter_math.encode_function("log", int_ratio)?,
         Uint::ZERO,
     );
-    let unpacked_result = manager.unpack_execution(execution_result.clone())?;
+    let unpacked_result = manager.unpack_execution(execution_result)?;
     let log: I256 = arbiter_math.decode_output("log", unpacked_result)?;
     let sign = log.sign();
     let unsigned_log = match sign {
@@ -81,29 +81,29 @@ pub(crate) fn compute_arb_size(
     // compute the additional term
     let execution_result = admin.call_contract(
         &mut manager.environment,
-        &arbiter_math,
+        arbiter_math,
         arbiter_math
             .encode_function("mulWadDown", (U256::from(500_000_000_000_000_000_u128), iv))?,
         Uint::ZERO,
     );
-    let unpacked_result = manager.unpack_execution(execution_result.clone())?;
+    let unpacked_result = manager.unpack_execution(execution_result)?;
     let additional_term: U256 = arbiter_math.decode_output("mulWadDown", unpacked_result)?;
     // CDF input
     let cdf_input = scaled_log + I256::from_raw(additional_term);
     // compute the CDF
     let execution_result = admin.call_contract(
         &mut manager.environment,
-        &arbiter_math,
+        arbiter_math,
         arbiter_math.encode_function("cdf", cdf_input)?,
         Uint::ZERO,
     );
-    let unpacked_result = manager.unpack_execution(execution_result.clone())?;
+    let unpacked_result = manager.unpack_execution(execution_result)?;
     let cdf_output: I256 = arbiter_math.decode_output("cdf", unpacked_result)?;
     let cdf = cdf_output * I256::from(delta_liquidity) / I256::from(10_u128.pow(18));
     // call the reserve values
     let x_reserves = admin.call_contract(
         &mut manager.environment,
-        &portfolio,
+        portfolio,
         portfolio.encode_function("getVirtualReservesDec", pool_id)?,
         Uint::ZERO,
     );
@@ -121,76 +121,75 @@ pub(crate) fn compute_arb_size(
     // compute the CDF
     let execution_result = admin.call_contract(
         &mut manager.environment,
-        &arbiter_math,
+        arbiter_math,
         arbiter_math.encode_function("cdf", cdf_input)?,
         Uint::ZERO,
     );
-    let unpacked_result = manager.unpack_execution(execution_result.clone())?;
+    let unpacked_result = manager.unpack_execution(execution_result)?;
     let cdf_output: I256 = arbiter_math.decode_output("cdf", unpacked_result)?;
     // scale the CDF
     let execution_result = admin.call_contract(
         &mut manager.environment,
-        &arbiter_math,
+        arbiter_math,
         arbiter_math.encode_function("mulWadDown", (cdf_output.into_raw(), strike))?,
         Uint::ZERO,
     );
-    let unpacked_result = manager.unpack_execution(execution_result.clone())?;
+    let unpacked_result = manager.unpack_execution(execution_result)?;
     let scaled_cdf: U256 = arbiter_math.decode_output("mulWadDown", unpacked_result)?;
     // scale by shares
     let execution_result = admin.call_contract(
         &mut manager.environment,
-        &arbiter_math,
+        arbiter_math,
         arbiter_math.encode_function("mulWadDown", (scaled_cdf, U256::from(delta_liquidity)))?,
         Uint::ZERO,
     );
-    let unpacked_result = manager.unpack_execution(execution_result.clone())?;
+    let unpacked_result = manager.unpack_execution(execution_result)?;
     let scaled_cdf: U256 = arbiter_math.decode_output("mulWadDown", unpacked_result)?;
     let cdf = I256::from_raw(scaled_cdf);
     // unscale reserves by shares
     let execution_result = admin.call_contract(
         &mut manager.environment,
-        &arbiter_math,
+        arbiter_math,
         arbiter_math.encode_function(
             "divWadUp",
             (U256::from(reserves.0), U256::from(delta_liquidity)),
         )?,
         Uint::ZERO,
     );
-    let unpacked_result = manager.unpack_execution(execution_result.clone())?;
+    let unpacked_result = manager.unpack_execution(execution_result)?;
     let x_reserve: U256 = arbiter_math.decode_output("divWadUp", unpacked_result)?;
 
     let execution_result = admin.call_contract(
         &mut manager.environment,
-        &arbiter_math,
+        arbiter_math,
         arbiter_math.encode_function(
             "divWadUp",
             (U256::from(reserves.1), U256::from(delta_liquidity)),
         )?,
         Uint::ZERO,
     );
-    let unpacked_result = manager.unpack_execution(execution_result.clone())?;
+    let unpacked_result = manager.unpack_execution(execution_result)?;
     let y_reserve: U256 = arbiter_math.decode_output("divWadUp", unpacked_result)?;
     // call invariant
     let execution_result = admin.call_contract(
         &mut manager.environment,
-        &arbiter_math,
+        arbiter_math,
         arbiter_math.encode_function("invariant", (y_reserve, x_reserve, strike, iv, tau))?,
         Uint::ZERO,
     );
-    let unpacked_result = manager.unpack_execution(execution_result.clone())?;
+    let unpacked_result = manager.unpack_execution(execution_result)?;
     let invariant: U256 = arbiter_math.decode_output("invariant", unpacked_result)?;
     let b = cdf + I256::from_raw(invariant) - I256::from(reserves.1);
     let arb_amount_y = b.max(I256::from(0));
     // bool for which asset is being sold.
-    let fn_output: ComputeArbOutput;
-    if arb_amount_x > I256::from(0) {
+    let fn_output = if arb_amount_x > I256::from(0) {
         let sell_asset = true;
         let input = arb_amount_x.into_raw();
-        fn_output = ComputeArbOutput::new(sell_asset, input);
+        ComputeArbOutput::new(sell_asset, input)
     } else {
         let sell_asset = false;
         let input = arb_amount_y.into_raw();
-        fn_output = ComputeArbOutput::new(sell_asset, input);
+        ComputeArbOutput::new(sell_asset, input)
     };
     Ok(fn_output)
 }
@@ -272,9 +271,10 @@ where
 
 #[cfg(test)]
 mod test {
+    use std::error::Error;
+
     use super::*;
     use crate::sim::portfolio::startup;
-    use std::error::Error;
 
     #[test]
     fn test_arb_bool() -> Result<(), Box<dyn Error>> {

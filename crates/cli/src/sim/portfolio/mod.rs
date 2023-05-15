@@ -121,7 +121,8 @@ pub fn run() -> Result<(), Box<dyn Error>> {
     let price = prices[0];
     update_price(&mut manager, liquid_exchange, price)?;
     let mut index: usize = 1;
-    while let Ok((next_tx, sell_asset)) = rx.recv() {
+    while let Ok((next_tx, _sell_asset)) = rx.recv() {
+        // TODO: We need to be careful with these `sell_asset` variables.
         println!("Entered Main's `while let` with index: {}", index);
         if index >= prices.len() {
             println!("Reached end of price path\n");
