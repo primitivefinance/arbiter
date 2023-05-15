@@ -28,7 +28,7 @@ pub(crate) fn create_arbitrageur<S: Into<String>>(
         .unwrap();
     println!("Created Arbitrageur at address: {}.", address);
 }
-
+/// [`compute_arb_size`] Output struct.
 pub struct ComputeArbOutput {
     pub sell_asset: bool,
     pub input: U256,
@@ -39,14 +39,23 @@ impl ComputeArbOutput {
         ComputeArbOutput { sell_asset, input }
     }
 }
-
+/// Computes the abitrage size and swap asset given the ratio of reference market price to strike price of the pool.
+/// # Arguments
+/// * `manager` - Simulation manager to deploy contracts to. (SimulationManager)
+/// * `pool_params` - RMM01 pool parameters to use for the simulation. (PoolParams)
+/// * `delta_liquidity` - Liquidity shares to use for the simulation. (i128)
+/// * `pool_id` - Pool id to use for the simulation. (u64)
+/// * `portfolio` - Portfolio contract to use for the simulation. (SimulationContract<IsDeployed>)
+/// * `ratio` - Ratio of reference market price to strike price of the pool. (U256)
+/// # Returns
+/// * `ComputeArbOutput` - Arbitrage size and swap asset boolean. (ComputeArbOutput)
 pub(crate) fn compute_arb_size(
     manager: &mut SimulationManager,
     pool_params: PoolParams,
     delta_liquidity: i128,
     pool_id: u64,
     portfolio: &SimulationContract<IsDeployed>,
-    ratio: U256,
+    ratio: U256, // ratio of reference market price to strike price of the pool
 ) -> Result<ComputeArbOutput, Box<dyn Error>> {
     let manager = manager;
     let admin = manager.agents.get("admin").unwrap();
@@ -55,7 +64,7 @@ pub(crate) fn compute_arb_size(
     let strike = U256::from(pool_params.strike);
     let iv = U256::from(pool_params.volatility) * U256::from(10_u128.pow(18))
         / U256::from(10u128.pow(4));
-    let tau = U256::from(31556953u128);
+    let tau = U256::from(31556953u128); // 1 year in seconds
     // compute the ratio
     let int_ratio = I256::from_raw(ratio);
     // compute logarithm
