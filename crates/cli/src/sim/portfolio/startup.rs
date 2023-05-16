@@ -11,7 +11,7 @@ use simulate::{
     utils::{recast_address, unpack_execution},
 };
 
-use super::arbitrage;
+use super::{arbitrage, PoolParams};
 
 pub(crate) struct SimulationContracts {
     pub(crate) arbiter_token_x: SimulationContract<IsDeployed>,
@@ -39,6 +39,8 @@ pub(crate) struct SimulationContracts {
 // }
 pub(crate) fn run(
     manager: &mut SimulationManager,
+    pool_args: PoolParams,
+    delta_liquidity: i128,
 ) -> Result<(SimulationContracts, rmm01_portfolio::CreatePoolCall, u64), Box<dyn Error>> {
     // define the wad constant
     let decimals = 18_u8;
@@ -75,16 +77,15 @@ pub(crate) fn run(
 
     println!("🔧 Initializing the pool...");
     println!("---------------------------------------");
-    let (pool_data, pool_id) = pool_intitalization(manager, &contracts)?;
+    let (pool_data, pool_id) = pool_intitalization(manager, &contracts, pool_args)?;
     println!("---------------------------------------");
     println!("✅ Pool initialized successfully! Pool ID: {}\n", pool_id);
 
     println!("🔧 Allocating funds...");
     println!("---------------------------------------");
-    allocate(manager, &contracts, pool_id)?;
+    allocate(manager, &contracts, pool_id, delta_liquidity)?;
     println!("---------------------------------------");
     println!("✅ Funds allocated successfully!\n");
-
     Ok((contracts, pool_data, pool_id))
 }
 
@@ -351,6 +352,7 @@ fn approve(
 fn pool_intitalization(
     manager: &mut SimulationManager,
     contracts: &SimulationContracts,
+    pool_args: PoolParams,
 ) -> Result<(rmm01_portfolio::CreatePoolCall, u64), Box<dyn Error>> {
     let admin = manager.agents.get("admin").unwrap();
     let SimulationContracts {
@@ -381,15 +383,22 @@ fn pool_intitalization(
     // --------------------------------------------------------------------------------------------
     // CREATE PORTFOLIO POOL
     // --------------------------------------------------------------------------------------------
+    let priority_fee = pool_args.priority_fee;
+    let fee = pool_args.fee;
+    let volatility = pool_args.volatility;
+    let duration = pool_args.duration;
+    let strike_price = pool_args.strike;
+    let price = pool_args.price;
+
     let create_pool_args = rmm01_portfolio::CreatePoolCall {
         pair_id,                                     // pub pair_id: u32
         controller: recast_address(admin.address()), /* pub controller: ::ethers::core::types::Address */
-        priority_fee: 100_u16,                       // pub priority_fee: u16,
-        fee: 100_u16,                                // pub fee: u16,
-        volatility: 100_u16,                         // pub vol: u16,
-        duration: 65535_u16,                         // pub dur: u16,
-        strike_price: 10_u128.pow(18),               // pub max_price: u128,
-        price: 10_u128.pow(18),                      // pub price: u128,
+        priority_fee,                                // pub priority_fee: u16,
+        fee,                                         // pub fee: u16,
+        volatility,                                  // pub vol: u16,
+        duration,                                    // pub dur: u16,
+        strike_price,                                // pub max_price: u128,
+        price,                                       // pub price: u128,
     };
     let create_pool_result = admin.call_contract(
         &mut manager.environment,
@@ -408,6 +417,7 @@ fn allocate(
     manager: &mut SimulationManager,
     contracts: &SimulationContracts,
     pool_id: u64,
+    delta_liquidity: i128,
 ) -> Result<(), Box<dyn Error>> {
     let admin = manager.agents.get("admin").unwrap();
     let SimulationContracts {
@@ -419,7 +429,6 @@ fn allocate(
     // --------------------------------------------------------------------------------------------
     // PORTFOLIO POOL LIQUIDITY DELTAS
     // --------------------------------------------------------------------------------------------
-    let delta_liquidity = 10_i128.pow(21);
     let get_liquidity_args = rmm01_portfolio::GetLiquidityDeltasCall {
         pool_id,
         delta_liquidity,
