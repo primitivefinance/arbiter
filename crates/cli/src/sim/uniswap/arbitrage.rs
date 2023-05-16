@@ -1,12 +1,9 @@
 use std::error::Error;
 
-use bindings::{rmm01_portfolio, uniswap_v2_router_01::uniswap_v2_router_01};
-use ethers::{
-    prelude::U256,
-    types::{H160, I256},
-};
+use bindings::uniswap_v2_router_01::uniswap_v2_router_01;
+use ethers::prelude::U256;
 use eyre::Result;
-use revm::primitives::{ruint::Uint, B160};
+use revm::primitives::B160;
 use simulate::{
     agent::{simple_arbitrageur::SimpleArbitrageur, Agent, AgentType, SimulationEventFilter},
     contract::{IsDeployed, SimulationContract},

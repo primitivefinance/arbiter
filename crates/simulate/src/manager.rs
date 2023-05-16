@@ -12,7 +12,7 @@ use std::{
 use bindings::arbiter_math;
 use bytes::Bytes;
 use crossbeam_channel::unbounded;
-use revm::primitives::{AccountInfo, Address, ExecutionResult, Log, Output, B160, U256};
+use revm::primitives::{AccountInfo, Address, Log, B160, U256};
 
 use crate::{
     agent::{

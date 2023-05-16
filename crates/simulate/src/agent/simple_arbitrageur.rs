@@ -156,8 +156,7 @@ impl SimpleArbitrageur<IsActive> {
                                     }
                                 }
                                 continue;
-                            }
-                            else {
+                            } else {
                                 println!("No arbitrage detected.\nSending UpdatePrice.\n");
                                 match tx.send((NextTx::UpdatePrice, None)) {
                                     Ok(_) => {}
@@ -166,7 +165,7 @@ impl SimpleArbitrageur<IsActive> {
                                         break;
                                     }
                                 }
-                        } 
+                            }
                         }
                         drop(prices);
                     } else {
@@ -441,49 +440,7 @@ mod tests {
 
         // Start the arbitrageur to detect price changes.
         println!("Beginning arbitrage detection.");
-        let (arbitrage_detection_handle, rx) = base_arbitrageur.detect_arbitrage();
-
-        // Make a price change to the first exchange.
-        // let mut index = 0;
-        // while let Ok((next_tx, ..)) = rx.recv() {
-        //     println!("Received a new message.");
-        //     if index == 0 {
-        //         match next_tx {
-        //             NextTx::None => continue,
-        //             _ => {
-        //                 let new_price0 = wad.checked_mul(U256::from(42069)).unwrap();
-        //                 let call_data =
-        //                     liquid_exchange_xy0.encode_function("setPrice", new_price0)?;
-        //                 manager.agents.get("admin").unwrap().call_contract(
-        //                     &mut manager.environment,
-        //                     &liquid_exchange_xy0,
-        //                     call_data,
-        //                     U256::zero().into(),
-        //                 );
-        //                 index += 1;
-        //                 continue;
-        //             }
-        //         }
-        //     } else {
-        //         // Make a price change to the second exchange.
-        //         match next_tx {
-        //             NextTx::None => continue,
-        //             _ => {
-        //                 let new_price1 = wad.checked_mul(U256::from(69420)).unwrap();
-        //                 let call_data =
-        //                     liquid_exchange_xy1.encode_function("setPrice", new_price1)?;
-        //                 manager.agents.get("admin").unwrap().call_contract(
-        //                     &mut manager.environment,
-        //                     &liquid_exchange_xy1,
-        //                     call_data,
-        //                     U256::zero().into(),
-
-        //                 );
-        //                 break;
-        //             }
-        //         }
-        //     }
-        // }
+        let (_arbitrage_detection_handle, rx) = base_arbitrageur.detect_arbitrage();
 
         let new_price0 = wad.checked_mul(U256::from(42069)).unwrap();
         let call_data = liquid_exchange_xy0.encode_function("setPrice", new_price0)?;

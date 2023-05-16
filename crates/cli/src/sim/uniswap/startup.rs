@@ -8,7 +8,7 @@ use ethers::{
 use eyre::Result;
 use revm::primitives::ruint::Uint;
 use simulate::{
-    agent::{Agent, SimulationEventFilter},
+    agent::Agent,
     contract::{IsDeployed, SimulationContract},
     manager::SimulationManager,
     utils::{recast_address, unpack_execution},
@@ -393,7 +393,7 @@ fn pair_intitalization(
     let create_pair_result = admin.call_contract(
         &mut manager.environment,
         uniswap_factory,
-        uniswap_factory.encode_function("createPair", create_pair_args.clone())?,
+        uniswap_factory.encode_function("createPair", create_pair_args)?,
         Uint::from(0),
     );
     assert!(create_pair_result.is_success());
