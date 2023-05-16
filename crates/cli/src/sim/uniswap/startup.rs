@@ -1,8 +1,7 @@
 use std::error::Error;
 
 use bindings::{
-    arbiter_token, liquid_exchange, liquidity_amounts::LiquidityAmounts, rmm01_portfolio,
-    simple_registry, uniswap_v2_factory, uniswap_v2_router_02, weth9,
+    arbiter_token, liquid_exchange, uniswap_v2_factory, uniswap_v2_router_02, weth9,
 };
 use ethers::{
     prelude::U256,
@@ -115,14 +114,6 @@ fn deploy_contracts(
     let weth = SimulationContract::new(weth9::WETH9_ABI.clone(), weth9::WETH9_BYTECODE.clone());
     let weth = weth.deploy(&mut manager.environment, admin, ());
     println!("WETH deployed at: {}", weth.address);
-
-    // Deploy the registry contract.
-    let registry = SimulationContract::new(
-        simple_registry::SIMPLEREGISTRY_ABI.clone(),
-        simple_registry::SIMPLEREGISTRY_BYTECODE.clone(),
-    );
-    let registry = registry.deploy(&mut manager.environment, admin, ());
-    println!("Simple registry deployed at: {}", registry.address);
 
     // Deploy the UniswapV2 Factory contract.
     let uniswap_factory = SimulationContract::new(
