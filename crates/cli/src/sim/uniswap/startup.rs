@@ -11,7 +11,7 @@ use simulate::{
     agent::{Agent, SimulationEventFilter},
     contract::{IsDeployed, SimulationContract},
     manager::SimulationManager,
-    utils::recast_address,
+    utils::{recast_address, unpack_execution},
 };
 
 use super::arbitrage;
@@ -397,7 +397,7 @@ fn pair_intitalization(
         Uint::from(0),
     );
     assert!(create_pair_result.is_success());
-    let create_pair_unpack = manager.unpack_execution(create_pair_result)?;
+    let create_pair_unpack = unpack_execution(create_pair_result)?;
     let pair_address: Address = uniswap_factory.decode_output("createPair", create_pair_unpack)?;
     println!("Created Uniswap pair with address: {:#?}", pair_address);
 
@@ -455,7 +455,7 @@ fn allocate(
         "Add liquidity result: {:#?}",
         add_liquidity_result.is_success()
     );
-    let add_liquidity_unpack = manager.unpack_execution(add_liquidity_result)?;
+    let add_liquidity_unpack = unpack_execution(add_liquidity_result)?;
     let (amount_a, amount_b, liquidity): (U256, U256, U256) =
         uniswap_router.decode_output("addLiquidity", add_liquidity_unpack)?;
     println!(

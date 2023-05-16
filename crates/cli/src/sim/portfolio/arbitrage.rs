@@ -7,7 +7,7 @@ use revm::primitives::{ruint::Uint, B160};
 use simulate::{
     agent::{simple_arbitrageur::SimpleArbitrageur, Agent, AgentType, SimulationEventFilter},
     contract::{IsDeployed, SimulationContract},
-    manager::SimulationManager,
+    manager::SimulationManager, utils::unpack_execution,
 };
 
 pub(crate) fn create_arbitrageur<S: Into<String>>(
@@ -51,7 +51,7 @@ where
         Uint::from(0),
     );
     assert!(get_amount_out_result.is_success());
-    let unpacked_get_amount_out = manager.unpack_execution(get_amount_out_result)?;
+    let unpacked_get_amount_out = unpack_execution(get_amount_out_result)?;
     let decoded_amount_out: u128 =
         portfolio.decode_output("getAmountOut", unpacked_get_amount_out)?;
     if sell_asset {
@@ -84,7 +84,7 @@ where
         portfolio.encode_function("swap", swap_args)?,
         Uint::from(0),
     );
-    match manager.unpack_execution(swap_result) {
+    match unpack_execution(swap_result) {
         Ok(unpacked) => {
             let swap_result: (u64, U256, U256) = portfolio.decode_output("swap", unpacked)?;
             println!("Swap result is {:#?}", swap_result);

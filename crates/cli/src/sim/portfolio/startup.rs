@@ -8,7 +8,7 @@ use simulate::{
     agent::Agent,
     contract::{IsDeployed, SimulationContract},
     manager::SimulationManager,
-    utils::recast_address,
+    utils::{recast_address, unpack_execution},
 };
 
 use super::arbitrage;
@@ -374,7 +374,7 @@ fn pool_intitalization(
         Uint::from(0),
     );
     assert!(create_pair_result.is_success());
-    let create_pair_unpack = manager.unpack_execution(create_pair_result)?;
+    let create_pair_unpack = unpack_execution(create_pair_result)?;
     let pair_id: u32 = portfolio.decode_output("createPair", create_pair_unpack)?;
     println!("Created Portfolio pair with PairID: {:#?}", pair_id);
 
@@ -398,7 +398,7 @@ fn pool_intitalization(
         Uint::from(0),
     );
     assert!(create_pool_result.is_success());
-    let create_pool_unpack = manager.unpack_execution(create_pool_result)?;
+    let create_pool_unpack = unpack_execution(create_pool_result)?;
     let pool_id: u64 = portfolio.decode_output("createPool", create_pool_unpack)?;
     println!("Created Portfolio pool with PoolID: {:#?}", pool_id);
     Ok((create_pool_args, pool_id))
@@ -430,7 +430,7 @@ fn allocate(
         portfolio.encode_function("getLiquidityDeltas", get_liquidity_args)?,
         Uint::from(0),
     );
-    let get_liquidity_unpack = manager.unpack_execution(get_liquidity_result)?;
+    let get_liquidity_unpack = unpack_execution(get_liquidity_result)?;
     let liquidity_deltas: (u128, u128) =
         portfolio.decode_output("getLiquidityDeltas", get_liquidity_unpack)?;
     println!(
@@ -455,7 +455,7 @@ fn allocate(
         Uint::from(0),
     );
     assert!(allocate_result.is_success());
-    let unpacked_allocate = manager.unpack_execution(allocate_result)?;
+    let unpacked_allocate = unpack_execution(allocate_result)?;
     let deltas: (u128, u128) = portfolio.decode_output("allocate", unpacked_allocate)?;
     println!(
         "Allocated {} ARBX and {} ARBY to Pool {}",
@@ -499,7 +499,7 @@ fn allocate(
 //             Uint::from(0),
 //         );
 //         assert_eq!(create_pair_result.is_success(), true);
-//         let create_pair_unpack = manager.unpack_execution(create_pair_result)?;
+//         let create_pair_unpack = unpack_execution(create_pair_result)?;
 //         let pair_id: u32 = portfolio.decode_output("createPair", create_pair_unpack)?;
 //         println!("Created portfolio pair with Pair id: {:#?}", pair_id);
 
@@ -511,7 +511,7 @@ fn allocate(
 //             encoded_pair,
 //             Uint::from(0),
 //         );
-//         let unpacked_pairs = manager.unpack_execution(pairs)?;
+//         let unpacked_pairs = unpack_execution(pairs)?;
 //         let decoded_pairs_response: (H160, u8, H160, u8) =
 //             portfolio.decode_output("pairs", unpacked_pairs)?;
 
@@ -548,7 +548,7 @@ fn allocate(
 //         );
 //         assert_eq!(create_pair_result.is_success(), true);
 
-//         let create_pair_unpack = manager.unpack_execution(create_pair_result)?;
+//         let create_pair_unpack = unpack_execution(create_pair_result)?;
 //         let pair_id: u32 = portfolio.decode_output("createPair", create_pair_unpack)?;
 //         println!("Created portfolio pair with Pair id: {:#?}", pair_id);
 

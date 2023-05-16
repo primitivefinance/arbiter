@@ -11,7 +11,7 @@ use simulate::{
     agent::{simple_arbitrageur::SimpleArbitrageur, Agent, AgentType, SimulationEventFilter},
     contract::{IsDeployed, SimulationContract},
     manager::SimulationManager,
-    utils::recast_address,
+    utils::{recast_address, unpack_execution},
 };
 
 use crate::sim::uniswap::startup::SimulationContracts;
@@ -67,7 +67,7 @@ pub(crate) fn swap(
         U256::from(0).into(),
     );
 
-    let swap_result = manager.unpack_execution(swap_result)?;
+    let swap_result = unpack_execution(swap_result)?;
     let swap_result: Vec<U256> = contracts
         .uniswap_router
         .decode_output("swapExactTokensForTokens", swap_result)?;

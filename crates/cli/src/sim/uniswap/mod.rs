@@ -8,7 +8,7 @@ use simulate::{
     agent::{simple_arbitrageur::NextTx, Agent, AgentType},
     contract::{IsDeployed, SimulationContract},
     manager::SimulationManager,
-    stochastic::price_process::{PriceProcess, PriceProcessType, OU},
+    stochastic::price_process::{PriceProcess, PriceProcessType, OU}, utils::unpack_execution,
 };
 
 pub mod arbitrage;
@@ -45,7 +45,7 @@ pub fn run() -> Result<(), Box<dyn Error>> {
         contracts.liquid_exchange_xy.encode_function("price", ())?,
         Uint::ZERO,
     );
-    let liquid_exchange_xy_price = manager.unpack_execution(liquid_exchange_xy_price)?;
+    let liquid_exchange_xy_price = unpack_execution(liquid_exchange_xy_price)?;
     let liquid_exchange_xy_price: U256 = contracts
         .liquid_exchange_xy
         .decode_output("price", liquid_exchange_xy_price)?;
@@ -55,12 +55,13 @@ pub fn run() -> Result<(), Box<dyn Error>> {
         uniswap_pair.encode_function("getReserves", ())?,
         Uint::ZERO,
     );
-    let uniswap_reserves = manager.unpack_execution(uniswap_reserves)?;
+    let uniswap_reserves = unpack_execution(uniswap_reserves)?;
     let uniswap_reserves: (u128, u128, u32) =
         uniswap_pair.decode_output("getReserves", uniswap_reserves)?;
     let x = U256::from(uniswap_reserves.0);
     let y = U256::from(uniswap_reserves.1);
     let uniswap_price = y * U256::from(10_u128.pow(18)) / x;
+    println!("Uniswap price: {}", uniswap_price);
     let mut prices = arbitrageur.prices.lock().unwrap();
     prices[0] = liquid_exchange_xy_price.into();
     prices[1] = uniswap_price.into();
@@ -82,22 +83,22 @@ pub fn run() -> Result<(), Box<dyn Error>> {
     );
     let prices = price_process.generate_price_path().1;
 
-    // Run the simulation
-    // Update the first price
-    let liquid_exchange = &contracts.liquid_exchange_xy;
-    let price = prices[0];
-    update_price(&mut manager, liquid_exchange, price)?;
+    // // Run the simulation
+    // // Update the first price
+    // let liquid_exchange = &contracts.liquid_exchange_xy;
+    // let price = prices[0];
+    // update_price(&mut manager, liquid_exchange, price)?;
 
     arbitrage::swap(&mut manager, contracts, U256::from(10_u128.pow(15)), true)?;
 
     // Check that the price got updated on the pool:
-    let uniswap_reserves = arbitrageur.call_contract(
+    let uniswap_reserves = manager.agents.get("admin").unwrap().call_contract(
         &mut manager.environment,
         &uniswap_pair,
         uniswap_pair.encode_function("getReserves", ())?,
         Uint::ZERO,
     );
-    let uniswap_reserves = manager.unpack_execution(uniswap_reserves)?;
+    let uniswap_reserves = unpack_execution(uniswap_reserves)?;
     let uniswap_reserves: (u128, u128, u32) =
         uniswap_pair.decode_output("getReserves", uniswap_reserves)?;
     let x = U256::from(uniswap_reserves.0);

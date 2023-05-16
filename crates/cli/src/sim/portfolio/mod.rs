@@ -8,7 +8,7 @@ use simulate::{
     agent::{simple_arbitrageur::NextTx, Agent, AgentType},
     contract::{IsDeployed, SimulationContract},
     manager::SimulationManager,
-    stochastic::price_process::{PriceProcess, PriceProcessType, OU},
+    stochastic::price_process::{PriceProcess, PriceProcessType, OU}, utils::unpack_execution,
 };
 
 pub mod arbitrage;
@@ -36,7 +36,7 @@ pub fn run() -> Result<(), Box<dyn Error>> {
         contracts.liquid_exchange_xy.encode_function("price", ())?,
         Uint::ZERO,
     );
-    let liquid_exchange_xy_price = manager.unpack_execution(liquid_exchange_xy_price)?;
+    let liquid_exchange_xy_price = unpack_execution(liquid_exchange_xy_price)?;
     let liquid_exchange_xy_price: U256 = contracts
         .liquid_exchange_xy
         .decode_output("price", liquid_exchange_xy_price)?;
@@ -48,7 +48,7 @@ pub fn run() -> Result<(), Box<dyn Error>> {
             .encode_function("getSpotPrice", pool_id)?,
         Uint::ZERO,
     );
-    let portfolio_price = manager.unpack_execution(portfolio_price)?;
+    let portfolio_price = unpack_execution(portfolio_price)?;
     let portfolio_price: U256 = contracts
         .liquid_exchange_xy
         .decode_output("price", portfolio_price)?;

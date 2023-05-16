@@ -34,7 +34,7 @@ mod tests {
         contract::SimulationContract,
         manager::SimulationManager,
         stochastic::price_process::{PriceProcess, PriceProcessType, GBM},
-        utils::recast_address,
+        utils::{recast_address, unpack_execution},
     };
     #[test]
     fn swap_x_for_y_liquid_exchange() -> Result<(), Box<dyn Error>> {
@@ -116,7 +116,7 @@ mod tests {
         let call_data = token_x.encode_function("balanceOf", recast_address(user_address))?;
         let execution_result =
             alice.call_contract(&mut manager.environment, &token_x, call_data, Uint::from(0)); // Call the 'balanceOf' function.
-        let value = manager.unpack_execution(execution_result)?;
+        let value = unpack_execution(execution_result)?;
         let response: U256 = token_x.decode_output("balanceOf", value)?;
         println!("alice has {} token_x after swap", response);
         assert_eq!(response, mint_amount - swap_amount);
@@ -125,7 +125,7 @@ mod tests {
         let call_data = token_y.encode_function("balanceOf", recast_address(user_address))?;
         let execution_result =
             alice.call_contract(&mut manager.environment, &token_y, call_data, Uint::from(0)); // Call the 'balanceOf' function.
-        let value = manager.unpack_execution(execution_result)?;
+        let value = unpack_execution(execution_result)?;
         let response: U256 = token_y.decode_output("balanceOf", value)?;
         println!("alice has {} token_y after swap", response);
         assert_eq!(response, swap_amount * U256::from(price_to_check));
@@ -212,7 +212,7 @@ mod tests {
         let call_data = token_y.encode_function("balanceOf", recast_address(user_address))?;
         let execution_result =
             alice.call_contract(&mut manager.environment, &token_y, call_data, Uint::from(0)); // Call the 'balanceOf' function.
-        let value = manager.unpack_execution(execution_result)?;
+        let value = unpack_execution(execution_result)?;
         let response: U256 = token_y.decode_output("balanceOf", value)?;
         println!("alice has {} token_y after swap", response);
         assert_eq!(response, mint_amount - swap_amount);
@@ -221,7 +221,7 @@ mod tests {
         let call_data = token_x.encode_function("balanceOf", recast_address(user_address))?;
         let execution_result =
             alice.call_contract(&mut manager.environment, &token_x, call_data, Uint::from(0)); // Call the 'balanceOf' function.
-        let value = manager.unpack_execution(execution_result)?;
+        let value = unpack_execution(execution_result)?;
         let response: U256 = token_x.decode_output("balanceOf", value)?;
         println!("alice has {} token_x after swap", response);
         assert_eq!(response, U256::from(10_i64.pow(16)));
@@ -309,7 +309,7 @@ mod tests {
                 call_data,
                 Uint::from(0),
             );
-            let value = manager.unpack_execution(execution_result)?;
+            let value = unpack_execution(execution_result)?;
             let response: U256 = liquid_exchange_xy.decode_output("price", value)?;
             println!("Price from the exchange: {}", response);
             assert_eq!(response, wad_price);
