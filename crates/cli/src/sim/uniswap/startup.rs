@@ -118,7 +118,7 @@ fn deploy_contracts(
     // Deploy the UniswapV2 Factory contract.
     let uniswap_factory = SimulationContract::new(
         uniswap_v2_factory::UNISWAPV2FACTORY_ABI.clone(),
-        uniswap_v2_factory::UNISWAPV2FACTORY_BYTECODE.clone().as_slice(),
+        uniswap_v2_factory::UNISWAPV2FACTORY_BYTECODE.clone(),
     );
     let uniswap_factory_args = 
         H160::from_low_u64_be(0) // The feeToSetter address is not used in the simulation.
