@@ -11,7 +11,7 @@ pub use iweth::*;
 )]
 pub mod iweth {
     #[rustfmt::skip]
-    const __ABI: &str = "[{\"inputs\":[],\"stateMutability\":\"payable\",\"type\":\"function\",\"name\":\"deposit\",\"outputs\":[]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"to\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"value\",\"type\":\"uint256\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"function\",\"name\":\"transfer\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"function\",\"name\":\"withdraw\",\"outputs\":[]}]";
+    const __ABI: &str = "[{\"inputs\":[],\"stateMutability\":\"payable\",\"type\":\"function\",\"name\":\"deposit\",\"outputs\":[]},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"wad\",\"type\":\"uint256\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"function\",\"name\":\"withdraw\",\"outputs\":[]}]";
     ///The parsed JSON ABI of the contract.
     pub static IWETH_ABI: ::ethers::contract::Lazy<::ethers::core::abi::Abi> = ::ethers::contract::Lazy::new(||
     ::ethers::core::utils::__serde_json::from_str(__ABI).expect("ABI is always valid"));
@@ -58,23 +58,13 @@ pub mod iweth {
                 .method_hash([208, 227, 13, 176], ())
                 .expect("method not found (this should never happen)")
         }
-        ///Calls the contract's `transfer` (0xa9059cbb) function
-        pub fn transfer(
-            &self,
-            to: ::ethers::core::types::Address,
-            value: ::ethers::core::types::U256,
-        ) -> ::ethers::contract::builders::ContractCall<M, bool> {
-            self.0
-                .method_hash([169, 5, 156, 187], (to, value))
-                .expect("method not found (this should never happen)")
-        }
         ///Calls the contract's `withdraw` (0x2e1a7d4d) function
         pub fn withdraw(
             &self,
-            p0: ::ethers::core::types::U256,
+            wad: ::ethers::core::types::U256,
         ) -> ::ethers::contract::builders::ContractCall<M, ()> {
             self.0
-                .method_hash([46, 26, 125, 77], p0)
+                .method_hash([46, 26, 125, 77], wad)
                 .expect("method not found (this should never happen)")
         }
     }
@@ -97,22 +87,6 @@ pub mod iweth {
     )]
     #[ethcall(name = "deposit", abi = "deposit()")]
     pub struct DepositCall;
-    ///Container type for all input parameters for the `transfer` function with signature `transfer(address,uint256)` and selector `0xa9059cbb`
-    #[derive(
-        Clone,
-        ::ethers::contract::EthCall,
-        ::ethers::contract::EthDisplay,
-        Default,
-        Debug,
-        PartialEq,
-        Eq,
-        Hash
-    )]
-    #[ethcall(name = "transfer", abi = "transfer(address,uint256)")]
-    pub struct TransferCall {
-        pub to: ::ethers::core::types::Address,
-        pub value: ::ethers::core::types::U256,
-    }
     ///Container type for all input parameters for the `withdraw` function with signature `withdraw(uint256)` and selector `0x2e1a7d4d`
     #[derive(
         Clone,
@@ -125,12 +99,13 @@ pub mod iweth {
         Hash
     )]
     #[ethcall(name = "withdraw", abi = "withdraw(uint256)")]
-    pub struct WithdrawCall(pub ::ethers::core::types::U256);
+    pub struct WithdrawCall {
+        pub wad: ::ethers::core::types::U256,
+    }
     ///Container type for all of the contract's call
     #[derive(Clone, ::ethers::contract::EthAbiType, Debug, PartialEq, Eq, Hash)]
     pub enum IWETHCalls {
         Deposit(DepositCall),
-        Transfer(TransferCall),
         Withdraw(WithdrawCall),
     }
     impl ::ethers::core::abi::AbiDecode for IWETHCalls {
@@ -143,10 +118,6 @@ pub mod iweth {
                 return Ok(Self::Deposit(decoded));
             }
             if let Ok(decoded)
-                = <TransferCall as ::ethers::core::abi::AbiDecode>::decode(data) {
-                return Ok(Self::Transfer(decoded));
-            }
-            if let Ok(decoded)
                 = <WithdrawCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::Withdraw(decoded));
             }
@@ -157,9 +128,6 @@ pub mod iweth {
         fn encode(self) -> Vec<u8> {
             match self {
                 Self::Deposit(element) => ::ethers::core::abi::AbiEncode::encode(element),
-                Self::Transfer(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
                 Self::Withdraw(element) => {
                     ::ethers::core::abi::AbiEncode::encode(element)
                 }
@@ -170,7 +138,6 @@ pub mod iweth {
         fn fmt(&self, f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
             match self {
                 Self::Deposit(element) => ::core::fmt::Display::fmt(element, f),
-                Self::Transfer(element) => ::core::fmt::Display::fmt(element, f),
                 Self::Withdraw(element) => ::core::fmt::Display::fmt(element, f),
             }
         }
@@ -180,26 +147,9 @@ pub mod iweth {
             Self::Deposit(value)
         }
     }
-    impl ::core::convert::From<TransferCall> for IWETHCalls {
-        fn from(value: TransferCall) -> Self {
-            Self::Transfer(value)
-        }
-    }
     impl ::core::convert::From<WithdrawCall> for IWETHCalls {
         fn from(value: WithdrawCall) -> Self {
             Self::Withdraw(value)
         }
     }
-    ///Container type for all return fields from the `transfer` function with signature `transfer(address,uint256)` and selector `0xa9059cbb`
-    #[derive(
-        Clone,
-        ::ethers::contract::EthAbiType,
-        ::ethers::contract::EthAbiCodec,
-        Default,
-        Debug,
-        PartialEq,
-        Eq,
-        Hash
-    )]
-    pub struct TransferReturn(pub bool);
 }
