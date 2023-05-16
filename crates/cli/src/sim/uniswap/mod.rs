@@ -1,7 +1,7 @@
 #![warn(missing_docs)]
 use std::error::Error;
 
-use ethers::{types::U256, prelude::BaseContract};
+use ethers::{prelude::BaseContract, types::U256};
 use eyre::Result;
 use ruint::Uint;
 use simulate::{
@@ -52,43 +52,59 @@ pub fn run() -> Result<(), Box<dyn Error>> {
     let uniswap_reserves = arbitrageur.call_contract(
         &mut manager.environment,
         &uniswap_pair,
-        uniswap_pair
-            .encode_function("getReserves", ())?,
+        uniswap_pair.encode_function("getReserves", ())?,
         Uint::ZERO,
     );
     let uniswap_reserves = manager.unpack_execution(uniswap_reserves)?;
-    let uniswap_reserves: (u128,u128,u32) = uniswap_pair
-        .decode_output("getReserves", uniswap_reserves)?;
+    let uniswap_reserves: (u128, u128, u32) =
+        uniswap_pair.decode_output("getReserves", uniswap_reserves)?;
     let x = U256::from(uniswap_reserves.0);
     let y = U256::from(uniswap_reserves.1);
     let uniswap_price = y * U256::from(10_u128.pow(18)) / x;
     let mut prices = arbitrageur.prices.lock().unwrap();
     prices[0] = liquid_exchange_xy_price.into();
     prices[1] = uniswap_price.into();
-    println!("Initial prices for Arbitrageur: {:#?}", prices);
     drop(prices);
 
-    // println!("Initial prices for Arbitrageur: {:#?}", arbitrageur.prices);
+    println!("Initial prices for Arbitrageur: {:#?}", arbitrageur.prices);
 
-    // let (_handle, rx) = arbitrageur.detect_arbitrage();
+    let (_handle, rx) = arbitrageur.detect_arbitrage();
 
-    // // Get prices
-    // let ou = OU::new(0.001, 50.0, 1.0);
-    // let price_process = PriceProcess::new(
-    //     PriceProcessType::OU(ou),
-    //     0.01,
-    //     "trade".to_string(),
-    //     5,
-    //     1.0,
-    //     1,
-    // );
-    // let prices = price_process.generate_price_path().1;
+    // Get prices
+    let ou = OU::new(0.001, 50.0, 1.0);
+    let price_process = PriceProcess::new(
+        PriceProcessType::OU(ou),
+        0.01,
+        "trade".to_string(),
+        5,
+        1.0,
+        1,
+    );
+    let prices = price_process.generate_price_path().1;
 
-    // // Run the simulation
-    // // Update the first price
-    // let liquid_exchange = &contracts.liquid_exchange_xy;
-    // let price = prices[0];
-    // update_price(&mut manager, liquid_exchange, price)?;
+    // Run the simulation
+    // Update the first price
+    let liquid_exchange = &contracts.liquid_exchange_xy;
+    let price = prices[0];
+    update_price(&mut manager, liquid_exchange, price)?;
+
+    arbitrage::swap(&mut manager, contracts, U256::from(10_u128.pow(15)), true)?;
+
+    // Check that the price got updated on the pool:
+    let uniswap_reserves = arbitrageur.call_contract(
+        &mut manager.environment,
+        &uniswap_pair,
+        uniswap_pair.encode_function("getReserves", ())?,
+        Uint::ZERO,
+    );
+    let uniswap_reserves = manager.unpack_execution(uniswap_reserves)?;
+    let uniswap_reserves: (u128, u128, u32) =
+        uniswap_pair.decode_output("getReserves", uniswap_reserves)?;
+    let x = U256::from(uniswap_reserves.0);
+    let y = U256::from(uniswap_reserves.1);
+    let uniswap_price = y * U256::from(10_u128.pow(18)) / x;
+    println!("Uniswap price: {}", uniswap_price);
+
     // let mut index: usize = 1;
     // while let Ok((next_tx, sell_asset)) = rx.recv() {
     //     println!("Entered Main's `while let` with index: {}", index);
@@ -124,11 +140,11 @@ pub fn run() -> Result<(), Box<dyn Error>> {
     //     }
     // }
 
-    // // handle.join().unwrap();
+    // handle.join().unwrap();
 
-    // println!("=======================================");
-    // println!("🎉 Simulation Completed 🎉");
-    // println!("=======================================");
+    println!("=======================================");
+    println!("🎉 Simulation Completed 🎉");
+    println!("=======================================");
 
     Ok(())
 }

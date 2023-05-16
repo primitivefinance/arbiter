@@ -1,14 +1,20 @@
 use std::error::Error;
 
-use bindings::rmm01_portfolio;
-use ethers::{prelude::U256, types::I256};
+use bindings::{rmm01_portfolio, uniswap_v2_router_01::uniswap_v2_router_01};
+use ethers::{
+    prelude::U256,
+    types::{H160, I256},
+};
 use eyre::Result;
 use revm::primitives::{ruint::Uint, B160};
 use simulate::{
     agent::{simple_arbitrageur::SimpleArbitrageur, Agent, AgentType, SimulationEventFilter},
     contract::{IsDeployed, SimulationContract},
     manager::SimulationManager,
+    utils::recast_address,
 };
+
+use crate::sim::uniswap::startup::SimulationContracts;
 
 pub(crate) fn create_arbitrageur<S: Into<String>>(
     manager: &mut SimulationManager,
@@ -24,77 +30,52 @@ pub(crate) fn create_arbitrageur<S: Into<String>>(
     println!("Created Arbitrageur at address: {}.", address);
 }
 
-pub(crate) fn swap<T: Copy>(
+pub(crate) fn swap(
     manager: &mut SimulationManager,
-    portfolio: &SimulationContract<IsDeployed>,
-    pool_id: u64,
-    input_amount: T,
+    contracts: SimulationContracts,
+    input_amount: U256,
     sell_asset: bool,
-) -> Result<(), Box<dyn Error>>
-where
-    ethers::types::U256: From<T>,
-    u128: From<T>,
-{
+) -> Result<(), Box<dyn Error>> {
     let arbitrageur = manager.agents.get("arbitrageur").unwrap();
-    // Get the correct amount of ARBY to get from a certain amount of ARBX using `getAmountOut`
-    let get_amount_out_args = rmm01_portfolio::GetAmountOutCall {
-        pool_id,                               // pool_id: u64,
-        sell_asset, // sell_asset: bool. Setting this to true means we are selling ARBX for ARBY.
-        amount_in: U256::from(input_amount), // amount_in: ::ethers::core::types::U256,
-        liquidity_delta: I256::from(0), // liquidity_delta: ::ethers::core::types::I256,
-        swapper: arbitrageur.address().into(), // swapper: ::ethers::core::types::Address,
-    };
-    let get_amount_out_result = arbitrageur.call_contract(
-        &mut manager.environment,
-        portfolio,
-        portfolio.encode_function("getAmountOut", get_amount_out_args)?,
-        Uint::from(0),
-    );
-    assert!(get_amount_out_result.is_success());
-    let unpacked_get_amount_out = manager.unpack_execution(get_amount_out_result)?;
-    let decoded_amount_out: u128 =
-        portfolio.decode_output("getAmountOut", unpacked_get_amount_out)?;
-    if sell_asset {
-        println!(
-            "Inputting {} ARBX yields {} ARBY out.",
-            U256::from(input_amount),
-            decoded_amount_out,
-        );
-    } else {
-        println!(
-            "Inputting {} ARBY yields {} ARBX out.",
-            U256::from(input_amount),
-            decoded_amount_out,
-        );
-    }
 
-    // Construct the swap using the above amount
-    let amount_out = decoded_amount_out;
-    let order = rmm01_portfolio::Order {
-        input: u128::from(input_amount),
-        output: amount_out,
-        use_max: false,
-        pool_id,
-        sell_asset,
+    let path = if sell_asset {
+        vec![
+            recast_address(contracts.arbiter_token_x.address),
+            recast_address(contracts.arbiter_token_y.address),
+        ]
+    } else {
+        vec![
+            recast_address(contracts.arbiter_token_y.address),
+            recast_address(contracts.arbiter_token_x.address),
+        ]
     };
-    let swap_args = (order,);
+
+    let swap_args = uniswap_v2_router_01::SwapExactTokensForTokensCall {
+        amount_in: input_amount,
+        amount_out_min: U256::from(0),
+        path,
+        to: recast_address(arbitrageur.address()),
+        deadline: U256::MAX,
+    };
+
     let swap_result = arbitrageur.call_contract(
         &mut manager.environment,
-        portfolio,
-        portfolio.encode_function("swap", swap_args)?,
-        Uint::from(0),
+        &contracts.uniswap_router,
+        contracts
+            .uniswap_router
+            .encode_function("swapExactTokensForTokens", swap_args)?,
+        U256::from(0).into(),
     );
-    match manager.unpack_execution(swap_result) {
-        Ok(unpacked) => {
-            let swap_result: (u64, U256, U256) = portfolio.decode_output("swap", unpacked)?;
-            println!("Swap result is {:#?}", swap_result);
-        }
-        Err(e) => {
-            // This `InvalidInvariant` can pop up in multiple ways. Best to check for this.
-            let value = e.output.unwrap();
-            let decoded_result = portfolio.decode_error("InvalidInvariant".to_string(), value);
-            println!("The result of `InvalidInvariant` is: {:#?}", decoded_result)
-        }
-    };
+
+    let swap_result = manager.unpack_execution(swap_result)?;
+    let swap_result: Vec<U256> = contracts
+        .uniswap_router
+        .decode_output("swapExactTokensForTokens", swap_result)?;
+    println!(
+        "Swapped {} for {}.",
+        swap_result[0],
+        swap_result[1]
+    );
+    
     Ok(())
 }

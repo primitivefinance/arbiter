@@ -41,7 +41,9 @@ pub(crate) struct SimulationContracts {
 //     allocate(manager, &contracts, pool_id)?;
 //     Ok((contracts, pool_data, pool_id))
 // }
-pub(crate) fn run(manager: &mut SimulationManager) -> Result<(SimulationContracts, H160), Box<dyn Error>> {
+pub(crate) fn run(
+    manager: &mut SimulationManager,
+) -> Result<(SimulationContracts, H160), Box<dyn Error>> {
     // define the wad constant
     let decimals = 18_u8;
     let wad: U256 = U256::from(10_i64.pow(decimals as u32));
