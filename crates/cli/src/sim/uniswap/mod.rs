@@ -95,6 +95,7 @@ pub fn run() -> Result<(), Box<dyn Error>> {
         println!("Entered Main's `while let` with index: {}", index);
         if index >= prices.len() {
             println!("Reached end of price path\n");
+            manager.shut_down();
             break;
         }
         let price = prices[index];

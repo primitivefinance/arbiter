@@ -60,7 +60,7 @@ pub fn run() -> Result<(), Box<dyn Error>> {
 
     println!("Initial prices for Arbitrageur: {:#?}", arbitrageur.prices);
 
-    let (_handle, rx) = arbitrageur.detect_arbitrage();
+    let (handle, rx) = arbitrageur.detect_arbitrage();
 
     // Get prices
     let ou = OU::new(0.001, 50.0, 1.0);
@@ -84,6 +84,7 @@ pub fn run() -> Result<(), Box<dyn Error>> {
         println!("Entered Main's `while let` with index: {}", index);
         if index >= prices.len() {
             println!("Reached end of price path\n");
+            manager.shut_down();
             break;
         }
         let price = prices[index];
@@ -114,7 +115,7 @@ pub fn run() -> Result<(), Box<dyn Error>> {
         }
     }
 
-    // handle.join().unwrap();
+    handle.join().unwrap();
 
     println!("=======================================");
     println!("🎉 Simulation Completed 🎉");

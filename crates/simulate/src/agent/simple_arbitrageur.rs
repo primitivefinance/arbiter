@@ -132,6 +132,7 @@ impl SimpleArbitrageur<IsActive> {
 
                         // look to see if this gives an arbitrage event
                         // First filter out if one of the prices is MAX as this is the default state.
+                        // TODO: This is a really bad way to do this that just adds extra nesting. Fix it.
                         if prices[0] != U256::MAX && prices[1] != U256::MAX {
                             let price_difference = prices[0].overflowing_sub(prices[1]);
                             println!("Price difference = {:#?}", price_difference);
@@ -156,15 +157,16 @@ impl SimpleArbitrageur<IsActive> {
                                 }
                                 continue;
                             }
-                        } else {
-                            println!("No arbitrage detected.\nSending UpdatePrice.\n");
-                            match tx.send((NextTx::UpdatePrice, None)) {
-                                Ok(_) => {}
-                                Err(_) => {
-                                    println!("Error sending arbitrage event to channel.\nReceiver must have stopped listening and no more prices are going to be sent.\nBreaking.\n");
-                                    break;
+                            else {
+                                println!("No arbitrage detected.\nSending UpdatePrice.\n");
+                                match tx.send((NextTx::UpdatePrice, None)) {
+                                    Ok(_) => {}
+                                    Err(_) => {
+                                        println!("Error sending arbitrage event to channel.\nReceiver must have stopped listening and no more prices are going to be sent.\nBreaking.\n");
+                                        break;
+                                    }
                                 }
-                            }
+                        } 
                         }
                         drop(prices);
                     } else {
@@ -176,6 +178,7 @@ impl SimpleArbitrageur<IsActive> {
                             }
                         }
                         println!("No relevant events found.\nSending None.\n");
+                        continue;
                     }
                 }
                 println!("Exited arbitrage detection thread!");
