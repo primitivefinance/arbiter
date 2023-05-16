@@ -435,7 +435,7 @@ fn allocate(
         to: recast_address(admin.address()),
         deadline: U256::MAX,
     };
-    let allPairs = admin.call_contract(
+    let all_pairs = admin.call_contract(
         &mut manager.environment,
         uniswap_factory,
         uniswap_factory.encode_function("allPairs", (U256::from(0),))?,
@@ -455,7 +455,7 @@ fn allocate(
     
 
     println!("codehash: {:#?}", codehash);
-    println!("allPairs: {:#?}", allPairs);
+    println!("allPairs: {:#?}", all_pairs);
     println!("pair: {:#?}", pair);
     //println!("pairFor: {:#?}", pairFor);
 
@@ -465,6 +465,9 @@ fn allocate(
         uniswap_router.encode_function("addLiquidity", add_liquidity_args)?, // TODO: We can definitely just combine the 2nd and 3rd inputs
         Uint::from(0),
     );
+    println!(
+        "Add liquidity result: {:#?}",
+        add_liquidity_result.is_success());
     let add_liquidity_unpack = manager.unpack_execution(add_liquidity_result)?;
     let (amount_a, amount_b, liquidity): (U256, U256, U256) =
         uniswap_router.decode_output("addLiquidity", add_liquidity_unpack)?;
