@@ -449,7 +449,7 @@ fn allocate(
     );
     // convert pair_address to B160
     let codehash = manager.environment.evm.db().unwrap().accounts
-        .get(&revm::primitives::B160::from_slice(uniswap_factory.address.as_bytes()))
+        .get(&revm::primitives::B160::from_slice(pair_address.as_bytes()))
         .unwrap()
         .info.code_hash.clone();
     
