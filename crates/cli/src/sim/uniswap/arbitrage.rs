@@ -32,7 +32,7 @@ pub(crate) fn create_arbitrageur<S: Into<String>>(
 
 pub(crate) fn swap(
     manager: &mut SimulationManager,
-    contracts: SimulationContracts,
+    contracts: &SimulationContracts,
     input_amount: U256,
     sell_asset: bool,
 ) -> Result<(), Box<dyn Error>> {
@@ -71,11 +71,7 @@ pub(crate) fn swap(
     let swap_result: Vec<U256> = contracts
         .uniswap_router
         .decode_output("swapExactTokensForTokens", swap_result)?;
-    println!(
-        "Swapped {} for {}.",
-        swap_result[0],
-        swap_result[1]
-    );
-    
+    println!("Swapped {} for {}.", swap_result[0], swap_result[1]);
+
     Ok(())
 }

@@ -8,7 +8,8 @@ use simulate::{
     agent::{simple_arbitrageur::NextTx, Agent, AgentType},
     contract::{IsDeployed, SimulationContract},
     manager::SimulationManager,
-    stochastic::price_process::{PriceProcess, PriceProcessType, OU}, utils::unpack_execution,
+    stochastic::price_process::{PriceProcess, PriceProcessType, OU},
+    utils::unpack_execution,
 };
 
 pub mod arbitrage;
@@ -69,7 +70,7 @@ pub fn run() -> Result<(), Box<dyn Error>> {
 
     println!("Initial prices for Arbitrageur: {:#?}", arbitrageur.prices);
 
-    let (_handle, rx) = arbitrageur.detect_arbitrage();
+    let (handle, rx) = arbitrageur.detect_arbitrage();
 
     // Get prices
     let ou = OU::new(0.001, 50.0, 1.0);
@@ -83,65 +84,56 @@ pub fn run() -> Result<(), Box<dyn Error>> {
     );
     let prices = price_process.generate_price_path().1;
 
-    // // Run the simulation
-    // // Update the first price
-    // let liquid_exchange = &contracts.liquid_exchange_xy;
-    // let price = prices[0];
-    // update_price(&mut manager, liquid_exchange, price)?;
+    // Run the simulation
+    // Update the first price
+    let liquid_exchange = &contracts.liquid_exchange_xy;
+    let price = prices[0];
+    update_price(&mut manager, liquid_exchange, price)?;
 
-    arbitrage::swap(&mut manager, contracts, U256::from(10_u128.pow(15)), true)?;
+    let mut index: usize = 1;
+    while let Ok((next_tx, sell_asset)) = rx.recv() {
+        println!("Entered Main's `while let` with index: {}", index);
+        if index >= prices.len() {
+            println!("Reached end of price path\n");
+            break;
+        }
+        let price = prices[index];
 
-    // Check that the price got updated on the pool:
-    let uniswap_reserves = manager.agents.get("admin").unwrap().call_contract(
-        &mut manager.environment,
-        &uniswap_pair,
-        uniswap_pair.encode_function("getReserves", ())?,
-        Uint::ZERO,
-    );
-    let uniswap_reserves = unpack_execution(uniswap_reserves)?;
-    let uniswap_reserves: (u128, u128, u32) =
-        uniswap_pair.decode_output("getReserves", uniswap_reserves)?;
-    let x = U256::from(uniswap_reserves.0);
-    let y = U256::from(uniswap_reserves.1);
-    let uniswap_price = y * U256::from(10_u128.pow(18)) / x;
-    println!("Uniswap price: {}", uniswap_price);
+        match next_tx {
+            NextTx::Swap => {
+                arbitrage::swap(&mut manager, &contracts, U256::from(10_u128.pow(15)), true)?;
+                // TODO: Update the price of the Portfolio pool.
+                update_price(&mut manager, liquid_exchange, price)?;
+                index += 1;
+                // Check that the price got updated on the pool:
+                let uniswap_reserves = manager.agents.get("admin").unwrap().call_contract(
+                    &mut manager.environment,
+                    &uniswap_pair,
+                    uniswap_pair.encode_function("getReserves", ())?,
+                    Uint::ZERO,
+                );
+                let uniswap_reserves = unpack_execution(uniswap_reserves)?;
+                let uniswap_reserves: (u128, u128, u32) =
+                    uniswap_pair.decode_output("getReserves", uniswap_reserves)?;
+                let x = U256::from(uniswap_reserves.0);
+                let y = U256::from(uniswap_reserves.1);
+                let uniswap_price = y * U256::from(10_u128.pow(18)) / x;
+                println!("Uniswap price: {}", uniswap_price);
+                continue;
+            }
+            NextTx::UpdatePrice => {
+                update_price(&mut manager, liquid_exchange, price)?;
+                index += 1;
+                continue;
+            }
+            NextTx::None => {
+                println!("Can't update prices\n");
+                continue;
+            }
+        }
+    }
 
-    // let mut index: usize = 1;
-    // while let Ok((next_tx, sell_asset)) = rx.recv() {
-    //     println!("Entered Main's `while let` with index: {}", index);
-    //     if index >= prices.len() {
-    //         println!("Reached end of price path\n");
-    //         break;
-    //     }
-    //     let price = prices[index];
-
-    //     match next_tx {
-    //         NextTx::Swap => {
-    //             arbitrage::swap(
-    //                 &mut manager,
-    //                 &contracts.portfolio,
-    //                 pool_id,
-    //                 10_u128.pow(15),
-    //                 sell_asset.unwrap(),
-    //             )?;
-    //             // TODO: Update the price of the Portfolio pool.
-    //             update_price(&mut manager, liquid_exchange, price)?;
-    //             index += 1;
-    //             continue;
-    //         }
-    //         NextTx::UpdatePrice => {
-    //             update_price(&mut manager, liquid_exchange, price)?;
-    //             index += 1;
-    //             continue;
-    //         }
-    //         NextTx::None => {
-    //             println!("Can't update prices\n");
-    //             continue;
-    //         }
-    //     }
-    // }
-
-    // handle.join().unwrap();
+    handle.join().unwrap();
 
     println!("=======================================");
     println!("🎉 Simulation Completed 🎉");

@@ -7,7 +7,8 @@ use revm::primitives::{ruint::Uint, B160};
 use simulate::{
     agent::{simple_arbitrageur::SimpleArbitrageur, Agent, AgentType, SimulationEventFilter},
     contract::{IsDeployed, SimulationContract},
-    manager::SimulationManager, utils::unpack_execution,
+    manager::SimulationManager,
+    utils::unpack_execution,
 };
 
 pub(crate) fn create_arbitrageur<S: Into<String>>(
