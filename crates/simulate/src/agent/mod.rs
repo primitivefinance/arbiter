@@ -18,8 +18,10 @@ use ethers::{prelude::BaseContract, types::H256};
 use revm::primitives::{AccountInfo, Address, ExecutionResult, Log, TransactTo, TxEnv, B160, U256};
 
 use self::{journaler::Journaler, simple_arbitrageur::SimpleArbitrageur, user::User};
-
-use crate::environment::{contract::{SimulationContract, IsDeployed}, sim_environment::SimulationEnvironment};
+use crate::environment::{
+    contract::{IsDeployed, SimulationContract},
+    sim_environment::SimulationEnvironment,
+};
 
 pub mod journaler;
 pub mod simple_arbitrageur;
@@ -295,9 +297,9 @@ mod tests {
 
     use crate::{
         agent::{user::User, Agent, AgentType, SimulationEventFilter},
+        environment::contract::SimulationContract,
         manager::SimulationManager,
     };
-    use crate::environment::contract::SimulationContract;
 
     #[test]
     fn agent_event_filter_through() -> Result<(), Box<dyn Error>> {

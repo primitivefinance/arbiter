@@ -199,10 +199,10 @@ mod tests {
         agent::{
             filter_events, simple_arbitrageur::NextTx, Agent, AgentType, SimulationEventFilter,
         },
-        utils::recast_address,
+        environment::contract::SimulationContract,
         manager::SimulationManager,
+        utils::recast_address,
     };
-    use crate::environment::contract::SimulationContract;
 
     #[test]
     fn simple_arbitrageur_event_filter() -> Result<(), Box<dyn Error>> {

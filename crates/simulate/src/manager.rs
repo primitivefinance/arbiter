@@ -19,7 +19,10 @@ use crate::{
         journaler::Journaler, simple_arbitrageur::SimpleArbitrageur, user::User, AgentType,
         IsActive, NotActive, TransactSettings,
     },
-    environment::{contract::{IsDeployed, SimulationContract}, sim_environment::SimulationEnvironment},
+    environment::{
+        contract::{IsDeployed, SimulationContract},
+        sim_environment::SimulationEnvironment,
+    },
 };
 
 #[derive(Debug)]

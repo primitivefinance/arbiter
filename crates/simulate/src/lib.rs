@@ -6,9 +6,9 @@ pub mod agent;
 pub mod environment;
 pub mod exchange;
 pub mod historic;
+pub mod manager;
 pub mod stochastic;
 pub mod utils;
-pub mod manager;
 
 #[cfg(test)]
 mod tests {
@@ -23,9 +23,9 @@ mod tests {
 
     use crate::{
         agent::{user::User, Agent, AgentType},
-        utils::recast_address,
-        manager::SimulationManager,
         environment::contract::SimulationContract,
+        manager::SimulationManager,
+        utils::recast_address,
     };
 
     #[test]
