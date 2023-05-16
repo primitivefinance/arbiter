@@ -459,7 +459,7 @@ mod tests {
             arbiter_math.encode_function("log", I256::from(1_000_000_000_000_000_000_u128))?,
             Uint::ZERO,
         );
-        let unpacked_result = manager.unpack_execution(execution_result)?;
+        let unpacked_result = unpack_execution(execution_result)?;
         let output: I256 = arbiter_math.decode_output("log", unpacked_result)?;
         println!("lnWad(0) = {}", output);
         assert_eq!(output, I256::from(0));
@@ -470,7 +470,7 @@ mod tests {
             arbiter_math.encode_function("sqrt", U256::from(1u128))?,
             Uint::ZERO,
         );
-        let unpacked_result = manager.unpack_execution(execution_result)?;
+        let unpacked_result = unpack_execution(execution_result)?;
         let output: U256 = arbiter_math.decode_output("sqrt", unpacked_result)?;
         println!("sqrt(1) = {}", output);
         assert_eq!(output, U256::from(1u128));
