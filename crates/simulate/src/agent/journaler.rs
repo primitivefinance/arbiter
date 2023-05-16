@@ -131,9 +131,9 @@ mod tests {
     use super::Journaler;
     use crate::{
         agent::{Agent, AgentType, SimulationEventFilter},
-        contract::SimulationContract,
-        manager::SimulationManager,
     };
+    use crate::environment::{contract::SimulationContract,
+        manager::SimulationManager};
 
     #[test]
     fn write_csv() -> Result<(), Box<dyn Error>> {

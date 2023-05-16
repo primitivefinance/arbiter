@@ -199,9 +199,11 @@ mod tests {
         agent::{
             filter_events, simple_arbitrageur::NextTx, Agent, AgentType, SimulationEventFilter,
         },
-        contract::SimulationContract,
-        manager::SimulationManager,
         utils::recast_address,
+    };
+    use crate::{
+        environment::{contract::SimulationContract,
+        manager::SimulationManager},
     };
 
     #[test]

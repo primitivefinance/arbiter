@@ -3,11 +3,9 @@
 //! Lib crate for describing simulations.
 
 pub mod agent;
-pub mod contract;
 pub mod environment;
 pub mod exchange;
 pub mod historic;
-pub mod manager;
 pub mod stochastic;
 pub mod utils;
 
@@ -24,9 +22,11 @@ mod tests {
 
     use crate::{
         agent::{user::User, Agent, AgentType},
-        contract::SimulationContract,
-        manager::SimulationManager,
         utils::recast_address,
+    };
+    use crate::{
+        environment::{contract::SimulationContract,
+        manager::SimulationManager},
     };
 
     #[test]
