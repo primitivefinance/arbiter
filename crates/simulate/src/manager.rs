@@ -19,8 +19,8 @@ use crate::{
         journaler::Journaler, simple_arbitrageur::SimpleArbitrageur, user::User, AgentType,
         IsActive, NotActive, TransactSettings,
     },
+    environment::{contract::{IsDeployed, SimulationContract}, sim_environment::SimulationEnvironment},
 };
-use crate::environment::{contract::{IsDeployed, SimulationContract}, environment::SimulationEnvironment};
 
 #[derive(Debug)]
 /// Error type for the simulation manager.

@@ -19,7 +19,7 @@ use revm::primitives::{AccountInfo, Address, ExecutionResult, Log, TransactTo, T
 
 use self::{journaler::Journaler, simple_arbitrageur::SimpleArbitrageur, user::User};
 
-use crate::environment::{contract::{SimulationContract, IsDeployed}, environment::SimulationEnvironment};
+use crate::environment::{contract::{SimulationContract, IsDeployed}, sim_environment::SimulationEnvironment};
 
 pub mod journaler;
 pub mod simple_arbitrageur;
@@ -295,11 +295,9 @@ mod tests {
 
     use crate::{
         agent::{user::User, Agent, AgentType, SimulationEventFilter},
+        manager::SimulationManager,
     };
-    use crate::{
-        environment::{contract::SimulationContract,
-        manager::SimulationManager},
-    };
+    use crate::environment::contract::SimulationContract;
 
     #[test]
     fn agent_event_filter_through() -> Result<(), Box<dyn Error>> {

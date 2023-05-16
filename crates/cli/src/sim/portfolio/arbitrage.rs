@@ -9,8 +9,8 @@ use eyre::Result;
 use revm::primitives::{ruint::Uint, B160};
 use simulate::{
     agent::{simple_arbitrageur::SimpleArbitrageur, Agent, AgentType, SimulationEventFilter},
-    environment::{{contract::{SimulationContract, IsDeployed}},
-    manager::SimulationManager}
+    environment::{contract::{SimulationContract, IsDeployed}},
+    manager::SimulationManager
 };
 
 use super::PoolParams;

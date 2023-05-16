@@ -35,7 +35,7 @@ mod tests {
     use ethers::{prelude::BaseContract, types::Address};
 
     use super::*;
-    use crate::contract::SimulationContract;
+    use crate::environment::contract::SimulationContract;
 
     #[test]
     fn simulation_middleware_calldata() {

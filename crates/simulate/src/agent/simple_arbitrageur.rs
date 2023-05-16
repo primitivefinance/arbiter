@@ -200,11 +200,9 @@ mod tests {
             filter_events, simple_arbitrageur::NextTx, Agent, AgentType, SimulationEventFilter,
         },
         utils::recast_address,
+        manager::SimulationManager,
     };
-    use crate::{
-        environment::{contract::SimulationContract,
-        manager::SimulationManager},
-    };
+    use crate::environment::contract::SimulationContract;
 
     #[test]
     fn simple_arbitrageur_event_filter() -> Result<(), Box<dyn Error>> {

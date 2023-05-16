@@ -7,7 +7,7 @@ use eyre::Result;
 use revm::primitives::B160;
 use simulate::{
     agent::{user::User, AgentType},
-    contract::{IsDeployed, SimulationContract},
+    environment::contract::{IsDeployed, SimulationContract},
     manager::SimulationManager,
 };
 
