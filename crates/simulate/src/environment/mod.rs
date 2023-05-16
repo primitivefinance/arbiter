@@ -1,3 +1,3 @@
-pub mod environment;
+pub mod sim_environment;
 pub mod contract;
-pub mod manager;
+pub mod middleware;
