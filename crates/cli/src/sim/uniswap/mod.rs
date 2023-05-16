@@ -1,7 +1,7 @@
 #![warn(missing_docs)]
 use std::error::Error;
 
-use ethers::types::U256;
+use ethers::{types::U256, prelude::BaseContract};
 use eyre::Result;
 use ruint::Uint;
 use simulate::{
@@ -20,42 +20,53 @@ pub fn run() -> Result<(), Box<dyn Error>> {
     let mut manager = SimulationManager::new();
 
     // Run the startup script
-    startup::run(&mut manager)?;
+    let (contracts, pair_address) = startup::run(&mut manager)?;
 
-    // // Start the arbitrageur
-    // let arbitrageur = manager.agents.get("arbitrageur").unwrap();
+    // TODO: This is REALLY bad. This contract is marked as deployed but it is not deployed in the typical way. It's because the factory calls the deployer for a pair contract. I had to make the base_contract field not private
+    // Get the pair contract that we can encode with
+    let uniswap_pair = SimulationContract::<IsDeployed> {
+        address: pair_address.into(),
+        base_contract: BaseContract::from(bindings::uniswap_v2_pair::UNISWAPV2PAIR_ABI.clone()),
+        bytecode: (),
+        constructor_arguments: Vec::new(),
+    };
 
-    // // Intialize the arbitrageur with the prices from the two exchanges.
-    // let arbitrageur = match arbitrageur {
-    //     AgentType::SimpleArbitrageur(base_arbitrageur) => base_arbitrageur,
-    //     _ => panic!(),
-    // };
-    // let liquid_exchange_xy_price = arbitrageur.call_contract(
-    //     &mut manager.environment,
-    //     &contracts.liquid_exchange_xy,
-    //     contracts.liquid_exchange_xy.encode_function("price", ())?,
-    //     Uint::ZERO,
-    // );
-    // let liquid_exchange_xy_price = manager.unpack_execution(liquid_exchange_xy_price)?;
-    // let liquid_exchange_xy_price: U256 = contracts
-    //     .liquid_exchange_xy
-    //     .decode_output("price", liquid_exchange_xy_price)?;
-    // let portfolio_price = arbitrageur.call_contract(
-    //     &mut manager.environment,
-    //     &contracts.uniswap,
-    //     contracts
-    //         .portfolio
-    //         .encode_function("getSpotPrice", pool_id)?,
-    //     Uint::ZERO,
-    // );
-    // let portfolio_price = manager.unpack_execution(portfolio_price)?;
-    // let portfolio_price: U256 = contracts
-    //     .liquid_exchange_xy
-    //     .decode_output("price", portfolio_price)?;
-    // let mut prices = arbitrageur.prices.lock().unwrap();
-    // prices[0] = liquid_exchange_xy_price.into();
-    // prices[1] = portfolio_price.into();
-    // drop(prices);
+    // Start the arbitrageur
+    let arbitrageur = manager.agents.get("arbitrageur").unwrap();
+
+    // Intialize the arbitrageur with the prices from the two exchanges.
+    let arbitrageur = match arbitrageur {
+        AgentType::SimpleArbitrageur(base_arbitrageur) => base_arbitrageur,
+        _ => panic!(),
+    };
+    let liquid_exchange_xy_price = arbitrageur.call_contract(
+        &mut manager.environment,
+        &contracts.liquid_exchange_xy,
+        contracts.liquid_exchange_xy.encode_function("price", ())?,
+        Uint::ZERO,
+    );
+    let liquid_exchange_xy_price = manager.unpack_execution(liquid_exchange_xy_price)?;
+    let liquid_exchange_xy_price: U256 = contracts
+        .liquid_exchange_xy
+        .decode_output("price", liquid_exchange_xy_price)?;
+    let uniswap_reserves = arbitrageur.call_contract(
+        &mut manager.environment,
+        &uniswap_pair,
+        uniswap_pair
+            .encode_function("getReserves", ())?,
+        Uint::ZERO,
+    );
+    let uniswap_reserves = manager.unpack_execution(uniswap_reserves)?;
+    let uniswap_reserves: (u128,u128,u32) = uniswap_pair
+        .decode_output("getReserves", uniswap_reserves)?;
+    let x = U256::from(uniswap_reserves.0);
+    let y = U256::from(uniswap_reserves.1);
+    let uniswap_price = y * U256::from(10_u128.pow(18)) / x;
+    let mut prices = arbitrageur.prices.lock().unwrap();
+    prices[0] = liquid_exchange_xy_price.into();
+    prices[1] = uniswap_price.into();
+    println!("Initial prices for Arbitrageur: {:#?}", prices);
+    drop(prices);
 
     // println!("Initial prices for Arbitrageur: {:#?}", arbitrageur.prices);
 

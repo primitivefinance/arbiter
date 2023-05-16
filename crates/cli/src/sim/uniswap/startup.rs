@@ -41,7 +41,7 @@ pub(crate) struct SimulationContracts {
 //     allocate(manager, &contracts, pool_id)?;
 //     Ok((contracts, pool_data, pool_id))
 // }
-pub(crate) fn run(manager: &mut SimulationManager) -> Result<(), Box<dyn Error>> {
+pub(crate) fn run(manager: &mut SimulationManager) -> Result<(SimulationContracts, H160), Box<dyn Error>> {
     // define the wad constant
     let decimals = 18_u8;
     let wad: U256 = U256::from(10_i64.pow(decimals as u32));
@@ -81,18 +81,17 @@ pub(crate) fn run(manager: &mut SimulationManager) -> Result<(), Box<dyn Error>>
 
     println!("🔧 Approving tokens...");
     println!("---------------------------------------");
-    approve(manager, &contracts, pair_address)?;
+    approve(manager, &contracts)?;
     println!("---------------------------------------");
     println!("✅ Tokens approved successfully!\n");
 
     println!("🔧 Allocating funds...");
     println!("---------------------------------------");
-    allocate(manager, &contracts, pair_address)?;
+    allocate(manager, &contracts)?;
     println!("---------------------------------------");
     println!("✅ Funds allocated successfully!\n");
 
-    // Ok((contracts, pool_data, pool_id))
-    Ok(())
+    Ok((contracts, pair_address))
 }
 
 /// Deploy the contracts to the simulation environment.
@@ -260,7 +259,6 @@ fn mint(
 fn approve(
     manager: &mut SimulationManager,
     contracts: &SimulationContracts,
-    pair_address: Address,
 ) -> Result<(), Box<dyn Error>> {
     let admin = manager.agents.get("admin").unwrap();
     let arbitrageur = manager.agents.get("arbitrageur").unwrap();
@@ -401,36 +399,35 @@ fn pair_intitalization(
     let pair_address: Address = uniswap_factory.decode_output("createPair", create_pair_unpack)?;
     println!("Created Uniswap pair with address: {:#?}", pair_address);
 
-    let event_filter = SimulationEventFilter::new(uniswap_factory, "PairCreated");
+    // let event_filter = SimulationEventFilter::new(uniswap_factory, "PairCreated");
 
-    while let Ok(logs) = admin.read_logs() {
-        println!("Logs: {:#?}", logs);
-        if logs.len() == 0 {
-            continue;
-        }
-        let event = uniswap_factory.decode_event::<(Address, Address, Address, U256)>(
-            "PairCreated",
-            logs[0].clone().topics,
-            logs[0].clone().data,
-        );
-        println!("PairCreated event: {:#?}", event);
-        if event.is_ok() {
-            break;
-        }
-    }
+    // while let Ok(logs) = admin.read_logs() {
+    //     println!("Logs: {:#?}", logs);
+    //     if logs.len() == 0 {
+    //         continue;
+    //     }
+    //     let event = uniswap_factory.decode_event::<(Address, Address, Address, U256)>(
+    //         "PairCreated",
+    //         logs[0].clone().topics,
+    //         logs[0].clone().data,
+    //     );
+    //     println!("PairCreated event: {:#?}", event);
+    //     if event.is_ok() {
+    //         break;
+    //     }
+    // }
     Ok(pair_address)
 }
 
 fn allocate(
     manager: &mut SimulationManager,
     contracts: &SimulationContracts,
-    pair_address: Address,
 ) -> Result<(), Box<dyn Error>> {
     let admin = manager.agents.get("admin").unwrap();
     let SimulationContracts {
         arbiter_token_x,
         arbiter_token_y,
-        uniswap_factory,
+        uniswap_factory: _,
         uniswap_router,
         liquid_exchange_xy: _,
     } = contracts;
@@ -445,41 +442,6 @@ fn allocate(
         to: recast_address(admin.address()),
         deadline: U256::MAX,
     };
-    let all_pairs = admin.call_contract(
-        &mut manager.environment,
-        uniswap_factory,
-        uniswap_factory.encode_function("allPairs", (U256::from(0),))?,
-        Uint::from(0),
-    );
-    let pair = admin.call_contract(
-        &mut manager.environment,
-        uniswap_factory,
-        uniswap_factory.encode_function(
-            "getPair",
-            (
-                recast_address(arbiter_token_x.address),
-                recast_address(arbiter_token_y.address),
-            ),
-        )?,
-        Uint::from(0),
-    );
-    // convert pair_address to B160
-    let codehash = manager
-        .environment
-        .evm
-        .db()
-        .unwrap()
-        .accounts
-        .get(&revm::primitives::B160::from_slice(pair_address.as_bytes()))
-        .unwrap()
-        .info
-        .code_hash
-        .clone();
-
-    println!("codehash from bytecode: {:#?}", codehash);
-    println!("allPairs: {:#?}", all_pairs);
-    println!("pair: {:#?}", pair);
-    //println!("pairFor: {:#?}", pairFor);
 
     let add_liquidity_result = admin.call_contract(
         &mut manager.environment,
