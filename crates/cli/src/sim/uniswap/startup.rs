@@ -118,7 +118,7 @@ fn deploy_contracts(
     // Deploy the UniswapV2 Factory contract.
     let uniswap_factory = SimulationContract::new(
         uniswap_v2_factory::UNISWAPV2FACTORY_ABI.clone(),
-        uniswap_v2_factory::UNISWAPV2FACTORY_BYTECODE.clone(),
+        uniswap_v2_factory::UNISWAPV2FACTORY_BYTECODE.clone().as_slice(),
     );
     let uniswap_factory_args = 
         H160::from_low_u64_be(0) // The feeToSetter address is not used in the simulation.
@@ -449,7 +449,7 @@ fn allocate(
     );
     // convert pair_address to B160
     let codehash = manager.environment.evm.db().unwrap().accounts
-        .get(&revm::primitives::B160::from_slice(pair_address.as_bytes()))
+        .get(&revm::primitives::B160::from_slice(uniswap_factory.address.as_bytes()))
         .unwrap()
         .info.code_hash.clone();
     
