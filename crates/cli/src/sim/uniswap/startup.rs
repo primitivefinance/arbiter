@@ -118,9 +118,8 @@ fn deploy_contracts(
         uniswap_v2_factory::UNISWAPV2FACTORY_ABI.clone(),
         uniswap_v2_factory::UNISWAPV2FACTORY_BYTECODE.clone(),
     );
-    let uniswap_factory_args = 
-        H160::from_low_u64_be(0) // The feeToSetter address is not used in the simulation.
-    ;
+    // The feeToSetter address is the only constructor arg and it is not used in the simulation.
+    let uniswap_factory_args = H160::from_low_u64_be(0);
     let uniswap_factory =
         uniswap_factory.deploy(&mut manager.environment, admin, uniswap_factory_args);
     println!("UniswapV2 Factory deployed at: {}", uniswap_factory.address);
