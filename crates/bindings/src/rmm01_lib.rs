@@ -7,18 +7,20 @@ pub use rmm01_lib::*;
     clippy::upper_case_acronyms,
     clippy::type_complexity,
     dead_code,
-    non_camel_case_types,
+    non_camel_case_types
 )]
 pub mod rmm01_lib {
     #[rustfmt::skip]
     const __ABI: &str = "[{\"inputs\":[{\"internalType\":\"int256\",\"name\":\"wad\",\"type\":\"int256\",\"components\":[]}],\"type\":\"error\",\"name\":\"OverflowWad\",\"outputs\":[]},{\"inputs\":[],\"type\":\"error\",\"name\":\"UndefinedPrice\",\"outputs\":[]}]";
     ///The parsed JSON ABI of the contract.
-    pub static RMM01LIB_ABI: ::ethers::contract::Lazy<::ethers::core::abi::Abi> = ::ethers::contract::Lazy::new(||
-    ::ethers::core::utils::__serde_json::from_str(__ABI).expect("ABI is always valid"));
+    pub static RMM01LIB_ABI: ::ethers::contract::Lazy<::ethers::core::abi::Abi> =
+        ::ethers::contract::Lazy::new(|| {
+            ::ethers::core::utils::__serde_json::from_str(__ABI).expect("ABI is always valid")
+        });
     #[rustfmt::skip]
     const __BYTECODE: &[u8] = &[
         96,
-        86,
+        178,
         96,
         55,
         96,
@@ -93,16 +95,108 @@ pub mod rmm01_lib {
         0,
         0,
         0,
-        48,
-        20,
         96,
         128,
         96,
         64,
+        129,
+        144,
+        82,
+        98,
+        70,
+        27,
+        205,
+        96,
+        229,
+        27,
+        129,
         82,
         96,
-        0,
-        128,
+        32,
+        96,
+        132,
+        144,
+        129,
+        82,
+        96,
+        53,
+        96,
+        164,
+        82,
+        127,
+        67,
+        111,
+        110,
+        116,
+        114,
+        97,
+        99,
+        116,
+        32,
+        100,
+        111,
+        101,
+        115,
+        32,
+        110,
+        111,
+        116,
+        32,
+        104,
+        97,
+        118,
+        101,
+        32,
+        102,
+        97,
+        108,
+        108,
+        98,
+        97,
+        99,
+        107,
+        32,
+        96,
+        196,
+        144,
+        129,
+        82,
+        116,
+        110,
+        111,
+        114,
+        32,
+        114,
+        101,
+        99,
+        101,
+        105,
+        118,
+        101,
+        32,
+        102,
+        117,
+        110,
+        99,
+        116,
+        105,
+        111,
+        110,
+        115,
+        96,
+        88,
+        27,
+        96,
+        228,
+        82,
+        48,
+        147,
+        144,
+        147,
+        20,
+        146,
+        144,
+        130,
         253,
         254,
         162,
@@ -115,38 +209,38 @@ pub mod rmm01_lib {
         34,
         18,
         32,
-        47,
-        58,
-        130,
-        44,
-        128,
-        105,
-        213,
-        253,
-        219,
-        164,
-        205,
-        56,
-        213,
+        84,
+        123,
+        72,
+        4,
+        86,
+        162,
+        79,
+        165,
+        28,
+        211,
         25,
-        217,
-        242,
-        65,
-        60,
-        113,
+        155,
+        7,
         167,
-        5,
-        48,
-        5,
-        55,
-        76,
-        88,
-        23,
-        187,
-        101,
-        34,
-        88,
-        105,
+        20,
+        132,
+        142,
+        44,
+        248,
+        239,
+        123,
+        0,
+        110,
+        238,
+        247,
+        144,
+        91,
+        232,
+        137,
+        239,
+        156,
+        19,
         100,
         115,
         111,
@@ -160,9 +254,8 @@ pub mod rmm01_lib {
         51,
     ];
     ///The bytecode of the contract.
-    pub static RMM01LIB_BYTECODE: ::ethers::core::types::Bytes = ::ethers::core::types::Bytes::from_static(
-        __BYTECODE,
-    );
+    pub static RMM01LIB_BYTECODE: ::ethers::core::types::Bytes =
+        ::ethers::core::types::Bytes::from_static(__BYTECODE);
     #[rustfmt::skip]
     const __DEPLOYED_BYTECODE: &[u8] = &[
         115,
@@ -186,16 +279,108 @@ pub mod rmm01_lib {
         0,
         0,
         0,
-        48,
-        20,
         96,
         128,
         96,
         64,
+        129,
+        144,
+        82,
+        98,
+        70,
+        27,
+        205,
+        96,
+        229,
+        27,
+        129,
         82,
         96,
-        0,
-        128,
+        32,
+        96,
+        132,
+        144,
+        129,
+        82,
+        96,
+        53,
+        96,
+        164,
+        82,
+        127,
+        67,
+        111,
+        110,
+        116,
+        114,
+        97,
+        99,
+        116,
+        32,
+        100,
+        111,
+        101,
+        115,
+        32,
+        110,
+        111,
+        116,
+        32,
+        104,
+        97,
+        118,
+        101,
+        32,
+        102,
+        97,
+        108,
+        108,
+        98,
+        97,
+        99,
+        107,
+        32,
+        96,
+        196,
+        144,
+        129,
+        82,
+        116,
+        110,
+        111,
+        114,
+        32,
+        114,
+        101,
+        99,
+        101,
+        105,
+        118,
+        101,
+        32,
+        102,
+        117,
+        110,
+        99,
+        116,
+        105,
+        111,
+        110,
+        115,
+        96,
+        88,
+        27,
+        96,
+        228,
+        82,
+        48,
+        147,
+        144,
+        147,
+        20,
+        146,
+        144,
+        130,
         253,
         254,
         162,
@@ -208,38 +393,38 @@ pub mod rmm01_lib {
         34,
         18,
         32,
-        47,
-        58,
-        130,
-        44,
-        128,
-        105,
-        213,
-        253,
-        219,
-        164,
-        205,
-        56,
-        213,
+        84,
+        123,
+        72,
+        4,
+        86,
+        162,
+        79,
+        165,
+        28,
+        211,
         25,
-        217,
-        242,
-        65,
-        60,
-        113,
+        155,
+        7,
         167,
-        5,
-        48,
-        5,
-        55,
-        76,
-        88,
-        23,
-        187,
-        101,
-        34,
-        88,
-        105,
+        20,
+        132,
+        142,
+        44,
+        248,
+        239,
+        123,
+        0,
+        110,
+        238,
+        247,
+        144,
+        91,
+        232,
+        137,
+        239,
+        156,
+        19,
         100,
         115,
         111,
@@ -253,9 +438,8 @@ pub mod rmm01_lib {
         51,
     ];
     ///The deployed bytecode of the contract.
-    pub static RMM01LIB_DEPLOYED_BYTECODE: ::ethers::core::types::Bytes = ::ethers::core::types::Bytes::from_static(
-        __DEPLOYED_BYTECODE,
-    );
+    pub static RMM01LIB_DEPLOYED_BYTECODE: ::ethers::core::types::Bytes =
+        ::ethers::core::types::Bytes::from_static(__DEPLOYED_BYTECODE);
     pub struct RMM01Lib<M>(::ethers::contract::Contract<M>);
     impl<M> ::core::clone::Clone for RMM01Lib<M> {
         fn clone(&self) -> Self {
@@ -275,7 +459,9 @@ pub mod rmm01_lib {
     }
     impl<M> ::core::fmt::Debug for RMM01Lib<M> {
         fn fmt(&self, f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
-            f.debug_tuple(stringify!(RMM01Lib)).field(&self.address()).finish()
+            f.debug_tuple(stringify!(RMM01Lib))
+                .field(&self.address())
+                .finish()
         }
     }
     impl<M: ::ethers::providers::Middleware> RMM01Lib<M> {
@@ -285,13 +471,11 @@ pub mod rmm01_lib {
             address: T,
             client: ::std::sync::Arc<M>,
         ) -> Self {
-            Self(
-                ::ethers::contract::Contract::new(
-                    address.into(),
-                    RMM01LIB_ABI.clone(),
-                    client,
-                ),
-            )
+            Self(::ethers::contract::Contract::new(
+                address.into(),
+                RMM01LIB_ABI.clone(),
+                client,
+            ))
         }
         /// Constructs the general purpose `Deployer` instance based on the provided constructor arguments and sends it.
         /// Returns a new instance of a deployer that returns an instance of this contract after sending the transaction
@@ -333,8 +517,7 @@ pub mod rmm01_lib {
             Ok(deployer)
         }
     }
-    impl<M: ::ethers::providers::Middleware> From<::ethers::contract::Contract<M>>
-    for RMM01Lib<M> {
+    impl<M: ::ethers::providers::Middleware> From<::ethers::contract::Contract<M>> for RMM01Lib<M> {
         fn from(contract: ::ethers::contract::Contract<M>) -> Self {
             Self::new(contract.address(), contract.client())
         }
@@ -348,7 +531,7 @@ pub mod rmm01_lib {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[etherror(name = "OverflowWad", abi = "OverflowWad(int256)")]
     pub struct OverflowWad {
@@ -363,7 +546,7 @@ pub mod rmm01_lib {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[etherror(name = "UndefinedPrice", abi = "UndefinedPrice()")]
     pub struct UndefinedPrice;
@@ -381,18 +564,15 @@ pub mod rmm01_lib {
             data: impl AsRef<[u8]>,
         ) -> ::core::result::Result<Self, ::ethers::core::abi::AbiError> {
             let data = data.as_ref();
-            if let Ok(decoded)
-                = <::std::string::String as ::ethers::core::abi::AbiDecode>::decode(
-                    data,
-                ) {
+            if let Ok(decoded) =
+                <::std::string::String as ::ethers::core::abi::AbiDecode>::decode(data)
+            {
                 return Ok(Self::RevertString(decoded));
             }
-            if let Ok(decoded)
-                = <OverflowWad as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <OverflowWad as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::OverflowWad(decoded));
             }
-            if let Ok(decoded)
-                = <UndefinedPrice as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <UndefinedPrice as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::UndefinedPrice(decoded));
             }
             Err(::ethers::core::abi::Error::InvalidData.into())
@@ -401,12 +581,8 @@ pub mod rmm01_lib {
     impl ::ethers::core::abi::AbiEncode for RMM01LibErrors {
         fn encode(self) -> ::std::vec::Vec<u8> {
             match self {
-                Self::OverflowWad(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
-                Self::UndefinedPrice(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
+                Self::OverflowWad(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::UndefinedPrice(element) => ::ethers::core::abi::AbiEncode::encode(element),
                 Self::RevertString(s) => ::ethers::core::abi::AbiEncode::encode(s),
             }
         }
@@ -415,10 +591,8 @@ pub mod rmm01_lib {
         fn valid_selector(selector: [u8; 4]) -> bool {
             match selector {
                 [0x08, 0xc3, 0x79, 0xa0] => true,
-                _ if selector
-                    == <OverflowWad as ::ethers::contract::EthError>::selector() => true,
-                _ if selector
-                    == <UndefinedPrice as ::ethers::contract::EthError>::selector() => {
+                _ if selector == <OverflowWad as ::ethers::contract::EthError>::selector() => true,
+                _ if selector == <UndefinedPrice as ::ethers::contract::EthError>::selector() => {
                     true
                 }
                 _ => false,

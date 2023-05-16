@@ -7,14 +7,16 @@ pub use math::*;
     clippy::upper_case_acronyms,
     clippy::type_complexity,
     dead_code,
-    non_camel_case_types,
+    non_camel_case_types
 )]
 pub mod math {
     #[rustfmt::skip]
     const __ABI: &str = "[]";
     ///The parsed JSON ABI of the contract.
-    pub static MATH_ABI: ::ethers::contract::Lazy<::ethers::core::abi::Abi> = ::ethers::contract::Lazy::new(||
-    ::ethers::core::utils::__serde_json::from_str(__ABI).expect("ABI is always valid"));
+    pub static MATH_ABI: ::ethers::contract::Lazy<::ethers::core::abi::Abi> =
+        ::ethers::contract::Lazy::new(|| {
+            ::ethers::core::utils::__serde_json::from_str(__ABI).expect("ABI is always valid")
+        });
     #[rustfmt::skip]
     const __BYTECODE: &[u8] = &[
         96,
@@ -94,38 +96,38 @@ pub mod math {
         49,
         88,
         32,
-        87,
-        98,
-        244,
-        115,
-        102,
-        103,
-        44,
-        57,
-        50,
-        207,
-        221,
-        255,
-        178,
-        128,
-        198,
-        167,
-        243,
-        14,
-        229,
-        87,
-        203,
-        175,
-        30,
+        81,
+        92,
+        138,
+        147,
+        137,
+        245,
+        95,
+        227,
+        213,
+        214,
+        12,
         232,
-        4,
-        151,
-        238,
-        49,
-        78,
-        6,
-        75,
+        125,
+        131,
+        129,
+        129,
+        211,
+        93,
+        67,
+        132,
+        160,
+        239,
+        9,
         97,
+        73,
+        233,
+        88,
+        132,
+        251,
+        136,
+        199,
+        144,
         100,
         115,
         111,
@@ -139,9 +141,8 @@ pub mod math {
         50,
     ];
     ///The bytecode of the contract.
-    pub static MATH_BYTECODE: ::ethers::core::types::Bytes = ::ethers::core::types::Bytes::from_static(
-        __BYTECODE,
-    );
+    pub static MATH_BYTECODE: ::ethers::core::types::Bytes =
+        ::ethers::core::types::Bytes::from_static(__BYTECODE);
     #[rustfmt::skip]
     const __DEPLOYED_BYTECODE: &[u8] = &[
         115,
@@ -186,38 +187,38 @@ pub mod math {
         49,
         88,
         32,
-        87,
-        98,
-        244,
-        115,
-        102,
-        103,
-        44,
-        57,
-        50,
-        207,
-        221,
-        255,
-        178,
-        128,
-        198,
-        167,
-        243,
-        14,
-        229,
-        87,
-        203,
-        175,
-        30,
+        81,
+        92,
+        138,
+        147,
+        137,
+        245,
+        95,
+        227,
+        213,
+        214,
+        12,
         232,
-        4,
-        151,
-        238,
-        49,
-        78,
-        6,
-        75,
+        125,
+        131,
+        129,
+        129,
+        211,
+        93,
+        67,
+        132,
+        160,
+        239,
+        9,
         97,
+        73,
+        233,
+        88,
+        132,
+        251,
+        136,
+        199,
+        144,
         100,
         115,
         111,
@@ -231,9 +232,8 @@ pub mod math {
         50,
     ];
     ///The deployed bytecode of the contract.
-    pub static MATH_DEPLOYED_BYTECODE: ::ethers::core::types::Bytes = ::ethers::core::types::Bytes::from_static(
-        __DEPLOYED_BYTECODE,
-    );
+    pub static MATH_DEPLOYED_BYTECODE: ::ethers::core::types::Bytes =
+        ::ethers::core::types::Bytes::from_static(__DEPLOYED_BYTECODE);
     pub struct Math<M>(::ethers::contract::Contract<M>);
     impl<M> ::core::clone::Clone for Math<M> {
         fn clone(&self) -> Self {
@@ -253,7 +253,9 @@ pub mod math {
     }
     impl<M> ::core::fmt::Debug for Math<M> {
         fn fmt(&self, f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
-            f.debug_tuple(stringify!(Math)).field(&self.address()).finish()
+            f.debug_tuple(stringify!(Math))
+                .field(&self.address())
+                .finish()
         }
     }
     impl<M: ::ethers::providers::Middleware> Math<M> {
@@ -263,13 +265,11 @@ pub mod math {
             address: T,
             client: ::std::sync::Arc<M>,
         ) -> Self {
-            Self(
-                ::ethers::contract::Contract::new(
-                    address.into(),
-                    MATH_ABI.clone(),
-                    client,
-                ),
-            )
+            Self(::ethers::contract::Contract::new(
+                address.into(),
+                MATH_ABI.clone(),
+                client,
+            ))
         }
         /// Constructs the general purpose `Deployer` instance based on the provided constructor arguments and sends it.
         /// Returns a new instance of a deployer that returns an instance of this contract after sending the transaction
@@ -311,8 +311,7 @@ pub mod math {
             Ok(deployer)
         }
     }
-    impl<M: ::ethers::providers::Middleware> From<::ethers::contract::Contract<M>>
-    for Math<M> {
+    impl<M: ::ethers::providers::Middleware> From<::ethers::contract::Contract<M>> for Math<M> {
         fn from(contract: ::ethers::contract::Contract<M>) -> Self {
             Self::new(contract.address(), contract.client())
         }

@@ -1,8 +1,6 @@
 use std::error::Error;
 
-use bindings::{
-    arbiter_token, liquid_exchange, uniswap_v2_factory, uniswap_v2_router_02, weth9,
-};
+use bindings::{arbiter_token, liquid_exchange, uniswap_v2_factory, uniswap_v2_router_02, weth9};
 use ethers::{
     prelude::U256,
     types::{Address, H160},
@@ -310,7 +308,10 @@ fn approve(
     let approve_token_x_result_arbitrageur = arbitrageur.call_contract(
         &mut manager.environment,
         arbiter_token_x,
-        arbiter_token_x.encode_function("approve", (pair_address, U256::MAX))?,
+        arbiter_token_x.encode_function(
+            "approve",
+            (recast_address(contracts.uniswap_router.address), U256::MAX),
+        )?,
         Uint::from(0),
     );
     println!(
@@ -322,7 +323,10 @@ fn approve(
     let approve_token_x_result_admin = admin.call_contract(
         &mut manager.environment,
         arbiter_token_x,
-        arbiter_token_x.encode_function("approve", (pair_address, U256::MAX))?,
+        arbiter_token_x.encode_function(
+            "approve",
+            (recast_address(contracts.uniswap_router.address), U256::MAX),
+        )?,
         Uint::from(0),
     );
     println!(
@@ -334,7 +338,10 @@ fn approve(
     let approve_token_y_result_arbitrageur = arbitrageur.call_contract(
         &mut manager.environment,
         arbiter_token_y,
-        arbiter_token_y.encode_function("approve", (pair_address, U256::MAX))?,
+        arbiter_token_y.encode_function(
+            "approve",
+            (recast_address(contracts.uniswap_router.address), U256::MAX),
+        )?,
         Uint::from(0),
     );
     println!(
@@ -346,7 +353,10 @@ fn approve(
     let approve_token_y_result_admin = admin.call_contract(
         &mut manager.environment,
         arbiter_token_y,
-        arbiter_token_y.encode_function("approve", (pair_address, U256::MAX))?,
+        arbiter_token_y.encode_function(
+            "approve",
+            (recast_address(contracts.uniswap_router.address), U256::MAX),
+        )?,
         Uint::from(0),
     );
     println!(
@@ -392,22 +402,23 @@ fn pair_intitalization(
     let pair_address: Address = uniswap_factory.decode_output("createPair", create_pair_unpack)?;
     println!("Created Uniswap pair with address: {:#?}", pair_address);
 
-    let event_filter = SimulationEventFilter::new(
-        uniswap_factory,
-        "PairCreated",
-    );
-    
+    let event_filter = SimulationEventFilter::new(uniswap_factory, "PairCreated");
+
     while let Ok(logs) = admin.read_logs() {
         println!("Logs: {:#?}", logs);
         if logs.len() == 0 {
             continue;
         }
-        let event = uniswap_factory.decode_event::<(Address,Address,Address,U256)>("PairCreated", logs[0].clone().topics, logs[0].clone().data);
+        let event = uniswap_factory.decode_event::<(Address, Address, Address, U256)>(
+            "PairCreated",
+            logs[0].clone().topics,
+            logs[0].clone().data,
+        );
         println!("PairCreated event: {:#?}", event);
         if event.is_ok() {
             break;
         }
-    };
+    }
     Ok(pair_address)
 }
 
@@ -444,17 +455,29 @@ fn allocate(
     let pair = admin.call_contract(
         &mut manager.environment,
         uniswap_factory,
-        uniswap_factory.encode_function("getPair", (recast_address(arbiter_token_x.address), recast_address(arbiter_token_y.address)))?,
+        uniswap_factory.encode_function(
+            "getPair",
+            (
+                recast_address(arbiter_token_x.address),
+                recast_address(arbiter_token_y.address),
+            ),
+        )?,
         Uint::from(0),
     );
     // convert pair_address to B160
-    let codehash = manager.environment.evm.db().unwrap().accounts
+    let codehash = manager
+        .environment
+        .evm
+        .db()
+        .unwrap()
+        .accounts
         .get(&revm::primitives::B160::from_slice(pair_address.as_bytes()))
         .unwrap()
-        .info.code_hash.clone();
-    
+        .info
+        .code_hash
+        .clone();
 
-    println!("codehash: {:#?}", codehash);
+    println!("codehash from bytecode: {:#?}", codehash);
     println!("allPairs: {:#?}", all_pairs);
     println!("pair: {:#?}", pair);
     //println!("pairFor: {:#?}", pairFor);
@@ -467,7 +490,8 @@ fn allocate(
     );
     println!(
         "Add liquidity result: {:#?}",
-        add_liquidity_result.is_success());
+        add_liquidity_result.is_success()
+    );
     let add_liquidity_unpack = manager.unpack_execution(add_liquidity_result)?;
     let (amount_a, amount_b, liquidity): (U256, U256, U256) =
         uniswap_router.decode_output("addLiquidity", add_liquidity_unpack)?;
