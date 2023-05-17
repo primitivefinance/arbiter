@@ -29,6 +29,7 @@ pub(crate) fn create_arbitrageur<S: Into<String>>(
         .unwrap();
     println!("Created Arbitrageur at address: {}.", address);
 }
+#[derive(Clone)]
 /// [`compute_arb_size`] Output struct.
 pub struct ComputeArbOutput {
     pub sell_asset: bool,
