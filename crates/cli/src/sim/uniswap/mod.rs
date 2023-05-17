@@ -6,7 +6,7 @@ use eyre::Result;
 use revm::primitives::B160;
 use ruint::Uint;
 use simulate::{
-    agent::{simple_arbitrageur::NextTx, Agent, AgentType},
+    agent::{simple_arbitrageur::NextTx, Agent, AgentType, journaler::Journaler, SimulationEventFilter},
     environment::contract::{IsDeployed, SimulationContract},
     manager::SimulationManager,
     stochastic::price_process::{PriceProcess, PriceProcessType, OU},
@@ -22,7 +22,7 @@ pub fn run() -> Result<(), Box<dyn Error>> {
     let mut manager = SimulationManager::new();
 
     // Run the startup script
-    let (contracts, mut pair_address) = startup::run(&mut manager)?;
+    let (contracts, pair_address) = startup::run(&mut manager)?;
 
     // TODO: This is REALLY bad. This contract is marked as deployed but it is not deployed in the typical way. It's because the factory calls the deployer for a pair contract. I had to make the base_contract field not private
     // Get the pair contract that we can encode with
@@ -85,10 +85,6 @@ pub fn run() -> Result<(), Box<dyn Error>> {
         1,
     );
     let prices = price_process.generate_price_path().1;
-
-    let pair = SimulationContract::new(bindings::uniswap_v2_pair::UNISWAPV2PAIR_ABI.clone(), bindings::uniswap_v2_pair::UNISWAPV2PAIR_BYTECODE.clone());
-    // let pair: SimulationContract<IsDeployed>.pair_address = pair_address.into();
-
 
     // Testing journaler with these two events now, can add more events to this if we want
     // need to implement journaler to accept and handle more than one event filter
