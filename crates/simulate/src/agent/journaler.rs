@@ -9,6 +9,7 @@ use std::{
 
 use crossbeam_channel::Receiver;
 use csv::WriterBuilder;
+use ethers::abi::ethabi::AbiError;
 use revm::primitives::{Address, Log};
 
 use super::{AgentStatus, Identifiable, IsActive, NotActive};
@@ -82,18 +83,18 @@ impl Journaler<IsActive> {
 
         // Get the filename and create the writer.
         let filename = self.csv_name.clone();
-        let file = File::create(filename).unwrap(); // TODO: Fix the error handling here.
+        let file = File::create(filename)?;
         let mut writer = WriterBuilder::new().from_writer(file);
         // Label this column as "value"
-        writer.serialize("value").unwrap(); // TODO: Fix the error handling here.
+        writer.serialize("value")?;
 
         Ok(thread::spawn(move || {
-            let decoder = |input| {
-                event_filters[0].base_contract.decode_event_raw(
+            let decoder = |input| -> Result<_, AbiError> {
+                Ok(event_filters[0].base_contract.decode_event_raw(
                     event_filters[0].event_name.as_str(),
                     vec![event_filters[0].topic],
                     input,
-                )
+                ))
             };
 
             while let Ok(logs) = receiver.recv() {
@@ -105,7 +106,7 @@ impl Journaler<IsActive> {
                     println!("Log data is: {:#?}", filtered_logs[0].data);
                     let data = filtered_logs[0].data.clone().into_iter().collect();
 
-                    let decoded_event = decoder(data).unwrap(); // TODO: Fix the error handling here.
+                    let decoded_event = decoder(data).unwrap().unwrap(); // TODO: Fix the error handling here.
                     println!("Decoded event says: {:#?}", decoded_event);
                     let value = decoded_event[0].clone();
                     println!("The value is: {:#?}", value);
