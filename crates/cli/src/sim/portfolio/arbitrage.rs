@@ -62,15 +62,17 @@ pub(crate) fn compute_arb_size(
     let manager = manager;
     let admin = manager.agents.get("admin").unwrap();
     let arbiter_math = manager.autodeployed_contracts.get("arbiter_math").unwrap();
-
+    // Units
     let wad = U256::from(10u128.pow(18));
-
     let strike = U256::from(pool_params.strike);
     let iv = U256::from(pool_params.volatility) * wad
         / U256::from(10u128.pow(4));
     let tau = U256::from(31556953u128); // 1 year in seconds
-                                        // compute the ratio
     let int_ratio = I256::from_raw(ratio);
+    let gamma = U256::from(10000u16 - pool_params.fee) * U256::from(10u128.pow(14));
+    //------------------------------------------------------------
+    // Calculate X Arbitrage Amount
+    //------------------------------------------------------------
     // compute logarithm
     let execution_result = admin.call_contract(
         &mut manager.environment,
@@ -105,17 +107,19 @@ pub(crate) fn compute_arb_size(
     let unpacked_result = unpack_execution(execution_result)?;
     let cdf_output: I256 = arbiter_math.decode_output("cdf", unpacked_result)?;
     let cdf = cdf_output * I256::from(delta_liquidity) / I256::from_raw(wad);
+    let cdf = cdf * I256::from_raw(wad) / I256::from_raw(gamma);
     // call the reserve values
-    let x_reserves = admin.call_contract(
+    let reserves = admin.call_contract(
         &mut manager.environment,
         portfolio,
         portfolio.encode_function("getVirtualReservesDec", pool_id)?,
         Uint::ZERO,
     );
-    let unpacked_result = unpack_execution(x_reserves)?;
+    let reserves = unpack_execution(reserves)?;
     let reserves: (u128, u128) =
-        portfolio.decode_output("getVirtualReservesDec", unpacked_result)?;
-    let a = I256::from(delta_liquidity) - cdf - I256::from(reserves.0);
+        portfolio.decode_output("getVirtualReservesDec", reserves)?;
+    let scaled_x_reserve = U256::from(reserves.0) * wad / gamma;
+    let a = I256::from(delta_liquidity) * I256::from_raw(wad) / I256::from_raw(gamma) - cdf - I256::from_raw(scaled_x_reserve);
     let arb_amount_x = a.max(I256::from(0));
 
     // --------------------------------------------------------------------------------------------
@@ -149,7 +153,7 @@ pub(crate) fn compute_arb_size(
     );
     let unpacked_result = unpack_execution(execution_result)?;
     let invariant: U256 = arbiter_math.decode_output("invariant", unpacked_result)?;
-    let b = cdf + I256::from_raw(invariant) - I256::from(reserves.1);
+    let b = cdf * I256::from_raw(wad) / I256::from_raw(gamma) + I256::from_raw(invariant) * I256::from_raw(wad) / I256::from_raw(gamma) - I256::from(reserves.1) *  I256::from_raw(wad) / I256::from_raw(gamma);
     let arb_amount_y = b.max(I256::from(0));
     // bool for which asset is being sold.
     let fn_output = if arb_amount_x > I256::from(0) {
