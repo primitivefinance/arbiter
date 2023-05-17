@@ -18,9 +18,9 @@ use ethers::{prelude::BaseContract, types::H256};
 use revm::primitives::{AccountInfo, Address, ExecutionResult, Log, TransactTo, TxEnv, B160, U256};
 
 use self::{journaler::Journaler, simple_arbitrageur::SimpleArbitrageur, user::User};
-use crate::{
+use crate::environment::{
     contract::{IsDeployed, SimulationContract},
-    environment::SimulationEnvironment,
+    sim_environment::SimulationEnvironment,
 };
 
 pub mod journaler;
@@ -297,7 +297,7 @@ mod tests {
 
     use crate::{
         agent::{user::User, Agent, AgentType, SimulationEventFilter},
-        contract::SimulationContract,
+        environment::contract::SimulationContract,
         manager::SimulationManager,
     };
 
