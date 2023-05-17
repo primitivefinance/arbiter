@@ -55,10 +55,10 @@ impl Agent for Journaler<IsActive> {
 
 impl Journaler<NotActive> {
     /// Creates a new [`SimpleArbitrageur`] which requires a vector of [`SimulationEventFilter`] and automatically sets default initial stored prices.
-    pub fn new<S: Into<String>>(
+    pub fn new<S: Into<String>, T: Into<String>>(
         name: S,
         event_filters: Vec<SimulationEventFilter>,
-        csv_name: S,
+        csv_name: T,
     ) -> Journaler<NotActive> {
         Journaler::<NotActive> {
             name: name.into(),
@@ -75,7 +75,7 @@ impl Journaler<NotActive> {
 impl Journaler<IsActive> {
     /// A basic implementation that will detect price discprepencies from events emitted from pools.
     /// Currently implemented and tested only against the `liquid_exchange`.
-    pub fn journal_events(&self) -> JoinHandle<()> {
+    pub fn journal_events(&self) -> Result<JoinHandle<()>, Box<dyn std::error::Error>> {
         let receiver = self.receiver();
         let event_filters = self.event_filters();
         assert!(event_filters.len() == 1); // TODO: Allow journaler to have more than just a single event filter.
@@ -87,7 +87,7 @@ impl Journaler<IsActive> {
         // Label this column as "value"
         writer.serialize("value").unwrap(); // TODO: Fix the error handling here.
 
-        thread::spawn(move || {
+        Ok(thread::spawn(move || {
             let decoder = |input| {
                 event_filters[0].base_contract.decode_event_raw(
                     event_filters[0].event_name.as_str(),
@@ -116,7 +116,7 @@ impl Journaler<IsActive> {
             }
             writer.flush().unwrap(); // TODO: This error handling is also bad.
             println!("Exited journaling writing thread!");
-        })
+        }))
     }
 }
 
@@ -175,7 +175,7 @@ mod tests {
         manager.shut_down();
 
         // Check that the file was written to.
-        handle.join().unwrap();
+        handle?.join().unwrap();
         let mut reader = csv::Reader::from_path(filename)?;
         for (index, result) in reader.records().enumerate() {
             let record = result?;

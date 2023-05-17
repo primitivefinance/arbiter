@@ -24,23 +24,6 @@ pub(crate) struct SimulationContracts {
     pub(crate) uniswap_router: SimulationContract<IsDeployed>,
 }
 
-// pub(crate) fn run(
-//     manager: &mut SimulationManager,
-// ) -> Result<(SimulationContracts, rmm01_portfolio::CreatePoolCall, u64), Box<dyn Error>> {
-//     // define the wad constant
-//     let decimals = 18_u8;
-//     let wad: U256 = U256::from(10_i64.pow(decimals as u32));
-
-//     // Deploy the contracts
-//     println!("Deploying contracts...");
-//     let contracts = deploy_contracts(manager, wad)?;
-//     arbitrage::create_arbitrageur(manager, &contracts.liquid_exchange_xy, "arbitrageur");
-//     mint(manager, &contracts)?;
-//     approve(manager, &contracts)?;
-//     let (pool_data, pool_id) = pool_intitalization(manager, &contracts)?;
-//     allocate(manager, &contracts, pool_id)?;
-//     Ok((contracts, pool_data, pool_id))
-// }
 pub(crate) fn run(
     manager: &mut SimulationManager,
 ) -> Result<(SimulationContracts, H160), Box<dyn Error>> {
@@ -401,23 +384,6 @@ fn pair_intitalization(
     let pair_address: Address = uniswap_factory.decode_output("createPair", create_pair_unpack)?;
     println!("Created Uniswap pair with address: {:#?}", pair_address);
 
-    // let event_filter = SimulationEventFilter::new(uniswap_factory, "PairCreated");
-
-    // while let Ok(logs) = admin.read_logs() {
-    //     println!("Logs: {:#?}", logs);
-    //     if logs.len() == 0 {
-    //         continue;
-    //     }
-    //     let event = uniswap_factory.decode_event::<(Address, Address, Address, U256)>(
-    //         "PairCreated",
-    //         logs[0].clone().topics,
-    //         logs[0].clone().data,
-    //     );
-    //     println!("PairCreated event: {:#?}", event);
-    //     if event.is_ok() {
-    //         break;
-    //     }
-    // }
     Ok(pair_address)
 }
 
@@ -464,113 +430,3 @@ fn allocate(
     );
     Ok(())
 }
-
-// #[cfg(test)]
-// mod tests {
-//     #![allow(unused_imports)]
-//     use std::str::FromStr;
-
-//     use compiler::{assembler::Expression, codegen::Codegen, opcode::Opcode};
-//     use ethers::{abi::Address, prelude::BaseContract, types::H160, utils::parse_ether};
-//     use tokio::sync::mpsc::error;
-
-//     use super::*;
-
-//     #[test]
-//     fn create_pair() -> Result<(), Box<dyn std::error::Error>> {
-//         let decimals = 18_u8;
-//         let wad: U256 = U256::from(10_i64.pow(decimals as u32));
-//         // Create a `SimulationManager` that runs simulations in their `SimulationEnvironment`.
-//         let mut manager = SimulationManager::new();
-//         // Deploy the contracts
-//         let SimulationContracts(arbiter_token_x, arbiter_token_y, portfolio, _liquid_exchange_xy) =
-//             deploy_portfolio_sim_contracts(&mut manager, wad)?;
-
-//         let admin = manager.agents.get("admin").unwrap();
-
-//         let create_pair_args = (
-//             recast_address(arbiter_token_x.address),
-//             recast_address(arbiter_token_y.address),
-//         );
-//         let create_pair_call_data = portfolio.encode_function("createPair", create_pair_args)?;
-//         let create_pair_result = admin.call_contract(
-//             &mut manager.environment,
-//             &portfolio,
-//             create_pair_call_data,
-//             Uint::from(0),
-//         );
-//         assert_eq!(create_pair_result.is_success(), true);
-//         let create_pair_unpack = manager.unpack_execution(create_pair_result)?;
-//         let pair_id: u32 = portfolio.decode_output("createPair", create_pair_unpack)?;
-//         println!("Created portfolio pair with Pair id: {:#?}", pair_id);
-
-//         // Check the pair was created
-//         let encoded_pair = portfolio.encode_function("pairs", pair_id)?;
-//         let pairs = admin.call_contract(
-//             &mut manager.environment,
-//             &portfolio,
-//             encoded_pair,
-//             Uint::from(0),
-//         );
-//         let unpacked_pairs = manager.unpack_execution(pairs)?;
-//         let decoded_pairs_response: (H160, u8, H160, u8) =
-//             portfolio.decode_output("pairs", unpacked_pairs)?;
-
-//         assert!(decoded_pairs_response.0 == arbiter_token_x.address.into());
-//         assert!(decoded_pairs_response.2 == arbiter_token_y.address.into());
-//         assert!(decoded_pairs_response.1 == decimals);
-//         assert!(decoded_pairs_response.3 == decimals);
-
-//         Ok(())
-//     }
-
-//     #[test]
-//     fn create_pool() -> Result<(), Box<dyn std::error::Error>> {
-//         let decimals = 18_u8;
-//         let wad: U256 = U256::from(10_i64.pow(decimals as u32));
-//         // Create a `SimulationManager` that runs simulations in their `SimulationEnvironment`.
-//         let mut manager = SimulationManager::new();
-//         // Deploy the contracts
-//         let SimulationContracts(arbiter_token_x, arbiter_token_y, portfolio, _liquid_exchange_xy) =
-//             deploy_portfolio_sim_contracts(&mut manager, wad)?;
-
-//         let admin = manager.agents.get("admin").unwrap();
-
-//         let create_pair_args = (
-//             recast_address(arbiter_token_x.address),
-//             recast_address(arbiter_token_y.address),
-//         );
-//         let create_pair_call_data = portfolio.encode_function("createPair", create_pair_args)?;
-//         let create_pair_result = admin.call_contract(
-//             &mut manager.environment,
-//             &portfolio,
-//             create_pair_call_data,
-//             Uint::from(0),
-//         );
-//         assert_eq!(create_pair_result.is_success(), true);
-
-//         let create_pair_unpack = manager.unpack_execution(create_pair_result)?;
-//         let pair_id: u32 = portfolio.decode_output("createPair", create_pair_unpack)?;
-//         println!("Created portfolio pair with Pair id: {:#?}", pair_id);
-
-//         let create_pool_args = rmm01_portfolio::CreatePoolCall {
-//             pair_id,                                      // pub pair_id: u32
-//             controller: recast_address(admin.address()), /* pub controller: ::ethers::core::types::Address */
-//             priority_fee: 100_u16,                       // pub priority_fee: u16,
-//             fee: 100_u16,                                // pub fee: u16,
-//             volatility: 100_u16,                         // pub vol: u16,
-//             duration: 65535_u16,                         // pub dur: u16,
-//             strike_price: 10_000_000_000_000_000_000u128, // pub max_price: u128,
-//             price: 10_000_000_000_000_000_000u128,       // pub price: u128,
-//         };
-//         let create_pool_result = admin.call_contract(
-//             &mut manager.environment,
-//             &portfolio,
-//             portfolio.encode_function("createPool", create_pool_args)?,
-//             Uint::from(0),
-//         );
-//         assert!(create_pool_result.is_success());
-
-//         Ok(())
-//     }
-// }

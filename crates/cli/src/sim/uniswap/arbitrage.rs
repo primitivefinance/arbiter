@@ -5,7 +5,7 @@ use ethers::prelude::U256;
 use eyre::Result;
 use revm::primitives::B160;
 use simulate::{
-    agent::{simple_arbitrageur::SimpleArbitrageur, Agent, AgentType, SimulationEventFilter},
+    agent::{simple_arbitrageur::SimpleArbitrageur, Agent, AgentType, SimulationEventFilter, journaler},
     contract::{IsDeployed, SimulationContract},
     manager::SimulationManager,
     utils::{recast_address, unpack_execution},

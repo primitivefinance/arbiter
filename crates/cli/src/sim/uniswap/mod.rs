@@ -3,9 +3,10 @@ use std::error::Error;
 
 use ethers::{prelude::BaseContract, types::U256};
 use eyre::Result;
+use revm::primitives::B160;
 use ruint::Uint;
 use simulate::{
-    agent::{simple_arbitrageur::NextTx, Agent, AgentType},
+    agent::{simple_arbitrageur::NextTx, Agent, AgentType, SimulationEventFilter, journaler::{Journaler, self}},
     contract::{IsDeployed, SimulationContract},
     manager::SimulationManager,
     stochastic::price_process::{PriceProcess, PriceProcessType, OU},
@@ -21,10 +22,11 @@ pub fn run() -> Result<(), Box<dyn Error>> {
     let mut manager = SimulationManager::new();
 
     // Run the startup script
-    let (contracts, pair_address) = startup::run(&mut manager)?;
+    let (contracts, mut pair_address) = startup::run(&mut manager)?;
 
     // TODO: This is REALLY bad. This contract is marked as deployed but it is not deployed in the typical way. It's because the factory calls the deployer for a pair contract. I had to make the base_contract field not private
     // Get the pair contract that we can encode with
+    // maybe we can make a custome deployed_by for this, i was looking into this and i think to do this maybe we would have to take away the constructor args attribute, but I think that is okay and things will still work 
     let uniswap_pair = SimulationContract::<IsDeployed> {
         address: pair_address.into(),
         base_contract: BaseContract::from(bindings::uniswap_v2_pair::UNISWAPV2PAIR_ABI.clone()),
@@ -78,11 +80,30 @@ pub fn run() -> Result<(), Box<dyn Error>> {
         PriceProcessType::OU(ou),
         0.01,
         "trade".to_string(),
-        5,
+        100,
         1.0,
         1,
     );
     let prices = price_process.generate_price_path().1;
+
+    let pair = SimulationContract::new(bindings::uniswap_v2_pair::UNISWAPV2PAIR_ABI.clone(), bindings::uniswap_v2_pair::UNISWAPV2PAIR_BYTECODE.clone());
+    // let pair: SimulationContract<IsDeployed>.pair_address = pair_address.into();
+
+
+    // Testing journaler with these two events now, can add more events to this if we want
+    // need to implement journaler to accept and handle more than one event filter
+    // let price_update_event_filter = SimulationEventFilter::new(&contracts.liquid_exchange_xy, "PriceChange");
+    let uniswap_swap_event_filter = SimulationEventFilter::new(&uniswap_pair, "Sync");
+
+    create_journaler(&mut manager, vec![uniswap_swap_event_filter], "journaler");
+    let journaler = manager.agents.get("journaler").unwrap();
+
+    let base_journaler = match journaler {
+        AgentType::Journaler(base_journaler) => base_journaler,
+        _ => panic!(),
+    };
+    let j_handle = base_journaler.journal_events();
+
 
     // Run the simulation
     // Update the first price
@@ -135,6 +156,7 @@ pub fn run() -> Result<(), Box<dyn Error>> {
     }
 
     handle.join().unwrap();
+    j_handle?.join().unwrap();
 
     println!("=======================================");
     println!("🎉 Simulation Completed 🎉");
@@ -162,4 +184,17 @@ fn update_price(
         Uint::from(0),
     );
     Ok(())
+}
+
+pub(crate) fn create_journaler<S: Into<String>>(
+    manager: &mut SimulationManager,
+    event_filters: Vec<SimulationEventFilter>,
+    name: S,
+) {
+    let address = B160::from_low_u64_be(3);
+    let csv_name = "uniswap_sim_data.csv";
+    let journaler = AgentType::Journaler(Journaler::new(name, event_filters, csv_name));
+    manager.activate_agent(journaler, address).unwrap();
+
+    println!("Created journaler at address: {}.", address);
 }
