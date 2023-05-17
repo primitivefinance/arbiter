@@ -1,17 +1,21 @@
 #![warn(missing_docs)]
 use std::error::Error;
-
+use std::{
+    fs::File,
+};
+use csv::{WriterBuilder, Writer};
 use ethers::{prelude::BaseContract, types::U256};
 use eyre::Result;
-use revm::primitives::B160;
 use ruint::Uint;
 use simulate::{
-    agent::{Agent, AgentType, journaler::Journaler, SimulationEventFilter, simple_arbitrageur::NextTx},
+    agent::{Agent, AgentType, simple_arbitrageur::NextTx},
     environment::contract::{IsDeployed, SimulationContract},
     manager::SimulationManager,
     stochastic::price_process::{PriceProcess, PriceProcessType, OU},
     utils::unpack_execution,
 };
+
+
 
 pub mod arbitrage;
 pub mod startup;
@@ -80,31 +84,19 @@ pub fn run() -> Result<(), Box<dyn Error>> {
         PriceProcessType::OU(ou),
         0.01,
         "trade".to_string(),
-        2,
+        1,
         1.0,
         1,
     );
     let prices = price_process.generate_price_path().1;
 
-
-    // Testing journaler with these two events now, can add more events to this if we want
-    // need to implement journaler to accept and handle more than one event filter later
-    let uniswap_swap_event_filter = SimulationEventFilter::new(&uniswap_pair, "Swap");
-
-    create_journaler(&mut manager, vec![uniswap_swap_event_filter], "journaler");
-    let journaler = manager.agents.get("journaler").unwrap();
-
-    let base_journaler = match journaler {
-        AgentType::Journaler(base_journaler) => base_journaler,
-        _ => panic!(),
-    };
-    base_journaler.journal_events()?;
-
-
+    let mut writer = csv_set_up();
     // Run the simulation
     // Update the first price
     let liquid_exchange = &contracts.liquid_exchange_xy;
     let price = prices[0];
+    // get first price
+    writer.serialize(price)?;
     update_price(&mut manager, liquid_exchange, price)?;
 
     let mut index: usize = 1;
@@ -181,15 +173,11 @@ fn update_price(
     Ok(())
 }
 
-pub(crate) fn create_journaler<S: Into<String>>(
-    manager: &mut SimulationManager,
-    event_filters: Vec<SimulationEventFilter>,
-    name: S,
-) {
-    let address = B160::from_low_u64_be(3);
-    let csv_name = "uniswap_sim_data.csv";
-    let journaler = AgentType::Journaler(Journaler::new(name, event_filters, csv_name));
-    manager.activate_agent(journaler, address).unwrap();
-
-    println!("Created journaler at address: {}.", address);
+fn csv_set_up () -> Writer<File>{
+    let filename = "uniswap_data.csv";
+    let file = File::create(filename).unwrap(); // TODO: Fix the error handling here.
+    let mut writer = WriterBuilder::new().from_writer(file);
+    // Label this column as "value"
+    writer.serialize("Price_Path").unwrap(); // TODO: Fix the error handling here.
+    writer
 }

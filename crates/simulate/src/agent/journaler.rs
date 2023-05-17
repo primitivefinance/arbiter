@@ -10,6 +10,7 @@ use std::{
 use crossbeam_channel::Receiver;
 use csv::WriterBuilder;
 use revm::primitives::{Address, Log};
+use bytes::Bytes;
 
 use super::{AgentStatus, Identifiable, IsActive, NotActive};
 use crate::agent::{filter_events, Agent, SimulationEventFilter, TransactSettings};
@@ -103,10 +104,11 @@ impl Journaler<IsActive> {
 
                 if !filtered_logs.is_empty() {
                     println!("Log data is: {:#?}", filtered_logs[0].data);
-                    let data = filtered_logs[0].data.clone().into_iter().collect();
-                    println!("data: {:#?}", data);
-                    // let data_without_prefix = &data[2..];
-                    let decoded_event = decoder(data).unwrap(); // TODO: Fix the error handling here.
+                    let data: Bytes = filtered_logs[0].data.clone().into_iter().collect();
+                    let data_without_prefix = filtered_logs[0].data.slice(2..);
+
+                    // println!("data: {:#?}", data);
+                    let decoded_event = decoder(data_without_prefix.into()).unwrap(); // TODO: Fix the error handling here.
                     println!("Decoded event says: {:#?}", decoded_event);
                     let value = decoded_event[0].clone();
                     println!("The value is: {:#?}", value);

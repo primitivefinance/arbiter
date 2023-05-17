@@ -54,7 +54,6 @@ pub(crate) fn swap(
         to: recast_address(arbitrageur.address()),
         deadline: U256::MAX,
     };
-
     let swap_result = arbitrageur.call_contract(
         &mut manager.environment,
         &contracts.uniswap_router,
