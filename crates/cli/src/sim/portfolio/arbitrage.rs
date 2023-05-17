@@ -65,8 +65,7 @@ pub(crate) fn compute_arb_size(
     // Units
     let wad = U256::from(10u128.pow(18));
     let strike = U256::from(pool_params.strike);
-    let iv = U256::from(pool_params.volatility) * wad
-        / U256::from(10u128.pow(4));
+    let iv = U256::from(pool_params.volatility) * wad / U256::from(10u128.pow(4));
     let tau = U256::from(31556953u128); // 1 year in seconds
     let int_ratio = I256::from_raw(ratio);
     let gamma = U256::from(10000u16 - pool_params.fee) * U256::from(10u128.pow(14));
@@ -117,10 +116,11 @@ pub(crate) fn compute_arb_size(
         Uint::ZERO,
     );
     let reserves = unpack_execution(reserves)?;
-    let reserves: (u128, u128) =
-        portfolio.decode_output("getVirtualReservesDec", reserves)?;
+    let reserves: (u128, u128) = portfolio.decode_output("getVirtualReservesDec", reserves)?;
     let scaled_x_reserve = U256::from(reserves.0) * wad / gamma;
-    let a = I256::from(delta_liquidity) * I256::from_raw(wad) / I256::from_raw(gamma) - cdf - I256::from_raw(scaled_x_reserve);
+    let a = I256::from(delta_liquidity) * I256::from_raw(wad) / I256::from_raw(gamma)
+        - cdf
+        - I256::from_raw(scaled_x_reserve);
     let arb_amount_x = a.max(I256::from(0));
 
     // --------------------------------------------------------------------------------------------
@@ -165,7 +165,7 @@ pub(crate) fn compute_arb_size(
     // scale the CDF
     let scaled_cdf = cdf_output.into_raw() * strike / wad;
     // scale by shares
-    let scaled_cdf =scaled_cdf * U256::from(delta_liquidity) / wad;
+    let scaled_cdf = scaled_cdf * U256::from(delta_liquidity) / wad;
     let cdf = I256::from_raw(scaled_cdf);
     // unscale reserves by shares
     let x_reserve = U256::from(reserves.0) * wad / U256::from(delta_liquidity);
@@ -179,7 +179,9 @@ pub(crate) fn compute_arb_size(
     );
     let unpacked_result = unpack_execution(execution_result)?;
     let invariant: U256 = arbiter_math.decode_output("invariant", unpacked_result)?;
-    let b = cdf * I256::from_raw(wad) / I256::from_raw(gamma) + I256::from_raw(invariant) * I256::from_raw(wad) / I256::from_raw(gamma) - I256::from(reserves.1) *  I256::from_raw(wad) / I256::from_raw(gamma);
+    let b = cdf * I256::from_raw(wad) / I256::from_raw(gamma)
+        + I256::from_raw(invariant) * I256::from_raw(wad) / I256::from_raw(gamma)
+        - I256::from(reserves.1) * I256::from_raw(wad) / I256::from_raw(gamma);
     let arb_amount_y = b.max(I256::from(0));
     // bool for which asset is being sold.
     let fn_output = if arb_amount_x > I256::from(0) {

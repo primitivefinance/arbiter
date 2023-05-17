@@ -1,9 +1,9 @@
 use std::error::Error;
 
-use bindings::{uniswap_v2_router_01::uniswap_v2_router_01};
+use bindings::uniswap_v2_router_01::uniswap_v2_router_01;
 use ethers::{prelude::U256, types::I256};
 use eyre::Result;
-use revm::primitives::{B160, ruint::Uint};
+use revm::primitives::{ruint::Uint, B160};
 use simulate::{
     agent::{simple_arbitrageur::SimpleArbitrageur, Agent, AgentType, SimulationEventFilter},
     environment::contract::{IsDeployed, SimulationContract},
@@ -12,7 +12,6 @@ use simulate::{
 };
 
 use crate::sim::uniswap::startup::SimulationContracts;
-
 
 pub(crate) fn create_arbitrageur<S: Into<String>>(
     manager: &mut SimulationManager,
@@ -59,7 +58,8 @@ pub(crate) fn compute_arb_size(
         Uint::ZERO,
     );
     let uniswap_reserves = unpack_execution(uniswap_reserves)?;
-    let reserves: (u128, u128, u32) = uniswap_pair.decode_output("getReserves", uniswap_reserves)?;
+    let reserves: (u128, u128, u32) =
+        uniswap_pair.decode_output("getReserves", uniswap_reserves)?;
     let reserve_x = U256::from(reserves.0);
     let reserve_y = U256::from(reserves.1);
     // Invariant
@@ -184,6 +184,7 @@ pub(crate) fn swap(
 #[cfg(test)]
 mod test {
     use std::error::Error;
+
     use ethers::prelude::BaseContract;
 
     use super::*;
@@ -191,7 +192,6 @@ mod test {
     #[test]
     fn test_arb_bool() -> Result<(), Box<dyn Error>> {
         let mut manager = SimulationManager::new();
-        
 
         let target_price = U256::from(800_000_000_000_000_000u128);
         let delta_liquidity = U256::from(10u128.pow(18));
@@ -203,7 +203,7 @@ mod test {
             bytecode: (),
             constructor_arguments: Vec::new(),
         };
-        
+
         let output = compute_arb_size(&mut manager, &uniswap_pair, target_price)?;
         println!("Output Bool {}", output.sell_asset);
         assert_eq!(output.sell_asset, true);
@@ -212,7 +212,6 @@ mod test {
     #[test]
     fn test_arb_accuracy() -> Result<(), Box<dyn Error>> {
         let mut manager = SimulationManager::new();
-        
 
         let target_price = U256::from(800_000_000_000_000_000u128);
         let delta_liquidity = U256::from(10u128.pow(18));
@@ -224,7 +223,7 @@ mod test {
             bytecode: (),
             constructor_arguments: Vec::new(),
         };
-        
+
         let output = compute_arb_size(&mut manager, &uniswap_pair, target_price)?;
 
         let swap_event = swap(&mut manager, &contracts, output.input, false); // Swap bool is flipped!
