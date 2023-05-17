@@ -12,7 +12,7 @@ use revm::primitives::{ExecutionResult, Output, TransactTo, TxEnv, B160, B256, U
 
 use crate::{
     agent::{AgentType, IsActive},
-    environment::SimulationEnvironment,
+    environment::sim_environment::SimulationEnvironment,
 };
 
 #[derive(Debug, Clone)]

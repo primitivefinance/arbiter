@@ -31,11 +31,12 @@ mod tests {
 
     use crate::{
         agent::{user::User, Agent, AgentType},
-        contract::SimulationContract,
+        environment::contract::SimulationContract,
         manager::SimulationManager,
         stochastic::price_process::{PriceProcess, PriceProcessType, GBM},
         utils::{recast_address, unpack_execution},
     };
+
     #[test]
     fn swap_x_for_y_liquid_exchange() -> Result<(), Box<dyn Error>> {
         // define the wad constant

@@ -1,4 +1,5 @@
 #![warn(missing_docs)]
+#![allow(clippy::all)]
 //! This module contains the middleware for the Revm simulation environment.
 //! Most of the middleware is essentially a placeholder, but it is necessary to have a middleware to work with bindings more efficiently.
 
@@ -9,11 +10,13 @@ use ethers::{
     providers::{Middleware, MockProvider},
 };
 
-#[deprecated(since = "0.1.0", note = "It would be useful to create a middleware that can be used in the simulation environment.")]
+#[deprecated(
+    since = "0.1.0",
+    note = "It would be useful to create a middleware that can be used in the simulation environment."
+)]
 /// The [`SimulationMiddleware`] allows for a "dummy" middleware to be used in the simulation environment.
 #[derive(Debug, Default)]
 pub struct SimulationMiddleware;
-
 impl Middleware for SimulationMiddleware {
     type Provider = MockProvider;
     type Error = ProviderError;
@@ -25,7 +28,10 @@ impl Middleware for SimulationMiddleware {
     }
 }
 
-#[deprecated(since = "0.1.0", note = "It would be useful to create a middleware that can be used in the simulation environment.")]
+#[deprecated(
+    since = "0.1.0",
+    note = "It would be useful to create a middleware that can be used in the simulation environment."
+)]
 #[cfg(test)]
 mod tests {
     use std::sync::Arc;
@@ -35,7 +41,7 @@ mod tests {
     use ethers::{prelude::BaseContract, types::Address};
 
     use super::*;
-    use crate::contract::SimulationContract;
+    use crate::environment::contract::SimulationContract;
 
     #[test]
     fn simulation_middleware_calldata() {
@@ -47,8 +53,7 @@ mod tests {
         // Get bytecode and abi for the writer contract.
         let writer = SimulationContract::new(
             bindings::writer::WRITER_ABI.clone(),
-            bindings::writer::WRITER_BYTECODE
-                .clone()
+            bindings::writer::WRITER_BYTECODE.clone(),
         );
 
         // Generate calldata for the 'echoString' function

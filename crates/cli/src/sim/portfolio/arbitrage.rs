@@ -9,7 +9,7 @@ use eyre::Result;
 use revm::primitives::{ruint::Uint, B160};
 use simulate::{
     agent::{simple_arbitrageur::SimpleArbitrageur, Agent, AgentType, SimulationEventFilter},
-    contract::{IsDeployed, SimulationContract},
+    environment::contract::{IsDeployed, SimulationContract},
     manager::SimulationManager,
     utils::unpack_execution,
 };
