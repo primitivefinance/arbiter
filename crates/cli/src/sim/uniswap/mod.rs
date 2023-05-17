@@ -5,7 +5,7 @@ use ethers::{prelude::BaseContract, types::U256};
 use eyre::Result;
 use ruint::Uint;
 use simulate::{
-    agent::{user::User, AgentType},
+    agent::{simple_arbitrageur::NextTx, Agent, AgentType},
     environment::contract::{IsDeployed, SimulationContract},
     manager::SimulationManager,
     stochastic::price_process::{PriceProcess, PriceProcessType, OU},
