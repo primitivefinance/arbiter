@@ -210,7 +210,6 @@ mod tests {
         let decimals = 18_u8;
         let wad: U256 = U256::from(10_i64.pow(decimals as u32));
 
-
         // Set up the execution manager and a user address.
         let mut manager = SimulationManager::default();
 
