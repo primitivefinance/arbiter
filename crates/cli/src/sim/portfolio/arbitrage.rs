@@ -63,8 +63,10 @@ pub(crate) fn compute_arb_size(
     let admin = manager.agents.get("admin").unwrap();
     let arbiter_math = manager.autodeployed_contracts.get("arbiter_math").unwrap();
 
+    let wad = U256::from(10u128.pow(18));
+
     let strike = U256::from(pool_params.strike);
-    let iv = U256::from(pool_params.volatility) * U256::from(10_u128.pow(18))
+    let iv = U256::from(pool_params.volatility) * wad
         / U256::from(10u128.pow(4));
     let tau = U256::from(31556953u128); // 1 year in seconds
                                         // compute the ratio
@@ -84,21 +86,13 @@ pub(crate) fn compute_arb_size(
         Sign::Negative => (log * I256::from(-1)).into_raw(),
     };
     // Scale logarithm
-    let output = unsigned_log * U256::from(10u128.pow(18)) / iv;
+    let output = unsigned_log * wad / iv;
     let scaled_log = match sign {
         Sign::Positive => I256::from_raw(output),
         Sign::Negative => I256::from_raw(output) * I256::from(-1),
     };
     // compute the additional term
-    let execution_result = admin.call_contract(
-        &mut manager.environment,
-        arbiter_math,
-        arbiter_math
-            .encode_function("mulWadDown", (U256::from(500_000_000_000_000_000_u128), iv))?,
-        Uint::ZERO,
-    );
-    let unpacked_result = unpack_execution(execution_result)?;
-    let additional_term: U256 = arbiter_math.decode_output("mulWadDown", unpacked_result)?;
+    let additional_term = iv * U256::from(500_000_000_000_000_000_u128) / wad;
     // CDF input
     let cdf_input = scaled_log + I256::from_raw(additional_term);
     // compute the CDF
@@ -110,7 +104,7 @@ pub(crate) fn compute_arb_size(
     );
     let unpacked_result = unpack_execution(execution_result)?;
     let cdf_output: I256 = arbiter_math.decode_output("cdf", unpacked_result)?;
-    let cdf = cdf_output * I256::from(delta_liquidity) / I256::from(10_u128.pow(18));
+    let cdf = cdf_output * I256::from(delta_liquidity) / I256::from_raw(wad);
     // call the reserve values
     let x_reserves = admin.call_contract(
         &mut manager.environment,
@@ -125,7 +119,7 @@ pub(crate) fn compute_arb_size(
     let arb_amount_x = a.max(I256::from(0));
 
     // --------------------------------------------------------------------------------------------
-    // GET ARBY ARBITRAGE AMOUNT
+    // Calculate Y Arbitrage Amount
     // --------------------------------------------------------------------------------------------
     let ppf_output = cdf_input;
     let cdf_input = ppf_output - I256::from_raw(iv);
@@ -139,48 +133,13 @@ pub(crate) fn compute_arb_size(
     let unpacked_result = unpack_execution(execution_result)?;
     let cdf_output: I256 = arbiter_math.decode_output("cdf", unpacked_result)?;
     // scale the CDF
-    let execution_result = admin.call_contract(
-        &mut manager.environment,
-        arbiter_math,
-        arbiter_math.encode_function("mulWadDown", (cdf_output.into_raw(), strike))?,
-        Uint::ZERO,
-    );
-    let unpacked_result = unpack_execution(execution_result)?;
-    let scaled_cdf: U256 = arbiter_math.decode_output("mulWadDown", unpacked_result)?;
+    let scaled_cdf = cdf_output.into_raw() * strike / wad;
     // scale by shares
-    let execution_result = admin.call_contract(
-        &mut manager.environment,
-        arbiter_math,
-        arbiter_math.encode_function("mulWadDown", (scaled_cdf, U256::from(delta_liquidity)))?,
-        Uint::ZERO,
-    );
-    let unpacked_result = unpack_execution(execution_result)?;
-    let scaled_cdf: U256 = arbiter_math.decode_output("mulWadDown", unpacked_result)?;
+    let scaled_cdf =scaled_cdf * U256::from(delta_liquidity) / wad;
     let cdf = I256::from_raw(scaled_cdf);
     // unscale reserves by shares
-    let execution_result = admin.call_contract(
-        &mut manager.environment,
-        arbiter_math,
-        arbiter_math.encode_function(
-            "divWadUp",
-            (U256::from(reserves.0), U256::from(delta_liquidity)),
-        )?,
-        Uint::ZERO,
-    );
-    let unpacked_result = unpack_execution(execution_result)?;
-    let x_reserve: U256 = arbiter_math.decode_output("divWadUp", unpacked_result)?;
-
-    let execution_result = admin.call_contract(
-        &mut manager.environment,
-        arbiter_math,
-        arbiter_math.encode_function(
-            "divWadUp",
-            (U256::from(reserves.1), U256::from(delta_liquidity)),
-        )?,
-        Uint::ZERO,
-    );
-    let unpacked_result = unpack_execution(execution_result)?;
-    let y_reserve: U256 = arbiter_math.decode_output("divWadUp", unpacked_result)?;
+    let x_reserve = U256::from(reserves.0) * wad / U256::from(delta_liquidity);
+    let y_reserve = U256::from(reserves.1) * wad / U256::from(delta_liquidity);
     // call invariant
     let execution_result = admin.call_contract(
         &mut manager.environment,

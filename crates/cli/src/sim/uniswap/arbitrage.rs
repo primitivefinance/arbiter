@@ -67,6 +67,30 @@ pub(crate) fn compute_arb_size(
     let scaled_invariant = invariant * gamma / wad;
 
     //-----------------------------------------------------------
+    // Calculate X arbitrage amount
+    //-----------------------------------------------------------
+
+    let sqrt_input = scaled_invariant * wad / target_price;
+
+    // Calculate and scale new reserves by gamma
+    let new_x = arbitrageur.call_contract(
+        &mut manager.environment,
+        arbiter_math,
+        arbiter_math.encode_function("sqrt", sqrt_input)?,
+        Uint::ZERO,
+    );
+    let new_x = unpack_execution(new_x)?;
+    let new_x: U256 = arbiter_math.decode_output("sqrt", new_x)?;
+    let new_x = new_x * U256::from(10u128.pow(9)) * U256::from(10u128.pow(18)) / gamma;
+    let new_x = I256::from_raw(new_x);
+    // Scale old reserve by gamma
+    let reserve_x = reserve_x * U256::from(10u128.pow(18)) / gamma;
+    let reserve_x = I256::from_raw(reserve_x);
+    // Trade amount
+    let x_diff = new_x - reserve_x;
+    let trade_amount_x = x_diff.max(I256::from(0));
+
+    //-----------------------------------------------------------
     // Calculate Y arbitrage amount
     //-----------------------------------------------------------
 
@@ -90,30 +114,6 @@ pub(crate) fn compute_arb_size(
     // Trade amount
     let y_diff = new_y - reserve_y;
     let trade_amount_y = y_diff.max(I256::from(0));
-
-    //-----------------------------------------------------------
-    // Calculate X arbitrage amount
-    //-----------------------------------------------------------
-
-    let sqrt_input = scaled_invariant * wad / target_price;
-
-    // Calculate and scale new reserves by gamma
-    let new_x = arbitrageur.call_contract(
-        &mut manager.environment,
-        arbiter_math,
-        arbiter_math.encode_function("sqrt", sqrt_input)?,
-        Uint::ZERO,
-    );
-    let new_x = unpack_execution(new_x)?;
-    let new_x: U256 = arbiter_math.decode_output("sqrt", new_x)?;
-    let new_x = new_x * U256::from(10u128.pow(9)) * U256::from(10u128.pow(18)) / gamma;
-    let new_x = I256::from_raw(new_x);
-    // Scale old reserve by gamma
-    let reserve_x = reserve_x * U256::from(10u128.pow(18)) / gamma;
-    let reserve_x = I256::from_raw(reserve_x);
-    // Trade amount
-    let x_diff = new_x - reserve_x;
-    let trade_amount_x = x_diff.max(I256::from(0));
 
     //-----------------------------------------------------------
     // Compare X and Y arbitrage amounts
@@ -227,7 +227,7 @@ mod test {
         
         let output = compute_arb_size(&mut manager, &uniswap_pair, target_price)?;
 
-        let swap_event = swap(&mut manager, &contracts, output.input, false);
+        let swap_event = swap(&mut manager, &contracts, output.input, false); // Swap bool is flipped!
 
         let arbitrageur = manager.agents.get("arbitrageur").unwrap();
         let reserves = arbitrageur.call_contract(
