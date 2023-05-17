@@ -1,6 +1,6 @@
 use std::error::Error;
 
-use bindings::{uniswap_v2_router_01::uniswap_v2_router_01, arbiter_math};
+use bindings::{uniswap_v2_router_01::uniswap_v2_router_01};
 use ethers::prelude::U256;
 use eyre::Result;
 use revm::primitives::{B160, ruint::Uint};
@@ -43,11 +43,11 @@ impl ComputeArbOutput {
 pub(crate) fn compute_arb_size(
     manager: &mut SimulationManager,
     pool_price: U256,
-    uniswap_v2_pair: &SimulationContract<IsDeployed>,
+    uniswap_pair: &SimulationContract<IsDeployed>,
     target_price: U256,
 ) -> Result<ComputeArbOutput, Box<dyn Error>> {
     let manager = manager;
-    let admin = manager.agents.get("admin").unwrap();
+    let arbitrageur = manager.agents.get("arbitrageur").unwrap();
     let arbiter_math = manager.autodeployed_contracts.get("arbiter_math").unwrap();
 
     let price = pool_price;
@@ -55,18 +55,18 @@ pub(crate) fn compute_arb_size(
     //-----------------------------------------------------------
     // Calculate X arbitrage amount
     //-----------------------------------------------------------
-    let execution_result = admin.call_contract(
+    let uniswap_reserves = arbitrageur.call_contract(
         &mut manager.environment,
-        uniswap_v2_pair,
-        uniswap_v2_pair.encode_function("getReserves", ())?,
+        &uniswap_pair,
+        uniswap_pair.encode_function("getReserves", ())?,
         Uint::ZERO,
     );
-    let unpacked_result = unpack_execution(execution_result)?;
-    let reserves: (u128, u128, u32) = uniswap_v2_pair.decode_output("getReserves", unpacked_result)?;
+    let uniswap_reserves = unpack_execution(uniswap_reserves)?;
+    let reserves: (u128, u128, u32) = uniswap_pair.decode_output("getReserves", uniswap_reserves)?;
     let reserve_x = U256::from(reserves.0);
     let reserve_y = U256::from(reserves.1);
     // Calculate invariant
-    let execution_result = admin.call_contract(
+    let execution_result = arbitrageur.call_contract(
         &mut manager.environment,
         arbiter_math,
         arbiter_math.encode_function("mulWadUp", (reserve_x, reserve_y))?,
@@ -76,7 +76,7 @@ pub(crate) fn compute_arb_size(
     let invariant: U256 = arbiter_math.decode_output("mulWadUp", unpacked_result)?;
     // Calculate sqrt input
     // for target_price / gamma < price
-   let execution_result = admin.call_contract(
+   let execution_result = arbitrageur.call_contract(
         &mut manager.environment,
         arbiter_math,
         arbiter_math.encode_function("mulWadUp", (target_price, gamma))?,
@@ -84,7 +84,7 @@ pub(crate) fn compute_arb_size(
     );
     let unpacked_result = unpack_execution(execution_result)?;
     let arb_bound: U256 = arbiter_math.decode_output("mulWadUp", unpacked_result)?;
-    let execution_result = admin.call_contract(
+    let execution_result = arbitrageur.call_contract(
         &mut manager.environment,
         arbiter_math,
         arbiter_math.encode_function("divWadUp", (invariant, arb_bound))?,
@@ -93,7 +93,7 @@ pub(crate) fn compute_arb_size(
     let unpacked_result = unpack_execution(execution_result)?;
     let sqrt_input: U256 = arbiter_math.decode_output("divWadUp", unpacked_result)?;
     // Calculate trade amount
-    let execution_result = admin.call_contract(
+    let execution_result = arbitrageur.call_contract(
         &mut manager.environment,
         arbiter_math,
         arbiter_math.encode_function("sqrt", sqrt_input)?,
@@ -105,7 +105,7 @@ pub(crate) fn compute_arb_size(
     //-----------------------------------------------------------
     // Calculate Y arbitrage amount
     //-----------------------------------------------------------
-    let execution_result = admin.call_contract(
+    let execution_result = arbitrageur.call_contract(
         &mut manager.environment,
         arbiter_math,
         arbiter_math.encode_function("mulWadUp", (gamma, target_price))?,
@@ -113,7 +113,7 @@ pub(crate) fn compute_arb_size(
     );
     let unpacked_result = unpack_execution(execution_result)?;
     let arb_bound: U256 = arbiter_math.decode_output("mulWadUp", unpacked_result)?;
-    let execution_result = admin.call_contract(
+    let execution_result = arbitrageur.call_contract(
         &mut manager.environment,
         arbiter_math,
         arbiter_math.encode_function("mulWadUp", (invariant, arb_bound))?,
@@ -122,7 +122,7 @@ pub(crate) fn compute_arb_size(
     let unpacked_result = unpack_execution(execution_result)?;
     let sqrt_input: U256 = arbiter_math.decode_output("mulWadUp", unpacked_result)?;
     // Calculate trade amount
-    let execution_result = admin.call_contract(
+    let execution_result = arbitrageur.call_contract(
         &mut manager.environment,
         arbiter_math,
         arbiter_math.encode_function("sqrt", sqrt_input)?,
@@ -194,4 +194,35 @@ pub(crate) fn swap(
     println!("Swapped {} for {}.", swap_result[0], swap_result[1]);
 
     Ok(())
+}
+
+#[cfg(test)]
+mod test {
+    use std::error::Error;
+    use ethers::prelude::BaseContract;
+
+    use super::*;
+    use crate::sim::uniswap::startup;
+    #[test]
+    fn test_arb_bool() -> Result<(), Box<dyn Error>> {
+        let mut manager = SimulationManager::new();
+        let arbitrageur =manager.agents.get("arbitrageur").unwrap();
+
+        let target_price = U256::from(10_000_000_000_000_000_000u128);
+        let pool_price = U256::from(13_000_000_000_000_000_000u128);
+        let delta_liquidity = U256::from(10u128.pow(18));
+
+        let (contracts, pair_address) = startup::run(&mut manager)?;
+
+        let uniswap_pair = SimulationContract::<IsDeployed> {
+            address: pair_address.into(),
+            base_contract: BaseContract::from(bindings::uniswap_v2_pair::UNISWAPV2PAIR_ABI.clone()),
+            bytecode: (),
+            constructor_arguments: Vec::new(),
+        };
+        
+        let output = compute_arb_size(&mut manager, pool_price, &uniswap_pair, target_price)?;
+        assert_eq!(output.sell_asset, true);
+        Ok(())
+    }
 }
