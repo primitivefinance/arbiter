@@ -12,7 +12,7 @@ use std::{
 use bindings::arbiter_math;
 use bytes::Bytes;
 use crossbeam_channel::unbounded;
-use revm::primitives::{AccountInfo, Address, ExecutionResult, Log, Output, B160, U256};
+use revm::primitives::{AccountInfo, Address, Log, B160, U256};
 
 use crate::{
     agent::{
@@ -201,37 +201,6 @@ impl SimulationManager {
         };
         self.environment.add_sender(event_sender);
         Ok(())
-    }
-
-    /// Takes an `ExecutionResult` and returns the raw bytes of the output that can then be decoded.
-    /// # Arguments
-    /// * `execution_result` - The `ExecutionResult` that we want to unpack.
-    /// # Returns
-    /// * `Ok(Bytes)` - The raw bytes of the output.
-    pub fn unpack_execution(
-        &self,
-        execution_result: ExecutionResult,
-    ) -> Result<Bytes, ManagerError> {
-        match execution_result {
-            ExecutionResult::Success { output, .. } => match output {
-                Output::Call(value) => Ok(value),
-                Output::Create(value, _address) => Ok(value),
-            },
-            ExecutionResult::Halt { reason, gas_used } => Err(ManagerError {
-                message: format!(
-                    "This call halted for {:#?} and used {} gas.",
-                    reason, gas_used
-                ),
-                output: None,
-            }),
-            ExecutionResult::Revert { output, gas_used } => Err(ManagerError {
-                message: format!(
-                    "This call reverted with output {:#?} and used {} gas.",
-                    output, gas_used
-                ),
-                output: Some(output),
-            }),
-        }
     }
 }
 

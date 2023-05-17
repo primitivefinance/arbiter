@@ -26,7 +26,7 @@ mod tests {
         agent::{user::User, Agent, AgentType},
         contract::SimulationContract,
         manager::SimulationManager,
-        utils::recast_address,
+        utils::{recast_address, unpack_execution},
     };
 
     #[test]
@@ -56,7 +56,7 @@ mod tests {
             call_data,
             Uint::from(0),
         );
-        let value = manager.unpack_execution(execution_result)?;
+        let value = unpack_execution(execution_result)?;
 
         let response: String = writer.decode_output("echoString", value)?;
 
@@ -105,7 +105,7 @@ mod tests {
             call_data,
             Uint::ZERO,
         );
-        let value = manager.unpack_execution(execution_result)?;
+        let value = unpack_execution(execution_result)?;
 
         let response: String = arbiter_token.decode_output("name", value)?;
         assert_eq!(response, name); // Quick check that the name is correct.
@@ -139,7 +139,7 @@ mod tests {
             call_data,
             Uint::from(0),
         );
-        let value = manager.unpack_execution(execution_result)?;
+        let value = unpack_execution(execution_result)?;
 
         let response: U256 = arbiter_token.decode_output("balanceOf", value)?;
 
@@ -347,10 +347,10 @@ mod tests {
         // This will also create an EVM instance associated to the manager.
         let mut manager = SimulationManager::default();
         let admin = manager.agents.get("admin").unwrap();
-
+        println!("Here");
         // Get a SimulationContract for the Arbiter Math ABI and bytecode.
         let arbiter_math = manager.autodeployed_contracts.get("arbiter_math").unwrap();
-
+        println!("Over Here Now");
         // Test the cdf function.
         let execution_result = admin.call_contract(
             &mut manager.environment,
@@ -358,7 +358,9 @@ mod tests {
             arbiter_math.encode_function("cdf", I256::from(1))?,
             Uint::ZERO,
         );
-        let unpacked_result = manager.unpack_execution(execution_result)?;
+
+        let unpacked_result = unpack_execution(execution_result)?;
+        println!("Can you see me??");
         let output: I256 = arbiter_math.decode_output("cdf", unpacked_result)?;
         println!("cdf(1) = {}", output);
         assert_eq!(output, I256::from(500000000000000000u64));
@@ -370,7 +372,7 @@ mod tests {
             arbiter_math.encode_function("pdf", I256::from(1))?,
             Uint::ZERO,
         );
-        let unpacked_result = manager.unpack_execution(execution_result)?;
+        let unpacked_result = unpack_execution(execution_result)?;
         let output: I256 = arbiter_math.decode_output("pdf", unpacked_result)?;
         println!("pdf(1) = {}", output);
         assert_eq!(output, I256::from(398942280401432678u64));
@@ -382,7 +384,7 @@ mod tests {
             arbiter_math.encode_function("ppf", I256::from(500000000000000000u64))?,
             Uint::ZERO,
         );
-        let unpacked_result = manager.unpack_execution(execution_result)?;
+        let unpacked_result = unpack_execution(execution_result)?;
         let output: I256 = arbiter_math.decode_output("ppf", unpacked_result)?;
         println!("ppf(0.5) = {}", output);
 
@@ -396,7 +398,7 @@ mod tests {
             )?,
             Uint::ZERO,
         );
-        let unpacked_result = manager.unpack_execution(execution_result)?;
+        let unpacked_result = unpack_execution(execution_result)?;
         let output: U256 = arbiter_math.decode_output("mulWadDown", unpacked_result)?;
         println!("mulWadDown(1, 2) = {}", output);
         assert_eq!(output, U256::from(2));
@@ -411,7 +413,7 @@ mod tests {
             )?,
             Uint::ZERO,
         );
-        let unpacked_result = manager.unpack_execution(execution_result)?;
+        let unpacked_result = unpack_execution(execution_result)?;
         let output: U256 = arbiter_math.decode_output("mulWadUp", unpacked_result)?;
         println!("mulWadUp(1, 2) = {}", output);
         assert_eq!(output, U256::from(2));
@@ -426,7 +428,7 @@ mod tests {
             )?,
             Uint::ZERO,
         );
-        let unpacked_result = manager.unpack_execution(execution_result)?;
+        let unpacked_result = unpack_execution(execution_result)?;
         let output: U256 = arbiter_math.decode_output("divWadDown", unpacked_result)?;
         println!("divWadDown(1, 2) = {}", output);
         assert_eq!(
@@ -444,7 +446,7 @@ mod tests {
             )?,
             Uint::ZERO,
         );
-        let unpacked_result = manager.unpack_execution(execution_result)?;
+        let unpacked_result = unpack_execution(execution_result)?;
         let output: U256 = arbiter_math.decode_output("divWadUp", unpacked_result)?;
         println!("divWadUp(1, 2) = {}", output);
         assert_eq!(
@@ -459,7 +461,7 @@ mod tests {
             arbiter_math.encode_function("log", I256::from(1_000_000_000_000_000_000_u128))?,
             Uint::ZERO,
         );
-        let unpacked_result = manager.unpack_execution(execution_result)?;
+        let unpacked_result = unpack_execution(execution_result)?;
         let output: I256 = arbiter_math.decode_output("log", unpacked_result)?;
         println!("lnWad(0) = {}", output);
         assert_eq!(output, I256::from(0));
@@ -470,7 +472,7 @@ mod tests {
             arbiter_math.encode_function("sqrt", U256::from(1u128))?,
             Uint::ZERO,
         );
-        let unpacked_result = manager.unpack_execution(execution_result)?;
+        let unpacked_result = unpack_execution(execution_result)?;
         let output: U256 = arbiter_math.decode_output("sqrt", unpacked_result)?;
         println!("sqrt(1) = {}", output);
         assert_eq!(output, U256::from(1u128));

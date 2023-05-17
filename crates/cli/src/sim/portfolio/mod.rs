@@ -9,6 +9,7 @@ use simulate::{
     contract::{IsDeployed, SimulationContract},
     manager::SimulationManager,
     stochastic::price_process::{PriceProcess, PriceProcessType, OU},
+    utils::unpack_execution,
 };
 
 use crate::sim::portfolio::arbitrage::compute_arb_size;
@@ -79,7 +80,7 @@ pub fn run() -> Result<(), Box<dyn Error>> {
         contracts.liquid_exchange_xy.encode_function("price", ())?,
         Uint::ZERO,
     );
-    let liquid_exchange_xy_price = manager.unpack_execution(liquid_exchange_xy_price)?;
+    let liquid_exchange_xy_price = unpack_execution(liquid_exchange_xy_price)?;
     let liquid_exchange_xy_price: U256 = contracts
         .liquid_exchange_xy
         .decode_output("price", liquid_exchange_xy_price)?;
@@ -91,7 +92,7 @@ pub fn run() -> Result<(), Box<dyn Error>> {
             .encode_function("getSpotPrice", pool_id)?,
         Uint::ZERO,
     );
-    let portfolio_price = manager.unpack_execution(portfolio_price)?;
+    let portfolio_price = unpack_execution(portfolio_price)?;
     let portfolio_price: U256 = contracts
         .liquid_exchange_xy
         .decode_output("price", portfolio_price)?;
@@ -102,7 +103,7 @@ pub fn run() -> Result<(), Box<dyn Error>> {
 
     println!("Initial prices for Arbitrageur: {:#?}", arbitrageur.prices);
 
-    let (_handle, rx) = arbitrageur.detect_arbitrage();
+    let (handle, rx) = arbitrageur.detect_arbitrage();
 
     // Get prices
     let ou = OU::new(0.001, 50.0, 1.0);
@@ -126,6 +127,7 @@ pub fn run() -> Result<(), Box<dyn Error>> {
         println!("Entered Main's `while let` with index: {}", index);
         if index >= prices.len() {
             println!("Reached end of price path\n");
+            manager.shut_down();
             break;
         }
         let price = prices[index];
@@ -167,7 +169,7 @@ pub fn run() -> Result<(), Box<dyn Error>> {
         }
     }
 
-    // handle.join().unwrap();
+    handle.join().unwrap();
 
     println!("=======================================");
     println!("🎉 Simulation Completed 🎉");

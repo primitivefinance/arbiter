@@ -55,7 +55,7 @@ pub struct SimulationContract<DeployedState: DeploymentStatus> {
     /// The address of the contract within the relevant [`SimulationEnvironment`].
     pub address: DeployedState::Address,
     /// The ethers [`BaseContract`] that holds the ABI.
-    pub(crate) base_contract: BaseContract,
+    pub base_contract: BaseContract,
     /// The contract's deployed bytecode.
     pub bytecode: DeployedState::Bytecode,
     // /// A [`PhantomData`] marker to indicate whether the contract is deployed or not.
