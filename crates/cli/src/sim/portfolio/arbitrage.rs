@@ -73,11 +73,12 @@ pub(crate) fn compute_arb_size(
     //------------------------------------------------------------
     // Calculate X Arbitrage Amount
     //------------------------------------------------------------
+    let log_input = int_ratio * I256::from_raw(wad) / I256::from_raw(gamma);
     // compute logarithm
     let execution_result = admin.call_contract(
         &mut manager.environment,
         arbiter_math,
-        arbiter_math.encode_function("log", int_ratio)?,
+        arbiter_math.encode_function("log", log_input)?,
         Uint::ZERO,
     );
     let unpacked_result = unpack_execution(execution_result)?;
@@ -125,6 +126,31 @@ pub(crate) fn compute_arb_size(
     // --------------------------------------------------------------------------------------------
     // Calculate Y Arbitrage Amount
     // --------------------------------------------------------------------------------------------
+    let log_input = int_ratio * I256::from_raw(gamma) / I256::from_raw(wad);
+    // compute logarithm
+    let execution_result = admin.call_contract(
+        &mut manager.environment,
+        arbiter_math,
+        arbiter_math.encode_function("log", log_input)?,
+        Uint::ZERO,
+    );
+    let unpacked_result = unpack_execution(execution_result)?;
+    let log: I256 = arbiter_math.decode_output("log", unpacked_result)?;
+    let sign = log.sign();
+    let unsigned_log = match sign {
+        Sign::Positive => log.into_raw(),
+        Sign::Negative => (log * I256::from(-1)).into_raw(),
+    };
+    // Scale logarithm
+    let output = unsigned_log * wad / iv;
+    let scaled_log = match sign {
+        Sign::Positive => I256::from_raw(output),
+        Sign::Negative => I256::from_raw(output) * I256::from(-1),
+    };
+    // compute the additional term
+    let additional_term = iv * U256::from(500_000_000_000_000_000_u128) / wad;
+    // CDF input
+    let cdf_input = scaled_log + I256::from_raw(additional_term);
     let ppf_output = cdf_input;
     let cdf_input = ppf_output - I256::from_raw(iv);
     // compute the CDF
