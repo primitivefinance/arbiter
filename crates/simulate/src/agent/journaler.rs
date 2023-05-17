@@ -131,7 +131,7 @@ mod tests {
     use super::Journaler;
     use crate::{
         agent::{Agent, AgentType, SimulationEventFilter},
-        contract::SimulationContract,
+        environment::contract::SimulationContract,
         manager::SimulationManager,
     };
 
