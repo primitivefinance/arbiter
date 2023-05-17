@@ -347,10 +347,10 @@ mod tests {
         // This will also create an EVM instance associated to the manager.
         let mut manager = SimulationManager::default();
         let admin = manager.agents.get("admin").unwrap();
-
+        println!("Here");
         // Get a SimulationContract for the Arbiter Math ABI and bytecode.
         let arbiter_math = manager.autodeployed_contracts.get("arbiter_math").unwrap();
-
+        println!("Over Here Now");
         // Test the cdf function.
         let execution_result = admin.call_contract(
             &mut manager.environment,
@@ -358,7 +358,9 @@ mod tests {
             arbiter_math.encode_function("cdf", I256::from(1))?,
             Uint::ZERO,
         );
+        
         let unpacked_result = unpack_execution(execution_result)?;
+        println!("Can you see me??");
         let output: I256 = arbiter_math.decode_output("cdf", unpacked_result)?;
         println!("cdf(1) = {}", output);
         assert_eq!(output, I256::from(500000000000000000u64));
