@@ -145,13 +145,13 @@ pub(crate) fn swap(
 
     let path = if sell_asset {
         vec![
-            recast_address(contracts.arbiter_token_x.address),
             recast_address(contracts.arbiter_token_y.address),
+            recast_address(contracts.arbiter_token_x.address),
         ]
     } else {
         vec![
-            recast_address(contracts.arbiter_token_y.address),
             recast_address(contracts.arbiter_token_x.address),
+            recast_address(contracts.arbiter_token_y.address),
         ]
     };
 
@@ -194,9 +194,8 @@ mod test {
         let mut manager = SimulationManager::new();
 
         let target_price = U256::from(800_000_000_000_000_000u128);
-        let delta_liquidity = U256::from(10u128.pow(18));
 
-        let (contracts, pair_address) = startup::run(&mut manager)?;
+        let (_contracts, pair_address) = startup::run(&mut manager)?;
         let uniswap_pair = SimulationContract::<IsDeployed> {
             address: pair_address.into(),
             base_contract: BaseContract::from(bindings::uniswap_v2_pair::UNISWAPV2PAIR_ABI.clone()),
@@ -214,7 +213,6 @@ mod test {
         let mut manager = SimulationManager::new();
 
         let target_price = U256::from(800_000_000_000_000_000u128);
-        let delta_liquidity = U256::from(10u128.pow(18));
 
         let (contracts, pair_address) = startup::run(&mut manager)?;
         let uniswap_pair = SimulationContract::<IsDeployed> {
@@ -226,7 +224,7 @@ mod test {
 
         let output = compute_arb_size(&mut manager, &uniswap_pair, target_price)?;
 
-        let swap_event = swap(&mut manager, &contracts, output.input, false); // Swap bool is flipped!
+        let _swap_event = swap(&mut manager, &contracts, output.input, output.sell_asset); // Swap bool is flipped!
 
         let arbitrageur = manager.agents.get("arbitrageur").unwrap();
         let reserves = arbitrageur.call_contract(
