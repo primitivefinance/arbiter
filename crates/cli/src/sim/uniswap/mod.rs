@@ -22,7 +22,7 @@ pub fn run() -> Result<(), Box<dyn Error>> {
     let mut manager = SimulationManager::new();
 
     // Run the startup script
-    let (contracts, mut pair_address) = startup::run(&mut manager)?;
+    let (contracts, pair_address) = startup::run(&mut manager)?;
 
     // TODO: This is REALLY bad. This contract is marked as deployed but it is not deployed in the typical way. It's because the factory calls the deployer for a pair contract. I had to make the base_contract field not private
     // Get the pair contract that we can encode with
@@ -80,20 +80,16 @@ pub fn run() -> Result<(), Box<dyn Error>> {
         PriceProcessType::OU(ou),
         0.01,
         "trade".to_string(),
-        100,
+        2,
         1.0,
         1,
     );
     let prices = price_process.generate_price_path().1;
 
-    let pair = SimulationContract::new(bindings::uniswap_v2_pair::UNISWAPV2PAIR_ABI.clone(), bindings::uniswap_v2_pair::UNISWAPV2PAIR_BYTECODE.clone());
-    // let pair: SimulationContract<IsDeployed>.pair_address = pair_address.into();
-
 
     // Testing journaler with these two events now, can add more events to this if we want
-    // need to implement journaler to accept and handle more than one event filter
-    // let price_update_event_filter = SimulationEventFilter::new(&contracts.liquid_exchange_xy, "PriceChange");
-    let uniswap_swap_event_filter = SimulationEventFilter::new(&uniswap_pair, "Sync");
+    // need to implement journaler to accept and handle more than one event filter later
+    let uniswap_swap_event_filter = SimulationEventFilter::new(&uniswap_pair, "Swap");
 
     create_journaler(&mut manager, vec![uniswap_swap_event_filter], "journaler");
     let journaler = manager.agents.get("journaler").unwrap();
@@ -102,7 +98,7 @@ pub fn run() -> Result<(), Box<dyn Error>> {
         AgentType::Journaler(base_journaler) => base_journaler,
         _ => panic!(),
     };
-    let j_handle = base_journaler.journal_events();
+    base_journaler.journal_events()?;
 
 
     // Run the simulation
@@ -156,7 +152,6 @@ pub fn run() -> Result<(), Box<dyn Error>> {
     }
 
     handle.join().unwrap();
-    j_handle?.join().unwrap();
 
     println!("=======================================");
     println!("🎉 Simulation Completed 🎉");

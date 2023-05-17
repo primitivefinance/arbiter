@@ -104,7 +104,8 @@ impl Journaler<IsActive> {
                 if !filtered_logs.is_empty() {
                     println!("Log data is: {:#?}", filtered_logs[0].data);
                     let data = filtered_logs[0].data.clone().into_iter().collect();
-
+                    println!("data: {:#?}", data);
+                    // let data_without_prefix = &data[2..];
                     let decoded_event = decoder(data).unwrap(); // TODO: Fix the error handling here.
                     println!("Decoded event says: {:#?}", decoded_event);
                     let value = decoded_event[0].clone();
