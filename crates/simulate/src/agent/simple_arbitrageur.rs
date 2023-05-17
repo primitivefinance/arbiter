@@ -11,7 +11,7 @@ use crossbeam_channel::Receiver;
 use revm::primitives::{Address, Log, U256};
 
 use super::{AgentStatus, Identifiable, IsActive, NotActive};
-use crate::{agent::{filter_events, Agent, SimulationEventFilter, TransactSettings}, utils::wad_to_float};
+use crate::agent::{filter_events, Agent, SimulationEventFilter, TransactSettings};
 
 /// Used to report back to another [`Agent`] what the next transaction of the [`SimpleArbitrageur`] should be.
 pub enum NextTx {
@@ -123,7 +123,6 @@ impl SimpleArbitrageur<IsActive> {
                         let value = value.into_uint().unwrap();
                         let mut prices = prices.lock().unwrap();
                         prices[pool_number] = value.into();
-                        println!("After hearing LiquidExchange change...\nPrice for LiquidExchange is: {:#?}\nPrice for Uniswap pool is: {:#?}", wad_to_float(prices[0].into()), wad_to_float(prices[1].into()));
 
                         // look to see if this gives an arbitrage event
                         // First filter out if one of the prices is MAX as this is the default state.
@@ -482,6 +481,7 @@ mod tests {
             prices[1],
             wad.checked_mul(U256::from(69420)).unwrap().into()
         );
+
         manager.shut_down();
 
         Ok(())

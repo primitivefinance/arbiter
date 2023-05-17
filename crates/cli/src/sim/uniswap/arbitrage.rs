@@ -5,8 +5,13 @@ use ethers::prelude::U256;
 use eyre::Result;
 use revm::primitives::B160;
 use simulate::{
-    agent::{simple_arbitrageur::SimpleArbitrageur, Agent, AgentType, SimulationEventFilter, IsActive},
-    environment::{contract::{IsDeployed, SimulationContract}, sim_environment::SimulationEnvironment},
+    agent::{
+        simple_arbitrageur::SimpleArbitrageur, Agent, AgentType, IsActive, SimulationEventFilter,
+    },
+    environment::{
+        contract::{IsDeployed, SimulationContract},
+        sim_environment::SimulationEnvironment,
+    },
     manager::SimulationManager,
     utils::{recast_address, unpack_execution},
 };
@@ -70,9 +75,15 @@ pub(crate) fn swap(
         .decode_output("swapExactTokensForTokens", swap_result)?;
 
     if sell_asset {
-        println!("Swapped {} ARBX for {} ARBY.", swap_result[0], swap_result[1]);
+        println!(
+            "Swapped {} ARBX for {} ARBY.",
+            swap_result[0], swap_result[1]
+        );
     } else {
-        println!("Swapped {} ARBY for {} ARBX.", swap_result[0], swap_result[1]);
+        println!(
+            "Swapped {} ARBY for {} ARBX.",
+            swap_result[0], swap_result[1]
+        );
     }
 
     Ok(())

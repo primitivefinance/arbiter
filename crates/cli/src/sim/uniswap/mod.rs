@@ -1,35 +1,26 @@
 #![warn(missing_docs)]
-use std::error::Error;
-use std::{
-    fs::File,
-};
-use csv::{WriterBuilder, Writer};
+use std::{error::Error, fs::File, time::Instant};
+
 use ethers::{prelude::BaseContract, types::U256};
 use eyre::Result;
-use polars::export::rayon::vec;
+use polars::prelude::*;
 use ruint::Uint;
-use simulate::environment::sim_environment::SimulationEnvironment;
-use simulate::utils::wad_to_float;
 use simulate::{
-    agent::{Agent, AgentType, simple_arbitrageur::NextTx},
-    environment::contract::{IsDeployed, SimulationContract},
+    agent::{simple_arbitrageur::NextTx, Agent, AgentType},
+    environment::{
+        contract::{IsDeployed, SimulationContract},
+        sim_environment::SimulationEnvironment,
+    },
     manager::SimulationManager,
     stochastic::price_process::{PriceProcess, PriceProcessType, OU},
-    utils::unpack_execution,
+    utils::{unpack_execution, wad_to_float},
 };
-
-use std::time::Instant;
-use polars::prelude::*;
-
-use crate::sim::uniswap;
-
 
 pub mod arbitrage;
 pub mod startup;
 
 /// Run a simulation.
-pub fn run() -> Result<(), Box<dyn Error>> {    
-
+pub fn run() -> Result<(), Box<dyn Error>> {
     let start = Instant::now();
 
     // Create a `SimulationManager` that runs simulations in their `SimulationEnvironment`.
@@ -40,7 +31,7 @@ pub fn run() -> Result<(), Box<dyn Error>> {
 
     // TODO: This is REALLY bad. This contract is marked as deployed but it is not deployed in the typical way. It's because the factory calls the deployer for a pair contract. I had to make the base_contract field not private
     // Get the pair contract that we can encode with
-    // maybe we can make a custome deployed_by for this, i was looking into this and i think to do this maybe we would have to take away the constructor args attribute, but I think that is okay and things will still work 
+    // maybe we can make a custome deployed_by for this, i was looking into this and i think to do this maybe we would have to take away the constructor args attribute, but I think that is okay and things will still work
     let uniswap_pair = SimulationContract::<IsDeployed> {
         address: pair_address.into(),
         base_contract: BaseContract::from(bindings::uniswap_v2_pair::UNISWAPV2PAIR_ABI.clone()),
@@ -83,8 +74,12 @@ pub fn run() -> Result<(), Box<dyn Error>> {
     let mut prices = arbitrageur.prices.lock().unwrap();
     prices[0] = liquid_exchange_xy_price.into();
     prices[1] = uniswap_price.into();
-    println!("Initial price for LiquidExchange is: {:#?}\nInitial price for Uniswap pool is: {:#?}", wad_to_float(prices[0].into()), wad_to_float(prices[1].into()));
-    drop(prices); 
+    println!(
+        "Initial price for LiquidExchange is: {:#?}\nInitial price for Uniswap pool is: {:#?}",
+        wad_to_float(prices[0].into()),
+        wad_to_float(prices[1].into())
+    );
+    drop(prices);
 
     let (handle, rx) = arbitrageur.detect_arbitrage();
 
@@ -108,7 +103,13 @@ pub fn run() -> Result<(), Box<dyn Error>> {
     // Update the first price
     let liquid_exchange = &contracts.liquid_exchange_xy;
     let price = prices[0];
-    update_price(admin, &mut manager.environment, liquid_exchange, price, &mut liq_price_path)?;
+    update_price(
+        admin,
+        &mut manager.environment,
+        liquid_exchange,
+        price,
+        &mut liq_price_path,
+    )?;
 
     let mut index: usize = 1;
     while let Ok((next_tx, _sell_asset)) = rx.recv() {
@@ -122,9 +123,21 @@ pub fn run() -> Result<(), Box<dyn Error>> {
 
         match next_tx {
             NextTx::Swap => {
-                arbitrage::swap(arbitrageur,&mut manager.environment, &contracts, U256::from(10_u128.pow(15)), true)?;
+                arbitrage::swap(
+                    arbitrageur,
+                    &mut manager.environment,
+                    &contracts,
+                    U256::from(10_u128.pow(15)),
+                    true,
+                )?;
                 // Update the liquid exchange price
-                update_price(admin,&mut manager.environment, liquid_exchange, price, &mut liq_price_path)?;
+                update_price(
+                    admin,
+                    &mut manager.environment,
+                    liquid_exchange,
+                    price,
+                    &mut liq_price_path,
+                )?;
                 index += 1;
 
                 // Get the updated Uniswap price and deliver it to the arbitrageur
@@ -143,7 +156,10 @@ pub fn run() -> Result<(), Box<dyn Error>> {
 
                 let mut prices = arbitrageur.prices.lock().unwrap();
                 prices[1] = uniswap_price.into();
-                println!("Uniswap price post swap is: {}\n", wad_to_float(uniswap_price));
+                println!(
+                    "Uniswap price post swap is: {}\n",
+                    wad_to_float(uniswap_price)
+                );
                 dex_price_path.push(uniswap_price);
                 // Maybe we want a seperate writer?
                 // have to figure out the correct way to use the delimiter
@@ -152,7 +168,13 @@ pub fn run() -> Result<(), Box<dyn Error>> {
             }
             NextTx::UpdatePrice => {
                 dex_price_path.push(U256::from(0)); // Add a zero when the Uniswap pool doesn't get a swap but the LiquidExchange does
-                update_price(admin, &mut manager.environment, liquid_exchange, price, &mut liq_price_path)?;
+                update_price(
+                    admin,
+                    &mut manager.environment,
+                    liquid_exchange,
+                    price,
+                    &mut liq_price_path,
+                )?;
                 index += 1;
                 continue;
             }
@@ -166,10 +188,16 @@ pub fn run() -> Result<(), Box<dyn Error>> {
     handle.join().unwrap();
 
     // Write down the price paths to a csv file
-    let liquid_exchange_prices = liq_price_path.into_iter().map(|x| wad_to_float(x)).collect::<Vec<f64>>();
+    let liquid_exchange_prices = liq_price_path
+        .into_iter()
+        .map(wad_to_float)
+        .collect::<Vec<f64>>();
     let liquid_exchange_prices = liquid_exchange_prices[1..].to_vec();
     let liquid_exchange_prices = Series::new("liquid_exchange_prices", liquid_exchange_prices);
-    let uniswap_prices = dex_price_path.into_iter().map(|x| wad_to_float(x)).collect::<Vec<f64>>();
+    let uniswap_prices = dex_price_path
+        .into_iter()
+        .map(wad_to_float)
+        .collect::<Vec<f64>>();
     let uniswap_prices = Series::new("uniswap_prices", uniswap_prices);
 
     let mut df = DataFrame::new(vec![liquid_exchange_prices, uniswap_prices])?;
@@ -179,11 +207,10 @@ pub fn run() -> Result<(), Box<dyn Error>> {
     let mut writer = CsvWriter::new(file);
     writer.finish(&mut df)?;
 
-
     println!("=======================================");
     println!("🎉 Simulation Completed 🎉");
     println!("=======================================");
-    
+
     let duration = start.elapsed();
     println!("Time elapsed is: {:?}", duration);
 
@@ -196,7 +223,7 @@ fn update_price(
     environment: &mut SimulationEnvironment,
     liquid_exchange: &SimulationContract<IsDeployed>,
     price: f64,
-    price_path: &mut Vec<U256>
+    price_path: &mut Vec<U256>,
 ) -> Result<(), Box<dyn Error>> {
     println!("Updating price...");
     println!("Price from price path: {}", price);
@@ -204,18 +231,6 @@ fn update_price(
     price_path.push(wad_price);
     // println!("WAD price: {}", wad_price);
     let call_data = liquid_exchange.encode_function("setPrice", wad_price)?;
-    admin.call_contract(
-        environment,
-        liquid_exchange,
-        call_data,
-        Uint::from(0),
-    );
+    admin.call_contract(environment, liquid_exchange, call_data, Uint::from(0));
     Ok(())
 }
-
-fn csv_set_up () -> Writer<File>{
-    let filename = "simulation_output.csv";
-    let file = File::create(filename).unwrap(); // TODO: Fix the error handling here.
-    WriterBuilder::new().from_writer(file)
-}
-
