@@ -6,7 +6,7 @@ use eyre::Result;
 use ruint::Uint;
 use simulate::{
     agent::{simple_arbitrageur::NextTx, Agent, AgentType},
-    contract::{IsDeployed, SimulationContract},
+    environment::contract::{IsDeployed, SimulationContract},
     manager::SimulationManager,
     stochastic::price_process::{PriceProcess, PriceProcessType, OU},
     utils::unpack_execution,

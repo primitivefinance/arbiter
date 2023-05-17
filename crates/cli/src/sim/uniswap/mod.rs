@@ -6,8 +6,8 @@ use eyre::Result;
 use revm::primitives::B160;
 use ruint::Uint;
 use simulate::{
-    agent::{simple_arbitrageur::NextTx, Agent, AgentType, SimulationEventFilter, journaler::{Journaler, self}},
-    contract::{IsDeployed, SimulationContract},
+    agent::{simple_arbitrageur::NextTx, Agent, AgentType},
+    environment::contract::{IsDeployed, SimulationContract},
     manager::SimulationManager,
     stochastic::price_process::{PriceProcess, PriceProcessType, OU},
     utils::unpack_execution,

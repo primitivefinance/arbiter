@@ -9,7 +9,7 @@ use eyre::Result;
 use revm::primitives::ruint::Uint;
 use simulate::{
     agent::Agent,
-    contract::{IsDeployed, SimulationContract},
+    environment::contract::{IsDeployed, SimulationContract},
     manager::SimulationManager,
     utils::{recast_address, unpack_execution},
 };
