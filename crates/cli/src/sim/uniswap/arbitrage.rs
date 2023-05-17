@@ -91,11 +91,11 @@ pub(crate) fn compute_arb_size(
     let sqrt_input = arbitrageur.call_contract(
         &mut manager.environment,
         arbiter_math,
-        arbiter_math.encode_function("divWadUp", (invariant, arb_bound))?,
+        arbiter_math.encode_function("mulWadUp", (invariant, arb_bound))?,
         Uint::ZERO,
     );
     let sqrt_input = unpack_execution(sqrt_input)?;
-    let sqrt_input: U256 = arbiter_math.decode_output("divWadUp", sqrt_input)?;
+    let sqrt_input: U256 = arbiter_math.decode_output("mulWadUp", sqrt_input)?;
     println!("Sqrt Input: {}", sqrt_input);
     // Calculate trade amount
     let execution_result = arbitrageur.call_contract(
@@ -117,32 +117,35 @@ pub(crate) fn compute_arb_size(
     //-----------------------------------------------------------
     // Calculate Y arbitrage amount
     //-----------------------------------------------------------
-    let execution_result = arbitrageur.call_contract(
+    let arb_bound = arbitrageur.call_contract(
         &mut manager.environment,
         arbiter_math,
         arbiter_math.encode_function("mulWadUp", (gamma, target_price))?,
         Uint::ZERO,
     );
-    let unpacked_result = unpack_execution(execution_result)?;
-    let arb_bound: U256 = arbiter_math.decode_output("mulWadUp", unpacked_result)?;
-    let execution_result = arbitrageur.call_contract(
+    let arb_bound = unpack_execution(arb_bound)?;
+    let arb_bound: U256 = arbiter_math.decode_output("mulWadUp", arb_bound)?;
+    let sqrt_input = arbitrageur.call_contract(
         &mut manager.environment,
         arbiter_math,
-        arbiter_math.encode_function("mulWadUp", (invariant, arb_bound))?,
+        arbiter_math.encode_function("divWadUp", (invariant, arb_bound))?,
         Uint::ZERO,
     );
-    let unpacked_result = unpack_execution(execution_result)?;
-    let sqrt_input: U256 = arbiter_math.decode_output("mulWadUp", unpacked_result)?;
+    let sqrt_input = unpack_execution(sqrt_input)?;
+    let sqrt_input: U256 = arbiter_math.decode_output("divWadUp", sqrt_input)?;
     // Calculate trade amount
-    let execution_result = arbitrageur.call_contract(
+    let new_y = arbitrageur.call_contract(
         &mut manager.environment,
         arbiter_math,
         arbiter_math.encode_function("sqrt", sqrt_input)?,
         Uint::ZERO,
     );
-    let unpacked_result = unpack_execution(execution_result)?;
-    let new_y: U256 = arbiter_math.decode_output("sqrt", unpacked_result)?;
-    let trade_amount_y = new_y - reserve_y;
+    let new_y = unpack_execution(new_y)?;
+    let new_y: U256 = arbiter_math.decode_output("sqrt", new_y)?;
+    let new_y = I256::from_raw(new_y);
+    let reserve_y = I256::from_raw(reserve_y);
+    let y_diff = new_y - reserve_y;
+    let trade_amount_y = y_diff.max(I256::from(0));
     //-----------------------------------------------------------
     // Compare X and Y arbitrage amounts
     //-----------------------------------------------------------
@@ -150,9 +153,9 @@ pub(crate) fn compute_arb_size(
         let sell_asset = true;
         let input = trade_amount_x.into_raw();
         ComputeArbOutput::new(sell_asset, input)
-    } else if trade_amount_y > U256::from(0) {
+    } else if trade_amount_y > I256::from(0) {
         let sell_asset = false;
-        let input = trade_amount_y;
+        let input = trade_amount_y.into_raw();
         ComputeArbOutput::new(sell_asset, input)
     } else {
         let sell_asset = false;
@@ -234,6 +237,7 @@ mod test {
         };
         
         let output = compute_arb_size(&mut manager, pool_price, &uniswap_pair, target_price)?;
+        println!("Output Bool {}", output.sell_asset);
         assert_eq!(output.sell_asset, true);
         Ok(())
     }
