@@ -10,7 +10,6 @@ use std::{
 use crossbeam_channel::Receiver;
 use csv::WriterBuilder;
 use revm::primitives::{Address, Log};
-use bytes::Bytes;
 
 use super::{AgentStatus, Identifiable, IsActive, NotActive};
 use crate::agent::{filter_events, Agent, SimulationEventFilter, TransactSettings};

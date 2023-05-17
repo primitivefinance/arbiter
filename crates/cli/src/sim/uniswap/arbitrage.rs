@@ -5,8 +5,8 @@ use ethers::prelude::U256;
 use eyre::Result;
 use revm::primitives::B160;
 use simulate::{
-    agent::{simple_arbitrageur::SimpleArbitrageur, Agent, AgentType, SimulationEventFilter},
-    environment::contract::{IsDeployed, SimulationContract},
+    agent::{simple_arbitrageur::SimpleArbitrageur, Agent, AgentType, SimulationEventFilter, IsActive},
+    environment::{contract::{IsDeployed, SimulationContract}, sim_environment::SimulationEnvironment},
     manager::SimulationManager,
     utils::{recast_address, unpack_execution},
 };
@@ -28,12 +28,13 @@ pub(crate) fn create_arbitrageur<S: Into<String>>(
 }
 
 pub(crate) fn swap(
-    manager: &mut SimulationManager,
+    arbitrageur: &SimpleArbitrageur<IsActive>,
+    environment: &mut SimulationEnvironment,
     contracts: &SimulationContracts,
     input_amount: U256,
     sell_asset: bool,
 ) -> Result<(), Box<dyn Error>> {
-    let arbitrageur = manager.agents.get("arbitrageur").unwrap();
+    // let arbitrageur = manager.agents.get("arbitrageur").unwrap();
 
     let path = if sell_asset {
         vec![
@@ -55,7 +56,7 @@ pub(crate) fn swap(
         deadline: U256::MAX,
     };
     let swap_result = arbitrageur.call_contract(
-        &mut manager.environment,
+        environment,
         &contracts.uniswap_router,
         contracts
             .uniswap_router
@@ -67,7 +68,12 @@ pub(crate) fn swap(
     let swap_result: Vec<U256> = contracts
         .uniswap_router
         .decode_output("swapExactTokensForTokens", swap_result)?;
-    println!("Swapped {} for {}.", swap_result[0], swap_result[1]);
+
+    if sell_asset {
+        println!("Swapped {} ARBX for {} ARBY.", swap_result[0], swap_result[1]);
+    } else {
+        println!("Swapped {} ARBY for {} ARBX.", swap_result[0], swap_result[1]);
+    }
 
     Ok(())
 }

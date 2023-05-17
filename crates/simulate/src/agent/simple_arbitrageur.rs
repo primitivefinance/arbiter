@@ -11,7 +11,7 @@ use crossbeam_channel::Receiver;
 use revm::primitives::{Address, Log, U256};
 
 use super::{AgentStatus, Identifiable, IsActive, NotActive};
-use crate::agent::{filter_events, Agent, SimulationEventFilter, TransactSettings};
+use crate::{agent::{filter_events, Agent, SimulationEventFilter, TransactSettings}, utils::wad_to_float};
 
 /// Used to report back to another [`Agent`] what the next transaction of the [`SimpleArbitrageur`] should be.
 pub enum NextTx {
@@ -119,25 +119,19 @@ impl SimpleArbitrageur<IsActive> {
                             };
 
                         let decoded_event = decoder(data, pool_number).unwrap(); // TODO: Fix the error handling here.
-                                                                                 // println!("Decoded event says: {:#?}", decoded_event);
                         let value = decoded_event[0].clone();
-                        // println!("The value is: {:#?}", value);
                         let value = value.into_uint().unwrap();
                         let mut prices = prices.lock().unwrap();
                         prices[pool_number] = value.into();
-                        println!(
-                            "Price for pool number {:#?} is {:#?}",
-                            pool_number, prices[pool_number]
-                        );
+                        println!("After hearing LiquidExchange change...\nPrice for LiquidExchange is: {:#?}\nPrice for Uniswap pool is: {:#?}", wad_to_float(prices[0].into()), wad_to_float(prices[1].into()));
 
                         // look to see if this gives an arbitrage event
                         // First filter out if one of the prices is MAX as this is the default state.
                         // TODO: This is a really bad way to do this that just adds extra nesting. Fix it.
                         if prices[0] != U256::MAX && prices[1] != U256::MAX {
                             let price_difference = prices[0].overflowing_sub(prices[1]);
-                            println!("Price difference = {:#?}", price_difference);
                             if price_difference.1 {
-                                println!("Arbitrage with price_0 < price_1.\nSending Swap.\n");
+                                // println!("Arbitrage with price_0 < price_1.\nSending Swap.\n");
                                 match tx.send((NextTx::Swap, Some(false))) {
                                     Ok(_) => {}
                                     Err(_) => {
@@ -147,7 +141,7 @@ impl SimpleArbitrageur<IsActive> {
                                 }
                                 continue;
                             } else if !price_difference.1 && price_difference.0 != U256::ZERO {
-                                println!("Arbitrage with price_0 > price_1.\nSending Swap.\n");
+                                // println!("Arbitrage with price_0 > price_1.\nSending Swap.\n");
                                 match tx.send((NextTx::Swap, Some(true))) {
                                     Ok(_) => {}
                                     Err(_) => {
@@ -157,7 +151,7 @@ impl SimpleArbitrageur<IsActive> {
                                 }
                                 continue;
                             } else {
-                                println!("No arbitrage detected.\nSending UpdatePrice.\n");
+                                // println!("No arbitrage detected.\nSending UpdatePrice.\n");
                                 match tx.send((NextTx::UpdatePrice, None)) {
                                     Ok(_) => {}
                                     Err(_) => {
@@ -176,7 +170,7 @@ impl SimpleArbitrageur<IsActive> {
                                 break;
                             }
                         }
-                        println!("No relevant events found.\nSending None.\n");
+                        // println!("No relevant events found.\nSending None.\n");
                         continue;
                     }
                 }

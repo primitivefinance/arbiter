@@ -6,7 +6,10 @@ use std::{
 use csv::{WriterBuilder, Writer};
 use ethers::{prelude::BaseContract, types::U256};
 use eyre::Result;
+use polars::export::rayon::vec;
 use ruint::Uint;
+use simulate::environment::sim_environment::SimulationEnvironment;
+use simulate::utils::wad_to_float;
 use simulate::{
     agent::{Agent, AgentType, simple_arbitrageur::NextTx},
     environment::contract::{IsDeployed, SimulationContract},
@@ -15,15 +18,20 @@ use simulate::{
     utils::unpack_execution,
 };
 
-use crate::commands::price_path;
+use std::time::Instant;
+use polars::prelude::*;
 
+use crate::sim::uniswap;
 
 
 pub mod arbitrage;
 pub mod startup;
 
 /// Run a simulation.
-pub fn run() -> Result<(), Box<dyn Error>> {
+pub fn run() -> Result<(), Box<dyn Error>> {    
+
+    let start = Instant::now();
+
     // Create a `SimulationManager` that runs simulations in their `SimulationEnvironment`.
     let mut manager = SimulationManager::new();
 
@@ -42,6 +50,7 @@ pub fn run() -> Result<(), Box<dyn Error>> {
 
     // Start the arbitrageur
     let arbitrageur = manager.agents.get("arbitrageur").unwrap();
+    let admin = manager.agents.get("admin").unwrap();
 
     // Intialize the arbitrageur with the prices from the two exchanges.
     let arbitrageur = match arbitrageur {
@@ -70,13 +79,12 @@ pub fn run() -> Result<(), Box<dyn Error>> {
     let x = U256::from(uniswap_reserves.0);
     let y = U256::from(uniswap_reserves.1);
     let uniswap_price = y * U256::from(10_u128.pow(18)) / x;
-    println!("Uniswap price: {}", uniswap_price);
+    // println!("Uniswap price: {}", uniswap_price);
     let mut prices = arbitrageur.prices.lock().unwrap();
     prices[0] = liquid_exchange_xy_price.into();
     prices[1] = uniswap_price.into();
-    drop(prices);
-
-    println!("Initial prices for Arbitrageur: {:#?}", arbitrageur.prices);
+    println!("Initial price for LiquidExchange is: {:#?}\nInitial price for Uniswap pool is: {:#?}", wad_to_float(prices[0].into()), wad_to_float(prices[1].into()));
+    drop(prices); 
 
     let (handle, rx) = arbitrageur.detect_arbitrage();
 
@@ -86,14 +94,13 @@ pub fn run() -> Result<(), Box<dyn Error>> {
         PriceProcessType::OU(ou),
         0.01,
         "trade".to_string(),
-        5,
+        10,
         1.0,
         1,
     );
     let prices = price_process.generate_price_path().1;
 
-    let mut writer = csv_set_up();
-
+    // Create vectors that will store the price paths for the LiquidExchange and the Uniswap pool
     let mut liq_price_path: Vec<U256> = Vec::new();
     let mut dex_price_path: Vec<U256> = Vec::new();
 
@@ -101,11 +108,11 @@ pub fn run() -> Result<(), Box<dyn Error>> {
     // Update the first price
     let liquid_exchange = &contracts.liquid_exchange_xy;
     let price = prices[0];
-    update_price(&mut manager, liquid_exchange, price, &mut liq_price_path)?;
+    update_price(admin, &mut manager.environment, liquid_exchange, price, &mut liq_price_path)?;
 
     let mut index: usize = 1;
     while let Ok((next_tx, _sell_asset)) = rx.recv() {
-        println!("Entered Main's `while let` with index: {}", index);
+        // println!("Entered Main's `while let` with index: {}", index);
         if index >= prices.len() {
             println!("Reached end of price path\n");
             manager.shut_down();
@@ -115,11 +122,12 @@ pub fn run() -> Result<(), Box<dyn Error>> {
 
         match next_tx {
             NextTx::Swap => {
-                arbitrage::swap(&mut manager, &contracts, U256::from(10_u128.pow(15)), true)?;
-                // TODO: Update the price of the Portfolio pool.
-                update_price(&mut manager, liquid_exchange, price, &mut liq_price_path)?;
+                arbitrage::swap(arbitrageur,&mut manager.environment, &contracts, U256::from(10_u128.pow(15)), true)?;
+                // Update the liquid exchange price
+                update_price(admin,&mut manager.environment, liquid_exchange, price, &mut liq_price_path)?;
                 index += 1;
-                // Check that the price got updated on the pool:
+
+                // Get the updated Uniswap price and deliver it to the arbitrageur
                 let uniswap_reserves = manager.agents.get("admin").unwrap().call_contract(
                     &mut manager.environment,
                     &uniswap_pair,
@@ -132,7 +140,10 @@ pub fn run() -> Result<(), Box<dyn Error>> {
                 let x = U256::from(uniswap_reserves.0);
                 let y = U256::from(uniswap_reserves.1);
                 let uniswap_price = y * U256::from(10_u128.pow(18)) / x;
-                println!("Uniswap price: {}", uniswap_price);
+
+                let mut prices = arbitrageur.prices.lock().unwrap();
+                prices[1] = uniswap_price.into();
+                println!("Uniswap price post swap is: {}\n", wad_to_float(uniswap_price));
                 dex_price_path.push(uniswap_price);
                 // Maybe we want a seperate writer?
                 // have to figure out the correct way to use the delimiter
@@ -140,12 +151,13 @@ pub fn run() -> Result<(), Box<dyn Error>> {
                 continue;
             }
             NextTx::UpdatePrice => {
-                update_price(&mut manager, liquid_exchange, price, &mut liq_price_path)?;
+                dex_price_path.push(U256::from(0)); // Add a zero when the Uniswap pool doesn't get a swap but the LiquidExchange does
+                update_price(admin, &mut manager.environment, liquid_exchange, price, &mut liq_price_path)?;
                 index += 1;
                 continue;
             }
             NextTx::None => {
-                println!("Can't update prices\n");
+                // println!("Can't update prices\n");
                 continue;
             }
         }
@@ -153,39 +165,47 @@ pub fn run() -> Result<(), Box<dyn Error>> {
 
     handle.join().unwrap();
 
-    for price in liq_price_path {
-        writer.serialize(price)?;
+    // Write down the price paths to a csv file
+    let liquid_exchange_prices = liq_price_path.into_iter().map(|x| wad_to_float(x)).collect::<Vec<f64>>();
+    let liquid_exchange_prices = liquid_exchange_prices[1..].to_vec();
+    let liquid_exchange_prices = Series::new("liquid_exchange_prices", liquid_exchange_prices);
+    let uniswap_prices = dex_price_path.into_iter().map(|x| wad_to_float(x)).collect::<Vec<f64>>();
+    let uniswap_prices = Series::new("uniswap_prices", uniswap_prices);
 
-    }
-    writer.flush()?;
-    for price in dex_price_path {
-        writer.serialize(price)?;
-    }
-    writer.flush()?;
+    let mut df = DataFrame::new(vec![liquid_exchange_prices, uniswap_prices])?;
+    println!("Dataframe: {:#?}", df);
+    // let mut writer = csv_set_up();
+    let file = File::create("output.csv")?;
+    let mut writer = CsvWriter::new(file);
+    writer.finish(&mut df)?;
+
 
     println!("=======================================");
     println!("🎉 Simulation Completed 🎉");
     println!("=======================================");
+    
+    let duration = start.elapsed();
+    println!("Time elapsed is: {:?}", duration);
 
     Ok(())
 }
 
 /// Update prices on the liquid exchange.
 fn update_price(
-    manager: &mut SimulationManager,
+    admin: &dyn Agent,
+    environment: &mut SimulationEnvironment,
     liquid_exchange: &SimulationContract<IsDeployed>,
     price: f64,
     price_path: &mut Vec<U256>
 ) -> Result<(), Box<dyn Error>> {
-    let admin = manager.agents.get("admin").unwrap();
     println!("Updating price...");
-    println!("Price from price path: {}\n", price);
+    println!("Price from price path: {}", price);
     let wad_price = simulate::utils::float_to_wad(price);
     price_path.push(wad_price);
     // println!("WAD price: {}", wad_price);
     let call_data = liquid_exchange.encode_function("setPrice", wad_price)?;
     admin.call_contract(
-        &mut manager.environment,
+        environment,
         liquid_exchange,
         call_data,
         Uint::from(0),
@@ -194,11 +214,8 @@ fn update_price(
 }
 
 fn csv_set_up () -> Writer<File>{
-    let filename = "uniswap_data.csv";
+    let filename = "simulation_output.csv";
     let file = File::create(filename).unwrap(); // TODO: Fix the error handling here.
-    let mut writer = WriterBuilder::new().from_writer(file);
-    // Label this column as "value"
-    writer.serialize("Liquid_exchange_Price_Path").unwrap(); // TODO: Fix the error handling here.
-    writer
+    WriterBuilder::new().from_writer(file)
 }
 
