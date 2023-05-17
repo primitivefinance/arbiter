@@ -132,6 +132,7 @@ impl SimpleArbitrageur<IsActive> {
 
                         // look to see if this gives an arbitrage event
                         // First filter out if one of the prices is MAX as this is the default state.
+                        // TODO: This is a really bad way to do this that just adds extra nesting. Fix it.
                         if prices[0] != U256::MAX && prices[1] != U256::MAX {
                             let price_difference = prices[0].overflowing_sub(prices[1]);
                             println!("Price difference = {:#?}", price_difference);
@@ -155,14 +156,14 @@ impl SimpleArbitrageur<IsActive> {
                                     }
                                 }
                                 continue;
-                            }
-                        } else {
-                            println!("No arbitrage detected.\nSending UpdatePrice.\n");
-                            match tx.send((NextTx::UpdatePrice, None)) {
-                                Ok(_) => {}
-                                Err(_) => {
-                                    println!("Error sending arbitrage event to channel.\nReceiver must have stopped listening and no more prices are going to be sent.\nBreaking.\n");
-                                    break;
+                            } else {
+                                println!("No arbitrage detected.\nSending UpdatePrice.\n");
+                                match tx.send((NextTx::UpdatePrice, None)) {
+                                    Ok(_) => {}
+                                    Err(_) => {
+                                        println!("Error sending arbitrage event to channel.\nReceiver must have stopped listening and no more prices are going to be sent.\nBreaking.\n");
+                                        break;
+                                    }
                                 }
                             }
                         }
@@ -176,6 +177,7 @@ impl SimpleArbitrageur<IsActive> {
                             }
                         }
                         println!("No relevant events found.\nSending None.\n");
+                        continue;
                     }
                 }
                 println!("Exited arbitrage detection thread!");
@@ -438,49 +440,7 @@ mod tests {
 
         // Start the arbitrageur to detect price changes.
         println!("Beginning arbitrage detection.");
-        let (arbitrage_detection_handle, rx) = base_arbitrageur.detect_arbitrage();
-
-        // Make a price change to the first exchange.
-        // let mut index = 0;
-        // while let Ok((next_tx, ..)) = rx.recv() {
-        //     println!("Received a new message.");
-        //     if index == 0 {
-        //         match next_tx {
-        //             NextTx::None => continue,
-        //             _ => {
-        //                 let new_price0 = wad.checked_mul(U256::from(42069)).unwrap();
-        //                 let call_data =
-        //                     liquid_exchange_xy0.encode_function("setPrice", new_price0)?;
-        //                 manager.agents.get("admin").unwrap().call_contract(
-        //                     &mut manager.environment,
-        //                     &liquid_exchange_xy0,
-        //                     call_data,
-        //                     U256::zero().into(),
-        //                 );
-        //                 index += 1;
-        //                 continue;
-        //             }
-        //         }
-        //     } else {
-        //         // Make a price change to the second exchange.
-        //         match next_tx {
-        //             NextTx::None => continue,
-        //             _ => {
-        //                 let new_price1 = wad.checked_mul(U256::from(69420)).unwrap();
-        //                 let call_data =
-        //                     liquid_exchange_xy1.encode_function("setPrice", new_price1)?;
-        //                 manager.agents.get("admin").unwrap().call_contract(
-        //                     &mut manager.environment,
-        //                     &liquid_exchange_xy1,
-        //                     call_data,
-        //                     U256::zero().into(),
-
-        //                 );
-        //                 break;
-        //             }
-        //         }
-        //     }
-        // }
+        let (_arbitrage_detection_handle, rx) = base_arbitrageur.detect_arbitrage();
 
         let new_price0 = wad.checked_mul(U256::from(42069)).unwrap();
         let call_data = liquid_exchange_xy0.encode_function("setPrice", new_price0)?;
