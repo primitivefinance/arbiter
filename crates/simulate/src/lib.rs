@@ -358,7 +358,7 @@ mod tests {
             arbiter_math.encode_function("cdf", I256::from(1))?,
             Uint::ZERO,
         );
-        
+
         let unpacked_result = unpack_execution(execution_result)?;
         println!("Can you see me??");
         let output: I256 = arbiter_math.decode_output("cdf", unpacked_result)?;
