@@ -16,6 +16,8 @@ use simulate::{
     utils::{unpack_execution, wad_to_float},
 };
 
+use crate::sim::uniswap::arbitrage::compute_arb_size;
+
 pub mod arbitrage;
 pub mod startup;
 
@@ -84,12 +86,12 @@ pub fn run() -> Result<(), Box<dyn Error>> {
     let (handle, rx) = arbitrageur.detect_arbitrage();
 
     // Get prices
-    let ou = OU::new(0.001, 50.0, 1.0);
+    let ou = OU::new(0.01, 50.0, 1.0);
     let price_process = PriceProcess::new(
         PriceProcessType::OU(ou),
         0.01,
         "trade".to_string(),
-        10,
+        1000,
         1.0,
         1,
     );
@@ -120,16 +122,34 @@ pub fn run() -> Result<(), Box<dyn Error>> {
             break;
         }
         let price = prices[index];
+        let wad_price = simulate::utils::float_to_wad(price);
+
+        // place args from manager to get
+        let arbiter_math = manager.autodeployed_contracts.get("arbiter_math").unwrap();
 
         match next_tx {
             NextTx::Swap => {
-                arbitrage::swap(
-                    arbitrageur,
+                let size = compute_arb_size(
                     &mut manager.environment,
-                    &contracts,
-                    U256::from(10_u128.pow(15)),
-                    true,
+                    &uniswap_pair,
+                    admin,
+                    arbiter_math,
+                    wad_price,
                 )?;
+                println!("Arbitrage size: {:#?}", size.input);
+                if size.input == U256::from(0) {
+                    println!("No arbitrage opportunity\n");
+                    index += 1;
+                    // continue 'sim;
+                } else {
+                    arbitrage::swap(
+                        arbitrageur,
+                        &mut manager.environment,
+                        &contracts,
+                        size.input,
+                        size.sell_asset,
+                    )?;
+                }
                 // Update the liquid exchange price
                 update_price(
                     admin,
