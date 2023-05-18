@@ -5,8 +5,13 @@ use ethers::{prelude::U256, types::I256};
 use eyre::Result;
 use revm::primitives::{ruint::Uint, B160};
 use simulate::{
-    agent::{simple_arbitrageur::SimpleArbitrageur, Agent, AgentType, SimulationEventFilter},
-    environment::contract::{IsDeployed, SimulationContract},
+    agent::{
+        simple_arbitrageur::SimpleArbitrageur, Agent, AgentType, IsActive, SimulationEventFilter,
+    },
+    environment::{
+        contract::{IsDeployed, SimulationContract},
+        sim_environment::SimulationEnvironment,
+    },
     manager::SimulationManager,
     utils::{recast_address, unpack_execution},
 };
@@ -136,12 +141,13 @@ pub(crate) fn compute_arb_size(
 }
 
 pub(crate) fn swap(
-    manager: &mut SimulationManager,
+    arbitrageur: &SimpleArbitrageur<IsActive>,
+    environment: &mut SimulationEnvironment,
     contracts: &SimulationContracts,
     input_amount: U256,
     sell_asset: bool,
 ) -> Result<(), Box<dyn Error>> {
-    let arbitrageur = manager.agents.get("arbitrageur").unwrap();
+    // let arbitrageur = manager.agents.get("arbitrageur").unwrap();
 
     let path = if sell_asset {
         vec![
@@ -162,9 +168,8 @@ pub(crate) fn swap(
         to: recast_address(arbitrageur.address()),
         deadline: U256::MAX,
     };
-
     let swap_result = arbitrageur.call_contract(
-        &mut manager.environment,
+        environment,
         &contracts.uniswap_router,
         contracts
             .uniswap_router
@@ -176,7 +181,18 @@ pub(crate) fn swap(
     let swap_result: Vec<U256> = contracts
         .uniswap_router
         .decode_output("swapExactTokensForTokens", swap_result)?;
-    println!("Swapped {} for {}.", swap_result[0], swap_result[1]);
+
+    if sell_asset {
+        println!(
+            "Swapped {} ARBX for {} ARBY.",
+            swap_result[0], swap_result[1]
+        );
+    } else {
+        println!(
+            "Swapped {} ARBY for {} ARBX.",
+            swap_result[0], swap_result[1]
+        );
+    }
 
     Ok(())
 }
@@ -223,10 +239,20 @@ mod test {
         };
 
         let output = compute_arb_size(&mut manager, &uniswap_pair, target_price)?;
-
-        let _swap_event = swap(&mut manager, &contracts, output.input, output.sell_asset); // Swap bool is flipped!
-
         let arbitrageur = manager.agents.get("arbitrageur").unwrap();
+        let arbitrageur = match arbitrageur {
+            AgentType::SimpleArbitrageur(base_arbitrageur) => base_arbitrageur,
+            _ => panic!(),
+        };
+
+        let _swap_event = swap(
+            arbitrageur,
+            &mut manager.environment,
+            &contracts,
+            output.input,
+            output.sell_asset,
+        ); // Swap bool is flipped!
+
         let reserves = arbitrageur.call_contract(
             &mut manager.environment,
             &uniswap_pair,
