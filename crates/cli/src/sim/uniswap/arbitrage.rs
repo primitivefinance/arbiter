@@ -245,7 +245,13 @@ mod test {
             _ => panic!(),
         };
 
-        let _swap_event = swap(arbitrageur, &mut manager.environment, &contracts, output.input, output.sell_asset, ); // Swap bool is flipped!
+        let _swap_event = swap(
+            arbitrageur,
+            &mut manager.environment,
+            &contracts,
+            output.input,
+            output.sell_asset,
+        ); // Swap bool is flipped!
 
         let reserves = arbitrageur.call_contract(
             &mut manager.environment,
