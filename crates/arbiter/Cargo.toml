@@ -9,14 +9,13 @@ edition = "2021"
 # Local
 simulate = {path = "../simulate"}
 bindings = {path = "../bindings"}
-on-chain = {path = "../on-chain"}
+onchain = {path = "../onchain"}
 
 # External
 tokio = { version = "1.23", features = [
     "macros",
     "full"
 ]}
-compiler = { git = "https://github.com/ts0yu/folio" }
 clap = { version = "4.0.32", features = ["derive"] }
 serde = { version = "1.0.152", features =["derive"] }
 thiserror = "1.0.38"

@@ -1,3 +1,5 @@
+use serde::{Deserialize, Serialize};
+
 /// Config object for chian
 #[derive(Serialize, Deserialize, Debug)]
 pub struct ConfigTomlChain {

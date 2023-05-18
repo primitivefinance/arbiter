@@ -12,9 +12,9 @@ pub trait Plotting {
     fn plot(&self, time: &[f64], price_path: &[f64]);
 }
 
-
 /// Enum for type of price process being used.
 #[derive(Serialize, Deserialize, Debug)]
+#[serde(tag = "price_process_type", content = "price_process")]
 pub enum PriceProcessType {
     /// Geometric Brownian Motion (GBM) process.
     GBM(GBM),
@@ -159,6 +159,7 @@ impl GBM {
 
 /// Ornstein-Uhlenbeck process parameters struct.
 /// # Fields
+/// * `volatility` - Volatility of the underlying asset. (f64)
 /// * `mean_reversion_speed` - Mean reversion speed of the underlying asset. (f64)
 /// * `mean_price` - Mean price of the underlying asset. (f64)
 #[derive(Serialize, Deserialize, Debug)]

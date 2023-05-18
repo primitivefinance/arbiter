@@ -16,13 +16,13 @@ use simulate::{
     utils::{unpack_execution, wad_to_float},
 };
 
-use crate::sim::uniswap::arbitrage::compute_arb_size;
+use crate::simulate::uniswap::arbitrage::compute_arb_size;
 
 pub mod arbitrage;
 pub mod startup;
 
 /// Run a simulation.
-pub fn run() -> Result<(), Box<dyn Error>> {
+pub fn run(price_process: PriceProcess) -> Result<(), Box<dyn Error>> {
     let start = Instant::now();
 
     // Create a `SimulationManager` that runs simulations in their `SimulationEnvironment`.
@@ -86,15 +86,6 @@ pub fn run() -> Result<(), Box<dyn Error>> {
     let (handle, rx) = arbitrageur.detect_arbitrage();
 
     // Get prices
-    let ou = OU::new(0.01, 50.0, 1.0);
-    let price_process = PriceProcess::new(
-        PriceProcessType::OU(ou),
-        0.01,
-        "trade".to_string(),
-        1000,
-        1.0,
-        1,
-    );
     let prices = price_process.generate_price_path().1;
 
     // Create vectors that will store the price paths for the LiquidExchange and the Uniswap pool

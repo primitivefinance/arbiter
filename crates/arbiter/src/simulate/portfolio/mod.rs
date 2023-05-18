@@ -12,7 +12,7 @@ use simulate::{
     utils::unpack_execution,
 };
 
-use crate::sim::portfolio::arbitrage::compute_arb_size;
+use crate::simulate::portfolio::arbitrage::compute_arb_size;
 
 pub mod arbitrage;
 pub mod startup;

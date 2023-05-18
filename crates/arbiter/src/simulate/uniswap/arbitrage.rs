@@ -16,7 +16,7 @@ use simulate::{
     utils::{recast_address, unpack_execution},
 };
 
-use crate::sim::uniswap::startup::SimulationContracts;
+use crate::simulate::uniswap::startup::SimulationContracts;
 
 pub(crate) fn create_arbitrageur<S: Into<String>>(
     manager: &mut SimulationManager,
@@ -58,7 +58,7 @@ pub(crate) fn compute_arb_size(
     //Reserves
     let uniswap_reserves = admin.call_contract(
         environment,
-        &uniswap_pair,
+        uniswap_pair,
         uniswap_pair.encode_function("getReserves", ())?,
         Uint::ZERO,
     );
@@ -205,7 +205,7 @@ mod test {
     use ethers::prelude::BaseContract;
 
     use super::*;
-    use crate::sim::uniswap::startup;
+    use crate::simulate::uniswap::startup;
     #[test]
     fn test_arb_bool() -> Result<(), Box<dyn Error>> {
         let mut manager = SimulationManager::new();
