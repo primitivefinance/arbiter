@@ -29,6 +29,7 @@ pub(crate) fn create_arbitrageur<S: Into<String>>(
         .unwrap();
     println!("Created Arbitrageur at address: {}.", address);
 }
+#[derive(Clone)]
 /// [`compute_arb_size`] Output struct.
 pub struct ComputeArbOutput {
     pub sell_asset: bool,
@@ -61,18 +62,22 @@ pub(crate) fn compute_arb_size(
     let manager = manager;
     let admin = manager.agents.get("admin").unwrap();
     let arbiter_math = manager.autodeployed_contracts.get("arbiter_math").unwrap();
-
+    // Units
+    let wad = U256::from(10u128.pow(18));
     let strike = U256::from(pool_params.strike);
-    let iv = U256::from(pool_params.volatility) * U256::from(10_u128.pow(18))
-        / U256::from(10u128.pow(4));
+    let iv = U256::from(pool_params.volatility) * wad / U256::from(10u128.pow(4));
     let tau = U256::from(31556953u128); // 1 year in seconds
-                                        // compute the ratio
     let int_ratio = I256::from_raw(ratio);
+    let gamma = U256::from(10000u16 - pool_params.fee) * U256::from(10u128.pow(14));
+    //------------------------------------------------------------
+    // Calculate X Arbitrage Amount
+    //------------------------------------------------------------
+    let log_input = int_ratio * I256::from_raw(wad) / I256::from_raw(gamma);
     // compute logarithm
     let execution_result = admin.call_contract(
         &mut manager.environment,
         arbiter_math,
-        arbiter_math.encode_function("log", int_ratio)?,
+        arbiter_math.encode_function("log", log_input)?,
         Uint::ZERO,
     );
     let unpacked_result = unpack_execution(execution_result)?;
@@ -83,21 +88,13 @@ pub(crate) fn compute_arb_size(
         Sign::Negative => (log * I256::from(-1)).into_raw(),
     };
     // Scale logarithm
-    let output = unsigned_log * U256::from(10u128.pow(18)) / iv;
+    let output = unsigned_log * wad / iv;
     let scaled_log = match sign {
         Sign::Positive => I256::from_raw(output),
         Sign::Negative => I256::from_raw(output) * I256::from(-1),
     };
     // compute the additional term
-    let execution_result = admin.call_contract(
-        &mut manager.environment,
-        arbiter_math,
-        arbiter_math
-            .encode_function("mulWadDown", (U256::from(500_000_000_000_000_000_u128), iv))?,
-        Uint::ZERO,
-    );
-    let unpacked_result = unpack_execution(execution_result)?;
-    let additional_term: U256 = arbiter_math.decode_output("mulWadDown", unpacked_result)?;
+    let additional_term = iv * U256::from(500_000_000_000_000_000_u128) / wad;
     // CDF input
     let cdf_input = scaled_log + I256::from_raw(additional_term);
     // compute the CDF
@@ -109,23 +106,51 @@ pub(crate) fn compute_arb_size(
     );
     let unpacked_result = unpack_execution(execution_result)?;
     let cdf_output: I256 = arbiter_math.decode_output("cdf", unpacked_result)?;
-    let cdf = cdf_output * I256::from(delta_liquidity) / I256::from(10_u128.pow(18));
+    let cdf = cdf_output * I256::from(delta_liquidity) / I256::from_raw(wad);
+    let cdf = cdf * I256::from_raw(wad) / I256::from_raw(gamma);
     // call the reserve values
-    let x_reserves = admin.call_contract(
+    let reserves = admin.call_contract(
         &mut manager.environment,
         portfolio,
         portfolio.encode_function("getVirtualReservesDec", pool_id)?,
         Uint::ZERO,
     );
-    let unpacked_result = unpack_execution(x_reserves)?;
-    let reserves: (u128, u128) =
-        portfolio.decode_output("getVirtualReservesDec", unpacked_result)?;
-    let a = I256::from(delta_liquidity) - cdf - I256::from(reserves.0);
+    let reserves = unpack_execution(reserves)?;
+    let reserves: (u128, u128) = portfolio.decode_output("getVirtualReservesDec", reserves)?;
+    let scaled_x_reserve = U256::from(reserves.0) * wad / gamma;
+    let a = I256::from(delta_liquidity) * I256::from_raw(wad) / I256::from_raw(gamma)
+        - cdf
+        - I256::from_raw(scaled_x_reserve);
     let arb_amount_x = a.max(I256::from(0));
 
     // --------------------------------------------------------------------------------------------
-    // GET ARBY ARBITRAGE AMOUNT
+    // Calculate Y Arbitrage Amount
     // --------------------------------------------------------------------------------------------
+    let log_input = int_ratio * I256::from_raw(gamma) / I256::from_raw(wad);
+    // compute logarithm
+    let execution_result = admin.call_contract(
+        &mut manager.environment,
+        arbiter_math,
+        arbiter_math.encode_function("log", log_input)?,
+        Uint::ZERO,
+    );
+    let unpacked_result = unpack_execution(execution_result)?;
+    let log: I256 = arbiter_math.decode_output("log", unpacked_result)?;
+    let sign = log.sign();
+    let unsigned_log = match sign {
+        Sign::Positive => log.into_raw(),
+        Sign::Negative => (log * I256::from(-1)).into_raw(),
+    };
+    // Scale logarithm
+    let output = unsigned_log * wad / iv;
+    let scaled_log = match sign {
+        Sign::Positive => I256::from_raw(output),
+        Sign::Negative => I256::from_raw(output) * I256::from(-1),
+    };
+    // compute the additional term
+    let additional_term = iv * U256::from(500_000_000_000_000_000_u128) / wad;
+    // CDF input
+    let cdf_input = scaled_log + I256::from_raw(additional_term);
     let ppf_output = cdf_input;
     let cdf_input = ppf_output - I256::from_raw(iv);
     // compute the CDF
@@ -138,48 +163,13 @@ pub(crate) fn compute_arb_size(
     let unpacked_result = unpack_execution(execution_result)?;
     let cdf_output: I256 = arbiter_math.decode_output("cdf", unpacked_result)?;
     // scale the CDF
-    let execution_result = admin.call_contract(
-        &mut manager.environment,
-        arbiter_math,
-        arbiter_math.encode_function("mulWadDown", (cdf_output.into_raw(), strike))?,
-        Uint::ZERO,
-    );
-    let unpacked_result = unpack_execution(execution_result)?;
-    let scaled_cdf: U256 = arbiter_math.decode_output("mulWadDown", unpacked_result)?;
+    let scaled_cdf = cdf_output.into_raw() * strike / wad;
     // scale by shares
-    let execution_result = admin.call_contract(
-        &mut manager.environment,
-        arbiter_math,
-        arbiter_math.encode_function("mulWadDown", (scaled_cdf, U256::from(delta_liquidity)))?,
-        Uint::ZERO,
-    );
-    let unpacked_result = unpack_execution(execution_result)?;
-    let scaled_cdf: U256 = arbiter_math.decode_output("mulWadDown", unpacked_result)?;
+    let scaled_cdf = scaled_cdf * U256::from(delta_liquidity) / wad;
     let cdf = I256::from_raw(scaled_cdf);
     // unscale reserves by shares
-    let execution_result = admin.call_contract(
-        &mut manager.environment,
-        arbiter_math,
-        arbiter_math.encode_function(
-            "divWadUp",
-            (U256::from(reserves.0), U256::from(delta_liquidity)),
-        )?,
-        Uint::ZERO,
-    );
-    let unpacked_result = unpack_execution(execution_result)?;
-    let x_reserve: U256 = arbiter_math.decode_output("divWadUp", unpacked_result)?;
-
-    let execution_result = admin.call_contract(
-        &mut manager.environment,
-        arbiter_math,
-        arbiter_math.encode_function(
-            "divWadUp",
-            (U256::from(reserves.1), U256::from(delta_liquidity)),
-        )?,
-        Uint::ZERO,
-    );
-    let unpacked_result = unpack_execution(execution_result)?;
-    let y_reserve: U256 = arbiter_math.decode_output("divWadUp", unpacked_result)?;
+    let x_reserve = U256::from(reserves.0) * wad / U256::from(delta_liquidity);
+    let y_reserve = U256::from(reserves.1) * wad / U256::from(delta_liquidity);
     // call invariant
     let execution_result = admin.call_contract(
         &mut manager.environment,
@@ -189,7 +179,9 @@ pub(crate) fn compute_arb_size(
     );
     let unpacked_result = unpack_execution(execution_result)?;
     let invariant: U256 = arbiter_math.decode_output("invariant", unpacked_result)?;
-    let b = cdf + I256::from_raw(invariant) - I256::from(reserves.1);
+    let b = cdf * I256::from_raw(wad) / I256::from_raw(gamma)
+        + I256::from_raw(invariant) * I256::from_raw(wad) / I256::from_raw(gamma)
+        - I256::from(reserves.1) * I256::from_raw(wad) / I256::from_raw(gamma);
     let arb_amount_y = b.max(I256::from(0));
     // bool for which asset is being sold.
     let fn_output = if arb_amount_x > I256::from(0) {
@@ -328,4 +320,59 @@ mod test {
         assert_eq!(sell_asset, true);
         Ok(())
     }
+    // #[test]
+    // fn test_arb_accuracy() -> Result<(), Box<dyn Error>> {
+    //     let reference_price = U256::from(14_900_000_000_000_000_000u128);
+    //     let mut manager = SimulationManager::new();
+    //     // pool config
+    //     let pool_args = PoolParams::new(
+    //         1_u16,
+    //         1_u16,
+    //         1_u16,
+    //         65535_u16,
+    //         15_000_000_000_000_000_000u128,
+    //         15_000_000_000_000_000_000u128,
+    //     );
+    //     let ratio = reference_price * U256::from(10u128.pow(18)) / U256::from(pool_args.strike);
+    //     // liquidity config
+    //     let delta_liquidity = 10_i128.pow(18);
+    //     // Run the startup script
+    //     let (contracts, _pool_data, pool_id) =
+    //         startup::run(&mut manager, pool_args, delta_liquidity)?;
+    //     let pool_args = PoolParams::new(
+    //         1_u16,
+    //         1_u16,
+    //         1_u16,
+    //         65535_u16,
+    //         15_000_000_000_000_000_000u128,
+    //         15_000_000_000_000_000_000u128,
+    //     );
+    //     // Compute the arb size
+    //     let results = compute_arb_size(
+    //         &mut manager,
+    //         pool_args,
+    //         delta_liquidity,
+    //         pool_id,
+    //         &contracts.portfolio,
+    //         ratio,
+    //     )?;
+    //     let sell_asset = results.sell_asset;
+    //     let input =results.input.as_u128();
+    //     let _swap_event = swap(&mut manager, &contracts.portfolio, pool_id, input, sell_asset);
+    //     let arbitrageur = manager.agents.get("arbitrageur").unwrap();
+    //     let portfolio_price = arbitrageur.call_contract(
+    //         &mut manager.environment,
+    //         &contracts.portfolio,
+    //         contracts
+    //             .portfolio
+    //             .encode_function("getSpotPrice", pool_id)?,
+    //         Uint::ZERO,
+    //     );
+    //     let portfolio_price = unpack_execution(portfolio_price)?;
+    //     let portfolio_price: U256 = contracts
+    //         .liquid_exchange_xy
+    //         .decode_output("price", portfolio_price)?;
+    //     println!("Pool Price After Arb: {}", portfolio_price);
+    //     Ok(())
+    // }
 }
