@@ -239,10 +239,14 @@ mod test {
         };
 
         let output = compute_arb_size(&mut manager, &uniswap_pair, target_price)?;
-
-        let _swap_event = swap(&mut manager, &contracts, output.input, output.sell_asset); // Swap bool is flipped!
-
         let arbitrageur = manager.agents.get("arbitrageur").unwrap();
+        let arbitrageur = match arbitrageur {
+            AgentType::SimpleArbitrageur(base_arbitrageur) => base_arbitrageur,
+            _ => panic!(),
+        };
+
+        let _swap_event = swap(arbitrageur, &mut manager.environment, &contracts, output.input, output.sell_asset, ); // Swap bool is flipped!
+
         let reserves = arbitrageur.call_contract(
             &mut manager.environment,
             &uniswap_pair,
