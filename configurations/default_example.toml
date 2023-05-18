@@ -2,7 +2,7 @@
 price_paths = 100
 volatilities = 100
 timestep = 0.0027397
-timescale = "years"
+timescale = "trades"
 num_steps = 365
 initial_price = 1
 seed = 887

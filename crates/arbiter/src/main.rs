@@ -5,12 +5,11 @@
 use std::error::Error;
 
 use clap::{arg, CommandFactory, Parser, Subcommand};
-use commands::*;
 use eyre::Result;
 
-mod commands;
-mod config;
-mod sim;
+mod onchain;
+mod simulate;
+
 
 #[derive(Parser)]
 #[command(name = "Arbiter")]
@@ -32,22 +31,10 @@ struct Args {
 /// * `ImportBacktest` - Import swap data from a csv file
 #[derive(Subcommand)]
 enum Commands {
-    Sim(SimArgs),
-    Gbm {
-        /// Path to config.toml containing simulation parameterization (optional)
-        #[arg(short, long, default_value = "./crates/cli/src/config.toml", num_args = 0..=1)]
-        config: String,
-    },
-
-    Ou {
-        /// Path to config.toml containing simulation parameterization (optional)
-        #[arg(short, long, default_value = "./crates/cli/src/config.toml", num_args = 0..=1)]
-        config: String,
-    },
-
+    Simulate(SimulationConfiguration),
     Live {
         /// Path to config.toml containing simulation parameterization (optional)
-        #[arg(short, long, default_value = "./crates/cli/src/config.toml", num_args = 0..=1)]
+        #[arg(short, long, default_value = "./configurations/onchain_example.toml", num_args = 0..=1)]
         config: String,
     },
 
@@ -78,26 +65,7 @@ enum Commands {
     },
 }
 
-#[derive(Parser, Debug)]
-#[clap(about = "Runs simulations")]
-struct SimArgs {
-    /// Path to config.toml containing simulation parameterization (optional)
-    #[arg(short, long, default_value = "./crates/cli/src/config.toml", num_args = 0..=1)]
-    config: Option<String>,
 
-    /// Subcommands for `Sim`
-    #[clap(subcommand)]
-    subcommand: SimSubcommands,
-}
-
-/// Subcommands for `Sim`
-#[derive(Subcommand, Debug, PartialEq)]
-enum SimSubcommands {
-    #[clap(about = "Runs portfolio simulation")]
-    Portfolio,
-    #[clap(about = "Runs Uniswap V3 simulation")]
-    Uniswap,
-}
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {
     let args = Args::parse();
@@ -112,15 +80,15 @@ async fn main() -> Result<(), Box<dyn Error>> {
             }
         },
 
-        Some(Commands::Ou { config }) => {
-            // Plot an OU price path
-            price_path::plot_ou(config)?;
-        }
+        // Some(Commands::Ou { config }) => {
+        //     // Plot an OU price path
+        //     price_path::plot_ou(config)?;
+        // }
 
-        Some(Commands::Gbm { config }) => {
-            // Plot a GBM price path
-            price_path::plot_gbm(config)?;
-        }
+        // Some(Commands::Gbm { config }) => {
+        //     // Plot a GBM price path
+        //     price_path::plot_gbm(config)?;
+        // }
 
         Some(Commands::Live { config: _ }) => {
             // Parse the contract address
