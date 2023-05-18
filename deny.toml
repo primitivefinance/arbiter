@@ -14,11 +14,7 @@ unmaintained = "warn"
 unsound = "warn"
 yanked = "warn"
 notice = "warn"
-# ignore = [
-#     # potential unaligned pointer read on windows. Doesn't happen in practice, don't
-#     # care
-#     "RUSTSEC-2021-0145",
-# ]
+
 severity-threshold = "medium"
 
 [bans]
@@ -50,7 +46,7 @@ allow-osi-fsf-free = "neither"
 copyleft = "deny"
 # We want really high confidence when inferring licenses from text
 confidence-threshold = 0.84
-allow = ["Apache-2.0", "Apache-2.0 WITH LLVM-exception", "MIT", "MPL-2.0", "ISC", "CC0-1.0", "BSD-3-Clause", "BSD-2-Clause", "LicenseRef-ring"]
+allow = ["Apache-2.0", "Apache-2.0 WITH LLVM-exception", "MIT", "MPL-2.0", "ISC", "CC0-1.0", "BSD-3-Clause", "BSD-2-Clause", "LicenseRef-ring", "BSL-1.0"]
 
 exceptions = [
     { allow = ["Zlib"], name = "tinyvec" },

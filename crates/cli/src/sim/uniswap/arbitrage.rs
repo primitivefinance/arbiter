@@ -45,19 +45,19 @@ impl ComputeArbOutput {
 }
 
 pub(crate) fn compute_arb_size(
-    manager: &mut SimulationManager,
+    environment: &mut SimulationEnvironment,
     uniswap_pair: &SimulationContract<IsDeployed>,
+    admin: &AgentType<IsActive>,
+    arbiter_math: &SimulationContract<IsDeployed>,
     target_price: U256,
 ) -> Result<ComputeArbOutput, Box<dyn Error>> {
-    let manager = manager;
-    let arbitrageur = manager.agents.get("arbitrageur").unwrap();
-    let arbiter_math = manager.autodeployed_contracts.get("arbiter_math").unwrap();
     // Units
+    // todo: get this from pair contract
     let gamma = U256::from(997_000_000_000_000_000u128);
     let wad = U256::from(10u128.pow(18));
     //Reserves
-    let uniswap_reserves = arbitrageur.call_contract(
-        &mut manager.environment,
+    let uniswap_reserves = admin.call_contract(
+        environment,
         &uniswap_pair,
         uniswap_pair.encode_function("getReserves", ())?,
         Uint::ZERO,
@@ -67,6 +67,7 @@ pub(crate) fn compute_arb_size(
         uniswap_pair.decode_output("getReserves", uniswap_reserves)?;
     let reserve_x = U256::from(reserves.0);
     let reserve_y = U256::from(reserves.1);
+
     // Invariant
     let invariant = reserve_x * reserve_y / wad;
     let scaled_invariant = invariant * gamma / wad;
@@ -78,8 +79,8 @@ pub(crate) fn compute_arb_size(
     let sqrt_input = scaled_invariant * wad / target_price;
 
     // Calculate and scale new reserves by gamma
-    let new_x = arbitrageur.call_contract(
-        &mut manager.environment,
+    let new_x = admin.call_contract(
+        environment,
         arbiter_math,
         arbiter_math.encode_function("sqrt", sqrt_input)?,
         Uint::ZERO,
@@ -102,8 +103,8 @@ pub(crate) fn compute_arb_size(
     let sqrt_input = scaled_invariant * target_price / wad;
 
     // Calculate and scale new reserve
-    let execution_result = arbitrageur.call_contract(
-        &mut manager.environment,
+    let execution_result = admin.call_contract(
+        environment,
         arbiter_math,
         arbiter_math.encode_function("sqrt", sqrt_input)?,
         Uint::ZERO,
@@ -218,8 +219,15 @@ mod test {
             bytecode: (),
             constructor_arguments: Vec::new(),
         };
-
-        let output = compute_arb_size(&mut manager, &uniswap_pair, target_price)?;
+        let admin = manager.agents.get("admin").unwrap();
+        let arbiter_math = manager.autodeployed_contracts.get("arbiter_math").unwrap();
+        let output = compute_arb_size(
+            &mut manager.environment,
+            &uniswap_pair,
+            admin,
+            arbiter_math,
+            target_price,
+        )?;
         println!("Output Bool {}", output.sell_asset);
         assert_eq!(output.sell_asset, true);
         Ok(())
@@ -237,12 +245,29 @@ mod test {
             bytecode: (),
             constructor_arguments: Vec::new(),
         };
-
-        let output = compute_arb_size(&mut manager, &uniswap_pair, target_price)?;
-
-        let _swap_event = swap(&mut manager, &contracts, output.input, output.sell_asset); // Swap bool is flipped!
-
+        let admin = manager.agents.get("admin").unwrap();
+        let arbiter_math = manager.autodeployed_contracts.get("arbiter_math").unwrap();
+        let output = compute_arb_size(
+            &mut manager.environment,
+            &uniswap_pair,
+            admin,
+            arbiter_math,
+            target_price,
+        )?;
         let arbitrageur = manager.agents.get("arbitrageur").unwrap();
+        let arbitrageur = match arbitrageur {
+            AgentType::SimpleArbitrageur(base_arbitrageur) => base_arbitrageur,
+            _ => panic!(),
+        };
+
+        let _swap_event = swap(
+            arbitrageur,
+            &mut manager.environment,
+            &contracts,
+            output.input,
+            output.sell_asset,
+        ); // Swap bool is flipped!
+
         let reserves = arbitrageur.call_contract(
             &mut manager.environment,
             &uniswap_pair,
