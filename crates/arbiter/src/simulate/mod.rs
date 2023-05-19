@@ -5,7 +5,7 @@ use clap::Parser;
 use serde::{Deserialize, Serialize};
 use std::fs;
 
-use simulate::stochastic::price_process::{PriceProcess, PriceProcessType, GBM, OU};
+use simulate::stochastic::price_process::{PriceProcess, GBM, OU};
 
 use crate::{Configurable, ConfigurationError};
 

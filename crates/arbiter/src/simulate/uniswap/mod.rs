@@ -12,7 +12,7 @@ use simulate::{
         sim_environment::SimulationEnvironment,
     },
     manager::SimulationManager,
-    stochastic::price_process::{PriceProcess, PriceProcessType, OU},
+    stochastic::price_process::PriceProcess,
     utils::{unpack_execution, wad_to_float},
 };
 

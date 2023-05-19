@@ -14,7 +14,6 @@ use onchain::monitor::HistoricalMonitor;
 /// * `end_block` - End block to get data from. (u64)
 /// * `address` - Address of the Uniswap V3 pool contract to monitor. (String)
 pub async fn save_backtest_data(
-    _config: &str,
     start_block: &u64,
     end_block: &u64,
     address: &str,
@@ -42,7 +41,7 @@ pub async fn save_backtest_data(
 /// # Arguments
 /// * `config` - Path to the config file. (String)
 /// * `file_path` - Path to the csv file. (String)
-pub async fn load_backtest_data(_config: &str, file_path: &str) -> Result<(), Box<dyn Error>> {
+pub async fn load_backtest_data(file_path: &str) -> Result<(), Box<dyn Error>> {
     let price_data = simulate::historic::import_price_from_csv(file_path)?;
     let price_ref = &price_data;
     let _ = price_ref;
