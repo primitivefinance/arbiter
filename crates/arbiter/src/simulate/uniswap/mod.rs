@@ -16,7 +16,7 @@ use simulate::{
     utils::{unpack_execution, wad_to_float},
 };
 
-use crate::simulate::uniswap::arbitrage::compute_arb_size;
+use crate::simulate::uniswap::arbitrage::{compute_arb_size, record_reserves};
 
 pub mod arbitrage;
 pub mod startup;
@@ -92,6 +92,13 @@ pub fn run(price_process: PriceProcess) -> Result<(), Box<dyn Error>> {
     let mut liq_price_path: Vec<U256> = Vec::new();
     let mut dex_price_path: Vec<U256> = Vec::new();
 
+    let mut reserve_over_time: (Vec<U256>, Vec<U256>) = (Vec::new(), Vec::new());
+    record_reserves(
+        &mut manager.environment,
+        &uniswap_pair,
+        &mut reserve_over_time,
+        admin,
+    )?;
     // Run the simulation
     // Update the first price
     let liquid_exchange = &contracts.liquid_exchange_xy;
@@ -141,6 +148,12 @@ pub fn run(price_process: PriceProcess) -> Result<(), Box<dyn Error>> {
                         size.sell_asset,
                     )?;
                 }
+                record_reserves(
+                    &mut manager.environment,
+                    &uniswap_pair,
+                    &mut reserve_over_time,
+                    admin,
+                )?;
                 // Update the liquid exchange price
                 update_price(
                     admin,
@@ -211,7 +224,30 @@ pub fn run(price_process: PriceProcess) -> Result<(), Box<dyn Error>> {
         .collect::<Vec<f64>>();
     let uniswap_prices = Series::new("uniswap_prices", uniswap_prices);
 
-    let mut df = DataFrame::new(vec![liquid_exchange_prices, uniswap_prices])?;
+    // reserve changes
+    let reserve_x_series = Series::new(
+        "X_Reserves",
+        reserve_over_time
+            .0
+            .into_iter()
+            .map(wad_to_float)
+            .collect::<Vec<f64>>(),
+    );
+    let reserve_y_series = Series::new(
+        "Y_Reserves",
+        reserve_over_time
+            .1
+            .into_iter()
+            .map(wad_to_float)
+            .collect::<Vec<f64>>(),
+    );
+
+    let mut df = DataFrame::new(vec![
+        liquid_exchange_prices,
+        uniswap_prices,
+        reserve_x_series,
+        reserve_y_series,
+    ])?;
     println!("Dataframe: {:#?}", df);
     // let mut writer = csv_set_up();
     let file = File::create("output.csv")?;

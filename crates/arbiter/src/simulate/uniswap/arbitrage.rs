@@ -197,7 +197,27 @@ pub(crate) fn swap(
 
     Ok(())
 }
-
+pub(crate) fn record_reserves(
+    environment: &mut SimulationEnvironment,
+    uniswap_pair: &SimulationContract<IsDeployed>,
+    reserves_over_time: &mut (Vec<U256>, Vec<U256>),
+    admin: &AgentType<IsActive>,
+) -> Result<(), Box<dyn Error>> {
+    let uniswap_reserves = admin.call_contract(
+        environment,
+        uniswap_pair,
+        uniswap_pair.encode_function("getReserves", ())?,
+        Uint::ZERO,
+    );
+    let uniswap_reserves = unpack_execution(uniswap_reserves)?;
+    let reserves: (u128, u128, u32) =
+        uniswap_pair.decode_output("getReserves", uniswap_reserves)?;
+    let reserve_x = U256::from(reserves.0);
+    let reserve_y = U256::from(reserves.1);
+    reserves_over_time.0.push(reserve_x);
+    reserves_over_time.1.push(reserve_y);
+    Ok(())
+}
 #[cfg(test)]
 mod test {
     use std::error::Error;
