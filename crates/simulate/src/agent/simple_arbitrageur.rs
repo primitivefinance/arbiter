@@ -331,7 +331,7 @@ mod tests {
         );
         // Test that the arbitrageur does filter out these logs.
         let unfiltered_events = arbitrageur.read_logs()?;
-        let filtered_events = filter_events(arbitrageur.event_filters(), unfiltered_events.clone());
+        let filtered_events = filter_events(arbitrageur.event_filters(), unfiltered_events);
         println!(
             "The filtered events for the second call are: {:#?}",
             &filtered_events

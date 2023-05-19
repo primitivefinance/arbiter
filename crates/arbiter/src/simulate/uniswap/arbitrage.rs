@@ -179,7 +179,7 @@ pub(crate) fn swap(
     );
 
     let swap_result = unpack_execution(swap_result)?;
-    let swap_result: Vec<U256> = contracts
+    let _swap_result: Vec<U256> = contracts
         .uniswap_router
         .decode_output("swapExactTokensForTokens", swap_result)?;
 

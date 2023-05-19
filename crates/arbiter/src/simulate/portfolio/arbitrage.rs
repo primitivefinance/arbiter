@@ -317,7 +317,7 @@ mod test {
         let sell_asset = results.sell_asset;
         println!("Arb bool is: {}", sell_asset);
         println!("Arb Amount {}", results.input);
-        assert_eq!(sell_asset, true);
+        assert!(sell_asset);
         Ok(())
     }
     // #[test]

@@ -23,7 +23,7 @@ pub mod startup;
 
 /// Run a simulation.
 pub fn run(price_process: PriceProcess, label: usize) -> Result<(), Box<dyn Error>> {
-    let start = Instant::now();
+    let _start = Instant::now();
 
     // Create a `SimulationManager` that runs simulations in their `SimulationEnvironment`.
     let mut manager = SimulationManager::new();
@@ -305,8 +305,8 @@ pub fn run(price_process: PriceProcess, label: usize) -> Result<(), Box<dyn Erro
     ])?;
     // println!("Dataframe: {:#?}", df);
     let volatility = match price_process.process_type {
-        PriceProcessType::GBM( GBM {volatility, ..}) => volatility,
-        PriceProcessType::OU(OU {volatility, ..}) => volatility,
+        PriceProcessType::GBM(GBM { volatility, .. }) => volatility,
+        PriceProcessType::OU(OU { volatility, .. }) => volatility,
     };
     let file = File::create(format!("./output/uniswap_{}_{}.csv", volatility, label))?;
     let mut writer = CsvWriter::new(file);

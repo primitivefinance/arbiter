@@ -347,7 +347,7 @@ mod tests {
         assert_eq!(filtered_events, unfiltered_events);
         // Test that bob filters out these logs.
         let unfiltered_events = bob.read_logs()?;
-        let filtered_events = super::filter_events(bob.event_filters(), unfiltered_events.clone());
+        let filtered_events = super::filter_events(bob.event_filters(), unfiltered_events);
         println!(
             "The filtered events for bob on the first call are: {:#?}",
             &filtered_events
@@ -403,8 +403,7 @@ mod tests {
         );
         // Test that the alice doesn't filter out these logs.
         let unfiltered_events = alice.read_logs()?;
-        let filtered_events =
-            super::filter_events(alice.event_filters(), unfiltered_events.clone());
+        let filtered_events = super::filter_events(alice.event_filters(), unfiltered_events);
         println!(
             "The filtered events for alice on the first call are: {:#?}",
             &filtered_events

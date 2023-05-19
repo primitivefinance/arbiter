@@ -178,7 +178,7 @@ fn mint(
     let mint_amount = u128::MAX;
 
     // Call the 'mint' function to the arber. for token x
-    let result_mint_x_for_arber = admin.call_contract(
+    let _result_mint_x_for_arber = admin.call_contract(
         &mut manager.environment,
         arbiter_token_x,
         arbiter_token_x
@@ -201,7 +201,7 @@ fn mint(
     assert!(execution_result.is_success());
 
     // Call the `mint` function to the arber for token y.
-    let result_mint_y_for_arber = admin.call_contract(
+    let _result_mint_y_for_arber = admin.call_contract(
         &mut manager.environment,
         arbiter_token_y,
         arbiter_token_y
@@ -224,7 +224,7 @@ fn mint(
     assert!(execution_result.is_success());
 
     // Mint large amount of token_y to the liquid_exchange contract.
-    let mint_result_y_liquid_exchange = admin.call_contract(
+    let _mint_result_y_liquid_exchange = admin.call_contract(
         &mut manager.environment,
         arbiter_token_y,
         arbiter_token_y.encode_function(
@@ -256,7 +256,7 @@ fn approve(
     } = contracts;
     // ~~~ Liquid Exchange ~~~
     // Approve the liquid_exchange to spend the arbitrageur's token_x
-    let result = arbitrageur.call_contract(
+    let _result = arbitrageur.call_contract(
         &mut manager.environment,
         arbiter_token_x,
         arbiter_token_x.encode_function(
@@ -271,7 +271,7 @@ fn approve(
     // );
 
     // Approve the liquid_exchange to spend the arbitrageur's token_y
-    let result = arbitrageur.call_contract(
+    let _result = arbitrageur.call_contract(
         &mut manager.environment,
         arbiter_token_y,
         arbiter_token_y.encode_function(
@@ -287,7 +287,7 @@ fn approve(
 
     // ~~~ Uniswap ~~~
     // Approve the uniswap to spend the arbitrageur's token_x to the pair address
-    let approve_token_x_result_arbitrageur = arbitrageur.call_contract(
+    let _approve_token_x_result_arbitrageur = arbitrageur.call_contract(
         &mut manager.environment,
         arbiter_token_x,
         arbiter_token_x.encode_function(
@@ -302,7 +302,7 @@ fn approve(
     // );
 
     // Approve Uniswap to spend the admin's token_x
-    let approve_token_x_result_admin = admin.call_contract(
+    let _approve_token_x_result_admin = admin.call_contract(
         &mut manager.environment,
         arbiter_token_x,
         arbiter_token_x.encode_function(
@@ -317,7 +317,7 @@ fn approve(
     // );
 
     // Approve the uniswap to spend the arbitrageur's token_y
-    let approve_token_y_result_arbitrageur = arbitrageur.call_contract(
+    let _approve_token_y_result_arbitrageur = arbitrageur.call_contract(
         &mut manager.environment,
         arbiter_token_y,
         arbiter_token_y.encode_function(
@@ -332,7 +332,7 @@ fn approve(
     // );
 
     // Approve the uniswap to spend the admin's token_y
-    let approve_token_y_result_admin = admin.call_contract(
+    let _approve_token_y_result_admin = admin.call_contract(
         &mut manager.environment,
         arbiter_token_y,
         arbiter_token_y.encode_function(
@@ -422,7 +422,7 @@ fn allocate(
     //     add_liquidity_result.is_success()
     // );
     let add_liquidity_unpack = unpack_execution(add_liquidity_result)?;
-    let (amount_a, amount_b, liquidity): (U256, U256, U256) =
+    let (_amount_a, _amount_b, _liquidity): (U256, U256, U256) =
         uniswap_router.decode_output("addLiquidity", add_liquidity_unpack)?;
     // println!(
     //     "Add {} ARBX and {} ARBY for {} LP tokens",

@@ -5,23 +5,19 @@
 use std::{
     collections::hash_map::DefaultHasher,
     error::Error,
-    hash::{Hash, Hasher},
-    sync::{atomic::AtomicUsize, Arc, Mutex, Condvar},
+    hash::Hasher,
+    sync::{Arc, Condvar, Mutex},
     thread,
     time::Instant,
 };
 
+use ::simulate::stochastic::price_process::{PriceProcess, PriceProcessType};
 use clap::{arg, command, CommandFactory, Parser, Subcommand};
 use eyre::Result;
 use ndarray::Array;
 use thiserror::Error;
-use tokio::runtime::Handle;
 
 use crate::simulate::{PathSweep, SimulateArguments, SimulateSubcommand, VolatilitySweep};
-use ::simulate::{
-    agent::IsActive,
-    stochastic::price_process::{self, PriceProcess, PriceProcessType},
-};
 
 mod onchain;
 mod simulate;
@@ -123,7 +119,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
                     let active_workers = Arc::new((Mutex::new(0), Condvar::new()));
                     let mut hasher = DefaultHasher::new();
                     let seed = price_process.seed;
-        
+
                     for volatility in volatilities {
                         for label in 0..path_sweep.price_paths {
                             hasher.write_u64(seed);
@@ -148,18 +144,18 @@ async fn main() -> Result<(), Box<dyn Error>> {
                                 initial_price: price_process.initial_price,
                                 seed,
                             };
-        
+
                             let active_workers_clone = active_workers.clone();
-        
+
                             thread::spawn(move || {
                                 crate::simulate::uniswap::run(price_process, label).unwrap();
-        
+
                                 let (lock, cvar) = &*active_workers_clone;
                                 let mut active_workers = lock.lock().unwrap();
                                 *active_workers -= 1;
                                 cvar.notify_all();
                             });
-        
+
                             let (lock, cvar) = &*active_workers;
                             let mut active_workers = lock.lock().unwrap();
                             while *active_workers >= path_sweep.worker_limit {
@@ -168,13 +164,13 @@ async fn main() -> Result<(), Box<dyn Error>> {
                             *active_workers += 1;
                         }
                     }
-        
+
                     let (lock, cvar) = &*active_workers;
                     let mut active_workers = lock.lock().unwrap();
                     while *active_workers > 0 {
                         active_workers = cvar.wait(active_workers).unwrap();
                     }
-        
+
                     let duration = start.elapsed();
                     println!("Time elapsed is: {:?}", duration);
                 }
