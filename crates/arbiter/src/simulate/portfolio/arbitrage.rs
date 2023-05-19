@@ -276,7 +276,7 @@ mod test {
     use std::error::Error;
 
     use super::*;
-    use crate::sim::portfolio::startup;
+    use crate::simulate::portfolio::startup;
 
     #[test]
     fn test_arb_bool() -> Result<(), Box<dyn Error>> {
