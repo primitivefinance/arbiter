@@ -12,7 +12,7 @@ use simulate::{
         sim_environment::SimulationEnvironment,
     },
     manager::SimulationManager,
-    stochastic::price_process::PriceProcess,
+    stochastic::price_process::{PriceProcess, GBM, OU, PriceProcessType},
     utils::{unpack_execution, wad_to_float},
 };
 
@@ -226,6 +226,19 @@ pub fn run(price_process: PriceProcess) -> Result<(), Box<dyn Error>> {
 
     handle.join().unwrap();
 
+    // Write down the simulation configuration to a csv file
+    let series_length = liq_price_path.len()-1;
+    let seed = Series::new("seed", vec![price_process.seed; series_length]);
+    let timestep = Series::new("timestep", vec![price_process.timestep; series_length]);
+    let (volatility, mean_reversion_speed, mean_price) = match price_process.process_type {
+        PriceProcessType::GBM(_) => panic!("Not currently supporting GBM"),
+        PriceProcessType::OU( OU {volatility, mean_reversion_speed, mean_price } ) => (volatility, mean_reversion_speed, mean_price),
+    };
+    let volatility = Series::new("drift", vec![volatility; series_length]);
+    let mean_reversion_speed = Series::new("mean_reversion_speed", vec![mean_reversion_speed; series_length]);
+    let mean_price = Series::new("mean_price", vec![mean_price; series_length]);
+
+
     // Write down the price paths to a csv file
     let liquid_exchange_prices = liq_price_path
         .into_iter()
@@ -272,6 +285,11 @@ pub fn run(price_process: PriceProcess) -> Result<(), Box<dyn Error>> {
     let arb_balance_y = Series::new("arbitrageur_balance_y", arb_y);
 
     let mut df = DataFrame::new(vec![
+        seed,
+        timestep,
+        volatility,
+        mean_reversion_speed,
+        mean_price,
         liquid_exchange_prices,
         uniswap_prices,
         reserve_x_series,
