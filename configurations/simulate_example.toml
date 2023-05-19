@@ -12,7 +12,7 @@ price_paths = 1
 # * `process_type` - Type of price process. (PriceProcessType)
 timestep = 0.0027397
 timescale = "trades"
-num_steps = 100
+num_steps = 5
 initial_price = 1
 seed = 887
 

@@ -18,7 +18,6 @@ use simulate::{
 
 use crate::simulate::uniswap::arbitrage::{compute_arb_size, record_arb_balances, record_reserves};
 
-
 pub mod arbitrage;
 pub mod startup;
 
@@ -162,6 +161,7 @@ pub fn run(price_process: PriceProcess) -> Result<(), Box<dyn Error>> {
                     &uniswap_pair,
                     &mut reserve_over_time,
                     admin,
+                )?;
                 // record arbitrageur balances
                 record_arb_balances(
                     arbitrageur,
@@ -243,9 +243,6 @@ pub fn run(price_process: PriceProcess) -> Result<(), Box<dyn Error>> {
     let reserve_x_series = Series::new(
         "X_Reserves",
         reserve_over_time
-    let arb_balance_x = Series::new(
-        "arb_balance_x",
-        arb_balance_paths
             .0
             .into_iter()
             .map(wad_to_float)
@@ -254,22 +251,28 @@ pub fn run(price_process: PriceProcess) -> Result<(), Box<dyn Error>> {
     let reserve_y_series = Series::new(
         "Y_Reserves",
         reserve_over_time
-    let arb_balance_y = Series::new(
-        "arb_balance_y",
-        arb_balance_paths
             .1
             .into_iter()
             .map(wad_to_float)
             .collect::<Vec<f64>>(),
     );
+    let (arb_x, arb_y) = arb_balance_paths;
+
+    let arb_balance_x = Series::new(
+        "arb_balance_x",
+        arb_x.into_iter().map(wad_to_float).collect::<Vec<f64>>(),
+    );
+
+    // turn this into a hex string
+    // let arb_balance_y = Series::new("arb_balance_y", arb_y);
 
     let mut df = DataFrame::new(vec![
         liquid_exchange_prices,
         uniswap_prices,
         reserve_x_series,
         reserve_y_series,
-        arb_balance_x,
-        arb_balance_y,
+        // arb_balance_x,
+        // arb_balance_y,
     ])?;
     println!("Dataframe: {:#?}", df);
     let file = File::create("output.csv")?;

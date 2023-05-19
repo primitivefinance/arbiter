@@ -226,7 +226,7 @@ pub(crate) fn record_arb_balances(
     contracts: &SimulationContracts,
     arb_balance_paths: &mut (Vec<U256>, Vec<U256>),
 ) -> Result<(), Box<dyn Error>> {
-    let balance_x_after_swap = arbitrageur.call_contract(
+    let result_x = arbitrageur.call_contract(
         environment,
         &contracts.arbiter_token_x,
         contracts
@@ -234,7 +234,7 @@ pub(crate) fn record_arb_balances(
             .encode_function("balanceOf", recast_address(arbitrageur.address()))?,
         Uint::ZERO,
     );
-    let balance_y_after_swap = arbitrageur.call_contract(
+    let result_y = arbitrageur.call_contract(
         environment,
         &contracts.arbiter_token_y,
         contracts
@@ -242,15 +242,15 @@ pub(crate) fn record_arb_balances(
             .encode_function("balanceOf", recast_address(arbitrageur.address()))?,
         Uint::ZERO,
     );
-    let result_y: U256 = contracts
+    let balance_y: U256 = contracts
         .arbiter_token_y
-        .decode_output("balanceOf", unpack_execution(balance_y_after_swap)?)?;
-    let result_x: U256 = contracts
+        .decode_output("balanceOf", unpack_execution(result_y)?)?;
+    let balance_x: U256 = contracts
         .arbiter_token_x
-        .decode_output("balanceOf", unpack_execution(balance_x_after_swap)?)?;
+        .decode_output("balanceOf", unpack_execution(result_x)?)?;
 
-    arb_balance_paths.0.push(result_x);
-    arb_balance_paths.1.push(result_y);
+    arb_balance_paths.0.push(balance_x);
+    arb_balance_paths.1.push(balance_y);
     Ok(())
 }
 
