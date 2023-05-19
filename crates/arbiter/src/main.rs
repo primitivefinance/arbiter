@@ -2,14 +2,24 @@
 #![warn(unsafe_code)]
 //! Main lives in the `cli` crate so that we can do our input parsing.
 
-use std::error::Error;
+use std::{
+    collections::hash_map::DefaultHasher,
+    error::Error,
+    hash::{Hash, Hasher},
+    sync::{atomic::AtomicUsize, Arc, Mutex},
+    thread,
+};
 
-use ::simulate::stochastic::price_process::PriceProcess;
+use ::simulate::{
+    agent::IsActive,
+    stochastic::price_process::{self, PriceProcess},
+};
 use clap::{arg, command, CommandFactory, Parser, Subcommand};
 use eyre::Result;
 use thiserror::Error;
+use tokio::runtime::Handle;
 
-use crate::simulate::{SimulateArguments, SimulateSubcommand, PathSweep};
+use crate::simulate::{PathSweep, SimulateArguments, SimulateSubcommand};
 
 mod onchain;
 mod simulate;
@@ -88,7 +98,10 @@ async fn main() -> Result<(), Box<dyn Error>> {
 
     match &args.command {
         Some(Commands::Simulate(simulate_arguments)) => {
-            println!("Loading config for the PriceProcess from: {}", simulate_arguments.configuration_path);
+            println!(
+                "Loading config for the PriceProcess from: {}",
+                simulate_arguments.configuration_path
+            );
             let price_process = PriceProcess::configure(&simulate_arguments.configuration_path)?;
             let path_sweep = PathSweep::configure(&simulate_arguments.configuration_path)?;
             println!("path_sweep: {:?}", path_sweep);
@@ -98,7 +111,40 @@ async fn main() -> Result<(), Box<dyn Error>> {
 
             match simulate_arguments.subcommand {
                 SimulateSubcommand::Uniswap => {
-                    crate::simulate::uniswap::run(price_process)?;
+                    let active_workers = Arc::new(Mutex::new(0));
+                    let mut thread_handles = Vec::new();
+                    let mut hasher = DefaultHasher::new();
+                    let seed = price_process.seed;
+                    for label in 0..path_sweep.workers {
+                        hasher.write_u64(seed);
+                        let seed = hasher.finish();
+                        println!("seed: {}", seed);
+                        let price_process = PriceProcess {
+                            process_type: price_process.process_type.clone(),
+                            timestep: price_process.timestep,
+                            timescale: price_process.timescale.clone(),
+                            num_steps: price_process.num_steps,
+                            initial_price: price_process.initial_price,
+                            seed,
+                        };
+
+                        let active_workers_clone = active_workers.clone();
+
+                        let handle = thread::spawn(move || {
+                            crate::simulate::uniswap::run(price_process, label).unwrap();
+                            let mut active_workers = active_workers_clone.lock().unwrap();
+                            *active_workers -= 1;
+                        });
+
+                        thread_handles.push(handle);
+
+                        let mut active_workers = active_workers.lock().unwrap();
+                        *active_workers += 1;
+                    }
+
+                    for handle in thread_handles {
+                        handle.join().unwrap();
+                    }
                 }
                 SimulateSubcommand::Portfolio => {
                     crate::simulate::portfolio::run()?;
