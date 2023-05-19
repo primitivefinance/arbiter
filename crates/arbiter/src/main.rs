@@ -2,12 +2,14 @@
 #![warn(unsafe_code)]
 //! Main lives in the `cli` crate so that we can do our input parsing.
 
-use crate::simulate::{SimulateArguments, SimulateSubcommand};
+use std::error::Error;
+
 use ::simulate::stochastic::price_process::PriceProcess;
 use clap::{arg, command, CommandFactory, Parser, Subcommand};
 use eyre::Result;
-use std::error::Error;
 use thiserror::Error;
+
+use crate::simulate::{SimulateArguments, SimulateSubcommand};
 
 mod onchain;
 mod simulate;

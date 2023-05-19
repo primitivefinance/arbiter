@@ -1,10 +1,10 @@
 #![warn(missing_docs)]
 #![warn(unsafe_code)]
 
-use clap::Parser;
-use serde::{Deserialize, Serialize};
 use std::fs;
 
+use clap::Parser;
+use serde::{Deserialize, Serialize};
 use simulate::stochastic::price_process::{PriceProcess, GBM, OU};
 
 use crate::{Configurable, ConfigurationError};
