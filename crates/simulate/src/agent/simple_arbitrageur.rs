@@ -173,7 +173,7 @@ impl SimpleArbitrageur<IsActive> {
                         continue;
                     }
                 }
-                println!("Exited arbitrage detection thread!");
+                // println!("Exited arbitrage detection thread!");
             }),
             rx,
         )

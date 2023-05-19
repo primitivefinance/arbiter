@@ -23,6 +23,7 @@ eyre = "0.6.6"
 toml = "0.7.3"
 ethers = "2.0.2"
 csv = "1.1"
+ndarray = "0.15.6"
 
 
 # revm and related

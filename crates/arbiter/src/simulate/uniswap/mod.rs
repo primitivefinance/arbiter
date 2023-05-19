@@ -76,11 +76,11 @@ pub fn run(price_process: PriceProcess, label: usize) -> Result<(), Box<dyn Erro
     let mut prices = arbitrageur.prices.lock().unwrap();
     prices[0] = liquid_exchange_xy_price.into();
     prices[1] = uniswap_price.into();
-    println!(
-        "Initial price for LiquidExchange is: {:#?}\nInitial price for Uniswap pool is: {:#?}",
-        wad_to_float(prices[0].into()),
-        wad_to_float(prices[1].into())
-    );
+    // println!(
+    //     "Initial price for LiquidExchange is: {:#?}\nInitial price for Uniswap pool is: {:#?}",
+    //     wad_to_float(prices[0].into()),
+    //     wad_to_float(prices[1].into())
+    // );
     drop(prices);
 
     let (handle, rx) = arbitrageur.detect_arbitrage();
@@ -124,7 +124,7 @@ pub fn run(price_process: PriceProcess, label: usize) -> Result<(), Box<dyn Erro
     while let Ok((next_tx, _sell_asset)) = rx.recv() {
         // println!("Entered Main's `while let` with index: {}", index);
         if index >= prices.len() {
-            println!("Reached end of price path\n");
+            // println!("Reached end of price path\n");
             manager.shut_down();
             break;
         }
@@ -145,7 +145,7 @@ pub fn run(price_process: PriceProcess, label: usize) -> Result<(), Box<dyn Erro
                     wad_price,
                 )?;
                 if size.input == U256::from(0) {
-                    println!("No arbitrage opportunity\n");
+                    // println!("No arbitrage opportunity\n");
                     index += 1;
                 } else {
                     arbitrage::swap(
@@ -195,10 +195,10 @@ pub fn run(price_process: PriceProcess, label: usize) -> Result<(), Box<dyn Erro
 
                 let mut prices = arbitrageur.prices.lock().unwrap();
                 prices[1] = uniswap_price.into();
-                println!(
-                    "Uniswap price post swap is: {}\n",
-                    wad_to_float(uniswap_price)
-                );
+                // println!(
+                //     "Uniswap price post swap is: {}\n",
+                //     wad_to_float(uniswap_price)
+                // );
                 dex_price_path.push(uniswap_price);
                 // Maybe we want a seperate writer?
                 // have to figure out the correct way to use the delimiter
@@ -303,17 +303,21 @@ pub fn run(price_process: PriceProcess, label: usize) -> Result<(), Box<dyn Erro
         arb_balance_x,
         arb_balance_y,
     ])?;
-    println!("Dataframe: {:#?}", df);
-    let file = File::create("output.csv")?;
+    // println!("Dataframe: {:#?}", df);
+    let volatility = match price_process.process_type {
+        PriceProcessType::GBM( GBM {volatility, ..}) => volatility,
+        PriceProcessType::OU(OU {volatility, ..}) => volatility,
+    };
+    let file = File::create(format!("./output/uniswap_{}_{}.csv", volatility, label))?;
     let mut writer = CsvWriter::new(file);
     writer.finish(&mut df)?;
 
-    println!("=======================================");
-    println!("🎉 Simulation Completed 🎉");
-    println!("=======================================");
+    // println!("=======================================");
+    // println!("🎉 Simulation Completed 🎉");
+    // println!("=======================================");
 
-    let duration = start.elapsed();
-    println!("Time elapsed is: {:?}", duration);
+    // let duration = start.elapsed();
+    // println!("Time elapsed is: {:?}", duration);
 
     Ok(())
 }
@@ -326,8 +330,8 @@ fn update_price(
     price: f64,
     price_path: &mut Vec<U256>,
 ) -> Result<(), Box<dyn Error>> {
-    println!("Updating price...");
-    println!("Price from price path: {}", price);
+    // println!("Updating price...");
+    // println!("Price from price path: {}", price);
     let wad_price = simulate::utils::float_to_wad(price);
     price_path.push(wad_price);
     let call_data = liquid_exchange.encode_function("setPrice", wad_price)?;

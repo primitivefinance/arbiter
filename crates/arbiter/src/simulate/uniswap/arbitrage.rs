@@ -29,7 +29,7 @@ pub(crate) fn create_arbitrageur<S: Into<String>>(
     manager
         .activate_agent(AgentType::SimpleArbitrageur(arbitrageur), address)
         .unwrap();
-    println!("Created Arbitrageur at address: {}.", address);
+    // println!("Created Arbitrageur at address: {}.", address);
 }
 
 #[derive(Clone)]
@@ -183,17 +183,17 @@ pub(crate) fn swap(
         .uniswap_router
         .decode_output("swapExactTokensForTokens", swap_result)?;
 
-    if sell_asset {
-        println!(
-            "Swapped {} ARBX for {} ARBY.",
-            swap_result[0], swap_result[1]
-        );
-    } else {
-        println!(
-            "Swapped {} ARBY for {} ARBX.",
-            swap_result[0], swap_result[1]
-        );
-    }
+    // if sell_asset {
+    //     println!(
+    //         "Swapped {} ARBX for {} ARBY.",
+    //         swap_result[0], swap_result[1]
+    //     );
+    // } else {
+    //     println!(
+    //         "Swapped {} ARBY for {} ARBX.",
+    //         swap_result[0], swap_result[1]
+    //     );
+    // }
 
     Ok(())
 }

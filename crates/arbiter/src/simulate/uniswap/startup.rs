@@ -31,50 +31,50 @@ pub(crate) fn run(
     let decimals = 18_u8;
     let wad: U256 = U256::from(10_i64.pow(decimals as u32));
 
-    println!("=======================================");
-    println!("🚀 Starting the Simulation 🚀");
-    println!("=======================================");
+    // println!("=======================================");
+    // println!("🚀 Starting the Simulation 🚀");
+    // println!("=======================================");
 
     // Deploy the contracts
-    println!("🔧 Deploying contracts...");
-    println!("---------------------------------------");
+    // println!("🔧 Deploying contracts...");
+    // println!("---------------------------------------");
     let contracts = deploy_contracts(manager, wad)?;
-    println!("---------------------------------------");
-    println!("✅ Contracts deployed successfully!\n");
+    // println!("---------------------------------------");
+    // println!("✅ Contracts deployed successfully!\n");
 
-    println!("🔧 Creating the Arbitrageur...");
-    println!("---------------------------------------");
+    // println!("🔧 Creating the Arbitrageur...");
+    // println!("---------------------------------------");
     arbitrage::create_arbitrageur(manager, &contracts.liquid_exchange_xy, "arbitrageur");
-    println!("---------------------------------------");
-    println!("✅ Arbitrageur created successfully!\n");
+    // println!("---------------------------------------");
+    // println!("✅ Arbitrageur created successfully!\n");
 
-    println!("🔧 Minting tokens...");
-    println!("---------------------------------------");
+    // println!("🔧 Minting tokens...");
+    // println!("---------------------------------------");
     mint(manager, &contracts)?;
-    println!("---------------------------------------");
-    println!("✅ Tokens minted successfully!\n");
+    // println!("---------------------------------------");
+    // println!("✅ Tokens minted successfully!\n");
 
-    // Create a pair so that we can mint funds to this address properly with allowances.
-    println!("🔧 Initializing a pair...");
-    println!("---------------------------------------");
+    // // Create a pair so that we can mint funds to this address properly with allowances.
+    // println!("🔧 Initializing a pair...");
+    // println!("---------------------------------------");
     let pair_address = pair_intitalization(manager, &contracts)?;
-    println!("---------------------------------------");
-    println!(
-        "✅ Pair initialized successfully!\nPair Address: {}\n",
-        pair_address
-    );
+    // println!("---------------------------------------");
+    // println!(
+    //     "✅ Pair initialized successfully!\nPair Address: {}\n",
+    //     pair_address
+    // );
 
-    println!("🔧 Approving tokens...");
-    println!("---------------------------------------");
+    // println!("🔧 Approving tokens...");
+    // println!("---------------------------------------");
     approve(manager, &contracts)?;
-    println!("---------------------------------------");
-    println!("✅ Tokens approved successfully!\n");
+    // println!("---------------------------------------");
+    // println!("✅ Tokens approved successfully!\n");
 
-    println!("🔧 Allocating funds...");
-    println!("---------------------------------------");
+    // println!("🔧 Allocating funds...");
+    // println!("---------------------------------------");
     allocate(manager, &contracts)?;
-    println!("---------------------------------------");
-    println!("✅ Funds allocated successfully!\n");
+    // println!("---------------------------------------");
+    // println!("✅ Funds allocated successfully!\n");
 
     Ok((contracts, pair_address))
 }
@@ -95,7 +95,7 @@ fn deploy_contracts(
     // Deploy Weth
     let weth = SimulationContract::new(weth9::WETH9_ABI.clone(), weth9::WETH9_BYTECODE.clone());
     let weth = weth.deploy(&mut manager.environment, admin, ());
-    println!("WETH deployed at: {}", weth.address);
+    // println!("WETH deployed at: {}", weth.address);
 
     // Deploy the UniswapV2 Factory contract.
     let uniswap_factory = SimulationContract::new(
@@ -106,7 +106,7 @@ fn deploy_contracts(
     let uniswap_factory_args = H160::from_low_u64_be(0);
     let uniswap_factory =
         uniswap_factory.deploy(&mut manager.environment, admin, uniswap_factory_args);
-    println!("UniswapV2 Factory deployed at: {}", uniswap_factory.address);
+    // println!("UniswapV2 Factory deployed at: {}", uniswap_factory.address);
 
     // Deploy the UniswapV2 Router contract.
     let uniswap_router = SimulationContract::new(
@@ -131,13 +131,13 @@ fn deploy_contracts(
     let symbol = "ARBX";
     let arbx_args = (name.to_string(), symbol.to_string(), decimals);
     let arbiter_token_x = arbiter_token.deploy(&mut manager.environment, admin, arbx_args);
-    println!("ARBX deployed at: {}", arbiter_token_x.address);
+    // println!("ARBX deployed at: {}", arbiter_token_x.address);
 
     let name = "ArbiterTokenY";
     let symbol = "ARBY";
     let arby_args = (name.to_string(), symbol.to_string(), decimals);
     let arbiter_token_y = arbiter_token.deploy(&mut manager.environment, admin, arby_args);
-    println!("ARBY deployed at: {}", arbiter_token_y.address);
+    // println!("ARBY deployed at: {}", arbiter_token_y.address);
 
     // Deploy LiquidExchange
     let initial_price = wad.checked_mul(U256::from(1)).unwrap();
@@ -185,11 +185,11 @@ fn mint(
             .encode_function("mint", (recast_address(arbitrageur.address()), mint_amount))?,
         Uint::from(0),
     );
-    println!(
-        "Minted {} ARBX to Arbitrageur: {:#?}",
-        mint_amount,
-        result_mint_x_for_arber.is_success()
-    );
+    // println!(
+    //     "Minted {} ARBX to Arbitrageur: {:#?}",
+    //     mint_amount,
+    //     result_mint_x_for_arber.is_success()
+    // );
 
     // Call the `mint` function for the admin for token x.
     let execution_result = admin.call_contract(
@@ -208,11 +208,11 @@ fn mint(
             .encode_function("mint", (recast_address(arbitrageur.address()), mint_amount))?,
         Uint::from(0),
     );
-    println!(
-        "Minted {} ARBY to Arbitrageur: {:#?}",
-        mint_amount,
-        result_mint_y_for_arber.is_success()
-    );
+    // println!(
+    //     "Minted {} ARBY to Arbitrageur: {:#?}",
+    //     mint_amount,
+    //     result_mint_y_for_arber.is_success()
+    // );
 
     // Call the `mint` function for the admin for token y.
     let execution_result = admin.call_contract(
@@ -233,11 +233,11 @@ fn mint(
         )?,
         Uint::from(0),
     );
-    println!(
-        "Minted {} ARBY to LiquidExchange: {:#?}",
-        mint_amount,
-        mint_result_y_liquid_exchange.is_success()
-    );
+    // println!(
+    //     "Minted {} ARBY to LiquidExchange: {:#?}",
+    //     mint_amount,
+    //     mint_result_y_liquid_exchange.is_success()
+    // );
     Ok(())
 }
 
@@ -265,10 +265,10 @@ fn approve(
         )?,
         Uint::from(0),
     );
-    println!(
-        "Approved ARBX to LiquidExchange for Arbitrageur: {:#?}",
-        result.is_success()
-    );
+    // println!(
+    //     "Approved ARBX to LiquidExchange for Arbitrageur: {:#?}",
+    //     result.is_success()
+    // );
 
     // Approve the liquid_exchange to spend the arbitrageur's token_y
     let result = arbitrageur.call_contract(
@@ -280,10 +280,10 @@ fn approve(
         )?,
         Uint::from(0),
     );
-    println!(
-        "Approved ARBY to LiquidExchange for Arbitrageur: {:#?}",
-        result.is_success()
-    );
+    // println!(
+    //     "Approved ARBY to LiquidExchange for Arbitrageur: {:#?}",
+    //     result.is_success()
+    // );
 
     // ~~~ Uniswap ~~~
     // Approve the uniswap to spend the arbitrageur's token_x to the pair address
@@ -296,10 +296,10 @@ fn approve(
         )?,
         Uint::from(0),
     );
-    println!(
-        "Approved ARBX to Uniswap Pair for Arbitrageur: {:#?}",
-        approve_token_x_result_arbitrageur.is_success()
-    );
+    // println!(
+    //     "Approved ARBX to Uniswap Pair for Arbitrageur: {:#?}",
+    //     approve_token_x_result_arbitrageur.is_success()
+    // );
 
     // Approve Uniswap to spend the admin's token_x
     let approve_token_x_result_admin = admin.call_contract(
@@ -311,10 +311,10 @@ fn approve(
         )?,
         Uint::from(0),
     );
-    println!(
-        "Approved ARBX to Uniswap Pair for Admin: {:#?}",
-        approve_token_x_result_admin.is_success()
-    );
+    // println!(
+    //     "Approved ARBX to Uniswap Pair for Admin: {:#?}",
+    //     approve_token_x_result_admin.is_success()
+    // );
 
     // Approve the uniswap to spend the arbitrageur's token_y
     let approve_token_y_result_arbitrageur = arbitrageur.call_contract(
@@ -326,10 +326,10 @@ fn approve(
         )?,
         Uint::from(0),
     );
-    println!(
-        "Approved ARBY to Uniswap Pair for Arbitrageur: {:#?}",
-        approve_token_y_result_arbitrageur.is_success()
-    );
+    // println!(
+    //     "Approved ARBY to Uniswap Pair for Arbitrageur: {:#?}",
+    //     approve_token_y_result_arbitrageur.is_success()
+    // );
 
     // Approve the uniswap to spend the admin's token_y
     let approve_token_y_result_admin = admin.call_contract(
@@ -341,10 +341,10 @@ fn approve(
         )?,
         Uint::from(0),
     );
-    println!(
-        "Approved ARBY to Uniswap Pair for Admin: {:#?}",
-        approve_token_y_result_admin.is_success()
-    );
+    // println!(
+    //     "Approved ARBY to Uniswap Pair for Admin: {:#?}",
+    //     approve_token_y_result_admin.is_success()
+    // );
     Ok(())
 }
 
@@ -382,7 +382,7 @@ fn pair_intitalization(
     assert!(create_pair_result.is_success());
     let create_pair_unpack = unpack_execution(create_pair_result)?;
     let pair_address: Address = uniswap_factory.decode_output("createPair", create_pair_unpack)?;
-    println!("Created Uniswap pair with address: {:#?}", pair_address);
+    // println!("Created Uniswap pair with address: {:#?}", pair_address);
 
     Ok(pair_address)
 }
@@ -417,16 +417,16 @@ fn allocate(
         uniswap_router.encode_function("addLiquidity", add_liquidity_args)?, // TODO: We can definitely just combine the 2nd and 3rd inputs
         Uint::from(0),
     );
-    println!(
-        "Add liquidity result: {:#?}",
-        add_liquidity_result.is_success()
-    );
+    // println!(
+    //     "Add liquidity result: {:#?}",
+    //     add_liquidity_result.is_success()
+    // );
     let add_liquidity_unpack = unpack_execution(add_liquidity_result)?;
     let (amount_a, amount_b, liquidity): (U256, U256, U256) =
         uniswap_router.decode_output("addLiquidity", add_liquidity_unpack)?;
-    println!(
-        "Add {} ARBX and {} ARBY for {} LP tokens",
-        amount_a, amount_b, liquidity
-    );
+    // println!(
+    //     "Add {} ARBX and {} ARBY for {} LP tokens",
+    //     amount_a, amount_b, liquidity
+    // );
     Ok(())
 }

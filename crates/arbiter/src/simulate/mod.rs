@@ -60,7 +60,7 @@ pub(crate) struct PathSweep {
     /// Number of price paths to run for every simulation
     pub(crate) price_paths: usize,
     /// Number of workers to use for parallelization
-    pub(crate) workers: usize,
+    pub(crate) worker_limit: usize,
 }
 
 impl Configurable for PathSweep {
@@ -75,7 +75,33 @@ impl Configurable for PathSweep {
         };
         Ok(PathSweep {
             price_paths: simulation_configuration.price_paths,
-            workers: simulation_configuration.workers,
+            worker_limit: simulation_configuration.worker_limit,
+        })
+    }
+}
+
+#[derive(Parser, Serialize, Deserialize, Debug)]
+pub struct VolatilitySweep {
+    /// Different values for volatility to sweep over
+    pub(crate) volatility_low: f64,
+    pub(crate) volatility_high: f64,
+    pub(crate) number_of_volatility_steps: usize,
+}
+
+impl Configurable for VolatilitySweep {
+    fn configure(command_path: &str) -> Result<Self, ConfigurationError> {
+        let content = match fs::read_to_string(command_path) {
+            Ok(file) => file,
+            Err(err) => return Err(ConfigurationError::FilepathError(err)),
+        };
+        let simulation_configuration: VolatilitySweep = match toml::from_str(&content) {
+            Ok(toml) => toml,
+            Err(err) => return Err(ConfigurationError::DeserializationError(err)),
+        };
+        Ok(VolatilitySweep {
+            volatility_low: simulation_configuration.volatility_low,
+            volatility_high: simulation_configuration.volatility_high,
+            number_of_volatility_steps: simulation_configuration.number_of_volatility_steps,
         })
     }
 }
