@@ -241,7 +241,7 @@ pub fn run(price_process: PriceProcess) -> Result<(), Box<dyn Error>> {
 
     // reserve changes
     let reserve_x_series = Series::new(
-        "X_Reserves",
+        "uniswap_x_reserves",
         reserve_over_time
             .0
             .into_iter()
@@ -249,7 +249,7 @@ pub fn run(price_process: PriceProcess) -> Result<(), Box<dyn Error>> {
             .collect::<Vec<f64>>(),
     );
     let reserve_y_series = Series::new(
-        "Y_Reserves",
+        "uniswap_y_reserves",
         reserve_over_time
             .1
             .into_iter()
@@ -258,21 +258,26 @@ pub fn run(price_process: PriceProcess) -> Result<(), Box<dyn Error>> {
     );
     let (arb_x, arb_y) = arb_balance_paths;
 
-    let arb_balance_x = Series::new(
-        "arb_balance_x",
-        arb_x.into_iter().map(wad_to_float).collect::<Vec<f64>>(),
-    );
+    let arb_x = arb_x
+        .into_iter()
+        .map(|x| x.to_string())
+        .collect::<Vec<String>>();
 
-    // turn this into a hex string
-    // let arb_balance_y = Series::new("arb_balance_y", arb_y);
+    let arb_balance_x = Series::new("arbitrageur_balance_x", arb_x);
+
+    let arb_y = arb_y
+        .into_iter()
+        .map(|y| y.to_string())
+        .collect::<Vec<String>>();
+    let arb_balance_y = Series::new("arbitrageur_balance_y", arb_y);
 
     let mut df = DataFrame::new(vec![
         liquid_exchange_prices,
         uniswap_prices,
         reserve_x_series,
         reserve_y_series,
-        // arb_balance_x,
-        // arb_balance_y,
+        arb_balance_x,
+        arb_balance_y,
     ])?;
     println!("Dataframe: {:#?}", df);
     let file = File::create("output.csv")?;
