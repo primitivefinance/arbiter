@@ -197,6 +197,7 @@ pub(crate) fn swap(
 
     Ok(())
 }
+
 pub(crate) fn record_reserves(
     environment: &mut SimulationEnvironment,
     uniswap_pair: &SimulationContract<IsDeployed>,
@@ -218,6 +219,41 @@ pub(crate) fn record_reserves(
     reserves_over_time.1.push(reserve_y);
     Ok(())
 }
+
+pub(crate) fn record_arb_balances(
+    arbitrageur: &SimpleArbitrageur<IsActive>,
+    environment: &mut SimulationEnvironment,
+    contracts: &SimulationContracts,
+    arb_balance_paths: &mut (Vec<U256>, Vec<U256>),
+) -> Result<(), Box<dyn Error>> {
+    let balance_x_after_swap = arbitrageur.call_contract(
+        environment,
+        &contracts.arbiter_token_x,
+        contracts
+            .arbiter_token_x
+            .encode_function("balanceOf", recast_address(arbitrageur.address()))?,
+        Uint::ZERO,
+    );
+    let balance_y_after_swap = arbitrageur.call_contract(
+        environment,
+        &contracts.arbiter_token_y,
+        contracts
+            .arbiter_token_y
+            .encode_function("balanceOf", recast_address(arbitrageur.address()))?,
+        Uint::ZERO,
+    );
+    let result_y: U256 = contracts
+        .arbiter_token_y
+        .decode_output("balanceOf", unpack_execution(balance_y_after_swap)?)?;
+    let result_x: U256 = contracts
+        .arbiter_token_x
+        .decode_output("balanceOf", unpack_execution(balance_x_after_swap)?)?;
+
+    arb_balance_paths.0.push(result_x);
+    arb_balance_paths.1.push(result_y);
+    Ok(())
+}
+
 #[cfg(test)]
 mod test {
     use std::error::Error;
@@ -249,7 +285,7 @@ mod test {
             target_price,
         )?;
         println!("Output Bool {}", output.sell_asset);
-        assert_eq!(output.sell_asset, true);
+        assert!(output.sell_asset);
         Ok(())
     }
     #[test]
@@ -279,7 +315,6 @@ mod test {
             AgentType::SimpleArbitrageur(base_arbitrageur) => base_arbitrageur,
             _ => panic!(),
         };
-
         let _swap_event = swap(
             arbitrageur,
             &mut manager.environment,
