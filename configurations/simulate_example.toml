@@ -1,5 +1,6 @@
 # Number of price processes to simulate.
-price_paths = 1
+price_paths = 10
+workers = 10
 
 # Struct for all price processes init parameters.
 # A price process is a stochastic process that describes the evolution of a price_process.

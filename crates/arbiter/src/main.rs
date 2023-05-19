@@ -9,7 +9,7 @@ use clap::{arg, command, CommandFactory, Parser, Subcommand};
 use eyre::Result;
 use thiserror::Error;
 
-use crate::simulate::{SimulateArguments, SimulateSubcommand};
+use crate::simulate::{SimulateArguments, SimulateSubcommand, PathSweep};
 
 mod onchain;
 mod simulate;
@@ -88,7 +88,11 @@ async fn main() -> Result<(), Box<dyn Error>> {
 
     match &args.command {
         Some(Commands::Simulate(simulate_arguments)) => {
+            println!("Loading config for the PriceProcess from: {}", simulate_arguments.configuration_path);
             let price_process = PriceProcess::configure(&simulate_arguments.configuration_path)?;
+            let path_sweep = PathSweep::configure(&simulate_arguments.configuration_path)?;
+            println!("path_sweep: {:?}", path_sweep);
+            println!("...loaded config path ✅");
             // TODO: use this variable or something like it when we have multiple price paths we want to do.
             // let _price_paths = simulation_configuration.price_paths;
 
