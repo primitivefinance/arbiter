@@ -16,7 +16,7 @@ use simulate::{
     utils::{unpack_execution, wad_to_float},
 };
 
-use crate::simulate::uniswap::arbitrage::{compute_arb_size, record_arb_balances};
+use crate::simulate::uniswap::arbitrage::{compute_arb_size, record_arb_balances, record_reserves};
 
 pub mod arbitrage;
 pub mod startup;
@@ -101,6 +101,13 @@ pub fn run(price_process: PriceProcess) -> Result<(), Box<dyn Error>> {
         &mut arb_balance_paths,
     )?;
 
+    let mut reserve_over_time: (Vec<U256>, Vec<U256>) = (Vec::new(), Vec::new());
+    record_reserves(
+        &mut manager.environment,
+        &uniswap_pair,
+        &mut reserve_over_time,
+        admin,
+    )?;
     // Run the simulation
     // Update the first price
     let liquid_exchange = &contracts.liquid_exchange_xy;
@@ -149,6 +156,12 @@ pub fn run(price_process: PriceProcess) -> Result<(), Box<dyn Error>> {
                         size.sell_asset,
                     )?;
                 }
+                record_reserves(
+                    &mut manager.environment,
+                    &uniswap_pair,
+                    &mut reserve_over_time,
+                    admin,
+                )?;
                 // record arbitrageur balances
                 record_arb_balances(
                     arbitrageur,
@@ -226,26 +239,43 @@ pub fn run(price_process: PriceProcess) -> Result<(), Box<dyn Error>> {
         .collect::<Vec<f64>>();
     let uniswap_prices = Series::new("uniswap_prices", uniswap_prices);
 
-    let arb_balance_x = Series::new(
-        "arb_balance_x",
-        arb_balance_paths
+    // reserve changes
+    let reserve_x_series = Series::new(
+        "uniswap_x_reserves",
+        reserve_over_time
             .0
             .into_iter()
             .map(wad_to_float)
             .collect::<Vec<f64>>(),
     );
-    let arb_balance_y = Series::new(
-        "arb_balance_y",
-        arb_balance_paths
+    let reserve_y_series = Series::new(
+        "uniswap_y_reserves",
+        reserve_over_time
             .1
             .into_iter()
             .map(wad_to_float)
             .collect::<Vec<f64>>(),
     );
+    let (arb_x, arb_y) = arb_balance_paths;
+
+    let arb_x = arb_x
+        .into_iter()
+        .map(|x| x.to_string())
+        .collect::<Vec<String>>();
+
+    let arb_balance_x = Series::new("arbitrageur_balance_x", arb_x);
+
+    let arb_y = arb_y
+        .into_iter()
+        .map(|y| y.to_string())
+        .collect::<Vec<String>>();
+    let arb_balance_y = Series::new("arbitrageur_balance_y", arb_y);
 
     let mut df = DataFrame::new(vec![
         liquid_exchange_prices,
         uniswap_prices,
+        reserve_x_series,
+        reserve_y_series,
         arb_balance_x,
         arb_balance_y,
     ])?;

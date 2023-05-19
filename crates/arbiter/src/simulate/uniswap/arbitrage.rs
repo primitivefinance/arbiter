@@ -198,13 +198,35 @@ pub(crate) fn swap(
     Ok(())
 }
 
+pub(crate) fn record_reserves(
+    environment: &mut SimulationEnvironment,
+    uniswap_pair: &SimulationContract<IsDeployed>,
+    reserves_over_time: &mut (Vec<U256>, Vec<U256>),
+    admin: &AgentType<IsActive>,
+) -> Result<(), Box<dyn Error>> {
+    let uniswap_reserves = admin.call_contract(
+        environment,
+        uniswap_pair,
+        uniswap_pair.encode_function("getReserves", ())?,
+        Uint::ZERO,
+    );
+    let uniswap_reserves = unpack_execution(uniswap_reserves)?;
+    let reserves: (u128, u128, u32) =
+        uniswap_pair.decode_output("getReserves", uniswap_reserves)?;
+    let reserve_x = U256::from(reserves.0);
+    let reserve_y = U256::from(reserves.1);
+    reserves_over_time.0.push(reserve_x);
+    reserves_over_time.1.push(reserve_y);
+    Ok(())
+}
+
 pub(crate) fn record_arb_balances(
     arbitrageur: &SimpleArbitrageur<IsActive>,
     environment: &mut SimulationEnvironment,
     contracts: &SimulationContracts,
     arb_balance_paths: &mut (Vec<U256>, Vec<U256>),
 ) -> Result<(), Box<dyn Error>> {
-    let balance_x_after_swap = arbitrageur.call_contract(
+    let result_x = arbitrageur.call_contract(
         environment,
         &contracts.arbiter_token_x,
         contracts
@@ -212,7 +234,7 @@ pub(crate) fn record_arb_balances(
             .encode_function("balanceOf", recast_address(arbitrageur.address()))?,
         Uint::ZERO,
     );
-    let balance_y_after_swap = arbitrageur.call_contract(
+    let result_y = arbitrageur.call_contract(
         environment,
         &contracts.arbiter_token_y,
         contracts
@@ -220,15 +242,15 @@ pub(crate) fn record_arb_balances(
             .encode_function("balanceOf", recast_address(arbitrageur.address()))?,
         Uint::ZERO,
     );
-    let result_y: U256 = contracts
+    let balance_y: U256 = contracts
         .arbiter_token_y
-        .decode_output("balanceOf", unpack_execution(balance_y_after_swap)?)?;
-    let result_x: U256 = contracts
+        .decode_output("balanceOf", unpack_execution(result_y)?)?;
+    let balance_x: U256 = contracts
         .arbiter_token_x
-        .decode_output("balanceOf", unpack_execution(balance_x_after_swap)?)?;
+        .decode_output("balanceOf", unpack_execution(result_x)?)?;
 
-    arb_balance_paths.0.push(result_x);
-    arb_balance_paths.1.push(result_y);
+    arb_balance_paths.0.push(balance_x);
+    arb_balance_paths.1.push(balance_y);
     Ok(())
 }
 

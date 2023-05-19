@@ -12,7 +12,7 @@ price_paths = 1
 # * `process_type` - Type of price process. (PriceProcessType)
 timestep = 0.0027397
 timescale = "trades"
-num_steps = 10
+num_steps = 5
 initial_price = 1
 seed = 887
 
@@ -25,7 +25,7 @@ price_process_type = "OU"
 # * `mean_reversion_speed` - Mean reversion speed of the underlying asset. (f64)
 # * `mean_price` - Mean price of the underlying asset. (f64)
 [process_type.price_process]
-volatility = 0.01
+volatility = 0.05
 mean_reversion_speed = 50.0
 mean_price = 1.0
 
