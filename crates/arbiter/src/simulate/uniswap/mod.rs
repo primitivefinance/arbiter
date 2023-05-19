@@ -16,7 +16,7 @@ use simulate::{
     utils::{unpack_execution, wad_to_float},
 };
 
-use crate::simulate::uniswap::arbitrage::compute_arb_size;
+use crate::simulate::uniswap::arbitrage::{compute_arb_size, record_arb_balances};
 
 pub mod arbitrage;
 pub mod startup;
@@ -91,6 +91,15 @@ pub fn run(price_process: PriceProcess) -> Result<(), Box<dyn Error>> {
     // Create vectors that will store the price paths for the LiquidExchange and the Uniswap pool
     let mut liq_price_path: Vec<U256> = Vec::new();
     let mut dex_price_path: Vec<U256> = Vec::new();
+    let mut arb_balance_paths: (Vec<U256>, Vec<U256>) = (Vec::new(), Vec::new());
+
+    // record first balances
+    record_arb_balances(
+        arbitrageur,
+        &mut manager.environment,
+        &contracts,
+        &mut arb_balance_paths,
+    )?;
 
     // Run the simulation
     // Update the first price
@@ -120,6 +129,7 @@ pub fn run(price_process: PriceProcess) -> Result<(), Box<dyn Error>> {
 
         match next_tx {
             NextTx::Swap => {
+                // check for arb bounds
                 let size = compute_arb_size(
                     &mut manager.environment,
                     &uniswap_pair,
@@ -127,11 +137,9 @@ pub fn run(price_process: PriceProcess) -> Result<(), Box<dyn Error>> {
                     arbiter_math,
                     wad_price,
                 )?;
-                println!("Arbitrage size: {:#?}", size.input);
                 if size.input == U256::from(0) {
                     println!("No arbitrage opportunity\n");
                     index += 1;
-                    // continue 'sim;
                 } else {
                     arbitrage::swap(
                         arbitrageur,
@@ -141,6 +149,13 @@ pub fn run(price_process: PriceProcess) -> Result<(), Box<dyn Error>> {
                         size.sell_asset,
                     )?;
                 }
+                // record arbitrageur balances
+                record_arb_balances(
+                    arbitrageur,
+                    &mut manager.environment,
+                    &contracts,
+                    &mut arb_balance_paths,
+                )?;
                 // Update the liquid exchange price
                 update_price(
                     admin,
@@ -211,9 +226,30 @@ pub fn run(price_process: PriceProcess) -> Result<(), Box<dyn Error>> {
         .collect::<Vec<f64>>();
     let uniswap_prices = Series::new("uniswap_prices", uniswap_prices);
 
-    let mut df = DataFrame::new(vec![liquid_exchange_prices, uniswap_prices])?;
+    let arb_balance_x = Series::new(
+        "arb_balance_x",
+        arb_balance_paths
+            .0
+            .into_iter()
+            .map(wad_to_float)
+            .collect::<Vec<f64>>(),
+    );
+    let arb_balance_y = Series::new(
+        "arb_balance_y",
+        arb_balance_paths
+            .1
+            .into_iter()
+            .map(wad_to_float)
+            .collect::<Vec<f64>>(),
+    );
+
+    let mut df = DataFrame::new(vec![
+        liquid_exchange_prices,
+        uniswap_prices,
+        arb_balance_x,
+        arb_balance_y,
+    ])?;
     println!("Dataframe: {:#?}", df);
-    // let mut writer = csv_set_up();
     let file = File::create("output.csv")?;
     let mut writer = CsvWriter::new(file);
     writer.finish(&mut df)?;
@@ -240,7 +276,6 @@ fn update_price(
     println!("Price from price path: {}", price);
     let wad_price = simulate::utils::float_to_wad(price);
     price_path.push(wad_price);
-    // println!("WAD price: {}", wad_price);
     let call_data = liquid_exchange.encode_function("setPrice", wad_price)?;
     admin.call_contract(environment, liquid_exchange, call_data, Uint::from(0));
     Ok(())
