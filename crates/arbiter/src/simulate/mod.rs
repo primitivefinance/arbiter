@@ -5,7 +5,7 @@ use std::fs;
 
 use clap::Parser;
 use serde::{Deserialize, Serialize};
-use simulate::stochastic::price_process::{PriceProcess, GBM, OU};
+use simulate::stochastic::price_process::PriceProcess;
 
 use crate::{Configurable, ConfigurationError};
 
@@ -34,45 +34,8 @@ pub(crate) enum SimulateSubcommand {
     Uniswap,
 }
 
-/// Representation of the arbiter config file.
-#[derive(Serialize, Deserialize, Debug)]
-pub(crate) struct SimulationConfiguration {
-    /// Choice of simulation to run.
-    // pub(crate) simulation_choice: SimulationChoice,
-    /// The type of `PriceProcess` to use during simulation.
-    /// The `PriceProcess` type is a struct that holds the parameters for the stochastic process.
-    /// * process_type: PriceProcessType,
-    ///     * GBM(GBM),
-    ///     * OU(OU),
-    /// * `timestep: f64`,
-    /// * `timescale: String`,
-    /// * `num_steps: usize`,
-    /// * `pub initial_price: f64`,
-    /// * `pub seed: u64,
-    /// `GBM(GBM)` and `OU(OU)` are structs that hold the parameters for the stochastic processes respectively.
-    pub(crate) process_type: String,
-    /// The timestep to use for the simulation.
-    pub(crate) timestep: f64,
-    /// The timescale to use for the simulation.
-    pub(crate) timescale: String,
-    /// The number of steps to use for the simulation.
-    pub(crate) num_steps: usize,
-    /// The initial price to use for the simulation.
-    pub(crate) initial_price: f64,
-    /// The seed to use for the simulation.
-    pub(crate) seed: u64,
-    pub(crate) gbm: Option<GBM>,
-    pub(crate) ou: Option<OU>,
-    // TODO: The following are not implemented
-    /// Number distinct price paths to use for each parameter set during simulation.
-    pub(crate) price_paths: usize,
-    // TODO: Add workers
-    // TODO: Add output path information
-}
-
 impl Configurable for PriceProcess {
     fn configure(command_path: &str) -> Result<Self, ConfigurationError> {
-        println!("Loading config path: {command_path}");
         let content = match fs::read_to_string(command_path) {
             Ok(file) => file,
             Err(err) => return Err(ConfigurationError::FilepathError(err)),
@@ -81,7 +44,6 @@ impl Configurable for PriceProcess {
             Ok(toml) => toml,
             Err(err) => return Err(ConfigurationError::DeserializationError(err)),
         };
-        println!("...loaded config path ✅");
         Ok(PriceProcess {
             timestep: simulation_configuration.timestep,
             timescale: simulation_configuration.timescale,
@@ -89,6 +51,57 @@ impl Configurable for PriceProcess {
             initial_price: simulation_configuration.initial_price,
             seed: simulation_configuration.seed,
             process_type: simulation_configuration.process_type,
+        })
+    }
+}
+
+#[derive(Parser, Serialize, Deserialize, Debug)]
+pub(crate) struct PathSweep {
+    /// Number of price paths to run for every simulation
+    pub(crate) price_paths: usize,
+    /// Number of workers to use for parallelization
+    pub(crate) worker_limit: usize,
+}
+
+impl Configurable for PathSweep {
+    fn configure(command_path: &str) -> Result<Self, ConfigurationError> {
+        let content = match fs::read_to_string(command_path) {
+            Ok(file) => file,
+            Err(err) => return Err(ConfigurationError::FilepathError(err)),
+        };
+        let simulation_configuration: PathSweep = match toml::from_str(&content) {
+            Ok(toml) => toml,
+            Err(err) => return Err(ConfigurationError::DeserializationError(err)),
+        };
+        Ok(PathSweep {
+            price_paths: simulation_configuration.price_paths,
+            worker_limit: simulation_configuration.worker_limit,
+        })
+    }
+}
+
+#[derive(Parser, Serialize, Deserialize, Debug)]
+pub struct VolatilitySweep {
+    /// Different values for volatility to sweep over
+    pub(crate) volatility_low: f64,
+    pub(crate) volatility_high: f64,
+    pub(crate) number_of_volatility_steps: usize,
+}
+
+impl Configurable for VolatilitySweep {
+    fn configure(command_path: &str) -> Result<Self, ConfigurationError> {
+        let content = match fs::read_to_string(command_path) {
+            Ok(file) => file,
+            Err(err) => return Err(ConfigurationError::FilepathError(err)),
+        };
+        let simulation_configuration: VolatilitySweep = match toml::from_str(&content) {
+            Ok(toml) => toml,
+            Err(err) => return Err(ConfigurationError::DeserializationError(err)),
+        };
+        Ok(VolatilitySweep {
+            volatility_low: simulation_configuration.volatility_low,
+            volatility_high: simulation_configuration.volatility_high,
+            number_of_volatility_steps: simulation_configuration.number_of_volatility_steps,
         })
     }
 }

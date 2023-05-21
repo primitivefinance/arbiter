@@ -12,7 +12,7 @@ use simulate::{
         sim_environment::SimulationEnvironment,
     },
     manager::SimulationManager,
-    stochastic::price_process::PriceProcess,
+    stochastic::price_process::{PriceProcess, PriceProcessType, GBM, OU},
     utils::{unpack_execution, wad_to_float},
 };
 
@@ -22,8 +22,8 @@ pub mod arbitrage;
 pub mod startup;
 
 /// Run a simulation.
-pub fn run(price_process: PriceProcess) -> Result<(), Box<dyn Error>> {
-    let start = Instant::now();
+pub fn run(price_process: PriceProcess, label: usize) -> Result<(), Box<dyn Error>> {
+    let _start = Instant::now();
 
     // Create a `SimulationManager` that runs simulations in their `SimulationEnvironment`.
     let mut manager = SimulationManager::new();
@@ -76,11 +76,11 @@ pub fn run(price_process: PriceProcess) -> Result<(), Box<dyn Error>> {
     let mut prices = arbitrageur.prices.lock().unwrap();
     prices[0] = liquid_exchange_xy_price.into();
     prices[1] = uniswap_price.into();
-    println!(
-        "Initial price for LiquidExchange is: {:#?}\nInitial price for Uniswap pool is: {:#?}",
-        wad_to_float(prices[0].into()),
-        wad_to_float(prices[1].into())
-    );
+    // println!(
+    //     "Initial price for LiquidExchange is: {:#?}\nInitial price for Uniswap pool is: {:#?}",
+    //     wad_to_float(prices[0].into()),
+    //     wad_to_float(prices[1].into())
+    // );
     drop(prices);
 
     let (handle, rx) = arbitrageur.detect_arbitrage();
@@ -124,7 +124,7 @@ pub fn run(price_process: PriceProcess) -> Result<(), Box<dyn Error>> {
     while let Ok((next_tx, _sell_asset)) = rx.recv() {
         // println!("Entered Main's `while let` with index: {}", index);
         if index >= prices.len() {
-            println!("Reached end of price path\n");
+            // println!("Reached end of price path\n");
             manager.shut_down();
             break;
         }
@@ -145,7 +145,7 @@ pub fn run(price_process: PriceProcess) -> Result<(), Box<dyn Error>> {
                     wad_price,
                 )?;
                 if size.input == U256::from(0) {
-                    println!("No arbitrage opportunity\n");
+                    // println!("No arbitrage opportunity\n");
                     index += 1;
                 } else {
                     arbitrage::swap(
@@ -195,10 +195,10 @@ pub fn run(price_process: PriceProcess) -> Result<(), Box<dyn Error>> {
 
                 let mut prices = arbitrageur.prices.lock().unwrap();
                 prices[1] = uniswap_price.into();
-                println!(
-                    "Uniswap price post swap is: {}\n",
-                    wad_to_float(uniswap_price)
-                );
+                // println!(
+                //     "Uniswap price post swap is: {}\n",
+                //     wad_to_float(uniswap_price)
+                // );
                 dex_price_path.push(uniswap_price);
                 // Maybe we want a seperate writer?
                 // have to figure out the correct way to use the delimiter
@@ -225,6 +225,25 @@ pub fn run(price_process: PriceProcess) -> Result<(), Box<dyn Error>> {
     }
 
     handle.join().unwrap();
+
+    // Write down the simulation configuration to a csv file
+    let series_length = liq_price_path.len() - 1;
+    let seed = Series::new("seed", vec![price_process.seed; series_length]);
+    let timestep = Series::new("timestep", vec![price_process.timestep; series_length]);
+    let (volatility, mean_reversion_speed, mean_price) = match price_process.process_type {
+        PriceProcessType::GBM(_) => panic!("Not currently supporting GBM"),
+        PriceProcessType::OU(OU {
+            volatility,
+            mean_reversion_speed,
+            mean_price,
+        }) => (volatility, mean_reversion_speed, mean_price),
+    };
+    let volatility = Series::new("drift", vec![volatility; series_length]);
+    let mean_reversion_speed = Series::new(
+        "mean_reversion_speed",
+        vec![mean_reversion_speed; series_length],
+    );
+    let mean_price = Series::new("mean_price", vec![mean_price; series_length]);
 
     // Write down the price paths to a csv file
     let liquid_exchange_prices = liq_price_path
@@ -272,6 +291,11 @@ pub fn run(price_process: PriceProcess) -> Result<(), Box<dyn Error>> {
     let arb_balance_y = Series::new("arbitrageur_balance_y", arb_y);
 
     let mut df = DataFrame::new(vec![
+        seed,
+        timestep,
+        volatility,
+        mean_reversion_speed,
+        mean_price,
         liquid_exchange_prices,
         uniswap_prices,
         reserve_x_series,
@@ -279,17 +303,21 @@ pub fn run(price_process: PriceProcess) -> Result<(), Box<dyn Error>> {
         arb_balance_x,
         arb_balance_y,
     ])?;
-    println!("Dataframe: {:#?}", df);
-    let file = File::create("output.csv")?;
+    // println!("Dataframe: {:#?}", df);
+    let volatility = match price_process.process_type {
+        PriceProcessType::GBM(GBM { volatility, .. }) => volatility,
+        PriceProcessType::OU(OU { volatility, .. }) => volatility,
+    };
+    let file = File::create(format!("./output/uniswap_{}_{}.csv", volatility, label))?;
     let mut writer = CsvWriter::new(file);
     writer.finish(&mut df)?;
 
-    println!("=======================================");
-    println!("🎉 Simulation Completed 🎉");
-    println!("=======================================");
+    // println!("=======================================");
+    // println!("🎉 Simulation Completed 🎉");
+    // println!("=======================================");
 
-    let duration = start.elapsed();
-    println!("Time elapsed is: {:?}", duration);
+    // let duration = start.elapsed();
+    // println!("Time elapsed is: {:?}", duration);
 
     Ok(())
 }
@@ -302,8 +330,8 @@ fn update_price(
     price: f64,
     price_path: &mut Vec<U256>,
 ) -> Result<(), Box<dyn Error>> {
-    println!("Updating price...");
-    println!("Price from price path: {}", price);
+    // println!("Updating price...");
+    // println!("Price from price path: {}", price);
     let wad_price = simulate::utils::float_to_wad(price);
     price_path.push(wad_price);
     let call_data = liquid_exchange.encode_function("setPrice", wad_price)?;

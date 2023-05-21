@@ -353,7 +353,7 @@ mod tests {
         // Test the cdf function.
         let execution_result = admin.call_contract(
             &mut manager.environment,
-            &arbiter_math,
+            arbiter_math,
             arbiter_math.encode_function("cdf", I256::from(1))?,
             Uint::ZERO,
         );
@@ -367,7 +367,7 @@ mod tests {
         // Test the pdf function.
         let execution_result = admin.call_contract(
             &mut manager.environment,
-            &arbiter_math,
+            arbiter_math,
             arbiter_math.encode_function("pdf", I256::from(1))?,
             Uint::ZERO,
         );
@@ -379,7 +379,7 @@ mod tests {
         // Test the ppf function.
         let execution_result = admin.call_contract(
             &mut manager.environment,
-            &arbiter_math,
+            arbiter_math,
             arbiter_math.encode_function("ppf", I256::from(500000000000000000u64))?,
             Uint::ZERO,
         );
@@ -390,7 +390,7 @@ mod tests {
         // Test the mulWadDown function.
         let execution_result = admin.call_contract(
             &mut manager.environment,
-            &arbiter_math,
+            arbiter_math,
             arbiter_math.encode_function(
                 "mulWadDown",
                 (U256::from(1_000_000_000_000_000_000_u128), U256::from(2)),
@@ -405,7 +405,7 @@ mod tests {
         // Test the mulWadUp function.
         let execution_result = admin.call_contract(
             &mut manager.environment,
-            &arbiter_math,
+            arbiter_math,
             arbiter_math.encode_function(
                 "mulWadUp",
                 (U256::from(1_000_000_000_000_000_000_u128), U256::from(2)),
@@ -420,7 +420,7 @@ mod tests {
         // Test the divWadDown function.
         let execution_result = admin.call_contract(
             &mut manager.environment,
-            &arbiter_math,
+            arbiter_math,
             arbiter_math.encode_function(
                 "divWadDown",
                 (U256::from(1_000_000_000_000_000_000_u128), U256::from(2)),
@@ -438,7 +438,7 @@ mod tests {
         // Test the divWadUp function.
         let execution_result = admin.call_contract(
             &mut manager.environment,
-            &arbiter_math,
+            arbiter_math,
             arbiter_math.encode_function(
                 "divWadUp",
                 (U256::from(1_000_000_000_000_000_000_u128), U256::from(2)),
@@ -456,7 +456,7 @@ mod tests {
         // Test the lnWad function.
         let execution_result = admin.call_contract(
             &mut manager.environment,
-            &arbiter_math,
+            arbiter_math,
             arbiter_math.encode_function("log", I256::from(1_000_000_000_000_000_000_u128))?,
             Uint::ZERO,
         );
@@ -467,7 +467,7 @@ mod tests {
         // Test the sqrt function
         let execution_result = admin.call_contract(
             &mut manager.environment,
-            &arbiter_math,
+            arbiter_math,
             arbiter_math.encode_function("sqrt", U256::from(1u128))?,
             Uint::ZERO,
         );

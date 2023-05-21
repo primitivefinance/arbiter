@@ -1,5 +1,12 @@
 # Number of price processes to simulate.
-price_paths = 1
+price_paths = 10
+# Number of workers to use for parallelization.
+worker_limit = 32
+
+# Volatility sweeping parameters.
+volatility_low = 0.01
+volatility_high = 0.1
+number_of_volatility_steps = 10
 
 # Struct for all price processes init parameters.
 # A price process is a stochastic process that describes the evolution of a price_process.
@@ -12,7 +19,7 @@ price_paths = 1
 # * `process_type` - Type of price process. (PriceProcessType)
 timestep = 0.0027397
 timescale = "trades"
-num_steps = 5
+num_steps = 10000
 initial_price = 1
 seed = 887
 
@@ -25,7 +32,7 @@ price_process_type = "OU"
 # * `mean_reversion_speed` - Mean reversion speed of the underlying asset. (f64)
 # * `mean_price` - Mean price of the underlying asset. (f64)
 [process_type.price_process]
-volatility = 0.05
+volatility = 0.01
 mean_reversion_speed = 50.0
 mean_price = 1.0
 

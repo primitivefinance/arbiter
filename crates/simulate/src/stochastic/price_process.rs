@@ -13,7 +13,7 @@ pub trait Plotting {
 }
 
 /// Enum for type of price process being used.
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Clone, Serialize, Deserialize, Debug)]
 #[serde(tag = "price_process_type", content = "price_process")]
 pub enum PriceProcessType {
     /// Geometric Brownian Motion (GBM) process.
@@ -31,7 +31,7 @@ pub enum PriceProcessType {
 /// * `num_steps` - Number of steps in the simulation. (usize)
 /// * `initial_price` - Initial price of the simulation. (f64)
 /// * `seed` - Seed for testing. (u64)
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Clone, Serialize, Deserialize, Debug)]
 pub struct PriceProcess {
     /// Type of price process.
     pub process_type: PriceProcessType,
@@ -115,12 +115,12 @@ impl Plotting for PriceProcess {
 /// # Fields
 /// * `drift` - Price drift of the underlying asset. (f64)
 /// * `volatility` - Volatility of the underlying asset. (f64)
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Copy, Clone, Serialize, Deserialize, Debug)]
 pub struct GBM {
     /// Price drift of the underlying asset.
-    drift: f64,
+    pub drift: f64,
     /// Volatility of the underlying asset.
-    volatility: f64,
+    pub volatility: f64,
 }
 
 impl GBM {
@@ -162,14 +162,14 @@ impl GBM {
 /// * `volatility` - Volatility of the underlying asset. (f64)
 /// * `mean_reversion_speed` - Mean reversion speed of the underlying asset. (f64)
 /// * `mean_price` - Mean price of the underlying asset. (f64)
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Copy, Clone, Serialize, Deserialize, Debug)]
 pub struct OU {
     /// Volatility of the underlying asset.
-    volatility: f64,
+    pub volatility: f64,
     /// Mean reversion speed of the underlying asset.
-    mean_reversion_speed: f64,
+    pub mean_reversion_speed: f64,
     /// Mean price of the underlying asset.
-    mean_price: f64,
+    pub mean_price: f64,
 }
 
 impl OU {
