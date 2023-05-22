@@ -1,8 +1,7 @@
 [workspace]
 members = [
-    "crates/arbiter",
-    "crates/bindings",
-    "crates/simulate",
-    "crates/onchain",
+    "lib/bindings",
+    "lib/simulate",
+    "lib/onchain",
 ]
 
