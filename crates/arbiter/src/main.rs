@@ -18,7 +18,7 @@ use itertools_num::linspace;
 use thiserror::Error;
 
 use crate::{
-    simulate::{PathSweep, SimulateArguments, SimulateSubcommand, VolatilitySweep, OutputStorage},
+    simulate::{OutputStorage, PathSweep, SimulateArguments, SimulateSubcommand, VolatilitySweep},
     visualize::{plot_price_data, VisualizeArguments, VisualizeSubcommand},
 };
 
@@ -115,7 +115,6 @@ async fn main() -> Result<(), Box<dyn Error>> {
             } = VolatilitySweep::configure(&simulate_arguments.configuration_path)?;
             let volatilities =
                 linspace(volatility_low, volatility_high, number_of_volatility_steps)
-                    .into_iter()
                     .collect::<Vec<f64>>();
             let output_storage = OutputStorage::configure(&simulate_arguments.configuration_path)?;
             println!("...loaded config path ✅");
@@ -155,7 +154,8 @@ async fn main() -> Result<(), Box<dyn Error>> {
                             let active_workers_clone = active_workers.clone();
                             let output_storage = output_storage.clone();
                             thread::spawn(move || {
-                                crate::simulate::uniswap::run(price_process, output_storage, label).unwrap();
+                                crate::simulate::uniswap::run(price_process, output_storage, label)
+                                    .unwrap();
 
                                 let (lock, cvar) = &*active_workers_clone;
                                 let mut active_workers = lock.lock().unwrap();
@@ -197,13 +197,9 @@ async fn main() -> Result<(), Box<dyn Error>> {
                 VisualizeSubcommand::PricePaths => {
                     println!("Plotting price paths...");
                     plot_price_data(visualize_arguments.configuration_path.as_str())?;
-                },
-                VisualizeSubcommand::LPReturns => {
-
                 }
+                VisualizeSubcommand::LPReturns => {}
             }
-            
-            
         }
 
         Some(Commands::Live { config: _ }) => {

@@ -16,15 +16,18 @@ use simulate::{
     utils::{unpack_execution, wad_to_float},
 };
 
-use crate::simulate::uniswap::arbitrage::{compute_arb_size, record_arb_balances, record_reserves};
-
 use super::OutputStorage;
+use crate::simulate::uniswap::arbitrage::{compute_arb_size, record_arb_balances, record_reserves};
 
 pub mod arbitrage;
 pub mod startup;
 
 /// Run a simulation.
-pub fn run(price_process: PriceProcess, output_storage: OutputStorage, label: usize) -> Result<(), Box<dyn Error>> {
+pub fn run(
+    price_process: PriceProcess,
+    output_storage: OutputStorage,
+    label: usize,
+) -> Result<(), Box<dyn Error>> {
     let _start = Instant::now();
 
     // Create a `SimulationManager` that runs simulations in their `SimulationEnvironment`.
@@ -230,7 +233,7 @@ pub fn run(price_process: PriceProcess, output_storage: OutputStorage, label: us
 
     // Write down the simulation configuration to a csv file
     let series_length = liq_price_path.len() - 1;
-    let seed = Series::new("seed", vec![price_process.seed; series_length]);
+    let _seed = Series::new("seed", vec![price_process.seed; series_length]);
     let timestep = Series::new("timestep", vec![price_process.timestep; series_length]);
     let (volatility, mean_reversion_speed, mean_price) = match price_process.process_type {
         PriceProcessType::GBM(_) => panic!("Not currently supporting GBM"),
@@ -284,16 +287,16 @@ pub fn run(price_process: PriceProcess, output_storage: OutputStorage, label: us
         .map(|x| x.to_string())
         .collect::<Vec<String>>();
 
-    let arb_balance_x = Series::new("arbitrageur_balance_x", arb_x);
+    let _arb_balance_x = Series::new("arbitrageur_balance_x", arb_x);
 
     let arb_y = arb_y
         .into_iter()
         .map(|y| y.to_string())
         .collect::<Vec<String>>();
-    let arb_balance_y = Series::new("arbitrageur_balance_y", arb_y);
+    let _arb_balance_y = Series::new("arbitrageur_balance_y", arb_y);
 
     let mut df = DataFrame::new(vec![
-        seed,
+        // seed,
         timestep,
         volatility,
         mean_reversion_speed,
@@ -310,7 +313,10 @@ pub fn run(price_process: PriceProcess, output_storage: OutputStorage, label: us
         PriceProcessType::GBM(GBM { volatility, .. }) => volatility,
         PriceProcessType::OU(OU { volatility, .. }) => volatility,
     };
-    let file = File::create(format!("{}/{}_{}_{}.csv", output_storage.output_path, output_storage.output_file_names, volatility, label))?;
+    let file = File::create(format!(
+        "{}/{}_{}_{}.csv",
+        output_storage.output_path, output_storage.output_file_names, volatility, label
+    ))?;
     let mut writer = CsvWriter::new(file);
     writer.finish(&mut df)?;
 
