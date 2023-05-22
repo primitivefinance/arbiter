@@ -13,7 +13,7 @@ pub mod portfolio;
 pub mod uniswap;
 
 #[derive(Parser, Debug)]
-#[clap(about = "Runs simulations")]
+#[clap(about = "Runs simulations.")]
 pub(crate) struct SimulateArguments {
     /// Path to config.toml containing simulation parameterization (optional)
     #[arg(short, long, default_value = "./configurations/simulate_example.toml", num_args = 0..=1)]
@@ -24,7 +24,7 @@ pub(crate) struct SimulateArguments {
     pub(crate) subcommand: SimulateSubcommand,
 }
 
-/// Subcommands for `Sim`
+/// Subcommands for `Simulate`
 #[derive(Parser, Serialize, Deserialize, Debug)]
 #[clap(about = "Runs simulations")]
 pub(crate) enum SimulateSubcommand {
@@ -32,6 +32,29 @@ pub(crate) enum SimulateSubcommand {
     Portfolio,
     #[clap(about = "Runs UniswapV2 simulation.")]
     Uniswap,
+}
+
+#[derive(Clone, Parser, Serialize, Deserialize, Debug)]
+pub struct OutputStorage {
+    pub output_path: String,
+    pub output_file_names: String,
+}
+
+impl Configurable for OutputStorage {
+    fn configure(command_path: &str) -> Result<Self, ConfigurationError> {
+        let content = match fs::read_to_string(command_path) {
+            Ok(file) => file,
+            Err(err) => return Err(ConfigurationError::FilepathError(err)),
+        };
+        let simulation_configuration: OutputStorage = match toml::from_str(&content) {
+            Ok(toml) => toml,
+            Err(err) => return Err(ConfigurationError::DeserializationError(err)),
+        };
+        Ok(OutputStorage {
+            output_path: simulation_configuration.output_path,
+            output_file_names: simulation_configuration.output_file_names,
+        })
+    }
 }
 
 impl Configurable for PriceProcess {

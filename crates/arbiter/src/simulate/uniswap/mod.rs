@@ -18,11 +18,13 @@ use simulate::{
 
 use crate::simulate::uniswap::arbitrage::{compute_arb_size, record_arb_balances, record_reserves};
 
+use super::OutputStorage;
+
 pub mod arbitrage;
 pub mod startup;
 
 /// Run a simulation.
-pub fn run(price_process: PriceProcess, label: usize) -> Result<(), Box<dyn Error>> {
+pub fn run(price_process: PriceProcess, output_storage: OutputStorage, label: usize) -> Result<(), Box<dyn Error>> {
     let _start = Instant::now();
 
     // Create a `SimulationManager` that runs simulations in their `SimulationEnvironment`.
@@ -300,15 +302,15 @@ pub fn run(price_process: PriceProcess, label: usize) -> Result<(), Box<dyn Erro
         uniswap_prices,
         reserve_x_series,
         reserve_y_series,
-        arb_balance_x,
-        arb_balance_y,
+        // arb_balance_x,
+        // arb_balance_y,
     ])?;
     // println!("Dataframe: {:#?}", df);
     let volatility = match price_process.process_type {
         PriceProcessType::GBM(GBM { volatility, .. }) => volatility,
         PriceProcessType::OU(OU { volatility, .. }) => volatility,
     };
-    let file = File::create(format!("./output/uniswap_{}_{}.csv", volatility, label))?;
+    let file = File::create(format!("{}/{}_{}_{}.csv", output_storage.output_path, output_storage.output_file_names, volatility, label))?;
     let mut writer = CsvWriter::new(file);
     writer.finish(&mut df)?;
 

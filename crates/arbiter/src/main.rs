@@ -14,13 +14,17 @@ use std::{
 use ::simulate::stochastic::price_process::{PriceProcess, PriceProcessType};
 use clap::{arg, command, CommandFactory, Parser, Subcommand};
 use eyre::Result;
-use ndarray::Array;
+use itertools_num::linspace;
 use thiserror::Error;
 
-use crate::simulate::{PathSweep, SimulateArguments, SimulateSubcommand, VolatilitySweep};
+use crate::{
+    simulate::{PathSweep, SimulateArguments, SimulateSubcommand, VolatilitySweep, OutputStorage},
+    visualize::{plot_price_data, VisualizeArguments, VisualizeSubcommand},
+};
 
 mod onchain;
 mod simulate;
+mod visualize;
 
 #[derive(Parser)]
 #[command(name = "Arbiter")]
@@ -56,13 +60,15 @@ pub trait Configurable: Sized {
 }
 
 /// Subcommands for the Arbiter CLI.
-/// * `simulate` - Simulate a price path using a GBM or OU process
+/// * `Simulate` - Simulate a price path using a GBM or OU process
+/// * `Visualize` - Visualize results of a GBM or OU forward simulation.
 /// * `Live` - Monitor live events from a Uniswap V3 pool contract
 /// * `ExportSwapRange` - Export swap data for a given block range
 /// * `ImportBacktest` - Import swap data from a csv file
 #[derive(Subcommand)]
 enum Commands {
     Simulate(SimulateArguments),
+    Visualize(VisualizeArguments),
     Live {
         // TODO: This config is actually not used.
         /// Path to config.toml containing simulation parameterization (optional)
@@ -108,9 +114,10 @@ async fn main() -> Result<(), Box<dyn Error>> {
                 number_of_volatility_steps,
             } = VolatilitySweep::configure(&simulate_arguments.configuration_path)?;
             let volatilities =
-                Array::linspace(volatility_low, volatility_high, number_of_volatility_steps)
+                linspace(volatility_low, volatility_high, number_of_volatility_steps)
                     .into_iter()
                     .collect::<Vec<f64>>();
+            let output_storage = OutputStorage::configure(&simulate_arguments.configuration_path)?;
             println!("...loaded config path ✅");
 
             match simulate_arguments.subcommand {
@@ -146,9 +153,9 @@ async fn main() -> Result<(), Box<dyn Error>> {
                             };
 
                             let active_workers_clone = active_workers.clone();
-
+                            let output_storage = output_storage.clone();
                             thread::spawn(move || {
-                                crate::simulate::uniswap::run(price_process, label).unwrap();
+                                crate::simulate::uniswap::run(price_process, output_storage, label).unwrap();
 
                                 let (lock, cvar) = &*active_workers_clone;
                                 let mut active_workers = lock.lock().unwrap();
@@ -178,6 +185,25 @@ async fn main() -> Result<(), Box<dyn Error>> {
                     crate::simulate::portfolio::run()?;
                 }
             }
+        }
+
+        Some(Commands::Visualize(visualize_arguments)) => {
+            println!(
+                "Loading config for the PriceProcess from: {}",
+                visualize_arguments.configuration_path
+            );
+            println!("...loaded config path ✅");
+            match visualize_arguments.subcommand {
+                VisualizeSubcommand::PricePaths => {
+                    println!("Plotting price paths...");
+                    plot_price_data(visualize_arguments.configuration_path.as_str())?;
+                },
+                VisualizeSubcommand::LPReturns => {
+
+                }
+            }
+            
+            
         }
 
         Some(Commands::Live { config: _ }) => {
