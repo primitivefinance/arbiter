@@ -65,7 +65,7 @@ pub fn plot_price_data(configuration_file_path: &str) -> Result<(), Box<dyn Erro
 
     let uniswap_price_curve = Curve {
         x_coordinates: trade_number,
-        y_coordinates: uniswap_price_data.clone(),
+        y_coordinates: uniswap_price_data,
         design: CurveDesign {
             color: Color::Purple,
             color_slot: MAIN_COLOR_SLOT,
