@@ -1,7 +1,13 @@
+# NOTE: The order here matters slightly! 
+# Be careful when editing.
+
 # Number of price processes to simulate.
 price_paths = 10
 # Number of workers to use for parallelization.
 worker_limit = 32
+# File output parameters struct.
+output_path = "output"
+output_file_names = "uniswap"
 
 # Volatility sweeping parameters.
 volatility_low = 0.01
@@ -19,7 +25,7 @@ number_of_volatility_steps = 10
 # * `process_type` - Type of price process. (PriceProcessType)
 timestep = 0.0027397
 timescale = "trades"
-num_steps = 10000
+num_steps = 1000
 initial_price = 1
 seed = 887
 
