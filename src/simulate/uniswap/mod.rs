@@ -233,7 +233,7 @@ pub fn run(
 
     // Write down the simulation configuration to a csv file
     let series_length = liq_price_path.len() - 1;
-    let _seed = Series::new("seed", vec![price_process.seed; series_length]);
+    let seed = Series::new("seed", vec![price_process.seed; series_length]);
     let timestep = Series::new("timestep", vec![price_process.timestep; series_length]);
     let (volatility, mean_reversion_speed, mean_price) = match price_process.process_type {
         PriceProcessType::GBM(_) => panic!("Not currently supporting GBM"),
@@ -287,16 +287,16 @@ pub fn run(
         .map(|x| x.to_string())
         .collect::<Vec<String>>();
 
-    let _arb_balance_x = Series::new("arbitrageur_balance_x", arb_x);
+    let arb_balance_x = Series::new("arbitrageur_balance_x", arb_x);
 
     let arb_y = arb_y
         .into_iter()
         .map(|y| y.to_string())
         .collect::<Vec<String>>();
-    let _arb_balance_y = Series::new("arbitrageur_balance_y", arb_y);
+    let arb_balance_y = Series::new("arbitrageur_balance_y", arb_y);
 
     let mut df = DataFrame::new(vec![
-        // seed,
+        seed,
         timestep,
         volatility,
         mean_reversion_speed,
@@ -305,8 +305,8 @@ pub fn run(
         uniswap_prices,
         reserve_x_series,
         reserve_y_series,
-        // arb_balance_x,
-        // arb_balance_y,
+        arb_balance_x,
+        arb_balance_y,
     ])?;
     // println!("Dataframe: {:#?}", df);
     let volatility = match price_process.process_type {

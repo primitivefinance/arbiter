@@ -36,50 +36,55 @@ pub fn plot_price_data(configuration_file_path: &str) -> Result<(), Box<dyn Erro
         output_file_names,
     } = OutputStorage::configure(configuration_file_path)?;
     let volatility = 0.08;
-    let label = 0;
-    let output_file = format!(
-        "{}/{}_{}_{}.csv",
-        output_path, output_file_names, volatility, label
-    );
-    let liquid_exchange_price_data =
-        read_column_from_csv(output_file.as_str(), "liquid_exchange_prices")?;
-    let uniswap_price_data = read_column_from_csv(output_file.as_str(), "uniswap_prices")?;
-    // println!("{:?}", liquid_exchange_price_data.len());
-    let trade_number = linspace(
-        0.0,
-        liquid_exchange_price_data.len() as f64,
-        liquid_exchange_price_data.len(),
-    )
-    .collect::<Vec<f64>>();
+    let mut curves = vec![];
+    for label in 0..10 {
+        let output_file = format!(
+            "{}/{}_{}_{}.csv",
+            output_path, output_file_names, volatility, label
+        );
+        let liquid_exchange_price_data =
+            read_column_from_csv(output_file.as_str(), "liquid_exchange_prices")?;
+        let uniswap_price_data = read_column_from_csv(output_file.as_str(), "uniswap_prices")?;
+        // println!("{:?}", liquid_exchange_price_data.len());
+        let trade_number = linspace(
+            0.0,
+            liquid_exchange_price_data.len() as f64,
+            liquid_exchange_price_data.len(),
+        )
+        .collect::<Vec<f64>>();
 
-    let liquid_exchange_price_curve = Curve {
-        x_coordinates: trade_number.clone(),
-        y_coordinates: liquid_exchange_price_data.clone(),
-        design: CurveDesign {
-            color: Color::Green,
-            color_slot: MAIN_COLOR_SLOT,
-            style: Style::Lines(LineEmphasis::Light),
-        },
-        name: Some("\\text{Liquid Exchange Price}".to_string()),
-    };
+        let liquid_exchange_price_curve = Curve {
+            x_coordinates: trade_number.clone(),
+            y_coordinates: liquid_exchange_price_data.clone(),
+            design: CurveDesign {
+                color: Color::Green,
+                color_slot: label,
+                style: Style::Lines(LineEmphasis::Light),
+            },
+            name: Some("\\text{Liquid Exchange Price}".to_string()),
+        };
 
-    let uniswap_price_curve = Curve {
-        x_coordinates: trade_number,
-        y_coordinates: uniswap_price_data,
-        design: CurveDesign {
-            color: Color::Purple,
-            color_slot: MAIN_COLOR_SLOT,
-            style: Style::Lines(LineEmphasis::Light),
-        },
-        name: Some("\\text{Uniswap Price}".to_string()),
-    };
+        let uniswap_price_curve = Curve {
+            x_coordinates: trade_number,
+            y_coordinates: uniswap_price_data,
+            design: CurveDesign {
+                color: Color::Purple,
+                color_slot: label,
+                style: Style::Lines(LineEmphasis::Light),
+            },
+            name: Some("\\text{Uniswap Price}".to_string()),
+        };
+
+        curves.push(liquid_exchange_price_curve);
+        curves.push(uniswap_price_curve);
+    }
 
     let title = "\\text{Price Data}".to_string();
     let axes = Axes {
         x_label: "\\text{Trade Number}".to_string(),
         y_label: "\\text{Price}".to_string(),
         bounds: (
-            vec![0.0, liquid_exchange_price_data.len() as f64],
+            vec![0.0, curves[0].x_coordinates.len() as f64],
             vec![0.95, 1.05],
         ),
     };
@@ -89,13 +94,7 @@ pub fn plot_price_data(configuration_file_path: &str) -> Result<(), Box<dyn Erro
         show: true,
     };
 
-    transparent_plot(
-        Some(vec![liquid_exchange_price_curve, uniswap_price_curve]),
-        None,
-        axes,
-        title,
-        display,
-    );
+    transparent_plot(Some(curves), None, axes, title, display);
 
     Ok(())
 }
