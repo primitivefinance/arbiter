@@ -30,23 +30,23 @@ initial_price = 1
 seed = 887
 
 [process_type]
-price_process_type = "OU"
+price_process_type = "GBM"
 
 # Ornstein-Uhlenbeck process parameters struct.
 # # Fields
 # * `volatility` - Volatility of the underlying asset. (f64)
 # * `mean_reversion_speed` - Mean reversion speed of the underlying asset. (f64)
 # * `mean_price` - Mean price of the underlying asset. (f64)
-[process_type.price_process]
-volatility = 0.01
-mean_reversion_speed = 50.0
-mean_price = 1.0
+# [process_type.price_process]
+# volatility = 0.01
+# mean_reversion_speed = 50.0
+# mean_price = 1.0
 
 # Geometric Brownian Motion process parameters struct.
 # # Fields
 # * `drift` - Price drift of the underlying asset. (f64)
 # * `volatility` - Volatility of the underlying asset. (f64)
 # e.g., 
-# [price_process_type.price_process]
-# drift = 0.1
-# volatility = 0.07
+[process_type.price_process]
+drift = 0.1
+volatility = 0.07

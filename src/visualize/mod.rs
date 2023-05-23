@@ -59,9 +59,9 @@ pub fn plot_price_data(configuration_file_path: &str) -> Result<(), Box<dyn Erro
             design: CurveDesign {
                 color: Color::Green,
                 color_slot: label,
-                style: Style::Lines(LineEmphasis::Light),
+                style: Style::Lines(LineEmphasis::Heavy),
             },
-            name: Some("\\text{Liquid Exchange Price}".to_string()),
+            name: None,
         };
 
         let uniswap_price_curve = Curve {
@@ -72,7 +72,7 @@ pub fn plot_price_data(configuration_file_path: &str) -> Result<(), Box<dyn Erro
                 color_slot: label,
                 style: Style::Lines(LineEmphasis::Light),
             },
-            name: Some("\\text{Uniswap Price}".to_string()),
+            name: None,
         };
 
         curves.push(liquid_exchange_price_curve);
@@ -85,12 +85,12 @@ pub fn plot_price_data(configuration_file_path: &str) -> Result<(), Box<dyn Erro
         y_label: "\\text{Price}".to_string(),
         bounds: (
             vec![0.0, curves[0].x_coordinates.len() as f64],
-            vec![0.95, 1.05],
+            vec![0.8, 1.6],
         ),
     };
     let display = Display {
         transparent: true,
-        mode: DisplayMode::Light,
+        mode: DisplayMode::Dark,
         show: true,
     };
 
