@@ -200,14 +200,7 @@ pub fn run(
 
                 let mut prices = arbitrageur.prices.lock().unwrap();
                 prices[1] = uniswap_price.into();
-                // println!(
-                //     "Uniswap price post swap is: {}\n",
-                //     wad_to_float(uniswap_price)
-                // );
                 dex_price_path.push(uniswap_price);
-                // Maybe we want a seperate writer?
-                // have to figure out the correct way to use the delimiter
-                // reading docs here https://docs.rs/csv/latest/csv/cookbook/index.html
                 continue;
             }
             NextTx::UpdatePrice => {
@@ -233,23 +226,6 @@ pub fn run(
 
     // Write down the simulation configuration to a csv file
     let series_length = liq_price_path.len() - 1;
-    let seed = Series::new("seed", vec![price_process.seed; series_length]);
-    let timestep = Series::new("timestep", vec![price_process.timestep; series_length]);
-    let (volatility, mean_reversion_speed, mean_price) = match price_process.process_type {
-        PriceProcessType::GBM(_) => panic!("Not currently supporting GBM"),
-        PriceProcessType::OU(OU {
-            volatility,
-            mean_reversion_speed,
-            mean_price,
-        }) => (volatility, mean_reversion_speed, mean_price),
-    };
-    let volatility = Series::new("drift", vec![volatility; series_length]);
-    let mean_reversion_speed = Series::new(
-        "mean_reversion_speed",
-        vec![mean_reversion_speed; series_length],
-    );
-    let mean_price = Series::new("mean_price", vec![mean_price; series_length]);
-
     // Write down the price paths to a csv file
     let liquid_exchange_prices = liq_price_path
         .into_iter()
@@ -295,30 +271,75 @@ pub fn run(
         .collect::<Vec<String>>();
     let arb_balance_y = Series::new("arbitrageur_balance_y", arb_y);
 
-    let mut df = DataFrame::new(vec![
-        seed,
-        timestep,
-        volatility,
-        mean_reversion_speed,
-        mean_price,
-        liquid_exchange_prices,
-        uniswap_prices,
-        reserve_x_series,
-        reserve_y_series,
-        arb_balance_x,
-        arb_balance_y,
-    ])?;
-    // println!("Dataframe: {:#?}", df);
-    let volatility = match price_process.process_type {
-        PriceProcessType::GBM(GBM { volatility, .. }) => volatility,
-        PriceProcessType::OU(OU { volatility, .. }) => volatility,
+    let seed = Series::new("seed", vec![price_process.seed; series_length]);
+    let timestep = Series::new("timestep", vec![price_process.timestep; series_length]);
+    match price_process.process_type {
+        PriceProcessType::GBM(GBM { volatility, drift }) => {
+            let volatility = Series::new("drift", vec![volatility; series_length]);
+            let drift = Series::new("mean_reversion_speed", vec![drift; series_length]);
+
+            let mut df = DataFrame::new(vec![
+                seed,
+                timestep,
+                volatility,
+                drift,
+                liquid_exchange_prices,
+                uniswap_prices,
+                reserve_x_series,
+                reserve_y_series,
+                arb_balance_x,
+                arb_balance_y,
+            ])?;
+            // println!("Dataframe: {:#?}", df);
+            let volatility = match price_process.process_type {
+                PriceProcessType::GBM(GBM { volatility, .. }) => volatility,
+                PriceProcessType::OU(OU { volatility, .. }) => volatility,
+            };
+            let file = File::create(format!(
+                "{}/{}_{}_{}.csv",
+                output_storage.output_path, output_storage.output_file_names, volatility, label
+            ))?;
+            let mut writer = CsvWriter::new(file);
+            writer.finish(&mut df)?;
+        }
+        PriceProcessType::OU(OU {
+            volatility,
+            mean_reversion_speed,
+            mean_price,
+        }) => {
+            let volatility = Series::new("drift", vec![volatility; series_length]);
+            let mean_reversion_speed = Series::new(
+                "mean_reversion_speed",
+                vec![mean_reversion_speed; series_length],
+            );
+            let mean_price = Series::new("mean_price", vec![mean_price; series_length]);
+
+            let mut df = DataFrame::new(vec![
+                seed,
+                timestep,
+                volatility,
+                mean_reversion_speed,
+                mean_price,
+                liquid_exchange_prices,
+                uniswap_prices,
+                reserve_x_series,
+                reserve_y_series,
+                arb_balance_x,
+                arb_balance_y,
+            ])?;
+            // println!("Dataframe: {:#?}", df);
+            let volatility = match price_process.process_type {
+                PriceProcessType::GBM(GBM { volatility, .. }) => volatility,
+                PriceProcessType::OU(OU { volatility, .. }) => volatility,
+            };
+            let file = File::create(format!(
+                "{}/{}_{}_{}.csv",
+                output_storage.output_path, output_storage.output_file_names, volatility, label
+            ))?;
+            let mut writer = CsvWriter::new(file);
+            writer.finish(&mut df)?;
+        }
     };
-    let file = File::create(format!(
-        "{}/{}_{}_{}.csv",
-        output_storage.output_path, output_storage.output_file_names, volatility, label
-    ))?;
-    let mut writer = CsvWriter::new(file);
-    writer.finish(&mut df)?;
 
     // println!("=======================================");
     // println!("🎉 Simulation Completed 🎉");
