@@ -1,6 +1,6 @@
 use std::error::Error;
 
-use bindings::{uniswap_v2_router_01::uniswap_v2_router_01, liquid_exchange};
+use bindings::{liquid_exchange, uniswap_v2_router_01::uniswap_v2_router_01};
 use ethers::{prelude::U256, types::I256};
 use eyre::Result;
 use revm::primitives::{ruint::Uint, B160};
@@ -203,7 +203,7 @@ pub(crate) fn swap_liquid_expchange(
     environment: &mut SimulationEnvironment,
     contracts: &SimulationContracts,
     input_amount: U256,
-    sell_asset: bool
+    sell_asset: bool,
 ) -> Result<(), Box<dyn Error>> {
     let path = if sell_asset {
         recast_address(contracts.arbiter_token_x.address)
