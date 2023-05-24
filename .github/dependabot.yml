@@ -5,8 +5,22 @@
 
 version: 2
 updates:
-      
   - package-ecosystem: "cargo"
     directory: "/"
+    schedule:
+      interval: "daily"
+
+  - package-ecosystem: "cargo"
+    directory: "lib/bindings/"
+    schedule:
+      interval: "daily"
+
+  - package-ecosystem: "cargo"
+    directory: "/lib/onchain/"
+    schedule:
+      interval: "daily"
+
+  - package-ecosystem: "cargo"
+    directory: "/lib/simulate/"
     schedule:
       interval: "daily"
