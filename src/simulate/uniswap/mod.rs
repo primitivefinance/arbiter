@@ -153,6 +153,17 @@ pub fn run(
                     // println!("No arbitrage opportunity\n");
                     index += 1;
                 } else {
+                    let uniswap_reserves = arbitrageur.call_contract(
+                        &mut manager.environment,
+                        &uniswap_pair,
+                        uniswap_pair.encode_function("getReserves", ())?,
+                        Uint::ZERO,
+                    );
+                    let uniswap_reserves = unpack_execution(uniswap_reserves)?;
+                    let uniswap_reserves: (u128, u128, u32) =
+                        uniswap_pair.decode_output("getReserves", uniswap_reserves)?;
+                    let x_before_swap = U256::from(uniswap_reserves.0);
+                    let y_before_swap = U256::from(uniswap_reserves.1);
                     arbitrage::swap(
                         arbitrageur,
                         &mut manager.environment,
@@ -161,8 +172,19 @@ pub fn run(
                         size.sell_asset,
                     )?;
                     let swap_output: U256;
+                    let uniswap_reserves_after = arbitrageur.call_contract(
+                        &mut manager.environment,
+                        &uniswap_pair,
+                        uniswap_pair.encode_function("getReserves", ())?,
+                        Uint::ZERO,
+                    );
+                    let uniswap_reserves_after = unpack_execution(uniswap_reserves_after)?;
+                    let uniswap_reserves_after: (u128, u128, u32) =
+                        uniswap_pair.decode_output("getReserves", uniswap_reserves_after)?;
+                    let x_after_swap = U256::from(uniswap_reserves_after.0);
+                    let y_after_swap = U256::from(uniswap_reserves_after.1);
                     if size.sell_asset == true {
-                        swap_output = reserve_over_time.1[index] - reserve_over_time.1[index - 1];
+                        swap_output = y_before_swap - y_after_swap;
                         arbitrage::swap_liquid_expchange(
                             arbitrageur,
                             &mut manager.environment,
@@ -171,7 +193,7 @@ pub fn run(
                             size.sell_asset,
                         )?;
                     } else {
-                        swap_output = reserve_over_time.0[index] - reserve_over_time.0[index - 1];
+                        swap_output = x_before_swap - x_after_swap;
                         arbitrage::swap_liquid_expchange(
                             arbitrageur,
                             &mut manager.environment,
