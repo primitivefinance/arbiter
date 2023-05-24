@@ -1,6 +1,6 @@
 use std::error::Error;
 
-use bindings::uniswap_v2_router_01::uniswap_v2_router_01;
+use bindings::{uniswap_v2_router_01::uniswap_v2_router_01, liquid_exchange};
 use ethers::{prelude::U256, types::I256};
 use eyre::Result;
 use revm::primitives::{ruint::Uint, B160};
@@ -195,6 +195,37 @@ pub(crate) fn swap(
     //     );
     // }
 
+    Ok(())
+}
+
+pub(crate) fn swap_liquid_expchange(
+    arbitrageur: &SimpleArbitrageur<IsActive>,
+    environment: &mut SimulationEnvironment,
+    contracts: &SimulationContracts,
+    input_amount: U256,
+    sell_asset: bool
+) -> Result<(), Box<dyn Error>> {
+    let path = if sell_asset {
+        recast_address(contracts.arbiter_token_x.address)
+    } else {
+        recast_address(contracts.arbiter_token_y.address)
+    };
+    let swap_args = liquid_exchange::SwapCall {
+        token_in: path,
+        amount_in: input_amount,
+    };
+    let swap_result = arbitrageur.call_contract(
+        environment,
+        &contracts.liquid_exchange_xy,
+        contracts
+            .liquid_exchange_xy
+            .encode_function("swap", swap_args)?,
+        U256::from(0).into(),
+    );
+    let swap_results = unpack_execution(swap_result)?;
+    let _swap_results: _ = contracts
+        .liquid_exchange_xy
+        .decode_output("swap", swap_results)?;
     Ok(())
 }
 

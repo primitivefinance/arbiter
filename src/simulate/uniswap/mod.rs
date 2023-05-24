@@ -204,7 +204,21 @@ pub fn run(
                 continue;
             }
             NextTx::UpdatePrice => {
-                dex_price_path.push(U256::from(0)); // Add a zero when the Uniswap pool doesn't get a swap but the LiquidExchange does
+                let uniswap_reserves = manager.agents.get("admin").unwrap().call_contract(
+                    &mut manager.environment,
+                    &uniswap_pair,
+                    uniswap_pair.encode_function("getReserves", ())?,
+                    Uint::ZERO,
+                );
+                let uniswap_reserves = unpack_execution(uniswap_reserves)?;
+                let uniswap_reserves: (u128, u128, u32) =
+                    uniswap_pair.decode_output("getReserves", uniswap_reserves)?;
+                let x = U256::from(uniswap_reserves.0);
+                let y = U256::from(uniswap_reserves.1);
+                let uniswap_price = y * U256::from(10_u128.pow(18)) / x;
+
+                dex_price_path.push(uniswap_price); // repeat previous price if no swap
+
                 update_price(
                     admin,
                     &mut manager.environment,
