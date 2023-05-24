@@ -160,6 +160,14 @@ pub fn run(
                         size.input,
                         size.sell_asset,
                     )?;
+                    let swap_output: U256;
+                    if size.sell_asset == true {
+                        swap_output = reserve_over_time.1[index] - reserve_over_time.1[index-1];
+                        arbitrage::swap_liquid_expchange(arbitrageur, &mut manager.environment, &contracts, swap_output, size.sell_asset)?;
+                    } else {
+                        swap_output = reserve_over_time.0[index] - reserve_over_time.0[index-1];
+                        arbitrage::swap_liquid_expchange(arbitrageur, &mut manager.environment, &contracts, swap_output, size.sell_asset)?;
+                    }
                 }
                 record_reserves(
                     &mut manager.environment,
@@ -182,6 +190,7 @@ pub fn run(
                     price,
                     &mut liq_price_path,
                 )?;
+
                 index += 1;
 
                 // Get the updated Uniswap price and deliver it to the arbitrageur
