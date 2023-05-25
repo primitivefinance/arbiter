@@ -1,6 +1,6 @@
 use std::error::Error;
 
-use bindings::uniswap_v2_router_01::uniswap_v2_router_01;
+use bindings::{liquid_exchange, uniswap_v2_router_01::uniswap_v2_router_01};
 use ethers::{prelude::U256, types::I256};
 use eyre::Result;
 use revm::primitives::{ruint::Uint, B160};
@@ -195,6 +195,64 @@ pub(crate) fn swap(
     //     );
     // }
 
+    Ok(())
+}
+
+pub(crate) fn swap_liquid_expchange(
+    arbitrageur: &SimpleArbitrageur<IsActive>,
+    environment: &mut SimulationEnvironment,
+    contracts: &SimulationContracts,
+    input_amount: U256,
+    sell_asset: bool,
+) -> Result<(), Box<dyn Error>> {
+    // Determine swap path from boolean
+    let path = if sell_asset {
+        recast_address(contracts.arbiter_token_x.address)
+    } else {
+        recast_address(contracts.arbiter_token_y.address)
+    };
+    // Approve token spends
+    let x_args = (
+        recast_address(contracts.liquid_exchange_xy.address),
+        U256::MAX,
+    );
+    let x_data = contracts
+        .arbiter_token_x
+        .encode_function("approve", x_args)?;
+    arbitrageur.call_contract(
+        environment,
+        &contracts.arbiter_token_x,
+        x_data,
+        Uint::from(0),
+    );
+
+    let y_args = (
+        recast_address(contracts.liquid_exchange_xy.address),
+        U256::MAX,
+    );
+    let y_data = contracts
+        .arbiter_token_y
+        .encode_function("approve", y_args)?;
+    arbitrageur.call_contract(
+        environment,
+        &contracts.arbiter_token_y,
+        y_data,
+        Uint::from(0),
+    );
+
+    // Swap tokens on [`LiquidExchange`]
+    let swap_args = liquid_exchange::SwapCall {
+        token_in: path,
+        amount_in: input_amount,
+    };
+    arbitrageur.call_contract(
+        environment,
+        &contracts.liquid_exchange_xy,
+        contracts
+            .liquid_exchange_xy
+            .encode_function("swap", swap_args)?,
+        U256::from(0).into(),
+    );
     Ok(())
 }
 

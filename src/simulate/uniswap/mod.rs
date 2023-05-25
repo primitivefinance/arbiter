@@ -153,6 +153,17 @@ pub fn run(
                     // println!("No arbitrage opportunity\n");
                     index += 1;
                 } else {
+                    let uniswap_reserves = arbitrageur.call_contract(
+                        &mut manager.environment,
+                        &uniswap_pair,
+                        uniswap_pair.encode_function("getReserves", ())?,
+                        Uint::ZERO,
+                    );
+                    let uniswap_reserves = unpack_execution(uniswap_reserves)?;
+                    let uniswap_reserves: (u128, u128, u32) =
+                        uniswap_pair.decode_output("getReserves", uniswap_reserves)?;
+                    let x_before_swap = U256::from(uniswap_reserves.0);
+                    let y_before_swap = U256::from(uniswap_reserves.1);
                     arbitrage::swap(
                         arbitrageur,
                         &mut manager.environment,
@@ -160,6 +171,37 @@ pub fn run(
                         size.input,
                         size.sell_asset,
                     )?;
+                    let swap_output: U256;
+                    let uniswap_reserves_after = arbitrageur.call_contract(
+                        &mut manager.environment,
+                        &uniswap_pair,
+                        uniswap_pair.encode_function("getReserves", ())?,
+                        Uint::ZERO,
+                    );
+                    let uniswap_reserves_after = unpack_execution(uniswap_reserves_after)?;
+                    let uniswap_reserves_after: (u128, u128, u32) =
+                        uniswap_pair.decode_output("getReserves", uniswap_reserves_after)?;
+                    let x_after_swap = U256::from(uniswap_reserves_after.0);
+                    let y_after_swap = U256::from(uniswap_reserves_after.1);
+                    if size.sell_asset == true {
+                        swap_output = y_before_swap - y_after_swap;
+                        arbitrage::swap_liquid_expchange(
+                            arbitrageur,
+                            &mut manager.environment,
+                            &contracts,
+                            swap_output,
+                            size.sell_asset,
+                        )?;
+                    } else {
+                        swap_output = x_before_swap - x_after_swap;
+                        arbitrage::swap_liquid_expchange(
+                            arbitrageur,
+                            &mut manager.environment,
+                            &contracts,
+                            swap_output,
+                            size.sell_asset,
+                        )?;
+                    }
                 }
                 record_reserves(
                     &mut manager.environment,
@@ -182,6 +224,7 @@ pub fn run(
                     price,
                     &mut liq_price_path,
                 )?;
+
                 index += 1;
 
                 // Get the updated Uniswap price and deliver it to the arbitrageur
@@ -204,7 +247,21 @@ pub fn run(
                 continue;
             }
             NextTx::UpdatePrice => {
-                dex_price_path.push(U256::from(0)); // Add a zero when the Uniswap pool doesn't get a swap but the LiquidExchange does
+                let uniswap_reserves = manager.agents.get("admin").unwrap().call_contract(
+                    &mut manager.environment,
+                    &uniswap_pair,
+                    uniswap_pair.encode_function("getReserves", ())?,
+                    Uint::ZERO,
+                );
+                let uniswap_reserves = unpack_execution(uniswap_reserves)?;
+                let uniswap_reserves: (u128, u128, u32) =
+                    uniswap_pair.decode_output("getReserves", uniswap_reserves)?;
+                let x = U256::from(uniswap_reserves.0);
+                let y = U256::from(uniswap_reserves.1);
+                let uniswap_price = y * U256::from(10_u128.pow(18)) / x;
+
+                dex_price_path.push(uniswap_price); // repeat previous price if no swap
+
                 update_price(
                     admin,
                     &mut manager.environment,
