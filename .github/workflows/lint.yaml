@@ -6,7 +6,7 @@ on:
 
 jobs:
   fmt:
-    name: fmt check
+    name: fmt
     runs-on: ubuntu-latest
 
     steps:
@@ -22,7 +22,7 @@ jobs:
         run: cargo fmt --all -- --check
 
   clippy:
-    name: clippy check
+    name: clippy
     runs-on: ubuntu-latest
 
     steps:
