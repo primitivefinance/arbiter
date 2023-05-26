@@ -183,7 +183,7 @@ pub fn run(
                         uniswap_pair.decode_output("getReserves", uniswap_reserves_after)?;
                     let x_after_swap = U256::from(uniswap_reserves_after.0);
                     let y_after_swap = U256::from(uniswap_reserves_after.1);
-                    if size.sell_asset == true {
+                    if size.sell_asset {
                         swap_output = y_before_swap - y_after_swap;
                         arbitrage::swap_liquid_expchange(
                             arbitrageur,
