@@ -18,7 +18,7 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Setup Rust
-        uses: actions-rs/toolchain@v1
+        uses: actions-rs/toolchain@v2
         with:
           profile: minimal
           toolchain: stable
@@ -34,6 +34,6 @@ jobs:
       - name: Bump patch version
         run: |
           cargo set-version --bump patch
-          git add ./**/*.toml
+          git add Cargo.toml lib/**/Cargo.toml
           git commit -m "Bump patch version"
           git push
