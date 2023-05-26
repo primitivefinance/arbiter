@@ -1,8 +1,8 @@
 <img width="529" alt="arbiter" src="https://user-images.githubusercontent.com/20118821/236929861-2a1fe071-0053-453c-ac86-224b32febcd6.png">
 
-> Perform high speed modeling and economic fuzzing with EVM parity.
+> Expanding the EVM tooling ecosystem.
 
-![Github Actions](https://github.com/primitivefinance/arbiter/workflows/Rust/badge.svg)
+![Github Actions](https://github.com/primitivefinance/arbiter/workflows/test/badge.svg)
 [![codecov](https://codecov.io/gh/funkycadet/arbiter/branch/main/graph/badge.svg?token=UQ1SE0D9IN)](https://codecov.io/gh/funkycadet/arbiter)
 ![](https://visitor-badge.laobi.icu/badge?page_id=arbiter)
 [![](https://dcbadge.vercel.app/api/server/primitive?style=flat)](https://discord.gg/primitive)
@@ -24,14 +24,6 @@ Arbiter can be used for:
 
 For our next beta release, we will be focusing on the following features:
 
-#### TODOs:
-
-- [x] Interface over Loading contracts with specific state
-- [x] Interface over calldata
-- [x] Interface over deploying contracts to REVM
-- [ ] Case study on results of simulations.
-- [ ] Documentation for the project.
-- [ ] Publish to crates.io.
 
 ## Build From Source
 
@@ -45,13 +37,13 @@ cd arbiter
 Install arbiter on your system:
 
 ```bash
-cargo install --path crates/cli --force
+cargo install --path . --force
 ```
 
 With the `arbiter` binary generated, you can run commands such as:
 
 ```bash
-arbiter sim
+arbiter simulate uniswap
 ```
 
 ## Generating Docs
