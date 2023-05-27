@@ -20,36 +20,37 @@ onchain = {path = "lib/onchain"}
 visualize = { git = "https://github.com/primitivefinance/visualization-rs.git"}
 
 # External
-tokio = { version = "1.23", features = [
+tokio = { version = "1.28.1", features = [
     "macros",
     "full"
 ]}
-clap = { version = "4.0.32", features = ["derive"] }
-serde = { version = "1.0.152", features =["derive"] }
-thiserror = "1.0.38"
-eyre = "0.6.6"
-toml = "0.7.3"
-ethers = "2.0.2"
-csv = "1.1"
+clap = { version = "4.3.0", features = ["derive"] }
+serde = { version = "1.0.163", features =["derive"] }
+thiserror = "1.0.40"
+eyre = "0.6.8"
+toml = "0.7.4"
+ethers = "2.0.4"
+csv = "1.2.1"
 itertools-num = "0.1.3"
 
 
 # revm and related
-revm = "3.1.0"
-bytes = "1.3.0"
-hex = { version = "0.4", default-features = false }
-ruint = "1.7.0"
+revm = "3.3.0"
+bytes = "1.4.0"
+hex = { version = "0.4.3", default-features = false }
+ruint = "1.8.0"
 
 # Simulation
-crossbeam-channel = "0.5.7"
+crossbeam-channel = "0.5.8"
 polars = "0.29.0"
 
 [dev-dependencies]
-assert_cmd = "2.0"
+assert_cmd = "2.0.11"
 
 # Release profile
 [profile.release]
 # Link-Time Optimization can inprove runtime at cost of build time
 lto = true
-# The Rust compiler splits your crate into multiple codegen units to parallelize (and thus speed up) compilation but at the cost of optimization. This setting tells the compiler to use only one codegen unit, which will slow down compilation but improve optimization.
+# The Rust compiler splits your crate into multiple codegen units to parallelize (and thus speed up) compilation but at the cost of optimization. 
+# This setting tells the compiler to use only one codegen unit, which will slow down compilation but improve optimization.
 codegen-units = 1
