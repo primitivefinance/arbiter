@@ -10,7 +10,7 @@ use simulate::{
     },
     environment::{
         contract::{IsDeployed, SimulationContract},
-        sim_environment::SimulationEnvironment,
+        SimulationEnvironment,
     },
     manager::SimulationManager,
     utils::{recast_address, unpack_execution},

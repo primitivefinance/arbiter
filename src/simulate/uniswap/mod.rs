@@ -9,7 +9,7 @@ use simulate::{
     agent::{simple_arbitrageur::NextTx, Agent, AgentType},
     environment::{
         contract::{IsDeployed, SimulationContract},
-        sim_environment::SimulationEnvironment,
+        SimulationEnvironment,
     },
     manager::SimulationManager,
     stochastic::price_process::{PriceProcess, PriceProcessType, GBM, OU},

@@ -18,6 +18,10 @@ pub struct User<AgentState: AgentStatus> {
     pub account_info: AgentState::AccountInfo,
     /// Contains the default transaction options for revm such as gas limit and gas price.
     pub transact_settings: AgentState::TransactSettings,
+    /// The [`crossbeam_channel::Sender`] for sending transactions to the `SimulationEnvironment`.
+    pub transaction_sender: AgentState::TransactionSender,
+    /// The [`crossbeam_channel`] for getting [`ExecutionResult`] back from the `SimulationEnvironment`.
+    pub result_channel: AgentState::ResultChannel,
     /// The [`crossbeam_channel::Receiver`] for the events are sent down from [`SimulationEnvironment`]'s dispatch.
     pub event_receiver: AgentState::EventReceiver,
     /// The filter for the events that the agent is interested in.
@@ -30,6 +34,7 @@ impl<AgentState: AgentStatus> Identifiable for User<AgentState> {
     }
 }
 
+// TODO: I'm not sure we need all the things cloned here.
 impl Agent for User<IsActive> {
     fn address(&self) -> Address {
         self.address
@@ -42,6 +47,22 @@ impl Agent for User<IsActive> {
     }
     fn event_filters(&self) -> Vec<SimulationEventFilter> {
         self.event_filters.clone()
+    }
+    fn transaction_sender(
+        &self,
+    ) -> crossbeam_channel::Sender<(
+        revm::primitives::TxEnv,
+        crossbeam_channel::Sender<revm::primitives::ExecutionResult>,
+    )> {
+        self.transaction_sender.clone()
+    }
+    fn result_channel(
+        &self,
+    ) -> (
+        crossbeam_channel::Sender<revm::primitives::ExecutionResult>,
+        Receiver<revm::primitives::ExecutionResult>,
+    ) {
+        self.result_channel.clone()
     }
 }
 
@@ -58,6 +79,8 @@ impl User<NotActive> {
             transact_settings: (),
             event_receiver: (),
             event_filters: event_filters.unwrap_or_default(),
+            transaction_sender: (),
+            result_channel: (),
         }
     }
 }

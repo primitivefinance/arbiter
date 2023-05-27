@@ -12,16 +12,17 @@ use std::{
 use bindings::arbiter_math;
 use bytes::Bytes;
 use crossbeam_channel::unbounded;
+use ethers::abi::Tokenize;
 use revm::primitives::{AccountInfo, Address, Log, B160, U256};
 
 use crate::{
     agent::{
         simple_arbitrageur::SimpleArbitrageur, user::User, AgentType, IsActive, NotActive,
-        TransactSettings,
+        TransactSettings, Agent,
     },
     environment::{
         contract::{IsDeployed, SimulationContract},
-        sim_environment::SimulationEnvironment,
+        SimulationEnvironment,
     },
 };
 
@@ -79,6 +80,7 @@ impl SimulationManager {
         simulation_manager
             .activate_agent(admin, B160::from_low_u64_be(1))
             .unwrap(); // This unwrap should never fail.
+        simulation_manager.environment.run();
         simulation_manager.auto_deploy();
 
         simulation_manager
@@ -86,13 +88,11 @@ impl SimulationManager {
 
     /// Deploy all contracts that are needed for any simulation.
     fn auto_deploy(&mut self) {
-        // Deploy `ArbiterMath`.
         let arbiter_math = SimulationContract::new(
             arbiter_math::ARBITERMATH_ABI.clone(),
             arbiter_math::ARBITERMATH_BYTECODE.clone(),
         );
-        let arbiter_math =
-            arbiter_math.deploy(&mut self.environment, self.agents.get("admin").unwrap(), ());
+        let (arbiter_math, _execution_result) = self.agents.get("admin").unwrap().deploy(arbiter_math, ().into_tokens()).unwrap();
         self.autodeployed_contracts
             .insert("arbiter_math".to_string(), arbiter_math);
     }
@@ -160,6 +160,8 @@ impl SimulationManager {
                     },
                     event_receiver,
                     event_filters: user.event_filters,
+                    transaction_sender: self.environment.transaction_channel.0.clone(),
+                    result_channel: crossbeam_channel::unbounded(), // TODO: These may only need to be 1 message wide, not unbounded.
                 };
                 self.agents
                     .insert(new_user.name.clone(), AgentType::User(new_user));
@@ -176,6 +178,8 @@ impl SimulationManager {
                     event_receiver,
                     event_filters: simple_arbitrageur.event_filters,
                     prices: simple_arbitrageur.prices,
+                    transaction_sender: self.environment.transaction_channel.0.clone(),
+                    result_channel: crossbeam_channel::unbounded(), // TODO: These may only need to be 1 message wide, not unbounded.
                 };
                 self.agents.insert(
                     new_simple_arbitrageur.name.clone(),
