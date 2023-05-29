@@ -14,10 +14,15 @@ use std::{
 
 use bytes::Bytes;
 use crossbeam_channel::{Receiver, Sender};
-use ethers::{abi::{Tokenize, Token}, prelude::BaseContract, types::H256};
+use ethers::{
+    abi::{Token, Tokenizable, Tokenize},
+    prelude::BaseContract,
+    types::H256,
+};
 use revm::primitives::{
     AccountInfo, Address, ExecutionResult, Log, Output, TransactTo, TxEnv, B160, U256,
 };
+use tokio::sync::broadcast;
 
 use self::{simple_arbitrageur::SimpleArbitrageur, user::User};
 use crate::environment::{
@@ -75,7 +80,7 @@ impl AgentStatus for NotActive {
 impl AgentStatus for IsActive {
     type Address = B160;
     type AccountInfo = AccountInfo;
-    type EventReceiver = Receiver<Vec<Log>>;
+    type EventReceiver = broadcast::Receiver<Vec<Log>>;
     type TransactSettings = TransactSettings;
     type TransactionSender = Sender<(TxEnv, Sender<ExecutionResult>)>;
     type ResultChannel = (Sender<ExecutionResult>, Receiver<ExecutionResult>);
@@ -138,7 +143,7 @@ impl Agent for AgentType<IsActive> {
         self.inner().transact_settings()
     }
 
-    fn receiver(&self) -> Receiver<Vec<Log>> {
+    fn receiver(&self) -> broadcast::Receiver<Vec<Log>> {
         self.inner().receiver()
     }
 
@@ -164,13 +169,14 @@ pub struct TransactSettings {
 }
 
 /// Basic traits that every `Agent` must implement in order to properly interact with an EVM.
+#[async_trait::async_trait]
 pub trait Agent: Identifiable {
     /// Returns the address of the agent.
     fn address(&self) -> Address;
     /// Returns the transaction settings of the agent.
     fn transact_settings(&self) -> &TransactSettings;
     /// The event's channel receiver for the agent.
-    fn receiver(&self) -> Receiver<Vec<Log>>;
+    fn receiver(&self) -> broadcast::Receiver<Vec<Log>>;
     /// Gets the event filter for the [`Agent`]
     fn event_filters(&self) -> Vec<SimulationEventFilter>;
     /// Used to allow agents to make a txn with the evm.
@@ -179,13 +185,16 @@ pub trait Agent: Identifiable {
     fn result_channel(&self) -> (Sender<ExecutionResult>, Receiver<ExecutionResult>);
 
     /// Used to allow agents to make a generic call a specific smart contract.
-    fn call_contract(
+    fn call(
         &self,
         // simulation_environment: &mut SimulationEnvironment,
         contract: &SimulationContract<IsDeployed>,
-        call_data: Bytes,
+        function_name: &str,
+        args: Vec<Token>,
         // value: U256,
     ) -> Result<ExecutionResult, Box<dyn Error>> {
+        let function = contract.base_contract.abi().function(function_name)?;
+        let call_data = function.encode_input(&args)?.into_iter().collect();
         let tx = self.build_call_transaction(contract.address, call_data);
         self.transaction_sender()
             .send((tx, self.result_channel().0))?;
@@ -213,22 +222,14 @@ pub trait Agent: Identifiable {
         }
     }
 
-    // TODO: May be defunct to read logs now
-    /// Gets the most current event (which is all that is stored in the event buffer).
-    fn read_logs(&self) -> Result<Vec<Log>, AgentError> {
-        match self.receiver().recv() {
-            Ok(logs) => Ok(logs),
-            Err(e) => Err(AgentError(format!("Error reading logs for agent: {}", e))),
-        }
-    }
     // TODO: Right now this is only detecting an arb event and instead...
     // TODO: add a condition as a bool valued function?
     // TODO: It would be optimal to not build functions inside of the monitor events since it could get called often. Ideally we just don't call it often?
     /// Monitor events for the agent.
-    fn monitor_events(&self) {
-        let receiver = self.receiver();
+    async fn monitor_events(&self) {
+        let mut receiver = self.receiver();
         let event_filters = self.event_filters();
-        thread::spawn(move || {
+        tokio::spawn(async move {
             let decoder = |input, filter_num: usize| {
                 event_filters[filter_num].base_contract.decode_event_raw(
                     event_filters[filter_num].event_name.as_str(),
@@ -236,14 +237,11 @@ pub trait Agent: Identifiable {
                     input,
                 )
             };
-            while let Ok(logs) = receiver.recv() {
+            while let Ok(logs) = receiver.recv().await {
                 let filtered_logs = filter_events(event_filters.clone(), logs);
-                println!("Filtered logs are: {:#?}", filtered_logs);
                 let data = filtered_logs[0].data.clone().into_iter().collect();
                 let decoded_event = decoder(data, 0).unwrap(); // TODO: Fix the error handling here.
-                println!("Decoded event says: {:#?}", decoded_event);
                 let value = decoded_event[0].clone();
-                println!("The value is: {:#?}", value);
             }
         });
     }
@@ -298,12 +296,15 @@ pub trait Agent: Identifiable {
             _ => panic!("failed"),
         };
 
-        Ok((SimulationContract {
-            bytecode: (),
-            address,
-            base_contract: contract.base_contract.clone(),
-            constructor_arguments,
-        }, execution_result))
+        Ok((
+            SimulationContract {
+                bytecode: (),
+                address,
+                base_contract: contract.base_contract.clone(),
+                constructor_arguments,
+            },
+            execution_result,
+        ))
     }
 }
 

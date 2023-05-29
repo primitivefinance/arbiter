@@ -9,6 +9,7 @@ use std::{
 
 use crossbeam_channel::{Receiver, Sender};
 use revm::primitives::{Address, ExecutionResult, Log, TxEnv, U256};
+use tokio::sync::broadcast;
 
 use super::{AgentStatus, Identifiable, IsActive, NotActive};
 use crate::agent::{filter_events, Agent, SimulationEventFilter, TransactSettings};
@@ -57,8 +58,8 @@ impl Agent for SimpleArbitrageur<IsActive> {
     fn transact_settings(&self) -> &TransactSettings {
         &self.transact_settings
     }
-    fn receiver(&self) -> Receiver<Vec<Log>> {
-        self.event_receiver.clone()
+    fn receiver(&self) -> broadcast::Receiver<Vec<Log>> {
+        self.event_receiver.resubscribe()
     }
     fn event_filters(&self) -> Vec<SimulationEventFilter> {
         self.event_filters.clone()
@@ -97,16 +98,16 @@ impl SimpleArbitrageur<IsActive> {
     pub fn detect_arbitrage(
         &self,
     ) -> (
-        JoinHandle<()>,
+        tokio::task::JoinHandle<()>,
         crossbeam_channel::Receiver<(NextTx, Option<bool>)>,
     ) {
         let (tx, rx) = crossbeam_channel::unbounded::<(NextTx, Option<bool>)>();
-        let receiver = self.receiver();
+        let mut receiver = self.receiver();
         let event_filters = self.event_filters();
         let prices = Arc::clone(&self.prices);
 
         (
-            thread::spawn(move || {
+            tokio::spawn(async move {
                 let decoder = |input, filter_num: usize| {
                     event_filters[filter_num].base_contract.decode_event_raw(
                         event_filters[filter_num].event_name.as_str(),
@@ -114,7 +115,7 @@ impl SimpleArbitrageur<IsActive> {
                         input,
                     )
                 };
-                while let Ok(logs) = receiver.recv() {
+                while let Ok(logs) = receiver.recv().await {
                     // Get the logs and filter
                     let filtered_logs = filter_events(event_filters.clone(), logs);
 

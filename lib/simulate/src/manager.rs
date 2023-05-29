@@ -17,8 +17,8 @@ use revm::primitives::{AccountInfo, Address, Log, B160, U256};
 
 use crate::{
     agent::{
-        simple_arbitrageur::SimpleArbitrageur, user::User, AgentType, IsActive, NotActive,
-        TransactSettings, Agent,
+        simple_arbitrageur::SimpleArbitrageur, user::User, Agent, AgentType, IsActive, NotActive,
+        TransactSettings,
     },
     environment::{
         contract::{IsDeployed, SimulationContract},
@@ -92,19 +92,14 @@ impl SimulationManager {
             arbiter_math::ARBITERMATH_ABI.clone(),
             arbiter_math::ARBITERMATH_BYTECODE.clone(),
         );
-        let (arbiter_math, _execution_result) = self.agents.get("admin").unwrap().deploy(arbiter_math, ().into_tokens()).unwrap();
+        let (arbiter_math, _execution_result) = self
+            .agents
+            .get("admin")
+            .unwrap()
+            .deploy(arbiter_math, ().into_tokens())
+            .unwrap();
         self.autodeployed_contracts
             .insert("arbiter_math".to_string(), arbiter_math);
-    }
-
-    /// Stop the current simulation.
-    pub fn shut_down(&mut self) {
-        self.environment.event_senders.clear();
-    }
-
-    /// Run all agents concurrently in the current simulation environment.
-    pub fn run_agents() {
-        todo!()
     }
 
     /// Adds and activates an agent to be put in the collection of agents under the manager's control.
@@ -147,7 +142,6 @@ impl SimulationManager {
             .db()
             .unwrap()
             .insert_account_info(new_agent_address, account_info.clone());
-        let (event_sender, event_receiver) = unbounded::<Vec<Log>>();
         match new_agent {
             AgentType::User(user) => {
                 let new_user = User::<IsActive> {
@@ -158,7 +152,7 @@ impl SimulationManager {
                         gas_limit: u64::MAX,   // TODO: Users should have a gas limit.
                         gas_price: U256::ZERO, // TODO: Users should have an associated gas price.
                     },
-                    event_receiver,
+                    event_receiver: self.environment.event_broadcaster.subscribe(),
                     event_filters: user.event_filters,
                     transaction_sender: self.environment.transaction_channel.0.clone(),
                     result_channel: crossbeam_channel::unbounded(), // TODO: These may only need to be 1 message wide, not unbounded.
@@ -175,7 +169,7 @@ impl SimulationManager {
                         gas_limit: u64::MAX,   // TODO: Users should have a gas limit.
                         gas_price: U256::ZERO, // TODO: Users should have an associated gas price.
                     },
-                    event_receiver,
+                    event_receiver: self.environment.event_broadcaster.subscribe(),
                     event_filters: simple_arbitrageur.event_filters,
                     prices: simple_arbitrageur.prices,
                     transaction_sender: self.environment.transaction_channel.0.clone(),
@@ -187,7 +181,6 @@ impl SimulationManager {
                 );
             }
         };
-        self.environment.add_sender(event_sender);
         Ok(())
     }
 }

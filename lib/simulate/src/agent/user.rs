@@ -4,6 +4,7 @@
 
 use crossbeam_channel::Receiver;
 use revm::primitives::{Address, Log};
+use tokio::sync::broadcast;
 
 use super::{AgentStatus, Identifiable, IsActive, NotActive};
 use crate::agent::{Agent, SimulationEventFilter, TransactSettings};
@@ -42,8 +43,8 @@ impl Agent for User<IsActive> {
     fn transact_settings(&self) -> &TransactSettings {
         &self.transact_settings
     }
-    fn receiver(&self) -> Receiver<Vec<Log>> {
-        self.event_receiver.clone()
+    fn receiver(&self) -> broadcast::Receiver<Vec<Log>> {
+        self.event_receiver.resubscribe()
     }
     fn event_filters(&self) -> Vec<SimulationEventFilter> {
         self.event_filters.clone()
