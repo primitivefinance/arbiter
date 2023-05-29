@@ -54,7 +54,7 @@ impl SimulationEnvironment {
             while let Ok((tx, sender)) = tx_receiver.recv() {
                 // Execute the transaction, echo the logs to all agents, and report the execution result to the agent who made the call.
                 let execution_result = execute(&mut evm, tx);
-                event_broadcaster.send(execution_result.logs());
+                event_broadcaster.send(execution_result.logs()).unwrap(); // TODO: We can avoid an unwrap here and gracefully handle this error.
                 sender.send(execution_result).unwrap();
             }
         });
@@ -80,12 +80,4 @@ fn execute(evm: &mut EVM<CacheDB<EmptyDB>>, tx: TxEnv) -> ExecutionResult {
     };
 
     execution_result
-}
-/// Echo the logs to the event channel.
-/// # Arguments
-/// * `logs` - The logs that are to be echoed.
-fn echo_logs(event_senders: Vec<Sender<Vec<Log>>>, logs: Vec<Log>) {
-    for event_sender in event_senders.iter() {
-        event_sender.send(logs.clone()).unwrap();
-    }
 }

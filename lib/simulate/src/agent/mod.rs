@@ -64,8 +64,10 @@ pub trait AgentStatus {
 }
 
 /// Marker for an [`Agent`] when they are not yet added to the `SimulationManager` agent list.
+#[derive(Clone)]
 pub struct NotActive;
 /// Marker for an [`Agent`] that has been added to the `SimulationManager` agent list and has all the relevant information needed to be used in a simulation.
+#[derive(Clone)]
 pub struct IsActive;
 
 impl AgentStatus for NotActive {
@@ -365,125 +367,126 @@ pub fn filter_events(event_filters: Vec<SimulationEventFilter>, logs: Vec<Log>) 
     events
 }
 
-// #[cfg(test)]
-// mod tests {
+#[cfg(test)]
+mod tests {
 
-//     use std::error::Error;
+    use std::error::Error;
 
-//     use bindings::{arbiter_token, writer};
-//     use ethers::abi::{Tokenizable, Tokenize};
-//     use revm::primitives::{ruint::Uint, B160};
+    use bindings::{arbiter_token, writer};
+    use ethers::abi::Tokenize;
+    use revm::primitives::B160;
 
-//     use crate::{
-//         agent::{user::User, Agent, AgentType, SimulationEventFilter},
-//         environment::contract::SimulationContract,
-//         manager::SimulationManager,
-//     };
+    use crate::{
+        agent::{user::User, Agent, AgentType, SimulationEventFilter},
+        environment::contract::SimulationContract,
+        manager::SimulationManager,
+    };
 
-//     #[test]
-//     fn agent_event_filter_through() -> Result<(), Box<dyn Error>> {
-//         // Set up the execution manager and a user address.
-//         let mut manager = SimulationManager::default();
-//         let admin = manager.agents.get("admin").unwrap();
+    #[tokio::test]
+    async fn agent_event_filter_through() -> Result<(), Box<dyn Error>> {
+        // Set up the execution manager and a user address.
+        let mut manager = SimulationManager::default();
 
-//         // Create writer contract.
-//         let writer =
-//             SimulationContract::new(writer::WRITER_ABI.clone(), writer::WRITER_BYTECODE.clone());
+        // Create writer contract.
+        let writer =
+            SimulationContract::new(writer::WRITER_ABI.clone(), writer::WRITER_BYTECODE.clone());
 
-//         // Deploy the writer.
-//         let test_string = "Hello, world..?".to_string();
-//         let writer = admin.deploy(writer, test_string.into_tokens());
+        // Deploy the writer.
+        let test_string = "Hello, world..?".to_string();
+        let (writer, execution_result) = manager.agents.get("admin").unwrap().deploy(writer, test_string.into_tokens())?;
+        assert!(execution_result.is_success());
 
-//         // Create two agents with a filter.
-//         let alice = User::new("alice", None);
-//         manager.activate_agent(AgentType::User(alice), B160::from_low_u64_be(2))?;
+        // Create two agents with a filter.
+        let alice = User::new("alice", None);
+        manager.activate_agent(AgentType::User(alice), B160::from_low_u64_be(2))?;
 
-//         let event_filters = vec![SimulationEventFilter::new(&writer, "WasWritten")];
-//         let bob = User::new("bob", Some(event_filters));
-//         manager.activate_agent(AgentType::User(bob), B160::from_low_u64_be(3))?;
+        let event_filters = vec![SimulationEventFilter::new(&writer, "WasWritten")];
+        let bob = User::new("bob", Some(event_filters));
+        manager.activate_agent(AgentType::User(bob), B160::from_low_u64_be(3))?;
+        
+        let alice = manager.agents.get("alice").unwrap();
+        let mut alice_receiver = alice.receiver();
+        let alice_event_future = alice_receiver.recv();
 
-//         let alice = manager.agents.get("alice").unwrap();
-//         let bob = manager.agents.get("bob").unwrap();
+        let bob = manager.agents.get("bob").unwrap();
+        let mut bob_receiver = bob.receiver();
+        let bob_event_future = bob_receiver.recv();
 
-//         println!("Alice's event filter: {:#?}", alice.event_filters());
-//         println!("Bob's event filter: {:#?}", bob.event_filters());
+        println!("Alice's event filter: {:#?}", alice.event_filters());
+        println!("Bob's event filter: {:#?}", bob.event_filters());
 
-//         // Make calls that alice and bob won't filter out.
-//         let new_string = "Hello, world!".to_string();
-//         let call_data = writer.encode_function("echoString", new_string)?;
-//         admin.call_contract(&writer, call_data);
-//         // Test that the alice doesn't filter out these logs.
-//         let unfiltered_events = alice.read_logs()?;
-//         let filtered_events =
-//             super::filter_events(alice.event_filters(), unfiltered_events.clone());
-//         println!(
-//             "The filtered events for alice on the first call are: {:#?}",
-//             &filtered_events
-//         );
-//         assert_eq!(filtered_events, unfiltered_events);
-//         // Test that bob filters out these logs.
-//         let unfiltered_events = bob.read_logs()?;
-//         let filtered_events = super::filter_events(bob.event_filters(), unfiltered_events);
-//         println!(
-//             "The filtered events for bob on the first call are: {:#?}",
-//             &filtered_events
-//         );
+        // Make calls that alice and bob won't filter out.
+        let new_string = "Hello, world!".to_string();
+        manager.agents.get("admin").unwrap().call(&writer, "echoString", new_string.into_tokens())?;
+        // Test that the alice doesn't filter out these logs.
+        let unfiltered_events = alice_event_future.await?;
+        let filtered_events =
+            super::filter_events(alice.event_filters(), unfiltered_events.clone());
+        println!(
+            "The filtered events for alice on the first call are: {:#?}",
+            &filtered_events
+        );
+        assert_eq!(filtered_events, unfiltered_events);
+        // Test that bob filters out these logs.
+        let unfiltered_events = bob_event_future.await?;
+        let filtered_events = super::filter_events(bob.event_filters(), unfiltered_events);
+        println!(
+            "The filtered events for bob on the first call are: {:#?}",
+            &filtered_events
+        );
+        Ok(())
+    }
 
-//         // Also try to filter out a different address.
+    #[tokio::test]
+    async fn agent_event_filter_out() -> Result<(), Box<dyn Error>> {
+        // Set up the execution manager and a user address.
+        let mut manager = SimulationManager::default();
+        // Create writer contract.
+        let writer =
+            SimulationContract::new(writer::WRITER_ABI.clone(), writer::WRITER_BYTECODE.clone());
+        let test_string = "Hello, world..?".to_string();
+        let (writer, execution_result) = manager.agents.get("admin").unwrap().deploy(
+            writer,
+            test_string.into_tokens(),
+        )?;
+        assert!(execution_result.is_success());
 
-//         Ok(())
-//     }
+        // Create writer contract.
+        let arbt = SimulationContract::new(
+            arbiter_token::ARBITERTOKEN_ABI.clone(),
+            arbiter_token::ARBITERTOKEN_BYTECODE.clone(),
+        );
+        let (arbt, execution_result) = manager.agents.get("admin").unwrap().deploy(
+            arbt,
+            ("ArbiterToken".to_string(), "ARBT".to_string(), 18_u8).into_tokens(),
+        )?;
+        assert!(execution_result.is_success());
 
-//     #[test]
-//     fn agent_event_filter_out() -> Result<(), Box<dyn Error>> {
-//         // Set up the execution manager and a user address.
-//         let mut manager = SimulationManager::default();
+        // Create agent with a filter.
+        let event_filters = vec![SimulationEventFilter::new(&arbt, "Approval")];
+        let alice = User::new("alice", Some(event_filters));
+        manager.activate_agent(AgentType::User(alice), B160::from_low_u64_be(2))?;
+        let alice = manager.agents.get("alice").unwrap();
+        let mut alice_receiver = alice.receiver();
+        let alice_event_future = alice_receiver.recv();
 
-//         // Create writer contract.
-//         let writer =
-//             SimulationContract::new(writer::WRITER_ABI.clone(), writer::WRITER_BYTECODE.clone());
-//         let test_string = "Hello, world..?".to_string();
-//         let writer = writer.deploy(
-//             &mut manager.environment,
-//             manager.agents.get("admin").unwrap(),
-//             test_string,
-//         );
+        println!("Alice's event filter: {:#?}", alice.event_filters());
 
-//         // Create writer contract.
-//         let arbt = SimulationContract::new(
-//             arbiter_token::ARBITERTOKEN_ABI.clone(),
-//             arbiter_token::ARBITERTOKEN_BYTECODE.clone(),
-//         );
-//         let arbt = arbt.deploy(
-//             &mut manager.environment,
-//             manager.agents.get("admin").unwrap(),
-//             ("ArbiterToken".to_string(), "ARBT".to_string(), 18_u8),
-//         );
-
-//         // Create agent with a filter.
-//         let event_filters = vec![SimulationEventFilter::new(&arbt, "Approval")];
-//         let alice = User::new("alice", Some(event_filters));
-//         manager.activate_agent(AgentType::User(alice), B160::from_low_u64_be(2))?;
-//         let alice = manager.agents.get("alice").unwrap();
-
-//         println!("Alice's event filter: {:#?}", alice.event_filters());
-
-//         // Make calls that alice and bob won't filter out.
-//         let new_string = "Hello, world!".to_string();
-//         let call_data = writer.encode_function("echoString", new_string)?;
-//         manager.agents.get("admin").unwrap().call_contract(
-//             &mut manager.environment,
-//             &writer,
-//             call_data,
-//         );
-//         // Test that the alice doesn't filter out these logs.
-//         let unfiltered_events = alice.read_logs()?;
-//         let filtered_events = super::filter_events(alice.event_filters(), unfiltered_events);
-//         println!(
-//             "The filtered events for alice on the first call are: {:#?}",
-//             &filtered_events
-//         );
-//         assert_eq!(filtered_events, vec![]);
-//         Ok(())
-//     }
-// }
+        // Make calls that alice and bob won't filter out.
+        let new_string = "Hello, world!".to_string();
+        manager.agents.get("admin").unwrap().call(
+            &writer,
+            "echoString",
+            new_string.into_tokens(),
+        )?;
+        // Test that the alice doesn't filter out these logs.
+        let unfiltered_events = alice_event_future.await?;
+        let filtered_events = super::filter_events(alice.event_filters(), unfiltered_events);
+        println!(
+            "The filtered events for alice on the first call are: {:#?}",
+            &filtered_events
+        );
+        assert_eq!(filtered_events, vec![]);
+        Ok(())
+    }
+}

@@ -18,7 +18,7 @@ use revm::primitives::{AccountInfo, Address, Log, B160, U256};
 use crate::{
     agent::{
         simple_arbitrageur::SimpleArbitrageur, user::User, Agent, AgentType, IsActive, NotActive,
-        TransactSettings,
+        TransactSettings, self,
     },
     environment::{
         contract::{IsDeployed, SimulationContract},
@@ -26,7 +26,7 @@ use crate::{
     },
 };
 
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 /// Error type for the simulation manager.
 /// # Fields
 /// * `message` - Error message.
@@ -183,6 +183,7 @@ impl SimulationManager {
         };
         Ok(())
     }
+
 }
 
 #[test]

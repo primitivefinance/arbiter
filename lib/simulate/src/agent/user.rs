@@ -10,6 +10,7 @@ use super::{AgentStatus, Identifiable, IsActive, NotActive};
 use crate::agent::{Agent, SimulationEventFilter, TransactSettings};
 
 /// A user is an agent that can interact with the simulation environment generically.
+#[derive(Debug, Clone)]
 pub struct User<AgentState: AgentStatus> {
     /// Name of the agent.
     pub name: String,

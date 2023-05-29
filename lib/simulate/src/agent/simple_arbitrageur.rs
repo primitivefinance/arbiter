@@ -15,6 +15,7 @@ use super::{AgentStatus, Identifiable, IsActive, NotActive};
 use crate::agent::{filter_events, Agent, SimulationEventFilter, TransactSettings};
 
 /// Used to report back to another [`Agent`] what the next transaction of the [`SimpleArbitrageur`] should be.
+#[derive(Debug, Clone)]
 pub enum NextTx {
     /// Arbitrageur is going to swap next.
     Swap,
@@ -24,6 +25,7 @@ pub enum NextTx {
     None,
 }
 /// A user is an agent that can interact with the simulation environment generically.
+#[derive(Clone)]
 pub struct SimpleArbitrageur<AgentState: AgentStatus> {
     /// Name of the agent.
     pub name: String,
