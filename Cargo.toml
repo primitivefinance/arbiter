@@ -42,7 +42,7 @@ ruint = "1.8.0"
 
 # Simulation
 crossbeam-channel = "0.5.8"
-polars = "0.29.0"
+polars = "0.30.0"
 
 [dev-dependencies]
 assert_cmd = "2.0.11"
