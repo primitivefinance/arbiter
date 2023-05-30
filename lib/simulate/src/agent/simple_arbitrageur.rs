@@ -15,7 +15,7 @@ use super::{AgentStatus, Identifiable, IsActive, NotActive};
 use crate::agent::{filter_events, Agent, SimulationEventFilter, TransactSettings};
 
 /// Used to report back to another [`Agent`] what the next transaction of the [`SimpleArbitrageur`] should be.
-#[derive(Debug, Clone)]
+
 pub enum NextTx {
     /// Arbitrageur is going to swap next.
     Swap,
@@ -95,6 +95,17 @@ impl SimpleArbitrageur<NotActive> {
 }
 
 impl SimpleArbitrageur<IsActive> {
+
+    pub async fn detect_price_change() {
+        // ...
+        todo!()
+    }
+
+    pub fn is_arbitrage() -> bool {
+        // yes there is an arb, or not.
+        todo!()
+    }
+
     /// A basic implementation that will detect price discprepencies from events emitted from pools.
     /// Currently implemented and tested only against the `liquid_exchange`.
     pub fn detect_arbitrage(
@@ -107,9 +118,10 @@ impl SimpleArbitrageur<IsActive> {
         let mut receiver = self.receiver();
         let event_filters = self.event_filters();
         let prices = Arc::clone(&self.prices);
-
+        println!("Starting arbitrage detection outside the thread.");
         (
             tokio::spawn(async move {
+                println!("Starting arbitrage detection in thread.");
                 let decoder = |input, filter_num: usize| {
                     event_filters[filter_num].base_contract.decode_event_raw(
                         event_filters[filter_num].event_name.as_str(),
@@ -189,310 +201,294 @@ impl SimpleArbitrageur<IsActive> {
     }
 }
 
-// #[cfg(test)]
-// mod tests {
+#[cfg(test)]
+mod tests {
 
-//     use std::{error::Error, sync::Arc};
+    use std::{error::Error, sync::Arc};
 
-//     use bindings::{arbiter_token, liquid_exchange};
-//     use ethers::prelude::U256;
-//     use revm::primitives::B160;
+    use bindings::{arbiter_token, liquid_exchange};
+    use ethers::{abi::Tokenize, prelude::U256};
+    use revm::primitives::B160;
 
-//     use super::SimpleArbitrageur;
-//     use crate::{
-//         agent::{
-//             filter_events, simple_arbitrageur::NextTx, Agent, AgentType, SimulationEventFilter,
-//         },
-//         environment::contract::SimulationContract,
-//         manager::SimulationManager,
-//         utils::recast_address,
-//     };
+    use super::SimpleArbitrageur;
+    use crate::{
+        agent::{
+            filter_events, simple_arbitrageur::NextTx, Agent, AgentType, SimulationEventFilter,
+        },
+        environment::contract::SimulationContract,
+        manager::SimulationManager,
+        utils::recast_address,
+    };
 
-//     #[test]
-//     fn simple_arbitrageur_event_filter() -> Result<(), Box<dyn Error>> {
-//         // Set up the liquid exchange.
-//         let decimals = 18_u8;
-//         let wad: U256 = U256::from(10_i64.pow(decimals as u32));
+    #[tokio::test]
+    async fn simple_arbitrageur_event_filter() -> Result<(), Box<dyn Error>> {
+        // Set up the liquid exchange.
+        let decimals = 18_u8;
+        let wad: U256 = U256::from(10_i64.pow(decimals as u32));
 
-//         // Set up the execution manager and a user address.
-//         let mut manager = SimulationManager::default();
+        // Set up the execution manager and a user address.
+        let mut manager = SimulationManager::default();
 
-//         // Create arbiter token general contract.
-//         let arbiter_token = SimulationContract::new(
-//             arbiter_token::ARBITERTOKEN_ABI.clone(),
-//             arbiter_token::ARBITERTOKEN_BYTECODE.clone(),
-//         );
+        // Create arbiter token general contract.
+        let arbiter_token = SimulationContract::new(
+            arbiter_token::ARBITERTOKEN_ABI.clone(),
+            arbiter_token::ARBITERTOKEN_BYTECODE.clone(),
+        );
 
-//         // Deploy token_x.
-//         let name = "Token X";
-//         let symbol = "TKNX";
-//         let args = (name.to_string(), symbol.to_string(), decimals);
-//         let token_x = arbiter_token.deploy(
-//             &mut manager.environment,
-//             manager.agents.get("admin").unwrap(),
-//             args,
-//         );
+        // Deploy token_x.
+        let name = "Token X";
+        let symbol = "TKNX";
+        let args = (name.to_string(), symbol.to_string(), decimals);
+        let (token_x, execution_result) = manager
+            .agents
+            .get("admin")
+            .unwrap()
+            .deploy(arbiter_token.clone(), args.into_tokens())?;
+        assert!(execution_result.is_success());
 
-//         // Deploy token_y.
-//         let name = "Token Y";
-//         let symbol = "TKNY";
-//         let args = (name.to_string(), symbol.to_string(), decimals);
-//         let token_y = arbiter_token.deploy(
-//             &mut manager.environment,
-//             manager.agents.get("admin").unwrap(),
-//             args,
-//         );
+        // Deploy token_y.
+        let name = "Token Y";
+        let symbol = "TKNY";
+        let args = (name.to_string(), symbol.to_string(), decimals);
+        let (token_y, execution_result) = manager
+            .agents
+            .get("admin")
+            .unwrap()
+            .deploy(arbiter_token, args.into_tokens())?;
+        assert!(execution_result.is_success());
 
-//         // Deploy LiquidExchange
-//         let price_to_check = 1000;
-//         let initial_price = wad.checked_mul(U256::from(price_to_check)).unwrap();
-//         let liquid_exchange = SimulationContract::new(
-//             liquid_exchange::LIQUIDEXCHANGE_ABI.clone(),
-//             liquid_exchange::LIQUIDEXCHANGE_BYTECODE.clone(),
-//         );
-//         let args0 = (
-//             recast_address(token_x.address),
-//             recast_address(token_y.address),
-//             initial_price,
-//         );
+        // Create `NotDeployed` LiquidExchange
+        let liquid_exchange = SimulationContract::new(
+            liquid_exchange::LIQUIDEXCHANGE_ABI.clone(),
+            liquid_exchange::LIQUIDEXCHANGE_BYTECODE.clone(),
+        );
 
-//         // Deploy two exchanges so they can list different prices.
-//         let liquid_exchange_xy0 = liquid_exchange.deploy(
-//             &mut manager.environment,
-//             manager.agents.get("admin").unwrap(),
-//             args0,
-//         );
-//         let price_to_check = 123;
-//         let initial_price = wad.checked_mul(U256::from(price_to_check)).unwrap();
-//         let args1 = (
-//             recast_address(token_x.address),
-//             recast_address(token_y.address),
-//             initial_price,
-//         );
-//         let liquid_exchange_xy1 = liquid_exchange.deploy(
-//             &mut manager.environment,
-//             manager.agents.get("admin").unwrap(),
-//             args1,
-//         );
+        // Deploy two exchanges so they can list different prices.
+        let price_to_check = 1000;
+        let initial_price = wad.checked_mul(U256::from(price_to_check)).unwrap();
+        let args0 = (
+            recast_address(token_x.address),
+            recast_address(token_y.address),
+            initial_price,
+        );
+        let (liquid_exchange_xy0, execution_result) = manager
+            .agents
+            .get("admin")
+            .unwrap()
+            .deploy(liquid_exchange.clone(), args0.into_tokens())?;
+        assert!(execution_result.is_success());
+        let price_to_check = 123;
+        let initial_price = wad.checked_mul(U256::from(price_to_check)).unwrap();
+        let args1 = (
+            recast_address(token_x.address),
+            recast_address(token_y.address),
+            initial_price,
+        );
+        let (liquid_exchange_xy1, execution_result) = manager
+            .agents
+            .get("admin")
+            .unwrap()
+            .deploy(liquid_exchange, args1.into_tokens())?;
+        assert!(execution_result.is_success());
 
-//         // Create a simple arbitrageur agent.
-//         let event_filters = vec![
-//             SimulationEventFilter::new(&liquid_exchange_xy0, "PriceChange"),
-//             SimulationEventFilter::new(&liquid_exchange_xy1, "PriceChange"),
-//         ];
+        // Create a simple arbitrageur agent.
+        let event_filters = vec![
+            SimulationEventFilter::new(&liquid_exchange_xy0, "PriceChange"),
+            SimulationEventFilter::new(&liquid_exchange_xy1, "PriceChange"),
+        ];
 
-//         let arbitrageur =
-//             AgentType::SimpleArbitrageur(SimpleArbitrageur::new("arbitrageur", event_filters));
-//         manager.activate_agent(arbitrageur, B160::from_low_u64_be(2))?;
-//         let arbitrageur = manager.agents.get("arbitrageur").unwrap();
+        let arbitrageur =
+            AgentType::SimpleArbitrageur(SimpleArbitrageur::new("arbitrageur", event_filters));
+        manager.activate_agent(arbitrageur, B160::from_low_u64_be(2))?;
+        let arbitrageur = manager.agents.get("arbitrageur").unwrap();
+        let admin = manager.agents.get("admin").unwrap();
 
-//         // Make calls that the arbitrageur should not filter out.
-//         // Make a price change to the first exchange.
-//         let new_price0 = wad.checked_mul(U256::from(42069)).unwrap();
-//         let call_data = liquid_exchange_xy0.encode_function("setPrice", new_price0)?;
-//         manager.agents.get("admin").unwrap().call_contract(
-//             &mut manager.environment,
-//             &liquid_exchange_xy0,
-//             call_data,
-//             U256::zero().into(),
-//         );
-//         // Test that the arbitrageur doesn't filter out these logs.
-//         let unfiltered_events = arbitrageur.read_logs()?;
-//         let filtered_events = filter_events(arbitrageur.event_filters(), unfiltered_events.clone());
-//         println!(
-//             "The filtered events for the first call are: {:#?}",
-//             &filtered_events
-//         );
-//         assert_eq!(filtered_events, unfiltered_events);
+        // Start the arbitrageur listening for events.
+        let mut receiver = arbitrageur.receiver();
 
-//         // Make a price change to the second exchange.
-//         let new_price1 = wad.checked_mul(U256::from(69420)).unwrap();
-//         let call_data = liquid_exchange_xy1.encode_function("setPrice", new_price1)?;
-//         manager.agents.get("admin").unwrap().call_contract(
-//             &mut manager.environment,
-//             &liquid_exchange_xy1,
-//             call_data,
-//             U256::zero().into(),
-//         );
-//         // Test that the arbitrageur doesn't filter out these logs.
-//         let unfiltered_events = arbitrageur.read_logs()?;
-//         let filtered_events = filter_events(arbitrageur.event_filters(), unfiltered_events.clone());
-//         println!(
-//             "The filtered events for the second call are: {:#?}",
-//             &filtered_events
-//         );
-//         assert_eq!(filtered_events, unfiltered_events);
+        // Make a price change to the first exchange.
+        let new_price0 = wad.checked_mul(U256::from(42069)).unwrap();
+        admin.call(&liquid_exchange_xy0, "setPrice", new_price0.into_tokens())?;
+        // Test that the arbitrageur doesn't filter out these logs.
+        let unfiltered_events = receiver.recv().await?;
+        let filtered_events = filter_events(arbitrageur.event_filters(), unfiltered_events.clone());
+        println!(
+            "The filtered events for the first call are: {:#?}",
+            &filtered_events
+        );
+        assert_eq!(filtered_events, unfiltered_events);
 
-//         // Make calls that the arbitrageur should filter out.
-//         // Make a call to mint tokens.
-//         let call_data = token_x.encode_function(
-//             "mint",
-//             (
-//                 recast_address(manager.agents.get("arbitrageur").unwrap().address()),
-//                 U256::from(1),
-//             ),
-//         )?;
-//         manager.agents.get("admin").unwrap().call_contract(
-//             &mut manager.environment,
-//             &token_x,
-//             call_data,
-//             U256::zero().into(),
-//         );
-//         // Test that the arbitrageur does filter out these logs.
-//         let unfiltered_events = arbitrageur.read_logs()?;
-//         let filtered_events = filter_events(arbitrageur.event_filters(), unfiltered_events);
-//         println!(
-//             "The filtered events for the second call are: {:#?}",
-//             &filtered_events
-//         );
-//         assert_eq!(filtered_events, vec![]);
-//         Ok(())
-//     }
+        // Make a price change to the second exchange.
+        let new_price1 = wad.checked_mul(U256::from(69420)).unwrap();
+        admin.call(&liquid_exchange_xy1, "setPrice", new_price1.into_tokens())?;
+        // Test that the arbitrageur doesn't filter out these logs.
+        let unfiltered_events = receiver.recv().await?;
+        let filtered_events = filter_events(arbitrageur.event_filters(), unfiltered_events.clone());
+        println!(
+            "The filtered events for the second call are: {:#?}",
+            &filtered_events
+        );
+        assert_eq!(filtered_events, unfiltered_events);
 
-//     #[test]
-//     fn simple_arbitrage_detection() -> Result<(), Box<dyn Error>> {
-//         // Set up the liquid exchange.
-//         let decimals = 18_u8;
-//         let wad: U256 = U256::from(10_i64.pow(decimals as u32));
+        // Make calls that the arbitrageur should filter out.
+        // Make a call to mint tokens.
+        admin.call(
+            &token_x,
+            "mint",
+            (recast_address(arbitrageur.address()), U256::from(1)).into_tokens(),
+        )?;
+        // Test that the arbitrageur does filter out these logs.
+        let unfiltered_events = receiver.recv().await?;
+        let filtered_events = filter_events(arbitrageur.event_filters(), unfiltered_events);
+        println!(
+            "The filtered events for the third call are: {:#?}",
+            &filtered_events
+        );
+        assert_eq!(filtered_events, vec![]);
+        Ok(())
+    }
 
-//         // Set up the execution manager and a user address.
-//         let mut manager = SimulationManager::default();
-//         // let admin = manager.agents.get("admin").unwrap();
+    #[tokio::test]
+    async fn simple_arbitrage_detection() -> Result<(), Box<dyn Error>> {
+        // Set up the liquid exchange.
+        let decimals = 18_u8;
+        let wad: U256 = U256::from(10_i64.pow(decimals as u32));
 
-//         // Create arbiter token general contract.
-//         let arbiter_token = SimulationContract::new(
-//             arbiter_token::ARBITERTOKEN_ABI.clone(),
-//             arbiter_token::ARBITERTOKEN_BYTECODE.clone(),
-//         );
+        // Set up the execution manager and a user address.
+        let mut manager = SimulationManager::default();
 
-//         // Deploy token_x.
-//         let name = "Token X";
-//         let symbol = "TKNX";
-//         let args = (name.to_string(), symbol.to_string(), decimals);
-//         let token_x = arbiter_token.deploy(
-//             &mut manager.environment,
-//             manager.agents.get("admin").unwrap(),
-//             args,
-//         );
+        // Create arbiter token general contract.
+        let arbiter_token = SimulationContract::new(
+            arbiter_token::ARBITERTOKEN_ABI.clone(),
+            arbiter_token::ARBITERTOKEN_BYTECODE.clone(),
+        );
 
-//         // Deploy token_y.
-//         let name = "Token Y";
-//         let symbol = "TKNY";
-//         let args = (name.to_string(), symbol.to_string(), decimals);
-//         let token_y = arbiter_token.deploy(
-//             &mut manager.environment,
-//             manager.agents.get("admin").unwrap(),
-//             args,
-//         );
+        // Deploy token_x.
+        let name = "Token X";
+        let symbol = "TKNX";
+        let args = (name.to_string(), symbol.to_string(), decimals);
+        let (token_x, execution_result) = manager
+            .agents
+            .get("admin")
+            .unwrap()
+            .deploy(arbiter_token.clone(), args.into_tokens())?;
+        assert!(execution_result.is_success());
 
-//         // Deploy LiquidExchange
-//         let price_to_check = 1000;
-//         let initial_price = wad.checked_mul(U256::from(price_to_check)).unwrap();
-//         let liquid_exchange = SimulationContract::new(
-//             liquid_exchange::LIQUIDEXCHANGE_ABI.clone(),
-//             liquid_exchange::LIQUIDEXCHANGE_BYTECODE.clone(),
-//         );
-//         let args0 = (
-//             recast_address(token_x.address),
-//             recast_address(token_y.address),
-//             initial_price,
-//         );
+        // Deploy token_y.
+        let name = "Token Y";
+        let symbol = "TKNY";
+        let args = (name.to_string(), symbol.to_string(), decimals);
+        let (token_y, execution_result) = manager
+            .agents
+            .get("admin")
+            .unwrap()
+            .deploy(arbiter_token, args.into_tokens())?;
+        assert!(execution_result.is_success());
 
-//         // Deploy two exchanges so they can list different prices.
-//         let liquid_exchange_xy0 = liquid_exchange.deploy(
-//             &mut manager.environment,
-//             manager.agents.get("admin").unwrap(),
-//             args0,
-//         );
-//         let price_to_check = 123;
-//         let initial_price = wad.checked_mul(U256::from(price_to_check)).unwrap();
-//         let args1 = (
-//             recast_address(token_x.address),
-//             recast_address(token_y.address),
-//             initial_price,
-//         );
-//         let liquid_exchange_xy1 = liquid_exchange.deploy(
-//             &mut manager.environment,
-//             manager.agents.get("admin").unwrap(),
-//             args1,
-//         );
+        // Deploy LiquidExchange
+        let price_to_check = 1000;
+        let initial_price = wad.checked_mul(U256::from(price_to_check)).unwrap();
+        let liquid_exchange = SimulationContract::new(
+            liquid_exchange::LIQUIDEXCHANGE_ABI.clone(),
+            liquid_exchange::LIQUIDEXCHANGE_BYTECODE.clone(),
+        );
+        let args0 = (
+            recast_address(token_x.address),
+            recast_address(token_y.address),
+            initial_price,
+        );
 
-//         // Create a simple arbitrageur agent.
-//         let event_filters = vec![
-//             SimulationEventFilter::new(&liquid_exchange_xy0, "PriceChange"),
-//             SimulationEventFilter::new(&liquid_exchange_xy1, "PriceChange"),
-//         ];
-//         let arbitrageur =
-//             AgentType::SimpleArbitrageur(SimpleArbitrageur::new("arbitrageur", event_filters));
-//         manager.activate_agent(arbitrageur, B160::from_low_u64_be(2))?;
-//         let arbitrageur = manager.agents.get("arbitrageur").unwrap();
+        // Deploy two exchanges so they can list different prices.
+        let (liquid_exchange_xy0, execution_result) = manager
+            .agents
+            .get("admin")
+            .unwrap()
+            .deploy(liquid_exchange.clone(), args0.into_tokens())?;
+        assert!(execution_result.is_success());
+        let price_to_check = 123;
+        let initial_price = wad.checked_mul(U256::from(price_to_check)).unwrap();
+        let args1 = (
+            recast_address(token_x.address),
+            recast_address(token_y.address),
+            initial_price,
+        );
+        let (liquid_exchange_xy1, execution_result) = manager
+            .agents
+            .get("admin")
+            .unwrap()
+            .deploy(liquid_exchange, args1.into_tokens())?;
+        assert!(execution_result.is_success());
 
-//         // Have the arbitrageur check for arbitrage events.
-//         let base_arbitrageur = match arbitrageur {
-//             AgentType::SimpleArbitrageur(base_arbitrageur) => base_arbitrageur,
-//             _ => panic!(),
-//         };
+        // Create a simple arbitrageur agent.
+        let event_filters = vec![
+            SimulationEventFilter::new(&liquid_exchange_xy0, "PriceChange"),
+            SimulationEventFilter::new(&liquid_exchange_xy1, "PriceChange"),
+        ];
+        let arbitrageur =
+            AgentType::SimpleArbitrageur(SimpleArbitrageur::new("arbitrageur", event_filters));
+        manager.activate_agent(arbitrageur, B160::from_low_u64_be(2))?;
+        let arbitrageur = manager.agents.get("arbitrageur").unwrap();
+        let admin = manager.agents.get("admin").unwrap();
 
-//         // Verify that the initial prices are correct
-//         let prices = Arc::clone(&base_arbitrageur.prices);
-//         let prices = prices.lock().unwrap();
-//         assert_eq!(prices[0], U256::MAX.into());
-//         assert_eq!(prices[1], U256::MAX.into());
-//         drop(prices);
+        // Have the arbitrageur check for arbitrage events.
+        let base_arbitrageur = match arbitrageur {
+            AgentType::SimpleArbitrageur(base_arbitrageur) => base_arbitrageur,
+            _ => panic!(),
+        };
 
-//         // Start the arbitrageur to detect price changes.
-//         println!("Beginning arbitrage detection.");
-//         let (_arbitrage_detection_handle, rx) = base_arbitrageur.detect_arbitrage();
+        // Verify that the initial prices are correct
+        let prices = Arc::clone(&base_arbitrageur.prices);
+        let prices = prices.lock().unwrap();
+        assert_eq!(prices[0], U256::MAX.into());
+        assert_eq!(prices[1], U256::MAX.into());
+        drop(prices);
 
-//         let new_price0 = wad.checked_mul(U256::from(42069)).unwrap();
-//         let call_data = liquid_exchange_xy0.encode_function("setPrice", new_price0)?;
-//         manager.agents.get("admin").unwrap().call_contract(
-//             &mut manager.environment,
-//             &liquid_exchange_xy0,
-//             call_data,
-//             U256::zero().into(),
-//         );
+        // Start the arbitrageur to detect price changes.
+        println!("Beginning arbitrage detection.");
+        let (arbitrage_detection, receiver) = base_arbitrageur.detect_arbitrage();
+        arbitrage_detection.await.unwrap();
 
-//         // Make a price change to the second exchange.
-//         let new_price1 = wad.checked_mul(U256::from(69420)).unwrap();
-//         let call_data = liquid_exchange_xy1.encode_function("setPrice", new_price1)?;
-//         manager.agents.get("admin").unwrap().call_contract(
-//             &mut manager.environment,
-//             &liquid_exchange_xy1,
-//             call_data,
-//             U256::zero().into(),
-//         );
-//         while let Ok((next_tx, ..)) = rx.recv() {
-//             println!("Received a new message.");
-//             match next_tx {
-//                 NextTx::None => {
-//                     println!("None");
-//                     continue;
-//                 }
-//                 NextTx::Swap => {
-//                     println!("Swap");
-//                     break;
-//                 }
-//                 NextTx::UpdatePrice => {
-//                     println!("Update price");
-//                     continue;
-//                 }
-//             }
-//         }
-//         let prices = Arc::clone(&base_arbitrageur.prices);
-//         let prices = prices.lock().unwrap();
-//         println!("Arbitrageur prices: {:#?}", prices);
-//         assert_eq!(
-//             prices[0],
-//             wad.checked_mul(U256::from(42069)).unwrap().into()
-//         );
-//         assert_eq!(
-//             prices[1],
-//             wad.checked_mul(U256::from(69420)).unwrap().into()
-//         );
+        println!("Sending price change events.");
+        let new_price0 = wad.checked_mul(U256::from(42069)).unwrap();
+        let execution_result =
+            admin.call(&liquid_exchange_xy0, "setPrice", new_price0.into_tokens())?;
+        assert!(execution_result.is_success());
 
-//         manager.shut_down();
+        // Make a price change to the second exchange.
+        let new_price1 = wad.checked_mul(U256::from(69420)).unwrap();
+        let execution_result =
+            admin.call(&liquid_exchange_xy1, "setPrice", new_price1.into_tokens())?;
+        assert!(execution_result.is_success());
 
-//         Ok(())
-//     }
-// }
+        while let Ok((next_tx, ..)) = receiver.recv() {
+            println!("Received a new message.");
+            match next_tx {
+                NextTx::None => {
+                    println!("None");
+                    continue;
+                }
+                NextTx::Swap => {
+                    println!("Swap");
+                    break;
+                }
+                NextTx::UpdatePrice => {
+                    println!("Update price");
+                    continue;
+                }
+            }
+        }
+        let prices = Arc::clone(&base_arbitrageur.prices);
+        let prices = prices.lock().unwrap();
+        println!("Arbitrageur prices: {:#?}", prices);
+        assert_eq!(
+            prices[0],
+            wad.checked_mul(U256::from(42069)).unwrap().into()
+        );
+        assert_eq!(
+            prices[1],
+            wad.checked_mul(U256::from(69420)).unwrap().into()
+        );
+
+        Ok(())
+    }
+}

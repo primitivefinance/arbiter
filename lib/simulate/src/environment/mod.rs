@@ -5,7 +5,6 @@
 //! An abstraction on the EVM, to be used in simulations.
 pub mod contract;
 
-use tokio::sync::broadcast;
 use crossbeam_channel::{unbounded, Receiver, Sender};
 use revm::{
     db::{CacheDB, EmptyDB},
@@ -13,6 +12,7 @@ use revm::{
     EVM,
 };
 use std::thread;
+use tokio::sync::broadcast;
 
 /// The simulation environment that houses the execution environment and event logs.
 /// # Fields
@@ -60,9 +60,6 @@ impl SimulationEnvironment {
         });
     }
 
-    // pub(crate) fn add_sender(&mut self, sender: Sender<Vec<Log>>) {
-    //     self.event_senders.push(sender);
-    // }
 }
 
 /// Execute a transaction in the execution environment.

@@ -33,8 +33,8 @@ use crate::environment::{
 pub mod simple_arbitrageur;
 pub mod user;
 
-#[derive(Debug)]
 /// Error type for the simulation manager.
+#[derive(Debug)]
 pub struct AgentError(String);
 
 impl Error for AgentError {}
@@ -189,11 +189,9 @@ pub trait Agent: Identifiable {
     /// Used to allow agents to make a generic call a specific smart contract.
     fn call(
         &self,
-        // simulation_environment: &mut SimulationEnvironment,
         contract: &SimulationContract<IsDeployed>,
         function_name: &str,
         args: Vec<Token>,
-        // value: U256,
     ) -> Result<ExecutionResult, Box<dyn Error>> {
         let function = contract.base_contract.abi().function(function_name)?;
         let call_data = function.encode_input(&args)?.into_iter().collect();
@@ -393,7 +391,11 @@ mod tests {
 
         // Deploy the writer.
         let test_string = "Hello, world..?".to_string();
-        let (writer, execution_result) = manager.agents.get("admin").unwrap().deploy(writer, test_string.into_tokens())?;
+        let (writer, execution_result) = manager
+            .agents
+            .get("admin")
+            .unwrap()
+            .deploy(writer, test_string.into_tokens())?;
         assert!(execution_result.is_success());
 
         // Create two agents with a filter.
@@ -403,7 +405,7 @@ mod tests {
         let event_filters = vec![SimulationEventFilter::new(&writer, "WasWritten")];
         let bob = User::new("bob", Some(event_filters));
         manager.activate_agent(AgentType::User(bob), B160::from_low_u64_be(3))?;
-        
+
         let alice = manager.agents.get("alice").unwrap();
         let mut alice_receiver = alice.receiver();
         let alice_event_future = alice_receiver.recv();
@@ -417,7 +419,11 @@ mod tests {
 
         // Make calls that alice and bob won't filter out.
         let new_string = "Hello, world!".to_string();
-        manager.agents.get("admin").unwrap().call(&writer, "echoString", new_string.into_tokens())?;
+        manager.agents.get("admin").unwrap().call(
+            &writer,
+            "echoString",
+            new_string.into_tokens(),
+        )?;
         // Test that the alice doesn't filter out these logs.
         let unfiltered_events = alice_event_future.await?;
         let filtered_events =
@@ -445,10 +451,11 @@ mod tests {
         let writer =
             SimulationContract::new(writer::WRITER_ABI.clone(), writer::WRITER_BYTECODE.clone());
         let test_string = "Hello, world..?".to_string();
-        let (writer, execution_result) = manager.agents.get("admin").unwrap().deploy(
-            writer,
-            test_string.into_tokens(),
-        )?;
+        let (writer, execution_result) = manager
+            .agents
+            .get("admin")
+            .unwrap()
+            .deploy(writer, test_string.into_tokens())?;
         assert!(execution_result.is_success());
 
         // Create writer contract.

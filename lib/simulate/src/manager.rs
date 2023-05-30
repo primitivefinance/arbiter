@@ -17,8 +17,8 @@ use revm::primitives::{AccountInfo, Address, Log, B160, U256};
 
 use crate::{
     agent::{
-        simple_arbitrageur::SimpleArbitrageur, user::User, Agent, AgentType, IsActive, NotActive,
-        TransactSettings, self,
+        self, simple_arbitrageur::SimpleArbitrageur, user::User, Agent, AgentType, IsActive,
+        NotActive, TransactSettings,
     },
     environment::{
         contract::{IsDeployed, SimulationContract},
@@ -183,7 +183,6 @@ impl SimulationManager {
         };
         Ok(())
     }
-
 }
 
 #[test]

@@ -90,11 +90,7 @@ mod tests {
         println!("Arbiter Token deployed at: {}", arbiter_token.address);
 
         // Execute the call to retrieve the token name as a test.
-        let execution_result = admin.call(
-            &arbiter_token,
-            "name",
-            ().into_tokens(),
-        )?;
+        let execution_result = admin.call(&arbiter_token, "name", ().into_tokens())?;
         let value = unpack_execution(execution_result)?;
 
         let response: String = arbiter_token.decode_output("name", value)?;
@@ -107,11 +103,7 @@ mod tests {
         let input_arguments = (recast_address(alice.address()), mint_amount);
 
         // Call the 'mint' function.
-        let execution_result = admin.call(
-            &arbiter_token,
-            "mint",
-            input_arguments.into_tokens()
-        );
+        let execution_result = admin.call(&arbiter_token, "mint", input_arguments.into_tokens());
         println!("Mint execution result: {:#?}", execution_result);
 
         // Call the 'balanceOf' function.
@@ -242,7 +234,7 @@ mod tests {
                 println!("Got logs in admin's thread!");
                 println!("{:?}", logs);
                 match i {
-                    0  => {
+                    0 => {
                         assert_eq!(logs, []);
                         println!("Got the right log in admin's thread!");
                     }
@@ -292,15 +284,13 @@ mod tests {
         // Call the 'echoString' function.
         let test_string = "Hello, world!";
         let input_arguments = test_string.to_string();
-        let execution_result =
-            admin.call(&writer, "echoString", input_arguments.into_tokens())?;
+        let execution_result = admin.call(&writer, "echoString", input_arguments.into_tokens())?;
         assert!(execution_result.is_success());
 
         // Generate calldata for the 'echoString' function again.
         let test_string = "Hello, world! again...";
         let input_arguments = test_string.to_string();
-        let execution_result =
-            admin.call(&writer, "echoString", input_arguments.into_tokens())?;
+        let execution_result = admin.call(&writer, "echoString", input_arguments.into_tokens())?;
         assert!(execution_result.is_success());
 
         if handle.await.is_err() {
@@ -322,18 +312,14 @@ mod tests {
     fn arbiter_math() -> Result<(), Box<dyn Error>> {
         // Create a `SimulationManager` where we can run simulations.
         // This will also create an EVM instance associated to the manager.
-        let mut manager = SimulationManager::default();
+        let manager = SimulationManager::default();
         let admin = &manager.agents["admin"];
 
         // Get a SimulationContract for the Arbiter Math ABI and bytecode.
         let arbiter_math = manager.autodeployed_contracts.get("arbiter_math").unwrap();
 
         // Test the cdf function.
-        let execution_result = admin.call(
-            arbiter_math,
-            "cdf",
-             I256::from(1).into_tokens(),
-        )?;
+        let execution_result = admin.call(arbiter_math, "cdf", I256::from(1).into_tokens())?;
         assert!(execution_result.is_success());
         let unpacked_result = unpack_execution(execution_result)?;
         let output: I256 = arbiter_math.decode_output("cdf", unpacked_result)?;
@@ -341,10 +327,7 @@ mod tests {
         assert_eq!(output, I256::from(500000000000000000u64));
 
         // Test the pdf function.
-        let execution_result = admin.call(
-            arbiter_math,
-            "pdf", I256::from(1).into_tokens(),
-        )?;
+        let execution_result = admin.call(arbiter_math, "pdf", I256::from(1).into_tokens())?;
         assert!(execution_result.is_success());
         let unpacked_result = unpack_execution(execution_result)?;
         let output: I256 = arbiter_math.decode_output("pdf", unpacked_result)?;
@@ -354,7 +337,8 @@ mod tests {
         // Test the ppf function.
         let execution_result = admin.call(
             arbiter_math,
-            "ppf", I256::from(500000000000000000u64).into_tokens(),
+            "ppf",
+            I256::from(500000000000000000u64).into_tokens(),
         )?;
         let unpacked_result = unpack_execution(execution_result)?;
         let output: I256 = arbiter_math.decode_output("ppf", unpacked_result)?;
@@ -363,8 +347,8 @@ mod tests {
         // Test the mulWadDown function.
         let execution_result = admin.call(
             arbiter_math,
-                "mulWadDown",
-                (U256::from(1_000_000_000_000_000_000_u128), U256::from(2)).into_tokens(),
+            "mulWadDown",
+            (U256::from(1_000_000_000_000_000_000_u128), U256::from(2)).into_tokens(),
         )?;
         let unpacked_result = unpack_execution(execution_result)?;
         let output: U256 = arbiter_math.decode_output("mulWadDown", unpacked_result)?;
@@ -374,8 +358,8 @@ mod tests {
         // Test the mulWadUp function.
         let execution_result = admin.call(
             arbiter_math,
-                "mulWadUp",
-                (U256::from(1_000_000_000_000_000_000_u128), U256::from(2)).into_tokens(),
+            "mulWadUp",
+            (U256::from(1_000_000_000_000_000_000_u128), U256::from(2)).into_tokens(),
         )?;
         let unpacked_result = unpack_execution(execution_result)?;
         let output: U256 = arbiter_math.decode_output("mulWadUp", unpacked_result)?;
@@ -385,8 +369,8 @@ mod tests {
         // Test the divWadDown function.
         let execution_result = admin.call(
             arbiter_math,
-                "divWadDown",
-                (U256::from(1_000_000_000_000_000_000_u128), U256::from(2)).into_tokens(),
+            "divWadDown",
+            (U256::from(1_000_000_000_000_000_000_u128), U256::from(2)).into_tokens(),
         )?;
         let unpacked_result = unpack_execution(execution_result)?;
         let output: U256 = arbiter_math.decode_output("divWadDown", unpacked_result)?;
@@ -399,8 +383,8 @@ mod tests {
         // Test the divWadUp function.
         let execution_result = admin.call(
             arbiter_math,
-                "divWadUp",
-                (U256::from(1_000_000_000_000_000_000_u128), U256::from(2)).into_tokens(),
+            "divWadUp",
+            (U256::from(1_000_000_000_000_000_000_u128), U256::from(2)).into_tokens(),
         )?;
         let unpacked_result = unpack_execution(execution_result)?;
         let output: U256 = arbiter_math.decode_output("divWadUp", unpacked_result)?;
@@ -413,17 +397,15 @@ mod tests {
         // Test the lnWad function.
         let execution_result = admin.call(
             arbiter_math,
-            "log", I256::from(1_000_000_000_000_000_000_u128).into_tokens(),
+            "log",
+            I256::from(1_000_000_000_000_000_000_u128).into_tokens(),
         )?;
-        let unpacked_result = unpack_execution(execution_result)?; 
+        let unpacked_result = unpack_execution(execution_result)?;
         let output = arbiter_math.decode_output::<I256>("log", unpacked_result)?;
         println!("lnWad(0) = {}", output);
         assert_eq!(output, I256::from(0));
         // Test the sqrt function
-        let execution_result = admin.call(
-            arbiter_math,
-            "sqrt", U256::from(1u128).into_tokens(),
-        )?;
+        let execution_result = admin.call(arbiter_math, "sqrt", U256::from(1u128).into_tokens())?;
         let unpacked_result = unpack_execution(execution_result)?;
         let output = arbiter_math.decode_output::<U256>("sqrt", unpacked_result)?;
         println!("sqrt(1) = {}", output);
