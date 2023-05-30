@@ -16,6 +16,7 @@ use crate::agent::{filter_events, Agent, SimulationEventFilter, TransactSettings
 
 /// Used to report back to another [`Agent`] what the next transaction of the [`SimpleArbitrageur`] should be.
 
+#[derive(Debug, Clone)]
 pub enum NextTx {
     /// Arbitrageur is going to swap next.
     Swap,
@@ -24,6 +25,15 @@ pub enum NextTx {
     /// Arbitrageur is asking for no action to take place for the moment.
     None,
 }
+
+#[derive(Debug, Clone)]
+pub enum SwapDirection {
+    /// Arbitrageur is swapping from token 0 to token 1.
+    ZeroToOne,
+    /// Arbitrageur is swapping from token 1 to token 0.
+    OneToZero,
+}
+
 /// A user is an agent that can interact with the simulation environment generically.
 #[derive(Clone)]
 pub struct SimpleArbitrageur<AgentState: AgentStatus> {
@@ -95,109 +105,49 @@ impl SimpleArbitrageur<NotActive> {
 }
 
 impl SimpleArbitrageur<IsActive> {
-
-    pub async fn detect_price_change() {
-        // ...
-        todo!()
-    }
-
-    pub fn is_arbitrage() -> bool {
-        // yes there is an arb, or not.
-        todo!()
-    }
-
     /// A basic implementation that will detect price discprepencies from events emitted from pools.
     /// Currently implemented and tested only against the `liquid_exchange`.
-    pub fn detect_arbitrage(
-        &self,
-    ) -> (
-        tokio::task::JoinHandle<()>,
-        crossbeam_channel::Receiver<(NextTx, Option<bool>)>,
-    ) {
-        let (tx, rx) = crossbeam_channel::unbounded::<(NextTx, Option<bool>)>();
-        let mut receiver = self.receiver();
-        let event_filters = self.event_filters();
+    pub async fn detect_arbitrage(&self) -> (NextTx, Option<SwapDirection>) {
+        println!("Beginning arbitrage detection.");
         let prices = Arc::clone(&self.prices);
-        println!("Starting arbitrage detection outside the thread.");
-        (
-            tokio::spawn(async move {
-                println!("Starting arbitrage detection in thread.");
-                let decoder = |input, filter_num: usize| {
-                    event_filters[filter_num].base_contract.decode_event_raw(
-                        event_filters[filter_num].event_name.as_str(),
-                        vec![event_filters[filter_num].topic],
-                        input,
-                    )
-                };
-                while let Ok(logs) = receiver.recv().await {
-                    // Get the logs and filter
-                    let filtered_logs = filter_events(event_filters.clone(), logs);
+        let event_filters = self.event_filters();
+        let mut return_value = (NextTx::None, None);
+        println!("Beginning the while let loop.");
+        while let Ok((event_address, event_tokens)) = self.watch().await {
+            println!("Received a new message in the detect_arbitrage while let.");
+            let new_price = event_tokens[0].clone().into_uint().unwrap();
+            println!("New price: {:#?}", new_price);
+            let mut prices = prices.lock().unwrap();
+            // If the first event is from the first pool, pool_number is 0 else it will be pool 1.
+            let pool_number = event_address == event_filters.clone()[0].address;
+            prices[pool_number as usize] = new_price.into();
+            let (is_arbitrage, swap_direction) = is_arbitrage(prices.clone());
+            if is_arbitrage {
+                println!("Arbitrage detected.");
+                return_value = (NextTx::Swap, swap_direction);
+                break;
+            } else {
+                println!("No arbitrage detected.");
+                return_value = (NextTx::UpdatePrice, None);
+                break;
+            }
+        }
+        return_value
+    }
+}
 
-                    if !filtered_logs.is_empty() {
-                        let data = filtered_logs[0].data.clone().into_iter().collect();
-
-                        // See which pool this came from
-                        let pool_number =
-                            if filtered_logs[0].address == event_filters.clone()[0].address {
-                                0
-                            } else {
-                                1
-                            };
-
-                        let decoded_event = decoder(data, pool_number).unwrap(); // TODO: Fix the error handling here.
-                        let value = decoded_event[0].clone();
-                        let value = value.into_uint().unwrap();
-                        let mut prices = prices.lock().unwrap();
-                        prices[pool_number] = value.into();
-
-                        // look to see if this gives an arbitrage event
-                        // First filter out if one of the prices is MAX as this is the default state.
-                        // TODO: This is a really bad way to do this that just adds extra nesting. Fix it.
-                        if prices[0] != U256::MAX && prices[1] != U256::MAX {
-                            let price_difference = prices[0].overflowing_sub(prices[1]);
-                            if price_difference.1 {
-                                match tx.send((NextTx::Swap, Some(false))) {
-                                    Ok(_) => {}
-                                    Err(_) => {
-                                        println!("Error sending arbitrage event to channel.\nReceiver must have stopped listening and no more prices are going to be sent.\nBreaking.\n");
-                                        break;
-                                    }
-                                }
-                                continue;
-                            } else if !price_difference.1 && price_difference.0 != U256::ZERO {
-                                match tx.send((NextTx::Swap, Some(true))) {
-                                    Ok(_) => {}
-                                    Err(_) => {
-                                        println!("Error sending arbitrage event to channel.\nReceiver must have stopped listening and no more prices are going to be sent.\nBreaking.\n");
-                                        break;
-                                    }
-                                }
-                                continue;
-                            } else {
-                                match tx.send((NextTx::UpdatePrice, None)) {
-                                    Ok(_) => {}
-                                    Err(_) => {
-                                        println!("Error sending arbitrage event to channel.\nReceiver must have stopped listening and no more prices are going to be sent.\nBreaking.\n");
-                                        break;
-                                    }
-                                }
-                            }
-                        }
-                        drop(prices);
-                    } else {
-                        match tx.send((NextTx::None, None)) {
-                            Ok(_) => {}
-                            Err(_) => {
-                                println!("Error sending arbitrage event to channel.\nReceiver must have stopped listening and no more prices are going to be sent.\nBreaking.\n");
-                                break;
-                            }
-                        }
-                        continue;
-                    }
-                }
-            }),
-            rx,
-        )
+/// Basic function that checks for price differences between the two pools.
+// TODO: Will need to take into account the no-arbitrage bounds.
+pub fn is_arbitrage(prices: [U256; 2]) -> (bool, Option<SwapDirection>) {
+    let price_difference = prices[0].checked_sub(prices[1]);
+    if price_difference.is_none() {
+        // If this difference is `None`, then the subtraction overflowed so prices[0]<prices[1].
+        return (true, Some(SwapDirection::ZeroToOne));
+    } else if price_difference != Some(U256::ZERO) {
+        // If the price difference is still nonzero, then we must swap with price[0]>price[1].
+        return (true, Some(SwapDirection::OneToZero));
+    } else {
+        return (false, None);
     }
 }
 
@@ -444,9 +394,7 @@ mod tests {
         drop(prices);
 
         // Start the arbitrageur to detect price changes.
-        println!("Beginning arbitrage detection.");
-        let (arbitrage_detection, receiver) = base_arbitrageur.detect_arbitrage();
-        arbitrage_detection.await.unwrap();
+        let arbitrage = base_arbitrageur.detect_arbitrage();
 
         println!("Sending price change events.");
         let new_price0 = wad.checked_mul(U256::from(42069)).unwrap();
@@ -460,23 +408,20 @@ mod tests {
             admin.call(&liquid_exchange_xy1, "setPrice", new_price1.into_tokens())?;
         assert!(execution_result.is_success());
 
-        while let Ok((next_tx, ..)) = receiver.recv() {
-            println!("Received a new message.");
-            match next_tx {
-                NextTx::None => {
-                    println!("None");
-                    continue;
-                }
-                NextTx::Swap => {
-                    println!("Swap");
-                    break;
-                }
-                NextTx::UpdatePrice => {
-                    println!("Update price");
-                    continue;
-                }
-            }
-        }
+        println!("output from detect_arbitrage: {:#?}", arbitrage.await);
+        // while let (next_tx, swap_direction) = arbitrage.await {
+        //     match next_tx {
+        //         NextTx::None => {
+        //             println!("None");
+        //         }
+        //         NextTx::Swap => {
+        //             println!("Swap");
+        //         }
+        //         NextTx::UpdatePrice => {
+        //             println!("Update price");
+        //         }
+        //     };
+        // }
         let prices = Arc::clone(&base_arbitrageur.prices);
         let prices = prices.lock().unwrap();
         println!("Arbitrageur prices: {:#?}", prices);

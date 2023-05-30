@@ -59,7 +59,6 @@ impl SimulationEnvironment {
             }
         });
     }
-
 }
 
 /// Execute a transaction in the execution environment.

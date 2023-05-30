@@ -22,7 +22,7 @@ use ethers::{
 use revm::primitives::{
     AccountInfo, Address, ExecutionResult, Log, Output, TransactTo, TxEnv, B160, U256,
 };
-use tokio::sync::broadcast;
+use tokio::{sync::broadcast, task::JoinError};
 
 use self::{simple_arbitrageur::SimpleArbitrageur, user::User};
 use crate::environment::{
@@ -222,14 +222,12 @@ pub trait Agent: Identifiable {
         }
     }
 
-    // TODO: Right now this is only detecting an arb event and instead...
-    // TODO: add a condition as a bool valued function?
-    // TODO: It would be optimal to not build functions inside of the monitor events since it could get called often. Ideally we just don't call it often?
     /// Monitor events for the agent.
-    async fn monitor_events(&self) {
-        let mut receiver = self.receiver();
+    fn watch(&self) -> tokio::task::JoinHandle<(Address, Vec<Token>)> {
+        let mut event_receiver = self.receiver();
         let event_filters = self.event_filters();
         tokio::spawn(async move {
+            println!("Starting to watch events for agent");
             let decoder = |input, filter_num: usize| {
                 event_filters[filter_num].base_contract.decode_event_raw(
                     event_filters[filter_num].event_name.as_str(),
@@ -237,13 +235,22 @@ pub trait Agent: Identifiable {
                     input,
                 )
             };
-            while let Ok(logs) = receiver.recv().await {
+            let mut decoded_filtered_data = vec![];
+            let mut address = Address::zero();
+            while let Ok(logs) = event_receiver.recv().await {
+                println!("Received logs: {:#?}", logs);
                 let filtered_logs = filter_events(event_filters.clone(), logs);
+                if filtered_logs.is_empty() {
+                    continue;
+                }
                 let data = filtered_logs[0].data.clone().into_iter().collect();
-                let decoded_event = decoder(data, 0).unwrap(); // TODO: Fix the error handling here.
-                let value = decoded_event[0].clone();
+                decoded_filtered_data = decoder(data, 0).unwrap(); // TODO: Fix the error handling here.
+                address = filtered_logs[0].address;
+                break;
             }
-        });
+            println!("Finished watching events for agent");
+            (address, decoded_filtered_data)
+        })
     }
 
     /// Deploy a contract to the current simulation environment and return a new [`SimulationContract<IsDeployed>`].
@@ -458,7 +465,7 @@ mod tests {
             .deploy(writer, test_string.into_tokens())?;
         assert!(execution_result.is_success());
 
-        // Create writer contract.
+        // Create arbiter token contract.
         let arbt = SimulationContract::new(
             arbiter_token::ARBITERTOKEN_ABI.clone(),
             arbiter_token::ARBITERTOKEN_BYTECODE.clone(),
@@ -494,6 +501,45 @@ mod tests {
             &filtered_events
         );
         assert_eq!(filtered_events, vec![]);
+        Ok(())
+    }
+
+    #[tokio::test]
+    async fn watcher() -> Result<(), Box<dyn Error>> {
+        // Set up the execution manager and a user address.
+        let mut manager = SimulationManager::default();
+        // Create writer contract.
+        let writer =
+            SimulationContract::new(writer::WRITER_ABI.clone(), writer::WRITER_BYTECODE.clone());
+        let test_string = "Hello, world..?".to_string();
+        let (writer, execution_result) = manager
+            .agents
+            .get("admin")
+            .unwrap()
+            .deploy(writer, test_string.into_tokens())?;
+        assert!(execution_result.is_success());
+
+        // Create agent with a filter.
+        let event_filters = vec![SimulationEventFilter::new(&writer, "WasWritten")];
+        let alice = User::new("alice", Some(event_filters));
+        manager.activate_agent(AgentType::User(alice), B160::from_low_u64_be(2))?;
+        let alice = manager.agents.get("alice").unwrap();
+        let future = alice.watch();
+
+        // Make calls that alice and bob won't filter out.
+        let new_string = "Hello, world!".to_string();
+        manager.agents.get("admin").unwrap().call(
+            &writer,
+            "echoString",
+            new_string.clone().into_tokens(),
+        )?;
+        // Test that the alice doesn't filter out these logs.
+        let event = future.await?;
+        println!(
+            "The filtered events for alice on the first call are: {:#?}",
+            &event
+        );
+        assert_eq!(event.1[0].clone().into_string().unwrap(), new_string);
         Ok(())
     }
 }
