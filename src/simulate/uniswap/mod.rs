@@ -71,7 +71,7 @@ pub fn run(
 
     drop(prices);
 
-    let (handle, rx) = arbitrageur.detect_arbitrage();
+    let (_, rx) = arbitrageur.detect_arbitrage();
 
     // Get prices
     let prices = price_process.generate_price_path().1;
@@ -82,20 +82,10 @@ pub fn run(
     let mut arb_balance_paths: (Vec<U256>, Vec<U256>) = (Vec::new(), Vec::new());
 
     // record first balances
-    record_arb_balances(
-        arbitrageur,
-        &mut manager.environment,
-        &contracts,
-        &mut arb_balance_paths,
-    )?;
+    record_arb_balances(arbitrageur, &contracts, &mut arb_balance_paths)?;
 
     let mut reserve_over_time: (Vec<U256>, Vec<U256>) = (Vec::new(), Vec::new());
-    record_reserves(
-        &mut manager.environment,
-        &uniswap_pair,
-        &mut reserve_over_time,
-        admin,
-    )?;
+    record_reserves(&uniswap_pair, &mut reserve_over_time, admin)?;
     // Run the simulation
     // Update the first price
     let liquid_exchange = &contracts.liquid_exchange_xy;
@@ -117,13 +107,7 @@ pub fn run(
         match next_tx {
             NextTx::Swap => {
                 // check for arb bounds
-                let size = compute_arb_size(
-                    &mut manager.environment,
-                    &uniswap_pair,
-                    admin,
-                    arbiter_math,
-                    wad_price,
-                )?;
+                let size = compute_arb_size(&uniswap_pair, admin, arbiter_math, wad_price)?;
                 if size.input == U256::from(0) {
                     // println!("No arbitrage opportunity\n");
                     index += 1;
@@ -134,13 +118,7 @@ pub fn run(
                         uniswap_pair.decode_output("getReserves", unpack_execution(result)?)?;
                     let x_before_swap = U256::from(uniswap_reserves.0);
                     let y_before_swap = U256::from(uniswap_reserves.1);
-                    arbitrage::swap(
-                        arbitrageur,
-                        &mut manager.environment,
-                        &contracts,
-                        size.input,
-                        size.sell_asset,
-                    )?;
+                    arbitrage::swap(arbitrageur, &contracts, size.input, size.sell_asset)?;
                     let swap_output: U256;
                     let result = arbitrageur.call(&uniswap_pair, "getReserves", vec![])?;
                     assert!(result.is_success());
@@ -152,7 +130,6 @@ pub fn run(
                         swap_output = y_before_swap - y_after_swap;
                         arbitrage::swap_liquid_expchange(
                             arbitrageur,
-                            &mut manager.environment,
                             &contracts,
                             swap_output,
                             size.sell_asset,
@@ -161,28 +138,17 @@ pub fn run(
                         swap_output = x_before_swap - x_after_swap;
                         arbitrage::swap_liquid_expchange(
                             arbitrageur,
-                            &mut manager.environment,
                             &contracts,
                             swap_output,
                             size.sell_asset,
                         )?;
                     }
                 }
-                record_reserves(
-                    &mut manager.environment,
-                    &uniswap_pair,
-                    &mut reserve_over_time,
-                    admin,
-                )?;
+                record_reserves(&uniswap_pair, &mut reserve_over_time, admin)?;
                 // record arbitrageur balances
-                record_arb_balances(
-                    arbitrageur,
-                    &mut manager.environment,
-                    &contracts,
-                    &mut arb_balance_paths,
-                )?;
+                record_arb_balances(arbitrageur, &contracts, &mut arb_balance_paths)?;
                 // Update the liquid exchange price
-                update_price(&admin, liquid_exchange, price, &mut liq_price_path)?;
+                update_price(admin, liquid_exchange, price, &mut liq_price_path)?;
 
                 index += 1;
 

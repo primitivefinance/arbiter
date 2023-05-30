@@ -241,7 +241,7 @@ pub trait Agent: Identifiable {
                 let filtered_logs = filter_events(event_filters.clone(), logs);
                 let data = filtered_logs[0].data.clone().into_iter().collect();
                 let decoded_event = decoder(data, 0).unwrap(); // TODO: Fix the error handling here.
-                let value = decoded_event[0].clone();
+                let _value = decoded_event[0].clone();
             }
         });
     }
@@ -262,9 +262,7 @@ pub trait Agent: Identifiable {
         // Append constructor args (if available) to generate the deploy bytecode.
         let bytecode = match contract.base_contract.abi().constructor.clone() {
             Some(constructor) => Bytes::from(
-                constructor
-                    .encode_input(contract.bytecode.clone(), &constructor_arguments)
-                    .unwrap(),
+                constructor.encode_input(contract.bytecode.clone(), &constructor_arguments)?,
             ),
             None => Bytes::from(contract.bytecode.clone()),
         };
@@ -300,7 +298,7 @@ pub trait Agent: Identifiable {
             SimulationContract {
                 bytecode: (),
                 address,
-                base_contract: contract.base_contract.clone(),
+                base_contract: contract.base_contract,
                 constructor_arguments,
             },
             execution_result,
