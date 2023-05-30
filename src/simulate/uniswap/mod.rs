@@ -1,16 +1,12 @@
 #![warn(missing_docs)]
 use std::{error::Error, fs::File, time::Instant};
 
-use ethers::{prelude::BaseContract, types::U256};
+use ethers::{abi::Tokenizable, prelude::BaseContract, types::U256};
 use eyre::Result;
-use polars::{export::rayon::result, prelude::*};
-use ruint::Uint;
+use polars::prelude::*;
 use simulate::{
-    agent::{simple_arbitrageur::NextTx, Agent, AgentType},
-    environment::{
-        contract::{IsDeployed, SimulationContract},
-        SimulationEnvironment,
-    },
+    agent::{simple_arbitrageur::NextTx, Agent, AgentType, IsActive},
+    environment::contract::{IsDeployed, SimulationContract},
     manager::SimulationManager,
     stochastic::price_process::{PriceProcess, PriceProcessType, GBM, OU},
     utils::{unpack_execution, wad_to_float},
@@ -104,13 +100,7 @@ pub fn run(
     // Update the first price
     let liquid_exchange = &contracts.liquid_exchange_xy;
     let price = prices[0];
-    update_price(
-        admin,
-        &mut manager.environment,
-        liquid_exchange,
-        price,
-        &mut liq_price_path,
-    )?;
+    update_price(admin, liquid_exchange, price, &mut liq_price_path)?;
 
     let mut index: usize = 1;
     while let Ok((next_tx, _sell_asset)) = rx.recv() {
@@ -192,13 +182,7 @@ pub fn run(
                     &mut arb_balance_paths,
                 )?;
                 // Update the liquid exchange price
-                update_price(
-                    admin,
-                    &mut manager.environment,
-                    liquid_exchange,
-                    price,
-                    &mut liq_price_path,
-                )?;
+                update_price(&admin, liquid_exchange, price, &mut liq_price_path)?;
 
                 index += 1;
 
@@ -208,6 +192,7 @@ pub fn run(
                     "getReserves",
                     vec![],
                 )?;
+                assert!(result.is_success());
                 let uniswap_reserves: (u128, u128, u32) =
                     uniswap_pair.decode_output("getReserves", unpack_execution(result)?)?;
                 let x = U256::from(uniswap_reserves.0);
@@ -220,28 +205,20 @@ pub fn run(
                 continue;
             }
             NextTx::UpdatePrice => {
-                let uniswap_reserves = manager.agents.get("admin").unwrap().call_contract(
-                    &mut manager.environment,
+                let result = manager.agents.get("admin").unwrap().call(
                     &uniswap_pair,
-                    uniswap_pair.encode_function("getReserves", ())?,
-                    Uint::ZERO,
-                );
-                let uniswap_reserves = unpack_execution(uniswap_reserves)?;
+                    "getReserves",
+                    vec![],
+                )?;
+                assert!(result.is_success());
                 let uniswap_reserves: (u128, u128, u32) =
-                    uniswap_pair.decode_output("getReserves", uniswap_reserves)?;
-                let x = U256::from(uniswap_reserves.0);
-                let y = U256::from(uniswap_reserves.1);
-                let uniswap_price = y * U256::from(10_u128.pow(18)) / x;
+                    uniswap_pair.decode_output("getReserves", unpack_execution(result)?)?;
+                let uniswap_price = U256::from(uniswap_reserves.1) * U256::from(10_u128.pow(18))
+                    / U256::from(uniswap_reserves.0);
 
                 dex_price_path.push(uniswap_price); // repeat previous price if no swap
 
-                update_price(
-                    admin,
-                    &mut manager.environment,
-                    liquid_exchange,
-                    price,
-                    &mut liq_price_path,
-                )?;
+                update_price(admin, liquid_exchange, price, &mut liq_price_path)?;
                 index += 1;
                 continue;
             }
@@ -251,8 +228,6 @@ pub fn run(
             }
         }
     }
-
-    handle.join().unwrap();
 
     // Write down the simulation configuration to a csv file
     let series_length = liq_price_path.len() - 1;
@@ -383,8 +358,7 @@ pub fn run(
 
 /// Update prices on the liquid exchange.
 fn update_price(
-    admin: &dyn Agent,
-    environment: &mut SimulationEnvironment,
+    admin: &AgentType<IsActive>,
     liquid_exchange: &SimulationContract<IsDeployed>,
     price: f64,
     price_path: &mut Vec<U256>,
@@ -393,7 +367,6 @@ fn update_price(
     // println!("Price from price path: {}", price);
     let wad_price = simulate::utils::float_to_wad(price);
     price_path.push(wad_price);
-    let call_data = liquid_exchange.encode_function("setPrice", wad_price)?;
-    admin.call_contract(environment, liquid_exchange, call_data, Uint::from(0));
+    admin.call(liquid_exchange, "setPrice", vec![wad_price.into_token()])?;
     Ok(())
 }
