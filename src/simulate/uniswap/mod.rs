@@ -80,11 +80,10 @@ pub fn run(
     let mut liq_price_path: Vec<U256> = Vec::new();
     let mut dex_price_path: Vec<U256> = Vec::new();
     let mut arb_balance_paths: (Vec<U256>, Vec<U256>) = (Vec::new(), Vec::new());
+    let mut reserve_over_time: (Vec<U256>, Vec<U256>) = (Vec::new(), Vec::new());
 
     // record first balances
     record_arb_balances(arbitrageur, &contracts, &mut arb_balance_paths)?;
-
-    let mut reserve_over_time: (Vec<U256>, Vec<U256>) = (Vec::new(), Vec::new());
     record_reserves(&uniswap_pair, &mut reserve_over_time, admin)?;
     // Run the simulation
     // Update the first price
@@ -195,55 +194,67 @@ pub fn run(
         }
     }
 
+    write_to_csv(
+        liq_price_path,
+        dex_price_path,
+        arb_balance_paths,
+        reserve_over_time,
+        price_process,
+        output_storage,
+        label,
+    )?;
+    // println!("=======================================");
+    // println!("🎉 Simulation Completed 🎉");
+    // println!("=======================================");
+
+    // let duration = start.elapsed();
+    // println!("Time elapsed is: {:?}", duration);
+
+    Ok(())
+}
+
+/// Update prices on the liquid exchange.
+fn update_price(
+    admin: &AgentType<IsActive>,
+    liquid_exchange: &SimulationContract<IsDeployed>,
+    price: f64,
+    price_path: &mut Vec<U256>,
+) -> Result<(), Box<dyn Error>> {
+    let wad_price = simulate::utils::float_to_wad(price);
+    price_path.push(wad_price);
+    admin.call(liquid_exchange, "setPrice", vec![wad_price.into_token()])?;
+    Ok(())
+}
+
+fn write_to_csv(
+    liq_price_path: Vec<U256>,
+    dex_price_path: Vec<U256>,
+    arb_balance_paths: (Vec<U256>, Vec<U256>),
+    reserve_over_time: (Vec<U256>, Vec<U256>),
+    price_process: PriceProcess,
+    output_storage: OutputStorage,
+    label: usize,
+) -> Result<(), Box<dyn Error>> {
     // Write down the simulation configuration to a csv file
     let series_length = liq_price_path.len() - 1;
-    // Write down the price paths to a csv file
-    let liquid_exchange_prices = liq_price_path
-        .into_iter()
-        .map(wad_to_float)
-        .collect::<Vec<f64>>();
-    let liquid_exchange_prices = liquid_exchange_prices[1..].to_vec();
-    let liquid_exchange_prices = Series::new("liquid_exchange_prices", liquid_exchange_prices);
-    let uniswap_prices = dex_price_path
-        .into_iter()
-        .map(wad_to_float)
-        .collect::<Vec<f64>>();
-    let uniswap_prices = Series::new("uniswap_prices", uniswap_prices);
-
-    // reserve changes
-    let reserve_x_series = Series::new(
-        "uniswap_x_reserves",
-        reserve_over_time
-            .0
-            .into_iter()
-            .map(wad_to_float)
-            .collect::<Vec<f64>>(),
-    );
-    let reserve_y_series = Series::new(
-        "uniswap_y_reserves",
-        reserve_over_time
-            .1
-            .into_iter()
-            .map(wad_to_float)
-            .collect::<Vec<f64>>(),
-    );
-    let (arb_x, arb_y) = arb_balance_paths;
-
-    let arb_x = arb_x
-        .into_iter()
-        .map(|x| x.to_string())
-        .collect::<Vec<String>>();
-
-    let arb_balance_x = Series::new("arbitrageur_balance_x", arb_x);
-
-    let arb_y = arb_y
-        .into_iter()
-        .map(|y| y.to_string())
-        .collect::<Vec<String>>();
-    let arb_balance_y = Series::new("arbitrageur_balance_y", arb_y);
-
     let seed = Series::new("seed", vec![price_process.seed; series_length]);
     let timestep = Series::new("timestep", vec![price_process.timestep; series_length]);
+
+    let (
+        reserve_y,
+        reserve_x,
+        uniswap_prices,
+        liquid_exchange_prices,
+        arb_balance_x,
+        arb_balance_y,
+    ) = make_series(
+        liq_price_path,
+        dex_price_path,
+        reserve_over_time,
+        arb_balance_paths,
+    )?;
+
+    // Lots of repeated code here
     match price_process.process_type {
         PriceProcessType::GBM(GBM { volatility, drift }) => {
             let volatility = Series::new("drift", vec![volatility; series_length]);
@@ -256,8 +267,8 @@ pub fn run(
                 drift,
                 liquid_exchange_prices,
                 uniswap_prices,
-                reserve_x_series,
-                reserve_y_series,
+                reserve_x,
+                reserve_y,
                 arb_balance_x,
                 arb_balance_y,
             ])?;
@@ -293,8 +304,8 @@ pub fn run(
                 mean_price,
                 liquid_exchange_prices,
                 uniswap_prices,
-                reserve_x_series,
-                reserve_y_series,
+                reserve_x,
+                reserve_y,
                 arb_balance_x,
                 arb_balance_y,
             ])?;
@@ -312,27 +323,64 @@ pub fn run(
         }
     };
 
-    // println!("=======================================");
-    // println!("🎉 Simulation Completed 🎉");
-    // println!("=======================================");
-
-    // let duration = start.elapsed();
-    // println!("Time elapsed is: {:?}", duration);
-
     Ok(())
 }
+// fn price_process_data(price_process: PriceProcess) -> Result<(), Box<dyn Error>> {}
+fn make_series(
+    liq_price_path: Vec<U256>,
+    dex_price_path: Vec<U256>,
+    reserve_over_time: (Vec<U256>, Vec<U256>),
+    arb_balance_paths: (Vec<U256>, Vec<U256>),
+) -> Result<SeriesTuple, Box<dyn Error>> {
+    let liquid_exchange_prices = liq_price_path
+        .into_iter()
+        .map(wad_to_float)
+        .collect::<Vec<f64>>();
+    let liquid_exchange_prices = liquid_exchange_prices[1..].to_vec();
 
-/// Update prices on the liquid exchange.
-fn update_price(
-    admin: &AgentType<IsActive>,
-    liquid_exchange: &SimulationContract<IsDeployed>,
-    price: f64,
-    price_path: &mut Vec<U256>,
-) -> Result<(), Box<dyn Error>> {
-    // println!("Updating price...");
-    // println!("Price from price path: {}", price);
-    let wad_price = simulate::utils::float_to_wad(price);
-    price_path.push(wad_price);
-    admin.call(liquid_exchange, "setPrice", vec![wad_price.into_token()])?;
-    Ok(())
+    let uniswap_prices = dex_price_path
+        .into_iter()
+        .map(wad_to_float)
+        .collect::<Vec<f64>>();
+
+    let reserve_x = reserve_over_time
+        .0
+        .into_iter()
+        .map(wad_to_float)
+        .collect::<Vec<f64>>();
+
+    let reserve_y = reserve_over_time
+        .1
+        .into_iter()
+        .map(wad_to_float)
+        .collect::<Vec<f64>>();
+    // reserve changes
+    let arb_x = arb_balance_paths
+        .0
+        .into_iter()
+        .map(|x| x.to_string())
+        .collect::<Vec<String>>();
+    let arb_y = arb_balance_paths
+        .1
+        .into_iter()
+        .map(|y| y.to_string())
+        .collect::<Vec<String>>();
+
+    let data: SeriesTuple = (
+        Series::new("uniswap_y_reserves", reserve_y),
+        Series::new("uniswap_x_reserves", reserve_x),
+        Series::new("uniswap_prices", uniswap_prices),
+        Series::new("liquid_exchange_prices", liquid_exchange_prices),
+        Series::new("arbitrageur_balance_x", arb_x),
+        Series::new("arbitrageur_balance_y", arb_y),
+    );
+    Ok(data)
 }
+type SeriesTuple = (
+    polars::prelude::Series,
+    polars::prelude::Series,
+    polars::prelude::Series,
+    polars::prelude::Series,
+    polars::prelude::Series,
+    polars::prelude::Series,
+);
