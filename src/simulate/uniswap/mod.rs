@@ -3,7 +3,7 @@ use std::{error::Error, fs::File, time::Instant};
 
 use ethers::{prelude::BaseContract, types::U256};
 use eyre::Result;
-use polars::prelude::*;
+use polars::{export::rayon::result, prelude::*};
 use ruint::Uint;
 use simulate::{
     agent::{simple_arbitrageur::NextTx, Agent, AgentType},
@@ -55,37 +55,24 @@ pub fn run(
         AgentType::SimpleArbitrageur(base_arbitrageur) => base_arbitrageur,
         _ => panic!(),
     };
-    let liquid_exchange_xy_price = arbitrageur.call_contract(
-        &mut manager.environment,
-        &contracts.liquid_exchange_xy,
-        contracts.liquid_exchange_xy.encode_function("price", ())?,
-        Uint::ZERO,
-    );
-    let liquid_exchange_xy_price = unpack_execution(liquid_exchange_xy_price)?;
+    let result = arbitrageur.call(&contracts.liquid_exchange_xy, "price", vec![])?;
+    assert!(result.is_success());
+
     let liquid_exchange_xy_price: U256 = contracts
         .liquid_exchange_xy
-        .decode_output("price", liquid_exchange_xy_price)?;
-    let uniswap_reserves = arbitrageur.call_contract(
-        &mut manager.environment,
-        &uniswap_pair,
-        uniswap_pair.encode_function("getReserves", ())?,
-        Uint::ZERO,
-    );
-    let uniswap_reserves = unpack_execution(uniswap_reserves)?;
+        .decode_output("price", unpack_execution(result)?)?;
+
+    let result = arbitrageur.call(&uniswap_pair, "getReserves", vec![])?;
+
     let uniswap_reserves: (u128, u128, u32) =
-        uniswap_pair.decode_output("getReserves", uniswap_reserves)?;
-    let x = U256::from(uniswap_reserves.0);
-    let y = U256::from(uniswap_reserves.1);
-    let uniswap_price = y * U256::from(10_u128.pow(18)) / x;
-    // println!("Uniswap price: {}", uniswap_price);
+        uniswap_pair.decode_output("getReserves", unpack_execution(result)?)?;
+    let uniswap_price = U256::from(uniswap_reserves.1) * U256::from(10_u128.pow(18))
+        / U256::from(uniswap_reserves.0);
+
     let mut prices = arbitrageur.prices.lock().unwrap();
     prices[0] = liquid_exchange_xy_price.into();
     prices[1] = uniswap_price.into();
-    // println!(
-    //     "Initial price for LiquidExchange is: {:#?}\nInitial price for Uniswap pool is: {:#?}",
-    //     wad_to_float(prices[0].into()),
-    //     wad_to_float(prices[1].into())
-    // );
+
     drop(prices);
 
     let (handle, rx) = arbitrageur.detect_arbitrage();
@@ -127,10 +114,8 @@ pub fn run(
 
     let mut index: usize = 1;
     while let Ok((next_tx, _sell_asset)) = rx.recv() {
-        // println!("Entered Main's `while let` with index: {}", index);
         if index >= prices.len() {
-            // println!("Reached end of price path\n");
-            manager.shut_down();
+            // maybe need to shut down?
             break;
         }
         let price = prices[index];
@@ -153,15 +138,10 @@ pub fn run(
                     // println!("No arbitrage opportunity\n");
                     index += 1;
                 } else {
-                    let uniswap_reserves = arbitrageur.call_contract(
-                        &mut manager.environment,
-                        &uniswap_pair,
-                        uniswap_pair.encode_function("getReserves", ())?,
-                        Uint::ZERO,
-                    );
-                    let uniswap_reserves = unpack_execution(uniswap_reserves)?;
+                    let result = arbitrageur.call(&uniswap_pair, "getReserves", vec![])?;
+                    assert!(result.is_success());
                     let uniswap_reserves: (u128, u128, u32) =
-                        uniswap_pair.decode_output("getReserves", uniswap_reserves)?;
+                        uniswap_pair.decode_output("getReserves", unpack_execution(result)?)?;
                     let x_before_swap = U256::from(uniswap_reserves.0);
                     let y_before_swap = U256::from(uniswap_reserves.1);
                     arbitrage::swap(
@@ -172,15 +152,10 @@ pub fn run(
                         size.sell_asset,
                     )?;
                     let swap_output: U256;
-                    let uniswap_reserves_after = arbitrageur.call_contract(
-                        &mut manager.environment,
-                        &uniswap_pair,
-                        uniswap_pair.encode_function("getReserves", ())?,
-                        Uint::ZERO,
-                    );
-                    let uniswap_reserves_after = unpack_execution(uniswap_reserves_after)?;
+                    let result = arbitrageur.call(&uniswap_pair, "getReserves", vec![])?;
+                    assert!(result.is_success());
                     let uniswap_reserves_after: (u128, u128, u32) =
-                        uniswap_pair.decode_output("getReserves", uniswap_reserves_after)?;
+                        uniswap_pair.decode_output("getReserves", unpack_execution(result)?)?;
                     let x_after_swap = U256::from(uniswap_reserves_after.0);
                     let y_after_swap = U256::from(uniswap_reserves_after.1);
                     if size.sell_asset {
@@ -228,15 +203,13 @@ pub fn run(
                 index += 1;
 
                 // Get the updated Uniswap price and deliver it to the arbitrageur
-                let uniswap_reserves = manager.agents.get("admin").unwrap().call_contract(
-                    &mut manager.environment,
+                let result = manager.agents.get("admin").unwrap().call(
                     &uniswap_pair,
-                    uniswap_pair.encode_function("getReserves", ())?,
-                    Uint::ZERO,
-                );
-                let uniswap_reserves = unpack_execution(uniswap_reserves)?;
+                    "getReserves",
+                    vec![],
+                )?;
                 let uniswap_reserves: (u128, u128, u32) =
-                    uniswap_pair.decode_output("getReserves", uniswap_reserves)?;
+                    uniswap_pair.decode_output("getReserves", unpack_execution(result)?)?;
                 let x = U256::from(uniswap_reserves.0);
                 let y = U256::from(uniswap_reserves.1);
                 let uniswap_price = y * U256::from(10_u128.pow(18)) / x;

@@ -2,13 +2,13 @@ use std::error::Error;
 
 use bindings::{arbiter_token, liquid_exchange, uniswap_v2_factory, uniswap_v2_router_02, weth9};
 use ethers::{
+    abi::{Token, Tokenize},
     prelude::U256,
     types::{Address, H160},
 };
 use eyre::Result;
-use revm::primitives::ruint::Uint;
 use simulate::{
-    agent::Agent,
+    agent::{Agent, AgentType, IsActive},
     environment::contract::{IsDeployed, SimulationContract},
     manager::SimulationManager,
     utils::{recast_address, unpack_execution},
@@ -27,18 +27,15 @@ pub(crate) struct SimulationContracts {
 pub(crate) fn run(
     manager: &mut SimulationManager,
 ) -> Result<(SimulationContracts, H160), Box<dyn Error>> {
-    // define the wad constant
     let decimals = 18_u8;
     let wad: U256 = U256::from(10_i64.pow(decimals as u32));
-
-    // println!("=======================================");
-    // println!("🚀 Starting the Simulation 🚀");
-    // println!("=======================================");
+    let admin = manager.agents.get("admin").unwrap();
+    let arbitrageur = manager.agents.get("arbitrageur").unwrap();
 
     // Deploy the contracts
     // println!("🔧 Deploying contracts...");
     // println!("---------------------------------------");
-    let contracts = deploy_contracts(manager, wad)?;
+    let contracts = deploy_contracts(admin, wad)?;
     // println!("---------------------------------------");
     // println!("✅ Contracts deployed successfully!\n");
 
@@ -50,14 +47,14 @@ pub(crate) fn run(
 
     // println!("🔧 Minting tokens...");
     // println!("---------------------------------------");
-    mint(manager, &contracts)?;
+    mint(admin, arbitrageur, &contracts)?;
     // println!("---------------------------------------");
     // println!("✅ Tokens minted successfully!\n");
 
     // // Create a pair so that we can mint funds to this address properly with allowances.
     // println!("🔧 Initializing a pair...");
     // println!("---------------------------------------");
-    let pair_address = pair_intitalization(manager, &contracts)?;
+    let pair_address = pair_intitalization(admin, &contracts)?;
     // println!("---------------------------------------");
     // println!(
     //     "✅ Pair initialized successfully!\nPair Address: {}\n",
@@ -66,13 +63,13 @@ pub(crate) fn run(
 
     // println!("🔧 Approving tokens...");
     // println!("---------------------------------------");
-    approve(manager, &contracts)?;
+    approve(admin, arbitrageur, &contracts)?;
     // println!("---------------------------------------");
     // println!("✅ Tokens approved successfully!\n");
 
     // println!("🔧 Allocating funds...");
     // println!("---------------------------------------");
-    allocate(manager, &contracts)?;
+    allocate(admin, &contracts)?;
     // println!("---------------------------------------");
     // println!("✅ Funds allocated successfully!\n");
 
@@ -86,16 +83,14 @@ pub(crate) fn run(
 /// # Returns
 /// * `SimulationContracts` - Contracts deployed to the simulation environment. (SimulationContracts)
 fn deploy_contracts(
-    manager: &mut SimulationManager,
+    admin: &AgentType<IsActive>,
     wad: U256,
 ) -> Result<SimulationContracts, Box<dyn Error>> {
     let decimals = 18_u8;
-    let admin = manager.agents.get("admin").unwrap();
-
     // Deploy Weth
     let weth = SimulationContract::new(weth9::WETH9_ABI.clone(), weth9::WETH9_BYTECODE.clone());
-    let weth = weth.deploy(&mut manager.environment, admin, ());
-    // println!("WETH deployed at: {}", weth.address);
+    let (weth, result) = admin.deploy(weth, vec![])?;
+    assert!(result.is_success());
 
     // Deploy the UniswapV2 Factory contract.
     let uniswap_factory = SimulationContract::new(
@@ -103,10 +98,9 @@ fn deploy_contracts(
         uniswap_v2_factory::UNISWAPV2FACTORY_BYTECODE.clone(),
     );
     // The feeToSetter address is the only constructor arg and it is not used in the simulation.
-    let uniswap_factory_args = H160::from_low_u64_be(0);
-    let uniswap_factory =
-        uniswap_factory.deploy(&mut manager.environment, admin, uniswap_factory_args);
-    // println!("UniswapV2 Factory deployed at: {}", uniswap_factory.address);
+    let uniswap_factory_args = H160::from_low_u64_be(0).into_tokens();
+    let (uniswap_factory, result) = admin.deploy(uniswap_factory, uniswap_factory_args)?;
+    assert!(result.is_success());
 
     // Deploy the UniswapV2 Router contract.
     let uniswap_router = SimulationContract::new(
@@ -116,9 +110,10 @@ fn deploy_contracts(
     let uniswap_router_args = (
         recast_address(uniswap_factory.address),
         recast_address(weth.address),
-    );
-    let uniswap_router =
-        uniswap_router.deploy(&mut manager.environment, admin, uniswap_router_args);
+    )
+        .into_tokens();
+    let (uniswap_router, result) = admin.deploy(uniswap_router, uniswap_router_args)?;
+    assert!(result.is_success());
 
     // Deploy Arbiter Tokens
     let arbiter_token = SimulationContract::new(
@@ -127,17 +122,13 @@ fn deploy_contracts(
     );
 
     // Choose name and symbol and combine into the constructor args required by ERC-20 contracts.
-    let name = "ArbiterToken";
-    let symbol = "ARBX";
-    let arbx_args = (name.to_string(), symbol.to_string(), decimals);
-    let arbiter_token_x = arbiter_token.deploy(&mut manager.environment, admin, arbx_args);
-    // println!("ARBX deployed at: {}", arbiter_token_x.address);
+    let arbx_args = ("ArbiterToken".to_string(), "ARBX".to_string()).into_tokens();
+    let (arbiter_token_x, result) = admin.deploy(arbiter_token, arbx_args)?;
+    assert!(result.is_success());
 
-    let name = "ArbiterTokenY";
-    let symbol = "ARBY";
-    let arby_args = (name.to_string(), symbol.to_string(), decimals);
-    let arbiter_token_y = arbiter_token.deploy(&mut manager.environment, admin, arby_args);
-    // println!("ARBY deployed at: {}", arbiter_token_y.address);
+    let arby_args = ("ArbiterTokenY".to_string(), "ARBY".to_string()).into_tokens();
+    let (arbiter_token_y, result) = admin.deploy(arbiter_token, arby_args)?;
+    assert!(result.is_success());
 
     // Deploy LiquidExchange
     let initial_price = wad.checked_mul(U256::from(1)).unwrap();
@@ -149,8 +140,9 @@ fn deploy_contracts(
         recast_address(arbiter_token_x.address),
         recast_address(arbiter_token_y.address),
         initial_price,
-    );
-    let liquid_exchange_xy = liquid_exchange.deploy(&mut manager.environment, admin, le_args);
+    )
+        .into_tokens();
+    let (liquid_exchange_xy, result) = admin.deploy(liquid_exchange, le_args)?;
 
     Ok(SimulationContracts {
         arbiter_token_x,
@@ -162,11 +154,10 @@ fn deploy_contracts(
 }
 
 fn mint(
-    manager: &mut SimulationManager,
+    admin: &AgentType<IsActive>,
+    arbitrageur: &AgentType<IsActive>,
     contracts: &SimulationContracts,
 ) -> Result<(), Box<dyn Error>> {
-    let admin = manager.agents.get("admin").unwrap();
-    let arbitrageur = manager.agents.get("arbitrageur").unwrap();
     let SimulationContracts {
         arbiter_token_x,
         arbiter_token_y,
@@ -176,175 +167,69 @@ fn mint(
     } = contracts;
     // Allocating new tokens to user by calling Arbiter Token's ERC20 'mint' instance.
     let mint_amount = u128::MAX;
+    let mint_args_for_admin = (recast_address(admin.address()), mint_amount).into_tokens();
+    let mint_args_for_arbiter = (recast_address(arbitrageur.address()), mint_amount).into_tokens();
 
     // Call the 'mint' function to the arber. for token x
-    let _result_mint_x_for_arber = admin.call_contract(
-        &mut manager.environment,
-        arbiter_token_x,
-        arbiter_token_x
-            .encode_function("mint", (recast_address(arbitrageur.address()), mint_amount))?,
-        Uint::from(0),
-    );
-    // println!(
-    //     "Minted {} ARBX to Arbitrageur: {:#?}",
-    //     mint_amount,
-    //     result_mint_x_for_arber.is_success()
-    // );
+    let result = arbitrageur.call(arbiter_token_x, "mint", mint_args_for_arbiter)?;
+    assert!(result.is_success());
 
     // Call the `mint` function for the admin for token x.
-    let execution_result = admin.call_contract(
-        &mut manager.environment,
-        arbiter_token_x,
-        arbiter_token_x.encode_function("mint", (recast_address(admin.address()), mint_amount))?,
-        Uint::from(0),
-    );
-    assert!(execution_result.is_success());
+    let result = admin.call(arbiter_token_x, "mint", mint_args_for_admin)?;
+    assert!(result.is_success());
 
     // Call the `mint` function to the arber for token y.
-    let _result_mint_y_for_arber = admin.call_contract(
-        &mut manager.environment,
-        arbiter_token_y,
-        arbiter_token_y
-            .encode_function("mint", (recast_address(arbitrageur.address()), mint_amount))?,
-        Uint::from(0),
-    );
-    // println!(
-    //     "Minted {} ARBY to Arbitrageur: {:#?}",
-    //     mint_amount,
-    //     result_mint_y_for_arber.is_success()
-    // );
+    let result = arbitrageur.call(arbiter_token_y, "mint", mint_args_for_arbiter)?;
+    assert!(result.is_success());
 
     // Call the `mint` function for the admin for token y.
-    let execution_result = admin.call_contract(
-        &mut manager.environment,
-        arbiter_token_y,
-        arbiter_token_y.encode_function("mint", (recast_address(admin.address()), mint_amount))?,
-        Uint::from(0),
-    );
-    assert!(execution_result.is_success());
+    let result = admin.call(arbiter_token_y, "mint", mint_args_for_admin)?;
+    assert!(result.is_success());
 
     // Mint large amount of token_y to the liquid_exchange contract.
-    let _mint_result_y_liquid_exchange = admin.call_contract(
-        &mut manager.environment,
-        arbiter_token_y,
-        arbiter_token_y.encode_function(
-            "mint",
-            (recast_address(liquid_exchange_xy.address), mint_amount),
-        )?,
-        Uint::from(0),
-    );
-    // println!(
-    //     "Minted {} ARBY to LiquidExchange: {:#?}",
-    //     mint_amount,
-    //     mint_result_y_liquid_exchange.is_success()
-    // );
+    let result = admin.call(arbiter_token_y, "mint", approve_arg(liquid_exchange_xy))?;
+    assert!(result.is_success());
+
     Ok(())
 }
 
 fn approve(
-    manager: &mut SimulationManager,
+    admin: &AgentType<IsActive>,
+    arbitrageur: &AgentType<IsActive>,
     contracts: &SimulationContracts,
 ) -> Result<(), Box<dyn Error>> {
-    let admin = manager.agents.get("admin").unwrap();
-    let arbitrageur = manager.agents.get("arbitrageur").unwrap();
     let SimulationContracts {
         arbiter_token_x,
         arbiter_token_y,
         uniswap_factory: _,
-        uniswap_router: _,
+        uniswap_router,
         liquid_exchange_xy,
     } = contracts;
     // ~~~ Liquid Exchange ~~~
     // Approve the liquid_exchange to spend the arbitrageur's token_x
-    let _result = arbitrageur.call_contract(
-        &mut manager.environment,
-        arbiter_token_x,
-        arbiter_token_x.encode_function(
-            "approve",
-            (recast_address(liquid_exchange_xy.address), U256::MAX),
-        )?,
-        Uint::from(0),
-    );
-    // println!(
-    //     "Approved ARBX to LiquidExchange for Arbitrageur: {:#?}",
-    //     result.is_success()
-    // );
+    let result = arbitrageur.call(arbiter_token_x, "approve", approve_arg(liquid_exchange_xy))?;
+    assert!(result.is_success());
 
     // Approve the liquid_exchange to spend the arbitrageur's token_y
-    let _result = arbitrageur.call_contract(
-        &mut manager.environment,
-        arbiter_token_y,
-        arbiter_token_y.encode_function(
-            "approve",
-            (recast_address(liquid_exchange_xy.address), U256::MAX),
-        )?,
-        Uint::from(0),
-    );
-    // println!(
-    //     "Approved ARBY to LiquidExchange for Arbitrageur: {:#?}",
-    //     result.is_success()
-    // );
+    let result = arbitrageur.call(arbiter_token_y, "approve", approve_arg(liquid_exchange_xy))?;
+    assert!(result.is_success());
 
     // ~~~ Uniswap ~~~
-    // Approve the uniswap to spend the arbitrageur's token_x to the pair address
-    let _approve_token_x_result_arbitrageur = arbitrageur.call_contract(
-        &mut manager.environment,
-        arbiter_token_x,
-        arbiter_token_x.encode_function(
-            "approve",
-            (recast_address(contracts.uniswap_router.address), U256::MAX),
-        )?,
-        Uint::from(0),
-    );
-    // println!(
-    //     "Approved ARBX to Uniswap Pair for Arbitrageur: {:#?}",
-    //     approve_token_x_result_arbitrageur.is_success()
-    // );
+    // Approve uniswap to spend the arbitrageur's token_x to the router address
+    let result = arbitrageur.call(arbiter_token_x, "approve", approve_arg(uniswap_router))?;
+    assert!(result.is_success());
 
     // Approve Uniswap to spend the admin's token_x
-    let _approve_token_x_result_admin = admin.call_contract(
-        &mut manager.environment,
-        arbiter_token_x,
-        arbiter_token_x.encode_function(
-            "approve",
-            (recast_address(contracts.uniswap_router.address), U256::MAX),
-        )?,
-        Uint::from(0),
-    );
-    // println!(
-    //     "Approved ARBX to Uniswap Pair for Admin: {:#?}",
-    //     approve_token_x_result_admin.is_success()
-    // );
+    let result = admin.call(arbiter_token_x, "approve", approve_arg(uniswap_router))?;
+    assert!(result.is_success());
 
-    // Approve the uniswap to spend the arbitrageur's token_y
-    let _approve_token_y_result_arbitrageur = arbitrageur.call_contract(
-        &mut manager.environment,
-        arbiter_token_y,
-        arbiter_token_y.encode_function(
-            "approve",
-            (recast_address(contracts.uniswap_router.address), U256::MAX),
-        )?,
-        Uint::from(0),
-    );
-    // println!(
-    //     "Approved ARBY to Uniswap Pair for Arbitrageur: {:#?}",
-    //     approve_token_y_result_arbitrageur.is_success()
-    // );
+    // Approve uniswap to spend the arbitrageur's token_y
+    let result = arbitrageur.call(arbiter_token_y, "approve", approve_arg(uniswap_router))?;
+    assert!(result.is_success());
 
-    // Approve the uniswap to spend the admin's token_y
-    let _approve_token_y_result_admin = admin.call_contract(
-        &mut manager.environment,
-        arbiter_token_y,
-        arbiter_token_y.encode_function(
-            "approve",
-            (recast_address(contracts.uniswap_router.address), U256::MAX),
-        )?,
-        Uint::from(0),
-    );
-    // println!(
-    //     "Approved ARBY to Uniswap Pair for Admin: {:#?}",
-    //     approve_token_y_result_admin.is_success()
-    // );
+    // Approve uniswap to spend the admin's token_y
+    let result = admin.call(arbiter_token_y, "approve", approve_arg(uniswap_router))?;
+    assert!(result.is_success());
     Ok(())
 }
 
@@ -354,10 +239,9 @@ fn approve(
 /// * `contracts` - Contracts deployed to the simulation environment. (SimulationContracts)
 /// * `decimals` - Decimals to use for the simulation. (u8)
 fn pair_intitalization(
-    manager: &mut SimulationManager,
+    admin: &AgentType<IsActive>,
     contracts: &SimulationContracts,
 ) -> Result<Address, Box<dyn Error>> {
-    let admin = manager.agents.get("admin").unwrap();
     let SimulationContracts {
         arbiter_token_x,
         arbiter_token_y,
@@ -372,26 +256,19 @@ fn pair_intitalization(
     let create_pair_args = uniswap_v2_factory::CreatePairCall {
         token_a: recast_address(arbiter_token_x.address),
         token_b: recast_address(arbiter_token_y.address),
-    };
-    let create_pair_result = admin.call_contract(
-        &mut manager.environment,
-        uniswap_factory,
-        uniswap_factory.encode_function("createPair", create_pair_args)?,
-        Uint::from(0),
-    );
-    assert!(create_pair_result.is_success());
-    let create_pair_unpack = unpack_execution(create_pair_result)?;
-    let pair_address: Address = uniswap_factory.decode_output("createPair", create_pair_unpack)?;
-    // println!("Created Uniswap pair with address: {:#?}", pair_address);
+    }
+    .into_tokens();
+    let result = admin.call(uniswap_factory, "createPair", create_pair_args)?;
+    assert!(result.is_success());
 
-    Ok(pair_address)
+    // unpack result and get pair address
+    Ok(uniswap_factory.decode_output("createPair", unpack_execution(result)?)?)
 }
 
 fn allocate(
-    manager: &mut SimulationManager,
+    admin: &AgentType<IsActive>,
     contracts: &SimulationContracts,
 ) -> Result<(), Box<dyn Error>> {
-    let admin = manager.agents.get("admin").unwrap();
     let SimulationContracts {
         arbiter_token_x,
         arbiter_token_y,
@@ -411,22 +288,18 @@ fn allocate(
         deadline: U256::MAX,
     };
 
-    let add_liquidity_result = admin.call_contract(
-        &mut manager.environment,
+    let result = admin.call(
         uniswap_router,
-        uniswap_router.encode_function("addLiquidity", add_liquidity_args)?, // TODO: We can definitely just combine the 2nd and 3rd inputs
-        Uint::from(0),
-    );
-    // println!(
-    //     "Add liquidity result: {:#?}",
-    //     add_liquidity_result.is_success()
-    // );
-    let add_liquidity_unpack = unpack_execution(add_liquidity_result)?;
+        "addLiquidity",
+        add_liquidity_args.into_tokens(),
+    )?;
+
+    let add_liquidity_unpack = unpack_execution(result)?;
     let (_amount_a, _amount_b, _liquidity): (U256, U256, U256) =
         uniswap_router.decode_output("addLiquidity", add_liquidity_unpack)?;
-    // println!(
-    //     "Add {} ARBX and {} ARBY for {} LP tokens",
-    //     amount_a, amount_b, liquidity
-    // );
     Ok(())
+}
+
+fn approve_arg(to: &SimulationContract<IsDeployed>) -> Vec<Token> {
+    (recast_address(to.address), u128::MAX).into_tokens()
 }
