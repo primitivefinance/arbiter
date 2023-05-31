@@ -30,56 +30,22 @@ pub(crate) fn run(
     let decimals = 18_u8;
     let wad: U256 = U256::from(10_i64.pow(decimals as u32));
 
-    // Deploy the contracts
-    // println!("🔧 Deploying contracts...");
-    // println!("---------------------------------------");
     let contracts = deploy_contracts(manager.agents.get("admin").unwrap(), wad)?;
-    // println!("---------------------------------------");
-    // println!("✅ Contracts deployed successfully!\n");
-
-    // println!("🔧 Creating the Arbitrageur...");
-    // println!("---------------------------------------");
-    // println!("---------------------------------------");
-    // println!("✅ Arbitrageur created successfully!\n");
-
     arbitrage::create_arbitrageur(manager, &contracts.liquid_exchange_xy, "arbitrageur");
     let arbitrageur = manager.agents.get("arbitrageur").unwrap();
-
-    // println!("🔧 Minting tokens...");
-    // println!("---------------------------------------");
     mint(
         manager.agents.get("admin").unwrap(),
         arbitrageur,
         &contracts,
     )?;
-    // println!("---------------------------------------");
-    // println!("✅ Tokens minted successfully!\n");
-
-    // // Create a pair so that we can mint funds to this address properly with allowances.
-    // println!("🔧 Initializing a pair...");
-    // println!("---------------------------------------");
     let pair_address = pair_intitalization(manager.agents.get("admin").unwrap(), &contracts)?;
-    // println!("---------------------------------------");
-    // println!(
-    //     "✅ Pair initialized successfully!\nPair Address: {}\n",
-    //     pair_address
-    // );
-
-    // println!("🔧 Approving tokens...");
-    // println!("---------------------------------------");
     approve(
         manager.agents.get("admin").unwrap(),
         arbitrageur,
         &contracts,
     )?;
-    // println!("---------------------------------------");
-    // println!("✅ Tokens approved successfully!\n");
 
-    // println!("🔧 Allocating funds...");
-    // println!("---------------------------------------");
     allocate(manager.agents.get("admin").unwrap(), &contracts)?;
-    // println!("---------------------------------------");
-    // println!("✅ Funds allocated successfully!\n");
 
     Ok((contracts, pair_address))
 }
@@ -95,6 +61,7 @@ fn deploy_contracts(
     wad: U256,
 ) -> Result<SimulationContracts, Box<dyn Error>> {
     // Deploy Weth
+    let decimals = 18_u8;
     let weth = SimulationContract::new(weth9::WETH9_ABI.clone(), weth9::WETH9_BYTECODE.clone());
     let (weth, result) = admin.deploy(weth, vec![])?;
     assert!(result.is_success());
@@ -129,11 +96,11 @@ fn deploy_contracts(
     );
 
     // Choose name and symbol and combine into the constructor args required by ERC-20 contracts.
-    let arbx_args = ("ArbiterToken".to_string(), "ARBX".to_string()).into_tokens();
+    let arbx_args = ("ArbiterToken".to_string(), "ARBX".to_string(), decimals).into_tokens();
     let (arbiter_token_x, result) = admin.deploy(arbiter_token.clone(), arbx_args)?;
     assert!(result.is_success());
 
-    let arby_args = ("ArbiterTokenY".to_string(), "ARBY".to_string()).into_tokens();
+    let arby_args = ("ArbiterTokenY".to_string(), "ARBY".to_string(), decimals).into_tokens();
     let (arbiter_token_y, result) = admin.deploy(arbiter_token, arby_args)?;
     assert!(result.is_success());
 
@@ -178,7 +145,7 @@ fn mint(
     let mint_args_for_arbiter = (recast_address(arbitrageur.address()), mint_amount).into_tokens();
 
     // Call the 'mint' function to the arber. for token x
-    let result = arbitrageur.call(arbiter_token_x, "mint", mint_args_for_arbiter.clone())?;
+    let result = admin.call(arbiter_token_x, "mint", mint_args_for_arbiter.clone())?;
     assert!(result.is_success());
 
     // Call the `mint` function for the admin for token x.
@@ -186,7 +153,7 @@ fn mint(
     assert!(result.is_success());
 
     // Call the `mint` function to the arber for token y.
-    let result = arbitrageur.call(arbiter_token_y, "mint", mint_args_for_arbiter)?;
+    let result = admin.call(arbiter_token_y, "mint", mint_args_for_arbiter)?;
     assert!(result.is_success());
 
     // Call the `mint` function for the admin for token y.
@@ -257,9 +224,6 @@ fn pair_intitalization(
         liquid_exchange_xy: _,
     } = contracts;
 
-    // --------------------------------------------------------------------------------------------
-    // CREATE UNISWAP PAIR
-    // --------------------------------------------------------------------------------------------
     let create_pair_args = uniswap_v2_factory::CreatePairCall {
         token_a: recast_address(arbiter_token_x.address),
         token_b: recast_address(arbiter_token_y.address),
@@ -268,7 +232,6 @@ fn pair_intitalization(
     let result = admin.call(uniswap_factory, "createPair", create_pair_args)?;
     assert!(result.is_success());
 
-    // unpack result and get pair address
     Ok(uniswap_factory.decode_output("createPair", unpack_execution(result)?)?)
 }
 

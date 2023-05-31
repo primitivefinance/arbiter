@@ -5,7 +5,10 @@ use std::fs;
 
 use clap::Parser;
 use serde::{Deserialize, Serialize};
-use simulate::stochastic::price_process::PriceProcess;
+use simulate::{
+    environment::contract::{NotDeployed, SimulationContract},
+    stochastic::price_process::PriceProcess,
+};
 
 use crate::{Configurable, ConfigurationError};
 
@@ -124,5 +127,32 @@ impl Configurable for VolatilitySweep {
             volatility_high: simulation_configuration.volatility_high,
             number_of_volatility_steps: simulation_configuration.number_of_volatility_steps,
         })
+    }
+}
+
+// Simulation struct
+
+pub struct Simulation {
+    pub price_process: PriceProcess,
+    pub contracts: Vec<SimulationContract<NotDeployed>>,
+    pub volatility_sweep: VolatilitySweep,
+    pub output_storage: OutputStorage,
+}
+
+pub trait Simulations {
+    fn run(&self) {
+        todo!()
+    }
+    fn spawn_agents(&self) {
+        todo!()
+    }
+    fn initialization_calls(&self) {
+        todo!()
+    }
+    fn define_simulation(&self) {
+        todo!()
+    }
+    fn deploy_contracts() {
+        todo!()
     }
 }
