@@ -1,12 +1,18 @@
 #![warn(missing_docs)]
 #![warn(unsafe_code)]
 
-use std::fs;
+use std::{collections::HashMap, fs};
 
 use clap::Parser;
+use ethers::abi::Token;
+use revm::primitives::B160;
 use serde::{Deserialize, Serialize};
 use simulate::{
-    environment::contract::{NotDeployed, SimulationContract},
+    agent::{
+        simple_arbitrageur::SimpleArbitrageur, Agent, AgentType, IsActive, SimulationEventFilter,
+    },
+    environment::contract::{IsDeployed, NotDeployed, SimulationContract},
+    manager::SimulationManager,
     stochastic::price_process::PriceProcess,
 };
 
@@ -131,28 +137,56 @@ impl Configurable for VolatilitySweep {
 }
 
 // Simulation struct
+// Put these in the auto deployer in manager.rs
+// maybe add the ens contracts as well
 
-pub struct Simulation {
-    pub price_process: PriceProcess,
-    pub contracts: Vec<SimulationContract<NotDeployed>>,
-    pub volatility_sweep: VolatilitySweep,
-    pub output_storage: OutputStorage,
+pub struct _Simulations {
+    price_process: PriceProcess,
+    manager: SimulationManager,
+    // This is also where our env for DeSim can be stored
+    // maybe add a handle to revm db here too
 }
 
-pub trait Simulations {
-    fn run(&self) {
-        todo!()
+impl _Simulations {
+    pub fn _new(
+        price_process: PriceProcess,
+        contracts: Vec<(SimulationContract<NotDeployed>, Vec<Token>, String)>,
+    ) -> Self {
+        //auto deploy happens here in the manager constructor
+        let manager = SimulationManager::new();
+        let admin = manager.agents.get("admin").unwrap();
+        _deploy_contracts(admin, contracts).unwrap();
+
+        _Simulations {
+            price_process,
+            manager,
+        }
     }
-    fn spawn_agents(&self) {
-        todo!()
+}
+
+fn _deploy_contracts(
+    admin: &AgentType<IsActive>,
+    // could be replaced with a struct that holds the contract, args, and name
+    contracts: Vec<(SimulationContract<NotDeployed>, Vec<Token>, String)>,
+) -> Result<HashMap<String, SimulationContract<IsDeployed>>, Box<dyn std::error::Error>> {
+    let mut deployed_contracts = HashMap::new();
+    for (contract, args, name) in contracts {
+        let (contract, result) = admin.deploy(contract, args)?;
+        assert!(result.is_success());
+        deployed_contracts.insert(name, contract);
     }
-    fn initialization_calls(&self) {
-        todo!()
-    }
-    fn define_simulation(&self) {
-        todo!()
-    }
-    fn deploy_contracts() {
-        todo!()
-    }
+    Ok(deployed_contracts)
+}
+
+pub(crate) fn _create_arbitrageur<S: Into<String>>(
+    manager: &mut SimulationManager,
+    liquid_exchange: &SimulationContract<IsDeployed>,
+    name: S,
+) {
+    let address = B160::from_low_u64_be(2);
+    let event_filters = vec![SimulationEventFilter::new(liquid_exchange, "PriceChange")];
+    let arbitrageur = SimpleArbitrageur::new(name, event_filters);
+    manager
+        .activate_agent(AgentType::SimpleArbitrageur(arbitrageur), address)
+        .unwrap();
 }

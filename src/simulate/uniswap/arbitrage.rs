@@ -1,4 +1,4 @@
-use std::error::Error;
+use std::{collections::HashMap, error::Error};
 
 use bindings::{liquid_exchange, uniswap_v2_router_01::uniswap_v2_router_01};
 use ethers::{
@@ -7,31 +7,11 @@ use ethers::{
     types::I256,
 };
 use eyre::Result;
-use revm::primitives::B160;
 use simulate::{
-    agent::{
-        simple_arbitrageur::SimpleArbitrageur, Agent, AgentType, IsActive, SimulationEventFilter,
-    },
+    agent::{simple_arbitrageur::SimpleArbitrageur, Agent, AgentType, IsActive},
     environment::contract::{IsDeployed, SimulationContract},
-    manager::SimulationManager,
     utils::{recast_address, unpack_execution},
 };
-
-use crate::simulate::uniswap::startup::SimulationContracts;
-
-pub(crate) fn create_arbitrageur<S: Into<String>>(
-    manager: &mut SimulationManager,
-    liquid_exchange: &SimulationContract<IsDeployed>,
-    name: S,
-) {
-    let address = B160::from_low_u64_be(2);
-    let event_filters = vec![SimulationEventFilter::new(liquid_exchange, "PriceChange")];
-    let arbitrageur = SimpleArbitrageur::new(name, event_filters);
-    manager
-        .activate_agent(AgentType::SimpleArbitrageur(arbitrageur), address)
-        .unwrap();
-    // println!("Created Arbitrageur at address: {}.", address);
-}
 
 #[derive(Clone)]
 pub struct ComputeArbOutput {
@@ -128,21 +108,19 @@ pub(crate) fn compute_arb_size(
 
 pub(crate) fn swap(
     arbitrageur: &SimpleArbitrageur<IsActive>,
-    contracts: &SimulationContracts,
+    contracts: &HashMap<String, SimulationContract<IsDeployed>>,
     input_amount: U256,
     sell_asset: bool,
 ) -> Result<(), Box<dyn Error>> {
-    // let arbitrageur = manager.agents.get("arbitrageur").unwrap();
-
     let path = if sell_asset {
         vec![
-            recast_address(contracts.arbiter_token_y.address),
-            recast_address(contracts.arbiter_token_x.address),
+            recast_address(contracts.get("arbiter_token_y").unwrap().address),
+            recast_address(contracts.get("arbiter_token_x").unwrap().address),
         ]
     } else {
         vec![
-            recast_address(contracts.arbiter_token_x.address),
-            recast_address(contracts.arbiter_token_y.address),
+            recast_address(contracts.get("arbiter_token_x").unwrap().address),
+            recast_address(contracts.get("arbiter_token_y").unwrap().address),
         ]
     };
 
@@ -154,13 +132,14 @@ pub(crate) fn swap(
         deadline: U256::MAX,
     };
     let result = arbitrageur.call(
-        &contracts.uniswap_router,
+        contracts.get("uniswap_router").unwrap(),
         "swapExactTokensForTokens",
         swap_args.into_tokens(),
     )?;
 
     let _swap_result: Vec<U256> = contracts
-        .uniswap_router
+        .get("uniswap_router")
+        .unwrap()
         .decode_output("swapExactTokensForTokens", unpack_execution(result)?)?;
 
     Ok(())
@@ -168,15 +147,15 @@ pub(crate) fn swap(
 
 pub(crate) fn swap_liquid_expchange(
     arbitrageur: &SimpleArbitrageur<IsActive>,
-    contracts: &SimulationContracts,
+    contracts: &HashMap<String, SimulationContract<IsDeployed>>,
     input_amount: U256,
     sell_asset: bool,
 ) -> Result<(), Box<dyn Error>> {
     // Determine swap path from boolean
     let path = if sell_asset {
-        recast_address(contracts.arbiter_token_x.address)
+        recast_address(contracts.get("arbiter_token_x").unwrap().address)
     } else {
-        recast_address(contracts.arbiter_token_y.address)
+        recast_address(contracts.get("arbiter_token_y").unwrap().address)
     };
 
     // Swap tokens on [`LiquidExchange`]
@@ -185,7 +164,7 @@ pub(crate) fn swap_liquid_expchange(
         amount_in: input_amount,
     };
     let result = arbitrageur.call(
-        &contracts.liquid_exchange_xy,
+        contracts.get("liquid_exchange_xy").unwrap(),
         "swap",
         swap_args.into_tokens(),
     )?;
@@ -211,28 +190,30 @@ pub(crate) fn record_reserves(
 
 pub(crate) fn record_arb_balances(
     arbitrageur: &SimpleArbitrageur<IsActive>,
-    contracts: &SimulationContracts,
+    contracts: &HashMap<String, SimulationContract<IsDeployed>>,
     arb_balance_paths: &mut (Vec<U256>, Vec<U256>),
 ) -> Result<(), Box<dyn Error>> {
     let result = arbitrageur.call(
-        &contracts.arbiter_token_x,
+        &contracts.get("arbiter_token_x").unwrap(),
         "balanceOf",
         recast_address(arbitrageur.address()).into_tokens(),
     )?;
     assert!(result.is_success());
 
     let balance_x: U256 = contracts
-        .arbiter_token_x
+        .get("arbiter_token_x")
+        .unwrap()
         .decode_output("balanceOf", unpack_execution(result)?)?;
 
     let result = arbitrageur.call(
-        &contracts.arbiter_token_y,
+        &contracts.get("arbiter_token_y").unwrap(),
         "balanceOf",
         recast_address(arbitrageur.address()).into_tokens(),
     )?;
 
     let balance_y: U256 = contracts
-        .arbiter_token_y
+        .get("arbiter_token_y")
+        .unwrap()
         .decode_output("balanceOf", unpack_execution(result)?)?;
 
     arb_balance_paths.0.push(balance_x);
@@ -245,6 +226,7 @@ mod test {
     use std::error::Error;
 
     use ethers::prelude::BaseContract;
+    use simulate::manager::SimulationManager;
 
     use super::*;
     use crate::simulate::uniswap::startup;
@@ -289,7 +271,7 @@ mod test {
             AgentType::SimpleArbitrageur(base_arbitrageur) => base_arbitrageur,
             _ => panic!(),
         };
-        let _swap_event = swap(arbitrageur, &contracts, output.input, output.sell_asset); // Swap bool is flipped!
+        let _swap_event = swap(&arbitrageur, &contracts, output.input, output.sell_asset); // Swap bool is flipped!
 
         let result = arbitrageur.call(&uniswap_pair, "getReserves", vec![])?;
         assert!(result.is_success());

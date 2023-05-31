@@ -18,7 +18,7 @@ use crate::{
 #[derive(Debug, Clone)]
 /// A struct use for [`PhantomData`] to indicate a lock on contracts that are not deployed.
 pub struct NotDeployed;
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 /// A struct use for `PhantomData` to indicate an unlocked contract that is deployed.
 pub struct IsDeployed;
 

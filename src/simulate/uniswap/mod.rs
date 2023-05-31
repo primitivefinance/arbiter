@@ -51,12 +51,12 @@ pub fn run(
         AgentType::SimpleArbitrageur(base_arbitrageur) => base_arbitrageur,
         _ => panic!(),
     };
-    let result = arbitrageur.call(&contracts.liquid_exchange_xy, "price", vec![])?;
+    let liquid_exchange = contracts.get("liquid_exchange_xy").unwrap();
+    let result = arbitrageur.call(liquid_exchange, "price", vec![])?;
     assert!(result.is_success());
 
-    let liquid_exchange_xy_price: U256 = contracts
-        .liquid_exchange_xy
-        .decode_output("price", unpack_execution(result)?)?;
+    let liquid_exchange_xy_price: U256 =
+        liquid_exchange.decode_output("price", unpack_execution(result)?)?;
 
     let result = arbitrageur.call(&uniswap_pair, "getReserves", vec![])?;
 
@@ -83,11 +83,10 @@ pub fn run(
     let mut reserve_over_time: (Vec<U256>, Vec<U256>) = (Vec::new(), Vec::new());
 
     // record first balances
-    record_arb_balances(arbitrageur, &contracts, &mut arb_balance_paths)?;
+    record_arb_balances(&arbitrageur, &contracts, &mut arb_balance_paths)?;
     record_reserves(&uniswap_pair, &mut reserve_over_time, admin)?;
     // Run the simulation
     // Update the first price
-    let liquid_exchange = &contracts.liquid_exchange_xy;
     let price = prices[0];
     update_price(admin, liquid_exchange, price, &mut liq_price_path)?;
 
@@ -117,7 +116,7 @@ pub fn run(
                         uniswap_pair.decode_output("getReserves", unpack_execution(result)?)?;
                     let x_before_swap = U256::from(uniswap_reserves.0);
                     let y_before_swap = U256::from(uniswap_reserves.1);
-                    arbitrage::swap(arbitrageur, &contracts, size.input, size.sell_asset)?;
+                    arbitrage::swap(&arbitrageur, &contracts, size.input, size.sell_asset)?;
                     let swap_output: U256;
                     let result = arbitrageur.call(&uniswap_pair, "getReserves", vec![])?;
                     assert!(result.is_success());
@@ -128,7 +127,7 @@ pub fn run(
                     if size.sell_asset {
                         swap_output = y_before_swap - y_after_swap;
                         arbitrage::swap_liquid_expchange(
-                            arbitrageur,
+                            &arbitrageur,
                             &contracts,
                             swap_output,
                             size.sell_asset,
@@ -136,7 +135,7 @@ pub fn run(
                     } else {
                         swap_output = x_before_swap - x_after_swap;
                         arbitrage::swap_liquid_expchange(
-                            arbitrageur,
+                            &arbitrageur,
                             &contracts,
                             swap_output,
                             size.sell_asset,
@@ -145,7 +144,7 @@ pub fn run(
                 }
                 record_reserves(&uniswap_pair, &mut reserve_over_time, admin)?;
                 // record arbitrageur balances
-                record_arb_balances(arbitrageur, &contracts, &mut arb_balance_paths)?;
+                record_arb_balances(&arbitrageur, &contracts, &mut arb_balance_paths)?;
                 // Update the liquid exchange price
                 update_price(admin, liquid_exchange, price, &mut liq_price_path)?;
 

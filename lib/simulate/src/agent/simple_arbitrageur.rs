@@ -1,11 +1,7 @@
-#![warn(missing_docs)]
 #![warn(unsafe_code)]
 //! Describes the most basic type of user agent.
 
-use std::{
-    sync::{Arc, Mutex},
-    thread::{self, JoinHandle},
-};
+use std::sync::{Arc, Mutex};
 
 use crossbeam_channel::{Receiver, Sender};
 use revm::primitives::{Address, ExecutionResult, Log, TxEnv, U256};
@@ -95,7 +91,6 @@ impl SimpleArbitrageur<NotActive> {
 }
 
 impl SimpleArbitrageur<IsActive> {
-
     pub async fn detect_price_change() {
         // ...
         todo!()

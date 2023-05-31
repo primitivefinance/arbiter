@@ -1,38 +1,42 @@
-use std::error::Error;
-
-use bindings::{arbiter_token, liquid_exchange, uniswap_v2_factory, uniswap_v2_router_02, weth9};
+use bindings::{uniswap_v2_factory, uniswap_v2_router_02};
 use ethers::{
     abi::{Token, Tokenize},
     prelude::U256,
     types::{Address, H160},
 };
 use eyre::Result;
+use revm::primitives::B160;
 use simulate::{
-    agent::{Agent, AgentType, IsActive},
+    agent::{
+        simple_arbitrageur::SimpleArbitrageur, Agent, AgentType, IsActive, SimulationEventFilter,
+    },
     environment::contract::{IsDeployed, SimulationContract},
     manager::SimulationManager,
     utils::{recast_address, unpack_execution},
 };
-
-use super::arbitrage;
-
-pub(crate) struct SimulationContracts {
-    pub(crate) arbiter_token_x: SimulationContract<IsDeployed>,
-    pub(crate) arbiter_token_y: SimulationContract<IsDeployed>,
-    pub(crate) liquid_exchange_xy: SimulationContract<IsDeployed>,
-    pub(crate) uniswap_factory: SimulationContract<IsDeployed>,
-    pub(crate) uniswap_router: SimulationContract<IsDeployed>,
-}
+use std::collections::HashMap;
+use std::error::Error;
 
 pub(crate) fn run(
     manager: &mut SimulationManager,
-) -> Result<(SimulationContracts, H160), Box<dyn Error>> {
-    let decimals = 18_u8;
-    let wad: U256 = U256::from(10_i64.pow(decimals as u32));
-
-    let contracts = deploy_contracts(manager.agents.get("admin").unwrap(), wad)?;
-    arbitrage::create_arbitrageur(manager, &contracts.liquid_exchange_xy, "arbitrageur");
+) -> Result<(HashMap<String, SimulationContract<IsDeployed>>, H160), Box<dyn Error>> {
+    let weth_address = manager.autodeployed_contracts.get("weth").unwrap().address;
+    let contracts = deploy_contracts(manager.agents.get("admin").unwrap(), weth_address)?;
+    let liquid_exchange_xy = manager
+        .autodeployed_contracts
+        .get("liquid_exchange_xy")
+        .unwrap();
+    let address = B160::from_low_u64_be(2);
+    let event_filters = vec![SimulationEventFilter::new(
+        liquid_exchange_xy,
+        "PriceChange",
+    )];
+    let arbitrageur = SimpleArbitrageur::new("arbitrageur", event_filters);
+    manager
+        .activate_agent(AgentType::SimpleArbitrageur(arbitrageur), address)
+        .unwrap();
     let arbitrageur = manager.agents.get("arbitrageur").unwrap();
+
     mint(
         manager.agents.get("admin").unwrap(),
         arbitrageur,
@@ -58,15 +62,10 @@ pub(crate) fn run(
 /// * `SimulationContracts` - Contracts deployed to the simulation environment. (SimulationContracts)
 fn deploy_contracts(
     admin: &AgentType<IsActive>,
-    wad: U256,
-) -> Result<SimulationContracts, Box<dyn Error>> {
-    // Deploy Weth
-    let decimals = 18_u8;
-    let weth = SimulationContract::new(weth9::WETH9_ABI.clone(), weth9::WETH9_BYTECODE.clone());
-    let (weth, result) = admin.deploy(weth, vec![])?;
-    assert!(result.is_success());
-
+    weth_address: B160,
+) -> Result<HashMap<String, SimulationContract<IsDeployed>>, Box<dyn Error>> {
     // Deploy the UniswapV2 Factory contract.
+    let mut contracts = HashMap::new();
     let uniswap_factory = SimulationContract::new(
         uniswap_v2_factory::UNISWAPV2FACTORY_ABI.clone(),
         uniswap_v2_factory::UNISWAPV2FACTORY_BYTECODE.clone(),
@@ -75,7 +74,7 @@ fn deploy_contracts(
     let uniswap_factory_args = H160::from_low_u64_be(0).into_tokens();
     let (uniswap_factory, result) = admin.deploy(uniswap_factory, uniswap_factory_args)?;
     assert!(result.is_success());
-
+    contracts.insert("uniswap_factory".to_string(), uniswap_factory.clone());
     // Deploy the UniswapV2 Router contract.
     let uniswap_router = SimulationContract::new(
         uniswap_v2_router_02::UNISWAPV2ROUTER02_ABI.clone(),
@@ -83,63 +82,26 @@ fn deploy_contracts(
     );
     let uniswap_router_args = (
         recast_address(uniswap_factory.address),
-        recast_address(weth.address),
+        recast_address(weth_address),
     )
         .into_tokens();
     let (uniswap_router, result) = admin.deploy(uniswap_router, uniswap_router_args)?;
     assert!(result.is_success());
+    contracts.insert("uniswap_router".to_string(), uniswap_router);
 
-    // Deploy Arbiter Tokens
-    let arbiter_token = SimulationContract::new(
-        arbiter_token::ARBITERTOKEN_ABI.clone(),
-        arbiter_token::ARBITERTOKEN_BYTECODE.clone(),
-    );
-
-    // Choose name and symbol and combine into the constructor args required by ERC-20 contracts.
-    let arbx_args = ("ArbiterToken".to_string(), "ARBX".to_string(), decimals).into_tokens();
-    let (arbiter_token_x, result) = admin.deploy(arbiter_token.clone(), arbx_args)?;
-    assert!(result.is_success());
-
-    let arby_args = ("ArbiterTokenY".to_string(), "ARBY".to_string(), decimals).into_tokens();
-    let (arbiter_token_y, result) = admin.deploy(arbiter_token, arby_args)?;
-    assert!(result.is_success());
-
-    // Deploy LiquidExchange
-    let initial_price = wad.checked_mul(U256::from(1)).unwrap();
-    let liquid_exchange = SimulationContract::new(
-        liquid_exchange::LIQUIDEXCHANGE_ABI.clone(),
-        liquid_exchange::LIQUIDEXCHANGE_BYTECODE.clone(),
-    );
-    let le_args = (
-        recast_address(arbiter_token_x.address),
-        recast_address(arbiter_token_y.address),
-        initial_price,
-    )
-        .into_tokens();
-    let (liquid_exchange_xy, result) = admin.deploy(liquid_exchange, le_args)?;
-    assert!(result.is_success());
-    Ok(SimulationContracts {
-        arbiter_token_x,
-        arbiter_token_y,
-        uniswap_factory,
-        uniswap_router,
-        liquid_exchange_xy,
-    })
+    Ok(contracts)
 }
 
 fn mint(
     admin: &AgentType<IsActive>,
     arbitrageur: &AgentType<IsActive>,
-    contracts: &SimulationContracts,
+    contracts: &HashMap<String, SimulationContract<IsDeployed>>,
 ) -> Result<(), Box<dyn Error>> {
-    let SimulationContracts {
-        arbiter_token_x,
-        arbiter_token_y,
-        uniswap_factory: _,
-        uniswap_router: _,
-        liquid_exchange_xy,
-    } = contracts;
     // Allocating new tokens to user by calling Arbiter Token's ERC20 'mint' instance.
+    let arbiter_token_x = contracts.get("arbiter_token_x").unwrap();
+    let arbiter_token_y = contracts.get("arbiter_token_y").unwrap();
+
+    let liquid_exchange_xy = contracts.get("liquid_exchange_xy").unwrap();
     let mint_amount = u128::MAX;
     let mint_args_for_admin = (recast_address(admin.address()), mint_amount).into_tokens();
     let mint_args_for_arbiter = (recast_address(arbitrageur.address()), mint_amount).into_tokens();
@@ -170,17 +132,14 @@ fn mint(
 fn approve(
     admin: &AgentType<IsActive>,
     arbitrageur: &AgentType<IsActive>,
-    contracts: &SimulationContracts,
+    contracts: &HashMap<String, SimulationContract<IsDeployed>>,
 ) -> Result<(), Box<dyn Error>> {
-    let SimulationContracts {
-        arbiter_token_x,
-        arbiter_token_y,
-        uniswap_factory: _,
-        uniswap_router,
-        liquid_exchange_xy,
-    } = contracts;
+    let uniswap_router = contracts.get("uniswap_router").unwrap();
     // ~~~ Liquid Exchange ~~~
+    let arbiter_token_x = contracts.get("arbiter_token_x").unwrap();
+    let arbiter_token_y = contracts.get("arbiter_token_y").unwrap();
 
+    let liquid_exchange_xy = contracts.get("liquid_exchange_xy").unwrap();
     // Approve the liquid_exchange to spend the arbitrageur's token_y
     let result = arbitrageur.call(arbiter_token_y, "approve", approve_arg(liquid_exchange_xy))?;
     assert!(result.is_success());
@@ -214,38 +173,31 @@ fn approve(
 /// * `decimals` - Decimals to use for the simulation. (u8)
 fn pair_intitalization(
     admin: &AgentType<IsActive>,
-    contracts: &SimulationContracts,
+    contracts: &HashMap<String, SimulationContract<IsDeployed>>,
 ) -> Result<Address, Box<dyn Error>> {
-    let SimulationContracts {
-        arbiter_token_x,
-        arbiter_token_y,
-        uniswap_factory,
-        uniswap_router: _,
-        liquid_exchange_xy: _,
-    } = contracts;
+    let arbiter_token_x = contracts.get("arbiter_token_x").unwrap();
+    let arbiter_token_y = contracts.get("arbiter_token_y").unwrap();
+    let factory = contracts.get("uniswap_factory").unwrap();
 
     let create_pair_args = uniswap_v2_factory::CreatePairCall {
         token_a: recast_address(arbiter_token_x.address),
         token_b: recast_address(arbiter_token_y.address),
     }
     .into_tokens();
-    let result = admin.call(uniswap_factory, "createPair", create_pair_args)?;
+    let result = admin.call(factory, "createPair", create_pair_args)?;
     assert!(result.is_success());
 
-    Ok(uniswap_factory.decode_output("createPair", unpack_execution(result)?)?)
+    Ok(factory.decode_output("createPair", unpack_execution(result)?)?)
 }
 
 fn allocate(
     admin: &AgentType<IsActive>,
-    contracts: &SimulationContracts,
+    contracts: &HashMap<String, SimulationContract<IsDeployed>>,
 ) -> Result<(), Box<dyn Error>> {
-    let SimulationContracts {
-        arbiter_token_x,
-        arbiter_token_y,
-        uniswap_factory: _,
-        uniswap_router,
-        liquid_exchange_xy: _,
-    } = contracts;
+    let arbiter_token_x = contracts.get("arbiter_token_x").unwrap();
+    let arbiter_token_y = contracts.get("arbiter_token_y").unwrap();
+    let router = contracts.get("uniswap_router").unwrap();
+
     let delta_liquidity = 10_i128.pow(21);
     let add_liquidity_args = uniswap_v2_router_02::AddLiquidityCall {
         token_a: recast_address(arbiter_token_x.address),
@@ -258,15 +210,11 @@ fn allocate(
         deadline: U256::MAX,
     };
 
-    let result = admin.call(
-        uniswap_router,
-        "addLiquidity",
-        add_liquidity_args.into_tokens(),
-    )?;
+    let result = admin.call(router, "addLiquidity", add_liquidity_args.into_tokens())?;
 
     let add_liquidity_unpack = unpack_execution(result)?;
     let (_amount_a, _amount_b, _liquidity): (U256, U256, U256) =
-        uniswap_router.decode_output("addLiquidity", add_liquidity_unpack)?;
+        router.decode_output("addLiquidity", add_liquidity_unpack)?;
     Ok(())
 }
 

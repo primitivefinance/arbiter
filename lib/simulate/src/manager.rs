@@ -9,11 +9,10 @@ use std::{
     fmt::{Display, Formatter, Result as FmtResult},
 };
 
-use bindings::arbiter_math;
+use bindings::{arbiter_math, arbiter_token, liquid_exchange, weth9};
 use bytes::Bytes;
-use crossbeam_channel::unbounded;
-use ethers::abi::Tokenize;
-use revm::primitives::{AccountInfo, Address, Log, B160, U256};
+use ethers::{abi::Tokenize, types::U256};
+use revm::primitives::{AccountInfo, Address, B160, U256 as rU256};
 
 use crate::{
     agent::{
@@ -24,6 +23,7 @@ use crate::{
         contract::{IsDeployed, SimulationContract},
         SimulationEnvironment,
     },
+    utils::recast_address,
 };
 
 #[derive(Clone, Debug)]
@@ -92,14 +92,55 @@ impl SimulationManager {
             arbiter_math::ARBITERMATH_ABI.clone(),
             arbiter_math::ARBITERMATH_BYTECODE.clone(),
         );
-        let (arbiter_math, _execution_result) = self
-            .agents
-            .get("admin")
-            .unwrap()
-            .deploy(arbiter_math, ().into_tokens())
-            .unwrap();
+        let admin = self.agents.get("admin").unwrap();
+        let (arbiter_math, result) = admin.deploy(arbiter_math, ().into_tokens()).unwrap();
+        assert!(result.is_success());
         self.autodeployed_contracts
             .insert("arbiter_math".to_string(), arbiter_math);
+
+        let decimals = 18_u8;
+        let wad: U256 = U256::from(10_i64.pow(decimals as u32));
+
+        let weth = SimulationContract::new(weth9::WETH9_ABI.clone(), weth9::WETH9_BYTECODE.clone());
+        let (weth, result) = admin.deploy(weth, vec![]).unwrap();
+        assert!(result.is_success());
+        self.autodeployed_contracts.insert("weth".to_string(), weth);
+
+        // Deploy Arbiter Tokens
+        let arbiter_token = SimulationContract::new(
+            arbiter_token::ARBITERTOKEN_ABI.clone(),
+            arbiter_token::ARBITERTOKEN_BYTECODE.clone(),
+        );
+
+        // Choose name and symbol and combine into the constructor args required by ERC-20 contracts.
+        let arbx_args = ("ArbiterToken".to_string(), "ARBX".to_string(), decimals).into_tokens();
+        let (arbiter_token_x, result) = admin.deploy(arbiter_token.clone(), arbx_args).unwrap();
+        assert!(result.is_success());
+        self.autodeployed_contracts
+            .insert("arbiter_token_x".to_string(), arbiter_token_x.clone());
+
+        let arby_args = ("ArbiterTokenY".to_string(), "ARBY".to_string(), decimals).into_tokens();
+        let (arbiter_token_y, result) = admin.deploy(arbiter_token, arby_args).unwrap();
+        assert!(result.is_success());
+        self.autodeployed_contracts
+            .insert("arbiter_token_y".to_string(), arbiter_token_y.clone());
+
+        // Deploy LiquidExchange
+        let initial_price: U256 = wad.checked_mul(U256::from(1)).unwrap();
+        let liquid_exchange = SimulationContract::new(
+            liquid_exchange::LIQUIDEXCHANGE_ABI.clone(),
+            liquid_exchange::LIQUIDEXCHANGE_BYTECODE.clone(),
+        );
+        let le_args = (
+            recast_address(arbiter_token_x.address),
+            recast_address(arbiter_token_y.address),
+            initial_price,
+        )
+            .into_tokens();
+        let (liquid_exchange_xy, result) = admin.deploy(liquid_exchange, le_args).unwrap();
+        assert!(result.is_success());
+        self.autodeployed_contracts
+            .insert("liquid_exchange_xy".to_string(), liquid_exchange_xy);
     }
 
     /// Adds and activates an agent to be put in the collection of agents under the manager's control.
@@ -149,8 +190,8 @@ impl SimulationManager {
                     address: new_agent_address,
                     account_info,
                     transact_settings: TransactSettings {
-                        gas_limit: u64::MAX,   // TODO: Users should have a gas limit.
-                        gas_price: U256::ZERO, // TODO: Users should have an associated gas price.
+                        gas_limit: u64::MAX,    // TODO: Users should have a gas limit.
+                        gas_price: rU256::ZERO, // TODO: Users should have an associated gas price.
                     },
                     event_receiver: self.environment.event_broadcaster.subscribe(),
                     event_filters: user.event_filters,
@@ -166,8 +207,8 @@ impl SimulationManager {
                     address: new_agent_address,
                     account_info,
                     transact_settings: TransactSettings {
-                        gas_limit: u64::MAX,   // TODO: Users should have a gas limit.
-                        gas_price: U256::ZERO, // TODO: Users should have an associated gas price.
+                        gas_limit: u64::MAX,    // TODO: Users should have a gas limit.
+                        gas_price: rU256::ZERO, // TODO: Users should have an associated gas price.
                     },
                     event_receiver: self.environment.event_broadcaster.subscribe(),
                     event_filters: simple_arbitrageur.event_filters,
