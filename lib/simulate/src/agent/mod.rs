@@ -96,7 +96,7 @@ pub trait Identifiable {
 
 /// An agent is an entity that can interact with the simulation environment.
 /// Agents can be various entities such as users, market makers, arbitrageurs, etc.
-/// The [`User`] and [`SimpleArbitrageur`] agents are currently implemented.
+/// The [`User`] and [`SimpleArbitrageur`] agents are currently implemented.]
 pub enum AgentType<AgentState: AgentStatus> {
     /// A [`User`] is the most basic agent that can interact with the simulation environment.
     User(User<AgentState>),
@@ -163,6 +163,7 @@ impl Agent for AgentType<IsActive> {
 }
 
 /// Describes the gas settings for a transaction.
+#[derive(Debug, Clone)]
 pub struct TransactSettings {
     /// Gas limit for the transaction for a simulation.
     pub gas_limit: u64,

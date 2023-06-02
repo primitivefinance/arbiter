@@ -35,7 +35,7 @@ pub enum SwapDirection {
 }
 
 /// A user is an agent that can interact with the simulation environment generically.
-#[derive(Clone)]
+#[derive(Debug)]
 pub struct SimpleArbitrageur<AgentState: AgentStatus> {
     /// Name of the agent.
     pub name: String,
@@ -104,35 +104,55 @@ impl SimpleArbitrageur<NotActive> {
     }
 }
 
+impl Clone for SimpleArbitrageur<IsActive> {
+    fn clone(&self) -> Self {
+        Self {
+            name: self.name.clone(),
+            address: self.address.clone(),
+            account_info: self.account_info.clone(),
+            transact_settings: self.transact_settings.clone(),
+            transaction_sender: self.transaction_sender.clone(),
+            result_channel: self.result_channel.clone(),
+            event_receiver: self.event_receiver.resubscribe(),
+            event_filters: self.event_filters.clone(),
+            prices: self.prices.clone(),
+        }
+    }
+}
+
 impl SimpleArbitrageur<IsActive> {
     /// A basic implementation that will detect price discprepencies from events emitted from pools.
     /// Currently implemented and tested only against the `liquid_exchange`.
-    pub async fn detect_arbitrage(&self) -> (NextTx, Option<SwapDirection>) {
+    pub fn detect_arbitrage(&self) -> tokio::task::JoinHandle<(NextTx, Option<SwapDirection>)> {
         println!("Beginning arbitrage detection.");
         let prices = Arc::clone(&self.prices);
         let event_filters = self.event_filters();
+        let arbitrageur = self.clone();
+
         let mut return_value = (NextTx::None, None);
-        println!("Beginning the while let loop.");
-        while let Ok((event_address, event_tokens)) = self.watch().await {
-            println!("Received a new message in the detect_arbitrage while let.");
-            let new_price = event_tokens[0].clone().into_uint().unwrap();
-            println!("New price: {:#?}", new_price);
-            let mut prices = prices.lock().unwrap();
-            // If the first event is from the first pool, pool_number is 0 else it will be pool 1.
-            let pool_number = event_address == event_filters.clone()[0].address;
-            prices[pool_number as usize] = new_price.into();
-            let (is_arbitrage, swap_direction) = is_arbitrage(prices.clone());
-            if is_arbitrage {
-                println!("Arbitrage detected.");
-                return_value = (NextTx::Swap, swap_direction);
-                break;
-            } else {
-                println!("No arbitrage detected.");
-                return_value = (NextTx::UpdatePrice, None);
-                break;
+        tokio::spawn(async move {
+            println!("Inside the detect_arbitrage tokio::spawn.");
+            while let Ok((event_address, event_tokens)) = arbitrageur.watch().await {
+                println!("Received a new message in the detect_arbitrage while let.");
+                let new_price = event_tokens[0].clone().into_uint().unwrap();
+                println!("New price: {:#?}", new_price);
+                let mut prices = prices.lock().unwrap();
+                // If the first event is from the first pool, pool_number is 0 else it will be pool 1.
+                let pool_number = event_address == event_filters.clone()[0].address;
+                prices[pool_number as usize] = new_price.into();
+                let (is_arbitrage, swap_direction) = is_arbitrage(prices.clone());
+                if is_arbitrage {
+                    println!("Arbitrage detected.");
+                    return_value = (NextTx::Swap, swap_direction);
+                    break;
+                } else {
+                    println!("No arbitrage detected.");
+                    return_value = (NextTx::UpdatePrice, None);
+                    break;
+                }
             }
-        }
-        return_value
+            return_value
+        })
     }
 }
 
@@ -394,14 +414,16 @@ mod tests {
         drop(prices);
 
         // Start the arbitrageur to detect price changes.
-        let arbitrage = base_arbitrageur.detect_arbitrage();
+        let arbitrage = base_arbitrageur.watch();
 
+
+        std::thread::sleep(std::time::Duration::from_secs(1));
         println!("Sending price change events.");
         let new_price0 = wad.checked_mul(U256::from(42069)).unwrap();
         let execution_result =
             admin.call(&liquid_exchange_xy0, "setPrice", new_price0.into_tokens())?;
         assert!(execution_result.is_success());
-
+        std::thread::sleep(std::time::Duration::from_secs(1));
         // Make a price change to the second exchange.
         let new_price1 = wad.checked_mul(U256::from(69420)).unwrap();
         let execution_result =
