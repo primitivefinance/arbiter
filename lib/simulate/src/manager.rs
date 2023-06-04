@@ -6,7 +6,7 @@
 use std::{
     collections::HashMap,
     error::Error,
-    fmt::{Display, Formatter, Result as FmtResult},
+    fmt::{Display, Formatter, Result as FmtResult}, pin::Pin,
 };
 
 use bindings::{arbiter_math, arbiter_token, liquid_exchange, weth9};

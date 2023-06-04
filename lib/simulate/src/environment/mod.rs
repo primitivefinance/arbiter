@@ -6,13 +6,18 @@
 pub mod contract;
 
 use crossbeam_channel::{unbounded, Receiver, Sender};
+use ethers::abi::Token;
 use revm::{
     db::{CacheDB, EmptyDB},
     primitives::{ExecutionResult, Log, TxEnv, U256},
     EVM,
 };
-use std::thread;
+use std::{thread, pin::Pin};
 use tokio::sync::broadcast;
+use futures::{task::{Context, Poll}, Stream};
+use futures::stream::StreamExt;
+
+use crate::agent::{SimulationEventFilter, AgentError, filter_events};
 
 /// The simulation environment that houses the execution environment and event logs.
 /// # Fields
@@ -59,7 +64,6 @@ impl SimulationEnvironment {
             }
         });
     }
-
 }
 
 /// Execute a transaction in the execution environment.
@@ -77,4 +81,34 @@ fn execute(evm: &mut EVM<CacheDB<EmptyDB>>, tx: TxEnv) -> ExecutionResult {
     };
 
     execution_result
+}
+
+
+struct EventStream {
+    receiver: broadcast::Receiver<Vec<Log>>,
+    filters: Vec<SimulationEventFilter>,
+    decoder: fn(Vec<u8>, usize) -> Result<Vec<Token>, AgentError>,
+}
+
+impl EventStream {
+    async fn next(&mut self) -> Option<Result<Vec<Token>, AgentError>> {
+        let event_filters = self.filters.clone();
+        let decoder = self.decoder;
+
+        self.receiver.recv().await.ok().map(|logs| {
+            let filtered_logs = filter_events(event_filters.clone(), logs);
+            if filtered_logs.is_empty() {
+                return Ok(vec![]);
+            }
+            let data = filtered_logs[0].data.clone().into_iter().collect();
+            decoder(data, 0)
+        })
+    }
+
+    fn into_stream(self) -> impl Stream<Item = Result<Vec<Token>, AgentError>> + '_ {
+        futures::stream::unfold(self, |mut state| async {
+            let item = state.next().await;
+            Some((item, state))
+        })
+    }
 }
