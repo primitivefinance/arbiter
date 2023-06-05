@@ -22,7 +22,7 @@ use crate::{
     },
     environment::{
         contract::{IsDeployed, SimulationContract},
-        SimulationEnvironment,
+        SimulationEnvironment, EventStream,
     },
 };
 
@@ -136,6 +136,8 @@ impl SimulationManager {
         };
 
         // Create the agent and add it to the simulation environment so long as we don't throw an error above.
+        let (event_sender, event_receiver) = unbounded();
+        self.environment.event_broadcaster.add_sender(event_sender);
         let account_info = AccountInfo::default();
         self.environment
             .evm
@@ -144,6 +146,10 @@ impl SimulationManager {
             .insert_account_info(new_agent_address, account_info.clone());
         match new_agent {
             AgentType::User(user) => {
+                let event_stream = EventStream {
+                    receiver: event_receiver,
+                    filters: user.event_filters.clone(),
+                };
                 let new_user = User::<IsActive> {
                     name: user.name,
                     address: new_agent_address,
@@ -152,15 +158,19 @@ impl SimulationManager {
                         gas_limit: u64::MAX,   // TODO: Users should have a gas limit.
                         gas_price: U256::ZERO, // TODO: Users should have an associated gas price.
                     },
-                    event_receiver: self.environment.event_broadcaster.subscribe(),
+                    event_stream,
                     event_filters: user.event_filters,
                     transaction_sender: self.environment.transaction_channel.0.clone(),
-                    result_channel: crossbeam_channel::unbounded(), // TODO: These may only need to be 1 message wide, not unbounded.
+                    result_channel: crossbeam_channel::unbounded(), 
                 };
                 self.agents
                     .insert(new_user.name.clone(), AgentType::User(new_user));
             }
             AgentType::SimpleArbitrageur(simple_arbitrageur) => {
+                let event_stream = EventStream {
+                    receiver: event_receiver,
+                    filters: simple_arbitrageur.event_filters.clone(),
+                };
                 let new_simple_arbitrageur = SimpleArbitrageur::<IsActive> {
                     name: simple_arbitrageur.name,
                     address: new_agent_address,
@@ -169,11 +179,11 @@ impl SimulationManager {
                         gas_limit: u64::MAX,   // TODO: Users should have a gas limit.
                         gas_price: U256::ZERO, // TODO: Users should have an associated gas price.
                     },
-                    event_receiver: self.environment.event_broadcaster.subscribe(),
+                    event_stream,
                     event_filters: simple_arbitrageur.event_filters,
                     prices: simple_arbitrageur.prices,
                     transaction_sender: self.environment.transaction_channel.0.clone(),
-                    result_channel: crossbeam_channel::unbounded(), // TODO: These may only need to be 1 message wide, not unbounded.
+                    result_channel: crossbeam_channel::unbounded(), 
                 };
                 self.agents.insert(
                     new_simple_arbitrageur.name.clone(),

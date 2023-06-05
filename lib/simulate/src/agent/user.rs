@@ -25,7 +25,7 @@ pub struct User<AgentState: AgentStatus> {
     /// The [`crossbeam_channel`] for getting [`ExecutionResult`] back from the `SimulationEnvironment`.
     pub result_channel: AgentState::ResultChannel,
     /// The [`crossbeam_channel::Receiver`] for the events are sent down from [`SimulationEnvironment`]'s dispatch.
-    pub event_receiver: AgentState::EventReceiver,
+    pub event_stream: AgentState::EventStream,
     /// The filter for the events that the agent is interested in.
     pub event_filters: Vec<SimulationEventFilter>,
 }
@@ -44,8 +44,8 @@ impl Agent for User<IsActive> {
     fn transact_settings(&self) -> &TransactSettings {
         &self.transact_settings
     }
-    fn receiver(&self) -> broadcast::Receiver<Vec<Log>> {
-        self.event_receiver.resubscribe()
+    fn event_stream(&self) -> crate::environment::EventStream {
+        self.event_stream.clone()
     }
     fn event_filters(&self) -> Vec<SimulationEventFilter> {
         self.event_filters.clone()
@@ -79,7 +79,7 @@ impl User<NotActive> {
             address: (),
             account_info: (),
             transact_settings: (),
-            event_receiver: (),
+            event_stream: (),
             event_filters: event_filters.unwrap_or_default(),
             transaction_sender: (),
             result_channel: (),
