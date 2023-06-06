@@ -164,20 +164,6 @@ impl _Simulations {
     }
 }
 
-fn _deploy_contracts(
-    admin: &AgentType<IsActive>,
-    // could be replaced with a struct that holds the contract, args, and name
-    contracts: Vec<(SimulationContract<NotDeployed>, Vec<Token>, String)>,
-) -> Result<HashMap<String, SimulationContract<IsDeployed>>, Box<dyn std::error::Error>> {
-    let mut deployed_contracts = HashMap::new();
-    for (contract, args, name) in contracts {
-        let (contract, result) = admin.deploy(contract, args)?;
-        assert!(result.is_success());
-        deployed_contracts.insert(name, contract);
-    }
-    Ok(deployed_contracts)
-}
-
 pub(crate) fn _create_arbitrageur<S: Into<String>>(
     manager: &mut SimulationManager,
     liquid_exchange: &SimulationContract<IsDeployed>,

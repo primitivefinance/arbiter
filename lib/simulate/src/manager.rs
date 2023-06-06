@@ -6,12 +6,15 @@
 use std::{
     collections::HashMap,
     error::Error,
-    fmt::{Display, Formatter, Result as FmtResult}, pin::Pin,
+    fmt::{Display, Formatter, Result as FmtResult},
 };
 
 use bindings::{arbiter_math, arbiter_token, liquid_exchange, weth9};
 use bytes::Bytes;
-use ethers::{abi::Tokenize, types::U256};
+use ethers::{
+    abi::{Token, Tokenize},
+    types::U256,
+};
 use revm::primitives::{AccountInfo, Address, B160, U256 as rU256};
 
 use crate::{
@@ -20,9 +23,10 @@ use crate::{
         NotActive, TransactSettings,
     },
     environment::{
-        contract::{IsDeployed, SimulationContract},
+        contract::{IsDeployed, NotDeployed, SimulationContract},
         SimulationEnvironment,
     },
+    stochastic::price_process::PriceProcess,
     utils::recast_address,
 };
 
@@ -57,7 +61,7 @@ pub struct SimulationManager {
     /// The agents that are currently running in the [`SimulationEnvironment`].
     pub agents: HashMap<String, AgentType<IsActive>>,
     /// The collection of different [`SimulationContract`] that are currently deployed in the [`SimulationEnvironment`].
-    pub autodeployed_contracts: HashMap<String, SimulationContract<IsDeployed>>,
+    pub deployed_contracts: HashMap<String, SimulationContract<IsDeployed>>,
 }
 
 impl Default for SimulationManager {
@@ -74,7 +78,7 @@ impl SimulationManager {
         let mut simulation_manager = Self {
             environment: SimulationEnvironment::new(),
             agents: HashMap::new(),
-            autodeployed_contracts: HashMap::new(),
+            deployed_contracts: HashMap::new(),
         };
         let admin = AgentType::User(User::new("admin", None));
         simulation_manager
@@ -85,7 +89,20 @@ impl SimulationManager {
 
         simulation_manager
     }
-
+    // generic contract deploy function that takse a vector of contracts and constructor args
+    pub fn _deploy_contracts(
+        &self,
+        admin: &AgentType<IsActive>,
+        // could be replaced with a struct that holds the contract, args, and name
+        contracts: Vec<(SimulationContract<NotDeployed>, Vec<Token>, String)>,
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        for (contract, args, name) in contracts {
+            let (contract, result) = admin.deploy(contract, args)?;
+            assert!(result.is_success());
+            self.deployed_contracts.insert(name, contract);
+        }
+        Ok(())
+    }
     /// Deploy all contracts that are needed for any simulation.
     fn auto_deploy(&mut self) {
         let arbiter_math = SimulationContract::new(
@@ -95,7 +112,7 @@ impl SimulationManager {
         let admin = self.agents.get("admin").unwrap();
         let (arbiter_math, result) = admin.deploy(arbiter_math, ().into_tokens()).unwrap();
         assert!(result.is_success());
-        self.autodeployed_contracts
+        self.deployed_contracts
             .insert("arbiter_math".to_string(), arbiter_math);
 
         let decimals = 18_u8;
@@ -104,7 +121,7 @@ impl SimulationManager {
         let weth = SimulationContract::new(weth9::WETH9_ABI.clone(), weth9::WETH9_BYTECODE.clone());
         let (weth, result) = admin.deploy(weth, vec![]).unwrap();
         assert!(result.is_success());
-        self.autodeployed_contracts.insert("weth".to_string(), weth);
+        self.deployed_contracts.insert("weth".to_string(), weth);
 
         // Deploy Arbiter Tokens
         let arbiter_token = SimulationContract::new(
@@ -116,13 +133,13 @@ impl SimulationManager {
         let arbx_args = ("ArbiterToken".to_string(), "ARBX".to_string(), decimals).into_tokens();
         let (arbiter_token_x, result) = admin.deploy(arbiter_token.clone(), arbx_args).unwrap();
         assert!(result.is_success());
-        self.autodeployed_contracts
+        self.deployed_contracts
             .insert("arbiter_token_x".to_string(), arbiter_token_x.clone());
 
         let arby_args = ("ArbiterTokenY".to_string(), "ARBY".to_string(), decimals).into_tokens();
         let (arbiter_token_y, result) = admin.deploy(arbiter_token, arby_args).unwrap();
         assert!(result.is_success());
-        self.autodeployed_contracts
+        self.deployed_contracts
             .insert("arbiter_token_y".to_string(), arbiter_token_y.clone());
 
         // Deploy LiquidExchange
@@ -139,7 +156,7 @@ impl SimulationManager {
             .into_tokens();
         let (liquid_exchange_xy, result) = admin.deploy(liquid_exchange, le_args).unwrap();
         assert!(result.is_success());
-        self.autodeployed_contracts
+        self.deployed_contracts
             .insert("liquid_exchange_xy".to_string(), liquid_exchange_xy);
     }
 

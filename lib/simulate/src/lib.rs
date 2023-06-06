@@ -305,7 +305,7 @@ mod tests {
     #[test]
     fn auto_deploy() {
         let manager = SimulationManager::new();
-        assert!(manager.autodeployed_contracts.get("arbiter_math").is_some());
+        assert!(manager.deployed_contracts.get("arbiter_math").is_some());
     }
 
     #[test]
@@ -316,7 +316,7 @@ mod tests {
         let admin = &manager.agents["admin"];
 
         // Get a SimulationContract for the Arbiter Math ABI and bytecode.
-        let arbiter_math = manager.autodeployed_contracts.get("arbiter_math").unwrap();
+        let arbiter_math = manager.deployed_contracts.get("arbiter_math").unwrap();
 
         // Test the cdf function.
         let execution_result = admin.call(arbiter_math, "cdf", I256::from(1).into_tokens())?;
