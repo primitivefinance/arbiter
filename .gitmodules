@@ -28,3 +28,6 @@
 	path = contracts/solidity-lib
 	url = https://github.com/Uniswap/solidity-lib
 	branch = v2.1.0
+[submodule "contracts/vault-v2"]
+	path = contracts/vault-v2
+	url = https://github.com/yieldprotocol/vault-v2
