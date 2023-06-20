@@ -10,14 +10,13 @@ use std::{
     error::Error,
     fmt::{Display, Formatter, Result as FmtResult},
     pin::Pin,
-    thread,
 };
 
 use bytes::Bytes;
 use crossbeam_channel::{Receiver, Sender};
 use ethers::{
-    abi::{Token, Tokenizable, Tokenize},
-    prelude::{stream::EventStream, BaseContract},
+    abi::Token,
+    prelude::BaseContract,
     types::H256,
 };
 
@@ -26,14 +25,12 @@ use ethers::core::abi::AbiError;
 use revm::primitives::{
     AccountInfo, Address, ExecutionResult, Log, Output, TransactTo, TxEnv, B160, U256,
 };
-use tokio::{sync::broadcast, task::JoinError};
 
 use self::{simple_arbitrageur::SimpleArbitrageur, user::User};
 use crate::environment::{
-    contract::{self, IsDeployed, NotDeployed, SimulationContract},
-    SimulationEnvironment,
+    contract::{IsDeployed, NotDeployed, SimulationContract},
 };
-use futures::{Stream, StreamExt};
+use futures::Stream;
 
 pub mod simple_arbitrageur;
 pub mod user;
@@ -179,6 +176,7 @@ pub struct TransactSettings {
 /// Basic traits that every `Agent` must implement in order to properly interact with an EVM.
 #[async_trait::async_trait]
 pub trait Agent: Identifiable {
+    // type FilterWatcher: Stream<Item = Result<(Vec<Token>, usize), AbiError>> + Send + Sync;
     /// Returns the address of the agent.
     fn address(&self) -> Address;
     /// Returns the transaction settings of the agent.
@@ -228,6 +226,7 @@ pub trait Agent: Identifiable {
         }
     }
 
+    /// This returns a `filtered watcher` stream for the agent.
     fn watch(
         &self,
     ) -> Pin<Box<dyn Stream<Item = Result<(Vec<Token>, usize), AbiError>> + Send + Sync>> {

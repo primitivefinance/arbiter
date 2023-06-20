@@ -19,7 +19,7 @@ pub mod arbitrage;
 pub mod startup;
 
 /// Run a simulation.
-pub fn run(
+pub async fn run(
     price_process: PriceProcess,
     output_storage: OutputStorage,
     label: usize,
@@ -71,7 +71,7 @@ pub fn run(
 
     drop(prices);
 
-    let (_, rx) = arbitrageur.detect_arbitrage();
+    arbitrageur.detect_price_change().await;
 
     // Get prices
     let prices = price_process.generate_price_path().1;
@@ -91,7 +91,7 @@ pub fn run(
     update_price(admin, liquid_exchange, price, &mut liq_price_path)?;
 
     let mut index: usize = 1;
-    while let Ok((next_tx, _sell_asset)) = rx.recv() {
+    while let Ok((next_tx, _sell_asset)) = arbitrageur.detect_price_change().await {
         if index >= prices.len() {
             // maybe need to shut down?
             break;
@@ -100,7 +100,7 @@ pub fn run(
         let wad_price = simulate::utils::float_to_wad(price);
 
         // place args from manager to get
-        let arbiter_math = manager.autodeployed_contracts.get("arbiter_math").unwrap();
+        let arbiter_math = manager.deployed_contracts.get("arbiter_math").unwrap();
 
         match next_tx {
             NextTx::Swap => {

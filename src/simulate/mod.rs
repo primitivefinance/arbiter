@@ -1,7 +1,7 @@
 #![warn(missing_docs)]
 #![warn(unsafe_code)]
 
-use std::{collections::HashMap, fs};
+use std::fs;
 
 use clap::Parser;
 use ethers::abi::Token;
@@ -9,7 +9,7 @@ use revm::primitives::B160;
 use serde::{Deserialize, Serialize};
 use simulate::{
     agent::{
-        simple_arbitrageur::SimpleArbitrageur, Agent, AgentType, IsActive, SimulationEventFilter,
+        simple_arbitrageur::SimpleArbitrageur, AgentType, SimulationEventFilter,
     },
     environment::contract::{IsDeployed, NotDeployed, SimulationContract},
     manager::SimulationManager,
@@ -153,9 +153,9 @@ impl _Simulations {
         contracts: Vec<(SimulationContract<NotDeployed>, Vec<Token>, String)>,
     ) -> Self {
         //auto deploy happens here in the manager constructor
-        let manager = SimulationManager::new();
+        let mut manager = SimulationManager::new();
         let admin = manager.agents.get("admin").unwrap();
-        _deploy_contracts(admin, contracts).unwrap();
+        manager._deploy_contracts(admin, contracts).unwrap();
 
         _Simulations {
             price_process,

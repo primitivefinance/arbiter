@@ -244,7 +244,7 @@ mod test {
             constructor_arguments: Vec::new(),
         };
         let admin = manager.agents.get("admin").unwrap();
-        let arbiter_math = manager.autodeployed_contracts.get("arbiter_math").unwrap();
+        let arbiter_math = manager.deployed_contracts.get("arbiter_math").unwrap();
         let output = compute_arb_size(&uniswap_pair, admin, arbiter_math, target_price)?;
         println!("Output Bool {}", output.sell_asset);
         assert!(output.sell_asset);
@@ -264,7 +264,7 @@ mod test {
             constructor_arguments: Vec::new(),
         };
         let admin = manager.agents.get("admin").unwrap();
-        let arbiter_math = manager.autodeployed_contracts.get("arbiter_math").unwrap();
+        let arbiter_math = manager.deployed_contracts.get("arbiter_math").unwrap();
         let output = compute_arb_size(&uniswap_pair, admin, arbiter_math, target_price)?;
         let arbitrageur = manager.agents.get("arbitrageur").unwrap();
         let arbitrageur = match arbitrageur {

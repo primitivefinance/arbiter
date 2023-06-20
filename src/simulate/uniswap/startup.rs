@@ -20,10 +20,10 @@ use std::error::Error;
 pub(crate) fn run(
     manager: &mut SimulationManager,
 ) -> Result<(HashMap<String, SimulationContract<IsDeployed>>, H160), Box<dyn Error>> {
-    let weth_address = manager.autodeployed_contracts.get("weth").unwrap().address;
+    let weth_address = manager.deployed_contracts.get("weth").unwrap().address;
     let contracts = deploy_contracts(manager.agents.get("admin").unwrap(), weth_address)?;
     let liquid_exchange_xy = manager
-        .autodeployed_contracts
+        .deployed_contracts
         .get("liquid_exchange_xy")
         .unwrap();
     let address = B160::from_low_u64_be(2);

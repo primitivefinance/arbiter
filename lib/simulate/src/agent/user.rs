@@ -3,8 +3,7 @@
 //! Describes the most basic type of user agent.
 
 use crossbeam_channel::Receiver;
-use revm::primitives::{Address, Log};
-use tokio::sync::broadcast;
+use revm::primitives::Address;
 
 use super::{AgentStatus, Identifiable, IsActive, NotActive};
 use crate::agent::{Agent, SimulationEventFilter, TransactSettings};

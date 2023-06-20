@@ -5,11 +5,10 @@ use std::sync::{Arc, Mutex};
 
 use crossbeam_channel::{Receiver, Sender};
 use futures::StreamExt;
-use revm::primitives::{Address, ExecutionResult, Log, TxEnv, U256};
-use tokio::sync::broadcast;
+use revm::primitives::{Address, ExecutionResult, TxEnv, U256};
 
 use super::{AgentStatus, Identifiable, IsActive, NotActive};
-use crate::agent::{filter_events, Agent, SimulationEventFilter, TransactSettings};
+use crate::agent::{Agent, SimulationEventFilter, TransactSettings};
 
 /// Used to report back to another [`Agent`] what the next transaction of the [`SimpleArbitrageur`] should be.
 
@@ -23,6 +22,7 @@ pub enum NextTx {
     None,
 }
 
+/// Used to indicate the swap directio for the [`SimpleArbitrageur`].
 #[derive(Debug, Clone)]
 pub enum SwapDirection {
     /// Arbitrageur is swapping from token 0 to token 1.
@@ -116,7 +116,7 @@ impl SimpleArbitrageur<IsActive> {
                         let new_price = tokens[0].clone().into_uint().unwrap();
                         let mut prices = prices.lock().unwrap();
                         prices[pool_number] = new_price.into();
-                        let (is_arbitrage, swap_direction) = is_arbitrage(prices.clone());
+                        let (is_arbitrage, swap_direction) = is_arbitrage(*prices);
                         if is_arbitrage {
                             return_value = (NextTx::Swap, swap_direction);
                             break;
@@ -144,7 +144,7 @@ pub fn is_arbitrage(prices: [U256; 2]) -> (bool, Option<SwapDirection>) {
     let price_difference = prices[0].checked_sub(prices[1]);
     if price_difference.is_none() {
         // If this difference is `None`, then the subtraction overflowed so prices[0]<prices[1].
-        return (true, Some(SwapDirection::ZeroToOne));
+        (true, Some(SwapDirection::ZeroToOne))
     } else if price_difference != Some(U256::ZERO) {
         // If the price difference is still nonzero, then we must swap with price[0]>price[1].
         return (true, Some(SwapDirection::OneToZero));
@@ -165,9 +165,7 @@ mod tests {
 
     use super::SimpleArbitrageur;
     use crate::{
-        agent::{
-            filter_events, simple_arbitrageur::NextTx, Agent, AgentType, SimulationEventFilter,
-        },
+        agent::{Agent, AgentType, SimulationEventFilter},
         environment::contract::SimulationContract,
         manager::SimulationManager,
         utils::recast_address,

@@ -6,7 +6,7 @@ use std::{
     collections::hash_map::DefaultHasher,
     error::Error,
     hash::Hasher,
-    sync::{Arc, Condvar, Mutex},
+    sync::{Arc, Condvar},
     thread,
     time::Instant,
 };
@@ -16,6 +16,7 @@ use clap::{arg, command, CommandFactory, Parser, Subcommand};
 use eyre::Result;
 use itertools_num::linspace;
 use thiserror::Error;
+use tokio::sync::Mutex;
 
 use crate::{
     simulate::{OutputStorage, PathSweep, SimulateArguments, SimulateSubcommand, VolatilitySweep},
@@ -122,7 +123,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
             match simulate_arguments.subcommand {
                 SimulateSubcommand::Uniswap => {
                     let start = Instant::now();
-                    let active_workers = Arc::new((Mutex::new(0), Condvar::new()));
+                    let active_workers = Arc::new((Arc::new(Mutex::new(0)), Condvar::new()));
                     let mut hasher = DefaultHasher::new();
                     let seed = price_process.seed;
 
@@ -153,18 +154,18 @@ async fn main() -> Result<(), Box<dyn Error>> {
 
                             let active_workers_clone = active_workers.clone();
                             let output_storage = output_storage.clone();
-                            thread::spawn(move || {
+                            tokio::spawn( async move {
                                 crate::simulate::uniswap::run(price_process, output_storage, label)
-                                    .unwrap();
+                                    .await.unwrap();
 
                                 let (lock, cvar) = &*active_workers_clone;
-                                let mut active_workers = lock.lock().unwrap();
+                                let mut active_workers = lock.lock().await;
                                 *active_workers -= 1;
                                 cvar.notify_all();
                             });
 
                             let (lock, cvar) = &*active_workers;
-                            let mut active_workers = lock.lock().unwrap();
+                            let mut active_workers = lock.lock().await;
                             while *active_workers >= path_sweep.worker_limit {
                                 active_workers = cvar.wait(active_workers).unwrap();
                             }
@@ -173,7 +174,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
                     }
 
                     let (lock, cvar) = &*active_workers;
-                    let mut active_workers = lock.lock().unwrap();
+                    let mut active_workers = lock.lock().await;
                     while *active_workers > 0 {
                         active_workers = cvar.wait(active_workers).unwrap();
                     }

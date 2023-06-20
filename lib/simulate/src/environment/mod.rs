@@ -7,7 +7,6 @@ pub mod contract;
 
 use crossbeam_channel::{unbounded, Receiver, Sender};
 use ethers::{abi::Token, prelude::AbiError};
-use futures::stream::StreamExt;
 use futures::Stream;
 use revm::{
     db::{CacheDB, EmptyDB},
@@ -19,7 +18,7 @@ use std::{
     thread,
 };
 
-use crate::agent::{filter_events, AgentError, SimulationEventFilter};
+use crate::agent::{filter_events, SimulationEventFilter};
 
 /// The simulation environment that houses the execution environment and event logs.
 /// # Fields
@@ -79,15 +78,14 @@ impl SimulationEnvironment {
 fn execute(evm: &mut EVM<CacheDB<EmptyDB>>, tx: TxEnv) -> ExecutionResult {
     evm.env.tx = tx;
 
-    let execution_result = match evm.transact_commit() {
+    match evm.transact_commit() {
         Ok(val) => val,
         // URGENT: change this to a custom error
         Err(_) => panic!("failed"),
-    };
-
-    execution_result
+    }
 }
 
+/// The event broadcaster that is used to broadcast events to the agents from the simulation manager.
 #[derive(Clone, Debug)]
 pub struct EventBroadcaster {
     senders: Vec<crossbeam_channel::Sender<Vec<Log>>>,
@@ -109,6 +107,7 @@ impl EventBroadcaster {
     }
 }
 
+/// The event stream is an agents individual stream of events that it owns.
 #[derive(Clone, Debug)]
 pub struct EventStream {
     pub(crate) receiver: crossbeam_channel::Receiver<Vec<Log>>,
@@ -138,14 +137,12 @@ impl EventStream {
         })
     }
 
+    /// Converts the event stream into a stream of events.
     pub fn into_stream(
         self,
     ) -> impl Stream<Item = Result<(Vec<Token>, usize), AbiError>> {
         futures::stream::unfold(self, |mut state| async {
-            match state.next() {
-                Some(item) => Some((item, state)),
-                None => None,
-            }
+            state.next().map(|item| (item, state))
         })
     }
 }
@@ -159,6 +156,7 @@ mod tests {
     use super::*;
     use bindings::writer;
     use ethers::abi::Tokenize;
+    use futures::StreamExt;
     use std::error::Error;
 
     #[tokio::test]

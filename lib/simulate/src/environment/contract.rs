@@ -8,12 +8,7 @@ use ethers::{
     prelude::BaseContract,
     types::{Bytes as EthersBytes, H256},
 };
-use revm::primitives::{ExecutionResult, Output, TransactTo, TxEnv, B160, B256, U256};
-
-use crate::{
-    agent::{AgentType, IsActive},
-    environment::SimulationEnvironment,
-};
+use revm::primitives::{B160, B256};
 
 #[derive(Debug, Clone)]
 /// A struct use for [`PhantomData`] to indicate a lock on contracts that are not deployed.

@@ -7,7 +7,6 @@ use std::{
     collections::HashMap,
     error::Error,
     fmt::{Display, Formatter, Result as FmtResult},
-    pin::Pin,
 };
 
 use bindings::{arbiter_math, arbiter_token, liquid_exchange, weth9};
@@ -21,14 +20,13 @@ use revm::primitives::{AccountInfo, Address, B160, U256 as rU256};
 
 use crate::{
     agent::{
-        self, simple_arbitrageur::SimpleArbitrageur, user::User, Agent, AgentType, IsActive,
+        simple_arbitrageur::SimpleArbitrageur, user::User, Agent, AgentType, IsActive,
         NotActive, TransactSettings,
     },
     environment::{
         contract::{IsDeployed, SimulationContract, NotDeployed},
         EventStream, SimulationEnvironment,
     },
-    stochastic::price_process::PriceProcess,
     utils::recast_address,
 };
 
@@ -91,7 +89,7 @@ impl SimulationManager {
 
         simulation_manager
     }
-    // generic contract deploy function that takse a vector of contracts and constructor args
+    /// generic contract deploy function that takse a vector of contracts and constructor args
     pub fn _deploy_contracts(
         &mut self,
         admin: &AgentType<IsActive>,
@@ -257,7 +255,7 @@ impl SimulationManager {
         };
         Ok(())
     }
-
+    /// Stops a simulation and drops the channels
     pub fn shutdown(self) {
         drop(self.environment.transaction_channel.1);
     }
