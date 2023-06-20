@@ -108,7 +108,7 @@ impl SimpleArbitrageur<NotActive> {
 impl SimpleArbitrageur<IsActive> {
     /// A basic implementation that will detect price discprepencies from events emitted from pools.
     /// Currently implemented and tested only against the `liquid_exchange`.
-    pub fn detect_arbitrage(&self) -> tokio::task::JoinHandle<(NextTx, Option<SwapDirection>)> {
+    pub fn detect_price_change(&self) -> tokio::task::JoinHandle<(NextTx, Option<SwapDirection>)> {
         println!("Beginning arbitrage detection.");
         let prices = Arc::clone(&self.prices);
         let event_filters = self.event_filters();
@@ -404,8 +404,8 @@ mod tests {
         assert!(execution_result.is_success());
 
         // Run the detect_arbitrage function twice to pick up both price changes.
-        println!("output from detect_arbitrage: {:#?}", base_arbitrageur.detect_arbitrage().await);
-        println!("output from detect_arbitrage: {:#?}", base_arbitrageur.detect_arbitrage().await);
+        println!("output from detect_arbitrage: {:#?}", base_arbitrageur.detect_price_change().await);
+        println!("output from detect_arbitrage: {:#?}", base_arbitrageur.detect_price_change().await);
         let prices = Arc::clone(&base_arbitrageur.prices);
         let prices = prices.lock().unwrap();
         println!("Arbitrageur prices: {:#?}", prices);
