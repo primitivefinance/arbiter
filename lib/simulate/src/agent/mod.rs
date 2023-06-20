@@ -9,16 +9,19 @@
 use std::{
     error::Error,
     fmt::{Display, Formatter, Result as FmtResult},
-    thread,
+    thread, pin::Pin,
 };
 
 use bytes::Bytes;
 use crossbeam_channel::{Receiver, Sender};
 use ethers::{
     abi::{Token, Tokenizable, Tokenize},
-    prelude::{BaseContract, stream::EventStream},
+    prelude::{stream::EventStream, BaseContract},
     types::H256,
 };
+
+use ethers::core::abi::AbiError;
+
 use revm::primitives::{
     AccountInfo, Address, ExecutionResult, Log, Output, TransactTo, TxEnv, B160, U256,
 };
@@ -224,28 +227,9 @@ pub trait Agent: Identifiable {
         }
     }
 
-    /// Monitor events for the agent.
-    // fn watch(&self) -> tokio::task::JoinHandle<()> {
-    //     let mut stream = Box::pin(self.event_stream().into_stream());
-    //     // let event_filters = self.event_filters();
-
-    //     tokio::spawn(async move {
-    //         println!("Starting to watch events for agent");
-    //         // let decoder = |input, filter_num: usize| {
-    //         //     event_filters[filter_num].base_contract.decode_event_raw(
-    //         //         event_filters[filter_num].event_name.as_str(),
-    //         //         vec![event_filters[filter_num].topic],
-    //         //         input,
-    //         //     )
-    //         // };
-    //         // let mut decoded_filtered_data = vec![];
-    //         // let mut address = Address::zero();
-    //         while let Ok(tokens, ..) = stream.next().await.unwrap() { // TODO: Bad error handling here.
-    //             println!("Received tokens: {:#?}", tokens);
-    //         }
-    //         println!("Finished watching events for agent");
-    //     })
-    // }
+    fn watch(&self) -> Pin<Box<dyn Stream<Item = Result<(Vec<Token>, Address), AbiError>> + Send + Sync>> {
+        Box::pin(self.event_stream().into_stream())
+    }
 
     /// Deploy a contract to the current simulation environment and return a new [`SimulationContract<IsDeployed>`].
     /// Does not consume the current [`SimulationContract<NotDeployed>`] so that more copies can be deployed later.
@@ -366,174 +350,86 @@ pub fn filter_events(event_filters: Vec<SimulationEventFilter>, logs: Vec<Log>) 
     events
 }
 
-// #[cfg(test)]
-// mod tests {
+#[cfg(test)]
+mod tests {
 
-//     use std::error::Error;
+    use std::error::Error;
 
-//     use bindings::{arbiter_token, writer};
-//     use ethers::abi::Tokenize;
-//     use revm::primitives::B160;
+    use bindings::{arbiter_token, writer};
+    use ethers::abi::Tokenize;
+    use revm::primitives::B160;
 
-//     use crate::{
-//         agent::{user::User, Agent, AgentType, SimulationEventFilter},
-//         environment::contract::SimulationContract,
-//         manager::SimulationManager,
-//     };
+    use crate::{
+        agent::{user::User, Agent, AgentType, SimulationEventFilter},
+        environment::contract::SimulationContract,
+        manager::SimulationManager,
+    };
 
-//     #[tokio::test]
-//     async fn agent_event_filter_through() -> Result<(), Box<dyn Error>> {
-//         // Set up the execution manager and a user address.
-//         let mut manager = SimulationManager::default();
+    use futures::stream::StreamExt;
 
-//         // Create writer contract.
-//         let writer =
-//             SimulationContract::new(writer::WRITER_ABI.clone(), writer::WRITER_BYTECODE.clone());
+    #[tokio::test]
+    async fn agent_event_filtering() -> Result<(), Box<dyn Error>> {
+        // Set up the execution manager and a user address.
+        let mut manager = SimulationManager::default();
 
-//         // Deploy the writer.
-//         let test_string = "Hello, world..?".to_string();
-//         let (writer, execution_result) = manager
-//             .agents
-//             .get("admin")
-//             .unwrap()
-//             .deploy(writer, test_string.into_tokens())?;
-//         assert!(execution_result.is_success());
+        // Create writer contract.
+        let writer =
+            SimulationContract::new(writer::WRITER_ABI.clone(), writer::WRITER_BYTECODE.clone());
 
-//         // Create two agents with a filter.
-//         let alice = User::new("alice", None);
-//         manager.activate_agent(AgentType::User(alice), B160::from_low_u64_be(2))?;
+        // Deploy the writer.
+        let test_string = "Hello, world..?".to_string();
+        let (writer, execution_result) = manager
+            .agents
+            .get("admin")
+            .unwrap()
+            .deploy(writer, test_string.into_tokens())?;
+        assert!(execution_result.is_success());
 
-//         let event_filters = vec![SimulationEventFilter::new(&writer, "WasWritten")];
-//         let bob = User::new("bob", Some(event_filters));
-//         manager.activate_agent(AgentType::User(bob), B160::from_low_u64_be(3))?;
+        // Deploy arbiter token contract.
+        let arbt = SimulationContract::new(
+            arbiter_token::ARBITERTOKEN_ABI.clone(),
+            arbiter_token::ARBITERTOKEN_BYTECODE.clone(),
+        );
+        let (arbt, execution_result) = manager.agents.get("admin").unwrap().deploy(
+            arbt,
+            ("ArbiterToken".to_string(), "ARBT".to_string(), 18_u8).into_tokens(),
+        )?;
+        assert!(execution_result.is_success());
 
-//         let alice = manager.agents.get("alice").unwrap();
-//         let mut alice_receiver = alice.receiver();
-//         let alice_event_future = alice_receiver.recv();
+        // Create two agents with a filter.
+        // Create agent with a filter.
+        let event_filters = vec![SimulationEventFilter::new(&arbt, "Approval")];
+        let alice = User::new("alice", Some(event_filters));
+        manager.activate_agent(AgentType::User(alice), B160::from_low_u64_be(2))?;
 
-//         let bob = manager.agents.get("bob").unwrap();
-//         let mut bob_receiver = bob.receiver();
-//         let bob_event_future = bob_receiver.recv();
+        let event_filters = vec![SimulationEventFilter::new(&writer, "WasWritten")];
+        let bob = User::new("bob", Some(event_filters));
+        manager.activate_agent(AgentType::User(bob), B160::from_low_u64_be(3))?;
 
-//         println!("Alice's event filter: {:#?}", alice.event_filters());
-//         println!("Bob's event filter: {:#?}", bob.event_filters());
+        let alice = manager.agents.get("alice").unwrap();
+        let bob = manager.agents.get("bob").unwrap();
+        println!("Alice's event filter: {:#?}", alice.event_filters());
+        println!("Bob's event filter: {:#?}", bob.event_filters());
 
-//         // Make calls that alice and bob won't filter out.
-//         let new_string = "Hello, world!".to_string();
-//         manager.agents.get("admin").unwrap().call(
-//             &writer,
-//             "echoString",
-//             new_string.into_tokens(),
-//         )?;
-//         // Test that the alice doesn't filter out these logs.
-//         let unfiltered_events = alice_event_future.await?;
-//         let filtered_events =
-//             super::filter_events(alice.event_filters(), unfiltered_events.clone());
-//         println!(
-//             "The filtered events for alice on the first call are: {:#?}",
-//             &filtered_events
-//         );
-//         assert_eq!(filtered_events, unfiltered_events);
-//         // Test that bob filters out these logs.
-//         let unfiltered_events = bob_event_future.await?;
-//         let filtered_events = super::filter_events(bob.event_filters(), unfiltered_events);
-//         println!(
-//             "The filtered events for bob on the first call are: {:#?}",
-//             &filtered_events
-//         );
-//         Ok(())
-//     }
+        // Make calls that alice will filter out and bob won't filter out.
+        let new_string = "Hello, world!".to_string();
+        manager.agents.get("admin").unwrap().call(
+            &writer,
+            "echoString",
+            new_string.into_tokens(),
+        )?;
 
-//     #[tokio::test]
-//     async fn agent_event_filter_out() -> Result<(), Box<dyn Error>> {
-//         // Set up the execution manager and a user address.
-//         let mut manager = SimulationManager::default();
-//         // Create writer contract.
-//         let writer =
-//             SimulationContract::new(writer::WRITER_ABI.clone(), writer::WRITER_BYTECODE.clone());
-//         let test_string = "Hello, world..?".to_string();
-//         let (writer, execution_result) = manager
-//             .agents
-//             .get("admin")
-//             .unwrap()
-//             .deploy(writer, test_string.into_tokens())?;
-//         assert!(execution_result.is_success());
+        // Test that the alice doesn't filter out these logs.
+        let mut alice_watcher = alice.watch();
+        let alice_next_event = alice_watcher.next().await;
+        print!("Alice's next event: {:#?}", alice_next_event);
+        assert!(alice_next_event.is_none());
+        // Test that bob filters out these logs.
+        let mut bob_watcher = bob.watch();
+        let bob_next_event = bob_watcher.next().await;
+        print!("Bob's next event: {:#?}", bob_next_event);
+        assert!(bob_next_event.is_some());
+        Ok(())
+    }
 
-//         // Create arbiter token contract.
-//         let arbt = SimulationContract::new(
-//             arbiter_token::ARBITERTOKEN_ABI.clone(),
-//             arbiter_token::ARBITERTOKEN_BYTECODE.clone(),
-//         );
-//         let (arbt, execution_result) = manager.agents.get("admin").unwrap().deploy(
-//             arbt,
-//             ("ArbiterToken".to_string(), "ARBT".to_string(), 18_u8).into_tokens(),
-//         )?;
-//         assert!(execution_result.is_success());
-
-//         // Create agent with a filter.
-//         let event_filters = vec![SimulationEventFilter::new(&arbt, "Approval")];
-//         let alice = User::new("alice", Some(event_filters));
-//         manager.activate_agent(AgentType::User(alice), B160::from_low_u64_be(2))?;
-//         let alice = manager.agents.get("alice").unwrap();
-//         let mut alice_receiver = alice.receiver();
-//         let alice_event_future = alice_receiver.recv();
-
-//         println!("Alice's event filter: {:#?}", alice.event_filters());
-
-//         // Make calls that alice and bob won't filter out.
-//         let new_string = "Hello, world!".to_string();
-//         manager.agents.get("admin").unwrap().call(
-//             &writer,
-//             "echoString",
-//             new_string.into_tokens(),
-//         )?;
-//         // Test that the alice doesn't filter out these logs.
-//         let unfiltered_events = alice_event_future.await?;
-//         let filtered_events = super::filter_events(alice.event_filters(), unfiltered_events);
-//         println!(
-//             "The filtered events for alice on the first call are: {:#?}",
-//             &filtered_events
-//         );
-//         assert_eq!(filtered_events, vec![]);
-//         Ok(())
-//     }
-
-//     #[tokio::test]
-//     async fn watcher() -> Result<(), Box<dyn Error>> {
-//         // Set up the execution manager and a user address.
-//         let mut manager = SimulationManager::default();
-//         // Create writer contract.
-//         let writer =
-//             SimulationContract::new(writer::WRITER_ABI.clone(), writer::WRITER_BYTECODE.clone());
-//         let test_string = "Hello, world..?".to_string();
-//         let (writer, execution_result) = manager
-//             .agents
-//             .get("admin")
-//             .unwrap()
-//             .deploy(writer, test_string.into_tokens())?;
-//         assert!(execution_result.is_success());
-
-//         // Create agent with a filter.
-//         let event_filters = vec![SimulationEventFilter::new(&writer, "WasWritten")];
-//         let alice = User::new("alice", Some(event_filters));
-//         manager.activate_agent(AgentType::User(alice), B160::from_low_u64_be(2))?;
-//         let alice = manager.agents.get("alice").unwrap();
-//         let future = alice.watch();
-
-//         // Make calls that alice and bob won't filter out.
-//         let new_string = "Hello, world!".to_string();
-//         manager.agents.get("admin").unwrap().call(
-//             &writer,
-//             "echoString",
-//             new_string.clone().into_tokens(),
-//         )?;
-//         // Test that the alice doesn't filter out these logs.
-//         let event = future.await?;
-//         println!(
-//             "The filtered events for alice on the first call are: {:#?}",
-//             &event
-//         );
-//         assert_eq!(event.1[0].clone().into_string().unwrap(), new_string);
-//         Ok(())
-//     }
-// }
+}

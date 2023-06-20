@@ -418,7 +418,6 @@ pub fn is_arbitrage(prices: [U256; 2]) -> (bool, Option<SwapDirection>) {
 //         // Start the arbitrageur to detect price changes.
 //         let arbitrage = base_arbitrageur.watch();
 
-
 //         std::thread::sleep(std::time::Duration::from_secs(1));
 //         println!("Sending price change events.");
 //         let new_price0 = wad.checked_mul(U256::from(42069)).unwrap();

@@ -6,7 +6,8 @@
 use std::{
     collections::HashMap,
     error::Error,
-    fmt::{Display, Formatter, Result as FmtResult}, pin::Pin,
+    fmt::{Display, Formatter, Result as FmtResult},
+    pin::Pin,
 };
 
 use bindings::arbiter_math;
@@ -22,7 +23,7 @@ use crate::{
     },
     environment::{
         contract::{IsDeployed, SimulationContract},
-        SimulationEnvironment, EventStream,
+        EventStream, SimulationEnvironment,
     },
 };
 
@@ -137,7 +138,11 @@ impl SimulationManager {
 
         // Create the agent and add it to the simulation environment so long as we don't throw an error above.
         let (event_sender, event_receiver) = unbounded();
-        self.environment.event_broadcaster.add_sender(event_sender);
+        self.environment
+            .event_broadcaster
+            .lock()
+            .unwrap()
+            .add_sender(event_sender);
         let account_info = AccountInfo::default();
         self.environment
             .evm
@@ -161,7 +166,7 @@ impl SimulationManager {
                     event_stream,
                     event_filters: user.event_filters,
                     transaction_sender: self.environment.transaction_channel.0.clone(),
-                    result_channel: crossbeam_channel::unbounded(), 
+                    result_channel: crossbeam_channel::unbounded(),
                 };
                 self.agents
                     .insert(new_user.name.clone(), AgentType::User(new_user));
@@ -183,7 +188,7 @@ impl SimulationManager {
                     event_filters: simple_arbitrageur.event_filters,
                     prices: simple_arbitrageur.prices,
                     transaction_sender: self.environment.transaction_channel.0.clone(),
-                    result_channel: crossbeam_channel::unbounded(), 
+                    result_channel: crossbeam_channel::unbounded(),
                 };
                 self.agents.insert(
                     new_simple_arbitrageur.name.clone(),
@@ -192,6 +197,10 @@ impl SimulationManager {
             }
         };
         Ok(())
+    }
+
+    pub fn shutdown(self) {
+        drop(self.environment.transaction_channel.1);
     }
 }
 
