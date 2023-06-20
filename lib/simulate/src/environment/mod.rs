@@ -133,7 +133,6 @@ impl EventStream {
                 None // Skip logs that don't pass the filter
             } else {
                 let data = filtered_events[0].data.clone().into_iter().collect();
-                let address = filtered_events[0].address; // Extract address here
                 Some(decoder(data, index).map(|tokens| (tokens, index)))
             }
         })
