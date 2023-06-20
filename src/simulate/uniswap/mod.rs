@@ -65,7 +65,7 @@ pub async fn run(
     let uniswap_price = U256::from(uniswap_reserves.1) * U256::from(10_u128.pow(18))
         / U256::from(uniswap_reserves.0);
 
-    let mut prices = arbitrageur.prices.lock().unwrap();
+    let mut prices = arbitrageur.prices.lock().await;
     prices[0] = liquid_exchange_xy_price.into();
     prices[1] = uniswap_price.into();
 
@@ -163,7 +163,7 @@ pub async fn run(
                 let y = U256::from(uniswap_reserves.1);
                 let uniswap_price = y * U256::from(10_u128.pow(18)) / x;
 
-                let mut prices = arbitrageur.prices.lock().unwrap();
+                let mut prices = arbitrageur.prices.lock().await;
                 prices[1] = uniswap_price.into();
                 dex_price_path.push(uniswap_price);
                 continue;

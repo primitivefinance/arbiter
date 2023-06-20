@@ -1,7 +1,8 @@
 #![warn(unsafe_code)]
 //! Describes the most basic type of user agent.
 
-use std::sync::{Arc, Mutex};
+use std::sync::Arc;
+use tokio::sync::Mutex;
 
 use crossbeam_channel::{Receiver, Sender};
 use futures::StreamExt;
@@ -114,7 +115,7 @@ impl SimpleArbitrageur<IsActive> {
                 match result {
                     Ok((tokens, pool_number)) => {
                         let new_price = tokens[0].clone().into_uint().unwrap();
-                        let mut prices = prices.lock().unwrap();
+                        let mut prices = prices.lock().await;
                         prices[pool_number] = new_price.into();
                         let (is_arbitrage, swap_direction) = is_arbitrage(*prices);
                         if is_arbitrage {
@@ -373,7 +374,7 @@ mod tests {
 
         // Verify that the initial prices are correct
         let prices = Arc::clone(&base_arbitrageur.prices);
-        let prices = prices.lock().unwrap();
+        let prices = prices.lock().await;
         assert_eq!(prices[0], U256::MAX.into());
         assert_eq!(prices[1], U256::MAX.into());
         drop(prices);
@@ -394,7 +395,7 @@ mod tests {
         println!("output from detect_arbitrage: {:#?}", base_arbitrageur.detect_price_change().await);
         println!("output from detect_arbitrage: {:#?}", base_arbitrageur.detect_price_change().await);
         let prices = Arc::clone(&base_arbitrageur.prices);
-        let prices = prices.lock().unwrap();
+        let prices = prices.lock().await;
         println!("Arbitrageur prices: {:#?}", prices);
         assert_eq!(
             prices[0],
