@@ -2,12 +2,7 @@
 
 forge clean
 
-forge install https://github.com/Uniswap/v3-core --no-commit
-forge install https://github.com/primitivefinance/portfolio --no-commit
-forge install https://github.com/gnosis/canonical-weth --no-commit
-forge install https://github.com/Uniswap/v2-core --no-commit
-forge install https://github.com/Uniswap/v2-periphery --no-commit
-forge install https://github.com/Uniswap/solidity-lib --no-commit
+forge install --no-commit
 
 # Edit the init code hash used in the contracts/v2-periphery/contracts/libraries/UniswapV2Library.sol file on line 24.
 sed -i '' 's/96e8ac4277198ff8b6f785478aa9a39f403cb768dd02cbee326c3e7da348845f/4fe5997d67f80818ff0b53bc5a01b97fefcdd789b0a7926797f623873e7728c9/g' contracts/v2-periphery/contracts/libraries/UniswapV2Library.sol
