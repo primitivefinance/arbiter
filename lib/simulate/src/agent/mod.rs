@@ -343,6 +343,7 @@ pub fn filter_events(event_filters: Vec<SimulationEventFilter>, logs: Vec<Log>) 
             if event_filter.address == log.address && event_filter.topic == log.topics[0].into()
             {
                 events.push(log.clone());
+                event_index = index;
                 break;
             }
         }
@@ -369,6 +370,7 @@ mod tests {
     use futures::stream::StreamExt;
 
     #[tokio::test]
+    // Tests that a single filter is working correctly.
     async fn agent_event_filtering() -> Result<(), Box<dyn Error>> {
         // Set up the execution manager and a user address.
         let mut manager = SimulationManager::default();
