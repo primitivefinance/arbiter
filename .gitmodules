@@ -28,3 +28,6 @@
 	path = contracts/solidity-lib
 	url = https://github.com/Uniswap/solidity-lib
 	branch = v2.1.0
+[submodule "contracts/arbmod"]
+	path = contracts/arbmod
+	url = https://github.com/primitivefinance/arbmod
