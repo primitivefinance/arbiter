@@ -39,6 +39,11 @@ pub mod user;
 #[derive(Debug)]
 pub struct AgentError(String);
 
+/// Type Alias for the watch result.
+pub type WatchResult = Result<(Vec<Token>, usize), AbiError>;
+/// Type Alias for the event channel.
+pub type WatchStream = dyn Stream<Item = WatchResult> + Send + Sync;
+
 impl Error for AgentError {}
 
 impl Display for AgentError {
@@ -229,7 +234,7 @@ pub trait Agent: Identifiable {
     /// This returns a `filtered watcher` stream for the agent.
     fn watch(
         &self,
-    ) -> Pin<Box<dyn Stream<Item = Result<(Vec<Token>, usize), AbiError>> + Send + Sync>> {
+    ) -> Pin<Box<WatchStream>> {
         Box::pin(self.event_stream().into_stream())
     }
 
