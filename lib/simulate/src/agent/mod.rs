@@ -230,7 +230,7 @@ pub trait Agent: Identifiable {
 
     fn watch(
         &self,
-    ) -> Pin<Box<dyn Stream<Item = Result<(Vec<Token>, Address), AbiError>> + Send + Sync>> {
+    ) -> Pin<Box<dyn Stream<Item = Result<(Vec<Token>, usize), AbiError>> + Send + Sync>> {
         Box::pin(self.event_stream().into_stream())
     }
 

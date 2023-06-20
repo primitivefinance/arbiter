@@ -116,7 +116,7 @@ pub struct EventStream {
 }
 
 impl EventStream {
-    fn next(&mut self) -> Option<Result<(Vec<Token>, revm::primitives::Address), AbiError>> {
+    fn next(&mut self) -> Option<Result<(Vec<Token>, usize), AbiError>> {
         let event_filters = self.filters.clone();
         assert!(!event_filters.is_empty());
         let decoder = |input, filter_number: usize| {
@@ -134,14 +134,14 @@ impl EventStream {
             } else {
                 let data = filtered_events[0].data.clone().into_iter().collect();
                 let address = filtered_events[0].address; // Extract address here
-                Some(decoder(data, index).map(|tokens| (tokens, address)))
+                Some(decoder(data, index).map(|tokens| (tokens, index)))
             }
         })
     }
 
     pub fn into_stream(
         self,
-    ) -> impl Stream<Item = Result<(Vec<Token>, revm::primitives::Address), AbiError>> {
+    ) -> impl Stream<Item = Result<(Vec<Token>, usize), AbiError>> {
         futures::stream::unfold(self, |mut state| async {
             match state.next() {
                 Some(item) => Some((item, state)),
@@ -197,9 +197,9 @@ mod tests {
             let mut i = 0;
             while let Some(event_result) = event_stream.next().await {
                 match event_result {
-                    Ok((tokens, address)) => {
+                    Ok((tokens, filter_index)) => {
                         println!("Got event!");
-                        println!("Tokens: {:?}\nAddress: {:?}", tokens, address);
+                        println!("Tokens: {:?}\nAddress: {:?}", tokens, filter_index);
                         assert_eq!(
                             tokens[0].clone().into_string().unwrap(),
                             format!("Hello, world..? {}", i)
