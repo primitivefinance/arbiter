@@ -7,16 +7,18 @@ pub use i_uniswap_v2_migrator::*;
     clippy::upper_case_acronyms,
     clippy::type_complexity,
     dead_code,
-    non_camel_case_types
+    non_camel_case_types,
 )]
 pub mod i_uniswap_v2_migrator {
     #[rustfmt::skip]
     const __ABI: &str = "[{\"inputs\":[{\"internalType\":\"address\",\"name\":\"token\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"amountTokenMin\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"amountETHMin\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"address\",\"name\":\"to\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"deadline\",\"type\":\"uint256\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"function\",\"name\":\"migrate\",\"outputs\":[]}]";
     ///The parsed JSON ABI of the contract.
-    pub static IUNISWAPV2MIGRATOR_ABI: ::ethers::contract::Lazy<::ethers::core::abi::Abi> =
-        ::ethers::contract::Lazy::new(|| {
-            ::ethers::core::utils::__serde_json::from_str(__ABI).expect("ABI is always valid")
-        });
+    pub static IUNISWAPV2MIGRATOR_ABI: ::ethers::contract::Lazy<
+        ::ethers::core::abi::Abi,
+    > = ::ethers::contract::Lazy::new(|| {
+        ::ethers::core::utils::__serde_json::from_str(__ABI)
+            .expect("ABI is always valid")
+    });
     pub struct IUniswapV2Migrator<M>(::ethers::contract::Contract<M>);
     impl<M> ::core::clone::Clone for IUniswapV2Migrator<M> {
         fn clone(&self) -> Self {
@@ -36,9 +38,7 @@ pub mod i_uniswap_v2_migrator {
     }
     impl<M> ::core::fmt::Debug for IUniswapV2Migrator<M> {
         fn fmt(&self, f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
-            f.debug_tuple(stringify!(IUniswapV2Migrator))
-                .field(&self.address())
-                .finish()
+            f.debug_tuple(stringify!(IUniswapV2Migrator)).field(&self.address()).finish()
         }
     }
     impl<M: ::ethers::providers::Middleware> IUniswapV2Migrator<M> {
@@ -48,11 +48,13 @@ pub mod i_uniswap_v2_migrator {
             address: T,
             client: ::std::sync::Arc<M>,
         ) -> Self {
-            Self(::ethers::contract::Contract::new(
-                address.into(),
-                IUNISWAPV2MIGRATOR_ABI.clone(),
-                client,
-            ))
+            Self(
+                ::ethers::contract::Contract::new(
+                    address.into(),
+                    IUNISWAPV2MIGRATOR_ABI.clone(),
+                    client,
+                ),
+            )
         }
         ///Calls the contract's `migrate` (0xb7df1d25) function
         pub fn migrate(
@@ -72,8 +74,7 @@ pub mod i_uniswap_v2_migrator {
         }
     }
     impl<M: ::ethers::providers::Middleware> From<::ethers::contract::Contract<M>>
-        for IUniswapV2Migrator<M>
-    {
+    for IUniswapV2Migrator<M> {
         fn from(contract: ::ethers::contract::Contract<M>) -> Self {
             Self::new(contract.address(), contract.client())
         }
@@ -87,7 +88,7 @@ pub mod i_uniswap_v2_migrator {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(
         name = "migrate",

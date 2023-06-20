@@ -4,8 +4,6 @@
 //! Do not manually edit these files.
 //! These files may be overwritten by the codegen system at any time.
 pub mod account_lib;
-pub mod arbiter_math;
-pub mod arbiter_token;
 pub mod assembly_lib;
 pub mod babylonian;
 pub mod bisection_lib;
@@ -55,7 +53,6 @@ pub mod ierc20;
 pub mod ierc20_minimal;
 pub mod invariant;
 pub mod iweth;
-pub mod liquid_exchange;
 pub mod liquidity_math;
 pub mod low_gas_safe_math;
 pub mod math;
@@ -101,4 +98,3 @@ pub mod units;
 pub mod unsafe_math;
 pub mod uq11_2x_112;
 pub mod weth9;
-pub mod writer;

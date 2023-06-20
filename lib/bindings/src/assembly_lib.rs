@@ -7,16 +7,14 @@ pub use assembly_lib::*;
     clippy::upper_case_acronyms,
     clippy::type_complexity,
     dead_code,
-    non_camel_case_types
+    non_camel_case_types,
 )]
 pub mod assembly_lib {
     #[rustfmt::skip]
     const __ABI: &str = "[]";
     ///The parsed JSON ABI of the contract.
-    pub static ASSEMBLYLIB_ABI: ::ethers::contract::Lazy<::ethers::core::abi::Abi> =
-        ::ethers::contract::Lazy::new(|| {
-            ::ethers::core::utils::__serde_json::from_str(__ABI).expect("ABI is always valid")
-        });
+    pub static ASSEMBLYLIB_ABI: ::ethers::contract::Lazy<::ethers::core::abi::Abi> = ::ethers::contract::Lazy::new(||
+    ::ethers::core::utils::__serde_json::from_str(__ABI).expect("ABI is always valid"));
     #[rustfmt::skip]
     const __BYTECODE: &[u8] = &[
         96,
@@ -209,38 +207,38 @@ pub mod assembly_lib {
         34,
         18,
         32,
-        245,
-        93,
-        118,
-        37,
-        202,
-        10,
-        48,
-        163,
-        219,
-        225,
-        101,
-        92,
-        139,
-        125,
-        0,
-        4,
-        169,
+        140,
+        212,
         29,
-        208,
-        38,
-        35,
+        83,
+        86,
+        52,
+        179,
+        202,
+        175,
+        60,
+        156,
+        241,
+        161,
+        29,
+        46,
+        42,
+        150,
+        82,
+        11,
+        148,
         65,
-        8,
-        85,
-        122,
-        69,
-        69,
-        20,
-        237,
-        67,
-        20,
-        157,
+        210,
+        95,
+        162,
+        43,
+        72,
+        235,
+        253,
+        227,
+        220,
+        84,
+        227,
         100,
         115,
         111,
@@ -254,8 +252,9 @@ pub mod assembly_lib {
         51,
     ];
     ///The bytecode of the contract.
-    pub static ASSEMBLYLIB_BYTECODE: ::ethers::core::types::Bytes =
-        ::ethers::core::types::Bytes::from_static(__BYTECODE);
+    pub static ASSEMBLYLIB_BYTECODE: ::ethers::core::types::Bytes = ::ethers::core::types::Bytes::from_static(
+        __BYTECODE,
+    );
     #[rustfmt::skip]
     const __DEPLOYED_BYTECODE: &[u8] = &[
         115,
@@ -393,38 +392,38 @@ pub mod assembly_lib {
         34,
         18,
         32,
-        245,
-        93,
-        118,
-        37,
-        202,
-        10,
-        48,
-        163,
-        219,
-        225,
-        101,
-        92,
-        139,
-        125,
-        0,
-        4,
-        169,
+        140,
+        212,
         29,
-        208,
-        38,
-        35,
+        83,
+        86,
+        52,
+        179,
+        202,
+        175,
+        60,
+        156,
+        241,
+        161,
+        29,
+        46,
+        42,
+        150,
+        82,
+        11,
+        148,
         65,
-        8,
-        85,
-        122,
-        69,
-        69,
-        20,
-        237,
-        67,
-        20,
-        157,
+        210,
+        95,
+        162,
+        43,
+        72,
+        235,
+        253,
+        227,
+        220,
+        84,
+        227,
         100,
         115,
         111,
@@ -438,8 +437,9 @@ pub mod assembly_lib {
         51,
     ];
     ///The deployed bytecode of the contract.
-    pub static ASSEMBLYLIB_DEPLOYED_BYTECODE: ::ethers::core::types::Bytes =
-        ::ethers::core::types::Bytes::from_static(__DEPLOYED_BYTECODE);
+    pub static ASSEMBLYLIB_DEPLOYED_BYTECODE: ::ethers::core::types::Bytes = ::ethers::core::types::Bytes::from_static(
+        __DEPLOYED_BYTECODE,
+    );
     pub struct AssemblyLib<M>(::ethers::contract::Contract<M>);
     impl<M> ::core::clone::Clone for AssemblyLib<M> {
         fn clone(&self) -> Self {
@@ -459,9 +459,7 @@ pub mod assembly_lib {
     }
     impl<M> ::core::fmt::Debug for AssemblyLib<M> {
         fn fmt(&self, f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
-            f.debug_tuple(stringify!(AssemblyLib))
-                .field(&self.address())
-                .finish()
+            f.debug_tuple(stringify!(AssemblyLib)).field(&self.address()).finish()
         }
     }
     impl<M: ::ethers::providers::Middleware> AssemblyLib<M> {
@@ -471,11 +469,13 @@ pub mod assembly_lib {
             address: T,
             client: ::std::sync::Arc<M>,
         ) -> Self {
-            Self(::ethers::contract::Contract::new(
-                address.into(),
-                ASSEMBLYLIB_ABI.clone(),
-                client,
-            ))
+            Self(
+                ::ethers::contract::Contract::new(
+                    address.into(),
+                    ASSEMBLYLIB_ABI.clone(),
+                    client,
+                ),
+            )
         }
         /// Constructs the general purpose `Deployer` instance based on the provided constructor arguments and sends it.
         /// Returns a new instance of a deployer that returns an instance of this contract after sending the transaction
@@ -517,7 +517,8 @@ pub mod assembly_lib {
             Ok(deployer)
         }
     }
-    impl<M: ::ethers::providers::Middleware> From<::ethers::contract::Contract<M>> for AssemblyLib<M> {
+    impl<M: ::ethers::providers::Middleware> From<::ethers::contract::Contract<M>>
+    for AssemblyLib<M> {
         fn from(contract: ::ethers::contract::Contract<M>) -> Self {
             Self::new(contract.address(), contract.client())
         }

@@ -7,16 +7,14 @@ pub use simple_registry::*;
     clippy::upper_case_acronyms,
     clippy::type_complexity,
     dead_code,
-    non_camel_case_types
+    non_camel_case_types,
 )]
 pub mod simple_registry {
     #[rustfmt::skip]
     const __ABI: &str = "[{\"inputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"constructor\",\"outputs\":[]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"portfolio\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"address\",\"name\":\"token\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"function\",\"name\":\"claimFee\",\"outputs\":[]},{\"inputs\":[],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"controller\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"portfolio\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"fee\",\"type\":\"uint256\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"function\",\"name\":\"setFee\",\"outputs\":[]}]";
     ///The parsed JSON ABI of the contract.
-    pub static SIMPLEREGISTRY_ABI: ::ethers::contract::Lazy<::ethers::core::abi::Abi> =
-        ::ethers::contract::Lazy::new(|| {
-            ::ethers::core::utils::__serde_json::from_str(__ABI).expect("ABI is always valid")
-        });
+    pub static SIMPLEREGISTRY_ABI: ::ethers::contract::Lazy<::ethers::core::abi::Abi> = ::ethers::contract::Lazy::new(||
+    ::ethers::core::utils::__serde_json::from_str(__ABI).expect("ABI is always valid"));
     #[rustfmt::skip]
     const __BYTECODE: &[u8] = &[
         96,
@@ -1174,38 +1172,38 @@ pub mod simple_registry {
         34,
         18,
         32,
-        208,
+        187,
+        71,
+        19,
+        174,
+        188,
+        16,
+        108,
+        14,
+        245,
+        169,
+        230,
+        121,
         94,
-        191,
-        161,
-        32,
-        32,
-        174,
-        23,
-        130,
-        119,
-        124,
-        192,
-        80,
-        174,
-        96,
-        59,
-        115,
-        175,
-        179,
-        129,
-        97,
-        111,
-        110,
-        116,
-        204,
-        238,
-        10,
+        146,
+        57,
+        134,
+        103,
+        35,
+        1,
+        213,
+        86,
+        55,
+        193,
+        176,
         255,
-        212,
-        27,
-        249,
-        106,
+        91,
+        69,
+        190,
+        152,
+        216,
+        224,
+        69,
         100,
         115,
         111,
@@ -1219,8 +1217,9 @@ pub mod simple_registry {
         51,
     ];
     ///The bytecode of the contract.
-    pub static SIMPLEREGISTRY_BYTECODE: ::ethers::core::types::Bytes =
-        ::ethers::core::types::Bytes::from_static(__BYTECODE);
+    pub static SIMPLEREGISTRY_BYTECODE: ::ethers::core::types::Bytes = ::ethers::core::types::Bytes::from_static(
+        __BYTECODE,
+    );
     #[rustfmt::skip]
     const __DEPLOYED_BYTECODE: &[u8] = &[
         96,
@@ -2251,38 +2250,38 @@ pub mod simple_registry {
         34,
         18,
         32,
-        208,
+        187,
+        71,
+        19,
+        174,
+        188,
+        16,
+        108,
+        14,
+        245,
+        169,
+        230,
+        121,
         94,
-        191,
-        161,
-        32,
-        32,
-        174,
-        23,
-        130,
-        119,
-        124,
-        192,
-        80,
-        174,
-        96,
-        59,
-        115,
-        175,
-        179,
-        129,
-        97,
-        111,
-        110,
-        116,
-        204,
-        238,
-        10,
+        146,
+        57,
+        134,
+        103,
+        35,
+        1,
+        213,
+        86,
+        55,
+        193,
+        176,
         255,
-        212,
-        27,
-        249,
-        106,
+        91,
+        69,
+        190,
+        152,
+        216,
+        224,
+        69,
         100,
         115,
         111,
@@ -2296,8 +2295,9 @@ pub mod simple_registry {
         51,
     ];
     ///The deployed bytecode of the contract.
-    pub static SIMPLEREGISTRY_DEPLOYED_BYTECODE: ::ethers::core::types::Bytes =
-        ::ethers::core::types::Bytes::from_static(__DEPLOYED_BYTECODE);
+    pub static SIMPLEREGISTRY_DEPLOYED_BYTECODE: ::ethers::core::types::Bytes = ::ethers::core::types::Bytes::from_static(
+        __DEPLOYED_BYTECODE,
+    );
     pub struct SimpleRegistry<M>(::ethers::contract::Contract<M>);
     impl<M> ::core::clone::Clone for SimpleRegistry<M> {
         fn clone(&self) -> Self {
@@ -2317,9 +2317,7 @@ pub mod simple_registry {
     }
     impl<M> ::core::fmt::Debug for SimpleRegistry<M> {
         fn fmt(&self, f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
-            f.debug_tuple(stringify!(SimpleRegistry))
-                .field(&self.address())
-                .finish()
+            f.debug_tuple(stringify!(SimpleRegistry)).field(&self.address()).finish()
         }
     }
     impl<M: ::ethers::providers::Middleware> SimpleRegistry<M> {
@@ -2329,11 +2327,13 @@ pub mod simple_registry {
             address: T,
             client: ::std::sync::Arc<M>,
         ) -> Self {
-            Self(::ethers::contract::Contract::new(
-                address.into(),
-                SIMPLEREGISTRY_ABI.clone(),
-                client,
-            ))
+            Self(
+                ::ethers::contract::Contract::new(
+                    address.into(),
+                    SIMPLEREGISTRY_ABI.clone(),
+                    client,
+                ),
+            )
         }
         /// Constructs the general purpose `Deployer` instance based on the provided constructor arguments and sends it.
         /// Returns a new instance of a deployer that returns an instance of this contract after sending the transaction
@@ -2388,7 +2388,10 @@ pub mod simple_registry {
         ///Calls the contract's `controller` (0xf77c4791) function
         pub fn controller(
             &self,
-        ) -> ::ethers::contract::builders::ContractCall<M, ::ethers::core::types::Address> {
+        ) -> ::ethers::contract::builders::ContractCall<
+            M,
+            ::ethers::core::types::Address,
+        > {
             self.0
                 .method_hash([247, 124, 71, 145], ())
                 .expect("method not found (this should never happen)")
@@ -2405,8 +2408,7 @@ pub mod simple_registry {
         }
     }
     impl<M: ::ethers::providers::Middleware> From<::ethers::contract::Contract<M>>
-        for SimpleRegistry<M>
-    {
+    for SimpleRegistry<M> {
         fn from(contract: ::ethers::contract::Contract<M>) -> Self {
             Self::new(contract.address(), contract.client())
         }
@@ -2420,7 +2422,7 @@ pub mod simple_registry {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(name = "claimFee", abi = "claimFee(address,address,uint256)")]
     pub struct ClaimFeeCall {
@@ -2437,7 +2439,7 @@ pub mod simple_registry {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(name = "controller", abi = "controller()")]
     pub struct ControllerCall;
@@ -2450,7 +2452,7 @@ pub mod simple_registry {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(name = "setFee", abi = "setFee(address,uint256)")]
     pub struct SetFeeCall {
@@ -2469,13 +2471,16 @@ pub mod simple_registry {
             data: impl AsRef<[u8]>,
         ) -> ::core::result::Result<Self, ::ethers::core::abi::AbiError> {
             let data = data.as_ref();
-            if let Ok(decoded) = <ClaimFeeCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded)
+                = <ClaimFeeCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::ClaimFee(decoded));
             }
-            if let Ok(decoded) = <ControllerCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded)
+                = <ControllerCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::Controller(decoded));
             }
-            if let Ok(decoded) = <SetFeeCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded)
+                = <SetFeeCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::SetFee(decoded));
             }
             Err(::ethers::core::abi::Error::InvalidData.into())
@@ -2484,8 +2489,12 @@ pub mod simple_registry {
     impl ::ethers::core::abi::AbiEncode for SimpleRegistryCalls {
         fn encode(self) -> Vec<u8> {
             match self {
-                Self::ClaimFee(element) => ::ethers::core::abi::AbiEncode::encode(element),
-                Self::Controller(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::ClaimFee(element) => {
+                    ::ethers::core::abi::AbiEncode::encode(element)
+                }
+                Self::Controller(element) => {
+                    ::ethers::core::abi::AbiEncode::encode(element)
+                }
                 Self::SetFee(element) => ::ethers::core::abi::AbiEncode::encode(element),
             }
         }
@@ -2523,7 +2532,7 @@ pub mod simple_registry {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     pub struct ControllerReturn(pub ::ethers::core::types::Address);
 }

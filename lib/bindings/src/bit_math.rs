@@ -7,16 +7,14 @@ pub use bit_math::*;
     clippy::upper_case_acronyms,
     clippy::type_complexity,
     dead_code,
-    non_camel_case_types
+    non_camel_case_types,
 )]
 pub mod bit_math {
     #[rustfmt::skip]
     const __ABI: &str = "[]";
     ///The parsed JSON ABI of the contract.
-    pub static BITMATH_ABI: ::ethers::contract::Lazy<::ethers::core::abi::Abi> =
-        ::ethers::contract::Lazy::new(|| {
-            ::ethers::core::utils::__serde_json::from_str(__ABI).expect("ABI is always valid")
-        });
+    pub static BITMATH_ABI: ::ethers::contract::Lazy<::ethers::core::abi::Abi> = ::ethers::contract::Lazy::new(||
+    ::ethers::core::utils::__serde_json::from_str(__ABI).expect("ABI is always valid"));
     #[rustfmt::skip]
     const __BYTECODE: &[u8] = &[
         96,
@@ -186,38 +184,38 @@ pub mod bit_math {
         34,
         18,
         32,
-        240,
-        40,
-        199,
-        93,
-        200,
-        100,
-        90,
-        245,
-        122,
-        235,
-        218,
-        162,
-        63,
+        166,
+        221,
+        192,
         54,
-        72,
-        130,
-        215,
-        78,
-        28,
-        42,
-        150,
-        112,
-        109,
-        30,
-        195,
-        84,
-        161,
-        214,
+        243,
+        191,
+        54,
+        51,
+        254,
+        164,
         29,
-        224,
+        172,
+        131,
+        126,
+        19,
+        128,
+        28,
+        34,
+        200,
+        65,
+        121,
+        166,
+        210,
+        232,
+        82,
+        122,
+        213,
+        177,
+        165,
         155,
-        158,
+        183,
+        232,
         100,
         115,
         111,
@@ -231,8 +229,9 @@ pub mod bit_math {
         51,
     ];
     ///The bytecode of the contract.
-    pub static BITMATH_BYTECODE: ::ethers::core::types::Bytes =
-        ::ethers::core::types::Bytes::from_static(__BYTECODE);
+    pub static BITMATH_BYTECODE: ::ethers::core::types::Bytes = ::ethers::core::types::Bytes::from_static(
+        __BYTECODE,
+    );
     #[rustfmt::skip]
     const __DEPLOYED_BYTECODE: &[u8] = &[
         115,
@@ -367,38 +366,38 @@ pub mod bit_math {
         34,
         18,
         32,
-        240,
-        40,
-        199,
-        93,
-        200,
-        100,
-        90,
-        245,
-        122,
-        235,
-        218,
-        162,
-        63,
+        166,
+        221,
+        192,
         54,
-        72,
-        130,
-        215,
-        78,
-        28,
-        42,
-        150,
-        112,
-        109,
-        30,
-        195,
-        84,
-        161,
-        214,
+        243,
+        191,
+        54,
+        51,
+        254,
+        164,
         29,
-        224,
+        172,
+        131,
+        126,
+        19,
+        128,
+        28,
+        34,
+        200,
+        65,
+        121,
+        166,
+        210,
+        232,
+        82,
+        122,
+        213,
+        177,
+        165,
         155,
-        158,
+        183,
+        232,
         100,
         115,
         111,
@@ -412,8 +411,9 @@ pub mod bit_math {
         51,
     ];
     ///The deployed bytecode of the contract.
-    pub static BITMATH_DEPLOYED_BYTECODE: ::ethers::core::types::Bytes =
-        ::ethers::core::types::Bytes::from_static(__DEPLOYED_BYTECODE);
+    pub static BITMATH_DEPLOYED_BYTECODE: ::ethers::core::types::Bytes = ::ethers::core::types::Bytes::from_static(
+        __DEPLOYED_BYTECODE,
+    );
     pub struct BitMath<M>(::ethers::contract::Contract<M>);
     impl<M> ::core::clone::Clone for BitMath<M> {
         fn clone(&self) -> Self {
@@ -433,9 +433,7 @@ pub mod bit_math {
     }
     impl<M> ::core::fmt::Debug for BitMath<M> {
         fn fmt(&self, f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
-            f.debug_tuple(stringify!(BitMath))
-                .field(&self.address())
-                .finish()
+            f.debug_tuple(stringify!(BitMath)).field(&self.address()).finish()
         }
     }
     impl<M: ::ethers::providers::Middleware> BitMath<M> {
@@ -445,11 +443,13 @@ pub mod bit_math {
             address: T,
             client: ::std::sync::Arc<M>,
         ) -> Self {
-            Self(::ethers::contract::Contract::new(
-                address.into(),
-                BITMATH_ABI.clone(),
-                client,
-            ))
+            Self(
+                ::ethers::contract::Contract::new(
+                    address.into(),
+                    BITMATH_ABI.clone(),
+                    client,
+                ),
+            )
         }
         /// Constructs the general purpose `Deployer` instance based on the provided constructor arguments and sends it.
         /// Returns a new instance of a deployer that returns an instance of this contract after sending the transaction
@@ -491,7 +491,8 @@ pub mod bit_math {
             Ok(deployer)
         }
     }
-    impl<M: ::ethers::providers::Middleware> From<::ethers::contract::Contract<M>> for BitMath<M> {
+    impl<M: ::ethers::providers::Middleware> From<::ethers::contract::Contract<M>>
+    for BitMath<M> {
         fn from(contract: ::ethers::contract::Contract<M>) -> Self {
             Self::new(contract.address(), contract.client())
         }

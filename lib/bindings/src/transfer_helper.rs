@@ -7,16 +7,14 @@ pub use transfer_helper::*;
     clippy::upper_case_acronyms,
     clippy::type_complexity,
     dead_code,
-    non_camel_case_types
+    non_camel_case_types,
 )]
 pub mod transfer_helper {
     #[rustfmt::skip]
     const __ABI: &str = "[]";
     ///The parsed JSON ABI of the contract.
-    pub static TRANSFERHELPER_ABI: ::ethers::contract::Lazy<::ethers::core::abi::Abi> =
-        ::ethers::contract::Lazy::new(|| {
-            ::ethers::core::utils::__serde_json::from_str(__ABI).expect("ABI is always valid")
-        });
+    pub static TRANSFERHELPER_ABI: ::ethers::contract::Lazy<::ethers::core::abi::Abi> = ::ethers::contract::Lazy::new(||
+    ::ethers::core::utils::__serde_json::from_str(__ABI).expect("ABI is always valid"));
     #[rustfmt::skip]
     const __BYTECODE: &[u8] = &[
         96,
@@ -186,38 +184,38 @@ pub mod transfer_helper {
         34,
         18,
         32,
-        57,
-        245,
-        85,
-        252,
-        164,
-        53,
-        91,
-        88,
-        210,
-        137,
-        29,
-        46,
-        37,
-        238,
-        46,
+        44,
+        101,
+        21,
+        240,
+        14,
+        112,
+        11,
+        36,
+        59,
+        166,
+        190,
+        20,
+        224,
+        41,
         106,
-        167,
-        4,
-        121,
-        40,
-        8,
-        191,
-        189,
-        155,
-        203,
-        115,
-        16,
-        53,
-        133,
-        81,
-        10,
-        220,
+        188,
+        135,
+        240,
+        0,
+        253,
+        175,
+        76,
+        51,
+        72,
+        221,
+        1,
+        123,
+        28,
+        124,
+        156,
+        158,
+        104,
         100,
         115,
         111,
@@ -231,8 +229,9 @@ pub mod transfer_helper {
         51,
     ];
     ///The bytecode of the contract.
-    pub static TRANSFERHELPER_BYTECODE: ::ethers::core::types::Bytes =
-        ::ethers::core::types::Bytes::from_static(__BYTECODE);
+    pub static TRANSFERHELPER_BYTECODE: ::ethers::core::types::Bytes = ::ethers::core::types::Bytes::from_static(
+        __BYTECODE,
+    );
     #[rustfmt::skip]
     const __DEPLOYED_BYTECODE: &[u8] = &[
         115,
@@ -367,38 +366,38 @@ pub mod transfer_helper {
         34,
         18,
         32,
-        57,
-        245,
-        85,
-        252,
-        164,
-        53,
-        91,
-        88,
-        210,
-        137,
-        29,
-        46,
-        37,
-        238,
-        46,
+        44,
+        101,
+        21,
+        240,
+        14,
+        112,
+        11,
+        36,
+        59,
+        166,
+        190,
+        20,
+        224,
+        41,
         106,
-        167,
-        4,
-        121,
-        40,
-        8,
-        191,
-        189,
-        155,
-        203,
-        115,
-        16,
-        53,
-        133,
-        81,
-        10,
-        220,
+        188,
+        135,
+        240,
+        0,
+        253,
+        175,
+        76,
+        51,
+        72,
+        221,
+        1,
+        123,
+        28,
+        124,
+        156,
+        158,
+        104,
         100,
         115,
         111,
@@ -412,8 +411,9 @@ pub mod transfer_helper {
         51,
     ];
     ///The deployed bytecode of the contract.
-    pub static TRANSFERHELPER_DEPLOYED_BYTECODE: ::ethers::core::types::Bytes =
-        ::ethers::core::types::Bytes::from_static(__DEPLOYED_BYTECODE);
+    pub static TRANSFERHELPER_DEPLOYED_BYTECODE: ::ethers::core::types::Bytes = ::ethers::core::types::Bytes::from_static(
+        __DEPLOYED_BYTECODE,
+    );
     pub struct TransferHelper<M>(::ethers::contract::Contract<M>);
     impl<M> ::core::clone::Clone for TransferHelper<M> {
         fn clone(&self) -> Self {
@@ -433,9 +433,7 @@ pub mod transfer_helper {
     }
     impl<M> ::core::fmt::Debug for TransferHelper<M> {
         fn fmt(&self, f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
-            f.debug_tuple(stringify!(TransferHelper))
-                .field(&self.address())
-                .finish()
+            f.debug_tuple(stringify!(TransferHelper)).field(&self.address()).finish()
         }
     }
     impl<M: ::ethers::providers::Middleware> TransferHelper<M> {
@@ -445,11 +443,13 @@ pub mod transfer_helper {
             address: T,
             client: ::std::sync::Arc<M>,
         ) -> Self {
-            Self(::ethers::contract::Contract::new(
-                address.into(),
-                TRANSFERHELPER_ABI.clone(),
-                client,
-            ))
+            Self(
+                ::ethers::contract::Contract::new(
+                    address.into(),
+                    TRANSFERHELPER_ABI.clone(),
+                    client,
+                ),
+            )
         }
         /// Constructs the general purpose `Deployer` instance based on the provided constructor arguments and sends it.
         /// Returns a new instance of a deployer that returns an instance of this contract after sending the transaction
@@ -492,8 +492,7 @@ pub mod transfer_helper {
         }
     }
     impl<M: ::ethers::providers::Middleware> From<::ethers::contract::Contract<M>>
-        for TransferHelper<M>
-    {
+    for TransferHelper<M> {
         fn from(contract: ::ethers::contract::Contract<M>) -> Self {
             Self::new(contract.address(), contract.client())
         }

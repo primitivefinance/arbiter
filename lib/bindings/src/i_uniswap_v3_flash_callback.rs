@@ -7,16 +7,18 @@ pub use i_uniswap_v3_flash_callback::*;
     clippy::upper_case_acronyms,
     clippy::type_complexity,
     dead_code,
-    non_camel_case_types
+    non_camel_case_types,
 )]
 pub mod i_uniswap_v3_flash_callback {
     #[rustfmt::skip]
     const __ABI: &str = "[{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"fee0\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"fee1\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"bytes\",\"name\":\"data\",\"type\":\"bytes\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"function\",\"name\":\"uniswapV3FlashCallback\",\"outputs\":[]}]";
     ///The parsed JSON ABI of the contract.
-    pub static IUNISWAPV3FLASHCALLBACK_ABI: ::ethers::contract::Lazy<::ethers::core::abi::Abi> =
-        ::ethers::contract::Lazy::new(|| {
-            ::ethers::core::utils::__serde_json::from_str(__ABI).expect("ABI is always valid")
-        });
+    pub static IUNISWAPV3FLASHCALLBACK_ABI: ::ethers::contract::Lazy<
+        ::ethers::core::abi::Abi,
+    > = ::ethers::contract::Lazy::new(|| {
+        ::ethers::core::utils::__serde_json::from_str(__ABI)
+            .expect("ABI is always valid")
+    });
     pub struct IUniswapV3FlashCallback<M>(::ethers::contract::Contract<M>);
     impl<M> ::core::clone::Clone for IUniswapV3FlashCallback<M> {
         fn clone(&self) -> Self {
@@ -48,11 +50,13 @@ pub mod i_uniswap_v3_flash_callback {
             address: T,
             client: ::std::sync::Arc<M>,
         ) -> Self {
-            Self(::ethers::contract::Contract::new(
-                address.into(),
-                IUNISWAPV3FLASHCALLBACK_ABI.clone(),
-                client,
-            ))
+            Self(
+                ::ethers::contract::Contract::new(
+                    address.into(),
+                    IUNISWAPV3FLASHCALLBACK_ABI.clone(),
+                    client,
+                ),
+            )
         }
         ///Calls the contract's `uniswapV3FlashCallback` (0xe9cbafb0) function
         pub fn uniswap_v3_flash_callback(
@@ -67,8 +71,7 @@ pub mod i_uniswap_v3_flash_callback {
         }
     }
     impl<M: ::ethers::providers::Middleware> From<::ethers::contract::Contract<M>>
-        for IUniswapV3FlashCallback<M>
-    {
+    for IUniswapV3FlashCallback<M> {
         fn from(contract: ::ethers::contract::Contract<M>) -> Self {
             Self::new(contract.address(), contract.client())
         }
@@ -82,7 +85,7 @@ pub mod i_uniswap_v3_flash_callback {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(
         name = "uniswapV3FlashCallback",

@@ -7,7 +7,7 @@ pub use uniswap_v2_liquidity_math_library::*;
     clippy::upper_case_acronyms,
     clippy::type_complexity,
     dead_code,
-    non_camel_case_types
+    non_camel_case_types,
 )]
 pub mod uniswap_v2_liquidity_math_library {
     #[rustfmt::skip]
@@ -16,7 +16,8 @@ pub mod uniswap_v2_liquidity_math_library {
     pub static UNISWAPV2LIQUIDITYMATHLIBRARY_ABI: ::ethers::contract::Lazy<
         ::ethers::core::abi::Abi,
     > = ::ethers::contract::Lazy::new(|| {
-        ::ethers::core::utils::__serde_json::from_str(__ABI).expect("ABI is always valid")
+        ::ethers::core::utils::__serde_json::from_str(__ABI)
+            .expect("ABI is always valid")
     });
     #[rustfmt::skip]
     const __BYTECODE: &[u8] = &[
@@ -187,38 +188,38 @@ pub mod uniswap_v2_liquidity_math_library {
         34,
         18,
         32,
-        154,
-        44,
-        141,
-        188,
-        16,
-        193,
+        253,
+        91,
+        26,
+        94,
+        83,
+        73,
+        236,
+        186,
+        189,
+        123,
         40,
-        54,
-        249,
-        110,
-        115,
-        112,
-        92,
-        37,
-        12,
-        148,
-        74,
-        166,
+        100,
+        254,
         78,
-        9,
-        218,
-        119,
-        154,
-        247,
-        121,
-        191,
-        230,
-        227,
-        219,
-        11,
-        251,
-        213,
+        198,
+        46,
+        88,
+        196,
+        194,
+        150,
+        165,
+        149,
+        255,
+        240,
+        134,
+        189,
+        107,
+        232,
+        244,
+        45,
+        13,
+        15,
         100,
         115,
         111,
@@ -232,8 +233,9 @@ pub mod uniswap_v2_liquidity_math_library {
         51,
     ];
     ///The bytecode of the contract.
-    pub static UNISWAPV2LIQUIDITYMATHLIBRARY_BYTECODE: ::ethers::core::types::Bytes =
-        ::ethers::core::types::Bytes::from_static(__BYTECODE);
+    pub static UNISWAPV2LIQUIDITYMATHLIBRARY_BYTECODE: ::ethers::core::types::Bytes = ::ethers::core::types::Bytes::from_static(
+        __BYTECODE,
+    );
     #[rustfmt::skip]
     const __DEPLOYED_BYTECODE: &[u8] = &[
         115,
@@ -368,38 +370,38 @@ pub mod uniswap_v2_liquidity_math_library {
         34,
         18,
         32,
-        154,
-        44,
-        141,
-        188,
-        16,
-        193,
+        253,
+        91,
+        26,
+        94,
+        83,
+        73,
+        236,
+        186,
+        189,
+        123,
         40,
-        54,
-        249,
-        110,
-        115,
-        112,
-        92,
-        37,
-        12,
-        148,
-        74,
-        166,
+        100,
+        254,
         78,
-        9,
-        218,
-        119,
-        154,
-        247,
-        121,
-        191,
-        230,
-        227,
-        219,
-        11,
-        251,
-        213,
+        198,
+        46,
+        88,
+        196,
+        194,
+        150,
+        165,
+        149,
+        255,
+        240,
+        134,
+        189,
+        107,
+        232,
+        244,
+        45,
+        13,
+        15,
         100,
         115,
         111,
@@ -413,8 +415,9 @@ pub mod uniswap_v2_liquidity_math_library {
         51,
     ];
     ///The deployed bytecode of the contract.
-    pub static UNISWAPV2LIQUIDITYMATHLIBRARY_DEPLOYED_BYTECODE: ::ethers::core::types::Bytes =
-        ::ethers::core::types::Bytes::from_static(__DEPLOYED_BYTECODE);
+    pub static UNISWAPV2LIQUIDITYMATHLIBRARY_DEPLOYED_BYTECODE: ::ethers::core::types::Bytes = ::ethers::core::types::Bytes::from_static(
+        __DEPLOYED_BYTECODE,
+    );
     pub struct UniswapV2LiquidityMathLibrary<M>(::ethers::contract::Contract<M>);
     impl<M> ::core::clone::Clone for UniswapV2LiquidityMathLibrary<M> {
         fn clone(&self) -> Self {
@@ -446,11 +449,13 @@ pub mod uniswap_v2_liquidity_math_library {
             address: T,
             client: ::std::sync::Arc<M>,
         ) -> Self {
-            Self(::ethers::contract::Contract::new(
-                address.into(),
-                UNISWAPV2LIQUIDITYMATHLIBRARY_ABI.clone(),
-                client,
-            ))
+            Self(
+                ::ethers::contract::Contract::new(
+                    address.into(),
+                    UNISWAPV2LIQUIDITYMATHLIBRARY_ABI.clone(),
+                    client,
+                ),
+            )
         }
         /// Constructs the general purpose `Deployer` instance based on the provided constructor arguments and sends it.
         /// Returns a new instance of a deployer that returns an instance of this contract after sending the transaction
@@ -493,8 +498,7 @@ pub mod uniswap_v2_liquidity_math_library {
         }
     }
     impl<M: ::ethers::providers::Middleware> From<::ethers::contract::Contract<M>>
-        for UniswapV2LiquidityMathLibrary<M>
-    {
+    for UniswapV2LiquidityMathLibrary<M> {
         fn from(contract: ::ethers::contract::Contract<M>) -> Self {
             Self::new(contract.address(), contract.client())
         }

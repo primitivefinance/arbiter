@@ -7,16 +7,18 @@ pub use mock_time_uniswap_v3_pool::*;
     clippy::upper_case_acronyms,
     clippy::type_complexity,
     dead_code,
-    non_camel_case_types
+    non_camel_case_types,
 )]
 pub mod mock_time_uniswap_v3_pool {
     #[rustfmt::skip]
     const __ABI: &str = "[{\"inputs\":[{\"internalType\":\"address\",\"name\":\"owner\",\"type\":\"address\",\"components\":[],\"indexed\":true},{\"internalType\":\"int24\",\"name\":\"tickLower\",\"type\":\"int24\",\"components\":[],\"indexed\":true},{\"internalType\":\"int24\",\"name\":\"tickUpper\",\"type\":\"int24\",\"components\":[],\"indexed\":true},{\"internalType\":\"uint128\",\"name\":\"amount\",\"type\":\"uint128\",\"components\":[],\"indexed\":false},{\"internalType\":\"uint256\",\"name\":\"amount0\",\"type\":\"uint256\",\"components\":[],\"indexed\":false},{\"internalType\":\"uint256\",\"name\":\"amount1\",\"type\":\"uint256\",\"components\":[],\"indexed\":false}],\"type\":\"event\",\"name\":\"Burn\",\"outputs\":[],\"anonymous\":false},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"owner\",\"type\":\"address\",\"components\":[],\"indexed\":true},{\"internalType\":\"address\",\"name\":\"recipient\",\"type\":\"address\",\"components\":[],\"indexed\":false},{\"internalType\":\"int24\",\"name\":\"tickLower\",\"type\":\"int24\",\"components\":[],\"indexed\":true},{\"internalType\":\"int24\",\"name\":\"tickUpper\",\"type\":\"int24\",\"components\":[],\"indexed\":true},{\"internalType\":\"uint128\",\"name\":\"amount0\",\"type\":\"uint128\",\"components\":[],\"indexed\":false},{\"internalType\":\"uint128\",\"name\":\"amount1\",\"type\":\"uint128\",\"components\":[],\"indexed\":false}],\"type\":\"event\",\"name\":\"Collect\",\"outputs\":[],\"anonymous\":false},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"sender\",\"type\":\"address\",\"components\":[],\"indexed\":true},{\"internalType\":\"address\",\"name\":\"recipient\",\"type\":\"address\",\"components\":[],\"indexed\":true},{\"internalType\":\"uint128\",\"name\":\"amount0\",\"type\":\"uint128\",\"components\":[],\"indexed\":false},{\"internalType\":\"uint128\",\"name\":\"amount1\",\"type\":\"uint128\",\"components\":[],\"indexed\":false}],\"type\":\"event\",\"name\":\"CollectProtocol\",\"outputs\":[],\"anonymous\":false},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"sender\",\"type\":\"address\",\"components\":[],\"indexed\":true},{\"internalType\":\"address\",\"name\":\"recipient\",\"type\":\"address\",\"components\":[],\"indexed\":true},{\"internalType\":\"uint256\",\"name\":\"amount0\",\"type\":\"uint256\",\"components\":[],\"indexed\":false},{\"internalType\":\"uint256\",\"name\":\"amount1\",\"type\":\"uint256\",\"components\":[],\"indexed\":false},{\"internalType\":\"uint256\",\"name\":\"paid0\",\"type\":\"uint256\",\"components\":[],\"indexed\":false},{\"internalType\":\"uint256\",\"name\":\"paid1\",\"type\":\"uint256\",\"components\":[],\"indexed\":false}],\"type\":\"event\",\"name\":\"Flash\",\"outputs\":[],\"anonymous\":false},{\"inputs\":[{\"internalType\":\"uint16\",\"name\":\"observationCardinalityNextOld\",\"type\":\"uint16\",\"components\":[],\"indexed\":false},{\"internalType\":\"uint16\",\"name\":\"observationCardinalityNextNew\",\"type\":\"uint16\",\"components\":[],\"indexed\":false}],\"type\":\"event\",\"name\":\"IncreaseObservationCardinalityNext\",\"outputs\":[],\"anonymous\":false},{\"inputs\":[{\"internalType\":\"uint160\",\"name\":\"sqrtPriceX96\",\"type\":\"uint160\",\"components\":[],\"indexed\":false},{\"internalType\":\"int24\",\"name\":\"tick\",\"type\":\"int24\",\"components\":[],\"indexed\":false}],\"type\":\"event\",\"name\":\"Initialize\",\"outputs\":[],\"anonymous\":false},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"sender\",\"type\":\"address\",\"components\":[],\"indexed\":false},{\"internalType\":\"address\",\"name\":\"owner\",\"type\":\"address\",\"components\":[],\"indexed\":true},{\"internalType\":\"int24\",\"name\":\"tickLower\",\"type\":\"int24\",\"components\":[],\"indexed\":true},{\"internalType\":\"int24\",\"name\":\"tickUpper\",\"type\":\"int24\",\"components\":[],\"indexed\":true},{\"internalType\":\"uint128\",\"name\":\"amount\",\"type\":\"uint128\",\"components\":[],\"indexed\":false},{\"internalType\":\"uint256\",\"name\":\"amount0\",\"type\":\"uint256\",\"components\":[],\"indexed\":false},{\"internalType\":\"uint256\",\"name\":\"amount1\",\"type\":\"uint256\",\"components\":[],\"indexed\":false}],\"type\":\"event\",\"name\":\"Mint\",\"outputs\":[],\"anonymous\":false},{\"inputs\":[{\"internalType\":\"uint8\",\"name\":\"feeProtocol0Old\",\"type\":\"uint8\",\"components\":[],\"indexed\":false},{\"internalType\":\"uint8\",\"name\":\"feeProtocol1Old\",\"type\":\"uint8\",\"components\":[],\"indexed\":false},{\"internalType\":\"uint8\",\"name\":\"feeProtocol0New\",\"type\":\"uint8\",\"components\":[],\"indexed\":false},{\"internalType\":\"uint8\",\"name\":\"feeProtocol1New\",\"type\":\"uint8\",\"components\":[],\"indexed\":false}],\"type\":\"event\",\"name\":\"SetFeeProtocol\",\"outputs\":[],\"anonymous\":false},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"sender\",\"type\":\"address\",\"components\":[],\"indexed\":true},{\"internalType\":\"address\",\"name\":\"recipient\",\"type\":\"address\",\"components\":[],\"indexed\":true},{\"internalType\":\"int256\",\"name\":\"amount0\",\"type\":\"int256\",\"components\":[],\"indexed\":false},{\"internalType\":\"int256\",\"name\":\"amount1\",\"type\":\"int256\",\"components\":[],\"indexed\":false},{\"internalType\":\"uint160\",\"name\":\"sqrtPriceX96\",\"type\":\"uint160\",\"components\":[],\"indexed\":false},{\"internalType\":\"uint128\",\"name\":\"liquidity\",\"type\":\"uint128\",\"components\":[],\"indexed\":false},{\"internalType\":\"int24\",\"name\":\"tick\",\"type\":\"int24\",\"components\":[],\"indexed\":false}],\"type\":\"event\",\"name\":\"Swap\",\"outputs\":[],\"anonymous\":false},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"by\",\"type\":\"uint256\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"function\",\"name\":\"advanceTime\",\"outputs\":[]},{\"inputs\":[{\"internalType\":\"int24\",\"name\":\"tickLower\",\"type\":\"int24\",\"components\":[]},{\"internalType\":\"int24\",\"name\":\"tickUpper\",\"type\":\"int24\",\"components\":[]},{\"internalType\":\"uint128\",\"name\":\"amount\",\"type\":\"uint128\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"function\",\"name\":\"burn\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"amount0\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"amount1\",\"type\":\"uint256\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"recipient\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"int24\",\"name\":\"tickLower\",\"type\":\"int24\",\"components\":[]},{\"internalType\":\"int24\",\"name\":\"tickUpper\",\"type\":\"int24\",\"components\":[]},{\"internalType\":\"uint128\",\"name\":\"amount0Requested\",\"type\":\"uint128\",\"components\":[]},{\"internalType\":\"uint128\",\"name\":\"amount1Requested\",\"type\":\"uint128\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"function\",\"name\":\"collect\",\"outputs\":[{\"internalType\":\"uint128\",\"name\":\"amount0\",\"type\":\"uint128\",\"components\":[]},{\"internalType\":\"uint128\",\"name\":\"amount1\",\"type\":\"uint128\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"recipient\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint128\",\"name\":\"amount0Requested\",\"type\":\"uint128\",\"components\":[]},{\"internalType\":\"uint128\",\"name\":\"amount1Requested\",\"type\":\"uint128\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"function\",\"name\":\"collectProtocol\",\"outputs\":[{\"internalType\":\"uint128\",\"name\":\"amount0\",\"type\":\"uint128\",\"components\":[]},{\"internalType\":\"uint128\",\"name\":\"amount1\",\"type\":\"uint128\",\"components\":[]}]},{\"inputs\":[],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"factory\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\",\"components\":[]}]},{\"inputs\":[],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"fee\",\"outputs\":[{\"internalType\":\"uint24\",\"name\":\"\",\"type\":\"uint24\",\"components\":[]}]},{\"inputs\":[],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"feeGrowthGlobal0X128\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\",\"components\":[]}]},{\"inputs\":[],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"feeGrowthGlobal1X128\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"recipient\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"amount0\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"amount1\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"bytes\",\"name\":\"data\",\"type\":\"bytes\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"function\",\"name\":\"flash\",\"outputs\":[]},{\"inputs\":[{\"internalType\":\"uint16\",\"name\":\"observationCardinalityNext\",\"type\":\"uint16\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"function\",\"name\":\"increaseObservationCardinalityNext\",\"outputs\":[]},{\"inputs\":[{\"internalType\":\"uint160\",\"name\":\"sqrtPriceX96\",\"type\":\"uint160\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"function\",\"name\":\"initialize\",\"outputs\":[]},{\"inputs\":[],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"liquidity\",\"outputs\":[{\"internalType\":\"uint128\",\"name\":\"\",\"type\":\"uint128\",\"components\":[]}]},{\"inputs\":[],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"maxLiquidityPerTick\",\"outputs\":[{\"internalType\":\"uint128\",\"name\":\"\",\"type\":\"uint128\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"recipient\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"int24\",\"name\":\"tickLower\",\"type\":\"int24\",\"components\":[]},{\"internalType\":\"int24\",\"name\":\"tickUpper\",\"type\":\"int24\",\"components\":[]},{\"internalType\":\"uint128\",\"name\":\"amount\",\"type\":\"uint128\",\"components\":[]},{\"internalType\":\"bytes\",\"name\":\"data\",\"type\":\"bytes\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"function\",\"name\":\"mint\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"amount0\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"amount1\",\"type\":\"uint256\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\",\"components\":[]}],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"observations\",\"outputs\":[{\"internalType\":\"uint32\",\"name\":\"blockTimestamp\",\"type\":\"uint32\",\"components\":[]},{\"internalType\":\"int56\",\"name\":\"tickCumulative\",\"type\":\"int56\",\"components\":[]},{\"internalType\":\"uint160\",\"name\":\"secondsPerLiquidityCumulativeX128\",\"type\":\"uint160\",\"components\":[]},{\"internalType\":\"bool\",\"name\":\"initialized\",\"type\":\"bool\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"uint32[]\",\"name\":\"secondsAgos\",\"type\":\"uint32[]\",\"components\":[]}],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"observe\",\"outputs\":[{\"internalType\":\"int56[]\",\"name\":\"tickCumulatives\",\"type\":\"int56[]\",\"components\":[]},{\"internalType\":\"uint160[]\",\"name\":\"secondsPerLiquidityCumulativeX128s\",\"type\":\"uint160[]\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\",\"components\":[]}],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"positions\",\"outputs\":[{\"internalType\":\"uint128\",\"name\":\"liquidity\",\"type\":\"uint128\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"feeGrowthInside0LastX128\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"feeGrowthInside1LastX128\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"uint128\",\"name\":\"tokensOwed0\",\"type\":\"uint128\",\"components\":[]},{\"internalType\":\"uint128\",\"name\":\"tokensOwed1\",\"type\":\"uint128\",\"components\":[]}]},{\"inputs\":[],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"protocolFees\",\"outputs\":[{\"internalType\":\"uint128\",\"name\":\"token0\",\"type\":\"uint128\",\"components\":[]},{\"internalType\":\"uint128\",\"name\":\"token1\",\"type\":\"uint128\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"_feeGrowthGlobal0X128\",\"type\":\"uint256\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"function\",\"name\":\"setFeeGrowthGlobal0X128\",\"outputs\":[]},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"_feeGrowthGlobal1X128\",\"type\":\"uint256\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"function\",\"name\":\"setFeeGrowthGlobal1X128\",\"outputs\":[]},{\"inputs\":[{\"internalType\":\"uint8\",\"name\":\"feeProtocol0\",\"type\":\"uint8\",\"components\":[]},{\"internalType\":\"uint8\",\"name\":\"feeProtocol1\",\"type\":\"uint8\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"function\",\"name\":\"setFeeProtocol\",\"outputs\":[]},{\"inputs\":[],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"slot0\",\"outputs\":[{\"internalType\":\"uint160\",\"name\":\"sqrtPriceX96\",\"type\":\"uint160\",\"components\":[]},{\"internalType\":\"int24\",\"name\":\"tick\",\"type\":\"int24\",\"components\":[]},{\"internalType\":\"uint16\",\"name\":\"observationIndex\",\"type\":\"uint16\",\"components\":[]},{\"internalType\":\"uint16\",\"name\":\"observationCardinality\",\"type\":\"uint16\",\"components\":[]},{\"internalType\":\"uint16\",\"name\":\"observationCardinalityNext\",\"type\":\"uint16\",\"components\":[]},{\"internalType\":\"uint8\",\"name\":\"feeProtocol\",\"type\":\"uint8\",\"components\":[]},{\"internalType\":\"bool\",\"name\":\"unlocked\",\"type\":\"bool\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"int24\",\"name\":\"tickLower\",\"type\":\"int24\",\"components\":[]},{\"internalType\":\"int24\",\"name\":\"tickUpper\",\"type\":\"int24\",\"components\":[]}],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"snapshotCumulativesInside\",\"outputs\":[{\"internalType\":\"int56\",\"name\":\"tickCumulativeInside\",\"type\":\"int56\",\"components\":[]},{\"internalType\":\"uint160\",\"name\":\"secondsPerLiquidityInsideX128\",\"type\":\"uint160\",\"components\":[]},{\"internalType\":\"uint32\",\"name\":\"secondsInside\",\"type\":\"uint32\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"recipient\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"bool\",\"name\":\"zeroForOne\",\"type\":\"bool\",\"components\":[]},{\"internalType\":\"int256\",\"name\":\"amountSpecified\",\"type\":\"int256\",\"components\":[]},{\"internalType\":\"uint160\",\"name\":\"sqrtPriceLimitX96\",\"type\":\"uint160\",\"components\":[]},{\"internalType\":\"bytes\",\"name\":\"data\",\"type\":\"bytes\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"function\",\"name\":\"swap\",\"outputs\":[{\"internalType\":\"int256\",\"name\":\"amount0\",\"type\":\"int256\",\"components\":[]},{\"internalType\":\"int256\",\"name\":\"amount1\",\"type\":\"int256\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"int16\",\"name\":\"\",\"type\":\"int16\",\"components\":[]}],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"tickBitmap\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\",\"components\":[]}]},{\"inputs\":[],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"tickSpacing\",\"outputs\":[{\"internalType\":\"int24\",\"name\":\"\",\"type\":\"int24\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"int24\",\"name\":\"\",\"type\":\"int24\",\"components\":[]}],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"ticks\",\"outputs\":[{\"internalType\":\"uint128\",\"name\":\"liquidityGross\",\"type\":\"uint128\",\"components\":[]},{\"internalType\":\"int128\",\"name\":\"liquidityNet\",\"type\":\"int128\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"feeGrowthOutside0X128\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"feeGrowthOutside1X128\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"int56\",\"name\":\"tickCumulativeOutside\",\"type\":\"int56\",\"components\":[]},{\"internalType\":\"uint160\",\"name\":\"secondsPerLiquidityOutsideX128\",\"type\":\"uint160\",\"components\":[]},{\"internalType\":\"uint32\",\"name\":\"secondsOutside\",\"type\":\"uint32\",\"components\":[]},{\"internalType\":\"bool\",\"name\":\"initialized\",\"type\":\"bool\",\"components\":[]}]},{\"inputs\":[],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"time\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\",\"components\":[]}]},{\"inputs\":[],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"token0\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\",\"components\":[]}]},{\"inputs\":[],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"token1\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\",\"components\":[]}]}]";
     ///The parsed JSON ABI of the contract.
-    pub static MOCKTIMEUNISWAPV3POOL_ABI: ::ethers::contract::Lazy<::ethers::core::abi::Abi> =
-        ::ethers::contract::Lazy::new(|| {
-            ::ethers::core::utils::__serde_json::from_str(__ABI).expect("ABI is always valid")
-        });
+    pub static MOCKTIMEUNISWAPV3POOL_ABI: ::ethers::contract::Lazy<
+        ::ethers::core::abi::Abi,
+    > = ::ethers::contract::Lazy::new(|| {
+        ::ethers::core::utils::__serde_json::from_str(__ABI)
+            .expect("ABI is always valid")
+    });
     #[rustfmt::skip]
     const __BYTECODE: &[u8] = &[
         97,
@@ -25100,38 +25102,38 @@ pub mod mock_time_uniswap_v3_pool {
         34,
         18,
         32,
-        110,
-        236,
-        53,
-        62,
-        218,
-        121,
-        128,
-        158,
-        162,
-        218,
-        207,
-        194,
-        139,
-        122,
-        154,
-        208,
-        59,
-        167,
-        9,
-        18,
-        23,
-        196,
-        116,
-        249,
-        204,
-        231,
-        213,
-        244,
+        129,
+        115,
+        142,
+        160,
+        55,
+        164,
+        223,
+        210,
+        171,
+        248,
+        147,
+        129,
         177,
-        144,
-        241,
-        183,
+        253,
+        22,
+        22,
+        32,
+        79,
+        212,
+        243,
+        104,
+        81,
+        169,
+        212,
+        224,
+        59,
+        207,
+        16,
+        123,
+        13,
+        75,
+        11,
         100,
         115,
         111,
@@ -25145,8 +25147,9 @@ pub mod mock_time_uniswap_v3_pool {
         51,
     ];
     ///The bytecode of the contract.
-    pub static MOCKTIMEUNISWAPV3POOL_BYTECODE: ::ethers::core::types::Bytes =
-        ::ethers::core::types::Bytes::from_static(__BYTECODE);
+    pub static MOCKTIMEUNISWAPV3POOL_BYTECODE: ::ethers::core::types::Bytes = ::ethers::core::types::Bytes::from_static(
+        __BYTECODE,
+    );
     #[rustfmt::skip]
     const __DEPLOYED_BYTECODE: &[u8] = &[
         96,
@@ -49441,38 +49444,38 @@ pub mod mock_time_uniswap_v3_pool {
         34,
         18,
         32,
-        110,
-        236,
-        53,
-        62,
-        218,
-        121,
-        128,
-        158,
-        162,
-        218,
-        207,
-        194,
-        139,
-        122,
-        154,
-        208,
-        59,
-        167,
-        9,
-        18,
-        23,
-        196,
-        116,
-        249,
-        204,
-        231,
-        213,
-        244,
+        129,
+        115,
+        142,
+        160,
+        55,
+        164,
+        223,
+        210,
+        171,
+        248,
+        147,
+        129,
         177,
-        144,
-        241,
-        183,
+        253,
+        22,
+        22,
+        32,
+        79,
+        212,
+        243,
+        104,
+        81,
+        169,
+        212,
+        224,
+        59,
+        207,
+        16,
+        123,
+        13,
+        75,
+        11,
         100,
         115,
         111,
@@ -49486,8 +49489,9 @@ pub mod mock_time_uniswap_v3_pool {
         51,
     ];
     ///The deployed bytecode of the contract.
-    pub static MOCKTIMEUNISWAPV3POOL_DEPLOYED_BYTECODE: ::ethers::core::types::Bytes =
-        ::ethers::core::types::Bytes::from_static(__DEPLOYED_BYTECODE);
+    pub static MOCKTIMEUNISWAPV3POOL_DEPLOYED_BYTECODE: ::ethers::core::types::Bytes = ::ethers::core::types::Bytes::from_static(
+        __DEPLOYED_BYTECODE,
+    );
     pub struct MockTimeUniswapV3Pool<M>(::ethers::contract::Contract<M>);
     impl<M> ::core::clone::Clone for MockTimeUniswapV3Pool<M> {
         fn clone(&self) -> Self {
@@ -49519,11 +49523,13 @@ pub mod mock_time_uniswap_v3_pool {
             address: T,
             client: ::std::sync::Arc<M>,
         ) -> Self {
-            Self(::ethers::contract::Contract::new(
-                address.into(),
-                MOCKTIMEUNISWAPV3POOL_ABI.clone(),
-                client,
-            ))
+            Self(
+                ::ethers::contract::Contract::new(
+                    address.into(),
+                    MOCKTIMEUNISWAPV3POOL_ABI.clone(),
+                    client,
+                ),
+            )
         }
         /// Constructs the general purpose `Deployer` instance based on the provided constructor arguments and sends it.
         /// Returns a new instance of a deployer that returns an instance of this contract after sending the transaction
@@ -49626,7 +49632,10 @@ pub mod mock_time_uniswap_v3_pool {
         ///Calls the contract's `factory` (0xc45a0155) function
         pub fn factory(
             &self,
-        ) -> ::ethers::contract::builders::ContractCall<M, ::ethers::core::types::Address> {
+        ) -> ::ethers::contract::builders::ContractCall<
+            M,
+            ::ethers::core::types::Address,
+        > {
             self.0
                 .method_hash([196, 90, 1, 85], ())
                 .expect("method not found (this should never happen)")
@@ -49734,10 +49743,7 @@ pub mod mock_time_uniswap_v3_pool {
             seconds_agos: ::std::vec::Vec<u32>,
         ) -> ::ethers::contract::builders::ContractCall<
             M,
-            (
-                ::std::vec::Vec<i64>,
-                ::std::vec::Vec<::ethers::core::types::U256>,
-            ),
+            (::std::vec::Vec<i64>, ::std::vec::Vec<::ethers::core::types::U256>),
         > {
             self.0
                 .method_hash([136, 59, 219, 253], seconds_agos)
@@ -49749,20 +49755,16 @@ pub mod mock_time_uniswap_v3_pool {
             p0: [u8; 32],
         ) -> ::ethers::contract::builders::ContractCall<
             M,
-            (
-                u128,
-                ::ethers::core::types::U256,
-                ::ethers::core::types::U256,
-                u128,
-                u128,
-            ),
+            (u128, ::ethers::core::types::U256, ::ethers::core::types::U256, u128, u128),
         > {
             self.0
                 .method_hash([81, 78, 164, 191], p0)
                 .expect("method not found (this should never happen)")
         }
         ///Calls the contract's `protocolFees` (0x1ad8b03b) function
-        pub fn protocol_fees(&self) -> ::ethers::contract::builders::ContractCall<M, (u128, u128)> {
+        pub fn protocol_fees(
+            &self,
+        ) -> ::ethers::contract::builders::ContractCall<M, (u128, u128)> {
             self.0
                 .method_hash([26, 216, 176, 59], ())
                 .expect("method not found (this should never happen)")
@@ -49811,8 +49813,10 @@ pub mod mock_time_uniswap_v3_pool {
             &self,
             tick_lower: i32,
             tick_upper: i32,
-        ) -> ::ethers::contract::builders::ContractCall<M, (i64, ::ethers::core::types::U256, u32)>
-        {
+        ) -> ::ethers::contract::builders::ContractCall<
+            M,
+            (i64, ::ethers::core::types::U256, u32),
+        > {
             self.0
                 .method_hash([163, 136, 7, 242], (tick_lower, tick_upper))
                 .expect("method not found (this should never happen)")
@@ -49852,7 +49856,9 @@ pub mod mock_time_uniswap_v3_pool {
                 .expect("method not found (this should never happen)")
         }
         ///Calls the contract's `tickSpacing` (0xd0c93a7c) function
-        pub fn tick_spacing(&self) -> ::ethers::contract::builders::ContractCall<M, i32> {
+        pub fn tick_spacing(
+            &self,
+        ) -> ::ethers::contract::builders::ContractCall<M, i32> {
             self.0
                 .method_hash([208, 201, 58, 124], ())
                 .expect("method not found (this should never happen)")
@@ -49889,7 +49895,10 @@ pub mod mock_time_uniswap_v3_pool {
         ///Calls the contract's `token0` (0x0dfe1681) function
         pub fn token_0(
             &self,
-        ) -> ::ethers::contract::builders::ContractCall<M, ::ethers::core::types::Address> {
+        ) -> ::ethers::contract::builders::ContractCall<
+            M,
+            ::ethers::core::types::Address,
+        > {
             self.0
                 .method_hash([13, 254, 22, 129], ())
                 .expect("method not found (this should never happen)")
@@ -49897,7 +49906,10 @@ pub mod mock_time_uniswap_v3_pool {
         ///Calls the contract's `token1` (0xd21220a7) function
         pub fn token_1(
             &self,
-        ) -> ::ethers::contract::builders::ContractCall<M, ::ethers::core::types::Address> {
+        ) -> ::ethers::contract::builders::ContractCall<
+            M,
+            ::ethers::core::types::Address,
+        > {
             self.0
                 .method_hash([210, 18, 32, 167], ())
                 .expect("method not found (this should never happen)")
@@ -49917,8 +49929,11 @@ pub mod mock_time_uniswap_v3_pool {
         ///Gets the contract's `CollectProtocol` event
         pub fn collect_protocol_filter(
             &self,
-        ) -> ::ethers::contract::builders::Event<::std::sync::Arc<M>, M, CollectProtocolFilter>
-        {
+        ) -> ::ethers::contract::builders::Event<
+            ::std::sync::Arc<M>,
+            M,
+            CollectProtocolFilter,
+        > {
             self.0.event()
         }
         ///Gets the contract's `Flash` event
@@ -49940,7 +49955,11 @@ pub mod mock_time_uniswap_v3_pool {
         ///Gets the contract's `Initialize` event
         pub fn initialize_filter(
             &self,
-        ) -> ::ethers::contract::builders::Event<::std::sync::Arc<M>, M, InitializeFilter> {
+        ) -> ::ethers::contract::builders::Event<
+            ::std::sync::Arc<M>,
+            M,
+            InitializeFilter,
+        > {
             self.0.event()
         }
         ///Gets the contract's `Mint` event
@@ -49952,8 +49971,11 @@ pub mod mock_time_uniswap_v3_pool {
         ///Gets the contract's `SetFeeProtocol` event
         pub fn set_fee_protocol_filter(
             &self,
-        ) -> ::ethers::contract::builders::Event<::std::sync::Arc<M>, M, SetFeeProtocolFilter>
-        {
+        ) -> ::ethers::contract::builders::Event<
+            ::std::sync::Arc<M>,
+            M,
+            SetFeeProtocolFilter,
+        > {
             self.0.event()
         }
         ///Gets the contract's `Swap` event
@@ -49965,15 +49987,16 @@ pub mod mock_time_uniswap_v3_pool {
         /// Returns an `Event` builder for all the events of this contract.
         pub fn events(
             &self,
-        ) -> ::ethers::contract::builders::Event<::std::sync::Arc<M>, M, MockTimeUniswapV3PoolEvents>
-        {
-            self.0
-                .event_with_filter(::core::default::Default::default())
+        ) -> ::ethers::contract::builders::Event<
+            ::std::sync::Arc<M>,
+            M,
+            MockTimeUniswapV3PoolEvents,
+        > {
+            self.0.event_with_filter(::core::default::Default::default())
         }
     }
     impl<M: ::ethers::providers::Middleware> From<::ethers::contract::Contract<M>>
-        for MockTimeUniswapV3Pool<M>
-    {
+    for MockTimeUniswapV3Pool<M> {
         fn from(contract: ::ethers::contract::Contract<M>) -> Self {
             Self::new(contract.address(), contract.client())
         }
@@ -49986,12 +50009,9 @@ pub mod mock_time_uniswap_v3_pool {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
-    #[ethevent(
-        name = "Burn",
-        abi = "Burn(address,int24,int24,uint128,uint256,uint256)"
-    )]
+    #[ethevent(name = "Burn", abi = "Burn(address,int24,int24,uint128,uint256,uint256)")]
     pub struct BurnFilter {
         #[ethevent(indexed)]
         pub owner: ::ethers::core::types::Address,
@@ -50011,7 +50031,7 @@ pub mod mock_time_uniswap_v3_pool {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethevent(
         name = "Collect",
@@ -50036,7 +50056,7 @@ pub mod mock_time_uniswap_v3_pool {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethevent(
         name = "CollectProtocol",
@@ -50058,7 +50078,7 @@ pub mod mock_time_uniswap_v3_pool {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethevent(
         name = "Flash",
@@ -50082,7 +50102,7 @@ pub mod mock_time_uniswap_v3_pool {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethevent(
         name = "IncreaseObservationCardinalityNext",
@@ -50100,7 +50120,7 @@ pub mod mock_time_uniswap_v3_pool {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethevent(name = "Initialize", abi = "Initialize(uint160,int24)")]
     pub struct InitializeFilter {
@@ -50115,7 +50135,7 @@ pub mod mock_time_uniswap_v3_pool {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethevent(
         name = "Mint",
@@ -50141,12 +50161,9 @@ pub mod mock_time_uniswap_v3_pool {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
-    #[ethevent(
-        name = "SetFeeProtocol",
-        abi = "SetFeeProtocol(uint8,uint8,uint8,uint8)"
-    )]
+    #[ethevent(name = "SetFeeProtocol", abi = "SetFeeProtocol(uint8,uint8,uint8,uint8)")]
     pub struct SetFeeProtocolFilter {
         pub fee_protocol_0_old: u8,
         pub fee_protocol_1_old: u8,
@@ -50161,7 +50178,7 @@ pub mod mock_time_uniswap_v3_pool {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethevent(
         name = "Swap",
@@ -50185,7 +50202,9 @@ pub mod mock_time_uniswap_v3_pool {
         CollectFilter(CollectFilter),
         CollectProtocolFilter(CollectProtocolFilter),
         FlashFilter(FlashFilter),
-        IncreaseObservationCardinalityNextFilter(IncreaseObservationCardinalityNextFilter),
+        IncreaseObservationCardinalityNextFilter(
+            IncreaseObservationCardinalityNextFilter,
+        ),
         InitializeFilter(InitializeFilter),
         MintFilter(MintFilter),
         SetFeeProtocolFilter(SetFeeProtocolFilter),
@@ -50207,9 +50226,12 @@ pub mod mock_time_uniswap_v3_pool {
             if let Ok(decoded) = FlashFilter::decode_log(log) {
                 return Ok(MockTimeUniswapV3PoolEvents::FlashFilter(decoded));
             }
-            if let Ok(decoded) = IncreaseObservationCardinalityNextFilter::decode_log(log) {
+            if let Ok(decoded)
+                = IncreaseObservationCardinalityNextFilter::decode_log(log) {
                 return Ok(
-                    MockTimeUniswapV3PoolEvents::IncreaseObservationCardinalityNextFilter(decoded),
+                    MockTimeUniswapV3PoolEvents::IncreaseObservationCardinalityNextFilter(
+                        decoded,
+                    ),
                 );
             }
             if let Ok(decoded) = InitializeFilter::decode_log(log) {
@@ -50232,14 +50254,18 @@ pub mod mock_time_uniswap_v3_pool {
             match self {
                 Self::BurnFilter(element) => ::core::fmt::Display::fmt(element, f),
                 Self::CollectFilter(element) => ::core::fmt::Display::fmt(element, f),
-                Self::CollectProtocolFilter(element) => ::core::fmt::Display::fmt(element, f),
+                Self::CollectProtocolFilter(element) => {
+                    ::core::fmt::Display::fmt(element, f)
+                }
                 Self::FlashFilter(element) => ::core::fmt::Display::fmt(element, f),
                 Self::IncreaseObservationCardinalityNextFilter(element) => {
                     ::core::fmt::Display::fmt(element, f)
                 }
                 Self::InitializeFilter(element) => ::core::fmt::Display::fmt(element, f),
                 Self::MintFilter(element) => ::core::fmt::Display::fmt(element, f),
-                Self::SetFeeProtocolFilter(element) => ::core::fmt::Display::fmt(element, f),
+                Self::SetFeeProtocolFilter(element) => {
+                    ::core::fmt::Display::fmt(element, f)
+                }
                 Self::SwapFilter(element) => ::core::fmt::Display::fmt(element, f),
             }
         }
@@ -50265,8 +50291,7 @@ pub mod mock_time_uniswap_v3_pool {
         }
     }
     impl ::core::convert::From<IncreaseObservationCardinalityNextFilter>
-        for MockTimeUniswapV3PoolEvents
-    {
+    for MockTimeUniswapV3PoolEvents {
         fn from(value: IncreaseObservationCardinalityNextFilter) -> Self {
             Self::IncreaseObservationCardinalityNextFilter(value)
         }
@@ -50300,7 +50325,7 @@ pub mod mock_time_uniswap_v3_pool {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(name = "advanceTime", abi = "advanceTime(uint256)")]
     pub struct AdvanceTimeCall {
@@ -50315,7 +50340,7 @@ pub mod mock_time_uniswap_v3_pool {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(name = "burn", abi = "burn(int24,int24,uint128)")]
     pub struct BurnCall {
@@ -50332,7 +50357,7 @@ pub mod mock_time_uniswap_v3_pool {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(name = "collect", abi = "collect(address,int24,int24,uint128,uint128)")]
     pub struct CollectCall {
@@ -50351,7 +50376,7 @@ pub mod mock_time_uniswap_v3_pool {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(
         name = "collectProtocol",
@@ -50371,7 +50396,7 @@ pub mod mock_time_uniswap_v3_pool {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(name = "factory", abi = "factory()")]
     pub struct FactoryCall;
@@ -50384,7 +50409,7 @@ pub mod mock_time_uniswap_v3_pool {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(name = "fee", abi = "fee()")]
     pub struct FeeCall;
@@ -50397,7 +50422,7 @@ pub mod mock_time_uniswap_v3_pool {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(name = "feeGrowthGlobal0X128", abi = "feeGrowthGlobal0X128()")]
     pub struct FeeGrowthGlobal0X128Call;
@@ -50410,7 +50435,7 @@ pub mod mock_time_uniswap_v3_pool {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(name = "feeGrowthGlobal1X128", abi = "feeGrowthGlobal1X128()")]
     pub struct FeeGrowthGlobal1X128Call;
@@ -50423,7 +50448,7 @@ pub mod mock_time_uniswap_v3_pool {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(name = "flash", abi = "flash(address,uint256,uint256,bytes)")]
     pub struct FlashCall {
@@ -50441,7 +50466,7 @@ pub mod mock_time_uniswap_v3_pool {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(
         name = "increaseObservationCardinalityNext",
@@ -50459,7 +50484,7 @@ pub mod mock_time_uniswap_v3_pool {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(name = "initialize", abi = "initialize(uint160)")]
     pub struct InitializeCall {
@@ -50474,7 +50499,7 @@ pub mod mock_time_uniswap_v3_pool {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(name = "liquidity", abi = "liquidity()")]
     pub struct LiquidityCall;
@@ -50487,7 +50512,7 @@ pub mod mock_time_uniswap_v3_pool {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(name = "maxLiquidityPerTick", abi = "maxLiquidityPerTick()")]
     pub struct MaxLiquidityPerTickCall;
@@ -50500,7 +50525,7 @@ pub mod mock_time_uniswap_v3_pool {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(name = "mint", abi = "mint(address,int24,int24,uint128,bytes)")]
     pub struct MintCall {
@@ -50519,7 +50544,7 @@ pub mod mock_time_uniswap_v3_pool {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(name = "observations", abi = "observations(uint256)")]
     pub struct ObservationsCall(pub ::ethers::core::types::U256);
@@ -50532,7 +50557,7 @@ pub mod mock_time_uniswap_v3_pool {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(name = "observe", abi = "observe(uint32[])")]
     pub struct ObserveCall {
@@ -50547,7 +50572,7 @@ pub mod mock_time_uniswap_v3_pool {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(name = "positions", abi = "positions(bytes32)")]
     pub struct PositionsCall(pub [u8; 32]);
@@ -50560,7 +50585,7 @@ pub mod mock_time_uniswap_v3_pool {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(name = "protocolFees", abi = "protocolFees()")]
     pub struct ProtocolFeesCall;
@@ -50573,7 +50598,7 @@ pub mod mock_time_uniswap_v3_pool {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(
         name = "setFeeGrowthGlobal0X128",
@@ -50591,7 +50616,7 @@ pub mod mock_time_uniswap_v3_pool {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(
         name = "setFeeGrowthGlobal1X128",
@@ -50609,7 +50634,7 @@ pub mod mock_time_uniswap_v3_pool {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(name = "setFeeProtocol", abi = "setFeeProtocol(uint8,uint8)")]
     pub struct SetFeeProtocolCall {
@@ -50625,7 +50650,7 @@ pub mod mock_time_uniswap_v3_pool {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(name = "slot0", abi = "slot0()")]
     pub struct Slot0Call;
@@ -50638,7 +50663,7 @@ pub mod mock_time_uniswap_v3_pool {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(
         name = "snapshotCumulativesInside",
@@ -50657,7 +50682,7 @@ pub mod mock_time_uniswap_v3_pool {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(name = "swap", abi = "swap(address,bool,int256,uint160,bytes)")]
     pub struct SwapCall {
@@ -50676,7 +50701,7 @@ pub mod mock_time_uniswap_v3_pool {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(name = "tickBitmap", abi = "tickBitmap(int16)")]
     pub struct TickBitmapCall(pub i16);
@@ -50689,7 +50714,7 @@ pub mod mock_time_uniswap_v3_pool {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(name = "tickSpacing", abi = "tickSpacing()")]
     pub struct TickSpacingCall;
@@ -50702,7 +50727,7 @@ pub mod mock_time_uniswap_v3_pool {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(name = "ticks", abi = "ticks(int24)")]
     pub struct TicksCall(pub i32);
@@ -50715,7 +50740,7 @@ pub mod mock_time_uniswap_v3_pool {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(name = "time", abi = "time()")]
     pub struct TimeCall;
@@ -50728,7 +50753,7 @@ pub mod mock_time_uniswap_v3_pool {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(name = "token0", abi = "token0()")]
     pub struct Token0Call;
@@ -50741,7 +50766,7 @@ pub mod mock_time_uniswap_v3_pool {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(name = "token1", abi = "token1()")]
     pub struct Token1Call;
@@ -50784,116 +50809,138 @@ pub mod mock_time_uniswap_v3_pool {
             data: impl AsRef<[u8]>,
         ) -> ::core::result::Result<Self, ::ethers::core::abi::AbiError> {
             let data = data.as_ref();
-            if let Ok(decoded) = <AdvanceTimeCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded)
+                = <AdvanceTimeCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::AdvanceTime(decoded));
             }
-            if let Ok(decoded) = <BurnCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded)
+                = <BurnCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::Burn(decoded));
             }
-            if let Ok(decoded) = <CollectCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded)
+                = <CollectCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::Collect(decoded));
             }
-            if let Ok(decoded) =
-                <CollectProtocolCall as ::ethers::core::abi::AbiDecode>::decode(data)
-            {
+            if let Ok(decoded)
+                = <CollectProtocolCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::CollectProtocol(decoded));
             }
-            if let Ok(decoded) = <FactoryCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded)
+                = <FactoryCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::Factory(decoded));
             }
-            if let Ok(decoded) = <FeeCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded)
+                = <FeeCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::Fee(decoded));
             }
-            if let Ok(decoded) =
-                <FeeGrowthGlobal0X128Call as ::ethers::core::abi::AbiDecode>::decode(data)
-            {
+            if let Ok(decoded)
+                = <FeeGrowthGlobal0X128Call as ::ethers::core::abi::AbiDecode>::decode(
+                    data,
+                ) {
                 return Ok(Self::FeeGrowthGlobal0X128(decoded));
             }
-            if let Ok(decoded) =
-                <FeeGrowthGlobal1X128Call as ::ethers::core::abi::AbiDecode>::decode(data)
-            {
+            if let Ok(decoded)
+                = <FeeGrowthGlobal1X128Call as ::ethers::core::abi::AbiDecode>::decode(
+                    data,
+                ) {
                 return Ok(Self::FeeGrowthGlobal1X128(decoded));
             }
-            if let Ok(decoded) = <FlashCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded)
+                = <FlashCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::Flash(decoded));
             }
-            if let Ok(decoded) =
-                <IncreaseObservationCardinalityNextCall as ::ethers::core::abi::AbiDecode>::decode(
+            if let Ok(decoded)
+                = <IncreaseObservationCardinalityNextCall as ::ethers::core::abi::AbiDecode>::decode(
                     data,
-                )
-            {
+                ) {
                 return Ok(Self::IncreaseObservationCardinalityNext(decoded));
             }
-            if let Ok(decoded) = <InitializeCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded)
+                = <InitializeCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::Initialize(decoded));
             }
-            if let Ok(decoded) = <LiquidityCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded)
+                = <LiquidityCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::Liquidity(decoded));
             }
-            if let Ok(decoded) =
-                <MaxLiquidityPerTickCall as ::ethers::core::abi::AbiDecode>::decode(data)
-            {
+            if let Ok(decoded)
+                = <MaxLiquidityPerTickCall as ::ethers::core::abi::AbiDecode>::decode(
+                    data,
+                ) {
                 return Ok(Self::MaxLiquidityPerTick(decoded));
             }
-            if let Ok(decoded) = <MintCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded)
+                = <MintCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::Mint(decoded));
             }
-            if let Ok(decoded) = <ObservationsCall as ::ethers::core::abi::AbiDecode>::decode(data)
-            {
+            if let Ok(decoded)
+                = <ObservationsCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::Observations(decoded));
             }
-            if let Ok(decoded) = <ObserveCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded)
+                = <ObserveCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::Observe(decoded));
             }
-            if let Ok(decoded) = <PositionsCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded)
+                = <PositionsCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::Positions(decoded));
             }
-            if let Ok(decoded) = <ProtocolFeesCall as ::ethers::core::abi::AbiDecode>::decode(data)
-            {
+            if let Ok(decoded)
+                = <ProtocolFeesCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::ProtocolFees(decoded));
             }
-            if let Ok(decoded) =
-                <SetFeeGrowthGlobal0X128Call as ::ethers::core::abi::AbiDecode>::decode(data)
-            {
+            if let Ok(decoded)
+                = <SetFeeGrowthGlobal0X128Call as ::ethers::core::abi::AbiDecode>::decode(
+                    data,
+                ) {
                 return Ok(Self::SetFeeGrowthGlobal0X128(decoded));
             }
-            if let Ok(decoded) =
-                <SetFeeGrowthGlobal1X128Call as ::ethers::core::abi::AbiDecode>::decode(data)
-            {
+            if let Ok(decoded)
+                = <SetFeeGrowthGlobal1X128Call as ::ethers::core::abi::AbiDecode>::decode(
+                    data,
+                ) {
                 return Ok(Self::SetFeeGrowthGlobal1X128(decoded));
             }
-            if let Ok(decoded) =
-                <SetFeeProtocolCall as ::ethers::core::abi::AbiDecode>::decode(data)
-            {
+            if let Ok(decoded)
+                = <SetFeeProtocolCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::SetFeeProtocol(decoded));
             }
-            if let Ok(decoded) = <Slot0Call as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded)
+                = <Slot0Call as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::Slot0(decoded));
             }
-            if let Ok(decoded) =
-                <SnapshotCumulativesInsideCall as ::ethers::core::abi::AbiDecode>::decode(data)
-            {
+            if let Ok(decoded)
+                = <SnapshotCumulativesInsideCall as ::ethers::core::abi::AbiDecode>::decode(
+                    data,
+                ) {
                 return Ok(Self::SnapshotCumulativesInside(decoded));
             }
-            if let Ok(decoded) = <SwapCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded)
+                = <SwapCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::Swap(decoded));
             }
-            if let Ok(decoded) = <TickBitmapCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded)
+                = <TickBitmapCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::TickBitmap(decoded));
             }
-            if let Ok(decoded) = <TickSpacingCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded)
+                = <TickSpacingCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::TickSpacing(decoded));
             }
-            if let Ok(decoded) = <TicksCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded)
+                = <TicksCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::Ticks(decoded));
             }
-            if let Ok(decoded) = <TimeCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded)
+                = <TimeCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::Time(decoded));
             }
-            if let Ok(decoded) = <Token0Call as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded)
+                = <Token0Call as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::Token0(decoded));
             }
-            if let Ok(decoded) = <Token1Call as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded)
+                = <Token1Call as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::Token1(decoded));
             }
             Err(::ethers::core::abi::Error::InvalidData.into())
@@ -50902,10 +50949,14 @@ pub mod mock_time_uniswap_v3_pool {
     impl ::ethers::core::abi::AbiEncode for MockTimeUniswapV3PoolCalls {
         fn encode(self) -> Vec<u8> {
             match self {
-                Self::AdvanceTime(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::AdvanceTime(element) => {
+                    ::ethers::core::abi::AbiEncode::encode(element)
+                }
                 Self::Burn(element) => ::ethers::core::abi::AbiEncode::encode(element),
                 Self::Collect(element) => ::ethers::core::abi::AbiEncode::encode(element),
-                Self::CollectProtocol(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::CollectProtocol(element) => {
+                    ::ethers::core::abi::AbiEncode::encode(element)
+                }
                 Self::Factory(element) => ::ethers::core::abi::AbiEncode::encode(element),
                 Self::Fee(element) => ::ethers::core::abi::AbiEncode::encode(element),
                 Self::FeeGrowthGlobal0X128(element) => {
@@ -50918,30 +50969,46 @@ pub mod mock_time_uniswap_v3_pool {
                 Self::IncreaseObservationCardinalityNext(element) => {
                     ::ethers::core::abi::AbiEncode::encode(element)
                 }
-                Self::Initialize(element) => ::ethers::core::abi::AbiEncode::encode(element),
-                Self::Liquidity(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::Initialize(element) => {
+                    ::ethers::core::abi::AbiEncode::encode(element)
+                }
+                Self::Liquidity(element) => {
+                    ::ethers::core::abi::AbiEncode::encode(element)
+                }
                 Self::MaxLiquidityPerTick(element) => {
                     ::ethers::core::abi::AbiEncode::encode(element)
                 }
                 Self::Mint(element) => ::ethers::core::abi::AbiEncode::encode(element),
-                Self::Observations(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::Observations(element) => {
+                    ::ethers::core::abi::AbiEncode::encode(element)
+                }
                 Self::Observe(element) => ::ethers::core::abi::AbiEncode::encode(element),
-                Self::Positions(element) => ::ethers::core::abi::AbiEncode::encode(element),
-                Self::ProtocolFees(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::Positions(element) => {
+                    ::ethers::core::abi::AbiEncode::encode(element)
+                }
+                Self::ProtocolFees(element) => {
+                    ::ethers::core::abi::AbiEncode::encode(element)
+                }
                 Self::SetFeeGrowthGlobal0X128(element) => {
                     ::ethers::core::abi::AbiEncode::encode(element)
                 }
                 Self::SetFeeGrowthGlobal1X128(element) => {
                     ::ethers::core::abi::AbiEncode::encode(element)
                 }
-                Self::SetFeeProtocol(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::SetFeeProtocol(element) => {
+                    ::ethers::core::abi::AbiEncode::encode(element)
+                }
                 Self::Slot0(element) => ::ethers::core::abi::AbiEncode::encode(element),
                 Self::SnapshotCumulativesInside(element) => {
                     ::ethers::core::abi::AbiEncode::encode(element)
                 }
                 Self::Swap(element) => ::ethers::core::abi::AbiEncode::encode(element),
-                Self::TickBitmap(element) => ::ethers::core::abi::AbiEncode::encode(element),
-                Self::TickSpacing(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::TickBitmap(element) => {
+                    ::ethers::core::abi::AbiEncode::encode(element)
+                }
+                Self::TickSpacing(element) => {
+                    ::ethers::core::abi::AbiEncode::encode(element)
+                }
                 Self::Ticks(element) => ::ethers::core::abi::AbiEncode::encode(element),
                 Self::Time(element) => ::ethers::core::abi::AbiEncode::encode(element),
                 Self::Token0(element) => ::ethers::core::abi::AbiEncode::encode(element),
@@ -50958,25 +51025,37 @@ pub mod mock_time_uniswap_v3_pool {
                 Self::CollectProtocol(element) => ::core::fmt::Display::fmt(element, f),
                 Self::Factory(element) => ::core::fmt::Display::fmt(element, f),
                 Self::Fee(element) => ::core::fmt::Display::fmt(element, f),
-                Self::FeeGrowthGlobal0X128(element) => ::core::fmt::Display::fmt(element, f),
-                Self::FeeGrowthGlobal1X128(element) => ::core::fmt::Display::fmt(element, f),
+                Self::FeeGrowthGlobal0X128(element) => {
+                    ::core::fmt::Display::fmt(element, f)
+                }
+                Self::FeeGrowthGlobal1X128(element) => {
+                    ::core::fmt::Display::fmt(element, f)
+                }
                 Self::Flash(element) => ::core::fmt::Display::fmt(element, f),
                 Self::IncreaseObservationCardinalityNext(element) => {
                     ::core::fmt::Display::fmt(element, f)
                 }
                 Self::Initialize(element) => ::core::fmt::Display::fmt(element, f),
                 Self::Liquidity(element) => ::core::fmt::Display::fmt(element, f),
-                Self::MaxLiquidityPerTick(element) => ::core::fmt::Display::fmt(element, f),
+                Self::MaxLiquidityPerTick(element) => {
+                    ::core::fmt::Display::fmt(element, f)
+                }
                 Self::Mint(element) => ::core::fmt::Display::fmt(element, f),
                 Self::Observations(element) => ::core::fmt::Display::fmt(element, f),
                 Self::Observe(element) => ::core::fmt::Display::fmt(element, f),
                 Self::Positions(element) => ::core::fmt::Display::fmt(element, f),
                 Self::ProtocolFees(element) => ::core::fmt::Display::fmt(element, f),
-                Self::SetFeeGrowthGlobal0X128(element) => ::core::fmt::Display::fmt(element, f),
-                Self::SetFeeGrowthGlobal1X128(element) => ::core::fmt::Display::fmt(element, f),
+                Self::SetFeeGrowthGlobal0X128(element) => {
+                    ::core::fmt::Display::fmt(element, f)
+                }
+                Self::SetFeeGrowthGlobal1X128(element) => {
+                    ::core::fmt::Display::fmt(element, f)
+                }
                 Self::SetFeeProtocol(element) => ::core::fmt::Display::fmt(element, f),
                 Self::Slot0(element) => ::core::fmt::Display::fmt(element, f),
-                Self::SnapshotCumulativesInside(element) => ::core::fmt::Display::fmt(element, f),
+                Self::SnapshotCumulativesInside(element) => {
+                    ::core::fmt::Display::fmt(element, f)
+                }
                 Self::Swap(element) => ::core::fmt::Display::fmt(element, f),
                 Self::TickBitmap(element) => ::core::fmt::Display::fmt(element, f),
                 Self::TickSpacing(element) => ::core::fmt::Display::fmt(element, f),
@@ -51032,7 +51111,8 @@ pub mod mock_time_uniswap_v3_pool {
             Self::Flash(value)
         }
     }
-    impl ::core::convert::From<IncreaseObservationCardinalityNextCall> for MockTimeUniswapV3PoolCalls {
+    impl ::core::convert::From<IncreaseObservationCardinalityNextCall>
+    for MockTimeUniswapV3PoolCalls {
         fn from(value: IncreaseObservationCardinalityNextCall) -> Self {
             Self::IncreaseObservationCardinalityNext(value)
         }
@@ -51077,12 +51157,14 @@ pub mod mock_time_uniswap_v3_pool {
             Self::ProtocolFees(value)
         }
     }
-    impl ::core::convert::From<SetFeeGrowthGlobal0X128Call> for MockTimeUniswapV3PoolCalls {
+    impl ::core::convert::From<SetFeeGrowthGlobal0X128Call>
+    for MockTimeUniswapV3PoolCalls {
         fn from(value: SetFeeGrowthGlobal0X128Call) -> Self {
             Self::SetFeeGrowthGlobal0X128(value)
         }
     }
-    impl ::core::convert::From<SetFeeGrowthGlobal1X128Call> for MockTimeUniswapV3PoolCalls {
+    impl ::core::convert::From<SetFeeGrowthGlobal1X128Call>
+    for MockTimeUniswapV3PoolCalls {
         fn from(value: SetFeeGrowthGlobal1X128Call) -> Self {
             Self::SetFeeGrowthGlobal1X128(value)
         }
@@ -51097,7 +51179,8 @@ pub mod mock_time_uniswap_v3_pool {
             Self::Slot0(value)
         }
     }
-    impl ::core::convert::From<SnapshotCumulativesInsideCall> for MockTimeUniswapV3PoolCalls {
+    impl ::core::convert::From<SnapshotCumulativesInsideCall>
+    for MockTimeUniswapV3PoolCalls {
         fn from(value: SnapshotCumulativesInsideCall) -> Self {
             Self::SnapshotCumulativesInside(value)
         }
@@ -51146,7 +51229,7 @@ pub mod mock_time_uniswap_v3_pool {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     pub struct BurnReturn {
         pub amount_0: ::ethers::core::types::U256,
@@ -51161,7 +51244,7 @@ pub mod mock_time_uniswap_v3_pool {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     pub struct CollectReturn {
         pub amount_0: u128,
@@ -51176,7 +51259,7 @@ pub mod mock_time_uniswap_v3_pool {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     pub struct CollectProtocolReturn {
         pub amount_0: u128,
@@ -51191,7 +51274,7 @@ pub mod mock_time_uniswap_v3_pool {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     pub struct FactoryReturn(pub ::ethers::core::types::Address);
     ///Container type for all return fields from the `fee` function with signature `fee()` and selector `0xddca3f43`
@@ -51203,7 +51286,7 @@ pub mod mock_time_uniswap_v3_pool {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     pub struct FeeReturn(pub u32);
     ///Container type for all return fields from the `feeGrowthGlobal0X128` function with signature `feeGrowthGlobal0X128()` and selector `0xf3058399`
@@ -51215,7 +51298,7 @@ pub mod mock_time_uniswap_v3_pool {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     pub struct FeeGrowthGlobal0X128Return(pub ::ethers::core::types::U256);
     ///Container type for all return fields from the `feeGrowthGlobal1X128` function with signature `feeGrowthGlobal1X128()` and selector `0x46141319`
@@ -51227,7 +51310,7 @@ pub mod mock_time_uniswap_v3_pool {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     pub struct FeeGrowthGlobal1X128Return(pub ::ethers::core::types::U256);
     ///Container type for all return fields from the `liquidity` function with signature `liquidity()` and selector `0x1a686502`
@@ -51239,7 +51322,7 @@ pub mod mock_time_uniswap_v3_pool {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     pub struct LiquidityReturn(pub u128);
     ///Container type for all return fields from the `maxLiquidityPerTick` function with signature `maxLiquidityPerTick()` and selector `0x70cf754a`
@@ -51251,7 +51334,7 @@ pub mod mock_time_uniswap_v3_pool {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     pub struct MaxLiquidityPerTickReturn(pub u128);
     ///Container type for all return fields from the `mint` function with signature `mint(address,int24,int24,uint128,bytes)` and selector `0x3c8a7d8d`
@@ -51263,7 +51346,7 @@ pub mod mock_time_uniswap_v3_pool {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     pub struct MintReturn {
         pub amount_0: ::ethers::core::types::U256,
@@ -51278,7 +51361,7 @@ pub mod mock_time_uniswap_v3_pool {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     pub struct ObservationsReturn {
         pub block_timestamp: u32,
@@ -51295,11 +51378,13 @@ pub mod mock_time_uniswap_v3_pool {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     pub struct ObserveReturn {
         pub tick_cumulatives: ::std::vec::Vec<i64>,
-        pub seconds_per_liquidity_cumulative_x12_8s: ::std::vec::Vec<::ethers::core::types::U256>,
+        pub seconds_per_liquidity_cumulative_x12_8s: ::std::vec::Vec<
+            ::ethers::core::types::U256,
+        >,
     }
     ///Container type for all return fields from the `positions` function with signature `positions(bytes32)` and selector `0x514ea4bf`
     #[derive(
@@ -51310,7 +51395,7 @@ pub mod mock_time_uniswap_v3_pool {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     pub struct PositionsReturn {
         pub liquidity: u128,
@@ -51328,7 +51413,7 @@ pub mod mock_time_uniswap_v3_pool {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     pub struct ProtocolFeesReturn {
         pub token_0: u128,
@@ -51343,7 +51428,7 @@ pub mod mock_time_uniswap_v3_pool {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     pub struct Slot0Return {
         pub sqrt_price_x96: ::ethers::core::types::U256,
@@ -51363,7 +51448,7 @@ pub mod mock_time_uniswap_v3_pool {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     pub struct SnapshotCumulativesInsideReturn {
         pub tick_cumulative_inside: i64,
@@ -51379,7 +51464,7 @@ pub mod mock_time_uniswap_v3_pool {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     pub struct SwapReturn {
         pub amount_0: ::ethers::core::types::I256,
@@ -51394,7 +51479,7 @@ pub mod mock_time_uniswap_v3_pool {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     pub struct TickBitmapReturn(pub ::ethers::core::types::U256);
     ///Container type for all return fields from the `tickSpacing` function with signature `tickSpacing()` and selector `0xd0c93a7c`
@@ -51406,7 +51491,7 @@ pub mod mock_time_uniswap_v3_pool {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     pub struct TickSpacingReturn(pub i32);
     ///Container type for all return fields from the `ticks` function with signature `ticks(int24)` and selector `0xf30dba93`
@@ -51418,7 +51503,7 @@ pub mod mock_time_uniswap_v3_pool {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     pub struct TicksReturn {
         pub liquidity_gross: u128,
@@ -51439,7 +51524,7 @@ pub mod mock_time_uniswap_v3_pool {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     pub struct TimeReturn(pub ::ethers::core::types::U256);
     ///Container type for all return fields from the `token0` function with signature `token0()` and selector `0x0dfe1681`
@@ -51451,7 +51536,7 @@ pub mod mock_time_uniswap_v3_pool {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     pub struct Token0Return(pub ::ethers::core::types::Address);
     ///Container type for all return fields from the `token1` function with signature `token1()` and selector `0xd21220a7`
@@ -51463,7 +51548,7 @@ pub mod mock_time_uniswap_v3_pool {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     pub struct Token1Return(pub ::ethers::core::types::Address);
 }

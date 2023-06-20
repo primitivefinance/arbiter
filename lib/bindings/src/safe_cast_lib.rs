@@ -7,16 +7,14 @@ pub use safe_cast_lib::*;
     clippy::upper_case_acronyms,
     clippy::type_complexity,
     dead_code,
-    non_camel_case_types
+    non_camel_case_types,
 )]
 pub mod safe_cast_lib {
     #[rustfmt::skip]
     const __ABI: &str = "[]";
     ///The parsed JSON ABI of the contract.
-    pub static SAFECASTLIB_ABI: ::ethers::contract::Lazy<::ethers::core::abi::Abi> =
-        ::ethers::contract::Lazy::new(|| {
-            ::ethers::core::utils::__serde_json::from_str(__ABI).expect("ABI is always valid")
-        });
+    pub static SAFECASTLIB_ABI: ::ethers::contract::Lazy<::ethers::core::abi::Abi> = ::ethers::contract::Lazy::new(||
+    ::ethers::core::utils::__serde_json::from_str(__ABI).expect("ABI is always valid"));
     #[rustfmt::skip]
     const __BYTECODE: &[u8] = &[
         96,
@@ -209,38 +207,38 @@ pub mod safe_cast_lib {
         34,
         18,
         32,
-        173,
         119,
-        74,
-        46,
-        30,
-        145,
-        144,
-        80,
-        25,
-        96,
-        74,
-        186,
-        205,
-        58,
-        246,
-        65,
-        253,
-        230,
-        81,
-        53,
-        28,
-        30,
-        30,
-        237,
+        125,
+        134,
+        42,
+        123,
+        107,
+        1,
+        83,
+        3,
+        198,
+        5,
+        5,
         47,
-        222,
+        9,
+        248,
+        107,
+        61,
+        185,
         64,
-        71,
-        229,
-        175,
-        233,
-        23,
+        0,
+        90,
+        123,
+        247,
+        242,
+        147,
+        137,
+        198,
+        30,
+        77,
+        69,
+        174,
+        112,
         100,
         115,
         111,
@@ -254,8 +252,9 @@ pub mod safe_cast_lib {
         51,
     ];
     ///The bytecode of the contract.
-    pub static SAFECASTLIB_BYTECODE: ::ethers::core::types::Bytes =
-        ::ethers::core::types::Bytes::from_static(__BYTECODE);
+    pub static SAFECASTLIB_BYTECODE: ::ethers::core::types::Bytes = ::ethers::core::types::Bytes::from_static(
+        __BYTECODE,
+    );
     #[rustfmt::skip]
     const __DEPLOYED_BYTECODE: &[u8] = &[
         115,
@@ -393,38 +392,38 @@ pub mod safe_cast_lib {
         34,
         18,
         32,
-        173,
         119,
-        74,
-        46,
-        30,
-        145,
-        144,
-        80,
-        25,
-        96,
-        74,
-        186,
-        205,
-        58,
-        246,
-        65,
-        253,
-        230,
-        81,
-        53,
-        28,
-        30,
-        30,
-        237,
+        125,
+        134,
+        42,
+        123,
+        107,
+        1,
+        83,
+        3,
+        198,
+        5,
+        5,
         47,
-        222,
+        9,
+        248,
+        107,
+        61,
+        185,
         64,
-        71,
-        229,
-        175,
-        233,
-        23,
+        0,
+        90,
+        123,
+        247,
+        242,
+        147,
+        137,
+        198,
+        30,
+        77,
+        69,
+        174,
+        112,
         100,
         115,
         111,
@@ -438,8 +437,9 @@ pub mod safe_cast_lib {
         51,
     ];
     ///The deployed bytecode of the contract.
-    pub static SAFECASTLIB_DEPLOYED_BYTECODE: ::ethers::core::types::Bytes =
-        ::ethers::core::types::Bytes::from_static(__DEPLOYED_BYTECODE);
+    pub static SAFECASTLIB_DEPLOYED_BYTECODE: ::ethers::core::types::Bytes = ::ethers::core::types::Bytes::from_static(
+        __DEPLOYED_BYTECODE,
+    );
     pub struct SafeCastLib<M>(::ethers::contract::Contract<M>);
     impl<M> ::core::clone::Clone for SafeCastLib<M> {
         fn clone(&self) -> Self {
@@ -459,9 +459,7 @@ pub mod safe_cast_lib {
     }
     impl<M> ::core::fmt::Debug for SafeCastLib<M> {
         fn fmt(&self, f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
-            f.debug_tuple(stringify!(SafeCastLib))
-                .field(&self.address())
-                .finish()
+            f.debug_tuple(stringify!(SafeCastLib)).field(&self.address()).finish()
         }
     }
     impl<M: ::ethers::providers::Middleware> SafeCastLib<M> {
@@ -471,11 +469,13 @@ pub mod safe_cast_lib {
             address: T,
             client: ::std::sync::Arc<M>,
         ) -> Self {
-            Self(::ethers::contract::Contract::new(
-                address.into(),
-                SAFECASTLIB_ABI.clone(),
-                client,
-            ))
+            Self(
+                ::ethers::contract::Contract::new(
+                    address.into(),
+                    SAFECASTLIB_ABI.clone(),
+                    client,
+                ),
+            )
         }
         /// Constructs the general purpose `Deployer` instance based on the provided constructor arguments and sends it.
         /// Returns a new instance of a deployer that returns an instance of this contract after sending the transaction
@@ -517,7 +517,8 @@ pub mod safe_cast_lib {
             Ok(deployer)
         }
     }
-    impl<M: ::ethers::providers::Middleware> From<::ethers::contract::Contract<M>> for SafeCastLib<M> {
+    impl<M: ::ethers::providers::Middleware> From<::ethers::contract::Contract<M>>
+    for SafeCastLib<M> {
         fn from(contract: ::ethers::contract::Contract<M>) -> Self {
             Self::new(contract.address(), contract.client())
         }

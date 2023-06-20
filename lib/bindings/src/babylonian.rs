@@ -7,16 +7,14 @@ pub use babylonian::*;
     clippy::upper_case_acronyms,
     clippy::type_complexity,
     dead_code,
-    non_camel_case_types
+    non_camel_case_types,
 )]
 pub mod babylonian {
     #[rustfmt::skip]
     const __ABI: &str = "[]";
     ///The parsed JSON ABI of the contract.
-    pub static BABYLONIAN_ABI: ::ethers::contract::Lazy<::ethers::core::abi::Abi> =
-        ::ethers::contract::Lazy::new(|| {
-            ::ethers::core::utils::__serde_json::from_str(__ABI).expect("ABI is always valid")
-        });
+    pub static BABYLONIAN_ABI: ::ethers::contract::Lazy<::ethers::core::abi::Abi> = ::ethers::contract::Lazy::new(||
+    ::ethers::core::utils::__serde_json::from_str(__ABI).expect("ABI is always valid"));
     #[rustfmt::skip]
     const __BYTECODE: &[u8] = &[
         96,
@@ -186,38 +184,38 @@ pub mod babylonian {
         34,
         18,
         32,
-        151,
-        129,
-        30,
-        180,
-        174,
-        67,
-        11,
-        241,
-        241,
-        48,
-        153,
-        65,
-        60,
-        59,
-        107,
-        128,
-        148,
-        3,
-        36,
+        47,
+        235,
+        253,
+        245,
+        255,
+        167,
         1,
-        111,
-        220,
-        171,
-        42,
-        234,
-        78,
-        208,
-        44,
+        238,
+        92,
+        151,
+        241,
+        199,
+        27,
+        61,
+        167,
+        155,
+        162,
+        239,
+        247,
+        8,
+        104,
+        7,
         83,
-        236,
-        88,
-        243,
+        232,
+        65,
+        75,
+        231,
+        24,
+        12,
+        192,
+        255,
+        167,
         100,
         115,
         111,
@@ -231,8 +229,9 @@ pub mod babylonian {
         51,
     ];
     ///The bytecode of the contract.
-    pub static BABYLONIAN_BYTECODE: ::ethers::core::types::Bytes =
-        ::ethers::core::types::Bytes::from_static(__BYTECODE);
+    pub static BABYLONIAN_BYTECODE: ::ethers::core::types::Bytes = ::ethers::core::types::Bytes::from_static(
+        __BYTECODE,
+    );
     #[rustfmt::skip]
     const __DEPLOYED_BYTECODE: &[u8] = &[
         115,
@@ -367,38 +366,38 @@ pub mod babylonian {
         34,
         18,
         32,
-        151,
-        129,
-        30,
-        180,
-        174,
-        67,
-        11,
-        241,
-        241,
-        48,
-        153,
-        65,
-        60,
-        59,
-        107,
-        128,
-        148,
-        3,
-        36,
+        47,
+        235,
+        253,
+        245,
+        255,
+        167,
         1,
-        111,
-        220,
-        171,
-        42,
-        234,
-        78,
-        208,
-        44,
+        238,
+        92,
+        151,
+        241,
+        199,
+        27,
+        61,
+        167,
+        155,
+        162,
+        239,
+        247,
+        8,
+        104,
+        7,
         83,
-        236,
-        88,
-        243,
+        232,
+        65,
+        75,
+        231,
+        24,
+        12,
+        192,
+        255,
+        167,
         100,
         115,
         111,
@@ -412,8 +411,9 @@ pub mod babylonian {
         51,
     ];
     ///The deployed bytecode of the contract.
-    pub static BABYLONIAN_DEPLOYED_BYTECODE: ::ethers::core::types::Bytes =
-        ::ethers::core::types::Bytes::from_static(__DEPLOYED_BYTECODE);
+    pub static BABYLONIAN_DEPLOYED_BYTECODE: ::ethers::core::types::Bytes = ::ethers::core::types::Bytes::from_static(
+        __DEPLOYED_BYTECODE,
+    );
     pub struct Babylonian<M>(::ethers::contract::Contract<M>);
     impl<M> ::core::clone::Clone for Babylonian<M> {
         fn clone(&self) -> Self {
@@ -433,9 +433,7 @@ pub mod babylonian {
     }
     impl<M> ::core::fmt::Debug for Babylonian<M> {
         fn fmt(&self, f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
-            f.debug_tuple(stringify!(Babylonian))
-                .field(&self.address())
-                .finish()
+            f.debug_tuple(stringify!(Babylonian)).field(&self.address()).finish()
         }
     }
     impl<M: ::ethers::providers::Middleware> Babylonian<M> {
@@ -445,11 +443,13 @@ pub mod babylonian {
             address: T,
             client: ::std::sync::Arc<M>,
         ) -> Self {
-            Self(::ethers::contract::Contract::new(
-                address.into(),
-                BABYLONIAN_ABI.clone(),
-                client,
-            ))
+            Self(
+                ::ethers::contract::Contract::new(
+                    address.into(),
+                    BABYLONIAN_ABI.clone(),
+                    client,
+                ),
+            )
         }
         /// Constructs the general purpose `Deployer` instance based on the provided constructor arguments and sends it.
         /// Returns a new instance of a deployer that returns an instance of this contract after sending the transaction
@@ -491,7 +491,8 @@ pub mod babylonian {
             Ok(deployer)
         }
     }
-    impl<M: ::ethers::providers::Middleware> From<::ethers::contract::Contract<M>> for Babylonian<M> {
+    impl<M: ::ethers::providers::Middleware> From<::ethers::contract::Contract<M>>
+    for Babylonian<M> {
         fn from(contract: ::ethers::contract::Contract<M>) -> Self {
             Self::new(contract.address(), contract.client())
         }

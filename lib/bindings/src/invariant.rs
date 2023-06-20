@@ -7,16 +7,14 @@ pub use invariant::*;
     clippy::upper_case_acronyms,
     clippy::type_complexity,
     dead_code,
-    non_camel_case_types
+    non_camel_case_types,
 )]
 pub mod invariant {
     #[rustfmt::skip]
     const __ABI: &str = "[{\"inputs\":[],\"type\":\"error\",\"name\":\"OOB\",\"outputs\":[]}]";
     ///The parsed JSON ABI of the contract.
-    pub static INVARIANT_ABI: ::ethers::contract::Lazy<::ethers::core::abi::Abi> =
-        ::ethers::contract::Lazy::new(|| {
-            ::ethers::core::utils::__serde_json::from_str(__ABI).expect("ABI is always valid")
-        });
+    pub static INVARIANT_ABI: ::ethers::contract::Lazy<::ethers::core::abi::Abi> = ::ethers::contract::Lazy::new(||
+    ::ethers::core::utils::__serde_json::from_str(__ABI).expect("ABI is always valid"));
     #[rustfmt::skip]
     const __BYTECODE: &[u8] = &[
         96,
@@ -209,38 +207,38 @@ pub mod invariant {
         34,
         18,
         32,
-        56,
-        187,
-        15,
-        83,
+        156,
+        65,
         212,
-        175,
+        195,
+        72,
+        203,
+        193,
+        49,
+        93,
+        196,
+        28,
+        210,
+        15,
+        42,
+        237,
+        7,
+        246,
+        219,
+        161,
+        109,
+        219,
+        245,
+        173,
+        171,
+        106,
+        159,
+        76,
+        12,
+        170,
         13,
         162,
-        55,
-        71,
-        54,
-        228,
-        87,
-        49,
-        228,
-        30,
-        44,
-        122,
-        120,
-        208,
-        146,
-        126,
-        12,
-        240,
-        196,
-        211,
-        127,
-        35,
-        200,
-        19,
-        29,
-        150,
+        7,
         100,
         115,
         111,
@@ -254,8 +252,9 @@ pub mod invariant {
         51,
     ];
     ///The bytecode of the contract.
-    pub static INVARIANT_BYTECODE: ::ethers::core::types::Bytes =
-        ::ethers::core::types::Bytes::from_static(__BYTECODE);
+    pub static INVARIANT_BYTECODE: ::ethers::core::types::Bytes = ::ethers::core::types::Bytes::from_static(
+        __BYTECODE,
+    );
     #[rustfmt::skip]
     const __DEPLOYED_BYTECODE: &[u8] = &[
         115,
@@ -393,38 +392,38 @@ pub mod invariant {
         34,
         18,
         32,
-        56,
-        187,
-        15,
-        83,
+        156,
+        65,
         212,
-        175,
+        195,
+        72,
+        203,
+        193,
+        49,
+        93,
+        196,
+        28,
+        210,
+        15,
+        42,
+        237,
+        7,
+        246,
+        219,
+        161,
+        109,
+        219,
+        245,
+        173,
+        171,
+        106,
+        159,
+        76,
+        12,
+        170,
         13,
         162,
-        55,
-        71,
-        54,
-        228,
-        87,
-        49,
-        228,
-        30,
-        44,
-        122,
-        120,
-        208,
-        146,
-        126,
-        12,
-        240,
-        196,
-        211,
-        127,
-        35,
-        200,
-        19,
-        29,
-        150,
+        7,
         100,
         115,
         111,
@@ -438,8 +437,9 @@ pub mod invariant {
         51,
     ];
     ///The deployed bytecode of the contract.
-    pub static INVARIANT_DEPLOYED_BYTECODE: ::ethers::core::types::Bytes =
-        ::ethers::core::types::Bytes::from_static(__DEPLOYED_BYTECODE);
+    pub static INVARIANT_DEPLOYED_BYTECODE: ::ethers::core::types::Bytes = ::ethers::core::types::Bytes::from_static(
+        __DEPLOYED_BYTECODE,
+    );
     pub struct Invariant<M>(::ethers::contract::Contract<M>);
     impl<M> ::core::clone::Clone for Invariant<M> {
         fn clone(&self) -> Self {
@@ -459,9 +459,7 @@ pub mod invariant {
     }
     impl<M> ::core::fmt::Debug for Invariant<M> {
         fn fmt(&self, f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
-            f.debug_tuple(stringify!(Invariant))
-                .field(&self.address())
-                .finish()
+            f.debug_tuple(stringify!(Invariant)).field(&self.address()).finish()
         }
     }
     impl<M: ::ethers::providers::Middleware> Invariant<M> {
@@ -471,11 +469,13 @@ pub mod invariant {
             address: T,
             client: ::std::sync::Arc<M>,
         ) -> Self {
-            Self(::ethers::contract::Contract::new(
-                address.into(),
-                INVARIANT_ABI.clone(),
-                client,
-            ))
+            Self(
+                ::ethers::contract::Contract::new(
+                    address.into(),
+                    INVARIANT_ABI.clone(),
+                    client,
+                ),
+            )
         }
         /// Constructs the general purpose `Deployer` instance based on the provided constructor arguments and sends it.
         /// Returns a new instance of a deployer that returns an instance of this contract after sending the transaction
@@ -517,7 +517,8 @@ pub mod invariant {
             Ok(deployer)
         }
     }
-    impl<M: ::ethers::providers::Middleware> From<::ethers::contract::Contract<M>> for Invariant<M> {
+    impl<M: ::ethers::providers::Middleware> From<::ethers::contract::Contract<M>>
+    for Invariant<M> {
         fn from(contract: ::ethers::contract::Contract<M>) -> Self {
             Self::new(contract.address(), contract.client())
         }
@@ -531,7 +532,7 @@ pub mod invariant {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[etherror(name = "OOB", abi = "OOB()")]
     pub struct OOB;
