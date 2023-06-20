@@ -250,9 +250,7 @@ pub trait Agent: Identifiable {
         // Append constructor args (if available) to generate the deploy bytecode.
         let bytecode = match contract.base_contract.abi().constructor.clone() {
             Some(constructor) => Bytes::from(
-                constructor
-                    .encode_input(contract.bytecode.clone(), &constructor_arguments)
-                    .unwrap(),
+                constructor.encode_input(contract.bytecode.clone(), &constructor_arguments)?,
             ),
             None => Bytes::from(contract.bytecode.clone()),
         };
@@ -288,7 +286,7 @@ pub trait Agent: Identifiable {
             SimulationContract {
                 bytecode: (),
                 address,
-                base_contract: contract.base_contract.clone(),
+                base_contract: contract.base_contract,
                 constructor_arguments,
             },
             execution_result,

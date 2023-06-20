@@ -1,11 +1,7 @@
-#![warn(missing_docs)]
 #![warn(unsafe_code)]
 //! Describes the most basic type of user agent.
 
-use std::{
-    sync::{Arc, Mutex},
-    thread::{self, JoinHandle},
-};
+use std::sync::{Arc, Mutex};
 
 use crossbeam_channel::{Receiver, Sender};
 use futures::StreamExt;

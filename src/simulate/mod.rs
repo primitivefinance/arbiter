@@ -1,15 +1,23 @@
 #![warn(missing_docs)]
 #![warn(unsafe_code)]
 
-use std::fs;
+use std::{collections::HashMap, fs};
 
 use clap::Parser;
+use ethers::abi::Token;
+use revm::primitives::B160;
 use serde::{Deserialize, Serialize};
-use simulate::stochastic::price_process::PriceProcess;
+use simulate::{
+    agent::{
+        simple_arbitrageur::SimpleArbitrageur, Agent, AgentType, IsActive, SimulationEventFilter,
+    },
+    environment::contract::{IsDeployed, NotDeployed, SimulationContract},
+    manager::SimulationManager,
+    stochastic::price_process::PriceProcess,
+};
 
 use crate::{Configurable, ConfigurationError};
 
-pub mod portfolio;
 pub mod uniswap;
 
 #[derive(Parser, Debug)]
@@ -28,10 +36,9 @@ pub(crate) struct SimulateArguments {
 #[derive(Parser, Serialize, Deserialize, Debug)]
 #[clap(about = "Runs simulations")]
 pub(crate) enum SimulateSubcommand {
-    #[clap(about = "Runs Portfolio simulation.")]
-    Portfolio,
     #[clap(about = "Runs UniswapV2 simulation.")]
     Uniswap,
+    // Room to add more here
 }
 
 #[derive(Clone, Parser, Serialize, Deserialize, Debug)]
@@ -127,4 +134,45 @@ impl Configurable for VolatilitySweep {
             number_of_volatility_steps: simulation_configuration.number_of_volatility_steps,
         })
     }
+}
+
+// Simulation struct
+// Put these in the auto deployer in manager.rs
+// maybe add the ens contracts as well
+
+pub struct _Simulations {
+    price_process: PriceProcess,
+    manager: SimulationManager,
+    // This is also where our env for DeSim can be stored
+    // maybe add a handle to revm db here too
+}
+
+impl _Simulations {
+    pub fn _new(
+        price_process: PriceProcess,
+        contracts: Vec<(SimulationContract<NotDeployed>, Vec<Token>, String)>,
+    ) -> Self {
+        //auto deploy happens here in the manager constructor
+        let manager = SimulationManager::new();
+        let admin = manager.agents.get("admin").unwrap();
+        _deploy_contracts(admin, contracts).unwrap();
+
+        _Simulations {
+            price_process,
+            manager,
+        }
+    }
+}
+
+pub(crate) fn _create_arbitrageur<S: Into<String>>(
+    manager: &mut SimulationManager,
+    liquid_exchange: &SimulationContract<IsDeployed>,
+    name: S,
+) {
+    let address = B160::from_low_u64_be(2);
+    let event_filters = vec![SimulationEventFilter::new(liquid_exchange, "PriceChange")];
+    let arbitrageur = SimpleArbitrageur::new(name, event_filters);
+    manager
+        .activate_agent(AgentType::SimpleArbitrageur(arbitrageur), address)
+        .unwrap();
 }
