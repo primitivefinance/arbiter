@@ -9,7 +9,8 @@
 use std::{
     error::Error,
     fmt::{Display, Formatter, Result as FmtResult},
-    thread, pin::Pin,
+    pin::Pin,
+    thread,
 };
 
 use bytes::Bytes;
@@ -227,7 +228,9 @@ pub trait Agent: Identifiable {
         }
     }
 
-    fn watch(&self) -> Pin<Box<dyn Stream<Item = Result<(Vec<Token>, Address), AbiError>> + Send + Sync>> {
+    fn watch(
+        &self,
+    ) -> Pin<Box<dyn Stream<Item = Result<(Vec<Token>, Address), AbiError>> + Send + Sync>> {
         Box::pin(self.event_stream().into_stream())
     }
 
@@ -329,17 +332,15 @@ impl SimulationEventFilter {
 }
 
 /// Used to allow agents to filter out the events they choose to monitor.
-pub fn filter_events(event_filters: Vec<SimulationEventFilter>, logs: Vec<Log>) -> Vec<Log> {
-    if event_filters.is_empty() {
-        return logs;
-    }
+pub fn filter_events(event_filters: Vec<SimulationEventFilter>, logs: Vec<Log>) -> (Vec<Log>, usize) {
+    assert!(!event_filters.is_empty());
 
     let mut events = vec![];
+    let mut event_index = 0;
 
     for log in logs {
-        for event_filter in event_filters.iter() {
+        for (index, event_filter) in event_filters.iter().enumerate() {
             if event_filter.address == log.address && event_filter.topic == log.topics[0].into()
-            // TODO: Needs to not just be log.topics[0]
             {
                 events.push(log.clone());
                 break;
@@ -347,7 +348,7 @@ pub fn filter_events(event_filters: Vec<SimulationEventFilter>, logs: Vec<Log>) 
         }
     }
 
-    events
+    (events, event_index)
 }
 
 #[cfg(test)]
@@ -431,5 +432,4 @@ mod tests {
         assert!(bob_next_event.is_some());
         Ok(())
     }
-
 }

@@ -119,22 +119,22 @@ impl EventStream {
     fn next(&mut self) -> Option<Result<(Vec<Token>, revm::primitives::Address), AbiError>> {
         let event_filters = self.filters.clone();
         assert!(!event_filters.is_empty());
-        let decoder = |input| {
-            event_filters[0].base_contract.decode_event_raw(
-                event_filters[0].event_name.as_str(),
-                vec![event_filters[0].topic],
+        let decoder = |input, filter_number: usize| {
+            event_filters[filter_number].base_contract.decode_event_raw(
+                event_filters[filter_number].event_name.as_str(),
+                vec![event_filters[filter_number].topic],
                 input,
             )
         };
 
         self.receiver.recv().ok().and_then(|logs| {
-            let filtered_logs = filter_events(event_filters.clone(), logs);
-            if filtered_logs.is_empty() {
+            let (filtered_events, index) = filter_events(event_filters.clone(), logs);
+            if filtered_events.is_empty() {
                 None // Skip logs that don't pass the filter
             } else {
-                let data = filtered_logs[0].data.clone().into_iter().collect();
-                let address = filtered_logs[0].address; // Extract address here
-                Some(decoder(data).map(|tokens| (tokens, address)))
+                let data = filtered_events[0].data.clone().into_iter().collect();
+                let address = filtered_events[0].address; // Extract address here
+                Some(decoder(data, index).map(|tokens| (tokens, address)))
             }
         })
     }
@@ -150,7 +150,6 @@ impl EventStream {
         })
     }
 }
-
 
 #[cfg(test)]
 mod tests {
