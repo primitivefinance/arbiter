@@ -16,7 +16,7 @@ use clap::{arg, command, CommandFactory, Parser, Subcommand};
 use eyre::Result;
 use itertools_num::linspace;
 use thiserror::Error;
-use tokio::sync::Mutex;
+use tokio::sync::{Mutex, Semaphore};
 
 use crate::{
     simulate::{OutputStorage, PathSweep, SimulateArguments, SimulateSubcommand, VolatilitySweep},
@@ -123,11 +123,12 @@ async fn main() -> Result<(), Box<dyn Error>> {
             match simulate_arguments.subcommand {
                 SimulateSubcommand::Uniswap => {
                     let start = Instant::now();
-                    let active_workers = Arc::new((Arc::new(Mutex::new(0)), Condvar::new()));
+                    let worker_semaphore = Arc::new(Semaphore::new(path_sweep.worker_limit));
                     let mut hasher = DefaultHasher::new();
                     let seed = price_process.seed;
 
                     for volatility in volatilities {
+                        // Get the correct price process.
                         for label in 0..path_sweep.price_paths {
                             hasher.write_u64(seed);
                             let seed = hasher.finish();
@@ -152,31 +153,15 @@ async fn main() -> Result<(), Box<dyn Error>> {
                                 seed,
                             };
 
-                            let active_workers_clone = active_workers.clone();
+                            // Handle workers.
+                            let permit = worker_semaphore.clone().acquire_owned().await.unwrap();
                             let output_storage = output_storage.clone();
                             tokio::spawn( async move {
                                 crate::simulate::uniswap::run(price_process, output_storage, label)
                                     .await.unwrap();
-
-                                let (lock, cvar) = &*active_workers_clone;
-                                let mut active_workers = lock.lock().await;
-                                *active_workers -= 1;
-                                cvar.notify_all();
+                                drop(permit);
                             });
-
-                            let (lock, cvar) = &*active_workers;
-                            let mut active_workers = lock.lock().await;
-                            while *active_workers >= path_sweep.worker_limit {
-                                active_workers = cvar.wait(active_workers).unwrap();
-                            }
-                            *active_workers += 1;
                         }
-                    }
-
-                    let (lock, cvar) = &*active_workers;
-                    let mut active_workers = lock.lock().await;
-                    while *active_workers > 0 {
-                        active_workers = cvar.wait(active_workers).unwrap();
                     }
 
                     let duration = start.elapsed();
