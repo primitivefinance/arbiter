@@ -30,7 +30,7 @@ pub async fn run(
     let mut manager = SimulationManager::new();
 
     // Run the startup script
-    let (contracts, pair_address) = startup::run(&mut manager)?;
+    let pair_address = startup::run(&mut manager)?;
 
     // TODO: This is REALLY bad. This contract is marked as deployed but it is not deployed in the typical way. It's because the factory calls the deployer for a pair contract. I had to make the base_contract field not private
     // Get the pair contract that we can encode with
@@ -51,7 +51,7 @@ pub async fn run(
         AgentType::SimpleArbitrageur(base_arbitrageur) => base_arbitrageur,
         _ => panic!(),
     };
-    let liquid_exchange = contracts.get("liquid_exchange_xy").unwrap();
+    let liquid_exchange = manager.deployed_contracts.get("liquid_exchange_xy").unwrap();
     let result = arbitrageur.call(liquid_exchange, "price", vec![])?;
     assert!(result.is_success());
 
@@ -71,7 +71,7 @@ pub async fn run(
 
     drop(prices);
 
-    arbitrageur.detect_price_change().await;
+    let _ = arbitrageur.detect_price_change().await;
 
     // Get prices
     let prices = price_process.generate_price_path().1;
@@ -83,7 +83,7 @@ pub async fn run(
     let mut reserve_over_time: (Vec<U256>, Vec<U256>) = (Vec::new(), Vec::new());
 
     // record first balances
-    record_arb_balances(&arbitrageur, &contracts, &mut arb_balance_paths)?;
+    record_arb_balances(arbitrageur, &manager.deployed_contracts, &mut arb_balance_paths)?;
     record_reserves(&uniswap_pair, &mut reserve_over_time, admin)?;
     // Run the simulation
     // Update the first price
@@ -116,7 +116,7 @@ pub async fn run(
                         uniswap_pair.decode_output("getReserves", unpack_execution(result)?)?;
                     let x_before_swap = U256::from(uniswap_reserves.0);
                     let y_before_swap = U256::from(uniswap_reserves.1);
-                    arbitrage::swap(&arbitrageur, &contracts, size.input, size.sell_asset)?;
+                    arbitrage::swap(arbitrageur, &manager.deployed_contracts, size.input, size.sell_asset)?;
                     let swap_output: U256;
                     let result = arbitrageur.call(&uniswap_pair, "getReserves", vec![])?;
                     assert!(result.is_success());
@@ -127,16 +127,16 @@ pub async fn run(
                     if size.sell_asset {
                         swap_output = y_before_swap - y_after_swap;
                         arbitrage::swap_liquid_expchange(
-                            &arbitrageur,
-                            &contracts,
+                            arbitrageur,
+                            &manager.deployed_contracts,
                             swap_output,
                             size.sell_asset,
                         )?;
                     } else {
                         swap_output = x_before_swap - x_after_swap;
                         arbitrage::swap_liquid_expchange(
-                            &arbitrageur,
-                            &contracts,
+                            arbitrageur,
+                            &manager.deployed_contracts,
                             swap_output,
                             size.sell_asset,
                         )?;
@@ -144,7 +144,7 @@ pub async fn run(
                 }
                 record_reserves(&uniswap_pair, &mut reserve_over_time, admin)?;
                 // record arbitrageur balances
-                record_arb_balances(&arbitrageur, &contracts, &mut arb_balance_paths)?;
+                record_arb_balances(arbitrageur, &manager.deployed_contracts, &mut arb_balance_paths)?;
                 // Update the liquid exchange price
                 update_price(admin, liquid_exchange, price, &mut liq_price_path)?;
 

@@ -2,7 +2,7 @@ use bindings::{uniswap_v2_factory, uniswap_v2_router_02};
 use ethers::{
     abi::{Token, Tokenize},
     prelude::U256,
-    types::{Address, H160},
+    types::{Address, H160}, solc::contracts,
 };
 use eyre::Result;
 use revm::primitives::B160;
@@ -17,11 +17,12 @@ use simulate::{
 use std::collections::HashMap;
 use std::error::Error;
 
+
 pub(crate) fn run(
     manager: &mut SimulationManager,
-) -> Result<(HashMap<String, SimulationContract<IsDeployed>>, H160), Box<dyn Error>> {
+) -> Result<H160, Box<dyn Error>> {
     let weth_address = manager.deployed_contracts.get("weth").unwrap().address;
-    let contracts = deploy_contracts(manager.agents.get("admin").unwrap(), weth_address)?;
+    deploy_contracts(manager, weth_address)?;
     let liquid_exchange_xy = manager
         .deployed_contracts
         .get("liquid_exchange_xy")
@@ -35,23 +36,22 @@ pub(crate) fn run(
     manager
         .activate_agent(AgentType::SimpleArbitrageur(arbitrageur), address)
         .unwrap();
-    let arbitrageur = manager.agents.get("arbitrageur").unwrap();
 
     mint(
+        &manager.deployed_contracts,
         manager.agents.get("admin").unwrap(),
-        arbitrageur,
-        &contracts,
+        manager.agents.get("arbitrageur").unwrap(),
     )?;
-    let pair_address = pair_intitalization(manager.agents.get("admin").unwrap(), &contracts)?;
+    let pair_address = pair_intitalization(manager.agents.get("admin").unwrap(), &manager.deployed_contracts)?;
     approve(
         manager.agents.get("admin").unwrap(),
-        arbitrageur,
-        &contracts,
+        manager.agents.get("arbitrageur").unwrap(),
+        &manager.deployed_contracts
     )?;
 
-    allocate(manager.agents.get("admin").unwrap(), &contracts)?;
+    allocate(manager.agents.get("admin").unwrap(), &manager.deployed_contracts)?;
 
-    Ok((contracts, pair_address))
+    Ok(pair_address)
 }
 
 /// Deploy the contracts to the simulation environment.
@@ -61,11 +61,11 @@ pub(crate) fn run(
 /// # Returns
 /// * `SimulationContracts` - Contracts deployed to the simulation environment. (SimulationContracts)
 fn deploy_contracts(
-    admin: &AgentType<IsActive>,
+    manager: &mut SimulationManager,
     weth_address: B160,
-) -> Result<HashMap<String, SimulationContract<IsDeployed>>, Box<dyn Error>> {
+) -> Result<(), Box<dyn Error>> {
     // Deploy the UniswapV2 Factory contract.
-    let mut contracts = HashMap::new();
+    let admin = manager.agents.get("admin").unwrap();
     let uniswap_factory = SimulationContract::new(
         uniswap_v2_factory::UNISWAPV2FACTORY_ABI.clone(),
         uniswap_v2_factory::UNISWAPV2FACTORY_BYTECODE.clone(),
@@ -74,7 +74,7 @@ fn deploy_contracts(
     let uniswap_factory_args = H160::from_low_u64_be(0).into_tokens();
     let (uniswap_factory, result) = admin.deploy(uniswap_factory, uniswap_factory_args)?;
     assert!(result.is_success());
-    contracts.insert("uniswap_factory".to_string(), uniswap_factory.clone());
+    manager.deployed_contracts.insert("uniswap_factory".to_string(), uniswap_factory.clone());
     // Deploy the UniswapV2 Router contract.
     let uniswap_router = SimulationContract::new(
         uniswap_v2_router_02::UNISWAPV2ROUTER02_ABI.clone(),
@@ -87,15 +87,15 @@ fn deploy_contracts(
         .into_tokens();
     let (uniswap_router, result) = admin.deploy(uniswap_router, uniswap_router_args)?;
     assert!(result.is_success());
-    contracts.insert("uniswap_router".to_string(), uniswap_router);
+    manager.deployed_contracts.insert("uniswap_router".to_string(), uniswap_router);
 
-    Ok(contracts)
+    Ok(())
 }
 
 fn mint(
+    contracts: &HashMap<String, SimulationContract<IsDeployed>>,
     admin: &AgentType<IsActive>,
     arbitrageur: &AgentType<IsActive>,
-    contracts: &HashMap<String, SimulationContract<IsDeployed>>,
 ) -> Result<(), Box<dyn Error>> {
     // Allocating new tokens to user by calling Arbiter Token's ERC20 'mint' instance.
     let arbiter_token_x = contracts.get("arbiter_token_x").unwrap();

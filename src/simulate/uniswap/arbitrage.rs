@@ -10,7 +10,7 @@ use eyre::Result;
 use simulate::{
     agent::{simple_arbitrageur::SimpleArbitrageur, Agent, AgentType, IsActive},
     environment::contract::{IsDeployed, SimulationContract},
-    utils::{recast_address, unpack_execution},
+    utils::{recast_address, unpack_execution}, manager::{self, SimulationManager},
 };
 
 #[derive(Clone)]
@@ -194,7 +194,7 @@ pub(crate) fn record_arb_balances(
     arb_balance_paths: &mut (Vec<U256>, Vec<U256>),
 ) -> Result<(), Box<dyn Error>> {
     let result = arbitrageur.call(
-        &contracts.get("arbiter_token_x").unwrap(),
+        contracts.get("arbiter_token_x").unwrap(),
         "balanceOf",
         recast_address(arbitrageur.address()).into_tokens(),
     )?;
@@ -206,7 +206,7 @@ pub(crate) fn record_arb_balances(
         .decode_output("balanceOf", unpack_execution(result)?)?;
 
     let result = arbitrageur.call(
-        &contracts.get("arbiter_token_y").unwrap(),
+        contracts.get("arbiter_token_y").unwrap(),
         "balanceOf",
         recast_address(arbitrageur.address()).into_tokens(),
     )?;
@@ -236,7 +236,7 @@ mod test {
 
         let target_price = U256::from(800_000_000_000_000_000u128);
 
-        let (_contracts, pair_address) = startup::run(&mut manager)?;
+        let pair_address = startup::run(&mut manager)?;
         let uniswap_pair = SimulationContract::<IsDeployed> {
             address: pair_address.into(),
             base_contract: BaseContract::from(bindings::uniswap_v2_pair::UNISWAPV2PAIR_ABI.clone()),
@@ -256,7 +256,7 @@ mod test {
 
         let target_price = U256::from(800_000_000_000_000_000u128);
 
-        let (contracts, pair_address) = startup::run(&mut manager)?;
+        let pair_address = startup::run(&mut manager)?;
         let uniswap_pair = SimulationContract::<IsDeployed> {
             address: pair_address.into(),
             base_contract: BaseContract::from(bindings::uniswap_v2_pair::UNISWAPV2PAIR_ABI.clone()),
@@ -271,7 +271,7 @@ mod test {
             AgentType::SimpleArbitrageur(base_arbitrageur) => base_arbitrageur,
             _ => panic!(),
         };
-        let _swap_event = swap(&arbitrageur, &contracts, output.input, output.sell_asset); // Swap bool is flipped!
+        let _swap_event = swap(arbitrageur, &manager.deployed_contracts, output.input, output.sell_asset); // Swap bool is flipped!
 
         let result = arbitrageur.call(&uniswap_pair, "getReserves", vec![])?;
         assert!(result.is_success());

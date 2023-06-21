@@ -91,7 +91,7 @@ impl SimulationManager {
     }
     /// generic contract deploy function that takse a vector of contracts and constructor args
     pub fn _deploy_contracts(
-        &mut self,
+        mut self,
         admin: &AgentType<IsActive>,
         // could be replaced with a struct that holds the contract, args, and name
         contracts: Vec<(SimulationContract<NotDeployed>, Vec<Token>, String)>,

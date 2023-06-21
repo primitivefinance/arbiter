@@ -6,8 +6,7 @@ use std::{
     collections::hash_map::DefaultHasher,
     error::Error,
     hash::Hasher,
-    sync::{Arc, Condvar},
-    thread,
+    sync::Arc,
     time::Instant,
 };
 
@@ -16,7 +15,7 @@ use clap::{arg, command, CommandFactory, Parser, Subcommand};
 use eyre::Result;
 use itertools_num::linspace;
 use thiserror::Error;
-use tokio::sync::{Mutex, Semaphore};
+use tokio::sync::Semaphore;
 
 use crate::{
     simulate::{OutputStorage, PathSweep, SimulateArguments, SimulateSubcommand, VolatilitySweep},

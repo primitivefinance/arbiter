@@ -4,14 +4,13 @@
 use std::fs;
 
 use clap::Parser;
-use ethers::abi::Token;
 use revm::primitives::B160;
 use serde::{Deserialize, Serialize};
 use simulate::{
     agent::{
         simple_arbitrageur::SimpleArbitrageur, AgentType, SimulationEventFilter,
     },
-    environment::contract::{IsDeployed, NotDeployed, SimulationContract},
+    environment::contract::{IsDeployed, SimulationContract},
     manager::SimulationManager,
     stochastic::price_process::PriceProcess,
 };
@@ -150,13 +149,9 @@ pub struct _Simulations {
 impl _Simulations {
     pub fn _new(
         price_process: PriceProcess,
-        contracts: Vec<(SimulationContract<NotDeployed>, Vec<Token>, String)>,
     ) -> Self {
         //auto deploy happens here in the manager constructor
-        let mut manager = SimulationManager::new();
-        let admin = manager.agents.get("admin").unwrap();
-        manager._deploy_contracts(admin, contracts).unwrap();
-
+        let manager = SimulationManager::new();
         _Simulations {
             price_process,
             manager,
