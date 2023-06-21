@@ -17,7 +17,7 @@ forge bind -C contracts/v2-core/contracts --revert-strings debug -b lib/bindings
 echo "Generated bindings for v2-core"
 forge bind -C contracts/v2-periphery/contracts --revert-strings debug -b lib/bindings/ --crate-name bindings --overwrite
 echo "Generated bindings for v2-periphery"
-forge bind -C contracts/v2-periphery/contracts --revert-strings debug -b lib/bindings/ --crate-name bindings --overwrite
+forge bind -C contracts/arbmod/contracts --revert-strings debug -b lib/bindings/ --crate-name bindings --overwrite
 echo "Generated bindings for arbmod"
 
 rm -f lib/bindings/src/mock_time_uniswap_v3_pool_deployer.rs
