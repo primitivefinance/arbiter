@@ -88,21 +88,19 @@ fn execute(evm: &mut EVM<CacheDB<EmptyDB>>, tx: TxEnv) -> ExecutionResult {
 
 /// The event broadcaster that is used to broadcast events to the agents from the simulation manager.
 #[derive(Clone, Debug)]
-pub struct EventBroadcaster {
-    senders: Vec<crossbeam_channel::Sender<Vec<Log>>>,
-}
+pub struct EventBroadcaster(Vec<crossbeam_channel::Sender<Vec<Log>>>);
 
 impl EventBroadcaster {
     pub(crate) fn new() -> Self {
-        Self { senders: vec![] }
+        Self(vec![])
     }
 
     pub(crate) fn add_sender(&mut self, sender: crossbeam_channel::Sender<Vec<Log>>) {
-        self.senders.push(sender);
+        self.0.push(sender);
     }
 
     pub(crate) fn broadcast(&self, logs: Vec<Log>) {
-        for sender in &self.senders {
+        for sender in &self.0 {
             sender.send(logs.clone()).unwrap();
         }
     }
