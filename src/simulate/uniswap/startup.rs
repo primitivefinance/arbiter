@@ -2,7 +2,7 @@ use bindings::{uniswap_v2_factory, uniswap_v2_router_02};
 use ethers::{
     abi::{Token, Tokenize},
     prelude::U256,
-    types::{Address, H160}, solc::contracts,
+    types::{Address, H160},
 };
 use eyre::Result;
 use revm::primitives::B160;

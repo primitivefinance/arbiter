@@ -2,7 +2,7 @@
 # Be careful when editing.
 
 # Number of price processes to simulate.
-price_paths = 10
+price_paths = 2
 # Number of workers to use for parallelization.
 worker_limit = 32
 # File output parameters struct.

@@ -10,7 +10,7 @@ use eyre::Result;
 use simulate::{
     agent::{simple_arbitrageur::SimpleArbitrageur, Agent, AgentType, IsActive},
     environment::contract::{IsDeployed, SimulationContract},
-    utils::{recast_address, unpack_execution}, manager::{self, SimulationManager},
+    utils::{recast_address, unpack_execution},
 };
 
 #[derive(Clone)]
@@ -136,6 +136,7 @@ pub(crate) fn swap(
         "swapExactTokensForTokens",
         swap_args.into_tokens(),
     )?;
+    assert!(result.is_success());
 
     let _swap_result: Vec<U256> = contracts
         .get("uniswap_router")
@@ -168,11 +169,13 @@ pub(crate) fn swap_liquid_expchange(
         "swap",
         swap_args.into_tokens(),
     )?;
+    let decoded = contracts.get("liquid_exchange_xy").unwrap().decode_output("swap", unpack_execution(result.clone())?)?;
+    println!("swap result: {:?}", decoded);
     assert!(result.is_success());
     Ok(())
 }
 
-pub(crate) fn record_reserves(
+pub(crate) fn record_pool_reserves(
     uniswap_pair: &SimulationContract<IsDeployed>,
     reserves_over_time: &mut (Vec<U256>, Vec<U256>),
     admin: &AgentType<IsActive>,

@@ -13,7 +13,7 @@ use simulate::{
 };
 
 use super::OutputStorage;
-use crate::simulate::uniswap::arbitrage::{compute_arb_size, record_arb_balances, record_reserves};
+use crate::simulate::uniswap::arbitrage::{compute_arb_size, record_arb_balances, record_pool_reserves};
 
 pub mod arbitrage;
 pub mod startup;
@@ -80,20 +80,21 @@ pub async fn run(
     let mut liq_price_path: Vec<U256> = Vec::new();
     let mut dex_price_path: Vec<U256> = Vec::new();
     let mut arb_balance_paths: (Vec<U256>, Vec<U256>) = (Vec::new(), Vec::new());
-    let mut reserve_over_time: (Vec<U256>, Vec<U256>) = (Vec::new(), Vec::new());
+    let mut uniswap_pool_reserve_over_time: (Vec<U256>, Vec<U256>) = (Vec::new(), Vec::new());
 
     // record first balances
     record_arb_balances(arbitrageur, &manager.deployed_contracts, &mut arb_balance_paths)?;
-    record_reserves(&uniswap_pair, &mut reserve_over_time, admin)?;
+    record_pool_reserves(&uniswap_pair, &mut uniswap_pool_reserve_over_time, admin)?;
     // Run the simulation
     // Update the first price
     let price = prices[0];
-    update_price(admin, liquid_exchange, price, &mut liq_price_path)?;
+    update_exchange_price(admin, liquid_exchange, price, &mut liq_price_path)?;
 
     let mut index: usize = 1;
     while let Ok((next_tx, _sell_asset)) = arbitrageur.detect_price_change().await {
         if index >= prices.len() {
             // maybe need to shut down?
+            manager.shutdown();
             break;
         }
         let price = prices[index];
@@ -142,11 +143,11 @@ pub async fn run(
                         )?;
                     }
                 }
-                record_reserves(&uniswap_pair, &mut reserve_over_time, admin)?;
+                record_pool_reserves(&uniswap_pair, &mut uniswap_pool_reserve_over_time, admin)?;
                 // record arbitrageur balances
                 record_arb_balances(arbitrageur, &manager.deployed_contracts, &mut arb_balance_paths)?;
                 // Update the liquid exchange price
-                update_price(admin, liquid_exchange, price, &mut liq_price_path)?;
+                update_exchange_price(admin, liquid_exchange, price, &mut liq_price_path)?;
 
                 index += 1;
 
@@ -182,7 +183,7 @@ pub async fn run(
 
                 dex_price_path.push(uniswap_price); // repeat previous price if no swap
 
-                update_price(admin, liquid_exchange, price, &mut liq_price_path)?;
+                update_exchange_price(admin, liquid_exchange, price, &mut liq_price_path)?;
                 index += 1;
                 continue;
             }
@@ -197,7 +198,7 @@ pub async fn run(
         liq_price_path,
         dex_price_path,
         arb_balance_paths,
-        reserve_over_time,
+        uniswap_pool_reserve_over_time,
         price_process,
         output_storage,
         label,
@@ -213,7 +214,7 @@ pub async fn run(
 }
 
 /// Update prices on the liquid exchange.
-fn update_price(
+fn update_exchange_price(
     admin: &AgentType<IsActive>,
     liquid_exchange: &SimulationContract<IsDeployed>,
     price: f64,
@@ -294,7 +295,6 @@ fn write_to_csv(
                 vec![mean_reversion_speed; series_length],
             );
             let mean_price = Series::new("mean_price", vec![mean_price; series_length]);
-
             let mut df = DataFrame::new(vec![
                 seed,
                 timestep,
@@ -308,6 +308,7 @@ fn write_to_csv(
                 arb_balance_x,
                 arb_balance_y,
             ])?;
+
             // println!("Dataframe: {:#?}", df);
             let volatility = match price_process.process_type {
                 PriceProcessType::GBM(GBM { volatility, .. }) => volatility,
