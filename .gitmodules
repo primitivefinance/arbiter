@@ -11,6 +11,7 @@
 [submodule "contracts/portfolio"]
 	path = contracts/portfolio
 	url = https://github.com/primitivefinance/portfolio
+	branch = main
 [submodule "contracts/v2-core"]
 	path = contracts/v2-core
 	url = https://github.com/Uniswap/v2-core

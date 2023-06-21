@@ -9,7 +9,7 @@ use std::{
     fmt::{Display, Formatter, Result as FmtResult},
 };
 
-use bindings::arbmod;
+use bindings::arbiter_math;
 use bytes::Bytes;
 use crossbeam_channel::unbounded;
 use ethers::{
