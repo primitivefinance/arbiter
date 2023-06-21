@@ -19,6 +19,10 @@ use std::{
 };
 
 use crate::agent::{filter_events, SimulationEventFilter};
+/// Type Aliases for the event channel.
+pub(crate) type ExecutionSender = Sender<ExecutionResult>;
+pub(crate) type TxEnvSender = Sender<(TxEnv, ExecutionSender)>;
+pub(crate) type TxEnvReceiver = Receiver<(TxEnv, ExecutionSender)>;
 
 /// The simulation environment that houses the execution environment and event logs.
 /// # Fields
@@ -31,10 +35,7 @@ pub struct SimulationEnvironment {
     pub(crate) event_broadcaster: Arc<Mutex<EventBroadcaster>>,
     /// The receiver of txs from agents.
     /// Bundles with a sender to send the execution result back to the agent.
-    pub(crate) transaction_channel: (
-        Sender<(TxEnv, Sender<ExecutionResult>)>,
-        Receiver<(TxEnv, Sender<ExecutionResult>)>,
-    ),
+    pub(crate) transaction_channel: (TxEnvSender, TxEnvReceiver),
 }
 
 impl SimulationEnvironment {
