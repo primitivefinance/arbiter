@@ -116,7 +116,6 @@ impl SimpleArbitrageur<IsActive> {
         let mut return_value = (NextTx::None, None);
 
         if let Some(result) = watcher.next().await {
-            println!("Got event");
             let (tokens, pool_number) = result?;
             let new_price = tokens[0].clone().into_uint().unwrap();
             let mut prices = prices.lock().await;
