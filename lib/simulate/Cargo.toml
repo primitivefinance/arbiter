@@ -31,3 +31,4 @@ serde_json = "1.0.96"
 bindings = { path = "../bindings" }
 ethers = "2.0.4"
 hex = { version = "0.4.3", default-features = false }
+pin-project = "1.1"

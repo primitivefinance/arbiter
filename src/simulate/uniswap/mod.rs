@@ -71,7 +71,8 @@ pub async fn run(
 
     drop(prices);
 
-    let _ = arbitrageur.detect_price_change().await;
+    let thing = arbitrageur.detect_price_change().await;
+    // print!("thing: {:?}", thing);
 
     // Get prices
     let prices = price_process.generate_price_path().1;
@@ -94,6 +95,7 @@ pub async fn run(
 
     let mut index: usize = 1;
     while let Ok((next_tx, _sell_asset)) = arbitrageur.detect_price_change().await {
+        println!("next_tx: {:?}", next_tx);
         if index >= prices.len() {
             // maybe need to shut down?
             manager.shutdown();
@@ -243,7 +245,7 @@ fn write_to_csv(
     label: usize,
 ) -> Result<(), Box<dyn Error>> {
     // Write down the simulation configuration to a csv file
-    let series_length = liq_price_path.len();
+    let series_length = liq_price_path.len() - 1;
     let seed = Series::new("seed", vec![price_process.seed; series_length]);
     let timestep = Series::new("timestep", vec![price_process.timestep; series_length]);
 
@@ -268,16 +270,16 @@ fn write_to_csv(
             let drift = Series::new("mean_reversion_speed", vec![drift; series_length]);
             println!("Error of shape happens here");
 
-            // println!("length of seed: {}", seed.len());
-            // println!("length of timestep: {}", timestep.len());
-            // println!("length of volatility: {}", volatility.len());
-            // println!("length of drift: {}", drift.len());
-            // println!("length of liquid_exchange_prices: {}", liquid_exchange_prices.len());
-            // println!("length of uniswap_prices: {}", uniswap_prices.len());
-            // println!("length of reserve_x: {}", reserve_x.len());
-            // println!("length of reserve_y: {}", reserve_y.len());
-            // println!("length of arb_balance_x: {}", arb_balance_x.len());
-            // println!("length of arb_balance_y: {}", arb_balance_y.len());
+            println!("length of seed: {}", seed.len());
+            println!("length of timestep: {}", timestep.len());
+            println!("length of volatility: {}", volatility.len());
+            println!("length of drift: {}", drift.len());
+            println!("length of liquid_exchange_prices: {}", liquid_exchange_prices.len());
+            println!("length of uniswap_prices: {}", uniswap_prices.len());
+            println!("length of reserve_x: {}", reserve_x.len());
+            println!("length of reserve_y: {}", reserve_y.len());
+            println!("length of arb_balance_x: {}", arb_balance_x.len());
+            println!("length of arb_balance_y: {}", arb_balance_y.len());
 
             let mut df = DataFrame::new(vec![
                 seed,

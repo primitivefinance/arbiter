@@ -2,7 +2,7 @@
 # Be careful when editing.
 
 # Number of price processes to simulate.
-price_paths = 32
+price_paths = 1
 # Number of workers to use for parallelization.
 worker_limit = 32
 # File output parameters struct.
@@ -30,23 +30,23 @@ initial_price = 1
 seed = 887
 
 [process_type]
-price_process_type = "GBM"
+price_process_type = "OU"
 
 # Ornstein-Uhlenbeck process parameters struct.
 # # Fields
 # * `volatility` - Volatility of the underlying asset. (f64)
 # * `mean_reversion_speed` - Mean reversion speed of the underlying asset. (f64)
 # * `mean_price` - Mean price of the underlying asset. (f64)
-# [process_type.price_process]
-# volatility = 0.01
-# mean_reversion_speed = 50.0
-# mean_price = 1.0
+[process_type.price_process]
+volatility = 0.01
+mean_reversion_speed = 50.0
+mean_price = 1.0
 
 # Geometric Brownian Motion process parameters struct.
 # # Fields
 # * `drift` - Price drift of the underlying asset. (f64)
 # * `volatility` - Volatility of the underlying asset. (f64)
 # e.g., 
-[process_type.price_process]
-drift = 0.1
-volatility = 0.07
+# [process_type.price_process]
+# drift = 0.1
+# volatility = 0.07

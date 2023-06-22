@@ -19,7 +19,7 @@ use ethers::{
     prelude::BaseContract,
     types::H256,
 };
-
+use pin_project::pin_project;
 use ethers::core::abi::AbiError;
 
 use revm::primitives::{
@@ -362,6 +362,7 @@ mod tests {
     use bindings::{arbiter_token, writer};
     use ethers::abi::Tokenize;
     use revm::primitives::B160;
+    use tokio::pin;
 
     use crate::{
         agent::{user::User, Agent, AgentType, SimulationEventFilter},
@@ -425,7 +426,9 @@ mod tests {
         )?;
 
         // Test that the alice doesn't filter out these logs.
-        let mut alice_watcher = alice.watch();
+
+        let alice_watcher = alice.watch();
+        pin!(alice_watcher);
         let alice_next_event = alice_watcher.next().await;
         print!("Alice's next event: {:#?}", alice_next_event);
         assert!(alice_next_event.is_none());
