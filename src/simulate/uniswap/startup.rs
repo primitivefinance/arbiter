@@ -29,7 +29,11 @@ pub(crate) fn run(manager: &mut SimulationManager) -> Result<H160, Box<dyn Error
         liquid_exchange_xy,
         "PriceChange",
     )];
-    let arbitrageur = SimpleArbitrageur::new("arbitrageur", event_filters, U256::from(997_000_000_000_000_000u128).into());
+    let arbitrageur = SimpleArbitrageur::new(
+        "arbitrageur",
+        event_filters,
+        U256::from(997_000_000_000_000_000u128).into(),
+    );
     manager
         .activate_agent(AgentType::SimpleArbitrageur(arbitrageur), address)
         .unwrap();

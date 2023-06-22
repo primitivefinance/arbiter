@@ -170,8 +170,6 @@ pub(crate) fn swap_liquid_exchange(
         "swap",
         swap_args.into_tokens(),
     )?;
-    // let decoded = contracts.get("liquid_exchange_xy").unwrap().decode_output("swap", unpack_execution(result.clone())?)?;
-    // println!("swap result: {:?}", decoded);
     assert!(result.is_success());
     Ok(())
 }

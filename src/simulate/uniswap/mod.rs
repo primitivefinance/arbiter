@@ -76,7 +76,7 @@ pub async fn run(
 
     drop(prices);
 
-    let _ = arbitrageur.detect_price_change().await;
+    arbitrageur.detect_price_change().await?;
 
     // Get prices
     let prices = price_process.generate_price_path().1;

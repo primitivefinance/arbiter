@@ -4,15 +4,8 @@
 use std::fs;
 
 use clap::Parser;
-use revm::primitives::B160;
-use ruint::aliases::U256;
 use serde::{Deserialize, Serialize};
-use simulate::{
-    agent::{simple_arbitrageur::SimpleArbitrageur, AgentType, SimulationEventFilter},
-    environment::contract::{IsDeployed, SimulationContract},
-    manager::SimulationManager,
-    stochastic::price_process::PriceProcess,
-};
+use simulate::stochastic::price_process::PriceProcess;
 
 use crate::{Configurable, ConfigurationError};
 
@@ -132,39 +125,4 @@ impl Configurable for VolatilitySweep {
             number_of_volatility_steps: simulation_configuration.number_of_volatility_steps,
         })
     }
-}
-
-// Simulation struct
-// Put these in the auto deployer in manager.rs
-// maybe add the ens contracts as well
-
-pub struct _Simulations {
-    price_process: PriceProcess,
-    manager: SimulationManager,
-    // This is also where our env for DeSim can be stored
-    // maybe add a handle to revm db here too
-}
-
-impl _Simulations {
-    pub fn _new(price_process: PriceProcess) -> Self {
-        //auto deploy happens here in the manager constructor
-        let manager = SimulationManager::new();
-        _Simulations {
-            price_process,
-            manager,
-        }
-    }
-}
-
-pub(crate) fn _create_arbitrageur<S: Into<String>>(
-    manager: &mut SimulationManager,
-    liquid_exchange: &SimulationContract<IsDeployed>,
-    name: S,
-) {
-    let address = B160::from_low_u64_be(2);
-    let event_filters = vec![SimulationEventFilter::new(liquid_exchange, "PriceChange")];
-    let arbitrageur = SimpleArbitrageur::new(name, event_filters, U256::from(997_000_000_000_000_000u128)); // Fee here comes from the chosen UniV2 pool.
-    manager
-        .activate_agent(AgentType::SimpleArbitrageur(arbitrageur), address)
-        .unwrap();
 }

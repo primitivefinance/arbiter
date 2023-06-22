@@ -1,6 +1,7 @@
 #![warn(unsafe_code)]
 //! Describes the most basic type of user agent.
 
+use ethers::prelude::AbiError;
 use std::sync::Arc;
 use tokio::sync::Mutex;
 
@@ -109,35 +110,29 @@ impl SimpleArbitrageur<NotActive> {
 impl SimpleArbitrageur<IsActive> {
     /// A basic implementation that will detect price discprepencies from events emitted from pools.
     /// Currently implemented and tested only against the `liquid_exchange`.
-    pub async fn detect_price_change(&self) -> Result<(NextTx, Option<SwapDirection>), ()> {
+    pub async fn detect_price_change(&self) -> Result<(NextTx, Option<SwapDirection>), AbiError> {
         let prices = Arc::clone(&self.prices);
         let mut watcher = self.watch();
-
         let mut return_value = (NextTx::None, None);
-        while let Some(result) = watcher.next().await {
-            match result {
-                Ok((tokens, pool_number)) => {
-                    let new_price = tokens[0].clone().into_uint().unwrap();
-                    let mut prices = prices.lock().await;
-                    prices[pool_number] = new_price.into();
-                    let (is_arbitrage, swap_direction) = is_arbitrage(*prices, self.fee);
-                    if is_arbitrage {
-                        return_value = (NextTx::Swap, swap_direction);
-                        break;
-                    } else {
-                        return_value = (NextTx::UpdatePrice, None);
-                        break;
-                    }
-                }
-                Err(e) => println!("Error in `detect_arbitrage`: {:#?}", e),
+
+        if let Some(result) = watcher.next().await {
+            println!("Got event");
+            let (tokens, pool_number) = result?;
+            let new_price = tokens[0].clone().into_uint().unwrap();
+            let mut prices = prices.lock().await;
+            prices[pool_number] = new_price.into();
+            let (is_arbitrage, swap_direction) = is_arbitrage(*prices, self.fee);
+            if is_arbitrage {
+                return_value = (NextTx::Swap, swap_direction);
+            } else {
+                return_value = (NextTx::UpdatePrice, None);
             }
         }
-
         Ok(return_value)
     }
 }
 
-/// Basic function that checks for price differences between the two pools.
+/// Basic function that checks for price differences between the two pools exceeds the no-arb bounds.
 pub fn is_arbitrage(prices: [U256; 2], fee: U256) -> (bool, Option<SwapDirection>) {
     if prices[0] == U256::MAX || prices[1] == U256::MAX {
         // If either of the prices are uninitialized, then we can't check for arbitrage.
@@ -154,11 +149,11 @@ pub fn is_arbitrage(prices: [U256; 2], fee: U256) -> (bool, Option<SwapDirection
             (true, Some(SwapDirection::ZeroToOne))
         } else {
             // If the price difference is still nonzero, then we must swap with price[0]>price[1].
-            return (true, Some(SwapDirection::OneToZero));
+            (true, Some(SwapDirection::OneToZero))
         }
     } else {
         // Prices are within the no-arbitrage bounds, so we don't have an arbitrage.
-        return (false, None);
+        (false, None)
     }
 }
 
@@ -174,7 +169,7 @@ mod tests {
 
     use super::SimpleArbitrageur;
     use crate::{
-        agent::{Agent, AgentType, SimulationEventFilter},
+        agent::{simple_arbitrageur::is_arbitrage, Agent, AgentType, SimulationEventFilter},
         environment::contract::SimulationContract,
         manager::SimulationManager,
         utils::recast_address,
@@ -258,8 +253,11 @@ mod tests {
             SimulationEventFilter::new(&liquid_exchange_xy1, "PriceChange"),
         ];
 
-        let arbitrageur =
-            AgentType::SimpleArbitrageur(SimpleArbitrageur::new("arbitrageur", event_filters));
+        let arbitrageur = AgentType::SimpleArbitrageur(SimpleArbitrageur::new(
+            "arbitrageur",
+            event_filters,
+            U256::from(997_000_000_000_000_000u128).into(),
+        ));
         manager.activate_agent(arbitrageur, B160::from_low_u64_be(2))?;
         let arbitrageur = manager.agents.get("arbitrageur").unwrap();
         let admin = manager.agents.get("admin").unwrap();
@@ -368,8 +366,11 @@ mod tests {
             SimulationEventFilter::new(&liquid_exchange_xy0, "PriceChange"),
             SimulationEventFilter::new(&liquid_exchange_xy1, "PriceChange"),
         ];
-        let arbitrageur =
-            AgentType::SimpleArbitrageur(SimpleArbitrageur::new("arbitrageur", event_filters));
+        let arbitrageur = AgentType::SimpleArbitrageur(SimpleArbitrageur::new(
+            "arbitrageur",
+            event_filters,
+            U256::from(997_000_000_000_000_000u128).into(),
+        ));
         manager.activate_agent(arbitrageur, B160::from_low_u64_be(2))?;
         let arbitrageur = manager.agents.get("arbitrageur").unwrap();
         let admin = manager.agents.get("admin").unwrap();
@@ -419,6 +420,9 @@ mod tests {
             prices[1],
             wad.checked_mul(U256::from(69420)).unwrap().into()
         );
+
+        // Check that the arbitrageur detects the arbitrage opportunity.
+        assert!(is_arbitrage(*prices, U256::from(997_000_000_000_000_000u128).into()).0);
 
         Ok(())
     }
