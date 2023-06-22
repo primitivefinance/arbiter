@@ -267,14 +267,7 @@ fn write_to_csv(
     let seed = Series::new("seed", vec![price_process.seed; series_length]);
     let timestep = Series::new("timestep", vec![price_process.timestep; series_length]);
 
-    let (
-        reserve_y,
-        reserve_x,
-        uniswap_prices,
-        liquid_exchange_prices,
-        arb_balance_x,
-        arb_balance_y,
-    ) = make_series(
+    let mut dataframe = make_series(
         liq_price_path,
         dex_price_path,
         reserve_over_time,
@@ -288,29 +281,8 @@ fn write_to_csv(
             let drift = Series::new("mean_reversion_speed", vec![drift; series_length]);
             println!("Error of shape happens here");
 
-            // println!("length of seed: {}", seed.len());
-            // println!("length of timestep: {}", timestep.len());
-            // println!("length of volatility: {}", volatility.len());
-            // println!("length of drift: {}", drift.len());
-            // println!("length of liquid_exchange_prices: {}", liquid_exchange_prices.len());
-            // println!("length of uniswap_prices: {}", uniswap_prices.len());
-            // println!("length of reserve_x: {}", reserve_x.len());
-            // println!("length of reserve_y: {}", reserve_y.len());
-            // println!("length of arb_balance_x: {}", arb_balance_x.len());
-            // println!("length of arb_balance_y: {}", arb_balance_y.len());
+            dataframe.hstack_mut(&[volatility, timestep, seed, drift])?;
 
-            let mut df = DataFrame::new(vec![
-                seed,
-                timestep,
-                volatility,
-                drift,
-                liquid_exchange_prices,
-                uniswap_prices,
-                reserve_x,
-                reserve_y,
-                arb_balance_x,
-                arb_balance_y,
-            ])?;
             let volatility = match price_process.process_type {
                 PriceProcessType::GBM(GBM { volatility, .. }) => volatility,
                 PriceProcessType::OU(OU { volatility, .. }) => volatility,
@@ -320,7 +292,7 @@ fn write_to_csv(
                 output_storage.output_path, output_storage.output_file_names, volatility, label
             ))?;
             let mut writer = CsvWriter::new(file);
-            writer.finish(&mut df)?;
+            writer.finish(&mut dataframe)?;
         }
         PriceProcessType::OU(OU {
             volatility,
@@ -333,18 +305,13 @@ fn write_to_csv(
                 vec![mean_reversion_speed; series_length],
             );
             let mean_price = Series::new("mean_price", vec![mean_price; series_length]);
-            let mut df = DataFrame::new(vec![
-                seed,
-                timestep,
+
+            dataframe.hstack_mut(&[
                 volatility,
+                timestep,
+                seed,
                 mean_reversion_speed,
                 mean_price,
-                liquid_exchange_prices,
-                uniswap_prices,
-                reserve_x,
-                reserve_y,
-                arb_balance_x,
-                arb_balance_y,
             ])?;
 
             // println!("Dataframe: {:#?}", df);
@@ -357,7 +324,7 @@ fn write_to_csv(
                 output_storage.output_path, output_storage.output_file_names, volatility, label
             ))?;
             let mut writer = CsvWriter::new(file);
-            writer.finish(&mut df)?;
+            writer.finish(&mut dataframe)?;
         }
     };
 
@@ -369,7 +336,7 @@ fn make_series(
     dex_price_path: Vec<U256>,
     reserve_over_time: (Vec<U256>, Vec<U256>),
     arb_balance_paths: (Vec<U256>, Vec<U256>),
-) -> Result<SeriesTuple, Box<dyn Error>> {
+) -> Result<DataFrame, Box<dyn Error>> {
     let liquid_exchange_prices = liq_price_path
         .into_iter()
         .map(wad_to_float)
@@ -403,21 +370,13 @@ fn make_series(
         .map(|y| y.to_string())
         .collect::<Vec<String>>();
 
-    let data: SeriesTuple = (
+    let data = DataFrame::new(vec![
         Series::new("uniswap_y_reserves", reserve_y),
         Series::new("uniswap_x_reserves", reserve_x),
         Series::new("uniswap_prices", uniswap_prices),
         Series::new("liquid_exchange_prices", liquid_exchange_prices),
         Series::new("arbitrageur_balance_x", arb_x),
         Series::new("arbitrageur_balance_y", arb_y),
-    );
+    ])?;
     Ok(data)
 }
-type SeriesTuple = (
-    polars::prelude::Series,
-    polars::prelude::Series,
-    polars::prelude::Series,
-    polars::prelude::Series,
-    polars::prelude::Series,
-    polars::prelude::Series,
-);
