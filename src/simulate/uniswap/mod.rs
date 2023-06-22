@@ -85,9 +85,11 @@ pub async fn run(
     // record first balances
     record_arb_balances(arbitrageur, &manager.deployed_contracts, &mut arb_balance_paths)?;
     record_pool_reserves(&uniswap_pair, &mut uniswap_pool_reserve_over_time, admin)?;
+    // println!("initial reserves: {:?}, {:?}", uniswap_pool_reserve_over_time.0, uniswap_pool_reserve_over_time.1);
     // Run the simulation
     // Update the first price
     let price = prices[0];
+    dex_price_path.push(uniswap_price);
     update_exchange_price(admin, liquid_exchange, price, &mut liq_price_path)?;
 
     let mut index: usize = 1;
@@ -127,6 +129,7 @@ pub async fn run(
                     let y_after_swap = U256::from(uniswap_reserves_after.1);
                     if size.sell_asset {
                         swap_output = y_before_swap - y_after_swap;
+                        println!("First output {}", swap_output);
                         arbitrage::swap_liquid_expchange(
                             arbitrageur,
                             &manager.deployed_contracts,
@@ -135,6 +138,10 @@ pub async fn run(
                         )?;
                     } else {
                         swap_output = x_before_swap - x_after_swap;
+                        // 3115239575391681418 Succeeds on first if statement
+                        // 5528423189957093895 fails here
+                        // 1000000000000000000000 initial reserves
+                        println!("Second output: {}", swap_output);
                         arbitrage::swap_liquid_expchange(
                             arbitrageur,
                             &manager.deployed_contracts,
@@ -236,7 +243,7 @@ fn write_to_csv(
     label: usize,
 ) -> Result<(), Box<dyn Error>> {
     // Write down the simulation configuration to a csv file
-    let series_length = liq_price_path.len() - 1;
+    let series_length = liq_price_path.len();
     let seed = Series::new("seed", vec![price_process.seed; series_length]);
     let timestep = Series::new("timestep", vec![price_process.timestep; series_length]);
 
@@ -259,6 +266,18 @@ fn write_to_csv(
         PriceProcessType::GBM(GBM { volatility, drift }) => {
             let volatility = Series::new("drift", vec![volatility; series_length]);
             let drift = Series::new("mean_reversion_speed", vec![drift; series_length]);
+            println!("Error of shape happens here");
+
+            // println!("length of seed: {}", seed.len());
+            // println!("length of timestep: {}", timestep.len());
+            // println!("length of volatility: {}", volatility.len());
+            // println!("length of drift: {}", drift.len());
+            // println!("length of liquid_exchange_prices: {}", liquid_exchange_prices.len());
+            // println!("length of uniswap_prices: {}", uniswap_prices.len());
+            // println!("length of reserve_x: {}", reserve_x.len());
+            // println!("length of reserve_y: {}", reserve_y.len());
+            // println!("length of arb_balance_x: {}", arb_balance_x.len());
+            // println!("length of arb_balance_y: {}", arb_balance_y.len());
 
             let mut df = DataFrame::new(vec![
                 seed,
@@ -272,6 +291,7 @@ fn write_to_csv(
                 arb_balance_x,
                 arb_balance_y,
             ])?;
+            println!("after");
             // println!("Dataframe: {:#?}", df);
             let volatility = match price_process.process_type {
                 PriceProcessType::GBM(GBM { volatility, .. }) => volatility,
@@ -336,7 +356,6 @@ fn make_series(
         .into_iter()
         .map(wad_to_float)
         .collect::<Vec<f64>>();
-    let liquid_exchange_prices = liquid_exchange_prices[1..].to_vec();
 
     let uniswap_prices = dex_price_path
         .into_iter()

@@ -2,7 +2,7 @@
 # Be careful when editing.
 
 # Number of price processes to simulate.
-price_paths = 2
+price_paths = 32
 # Number of workers to use for parallelization.
 worker_limit = 32
 # File output parameters struct.
@@ -12,7 +12,7 @@ output_file_names = "uniswap"
 # Volatility sweeping parameters.
 volatility_low = 0.01
 volatility_high = 0.1
-number_of_volatility_steps = 10
+number_of_volatility_steps = 1
 
 # Struct for all price processes init parameters.
 # A price process is a stochastic process that describes the evolution of a price_process.
