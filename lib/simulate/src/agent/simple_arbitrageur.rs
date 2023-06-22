@@ -108,29 +108,28 @@ impl SimpleArbitrageur<IsActive> {
     pub async fn detect_price_change(&self) -> Result<(NextTx, Option<SwapDirection>), ()> {
         let prices = Arc::clone(&self.prices);
         let mut watcher = self.watch();
-        // println!("Starting price change detection: {:#?}", watcher);
-        let mut return_value = (NextTx::None, None);
-            while let Some(result) = watcher.next().await {
-                println!("Got event: {:#?}", result);
-                match result {
-                    Ok((tokens, pool_number)) => {
-                        let new_price = tokens[0].clone().into_uint().unwrap();
-                        let mut prices = prices.lock().await;
-                        prices[pool_number] = new_price.into();
-                        let (is_arbitrage, swap_direction) = is_arbitrage(*prices);
-                        if is_arbitrage {
-                            return_value = (NextTx::Swap, swap_direction);
-                            break;
-                        } else {
-                            return_value = (NextTx::UpdatePrice, None);
-                            break;
-                        }
-                    },
-                    Err(e) => println!("Error in `detect_arbitrage`: {:#?}", e)
-                }
-            }
 
-            Ok(return_value)
+        let mut return_value = (NextTx::None, None);
+        while let Some(result) = watcher.next().await {
+            match result {
+                Ok((tokens, pool_number)) => {
+                    let new_price = tokens[0].clone().into_uint().unwrap();
+                    let mut prices = prices.lock().await;
+                    prices[pool_number] = new_price.into();
+                    let (is_arbitrage, swap_direction) = is_arbitrage(*prices);
+                    if is_arbitrage {
+                        return_value = (NextTx::Swap, swap_direction);
+                        break;
+                    } else {
+                        return_value = (NextTx::UpdatePrice, None);
+                        break;
+                    }
+                }
+                Err(e) => println!("Error in `detect_arbitrage`: {:#?}", e),
+            }
+        }
+
+        Ok(return_value)
     }
 }
 
@@ -391,8 +390,14 @@ mod tests {
         assert!(execution_result.is_success());
 
         // Run the detect_arbitrage function twice to pick up both price changes.
-        println!("output from detect_arbitrage: {:#?}", base_arbitrageur.detect_price_change().await);
-        println!("output from detect_arbitrage: {:#?}", base_arbitrageur.detect_price_change().await);
+        println!(
+            "output from detect_arbitrage: {:#?}",
+            base_arbitrageur.detect_price_change().await
+        );
+        println!(
+            "output from detect_arbitrage: {:#?}",
+            base_arbitrageur.detect_price_change().await
+        );
         let prices = Arc::clone(&base_arbitrageur.prices);
         let prices = prices.lock().await;
         println!("Arbitrageur prices: {:#?}", prices);

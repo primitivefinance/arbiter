@@ -7,9 +7,7 @@ use clap::Parser;
 use revm::primitives::B160;
 use serde::{Deserialize, Serialize};
 use simulate::{
-    agent::{
-        simple_arbitrageur::SimpleArbitrageur, AgentType, SimulationEventFilter,
-    },
+    agent::{simple_arbitrageur::SimpleArbitrageur, AgentType, SimulationEventFilter},
     environment::contract::{IsDeployed, SimulationContract},
     manager::SimulationManager,
     stochastic::price_process::PriceProcess,
@@ -147,9 +145,7 @@ pub struct _Simulations {
 }
 
 impl _Simulations {
-    pub fn _new(
-        price_process: PriceProcess,
-    ) -> Self {
+    pub fn _new(price_process: PriceProcess) -> Self {
         //auto deploy happens here in the manager constructor
         let manager = SimulationManager::new();
         _Simulations {

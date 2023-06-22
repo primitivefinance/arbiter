@@ -13,7 +13,9 @@ use simulate::{
 };
 
 use super::OutputStorage;
-use crate::simulate::uniswap::arbitrage::{compute_arb_size, record_arb_balances, record_pool_reserves};
+use crate::simulate::uniswap::arbitrage::{
+    compute_arb_size, record_arb_balances, record_pool_reserves,
+};
 
 pub mod arbitrage;
 pub mod startup;
@@ -51,7 +53,10 @@ pub async fn run(
         AgentType::SimpleArbitrageur(base_arbitrageur) => base_arbitrageur,
         _ => panic!(),
     };
-    let liquid_exchange = manager.deployed_contracts.get("liquid_exchange_xy").unwrap();
+    let liquid_exchange = manager
+        .deployed_contracts
+        .get("liquid_exchange_xy")
+        .unwrap();
     let result = arbitrageur.call(liquid_exchange, "price", vec![])?;
     assert!(result.is_success());
 
@@ -71,80 +76,86 @@ pub async fn run(
 
     drop(prices);
 
-    let thing = arbitrageur.detect_price_change().await;
-    // print!("thing: {:?}", thing);
+    let _ = arbitrageur.detect_price_change().await;
 
     // Get prices
     let prices = price_process.generate_price_path().1;
 
     // Create vectors that will store the price paths for the LiquidExchange and the Uniswap pool
     let mut liq_price_path: Vec<U256> = Vec::new();
-    let mut dex_price_path: Vec<U256> = Vec::new();
+    let mut uniswap_price_path: Vec<U256> = Vec::new();
     let mut arb_balance_paths: (Vec<U256>, Vec<U256>) = (Vec::new(), Vec::new());
     let mut uniswap_pool_reserve_over_time: (Vec<U256>, Vec<U256>) = (Vec::new(), Vec::new());
 
     // record first balances
-    record_arb_balances(arbitrageur, &manager.deployed_contracts, &mut arb_balance_paths)?;
+    record_arb_balances(
+        arbitrageur,
+        &manager.deployed_contracts,
+        &mut arb_balance_paths,
+    )?;
     record_pool_reserves(&uniswap_pair, &mut uniswap_pool_reserve_over_time, admin)?;
-    // println!("initial reserves: {:?}, {:?}", uniswap_pool_reserve_over_time.0, uniswap_pool_reserve_over_time.1);
+
     // Run the simulation
     // Update the first price
     let price = prices[0];
-    dex_price_path.push(uniswap_price);
-    update_exchange_price(admin, liquid_exchange, price, &mut liq_price_path)?;
+    uniswap_price_path.push(uniswap_price);
+    update_liquid_exchange_price(admin, liquid_exchange, price, &mut liq_price_path)?;
+
+    // Get the math contract
+    let arbiter_math = manager.deployed_contracts.get("arbiter_math").unwrap();
 
     let mut index: usize = 1;
     while let Ok((next_tx, _sell_asset)) = arbitrageur.detect_price_change().await {
-        println!("next_tx: {:?}", next_tx);
+        // if end of price path, shut down
         if index >= prices.len() {
-            // maybe need to shut down?
             manager.shutdown();
             break;
         }
+        // else continute with simulation
         let price = prices[index];
         let wad_price = simulate::utils::float_to_wad(price);
 
-        // place args from manager to get
-        let arbiter_math = manager.deployed_contracts.get("arbiter_math").unwrap();
-
         match next_tx {
             NextTx::Swap => {
-                // check for arb bounds
+                // check for arb bounds and compute size
                 let size = compute_arb_size(&uniswap_pair, admin, arbiter_math, wad_price)?;
+                // No arb opportunity check
                 if size.input == U256::from(0) {
-                    // println!("No arbitrage opportunity\n");
                     index += 1;
                 } else {
+                    // else there is an arbitrage
                     let result = arbitrageur.call(&uniswap_pair, "getReserves", vec![])?;
                     assert!(result.is_success());
                     let uniswap_reserves: (u128, u128, u32) =
                         uniswap_pair.decode_output("getReserves", unpack_execution(result)?)?;
                     let x_before_swap = U256::from(uniswap_reserves.0);
                     let y_before_swap = U256::from(uniswap_reserves.1);
-                    arbitrage::swap(arbitrageur, &manager.deployed_contracts, size.input, size.sell_asset)?;
-                    let swap_output: U256;
+
+                    arbitrage::swap(
+                        arbitrageur,
+                        &manager.deployed_contracts,
+                        size.input,
+                        size.sell_asset,
+                    )?;
+
                     let result = arbitrageur.call(&uniswap_pair, "getReserves", vec![])?;
                     assert!(result.is_success());
                     let uniswap_reserves_after: (u128, u128, u32) =
                         uniswap_pair.decode_output("getReserves", unpack_execution(result)?)?;
                     let x_after_swap = U256::from(uniswap_reserves_after.0);
                     let y_after_swap = U256::from(uniswap_reserves_after.1);
+
                     if size.sell_asset {
-                        swap_output = y_before_swap - y_after_swap;
-                        println!("First output {}", swap_output);
-                        arbitrage::swap_liquid_expchange(
+                        let swap_output = y_before_swap - y_after_swap;
+                        arbitrage::swap_liquid_exchange(
                             arbitrageur,
                             &manager.deployed_contracts,
                             swap_output,
                             size.sell_asset,
                         )?;
                     } else {
-                        swap_output = x_before_swap - x_after_swap;
-                        // 3115239575391681418 Succeeds on first if statement
-                        // 5528423189957093895 fails here
-                        // 1000000000000000000000 initial reserves
-                        println!("Second output: {}", swap_output);
-                        arbitrage::swap_liquid_expchange(
+                        let swap_output = x_before_swap - x_after_swap;
+                        arbitrage::swap_liquid_exchange(
                             arbitrageur,
                             &manager.deployed_contracts,
                             swap_output,
@@ -154,9 +165,13 @@ pub async fn run(
                 }
                 record_pool_reserves(&uniswap_pair, &mut uniswap_pool_reserve_over_time, admin)?;
                 // record arbitrageur balances
-                record_arb_balances(arbitrageur, &manager.deployed_contracts, &mut arb_balance_paths)?;
+                record_arb_balances(
+                    arbitrageur,
+                    &manager.deployed_contracts,
+                    &mut arb_balance_paths,
+                )?;
                 // Update the liquid exchange price
-                update_exchange_price(admin, liquid_exchange, price, &mut liq_price_path)?;
+                update_liquid_exchange_price(admin, liquid_exchange, price, &mut liq_price_path)?;
 
                 index += 1;
 
@@ -175,7 +190,7 @@ pub async fn run(
 
                 let mut prices = arbitrageur.prices.lock().await;
                 prices[1] = uniswap_price.into();
-                dex_price_path.push(uniswap_price);
+                uniswap_price_path.push(uniswap_price);
                 continue;
             }
             NextTx::UpdatePrice => {
@@ -190,14 +205,23 @@ pub async fn run(
                 let uniswap_price = U256::from(uniswap_reserves.1) * U256::from(10_u128.pow(18))
                     / U256::from(uniswap_reserves.0);
 
-                dex_price_path.push(uniswap_price); // repeat previous price if no swap
-
-                update_exchange_price(admin, liquid_exchange, price, &mut liq_price_path)?;
+                // updated price path
+                uniswap_price_path.push(uniswap_price); // repeat previous price if no swap
+                                                        // update pool reserves
+                record_pool_reserves(&uniswap_pair, &mut uniswap_pool_reserve_over_time, admin)?;
+                // record arbitrageur balances
+                record_arb_balances(
+                    arbitrageur,
+                    &manager.deployed_contracts,
+                    &mut arb_balance_paths,
+                )?;
+                // Update the liquid exchange price
+                update_liquid_exchange_price(admin, liquid_exchange, price, &mut liq_price_path)?;
                 index += 1;
                 continue;
             }
             NextTx::None => {
-                // println!("Can't update prices\n");
+                // Can't update prices
                 continue;
             }
         }
@@ -205,25 +229,19 @@ pub async fn run(
 
     write_to_csv(
         liq_price_path,
-        dex_price_path,
+        uniswap_price_path,
         arb_balance_paths,
         uniswap_pool_reserve_over_time,
         price_process,
         output_storage,
         label,
     )?;
-    // println!("=======================================");
-    // println!("🎉 Simulation Completed 🎉");
-    // println!("=======================================");
-
-    // let duration = start.elapsed();
-    // println!("Time elapsed is: {:?}", duration);
 
     Ok(())
 }
 
 /// Update prices on the liquid exchange.
-fn update_exchange_price(
+fn update_liquid_exchange_price(
     admin: &AgentType<IsActive>,
     liquid_exchange: &SimulationContract<IsDeployed>,
     price: f64,
@@ -245,7 +263,7 @@ fn write_to_csv(
     label: usize,
 ) -> Result<(), Box<dyn Error>> {
     // Write down the simulation configuration to a csv file
-    let series_length = liq_price_path.len() - 1;
+    let series_length = liq_price_path.len();
     let seed = Series::new("seed", vec![price_process.seed; series_length]);
     let timestep = Series::new("timestep", vec![price_process.timestep; series_length]);
 
@@ -270,16 +288,16 @@ fn write_to_csv(
             let drift = Series::new("mean_reversion_speed", vec![drift; series_length]);
             println!("Error of shape happens here");
 
-            println!("length of seed: {}", seed.len());
-            println!("length of timestep: {}", timestep.len());
-            println!("length of volatility: {}", volatility.len());
-            println!("length of drift: {}", drift.len());
-            println!("length of liquid_exchange_prices: {}", liquid_exchange_prices.len());
-            println!("length of uniswap_prices: {}", uniswap_prices.len());
-            println!("length of reserve_x: {}", reserve_x.len());
-            println!("length of reserve_y: {}", reserve_y.len());
-            println!("length of arb_balance_x: {}", arb_balance_x.len());
-            println!("length of arb_balance_y: {}", arb_balance_y.len());
+            // println!("length of seed: {}", seed.len());
+            // println!("length of timestep: {}", timestep.len());
+            // println!("length of volatility: {}", volatility.len());
+            // println!("length of drift: {}", drift.len());
+            // println!("length of liquid_exchange_prices: {}", liquid_exchange_prices.len());
+            // println!("length of uniswap_prices: {}", uniswap_prices.len());
+            // println!("length of reserve_x: {}", reserve_x.len());
+            // println!("length of reserve_y: {}", reserve_y.len());
+            // println!("length of arb_balance_x: {}", arb_balance_x.len());
+            // println!("length of arb_balance_y: {}", arb_balance_y.len());
 
             let mut df = DataFrame::new(vec![
                 seed,
@@ -293,8 +311,6 @@ fn write_to_csv(
                 arb_balance_x,
                 arb_balance_y,
             ])?;
-            println!("after");
-            // println!("Dataframe: {:#?}", df);
             let volatility = match price_process.process_type {
                 PriceProcessType::GBM(GBM { volatility, .. }) => volatility,
                 PriceProcessType::OU(OU { volatility, .. }) => volatility,

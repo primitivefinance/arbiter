@@ -17,10 +17,7 @@ use simulate::{
 use std::collections::HashMap;
 use std::error::Error;
 
-
-pub(crate) fn run(
-    manager: &mut SimulationManager,
-) -> Result<H160, Box<dyn Error>> {
+pub(crate) fn run(manager: &mut SimulationManager) -> Result<H160, Box<dyn Error>> {
     let weth_address = manager.deployed_contracts.get("weth").unwrap().address;
     deploy_contracts(manager, weth_address)?;
     let liquid_exchange_xy = manager
@@ -42,14 +39,20 @@ pub(crate) fn run(
         manager.agents.get("admin").unwrap(),
         manager.agents.get("arbitrageur").unwrap(),
     )?;
-    let pair_address = pair_intitalization(manager.agents.get("admin").unwrap(), &manager.deployed_contracts)?;
+    let pair_address = pair_intitalization(
+        manager.agents.get("admin").unwrap(),
+        &manager.deployed_contracts,
+    )?;
     approve(
         manager.agents.get("admin").unwrap(),
         manager.agents.get("arbitrageur").unwrap(),
-        &manager.deployed_contracts
+        &manager.deployed_contracts,
     )?;
 
-    allocate(manager.agents.get("admin").unwrap(), &manager.deployed_contracts)?;
+    allocate(
+        manager.agents.get("admin").unwrap(),
+        &manager.deployed_contracts,
+    )?;
 
     Ok(pair_address)
 }
@@ -74,7 +77,9 @@ fn deploy_contracts(
     let uniswap_factory_args = H160::from_low_u64_be(0).into_tokens();
     let (uniswap_factory, result) = admin.deploy(uniswap_factory, uniswap_factory_args)?;
     assert!(result.is_success());
-    manager.deployed_contracts.insert("uniswap_factory".to_string(), uniswap_factory.clone());
+    manager
+        .deployed_contracts
+        .insert("uniswap_factory".to_string(), uniswap_factory.clone());
     // Deploy the UniswapV2 Router contract.
     let uniswap_router = SimulationContract::new(
         uniswap_v2_router_02::UNISWAPV2ROUTER02_ABI.clone(),
@@ -87,7 +92,9 @@ fn deploy_contracts(
         .into_tokens();
     let (uniswap_router, result) = admin.deploy(uniswap_router, uniswap_router_args)?;
     assert!(result.is_success());
-    manager.deployed_contracts.insert("uniswap_router".to_string(), uniswap_router);
+    manager
+        .deployed_contracts
+        .insert("uniswap_router".to_string(), uniswap_router);
 
     Ok(())
 }
@@ -104,18 +111,23 @@ fn mint(
     let liquid_exchange_xy = contracts.get("liquid_exchange_xy").unwrap();
     let mint_amount = u128::MAX;
     let mint_args_for_admin = (recast_address(admin.address()), mint_amount).into_tokens();
-    let mint_args_for_arbiter = (recast_address(arbitrageur.address()), mint_amount).into_tokens();
+    let mint_args_for_arbitrageur =
+        (recast_address(arbitrageur.address()), mint_amount).into_tokens();
 
     // Call the 'mint' function to the arber. for token x
-    let result = admin.call(arbiter_token_x, "mint", mint_args_for_arbiter.clone())?;
+    let result = admin.call(arbiter_token_x, "mint", mint_args_for_arbitrageur.clone())?;
     assert!(result.is_success());
 
     // Call the `mint` function for the admin for token x.
     let result = admin.call(arbiter_token_x, "mint", mint_args_for_admin.clone())?;
     assert!(result.is_success());
 
+    // Mint large amount of token_x to the liquid_exchange contract.
+    let result = admin.call(arbiter_token_x, "mint", approve_arg(liquid_exchange_xy))?;
+    assert!(result.is_success());
+
     // Call the `mint` function to the arber for token y.
-    let result = admin.call(arbiter_token_y, "mint", mint_args_for_arbiter)?;
+    let result = admin.call(arbiter_token_y, "mint", mint_args_for_arbitrageur)?;
     assert!(result.is_success());
 
     // Call the `mint` function for the admin for token y.

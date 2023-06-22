@@ -137,9 +137,7 @@ impl EventStream {
     }
 
     /// Converts the event stream into a stream of events.
-    pub fn into_stream(
-        self,
-    ) -> impl Stream<Item = Result<(Vec<Token>, usize), AbiError>> {
+    pub fn into_stream(self) -> impl Stream<Item = Result<(Vec<Token>, usize), AbiError>> {
         futures::stream::unfold(self, |mut state| async {
             state.next().map(|item| (item, state))
         })

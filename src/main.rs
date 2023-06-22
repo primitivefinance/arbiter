@@ -2,20 +2,13 @@
 #![warn(unsafe_code)]
 //! Main lives in the `cli` crate so that we can do our input parsing.
 
-use std::{
-    collections::hash_map::DefaultHasher,
-    error::Error,
-    hash::Hasher,
-    sync::Arc,
-    time::Instant,
-};
+use std::{collections::hash_map::DefaultHasher, error::Error, hash::Hasher, time::Instant};
 
 use ::simulate::stochastic::price_process::{PriceProcess, PriceProcessType};
 use clap::{arg, command, CommandFactory, Parser, Subcommand};
 use eyre::Result;
 use itertools_num::linspace;
 use thiserror::Error;
-use tokio::sync::Semaphore;
 
 use crate::{
     simulate::{OutputStorage, PathSweep, SimulateArguments, SimulateSubcommand, VolatilitySweep},
@@ -122,7 +115,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
             match simulate_arguments.subcommand {
                 SimulateSubcommand::Uniswap => {
                     let start = Instant::now();
-                    let worker_semaphore = Arc::new(Semaphore::new(path_sweep.worker_limit));
+                    let mut handles = Vec::new();
                     let mut hasher = DefaultHasher::new();
                     let seed = price_process.seed;
 
@@ -153,17 +146,19 @@ async fn main() -> Result<(), Box<dyn Error>> {
                             };
 
                             // Handle workers.
-                            let permit = worker_semaphore.clone().acquire_owned().await.unwrap();
                             let output_storage = output_storage.clone();
-                            tokio::spawn( async move {
+                            let handle = tokio::spawn(async move {
                                 crate::simulate::uniswap::run(price_process, output_storage, label)
-                                    .await.unwrap();
-                                drop(permit);
+                                    .await
+                                    .unwrap();
                             });
+                            handles.push(handle);
                         }
                     }
-
-                    let duration = start.elapsed();
+                    for handle in handles {
+                        handle.await?;
+                    }
+                    let duration: std::time::Duration = start.elapsed();
                     println!("Time elapsed is: {:?}", duration);
                 }
             }

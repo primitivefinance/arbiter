@@ -20,11 +20,11 @@ use revm::primitives::{AccountInfo, Address, B160, U256 as rU256};
 
 use crate::{
     agent::{
-        simple_arbitrageur::SimpleArbitrageur, user::User, Agent, AgentType, IsActive,
-        NotActive, TransactSettings,
+        simple_arbitrageur::SimpleArbitrageur, user::User, Agent, AgentType, IsActive, NotActive,
+        TransactSettings,
     },
     environment::{
-        contract::{IsDeployed, SimulationContract, NotDeployed},
+        contract::{IsDeployed, NotDeployed, SimulationContract},
         EventStream, SimulationEnvironment,
     },
     utils::recast_address,

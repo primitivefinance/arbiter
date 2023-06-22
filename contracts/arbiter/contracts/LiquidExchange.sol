@@ -49,15 +49,15 @@ contract LiquidExchange {
         address tokenOut;
         if (tokenIn == arbiterTokenX) {
             tokenOut = arbiterTokenY;
-            amountOut = FixedPointMathLib.mulWadDown(amountIn, price); // here
+            amountOut = FixedPointMathLib.mulWadDown(amountIn, price);
         } else if (tokenIn == arbiterTokenY) {
             tokenOut = arbiterTokenX;
-            amountOut = FixedPointMathLib.divWadDown(amountIn, price); // here 
+            amountOut = FixedPointMathLib.divWadDown(amountIn, price);
         } else {
             revert("Invalid token");
         }
-        require(ERC20(tokenIn).transferFrom(msg.sender, address(this), amountIn), "Transfer failed"); // here
-        require(ERC20(tokenOut).transfer(msg.sender, amountOut), "Transfer failed"); //here 
+        require(ERC20(tokenIn).transferFrom(msg.sender, address(this), amountIn), "Transfer failed");
+        require(ERC20(tokenOut).transfer(msg.sender, amountOut), "Transfer failed");
         emit Swap(tokenIn, tokenOut, amountIn, amountOut, msg.sender);    
     }
 }

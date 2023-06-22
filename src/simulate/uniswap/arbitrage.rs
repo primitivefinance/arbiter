@@ -138,6 +138,7 @@ pub(crate) fn swap(
     )?;
     assert!(result.is_success());
 
+    // might not need this
     let _swap_result: Vec<U256> = contracts
         .get("uniswap_router")
         .unwrap()
@@ -146,7 +147,7 @@ pub(crate) fn swap(
     Ok(())
 }
 
-pub(crate) fn swap_liquid_expchange(
+pub(crate) fn swap_liquid_exchange(
     arbitrageur: &SimpleArbitrageur<IsActive>,
     contracts: &HashMap<String, SimulationContract<IsDeployed>>,
     input_amount: U256,
@@ -169,8 +170,8 @@ pub(crate) fn swap_liquid_expchange(
         "swap",
         swap_args.into_tokens(),
     )?;
-    let decoded = contracts.get("liquid_exchange_xy").unwrap().decode_output("swap", unpack_execution(result.clone())?)?;
-    println!("swap result: {:?}", decoded);
+    // let decoded = contracts.get("liquid_exchange_xy").unwrap().decode_output("swap", unpack_execution(result.clone())?)?;
+    // println!("swap result: {:?}", decoded);
     assert!(result.is_success());
     Ok(())
 }
@@ -274,7 +275,12 @@ mod test {
             AgentType::SimpleArbitrageur(base_arbitrageur) => base_arbitrageur,
             _ => panic!(),
         };
-        let _swap_event = swap(arbitrageur, &manager.deployed_contracts, output.input, output.sell_asset); // Swap bool is flipped!
+        let _swap_event = swap(
+            arbitrageur,
+            &manager.deployed_contracts,
+            output.input,
+            output.sell_asset,
+        ); // Swap bool is flipped!
 
         let result = arbitrageur.call(&uniswap_pair, "getReserves", vec![])?;
         assert!(result.is_success());

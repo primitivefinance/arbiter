@@ -14,12 +14,8 @@ use std::{
 
 use bytes::Bytes;
 use crossbeam_channel::{Receiver, Sender};
-use ethers::{
-    abi::Token,
-    prelude::BaseContract,
-    types::H256,
-};
-use pin_project::pin_project;
+use ethers::{abi::Token, prelude::BaseContract, types::H256};
+
 use ethers::core::abi::AbiError;
 
 use revm::primitives::{
@@ -27,9 +23,7 @@ use revm::primitives::{
 };
 
 use self::{simple_arbitrageur::SimpleArbitrageur, user::User};
-use crate::environment::{
-    contract::{IsDeployed, NotDeployed, SimulationContract},
-};
+use crate::environment::contract::{IsDeployed, NotDeployed, SimulationContract};
 use futures::Stream;
 
 pub mod simple_arbitrageur;
@@ -232,9 +226,7 @@ pub trait Agent: Identifiable {
     }
 
     /// This returns a `filtered watcher` stream for the agent.
-    fn watch(
-        &self,
-    ) -> Pin<Box<WatchStream>> {
+    fn watch(&self) -> Pin<Box<WatchStream>> {
         Box::pin(self.event_stream().into_stream())
     }
 
@@ -334,7 +326,10 @@ impl SimulationEventFilter {
 }
 
 /// Used to allow agents to filter out the events they choose to monitor.
-pub fn filter_events(event_filters: Vec<SimulationEventFilter>, logs: Vec<Log>) -> (Vec<Log>, usize) {
+pub fn filter_events(
+    event_filters: Vec<SimulationEventFilter>,
+    logs: Vec<Log>,
+) -> (Vec<Log>, usize) {
     assert!(!event_filters.is_empty());
 
     let mut events = vec![];
@@ -342,8 +337,7 @@ pub fn filter_events(event_filters: Vec<SimulationEventFilter>, logs: Vec<Log>) 
 
     for log in logs {
         for (index, event_filter) in event_filters.iter().enumerate() {
-            if event_filter.address == log.address && event_filter.topic == log.topics[0].into()
-            {
+            if event_filter.address == log.address && event_filter.topic == log.topics[0].into() {
                 events.push(log.clone());
                 event_index = index;
                 break;
@@ -362,7 +356,6 @@ mod tests {
     use bindings::{arbiter_token, writer};
     use ethers::abi::Tokenize;
     use revm::primitives::B160;
-    use tokio::pin;
 
     use crate::{
         agent::{user::User, Agent, AgentType, SimulationEventFilter},
@@ -426,9 +419,7 @@ mod tests {
         )?;
 
         // Test that the alice doesn't filter out these logs.
-
-        let alice_watcher = alice.watch();
-        pin!(alice_watcher);
+        let mut alice_watcher = alice.watch();
         let alice_next_event = alice_watcher.next().await;
         print!("Alice's next event: {:#?}", alice_next_event);
         assert!(alice_next_event.is_none());
