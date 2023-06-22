@@ -5,6 +5,7 @@ use std::fs;
 
 use clap::Parser;
 use revm::primitives::B160;
+use ruint::aliases::U256;
 use serde::{Deserialize, Serialize};
 use simulate::{
     agent::{simple_arbitrageur::SimpleArbitrageur, AgentType, SimulationEventFilter},
@@ -162,7 +163,7 @@ pub(crate) fn _create_arbitrageur<S: Into<String>>(
 ) {
     let address = B160::from_low_u64_be(2);
     let event_filters = vec![SimulationEventFilter::new(liquid_exchange, "PriceChange")];
-    let arbitrageur = SimpleArbitrageur::new(name, event_filters);
+    let arbitrageur = SimpleArbitrageur::new(name, event_filters, U256::from(997_000_000_000_000_000u128)); // Fee here comes from the chosen UniV2 pool.
     manager
         .activate_agent(AgentType::SimpleArbitrageur(arbitrageur), address)
         .unwrap();

@@ -14,7 +14,7 @@ use simulate::{
 
 use super::OutputStorage;
 use crate::simulate::uniswap::arbitrage::{
-    compute_arb_size, record_arb_balances, record_pool_reserves,
+    compute_trade_size, record_arb_balances, record_pool_reserves,
 };
 
 pub mod arbitrage;
@@ -118,7 +118,7 @@ pub async fn run(
         match next_tx {
             NextTx::Swap => {
                 // check for arb bounds and compute size
-                let size = compute_arb_size(&uniswap_pair, admin, arbiter_math, wad_price)?;
+                let size = compute_trade_size(&uniswap_pair, admin, arbiter_math, wad_price)?;
                 // No arb opportunity check
                 if size.input == U256::from(0) {
                     index += 1;
@@ -279,7 +279,6 @@ fn write_to_csv(
         PriceProcessType::GBM(GBM { volatility, drift }) => {
             let volatility = Series::new("drift", vec![volatility; series_length]);
             let drift = Series::new("mean_reversion_speed", vec![drift; series_length]);
-            println!("Error of shape happens here");
 
             dataframe.hstack_mut(&[volatility, timestep, seed, drift])?;
 

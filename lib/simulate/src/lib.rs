@@ -12,15 +12,11 @@ pub mod utils;
 
 #[cfg(test)]
 mod tests {
-    use std::{error::Error, thread};
+    use std::error::Error;
 
     use bindings::{arbiter_token, writer};
-    use ethers::{
-        abi::Tokenize,
-        prelude::{H256, U256},
-        types::I256,
-    };
-    use revm::primitives::{ruint::Uint, B160};
+    use ethers::{abi::Tokenize, prelude::U256, types::I256};
+    use revm::primitives::B160;
 
     use crate::{
         agent::{user::User, Agent, AgentType},

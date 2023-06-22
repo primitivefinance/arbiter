@@ -25,7 +25,7 @@ impl ComputeArbOutput {
     }
 }
 
-pub(crate) fn compute_arb_size(
+pub(crate) fn compute_trade_size(
     uniswap_pair: &SimulationContract<IsDeployed>,
     admin: &AgentType<IsActive>,
     arbiter_math: &SimulationContract<IsDeployed>,
@@ -249,7 +249,7 @@ mod test {
         };
         let admin = manager.agents.get("admin").unwrap();
         let arbiter_math = manager.deployed_contracts.get("arbiter_math").unwrap();
-        let output = compute_arb_size(&uniswap_pair, admin, arbiter_math, target_price)?;
+        let output = compute_trade_size(&uniswap_pair, admin, arbiter_math, target_price)?;
         println!("Output Bool {}", output.sell_asset);
         assert!(output.sell_asset);
         Ok(())
@@ -269,7 +269,7 @@ mod test {
         };
         let admin = manager.agents.get("admin").unwrap();
         let arbiter_math = manager.deployed_contracts.get("arbiter_math").unwrap();
-        let output = compute_arb_size(&uniswap_pair, admin, arbiter_math, target_price)?;
+        let output = compute_trade_size(&uniswap_pair, admin, arbiter_math, target_price)?;
         let arbitrageur = manager.agents.get("arbitrageur").unwrap();
         let arbitrageur = match arbitrageur {
             AgentType::SimpleArbitrageur(base_arbitrageur) => base_arbitrageur,

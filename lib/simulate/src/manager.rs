@@ -246,6 +246,7 @@ impl SimulationManager {
                     prices: simple_arbitrageur.prices,
                     transaction_sender: self.environment.transaction_channel.0.clone(),
                     result_channel: crossbeam_channel::unbounded(),
+                    fee: simple_arbitrageur.fee,
                 };
                 self.agents.insert(
                     new_simple_arbitrageur.name.clone(),

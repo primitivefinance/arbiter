@@ -53,6 +53,8 @@ pub struct SimpleArbitrageur<AgentState: AgentStatus> {
     pub event_filters: Vec<SimulationEventFilter>,
     /// Storage of prices of the two pools the [`SimpleArbitrageur`] tracks.
     pub prices: Arc<Mutex<[U256; 2]>>,
+    /// Fee parameter.
+    pub fee: U256,
 }
 
 impl<AgentState: AgentStatus> Identifiable for SimpleArbitrageur<AgentState> {
@@ -87,6 +89,7 @@ impl SimpleArbitrageur<NotActive> {
     pub fn new<S: Into<String>>(
         name: S,
         event_filters: Vec<SimulationEventFilter>,
+        fee: U256,
     ) -> SimpleArbitrageur<NotActive> {
         SimpleArbitrageur::<NotActive> {
             name: name.into(),
@@ -98,6 +101,7 @@ impl SimpleArbitrageur<NotActive> {
             prices: Arc::new(Mutex::new([U256::MAX, U256::MAX])), // TODO: This is a bad way to do this. Fix it.
             transaction_sender: (),
             result_channel: (),
+            fee,
         }
     }
 }
@@ -116,7 +120,7 @@ impl SimpleArbitrageur<IsActive> {
                     let new_price = tokens[0].clone().into_uint().unwrap();
                     let mut prices = prices.lock().await;
                     prices[pool_number] = new_price.into();
-                    let (is_arbitrage, swap_direction) = is_arbitrage(*prices);
+                    let (is_arbitrage, swap_direction) = is_arbitrage(*prices, self.fee);
                     if is_arbitrage {
                         return_value = (NextTx::Swap, swap_direction);
                         break;
@@ -134,20 +138,26 @@ impl SimpleArbitrageur<IsActive> {
 }
 
 /// Basic function that checks for price differences between the two pools.
-// TODO: Will need to take into account the no-arbitrage bounds.
-pub fn is_arbitrage(prices: [U256; 2]) -> (bool, Option<SwapDirection>) {
+pub fn is_arbitrage(prices: [U256; 2], fee: U256) -> (bool, Option<SwapDirection>) {
     if prices[0] == U256::MAX || prices[1] == U256::MAX {
         // If either of the prices are uninitialized, then we can't check for arbitrage.
         return (false, None);
     }
-    let price_difference = prices[0].checked_sub(prices[1]);
-    if price_difference.is_none() {
-        // If this difference is `None`, then the subtraction overflowed so prices[0]<prices[1].
-        (true, Some(SwapDirection::ZeroToOne))
-    } else if price_difference != Some(U256::ZERO) {
-        // If the price difference is still nonzero, then we must swap with price[0]>price[1].
-        return (true, Some(SwapDirection::OneToZero));
+    // Check the no-arbitrage bounds
+    let upper_arb_bound = prices[0] * U256::from(10e17) / fee;
+    let lower_arb_bound = prices[0] * fee / U256::from(10e17);
+    if (prices[1] > upper_arb_bound) | (prices[1] < lower_arb_bound) {
+        // If the prices are outside of the no-arbitrage bounds, then we can arbitrage.
+        let price_difference = prices[0].checked_sub(prices[1]);
+        if price_difference.is_none() {
+            // If this difference is `None`, then the subtraction overflowed so prices[0]<prices[1].
+            (true, Some(SwapDirection::ZeroToOne))
+        } else {
+            // If the price difference is still nonzero, then we must swap with price[0]>price[1].
+            return (true, Some(SwapDirection::OneToZero));
+        }
     } else {
+        // Prices are within the no-arbitrage bounds, so we don't have an arbitrage.
         return (false, None);
     }
 }
