@@ -4,6 +4,7 @@
 //!
 //! An abstraction on the EVM, to be used in simulations.
 pub mod contract;
+pub mod middleware;
 
 use crossbeam_channel::{unbounded, Receiver, Sender};
 use ethers::{abi::Token, prelude::AbiError};

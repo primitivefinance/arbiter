@@ -22,10 +22,11 @@ rand_distr = "0.4.3"
 plotly = "0.8.3"
 csv = "1.2.1"
 
-# void_middleware
+# middleware
 async-trait = "0.1.68"
 serde = {version = "1.0.163", features= ["derive"]}
 serde_json = "1.0.96"
+url = "2.4.0"
 
 # added for tests
 bindings = { path = "../bindings" }
