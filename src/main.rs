@@ -4,7 +4,7 @@
 
 use std::{collections::hash_map::DefaultHasher, error::Error, hash::Hasher, time::Instant};
 
-use ::simulate::stochastic::price_process::{PriceProcess, PriceProcessType};
+use ::simulate::stochastic::price_process::{PriceProcess, PriceProcessType, self};
 use clap::{arg, command, CommandFactory, Parser, Subcommand};
 use eyre::Result;
 use itertools_num::linspace;
@@ -99,19 +99,10 @@ async fn main() -> Result<(), Box<dyn Error>> {
                 "Loading config for the PriceProcess from: {}",
                 simulate_arguments.configuration_path
             );
-            let price_process = PriceProcess::configure(&simulate_arguments.configuration_path)?;
-            let path_sweep = PathSweep::configure(&simulate_arguments.configuration_path)?;
-            let VolatilitySweep {
-                volatility_low,
-                volatility_high,
-                number_of_volatility_steps,
-            } = VolatilitySweep::configure(&simulate_arguments.configuration_path)?;
-            let volatilities =
-                linspace(volatility_low, volatility_high, number_of_volatility_steps)
-                    .collect::<Vec<f64>>();
-            let output_storage = OutputStorage::configure(&simulate_arguments.configuration_path)?;
-            println!("...loaded config path ✅");
 
+            let (price_process, volatilities, output_storage, path_sweep) = configure_sim(simulate_arguments)?;
+
+            // launch of a bunch of processes for each sim
             match simulate_arguments.subcommand {
                 SimulateSubcommand::Uniswap => {
                     let start = Instant::now();
@@ -155,6 +146,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
                             handles.push(handle);
                         }
                     }
+                    // await all the processes
                     for handle in handles {
                         handle.await?;
                     }
@@ -206,4 +198,21 @@ async fn main() -> Result<(), Box<dyn Error>> {
     }
 
     Ok(())
+}
+
+type Configuration = (PriceProcess, Vec<f64>, OutputStorage, PathSweep);
+fn configure_sim(simulate_arguments: &SimulateArguments) -> Result<Configuration, Box<dyn Error>> {
+    let price_process = PriceProcess::configure(&simulate_arguments.configuration_path)?;
+    let path_sweep = PathSweep::configure(&simulate_arguments.configuration_path)?;
+    let VolatilitySweep {
+        volatility_low,
+        volatility_high,
+        number_of_volatility_steps,
+    } = VolatilitySweep::configure(&simulate_arguments.configuration_path)?;
+    let volatilities =
+        linspace(volatility_low, volatility_high, number_of_volatility_steps)
+            .collect::<Vec<f64>>();
+    let output_storage = OutputStorage::configure(&simulate_arguments.configuration_path)?;
+    println!("...loaded config path ✅");
+    Ok((price_process, volatilities, output_storage, path_sweep))
 }
