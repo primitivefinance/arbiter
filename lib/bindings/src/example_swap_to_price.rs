@@ -7,18 +7,16 @@ pub use example_swap_to_price::*;
     clippy::upper_case_acronyms,
     clippy::type_complexity,
     dead_code,
-    non_camel_case_types,
+    non_camel_case_types
 )]
 pub mod example_swap_to_price {
     #[rustfmt::skip]
     const __ABI: &str = "[{\"inputs\":[{\"internalType\":\"address\",\"name\":\"factory_\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"contract IUniswapV2Router01\",\"name\":\"router_\",\"type\":\"address\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"constructor\",\"outputs\":[]},{\"inputs\":[],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"factory\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\",\"components\":[]}]},{\"inputs\":[],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"router\",\"outputs\":[{\"internalType\":\"contract IUniswapV2Router01\",\"name\":\"\",\"type\":\"address\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"tokenA\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"address\",\"name\":\"tokenB\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"truePriceTokenA\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"truePriceTokenB\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"maxSpendTokenA\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"maxSpendTokenB\",\"type\":\"uint256\",\"components\":[]},{\"internalType\":\"address\",\"name\":\"to\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"deadline\",\"type\":\"uint256\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"function\",\"name\":\"swapToPrice\",\"outputs\":[]}]";
     ///The parsed JSON ABI of the contract.
-    pub static EXAMPLESWAPTOPRICE_ABI: ::ethers::contract::Lazy<
-        ::ethers::core::abi::Abi,
-    > = ::ethers::contract::Lazy::new(|| {
-        ::ethers::core::utils::__serde_json::from_str(__ABI)
-            .expect("ABI is always valid")
-    });
+    pub static EXAMPLESWAPTOPRICE_ABI: ::ethers::contract::Lazy<::ethers::core::abi::Abi> =
+        ::ethers::contract::Lazy::new(|| {
+            ::ethers::core::utils::__serde_json::from_str(__ABI).expect("ABI is always valid")
+        });
     #[rustfmt::skip]
     const __BYTECODE: &[u8] = &[
         96,
@@ -4648,9 +4646,8 @@ pub mod example_swap_to_price {
         51,
     ];
     ///The bytecode of the contract.
-    pub static EXAMPLESWAPTOPRICE_BYTECODE: ::ethers::core::types::Bytes = ::ethers::core::types::Bytes::from_static(
-        __BYTECODE,
-    );
+    pub static EXAMPLESWAPTOPRICE_BYTECODE: ::ethers::core::types::Bytes =
+        ::ethers::core::types::Bytes::from_static(__BYTECODE);
     #[rustfmt::skip]
     const __DEPLOYED_BYTECODE: &[u8] = &[
         96,
@@ -9019,9 +9016,8 @@ pub mod example_swap_to_price {
         51,
     ];
     ///The deployed bytecode of the contract.
-    pub static EXAMPLESWAPTOPRICE_DEPLOYED_BYTECODE: ::ethers::core::types::Bytes = ::ethers::core::types::Bytes::from_static(
-        __DEPLOYED_BYTECODE,
-    );
+    pub static EXAMPLESWAPTOPRICE_DEPLOYED_BYTECODE: ::ethers::core::types::Bytes =
+        ::ethers::core::types::Bytes::from_static(__DEPLOYED_BYTECODE);
     pub struct ExampleSwapToPrice<M>(::ethers::contract::Contract<M>);
     impl<M> ::core::clone::Clone for ExampleSwapToPrice<M> {
         fn clone(&self) -> Self {
@@ -9041,7 +9037,9 @@ pub mod example_swap_to_price {
     }
     impl<M> ::core::fmt::Debug for ExampleSwapToPrice<M> {
         fn fmt(&self, f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
-            f.debug_tuple(stringify!(ExampleSwapToPrice)).field(&self.address()).finish()
+            f.debug_tuple(stringify!(ExampleSwapToPrice))
+                .field(&self.address())
+                .finish()
         }
     }
     impl<M: ::ethers::providers::Middleware> ExampleSwapToPrice<M> {
@@ -9051,13 +9049,11 @@ pub mod example_swap_to_price {
             address: T,
             client: ::std::sync::Arc<M>,
         ) -> Self {
-            Self(
-                ::ethers::contract::Contract::new(
-                    address.into(),
-                    EXAMPLESWAPTOPRICE_ABI.clone(),
-                    client,
-                ),
-            )
+            Self(::ethers::contract::Contract::new(
+                address.into(),
+                EXAMPLESWAPTOPRICE_ABI.clone(),
+                client,
+            ))
         }
         /// Constructs the general purpose `Deployer` instance based on the provided constructor arguments and sends it.
         /// Returns a new instance of a deployer that returns an instance of this contract after sending the transaction
@@ -9101,10 +9097,7 @@ pub mod example_swap_to_price {
         ///Calls the contract's `factory` (0xc45a0155) function
         pub fn factory(
             &self,
-        ) -> ::ethers::contract::builders::ContractCall<
-            M,
-            ::ethers::core::types::Address,
-        > {
+        ) -> ::ethers::contract::builders::ContractCall<M, ::ethers::core::types::Address> {
             self.0
                 .method_hash([196, 90, 1, 85], ())
                 .expect("method not found (this should never happen)")
@@ -9112,10 +9105,7 @@ pub mod example_swap_to_price {
         ///Calls the contract's `router` (0xf887ea40) function
         pub fn router(
             &self,
-        ) -> ::ethers::contract::builders::ContractCall<
-            M,
-            ::ethers::core::types::Address,
-        > {
+        ) -> ::ethers::contract::builders::ContractCall<M, ::ethers::core::types::Address> {
             self.0
                 .method_hash([248, 135, 234, 64], ())
                 .expect("method not found (this should never happen)")
@@ -9150,7 +9140,8 @@ pub mod example_swap_to_price {
         }
     }
     impl<M: ::ethers::providers::Middleware> From<::ethers::contract::Contract<M>>
-    for ExampleSwapToPrice<M> {
+        for ExampleSwapToPrice<M>
+    {
         fn from(contract: ::ethers::contract::Contract<M>) -> Self {
             Self::new(contract.address(), contract.client())
         }
@@ -9164,7 +9155,7 @@ pub mod example_swap_to_price {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "factory", abi = "factory()")]
     pub struct FactoryCall;
@@ -9177,7 +9168,7 @@ pub mod example_swap_to_price {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "router", abi = "router()")]
     pub struct RouterCall;
@@ -9190,7 +9181,7 @@ pub mod example_swap_to_price {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(
         name = "swapToPrice",
@@ -9218,16 +9209,13 @@ pub mod example_swap_to_price {
             data: impl AsRef<[u8]>,
         ) -> ::core::result::Result<Self, ::ethers::core::abi::AbiError> {
             let data = data.as_ref();
-            if let Ok(decoded)
-                = <FactoryCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <FactoryCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::Factory(decoded));
             }
-            if let Ok(decoded)
-                = <RouterCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <RouterCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::Router(decoded));
             }
-            if let Ok(decoded)
-                = <SwapToPriceCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <SwapToPriceCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::SwapToPrice(decoded));
             }
             Err(::ethers::core::abi::Error::InvalidData.into())
@@ -9238,9 +9226,7 @@ pub mod example_swap_to_price {
             match self {
                 Self::Factory(element) => ::ethers::core::abi::AbiEncode::encode(element),
                 Self::Router(element) => ::ethers::core::abi::AbiEncode::encode(element),
-                Self::SwapToPrice(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
+                Self::SwapToPrice(element) => ::ethers::core::abi::AbiEncode::encode(element),
             }
         }
     }
@@ -9277,7 +9263,7 @@ pub mod example_swap_to_price {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     pub struct FactoryReturn(pub ::ethers::core::types::Address);
     ///Container type for all return fields from the `router` function with signature `router()` and selector `0xf887ea40`
@@ -9289,7 +9275,7 @@ pub mod example_swap_to_price {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     pub struct RouterReturn(pub ::ethers::core::types::Address);
 }
