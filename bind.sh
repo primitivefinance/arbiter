@@ -11,8 +11,6 @@ forge bind -C contracts/portfolio/contracts --revert-strings debug -b lib/bindin
 echo "Generated bindings for portfolio"
 forge bind -C contracts/canonical-weth/contracts --revert-strings debug -b lib/bindings/ --crate-name bindings --overwrite
 echo "Generated bindings for canonical-weth"
-forge bind -C contracts/arbiter/contracts --revert-strings debug -b lib/bindings/ --crate-name bindings --overwrite
-echo "Generated bindings for arbiter contracts"
 forge bind -C contracts/v2-core/contracts --revert-strings debug -b lib/bindings/ --crate-name bindings --overwrite
 echo "Generated bindings for v2-core"
 forge bind -C contracts/v2-periphery/contracts --revert-strings debug -b lib/bindings/ --crate-name bindings --overwrite

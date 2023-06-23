@@ -7,16 +7,18 @@ pub use example_oracle_simple::*;
     clippy::upper_case_acronyms,
     clippy::type_complexity,
     dead_code,
-    non_camel_case_types
+    non_camel_case_types,
 )]
 pub mod example_oracle_simple {
     #[rustfmt::skip]
     const __ABI: &str = "[{\"inputs\":[{\"internalType\":\"address\",\"name\":\"factory\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"address\",\"name\":\"tokenA\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"address\",\"name\":\"tokenB\",\"type\":\"address\",\"components\":[]}],\"stateMutability\":\"nonpayable\",\"type\":\"constructor\",\"outputs\":[]},{\"inputs\":[],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"PERIOD\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\",\"components\":[]}]},{\"inputs\":[],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"blockTimestampLast\",\"outputs\":[{\"internalType\":\"uint32\",\"name\":\"\",\"type\":\"uint32\",\"components\":[]}]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"token\",\"type\":\"address\",\"components\":[]},{\"internalType\":\"uint256\",\"name\":\"amountIn\",\"type\":\"uint256\",\"components\":[]}],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"consult\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"amountOut\",\"type\":\"uint256\",\"components\":[]}]},{\"inputs\":[],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"price0Average\",\"outputs\":[{\"internalType\":\"uint224\",\"name\":\"_x\",\"type\":\"uint224\",\"components\":[]}]},{\"inputs\":[],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"price0CumulativeLast\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\",\"components\":[]}]},{\"inputs\":[],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"price1Average\",\"outputs\":[{\"internalType\":\"uint224\",\"name\":\"_x\",\"type\":\"uint224\",\"components\":[]}]},{\"inputs\":[],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"price1CumulativeLast\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\",\"components\":[]}]},{\"inputs\":[],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"token0\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\",\"components\":[]}]},{\"inputs\":[],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"token1\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\",\"components\":[]}]},{\"inputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\",\"name\":\"update\",\"outputs\":[]}]";
     ///The parsed JSON ABI of the contract.
-    pub static EXAMPLEORACLESIMPLE_ABI: ::ethers::contract::Lazy<::ethers::core::abi::Abi> =
-        ::ethers::contract::Lazy::new(|| {
-            ::ethers::core::utils::__serde_json::from_str(__ABI).expect("ABI is always valid")
-        });
+    pub static EXAMPLEORACLESIMPLE_ABI: ::ethers::contract::Lazy<
+        ::ethers::core::abi::Abi,
+    > = ::ethers::contract::Lazy::new(|| {
+        ::ethers::core::utils::__serde_json::from_str(__ABI)
+            .expect("ABI is always valid")
+    });
     #[rustfmt::skip]
     const __BYTECODE: &[u8] = &[
         96,
@@ -5264,8 +5266,9 @@ pub mod example_oracle_simple {
         0,
     ];
     ///The bytecode of the contract.
-    pub static EXAMPLEORACLESIMPLE_BYTECODE: ::ethers::core::types::Bytes =
-        ::ethers::core::types::Bytes::from_static(__BYTECODE);
+    pub static EXAMPLEORACLESIMPLE_BYTECODE: ::ethers::core::types::Bytes = ::ethers::core::types::Bytes::from_static(
+        __BYTECODE,
+    );
     #[rustfmt::skip]
     const __DEPLOYED_BYTECODE: &[u8] = &[
         96,
@@ -8393,8 +8396,9 @@ pub mod example_oracle_simple {
         51,
     ];
     ///The deployed bytecode of the contract.
-    pub static EXAMPLEORACLESIMPLE_DEPLOYED_BYTECODE: ::ethers::core::types::Bytes =
-        ::ethers::core::types::Bytes::from_static(__DEPLOYED_BYTECODE);
+    pub static EXAMPLEORACLESIMPLE_DEPLOYED_BYTECODE: ::ethers::core::types::Bytes = ::ethers::core::types::Bytes::from_static(
+        __DEPLOYED_BYTECODE,
+    );
     pub struct ExampleOracleSimple<M>(::ethers::contract::Contract<M>);
     impl<M> ::core::clone::Clone for ExampleOracleSimple<M> {
         fn clone(&self) -> Self {
@@ -8426,11 +8430,13 @@ pub mod example_oracle_simple {
             address: T,
             client: ::std::sync::Arc<M>,
         ) -> Self {
-            Self(::ethers::contract::Contract::new(
-                address.into(),
-                EXAMPLEORACLESIMPLE_ABI.clone(),
-                client,
-            ))
+            Self(
+                ::ethers::contract::Contract::new(
+                    address.into(),
+                    EXAMPLEORACLESIMPLE_ABI.clone(),
+                    client,
+                ),
+            )
         }
         /// Constructs the general purpose `Deployer` instance based on the provided constructor arguments and sends it.
         /// Returns a new instance of a deployer that returns an instance of this contract after sending the transaction
@@ -8480,7 +8486,9 @@ pub mod example_oracle_simple {
                 .expect("method not found (this should never happen)")
         }
         ///Calls the contract's `blockTimestampLast` (0xc5700a02) function
-        pub fn block_timestamp_last(&self) -> ::ethers::contract::builders::ContractCall<M, u32> {
+        pub fn block_timestamp_last(
+            &self,
+        ) -> ::ethers::contract::builders::ContractCall<M, u32> {
             self.0
                 .method_hash([197, 112, 10, 2], ())
                 .expect("method not found (this should never happen)")
@@ -8530,7 +8538,10 @@ pub mod example_oracle_simple {
         ///Calls the contract's `token0` (0x0dfe1681) function
         pub fn token_0(
             &self,
-        ) -> ::ethers::contract::builders::ContractCall<M, ::ethers::core::types::Address> {
+        ) -> ::ethers::contract::builders::ContractCall<
+            M,
+            ::ethers::core::types::Address,
+        > {
             self.0
                 .method_hash([13, 254, 22, 129], ())
                 .expect("method not found (this should never happen)")
@@ -8538,7 +8549,10 @@ pub mod example_oracle_simple {
         ///Calls the contract's `token1` (0xd21220a7) function
         pub fn token_1(
             &self,
-        ) -> ::ethers::contract::builders::ContractCall<M, ::ethers::core::types::Address> {
+        ) -> ::ethers::contract::builders::ContractCall<
+            M,
+            ::ethers::core::types::Address,
+        > {
             self.0
                 .method_hash([210, 18, 32, 167], ())
                 .expect("method not found (this should never happen)")
@@ -8551,8 +8565,7 @@ pub mod example_oracle_simple {
         }
     }
     impl<M: ::ethers::providers::Middleware> From<::ethers::contract::Contract<M>>
-        for ExampleOracleSimple<M>
-    {
+    for ExampleOracleSimple<M> {
         fn from(contract: ::ethers::contract::Contract<M>) -> Self {
             Self::new(contract.address(), contract.client())
         }
@@ -8566,7 +8579,7 @@ pub mod example_oracle_simple {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(name = "PERIOD", abi = "PERIOD()")]
     pub struct PeriodCall;
@@ -8579,7 +8592,7 @@ pub mod example_oracle_simple {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(name = "blockTimestampLast", abi = "blockTimestampLast()")]
     pub struct BlockTimestampLastCall;
@@ -8592,7 +8605,7 @@ pub mod example_oracle_simple {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(name = "consult", abi = "consult(address,uint256)")]
     pub struct ConsultCall {
@@ -8608,7 +8621,7 @@ pub mod example_oracle_simple {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(name = "price0Average", abi = "price0Average()")]
     pub struct Price0AverageCall;
@@ -8621,7 +8634,7 @@ pub mod example_oracle_simple {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(name = "price0CumulativeLast", abi = "price0CumulativeLast()")]
     pub struct Price0CumulativeLastCall;
@@ -8634,7 +8647,7 @@ pub mod example_oracle_simple {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(name = "price1Average", abi = "price1Average()")]
     pub struct Price1AverageCall;
@@ -8647,7 +8660,7 @@ pub mod example_oracle_simple {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(name = "price1CumulativeLast", abi = "price1CumulativeLast()")]
     pub struct Price1CumulativeLastCall;
@@ -8660,7 +8673,7 @@ pub mod example_oracle_simple {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(name = "token0", abi = "token0()")]
     pub struct Token0Call;
@@ -8673,7 +8686,7 @@ pub mod example_oracle_simple {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(name = "token1", abi = "token1()")]
     pub struct Token1Call;
@@ -8686,7 +8699,7 @@ pub mod example_oracle_simple {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(name = "update", abi = "update()")]
     pub struct UpdateCall;
@@ -8709,42 +8722,50 @@ pub mod example_oracle_simple {
             data: impl AsRef<[u8]>,
         ) -> ::core::result::Result<Self, ::ethers::core::abi::AbiError> {
             let data = data.as_ref();
-            if let Ok(decoded) = <PeriodCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded)
+                = <PeriodCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::Period(decoded));
             }
-            if let Ok(decoded) =
-                <BlockTimestampLastCall as ::ethers::core::abi::AbiDecode>::decode(data)
-            {
+            if let Ok(decoded)
+                = <BlockTimestampLastCall as ::ethers::core::abi::AbiDecode>::decode(
+                    data,
+                ) {
                 return Ok(Self::BlockTimestampLast(decoded));
             }
-            if let Ok(decoded) = <ConsultCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded)
+                = <ConsultCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::Consult(decoded));
             }
-            if let Ok(decoded) = <Price0AverageCall as ::ethers::core::abi::AbiDecode>::decode(data)
-            {
+            if let Ok(decoded)
+                = <Price0AverageCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::Price0Average(decoded));
             }
-            if let Ok(decoded) =
-                <Price0CumulativeLastCall as ::ethers::core::abi::AbiDecode>::decode(data)
-            {
+            if let Ok(decoded)
+                = <Price0CumulativeLastCall as ::ethers::core::abi::AbiDecode>::decode(
+                    data,
+                ) {
                 return Ok(Self::Price0CumulativeLast(decoded));
             }
-            if let Ok(decoded) = <Price1AverageCall as ::ethers::core::abi::AbiDecode>::decode(data)
-            {
+            if let Ok(decoded)
+                = <Price1AverageCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::Price1Average(decoded));
             }
-            if let Ok(decoded) =
-                <Price1CumulativeLastCall as ::ethers::core::abi::AbiDecode>::decode(data)
-            {
+            if let Ok(decoded)
+                = <Price1CumulativeLastCall as ::ethers::core::abi::AbiDecode>::decode(
+                    data,
+                ) {
                 return Ok(Self::Price1CumulativeLast(decoded));
             }
-            if let Ok(decoded) = <Token0Call as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded)
+                = <Token0Call as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::Token0(decoded));
             }
-            if let Ok(decoded) = <Token1Call as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded)
+                = <Token1Call as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::Token1(decoded));
             }
-            if let Ok(decoded) = <UpdateCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded)
+                = <UpdateCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::Update(decoded));
             }
             Err(::ethers::core::abi::Error::InvalidData.into())
@@ -8758,11 +8779,15 @@ pub mod example_oracle_simple {
                     ::ethers::core::abi::AbiEncode::encode(element)
                 }
                 Self::Consult(element) => ::ethers::core::abi::AbiEncode::encode(element),
-                Self::Price0Average(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::Price0Average(element) => {
+                    ::ethers::core::abi::AbiEncode::encode(element)
+                }
                 Self::Price0CumulativeLast(element) => {
                     ::ethers::core::abi::AbiEncode::encode(element)
                 }
-                Self::Price1Average(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::Price1Average(element) => {
+                    ::ethers::core::abi::AbiEncode::encode(element)
+                }
                 Self::Price1CumulativeLast(element) => {
                     ::ethers::core::abi::AbiEncode::encode(element)
                 }
@@ -8776,12 +8801,18 @@ pub mod example_oracle_simple {
         fn fmt(&self, f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
             match self {
                 Self::Period(element) => ::core::fmt::Display::fmt(element, f),
-                Self::BlockTimestampLast(element) => ::core::fmt::Display::fmt(element, f),
+                Self::BlockTimestampLast(element) => {
+                    ::core::fmt::Display::fmt(element, f)
+                }
                 Self::Consult(element) => ::core::fmt::Display::fmt(element, f),
                 Self::Price0Average(element) => ::core::fmt::Display::fmt(element, f),
-                Self::Price0CumulativeLast(element) => ::core::fmt::Display::fmt(element, f),
+                Self::Price0CumulativeLast(element) => {
+                    ::core::fmt::Display::fmt(element, f)
+                }
                 Self::Price1Average(element) => ::core::fmt::Display::fmt(element, f),
-                Self::Price1CumulativeLast(element) => ::core::fmt::Display::fmt(element, f),
+                Self::Price1CumulativeLast(element) => {
+                    ::core::fmt::Display::fmt(element, f)
+                }
                 Self::Token0(element) => ::core::fmt::Display::fmt(element, f),
                 Self::Token1(element) => ::core::fmt::Display::fmt(element, f),
                 Self::Update(element) => ::core::fmt::Display::fmt(element, f),
@@ -8847,7 +8878,7 @@ pub mod example_oracle_simple {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     pub struct PeriodReturn(pub ::ethers::core::types::U256);
     ///Container type for all return fields from the `blockTimestampLast` function with signature `blockTimestampLast()` and selector `0xc5700a02`
@@ -8859,7 +8890,7 @@ pub mod example_oracle_simple {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     pub struct BlockTimestampLastReturn(pub u32);
     ///Container type for all return fields from the `consult` function with signature `consult(address,uint256)` and selector `0x3ddac953`
@@ -8871,7 +8902,7 @@ pub mod example_oracle_simple {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     pub struct ConsultReturn {
         pub amount_out: ::ethers::core::types::U256,
@@ -8885,7 +8916,7 @@ pub mod example_oracle_simple {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     pub struct Price0AverageReturn {
         pub x: ::ethers::core::types::U256,
@@ -8899,7 +8930,7 @@ pub mod example_oracle_simple {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     pub struct Price0CumulativeLastReturn(pub ::ethers::core::types::U256);
     ///Container type for all return fields from the `price1Average` function with signature `price1Average()` and selector `0x5e6aaf2c`
@@ -8911,7 +8942,7 @@ pub mod example_oracle_simple {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     pub struct Price1AverageReturn {
         pub x: ::ethers::core::types::U256,
@@ -8925,7 +8956,7 @@ pub mod example_oracle_simple {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     pub struct Price1CumulativeLastReturn(pub ::ethers::core::types::U256);
     ///Container type for all return fields from the `token0` function with signature `token0()` and selector `0x0dfe1681`
@@ -8937,7 +8968,7 @@ pub mod example_oracle_simple {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     pub struct Token0Return(pub ::ethers::core::types::Address);
     ///Container type for all return fields from the `token1` function with signature `token1()` and selector `0xd21220a7`
@@ -8949,7 +8980,7 @@ pub mod example_oracle_simple {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     pub struct Token1Return(pub ::ethers::core::types::Address);
 }
