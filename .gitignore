@@ -13,7 +13,7 @@ Cargo.lock
 /out/
 *.html
 *.csv
-/lib/bindings/*
+/lib/bindings
 
 .DS_Store
 # /contracts/*
