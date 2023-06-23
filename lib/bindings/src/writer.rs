@@ -3182,8 +3182,12 @@ pub mod writer {
                 WRITER_BYTECODE.clone().into(),
                 client,
             );
+            println!("inside `deploy` factory: {:?}\n", factory);
+            // factory.abi.
             let deployer = factory.deploy(constructor_args)?;
+            println!("inside `deploy` deployer: {:?}\n", deployer);
             let deployer = ::ethers::contract::ContractDeployer::new(deployer);
+            println!("inside `deploy` contractdeployer: {:?}\n", deployer);
             Ok(deployer)
         }
         ///Calls the contract's `echoString` (0x0d7e2fce) function

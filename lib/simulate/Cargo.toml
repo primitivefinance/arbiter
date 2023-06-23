@@ -32,3 +32,6 @@ url = "2.4.0"
 bindings = { path = "../bindings" }
 ethers = "2.0.4"
 hex = { version = "0.4.3", default-features = false }
+
+# errors
+anyhow = "1.0.71"

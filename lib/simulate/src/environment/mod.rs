@@ -7,7 +7,7 @@ pub mod contract;
 pub mod middleware;
 
 use crossbeam_channel::{unbounded, Receiver, Sender};
-use ethers::{abi::Token, prelude::AbiError};
+use ethers::{abi::Token, prelude::AbiError, providers::{MockProvider, Provider, NodeClient}};
 use futures::Stream;
 use revm::{
     db::{CacheDB, EmptyDB},
@@ -15,6 +15,7 @@ use revm::{
     EVM,
 };
 use std::{
+    fmt,
     sync::{Arc, Mutex},
     thread,
 };
@@ -37,6 +38,19 @@ pub struct SimulationEnvironment {
     /// The receiver of txs from agents.
     /// Bundles with a sender to send the execution result back to the agent.
     pub(crate) transaction_channel: (TxEnvSender, TxEnvReceiver),
+    /// The provider for [`Middleware`].
+    pub(crate) provider: Provider<MockProvider>,
+    
+}
+
+impl fmt::Debug for SimulationEnvironment {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("SimulationEnvironment")
+            // .field("evm", &self.evm)  // Skip the `evm` field
+            .field("event_broadcaster", &self.event_broadcaster)
+            .field("transaction_channel", &self.transaction_channel)
+            .finish()
+    }
 }
 
 impl SimulationEnvironment {
@@ -47,10 +61,12 @@ impl SimulationEnvironment {
         evm.env.block.gas_limit = U256::MAX;
         evm.database(db);
         let transaction_channel = unbounded::<(TxEnv, Sender<ExecutionResult>)>();
+        let provider = Provider::new(MockProvider::new());
         Self {
             evm,
             event_broadcaster: Arc::new(Mutex::new(EventBroadcaster::new())),
             transaction_channel,
+            provider,
         }
     }
 
