@@ -7,7 +7,7 @@ pub use example_compute_liquidity_value::*;
     clippy::upper_case_acronyms,
     clippy::type_complexity,
     dead_code,
-    non_camel_case_types,
+    non_camel_case_types
 )]
 pub mod example_compute_liquidity_value {
     #[rustfmt::skip]
@@ -16,8 +16,7 @@ pub mod example_compute_liquidity_value {
     pub static EXAMPLECOMPUTELIQUIDITYVALUE_ABI: ::ethers::contract::Lazy<
         ::ethers::core::abi::Abi,
     > = ::ethers::contract::Lazy::new(|| {
-        ::ethers::core::utils::__serde_json::from_str(__ABI)
-            .expect("ABI is always valid")
+        ::ethers::core::utils::__serde_json::from_str(__ABI).expect("ABI is always valid")
     });
     #[rustfmt::skip]
     const __BYTECODE: &[u8] = &[
@@ -5401,9 +5400,8 @@ pub mod example_compute_liquidity_value {
         51,
     ];
     ///The bytecode of the contract.
-    pub static EXAMPLECOMPUTELIQUIDITYVALUE_BYTECODE: ::ethers::core::types::Bytes = ::ethers::core::types::Bytes::from_static(
-        __BYTECODE,
-    );
+    pub static EXAMPLECOMPUTELIQUIDITYVALUE_BYTECODE: ::ethers::core::types::Bytes =
+        ::ethers::core::types::Bytes::from_static(__BYTECODE);
     #[rustfmt::skip]
     const __DEPLOYED_BYTECODE: &[u8] = &[
         96,
@@ -10543,9 +10541,8 @@ pub mod example_compute_liquidity_value {
         51,
     ];
     ///The deployed bytecode of the contract.
-    pub static EXAMPLECOMPUTELIQUIDITYVALUE_DEPLOYED_BYTECODE: ::ethers::core::types::Bytes = ::ethers::core::types::Bytes::from_static(
-        __DEPLOYED_BYTECODE,
-    );
+    pub static EXAMPLECOMPUTELIQUIDITYVALUE_DEPLOYED_BYTECODE: ::ethers::core::types::Bytes =
+        ::ethers::core::types::Bytes::from_static(__DEPLOYED_BYTECODE);
     pub struct ExampleComputeLiquidityValue<M>(::ethers::contract::Contract<M>);
     impl<M> ::core::clone::Clone for ExampleComputeLiquidityValue<M> {
         fn clone(&self) -> Self {
@@ -10577,13 +10574,11 @@ pub mod example_compute_liquidity_value {
             address: T,
             client: ::std::sync::Arc<M>,
         ) -> Self {
-            Self(
-                ::ethers::contract::Contract::new(
-                    address.into(),
-                    EXAMPLECOMPUTELIQUIDITYVALUE_ABI.clone(),
-                    client,
-                ),
-            )
+            Self(::ethers::contract::Contract::new(
+                address.into(),
+                EXAMPLECOMPUTELIQUIDITYVALUE_ABI.clone(),
+                client,
+            ))
         }
         /// Constructs the general purpose `Deployer` instance based on the provided constructor arguments and sends it.
         /// Returns a new instance of a deployer that returns an instance of this contract after sending the transaction
@@ -10627,10 +10622,7 @@ pub mod example_compute_liquidity_value {
         ///Calls the contract's `factory` (0xc45a0155) function
         pub fn factory(
             &self,
-        ) -> ::ethers::contract::builders::ContractCall<
-            M,
-            ::ethers::core::types::Address,
-        > {
+        ) -> ::ethers::contract::builders::ContractCall<M, ::ethers::core::types::Address> {
             self.0
                 .method_hash([196, 90, 1, 85], ())
                 .expect("method not found (this should never happen)")
@@ -10716,7 +10708,8 @@ pub mod example_compute_liquidity_value {
         }
     }
     impl<M: ::ethers::providers::Middleware> From<::ethers::contract::Contract<M>>
-    for ExampleComputeLiquidityValue<M> {
+        for ExampleComputeLiquidityValue<M>
+    {
         fn from(contract: ::ethers::contract::Contract<M>) -> Self {
             Self::new(contract.address(), contract.client())
         }
@@ -10730,7 +10723,7 @@ pub mod example_compute_liquidity_value {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "factory", abi = "factory()")]
     pub struct FactoryCall;
@@ -10743,7 +10736,7 @@ pub mod example_compute_liquidity_value {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(
         name = "getGasCostOfGetLiquidityValueAfterArbitrageToPrice",
@@ -10765,7 +10758,7 @@ pub mod example_compute_liquidity_value {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(
         name = "getLiquidityValue",
@@ -10785,7 +10778,7 @@ pub mod example_compute_liquidity_value {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(
         name = "getLiquidityValueAfterArbitrageToPrice",
@@ -10807,7 +10800,7 @@ pub mod example_compute_liquidity_value {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(
         name = "getReservesAfterArbitrage",
@@ -10827,9 +10820,7 @@ pub mod example_compute_liquidity_value {
             GetGasCostOfGetLiquidityValueAfterArbitrageToPriceCall,
         ),
         GetLiquidityValue(GetLiquidityValueCall),
-        GetLiquidityValueAfterArbitrageToPrice(
-            GetLiquidityValueAfterArbitrageToPriceCall,
-        ),
+        GetLiquidityValueAfterArbitrageToPrice(GetLiquidityValueAfterArbitrageToPriceCall),
         GetReservesAfterArbitrage(GetReservesAfterArbitrageCall),
     }
     impl ::ethers::core::abi::AbiDecode for ExampleComputeLiquidityValueCalls {
@@ -10837,8 +10828,7 @@ pub mod example_compute_liquidity_value {
             data: impl AsRef<[u8]>,
         ) -> ::core::result::Result<Self, ::ethers::core::abi::AbiError> {
             let data = data.as_ref();
-            if let Ok(decoded)
-                = <FactoryCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <FactoryCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::Factory(decoded));
             }
             if let Ok(decoded)
@@ -10849,10 +10839,9 @@ pub mod example_compute_liquidity_value {
                     Self::GetGasCostOfGetLiquidityValueAfterArbitrageToPrice(decoded),
                 );
             }
-            if let Ok(decoded)
-                = <GetLiquidityValueCall as ::ethers::core::abi::AbiDecode>::decode(
-                    data,
-                ) {
+            if let Ok(decoded) =
+                <GetLiquidityValueCall as ::ethers::core::abi::AbiDecode>::decode(data)
+            {
                 return Ok(Self::GetLiquidityValue(decoded));
             }
             if let Ok(decoded)
@@ -10861,10 +10850,9 @@ pub mod example_compute_liquidity_value {
                 ) {
                 return Ok(Self::GetLiquidityValueAfterArbitrageToPrice(decoded));
             }
-            if let Ok(decoded)
-                = <GetReservesAfterArbitrageCall as ::ethers::core::abi::AbiDecode>::decode(
-                    data,
-                ) {
+            if let Ok(decoded) =
+                <GetReservesAfterArbitrageCall as ::ethers::core::abi::AbiDecode>::decode(data)
+            {
                 return Ok(Self::GetReservesAfterArbitrage(decoded));
             }
             Err(::ethers::core::abi::Error::InvalidData.into())
@@ -10877,9 +10865,7 @@ pub mod example_compute_liquidity_value {
                 Self::GetGasCostOfGetLiquidityValueAfterArbitrageToPrice(element) => {
                     ::ethers::core::abi::AbiEncode::encode(element)
                 }
-                Self::GetLiquidityValue(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
+                Self::GetLiquidityValue(element) => ::ethers::core::abi::AbiEncode::encode(element),
                 Self::GetLiquidityValueAfterArbitrageToPrice(element) => {
                     ::ethers::core::abi::AbiEncode::encode(element)
                 }
@@ -10900,9 +10886,7 @@ pub mod example_compute_liquidity_value {
                 Self::GetLiquidityValueAfterArbitrageToPrice(element) => {
                     ::core::fmt::Display::fmt(element, f)
                 }
-                Self::GetReservesAfterArbitrage(element) => {
-                    ::core::fmt::Display::fmt(element, f)
-                }
+                Self::GetReservesAfterArbitrage(element) => ::core::fmt::Display::fmt(element, f),
             }
         }
     }
@@ -10912,25 +10896,25 @@ pub mod example_compute_liquidity_value {
         }
     }
     impl ::core::convert::From<GetGasCostOfGetLiquidityValueAfterArbitrageToPriceCall>
-    for ExampleComputeLiquidityValueCalls {
+        for ExampleComputeLiquidityValueCalls
+    {
         fn from(value: GetGasCostOfGetLiquidityValueAfterArbitrageToPriceCall) -> Self {
             Self::GetGasCostOfGetLiquidityValueAfterArbitrageToPrice(value)
         }
     }
-    impl ::core::convert::From<GetLiquidityValueCall>
-    for ExampleComputeLiquidityValueCalls {
+    impl ::core::convert::From<GetLiquidityValueCall> for ExampleComputeLiquidityValueCalls {
         fn from(value: GetLiquidityValueCall) -> Self {
             Self::GetLiquidityValue(value)
         }
     }
     impl ::core::convert::From<GetLiquidityValueAfterArbitrageToPriceCall>
-    for ExampleComputeLiquidityValueCalls {
+        for ExampleComputeLiquidityValueCalls
+    {
         fn from(value: GetLiquidityValueAfterArbitrageToPriceCall) -> Self {
             Self::GetLiquidityValueAfterArbitrageToPrice(value)
         }
     }
-    impl ::core::convert::From<GetReservesAfterArbitrageCall>
-    for ExampleComputeLiquidityValueCalls {
+    impl ::core::convert::From<GetReservesAfterArbitrageCall> for ExampleComputeLiquidityValueCalls {
         fn from(value: GetReservesAfterArbitrageCall) -> Self {
             Self::GetReservesAfterArbitrage(value)
         }
@@ -10944,7 +10928,7 @@ pub mod example_compute_liquidity_value {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     pub struct FactoryReturn(pub ::ethers::core::types::Address);
     ///Container type for all return fields from the `getGasCostOfGetLiquidityValueAfterArbitrageToPrice` function with signature `getGasCostOfGetLiquidityValueAfterArbitrageToPrice(address,address,uint256,uint256,uint256)` and selector `0x80caa353`
@@ -10956,7 +10940,7 @@ pub mod example_compute_liquidity_value {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     pub struct GetGasCostOfGetLiquidityValueAfterArbitrageToPriceReturn(
         pub ::ethers::core::types::U256,
@@ -10970,7 +10954,7 @@ pub mod example_compute_liquidity_value {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     pub struct GetLiquidityValueReturn {
         pub token_a_amount: ::ethers::core::types::U256,
@@ -10985,7 +10969,7 @@ pub mod example_compute_liquidity_value {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     pub struct GetLiquidityValueAfterArbitrageToPriceReturn {
         pub token_a_amount: ::ethers::core::types::U256,
@@ -11000,7 +10984,7 @@ pub mod example_compute_liquidity_value {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     pub struct GetReservesAfterArbitrageReturn {
         pub reserve_a: ::ethers::core::types::U256,
