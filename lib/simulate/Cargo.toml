@@ -12,7 +12,7 @@ bytes = "1.4.0"
 
 # events
 crossbeam-channel = "0.5.8"
-tokio = { version = "1.28.2", features = ["full"] }
+tokio = { workspace = "true", features = ["full"] }
 futures = "0.3.28"
 
 # price_simulation
@@ -20,14 +20,14 @@ rand = "0.8.5"
 rand_chacha = "0.3.1"
 rand_distr = "0.4.3"
 plotly = "0.8.3"
-csv = "1.2.1"
+csv = { workspace = "true"}
 
 # void_middleware
 async-trait = "0.1.68"
-serde = {version = "1.0.163", features= ["derive"]}
-serde_json = "1.0.96"
+serde = { workspace = "true", features= ["derive"]}
+serde_json = { workspace = "true" }
 
 # added for tests
 bindings = { path = "../bindings" }
-ethers = "2.0.4"
+ethers = { workspace = "true" }
 hex = { version = "0.4.3", default-features = false }

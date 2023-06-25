@@ -4,7 +4,7 @@
 
 use std::{collections::hash_map::DefaultHasher, error::Error, hash::Hasher, time::Instant};
 
-use ::simulate::stochastic::price_process::{PriceProcess, PriceProcessType, self};
+use ::simulate::stochastic::price_process::{PriceProcess, PriceProcessType};
 use clap::{arg, command, CommandFactory, Parser, Subcommand};
 use eyre::Result;
 use itertools_num::linspace;
