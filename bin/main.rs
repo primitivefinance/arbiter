@@ -11,7 +11,9 @@ use itertools_num::linspace;
 use thiserror::Error;
 
 use crate::{
-    simulations::{OutputStorage, PathSweep, SimulateArguments, SimulateSubcommand, VolatilitySweep},
+    simulations::{
+        OutputStorage, PathSweep, SimulateArguments, SimulateSubcommand, VolatilitySweep,
+    },
     visualize::{plot_price_data, VisualizeArguments, VisualizeSubcommand},
 };
 
@@ -140,9 +142,13 @@ async fn main() -> Result<(), Box<dyn Error>> {
                             // Handle workers.
                             let output_storage = output_storage.clone();
                             let handle = tokio::spawn(async move {
-                                crate::simulations::uniswap::run(price_process, output_storage, label)
-                                    .await
-                                    .unwrap();
+                                crate::simulations::uniswap::run(
+                                    price_process,
+                                    output_storage,
+                                    label,
+                                )
+                                .await
+                                .unwrap();
                             });
                             handles.push(handle);
                         }
