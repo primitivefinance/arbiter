@@ -11,12 +11,12 @@ use itertools_num::linspace;
 use thiserror::Error;
 
 use crate::{
-    simulate::{OutputStorage, PathSweep, SimulateArguments, SimulateSubcommand, VolatilitySweep},
+    simulations::{OutputStorage, PathSweep, SimulateArguments, SimulateSubcommand, VolatilitySweep},
     visualize::{plot_price_data, VisualizeArguments, VisualizeSubcommand},
 };
 
-mod onchain;
-mod simulate;
+mod chain;
+mod simulations;
 mod visualize;
 
 #[derive(Parser)]
@@ -100,7 +100,8 @@ async fn main() -> Result<(), Box<dyn Error>> {
                 simulate_arguments.configuration_path
             );
 
-            let (price_process, volatilities, output_storage, path_sweep) = configure_sim(simulate_arguments)?;
+            let (price_process, volatilities, output_storage, path_sweep) =
+                configure_sim(simulate_arguments)?;
 
             // launch of a bunch of processes for each sim
             match simulate_arguments.subcommand {
@@ -139,7 +140,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
                             // Handle workers.
                             let output_storage = output_storage.clone();
                             let handle = tokio::spawn(async move {
-                                crate::simulate::uniswap::run(price_process, output_storage, label)
+                                crate::simulations::uniswap::run(price_process, output_storage, label)
                                     .await
                                     .unwrap();
                             });
@@ -173,7 +174,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
 
         Some(Commands::Live { config: _ }) => {
             // Parse the contract address
-            onchain::live::run().await?;
+            chain::live::run().await?;
         }
 
         Some(Commands::ExportSwapRange {
@@ -182,12 +183,12 @@ async fn main() -> Result<(), Box<dyn Error>> {
             address,
         }) => {
             // Export swap price data for a given block range
-            onchain::backtest_data::save_backtest_data(start_block, end_block, address).await?;
+            chain::backtest_data::save_backtest_data(start_block, end_block, address).await?;
         }
 
         Some(Commands::ImportBacktest { file_path }) => {
             // Import swap price data from a csv file
-            onchain::backtest_data::load_backtest_data(file_path).await?;
+            chain::backtest_data::load_backtest_data(file_path).await?;
         }
         None => {
             Args::command()
@@ -210,8 +211,7 @@ fn configure_sim(simulate_arguments: &SimulateArguments) -> Result<Configuration
         number_of_volatility_steps,
     } = VolatilitySweep::configure(&simulate_arguments.configuration_path)?;
     let volatilities =
-        linspace(volatility_low, volatility_high, number_of_volatility_steps)
-            .collect::<Vec<f64>>();
+        linspace(volatility_low, volatility_high, number_of_volatility_steps).collect::<Vec<f64>>();
     let output_storage = OutputStorage::configure(&simulate_arguments.configuration_path)?;
     println!("...loaded config path ✅");
     Ok((price_process, volatilities, output_storage, path_sweep))

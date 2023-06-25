@@ -1,0 +1,33 @@
+# Package configuration
+[package]
+name = "simulate"
+version = "0.2.0"
+edition = "2021"
+
+# Dependency configuration
+[dependencies]
+# For execution
+bytes = "1.4.0"
+revm = "3.3.0"
+
+# For handling events
+crossbeam-channel = "0.5.8"
+futures = "0.3.28"
+tokio = { version = "1.28.2", features = ["full"] }
+
+# For price simulation
+csv = { version = "1.2.1" }
+plotly = "0.8.3"
+rand = "0.8.5"
+rand_chacha = "0.3.1"
+rand_distr = "0.4.3"
+
+# For void middleware
+async-trait = "0.1.68"
+serde = { version = "1.0.163", features= ["derive"]}
+serde_json = { version = "1.0.96" }
+
+# For tests
+bindings = { path = "../bindings" }
+ethers = { version = "2.0.4" }
+hex = { version = "0.4.3", default-features = false }

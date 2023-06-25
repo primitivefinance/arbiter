@@ -1,58 +1,57 @@
+# Workspace configuration
 [workspace]
+# List of crates included in this workspace
 members = [
-    "lib/bindings",
-    "lib/simulate",
-    "lib/onchain",
+    "crates/bindings",
+    "crates/simulate",
+    "crates/onchain",
 ]
 
+# Package configuration
 [package]
 name = "arbiter"
 version = "0.2.0"
 edition = "2021"
+authors = ["Colin Roberts", "Waylon Jepsen"]
 
+# Binary configuration
+[[bin]]
+name = "arbiter"
+path = "bin/main.rs"
+
+# Dependency configuration
 [dependencies]
-# Local
-simulate = {path = "lib/simulate"}
-bindings = {path = "lib/bindings"}
-onchain = {path = "lib/onchain"}
+# Local dependencies
+simulate = {path = "crates/simulate"}
+bindings = {path = "crates/bindings"}
+onchain = {path = "crates/onchain"}
 
-# Primitive
+# Primitive dependencies
 visualize = { git = "https://github.com/primitivefinance/visualization-rs.git"}
 
-# External
-tokio = { version = "1.28.2", features = [
-    "macros",
-    "full"
-]}
+# External dependencies
 clap = { version = "4.3.0", features = ["derive"] }
-serde = { version = "1.0.163", features =["derive"] }
-serde_json = "1.0.96"
-thiserror = "1.0.40"
-eyre = "0.6.8"
-toml = "0.7.4"
-ethers = "2.0.4"
 csv = "1.2.1"
+ethers = "2.0.4"
+eyre = "0.6.8"
 itertools-num = "0.1.3"
+serde = { version = "1.0.163", features =["derive"] }
+thiserror = "1.0.40"
+tokio = { version = "1.28.1", features = ["macros", "full"] }
+toml = "0.7.4"
 
-
-
-# revm and related
-revm = "3.3.0"
+# Revm and related dependencies
 bytes = "1.4.0"
 hex = { version = "0.4.3", default-features = false }
+revm = "3.3.0"
 ruint = "1.8.0"
 
-# Simulation
+# Simulation dependencies
 crossbeam-channel = "0.5.8"
 polars = "0.29.0"
 
+# Development dependencies
 [dev-dependencies]
 assert_cmd = "2.0.11"
 
 # Release profile
-[profile.release]
-# Link-Time Optimization can inprove runtime at cost of build time
-lto = true
-# The Rust compiler splits your crate into multiple codegen units to parallelize (and thus speed up) compilation but at the cost of optimization. 
-# This setting tells the compiler to use only one codegen unit, which will slow down compilation but improve optimization.
-codegen-units = 1
