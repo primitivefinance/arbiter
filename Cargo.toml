@@ -55,3 +55,9 @@ polars = "0.29.0"
 assert_cmd = "2.0.11"
 
 # Release profile
+[profile.release]
+# Link-Time Optimization can inprove runtime at cost of build time
+lto = true
+# The Rust compiler splits your crate into multiple codegen units to parallelize (and thus speed up) compilation but at the cost of optimization. 
+# This setting tells the compiler to use only one codegen unit, which will slow down compilation but improve optimization.
+codegen-units = 1

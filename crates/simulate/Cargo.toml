@@ -12,7 +12,7 @@ revm = "3.3.0"
 
 # For handling events
 crossbeam-channel = "0.5.8"
-futures = "0.3.28"
+futures.workspace = true
 tokio = { version = "1.28.2", features = ["full"] }
 
 # For price simulation
