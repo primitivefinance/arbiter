@@ -8,17 +8,12 @@ use ethers::{
     prelude::BaseContract,
     types::{Bytes as EthersBytes, H256},
 };
-use revm::primitives::{ExecutionResult, Output, TransactTo, TxEnv, B160, B256, U256};
-
-use crate::{
-    agent::{AgentType, IsActive},
-    environment::sim_environment::SimulationEnvironment,
-};
+use revm::primitives::{B160, B256};
 
 #[derive(Debug, Clone)]
 /// A struct use for [`PhantomData`] to indicate a lock on contracts that are not deployed.
 pub struct NotDeployed;
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 /// A struct use for `PhantomData` to indicate an unlocked contract that is deployed.
 pub struct IsDeployed;
 
@@ -58,8 +53,6 @@ pub struct SimulationContract<DeployedState: DeploymentStatus> {
     pub base_contract: BaseContract,
     /// The contract's deployed bytecode.
     pub bytecode: DeployedState::Bytecode,
-    // /// A [`PhantomData`] marker to indicate whether the contract is deployed or not.
-    // deployed: PhantomData<DeployedState>,
     /// The constructor arguments for the contract.
     pub constructor_arguments: DeployedState::ConstructorArguments,
 }
@@ -75,63 +68,6 @@ impl SimulationContract<NotDeployed> {
             constructor_arguments: (),
         }
     }
-
-    /// Deploy a contract to the current simulation environment and return a new [`SimulationContract<IsDeployed>`].
-    /// Does not consume the current [`SimulationContract<NotDeployed>`] so that more copies can be deployed later.
-    /// # Arguments
-    /// * `simulation_environment` - The [`SimulationEnvironment`] to deploy the contract to.
-    /// * `deployer` - The [`AgentType`] that will deploy the contract.
-    /// * `constructor_arguments` - The constructor arguments for the contract.
-    /// # Returns
-    /// * `SimulationContract<IsDeployed>` - The deployed contract.
-    pub fn deploy<T: Tokenize>(
-        &self,
-        simulation_environment: &mut SimulationEnvironment,
-        deployer: &AgentType<IsActive>,
-        constructor_arguments: T,
-    ) -> SimulationContract<IsDeployed> {
-        // Append constructor args (if available) to generate the deploy bytecode.
-        let tokenized_args = constructor_arguments.into_tokens();
-        let bytecode = match self.base_contract.abi().constructor.clone() {
-            Some(constructor) => Bytes::from(
-                constructor
-                    .encode_input(self.bytecode.clone(), &tokenized_args)
-                    .unwrap(),
-            ),
-            None => Bytes::from(self.bytecode.clone()),
-        };
-
-        // Take the execution result and extract the contract address.
-        let deploy_txenv = TxEnv {
-            caller: deployer.inner().address(),
-            gas_limit: deployer.inner().transact_settings().gas_limit,
-            gas_price: deployer.inner().transact_settings().gas_price,
-            gas_priority_fee: None,
-            transact_to: TransactTo::create(),
-            value: U256::ZERO,
-            data: bytecode,
-            chain_id: None,
-            nonce: None,
-            access_list: Vec::new(),
-        };
-        let execution_result = simulation_environment.execute(deploy_txenv);
-        let output = match execution_result {
-            ExecutionResult::Success { output, .. } => output,
-            ExecutionResult::Revert { output, .. } => panic!("Failed due to revert: {:?}", output),
-            ExecutionResult::Halt { reason, .. } => panic!("Failed due to halt: {:?}", reason),
-        };
-        let address = match output {
-            Output::Create(_, address) => address.unwrap(),
-            _ => panic!("failed"),
-        };
-
-        SimulationContract {
-            bytecode: (),
-            address,
-            base_contract: self.base_contract.clone(),
-            constructor_arguments: tokenized_args,
-        }
-    }
 }
 
 impl SimulationContract<IsDeployed> {
@@ -141,6 +77,7 @@ impl SimulationContract<IsDeployed> {
     /// * `args` - The arguments to encode.
     /// # Returns
     /// * `Result<Bytes, AbiError>` - The encoded arguments.
+    // TODO: POSSIBLY REMOVE NOW
     pub fn encode_function(
         &self,
         function_name: &str,

@@ -9,7 +9,6 @@ use simulate::stochastic::price_process::PriceProcess;
 
 use crate::{Configurable, ConfigurationError};
 
-pub mod portfolio;
 pub mod uniswap;
 
 #[derive(Parser, Debug)]
@@ -28,10 +27,9 @@ pub(crate) struct SimulateArguments {
 #[derive(Parser, Serialize, Deserialize, Debug)]
 #[clap(about = "Runs simulations")]
 pub(crate) enum SimulateSubcommand {
-    #[clap(about = "Runs Portfolio simulation.")]
-    Portfolio,
     #[clap(about = "Runs UniswapV2 simulation.")]
     Uniswap,
+    // Room to add more here
 }
 
 #[derive(Clone, Parser, Serialize, Deserialize, Debug)]

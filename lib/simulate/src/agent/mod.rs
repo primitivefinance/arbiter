@@ -9,26 +9,34 @@
 use std::{
     error::Error,
     fmt::{Display, Formatter, Result as FmtResult},
-    thread,
+    pin::Pin,
 };
 
 use bytes::Bytes;
-use crossbeam_channel::Receiver;
-use ethers::{prelude::BaseContract, types::H256};
-use revm::primitives::{AccountInfo, Address, ExecutionResult, Log, TransactTo, TxEnv, B160, U256};
+use crossbeam_channel::{Receiver, Sender};
+use ethers::{abi::Token, prelude::BaseContract, types::H256};
+
+use ethers::core::abi::AbiError;
+
+use revm::primitives::{
+    AccountInfo, Address, ExecutionResult, Log, Output, TransactTo, TxEnv, B160, U256,
+};
 
 use self::{simple_arbitrageur::SimpleArbitrageur, user::User};
-use crate::environment::{
-    contract::{IsDeployed, SimulationContract},
-    sim_environment::SimulationEnvironment,
-};
+use crate::environment::contract::{IsDeployed, NotDeployed, SimulationContract};
+use futures::Stream;
 
 pub mod simple_arbitrageur;
 pub mod user;
 
-#[derive(Debug)]
 /// Error type for the simulation manager.
+#[derive(Debug)]
 pub struct AgentError(String);
+
+/// Type Alias for the watch result.
+pub type WatchResult = Result<(Vec<Token>, usize), AbiError>;
+/// Type Alias for the event channel.
+pub type WatchStream = dyn Stream<Item = WatchResult> + Send + Sync;
 
 impl Error for AgentError {}
 
@@ -47,28 +55,38 @@ pub trait AgentStatus {
     /// The [`revm`] [`AccountInfo`] of the agent.
     type AccountInfo;
     /// The receiver for the log stream emitted by the [`SimulationEnvironment`].
-    type EventReceiver;
+    type EventStream;
     /// The settings that define how a given agent will transact with the [`SimulationEnvironment`].
     type TransactSettings;
+    /// A sender for the agent to send transactions to the [`SimulationEnvironment`].
+    type TransactionSender;
+    /// A channel for the agent to receive the result of a transaction from the [`SimulationEnvironment`].
+    type ResultChannel;
 }
 
 /// Marker for an [`Agent`] when they are not yet added to the `SimulationManager` agent list.
+#[derive(Clone)]
 pub struct NotActive;
 /// Marker for an [`Agent`] that has been added to the `SimulationManager` agent list and has all the relevant information needed to be used in a simulation.
+#[derive(Clone)]
 pub struct IsActive;
 
 impl AgentStatus for NotActive {
     type Address = ();
     type AccountInfo = ();
-    type EventReceiver = ();
+    type EventStream = ();
     type TransactSettings = ();
+    type TransactionSender = ();
+    type ResultChannel = ();
 }
 
 impl AgentStatus for IsActive {
     type Address = B160;
     type AccountInfo = AccountInfo;
-    type EventReceiver = Receiver<Vec<Log>>;
+    type EventStream = crate::environment::EventStream;
     type TransactSettings = TransactSettings;
+    type TransactionSender = Sender<(TxEnv, Sender<ExecutionResult>)>;
+    type ResultChannel = (Sender<ExecutionResult>, Receiver<ExecutionResult>);
 }
 
 /// Gives a function to retrieve the name of an [`Agent`].
@@ -79,7 +97,7 @@ pub trait Identifiable {
 
 /// An agent is an entity that can interact with the simulation environment.
 /// Agents can be various entities such as users, market makers, arbitrageurs, etc.
-/// The [`User`] and [`SimpleArbitrageur`] agents are currently implemented.
+/// The [`User`] and [`SimpleArbitrageur`] agents are currently implemented.]
 pub enum AgentType<AgentState: AgentStatus> {
     /// A [`User`] is the most basic agent that can interact with the simulation environment.
     User(User<AgentState>),
@@ -128,16 +146,25 @@ impl Agent for AgentType<IsActive> {
         self.inner().transact_settings()
     }
 
-    fn receiver(&self) -> Receiver<Vec<Log>> {
-        self.inner().receiver()
+    fn event_stream(&self) -> crate::environment::EventStream {
+        self.inner().event_stream()
     }
 
     fn event_filters(&self) -> Vec<SimulationEventFilter> {
         self.inner().event_filters()
     }
+
+    fn transaction_sender(&self) -> Sender<(TxEnv, Sender<ExecutionResult>)> {
+        self.inner().transaction_sender()
+    }
+
+    fn result_channel(&self) -> (Sender<ExecutionResult>, Receiver<ExecutionResult>) {
+        self.inner().result_channel()
+    }
 }
 
 /// Describes the gas settings for a transaction.
+#[derive(Debug, Clone)]
 pub struct TransactSettings {
     /// Gas limit for the transaction for a simulation.
     pub gas_limit: u64,
@@ -146,26 +173,35 @@ pub struct TransactSettings {
 }
 
 /// Basic traits that every `Agent` must implement in order to properly interact with an EVM.
+#[async_trait::async_trait]
 pub trait Agent: Identifiable {
+    // type FilterWatcher: Stream<Item = Result<(Vec<Token>, usize), AbiError>> + Send + Sync;
     /// Returns the address of the agent.
     fn address(&self) -> Address;
     /// Returns the transaction settings of the agent.
     fn transact_settings(&self) -> &TransactSettings;
     /// The event's channel receiver for the agent.
-    fn receiver(&self) -> Receiver<Vec<Log>>;
+    fn event_stream(&self) -> crate::environment::EventStream;
     /// Gets the event filter for the [`Agent`]
     fn event_filters(&self) -> Vec<SimulationEventFilter>;
+    /// Used to allow agents to make a txn with the evm.
+    fn transaction_sender(&self) -> Sender<(TxEnv, Sender<ExecutionResult>)>;
+    /// Used to allow agents to receive the result of a txn.
+    fn result_channel(&self) -> (Sender<ExecutionResult>, Receiver<ExecutionResult>);
 
     /// Used to allow agents to make a generic call a specific smart contract.
-    fn call_contract(
+    fn call(
         &self,
-        simulation_environment: &mut SimulationEnvironment,
         contract: &SimulationContract<IsDeployed>,
-        call_data: Bytes,
-        value: U256,
-    ) -> ExecutionResult {
-        let tx = self.build_call_transaction(contract.address, call_data, value);
-        simulation_environment.execute(tx)
+        function_name: &str,
+        args: Vec<Token>,
+    ) -> Result<ExecutionResult, Box<dyn Error>> {
+        let function = contract.base_contract.abi().function(function_name)?;
+        let call_data = function.encode_input(&args)?.into_iter().collect();
+        let tx = self.build_call_transaction(contract.address, call_data);
+        self.transaction_sender()
+            .send((tx, self.result_channel().0))?;
+        Ok(self.result_channel().1.recv()?)
     }
 
     /// A constructor to build a `TxEnv` for an agent (uses agent data like `address` and `TransactSettings`).
@@ -173,7 +209,7 @@ pub trait Agent: Identifiable {
         &self,
         receiver_address: B160,
         call_data: Bytes,
-        value: U256,
+        // value: U256,
     ) -> TxEnv {
         TxEnv {
             caller: self.address(),
@@ -181,7 +217,7 @@ pub trait Agent: Identifiable {
             gas_price: self.transact_settings().gas_price,
             gas_priority_fee: None,
             transact_to: TransactTo::Call(receiver_address),
-            value,
+            value: U256::ZERO, // TODO: I doubt we want to ever send any raw eth to a contract.
             data: call_data,
             chain_id: None,
             nonce: None,
@@ -189,39 +225,68 @@ pub trait Agent: Identifiable {
         }
     }
 
-    // TODO: May be defunct to read logs now
-    /// Gets the most current event (which is all that is stored in the event buffer).
-    fn read_logs(&self) -> Result<Vec<Log>, AgentError> {
-        match self.receiver().recv() {
-            Ok(logs) => Ok(logs),
-            Err(e) => Err(AgentError(format!("Error reading logs for agent: {}", e))),
-        }
+    /// This returns a `filtered watcher` stream for the agent.
+    fn watch(&self) -> Pin<Box<WatchStream>> {
+        Box::pin(self.event_stream().into_stream())
     }
-    // TODO: Right now this is only detecting an arb event and instead...
-    // TODO: add a condition as a bool valued function?
-    // TODO: It would be optimal to not build functions inside of the monitor events since it could get called often. Ideally we just don't call it often?
-    /// Monitor events for the agent.
-    fn monitor_events(&self) {
-        let receiver = self.receiver();
-        let event_filters = self.event_filters();
-        thread::spawn(move || {
-            let decoder = |input, filter_num: usize| {
-                event_filters[filter_num].base_contract.decode_event_raw(
-                    event_filters[filter_num].event_name.as_str(),
-                    vec![event_filters[filter_num].topic],
-                    input,
-                )
-            };
-            while let Ok(logs) = receiver.recv() {
-                let filtered_logs = filter_events(event_filters.clone(), logs);
-                println!("Filtered logs are: {:#?}", filtered_logs);
-                let data = filtered_logs[0].data.clone().into_iter().collect();
-                let decoded_event = decoder(data, 0).unwrap(); // TODO: Fix the error handling here.
-                println!("Decoded event says: {:#?}", decoded_event);
-                let value = decoded_event[0].clone();
-                println!("The value is: {:#?}", value);
-            }
-        });
+
+    /// Deploy a contract to the current simulation environment and return a new [`SimulationContract<IsDeployed>`].
+    /// Does not consume the current [`SimulationContract<NotDeployed>`] so that more copies can be deployed later.
+    /// # Arguments
+    /// * `simulation_environment` - The [`SimulationEnvironment`] to deploy the contract to.
+    /// * `deployer` - The [`AgentType`] that will deploy the contract.
+    /// * `constructor_arguments` - The constructor arguments for the contract.
+    /// # Returns
+    /// * `SimulationContract<IsDeployed>` - The deployed contract.
+    fn deploy(
+        &self,
+        contract: SimulationContract<NotDeployed>,
+        constructor_arguments: Vec<Token>,
+    ) -> Result<(SimulationContract<IsDeployed>, ExecutionResult), Box<dyn Error>> {
+        // Append constructor args (if available) to generate the deploy bytecode.
+        let bytecode = match contract.base_contract.abi().constructor.clone() {
+            Some(constructor) => Bytes::from(
+                constructor.encode_input(contract.bytecode.clone(), &constructor_arguments)?,
+            ),
+            None => Bytes::from(contract.bytecode.clone()),
+        };
+
+        // Take the execution result and extract the contract address.
+        let deploy_txenv = TxEnv {
+            caller: self.address(),
+            gas_limit: self.transact_settings().gas_limit,
+            gas_price: self.transact_settings().gas_price,
+            gas_priority_fee: None,
+            transact_to: TransactTo::create(),
+            value: U256::ZERO,
+            data: bytecode,
+            chain_id: None,
+            nonce: None,
+            access_list: Vec::new(),
+        };
+        self.transaction_sender()
+            .send((deploy_txenv, self.result_channel().0))?;
+        let execution_result = self.result_channel().1.recv().unwrap(); // TODO: bad error handling here.
+                                                                        // let execution_result = simulation_environment.execute(deploy_txenv);
+        let output = match execution_result.clone() {
+            ExecutionResult::Success { output, .. } => output,
+            ExecutionResult::Revert { output, .. } => panic!("Failed due to revert: {:?}", output),
+            ExecutionResult::Halt { reason, .. } => panic!("Failed due to halt: {:?}", reason),
+        };
+        let address = match output {
+            Output::Create(_, address) => address.unwrap(),
+            _ => panic!("failed"),
+        };
+
+        Ok((
+            SimulationContract {
+                bytecode: (),
+                address,
+                base_contract: contract.base_contract,
+                constructor_arguments,
+            },
+            execution_result,
+        ))
     }
 }
 
@@ -233,7 +298,7 @@ pub struct SimulationEventFilter {
     /// The event names to filter for.
     pub topic: H256,
     /// A private copy of the [`BaseContract`] for whichever contract is used to generate filters.
-    base_contract: BaseContract,
+    pub(crate) base_contract: BaseContract,
     /// The name of the event emitted by a contract.
     pub event_name: String,
 }
@@ -261,25 +326,26 @@ impl SimulationEventFilter {
 }
 
 /// Used to allow agents to filter out the events they choose to monitor.
-pub fn filter_events(event_filters: Vec<SimulationEventFilter>, logs: Vec<Log>) -> Vec<Log> {
-    if event_filters.is_empty() {
-        return logs;
-    }
+pub fn filter_events(
+    event_filters: Vec<SimulationEventFilter>,
+    logs: Vec<Log>,
+) -> (Vec<Log>, usize) {
+    assert!(!event_filters.is_empty());
 
     let mut events = vec![];
+    let mut event_index = 0;
 
     for log in logs {
-        for event_filter in event_filters.iter() {
-            if event_filter.address == log.address && event_filter.topic == log.topics[0].into()
-            // TODO: Needs to not just be log.topics[0]
-            {
+        for (index, event_filter) in event_filters.iter().enumerate() {
+            if event_filter.address == log.address && event_filter.topic == log.topics[0].into() {
                 events.push(log.clone());
+                event_index = index;
                 break;
             }
         }
     }
 
-    events
+    (events, event_index)
 }
 
 #[cfg(test)]
@@ -288,7 +354,8 @@ mod tests {
     use std::error::Error;
 
     use bindings::{arbiter_token, writer};
-    use revm::primitives::{ruint::Uint, B160};
+    use ethers::abi::Tokenize;
+    use revm::primitives::B160;
 
     use crate::{
         agent::{user::User, Agent, AgentType, SimulationEventFilter},
@@ -296,8 +363,11 @@ mod tests {
         manager::SimulationManager,
     };
 
-    #[test]
-    fn agent_event_filter_through() -> Result<(), Box<dyn Error>> {
+    use futures::stream::StreamExt;
+
+    #[tokio::test]
+    // Tests that a single filter is working correctly.
+    async fn agent_event_filtering() -> Result<(), Box<dyn Error>> {
         // Set up the execution manager and a user address.
         let mut manager = SimulationManager::default();
 
@@ -307,14 +377,28 @@ mod tests {
 
         // Deploy the writer.
         let test_string = "Hello, world..?".to_string();
-        let writer = writer.deploy(
-            &mut manager.environment,
-            manager.agents.get("admin").unwrap(),
-            test_string,
+        let (writer, execution_result) = manager
+            .agents
+            .get("admin")
+            .unwrap()
+            .deploy(writer, test_string.into_tokens())?;
+        assert!(execution_result.is_success());
+
+        // Deploy arbiter token contract.
+        let arbt = SimulationContract::new(
+            arbiter_token::ARBITERTOKEN_ABI.clone(),
+            arbiter_token::ARBITERTOKEN_BYTECODE.clone(),
         );
+        let (arbt, execution_result) = manager.agents.get("admin").unwrap().deploy(
+            arbt,
+            ("ArbiterToken".to_string(), "ARBT".to_string(), 18_u8).into_tokens(),
+        )?;
+        assert!(execution_result.is_success());
 
         // Create two agents with a filter.
-        let alice = User::new("alice", None);
+        // Create agent with a filter.
+        let event_filters = vec![SimulationEventFilter::new(&arbt, "Approval")];
+        let alice = User::new("alice", Some(event_filters));
         manager.activate_agent(AgentType::User(alice), B160::from_low_u64_be(2))?;
 
         let event_filters = vec![SimulationEventFilter::new(&writer, "WasWritten")];
@@ -323,92 +407,27 @@ mod tests {
 
         let alice = manager.agents.get("alice").unwrap();
         let bob = manager.agents.get("bob").unwrap();
-
         println!("Alice's event filter: {:#?}", alice.event_filters());
         println!("Bob's event filter: {:#?}", bob.event_filters());
 
-        // Make calls that alice and bob won't filter out.
+        // Make calls that alice will filter out and bob won't filter out.
         let new_string = "Hello, world!".to_string();
-        let call_data = writer.encode_function("echoString", new_string)?;
-        manager.agents.get("admin").unwrap().call_contract(
-            &mut manager.environment,
+        manager.agents.get("admin").unwrap().call(
             &writer,
-            call_data,
-            Uint::ZERO,
-        );
+            "echoString",
+            new_string.into_tokens(),
+        )?;
+
         // Test that the alice doesn't filter out these logs.
-        let unfiltered_events = alice.read_logs()?;
-        let filtered_events =
-            super::filter_events(alice.event_filters(), unfiltered_events.clone());
-        println!(
-            "The filtered events for alice on the first call are: {:#?}",
-            &filtered_events
-        );
-        assert_eq!(filtered_events, unfiltered_events);
+        let mut alice_watcher = alice.watch();
+        let alice_next_event = alice_watcher.next().await;
+        print!("Alice's next event: {:#?}", alice_next_event);
+        assert!(alice_next_event.is_none());
         // Test that bob filters out these logs.
-        let unfiltered_events = bob.read_logs()?;
-        let filtered_events = super::filter_events(bob.event_filters(), unfiltered_events);
-        println!(
-            "The filtered events for bob on the first call are: {:#?}",
-            &filtered_events
-        );
-
-        // Also try to filter out a different address.
-
-        Ok(())
-    }
-
-    #[test]
-    fn agent_event_filter_out() -> Result<(), Box<dyn Error>> {
-        // Set up the execution manager and a user address.
-        let mut manager = SimulationManager::default();
-
-        // Create writer contract.
-        let writer =
-            SimulationContract::new(writer::WRITER_ABI.clone(), writer::WRITER_BYTECODE.clone());
-        let test_string = "Hello, world..?".to_string();
-        let writer = writer.deploy(
-            &mut manager.environment,
-            manager.agents.get("admin").unwrap(),
-            test_string,
-        );
-
-        // Create writer contract.
-        let arbt = SimulationContract::new(
-            arbiter_token::ARBITERTOKEN_ABI.clone(),
-            arbiter_token::ARBITERTOKEN_BYTECODE.clone(),
-        );
-        let arbt = arbt.deploy(
-            &mut manager.environment,
-            manager.agents.get("admin").unwrap(),
-            ("ArbiterToken".to_string(), "ARBT".to_string(), 18_u8),
-        );
-
-        // Create agent with a filter.
-        let event_filters = vec![SimulationEventFilter::new(&arbt, "Approval")];
-        let alice = User::new("alice", Some(event_filters));
-        manager.activate_agent(AgentType::User(alice), B160::from_low_u64_be(2))?;
-        let alice = manager.agents.get("alice").unwrap();
-
-        println!("Alice's event filter: {:#?}", alice.event_filters());
-
-        // Make calls that alice and bob won't filter out.
-        let new_string = "Hello, world!".to_string();
-        let call_data = writer.encode_function("echoString", new_string)?;
-        manager.agents.get("admin").unwrap().call_contract(
-            &mut manager.environment,
-            &writer,
-            call_data,
-            Uint::ZERO,
-        );
-        // Test that the alice doesn't filter out these logs.
-        let unfiltered_events = alice.read_logs()?;
-        let filtered_events = super::filter_events(alice.event_filters(), unfiltered_events);
-        println!(
-            "The filtered events for alice on the first call are: {:#?}",
-            &filtered_events
-        );
-        assert_eq!(filtered_events, vec![]);
+        let mut bob_watcher = bob.watch();
+        let bob_next_event = bob_watcher.next().await;
+        print!("Bob's next event: {:#?}", bob_next_event);
+        assert!(bob_next_event.is_some());
         Ok(())
     }
 }
