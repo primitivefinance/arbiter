@@ -11,16 +11,16 @@ updates:
       interval: "daily"
 
   - package-ecosystem: "cargo"
-    directory: "lib/bindings/"
+    directory: "crates/bindings/"
     schedule:
       interval: "daily"
 
   - package-ecosystem: "cargo"
-    directory: "/lib/onchain/"
+    directory: "lib/chain/"
     schedule:
       interval: "daily"
 
   - package-ecosystem: "cargo"
-    directory: "/lib/simulate/"
+    directory: "lib/simulations/"
     schedule:
       interval: "daily"
