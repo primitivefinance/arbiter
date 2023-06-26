@@ -102,7 +102,26 @@ fn deploy_contracts(
 
     Ok(())
 }
-
+// fn get_arbitraguer() -> Result<(), Box<dyn Error>>{
+//     let liquid_exchange_xy = manager
+//         .deployed_contracts
+//         .get("liquid_exchange_xy")
+//         .unwrap();
+//     let address = B160::from_low_u64_be(2);
+//     let event_filters = vec![SimulationEventFilter::new(
+//         liquid_exchange_xy,
+//         "PriceChange",
+//     )];
+//     let arbitrageur = SimpleArbitrageur::new(
+//         "arbitrageur",
+//         event_filters,
+//         U256::from(997_000_000_000_000_000u128).into(),
+//     );
+//     manager
+//         .activate_agent(AgentType::SimpleArbitrageur(arbitrageur), address)
+//         .unwrap();
+//     Ok(())
+// }
 fn mint(
     contracts: &HashMap<String, SimulationContract<IsDeployed>>,
     admin: &AgentType<IsActive>,

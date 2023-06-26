@@ -163,6 +163,9 @@ async fn main() -> Result<(), Box<dyn Error>> {
                     let duration: std::time::Duration = start.elapsed();
                     println!("Time elapsed is: {:?}", duration);
                 }
+                SimulateSubcommand::Portfolio => {
+                    crate::simulations::portfolio::run()?;
+                }
             }
         }
 
