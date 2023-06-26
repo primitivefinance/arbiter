@@ -90,8 +90,11 @@ enum Commands {
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {
-    println!("Starting Arbiter...");
     let args = Args::parse();
+
+    if args.command.is_some() {
+        println!("Starting Arbiter...");
+    }
 
     match &args.command {
         Some(Commands::Simulate(simulate_arguments)) => {
