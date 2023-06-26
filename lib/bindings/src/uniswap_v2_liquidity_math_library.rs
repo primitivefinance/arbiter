@@ -26,13 +26,13 @@ pub mod uniswap_v2_liquidity_math_library {
         ::ethers::core::abi::Abi,
     > = ::ethers::contract::Lazy::new(__abi);
     #[rustfmt::skip]
-    const __BYTECODE: &[u8] = b"`\xAF`#`\x0B\x82\x82\x829\x80Q`\0\x1A`s\x14`\x16W\xFE[0`\0R`s\x81S\x82\x81\xF3\xFEs\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\x000\x14`\x80`@RbF\x1B\xCD`\xE5\x1B`\0\x90\x81R` `\x04R`5`$R\x7FContract does not have fallback `D\x90\x81Rtnor receive functions`X\x1B`dR\x90`\x84\x90\xFD\xFE\xA2dipfsX\"\x12 \xA0\x0F\xCD\x9A5\xDB#\xAD\xC7\x07S1\x1Ey\x14\xC8\xBB\xAF\xAB\xCF\xE4Wx\x04\x99\x83?\xF1\xEF,\x06\x82dsolcC\0\x06\x06\x003";
+    const __BYTECODE: &[u8] = b"`\xAF`#`\x0B\x82\x82\x829\x80Q`\0\x1A`s\x14`\x16W\xFE[0`\0R`s\x81S\x82\x81\xF3\xFEs\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\x000\x14`\x80`@RbF\x1B\xCD`\xE5\x1B`\0\x90\x81R` `\x04R`5`$R\x7FContract does not have fallback `D\x90\x81Rtnor receive functions`X\x1B`dR\x90`\x84\x90\xFD\xFE\xA2dipfsX\"\x12 $\x18a%\x8D6q{\xDC\xD7\xE4\xFD\x0C\xD9h\x03\x92\xEA\xA1\x1E\x91\xC8\x92s2*\xB6\"9\x15qWdsolcC\0\x06\x06\x003";
     /// The bytecode of the contract.
     pub static UNISWAPV2LIQUIDITYMATHLIBRARY_BYTECODE: ::ethers::core::types::Bytes = ::ethers::core::types::Bytes::from_static(
         __BYTECODE,
     );
     #[rustfmt::skip]
-    const __DEPLOYED_BYTECODE: &[u8] = b"s\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\x000\x14`\x80`@RbF\x1B\xCD`\xE5\x1B`\0\x90\x81R` `\x04R`5`$R\x7FContract does not have fallback `D\x90\x81Rtnor receive functions`X\x1B`dR\x90`\x84\x90\xFD\xFE\xA2dipfsX\"\x12 \xA0\x0F\xCD\x9A5\xDB#\xAD\xC7\x07S1\x1Ey\x14\xC8\xBB\xAF\xAB\xCF\xE4Wx\x04\x99\x83?\xF1\xEF,\x06\x82dsolcC\0\x06\x06\x003";
+    const __DEPLOYED_BYTECODE: &[u8] = b"s\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\x000\x14`\x80`@RbF\x1B\xCD`\xE5\x1B`\0\x90\x81R` `\x04R`5`$R\x7FContract does not have fallback `D\x90\x81Rtnor receive functions`X\x1B`dR\x90`\x84\x90\xFD\xFE\xA2dipfsX\"\x12 $\x18a%\x8D6q{\xDC\xD7\xE4\xFD\x0C\xD9h\x03\x92\xEA\xA1\x1E\x91\xC8\x92s2*\xB6\"9\x15qWdsolcC\0\x06\x06\x003";
     /// The deployed bytecode of the contract.
     pub static UNISWAPV2LIQUIDITYMATHLIBRARY_DEPLOYED_BYTECODE: ::ethers::core::types::Bytes = ::ethers::core::types::Bytes::from_static(
         __DEPLOYED_BYTECODE,
