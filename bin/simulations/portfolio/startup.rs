@@ -1,7 +1,11 @@
 use std::{collections::HashMap, error::Error};
 
 use bindings::{rmm01_portfolio, simple_registry};
-use ethers::{abi::{Tokenize, Token}, prelude::U256, types::H160};
+use ethers::{
+    abi::{Token, Tokenize},
+    prelude::U256,
+    types::H160,
+};
 use eyre::Result;
 use revm::primitives::B160;
 use simulate::{
@@ -19,10 +23,10 @@ pub(crate) fn run(
     manager: &mut SimulationManager,
     pool_args: PoolParams,
     delta_liquidity: i128,
-) -> Result<((), PoolArgs, u64), Box<dyn Error>> {
+) -> Result<(PoolArgs, u64), Box<dyn Error>> {
     // define the wad constant
-    let decimals = 18_u8;
-    let wad: U256 = U256::from(10_i64.pow(decimals as u32));
+    // let decimals = 18_u8;
+    // let wad: U256 = U256::from(10_i64.pow(decimals as u32));
 
     println!("=======================================");
     println!("🚀 Starting the Simulation 🚀");
@@ -31,7 +35,7 @@ pub(crate) fn run(
     // Deploy the contracts
     println!("🔧 Deploying contracts...");
     println!("---------------------------------------");
-    let contracts = deploy_contracts(manager, wad)?;
+    deploy_contracts(manager)?;
     println!("---------------------------------------");
     println!("✅ Contracts deployed successfully!\n");
 
@@ -81,16 +85,25 @@ pub(crate) fn run(
 
     println!("🔧 Initializing the pool...");
     println!("---------------------------------------");
-    let (pool_data, pool_id) = pool_intitalization(manager.agents.get("admin").unwrap(), &manager.deployed_contracts, pool_args)?;
+    let (pool_data, pool_id) = pool_intitalization(
+        manager.agents.get("admin").unwrap(),
+        &manager.deployed_contracts,
+        pool_args,
+    )?;
     println!("---------------------------------------");
     println!("✅ Pool initialized successfully! Pool ID: {}\n", pool_id);
 
     println!("🔧 Allocating funds...");
     println!("---------------------------------------");
-    allocate(manager.agents.get("admin").unwrap(), &manager.deployed_contracts, pool_id, delta_liquidity)?;
+    allocate(
+        manager.agents.get("admin").unwrap(),
+        &manager.deployed_contracts,
+        pool_id,
+        delta_liquidity,
+    )?;
     println!("---------------------------------------");
     println!("✅ Funds allocated successfully!\n");
-    Ok((contracts, pool_data, pool_id))
+    Ok((pool_data, pool_id))
 }
 
 /// Deploy the contracts to the simulation environment.
@@ -99,9 +112,8 @@ pub(crate) fn run(
 /// * `wad` - Wad constant to use for the simulation. (U256)
 /// # Returns
 /// * `SimulationContracts` - Contracts deployed to the simulation environment. (SimulationContracts)
-fn deploy_contracts(manager: &mut SimulationManager, wad: U256) -> Result<(), Box<dyn Error>> {
-    let decimals = 18_u8;
-    let weth_address = manager.agents.get("weth").unwrap().address();
+fn deploy_contracts(manager: &mut SimulationManager) -> Result<(), Box<dyn Error>> {
+    let weth_address = manager.deployed_contracts.get("weth").unwrap().address;
     let admin = manager.agents.get("admin").unwrap();
 
     // Deploy the registry contract.
@@ -114,7 +126,7 @@ fn deploy_contracts(manager: &mut SimulationManager, wad: U256) -> Result<(), Bo
 
     manager
         .deployed_contracts
-        .insert("registry".to_string(), registry);
+        .insert("registry".to_string(), registry.clone());
     // Deploy the portfolio contract.
     let portfolio = SimulationContract::new(
         rmm01_portfolio::RMM01PORTFOLIO_ABI.clone(),
@@ -182,7 +194,6 @@ fn approve(
     arbitrageur: &AgentType<IsActive>,
     contracts: &HashMap<String, SimulationContract<IsDeployed>>,
 ) -> Result<(), Box<dyn Error>> {
-
     let arbiter_token_x = contracts.get("arbiter_token_x").unwrap();
     let arbiter_token_y = contracts.get("arbiter_token_y").unwrap();
     let portfolio = contracts.get("portfolio").unwrap();
@@ -203,7 +214,7 @@ fn approve(
     // Approve the liquid_exchange to spend the arbitrageur's token_y
     let result = arbitrageur.call(
         arbiter_token_y,
-"approve",
+        "approve",
         (recast_address(liquid_exchange_xy.address), U256::MAX).into_tokens(),
     )?;
     println!(
@@ -215,8 +226,9 @@ fn approve(
     // Approve the portfolio to spend the arbitrageur's token_x
     let approve_token_x_result_arbitrageur = arbitrageur.call(
         arbiter_token_x,
-        "approve", 
-        (recast_address(portfolio.address), U256::MAX).into_tokens())?;
+        "approve",
+        (recast_address(portfolio.address), U256::MAX).into_tokens(),
+    )?;
     println!(
         "Approved ARBX to Portfolio for Arbitrageur: {:#?}",
         approve_token_x_result_arbitrageur.is_success()
@@ -225,8 +237,9 @@ fn approve(
     // Approve the portfolio to spend the admin's token_x
     let approve_token_x_result_admin = admin.call(
         arbiter_token_x,
-"approve",
-     (recast_address(portfolio.address), U256::MAX).into_tokens())?;
+        "approve",
+        (recast_address(portfolio.address), U256::MAX).into_tokens(),
+    )?;
     println!(
         "Approved ARBX to Portfolio for Admin: {:#?}",
         approve_token_x_result_admin.is_success()
@@ -235,8 +248,9 @@ fn approve(
     // Approve the portfolio to spend the arbitrageur's token_y
     let approve_token_y_result_arbitrageur = arbitrageur.call(
         arbiter_token_y,
-        "approve", 
-        (recast_address(portfolio.address), U256::MAX).into_tokens())?;
+        "approve",
+        (recast_address(portfolio.address), U256::MAX).into_tokens(),
+    )?;
     println!(
         "Approved ARBY to Portfolio for Arbitrageur: {:#?}",
         approve_token_y_result_arbitrageur.is_success()
@@ -245,8 +259,9 @@ fn approve(
     // Approve the portfolio to spend the admin's token_y
     let approve_token_y_result_admin = admin.call(
         arbiter_token_y,
-        "approve", 
-        (recast_address(portfolio.address), U256::MAX).into_tokens())?;
+        "approve",
+        (recast_address(portfolio.address), U256::MAX).into_tokens(),
+    )?;
     println!(
         "Approved ARBY to Portfolio for Admin: {:#?}",
         approve_token_y_result_admin.is_success()
@@ -265,23 +280,19 @@ fn pool_intitalization(
     contracts: &HashMap<String, SimulationContract<IsDeployed>>,
     pool_args: PoolParams,
 ) -> Result<(PoolArgs, u64), Box<dyn Error>> {
-
     let arbiter_token_x = contracts.get("arbiter_token_x").unwrap();
     let arbiter_token_y = contracts.get("arbiter_token_y").unwrap();
     let portfolio = contracts.get("portfolio").unwrap();
-    let liquid_exchange_xy = contracts.get("liquid_exchange_xy").unwrap();
     // --------------------------------------------------------------------------------------------
     // CREATE PORTFOLIO PAIR
     // --------------------------------------------------------------------------------------------
     let create_pair_args = (
         recast_address(arbiter_token_x.address),
         recast_address(arbiter_token_y.address),
-    ).into_tokens();
+    )
+        .into_tokens();
 
-    let create_pair_result = admin.call(
-        portfolio,
-        "createPair",
-         create_pair_args)?;
+    let create_pair_result = admin.call(portfolio, "createPair", create_pair_args)?;
     assert!(create_pair_result.is_success());
     let create_pair_unpack = unpack_execution(create_pair_result)?;
     let pair_id: u32 = portfolio.decode_output("createPair", create_pair_unpack)?;
@@ -292,19 +303,16 @@ fn pool_intitalization(
     // --------------------------------------------------------------------------------------------
 
     let create_pool_args = (
-        pair_id,                                     // pub pair_id: u32
-        recast_address(admin.address()),             /* pub controller: ::ethers::core::types::Address */
-        pool_args.priority_fee,                      // pub priority_fee: u16,
-        pool_args.fee,                               // pub fee: u16,
-        pool_args.volatility,                        // pub vol: u16,
-        pool_args.duration,                          // pub dur: u16,
-        pool_args.strike,                            // pub max_price: u128,
-        pool_args.price,                             // pub price: u128,
+        pair_id,                         // pub pair_id: u32
+        recast_address(admin.address()), /* pub controller: ::ethers::core::types::Address */
+        pool_args.priority_fee,          // pub priority_fee: u16,
+        pool_args.fee,                   // pub fee: u16,
+        pool_args.volatility,            // pub vol: u16,
+        pool_args.duration,              // pub dur: u16,
+        pool_args.strike,                // pub max_price: u128,
+        pool_args.price,                 // pub price: u128,
     );
-    let create_pool_result = admin.call(
-        portfolio,
-        "createPool",
-        create_pool_args.into_tokens())?;
+    let create_pool_result = admin.call(portfolio, "createPool", create_pool_args.into_tokens())?;
 
     assert!(create_pool_result.is_success());
     let create_pool_unpack = unpack_execution(create_pool_result)?;
@@ -314,26 +322,20 @@ fn pool_intitalization(
 }
 
 fn allocate(
-    admin: &AgentType<IsActive>,    
+    admin: &AgentType<IsActive>,
     contracts: &HashMap<String, SimulationContract<IsDeployed>>,
     pool_id: u64,
     delta_liquidity: i128,
 ) -> Result<(), Box<dyn Error>> {
-    let arbiter_token_x = contracts.get("arbiter_token_x").unwrap();
-    let arbiter_token_y = contracts.get("arbiter_token_y").unwrap();
+    // let arbiter_token_x = contracts.get("arbiter_token_x").unwrap();
+    // let arbiter_token_y = contracts.get("arbiter_token_y").unwrap();
     let portfolio = contracts.get("portfolio").unwrap();
-    let liquid_exchange_xy = contracts.get("liquid_exchange_xy").unwrap();
+    // let liquid_exchange_xy = contracts.get("liquid_exchange_xy").unwrap();
     // --------------------------------------------------------------------------------------------
     // PORTFOLIO POOL LIQUIDITY DELTAS
     // --------------------------------------------------------------------------------------------
-    let get_liquidity_args = (
-        pool_id,
-        delta_liquidity,
-    ).into_tokens();
-    let get_liquidity_result = admin.call(
-        portfolio,
-      "getLiquidityDeltas",
-       get_liquidity_args)?;
+    let get_liquidity_args = (pool_id, delta_liquidity).into_tokens();
+    let get_liquidity_result = admin.call(portfolio, "getLiquidityDeltas", get_liquidity_args)?;
 
     let get_liquidity_unpack = unpack_execution(get_liquidity_result)?;
     let liquidity_deltas: (u128, u128) =
@@ -342,23 +344,22 @@ fn allocate(
         "Liquidity delta is {} for ARBX and {} for ARBY",
         liquidity_deltas.0, liquidity_deltas.1
     );
-
     // --------------------------------------------------------------------------------------------
     // PORTFOLIO POOL ALLOCATE
     // --------------------------------------------------------------------------------------------
-    let allocate_args = (
-        false,                             // use_max: bool, // Usually set to false?
-        pool_id,                           // pool_id: u64,
-        delta_liquidity as u128,           // delta_liquidity: u128,
-        liquidity_deltas.0,                // max_delta_asset: u128,
-        liquidity_deltas.1,                // max_delta_quote: u128,
-        recast_address(admin.address()),   // recipient: ::ethers::core::types::Address,
-    ).into_tokens();
-    let allocate_result = admin.call(
-        portfolio,
-        "allocate", 
-        allocate_args)?;
+
+    let allocate_args = rmm01_portfolio::AllocateCall {
+        use_max: false,                             // use_max: bool, // Usually set to false?
+        pool_id,                                    // pool_id: u64,
+        delta_liquidity: delta_liquidity as u128,   // delta_liquidity: u128,
+        max_delta_asset: liquidity_deltas.0,        // max_delta_asset: u128,
+        max_delta_quote: liquidity_deltas.1,        // max_delta_quote: u128,
+        recipient: recast_address(admin.address()), // recipient: ::ethers::core::types::Address,
+    }
+    .into_tokens();
+    let allocate_result = admin.call(portfolio, "allocate", allocate_args)?;
     assert!(allocate_result.is_success());
+    print!("Allocated liquidity to pool {} ", pool_id);
     let unpacked_allocate = unpack_execution(allocate_result)?;
     let deltas: (u128, u128) = portfolio.decode_output("allocate", unpacked_allocate)?;
     println!(
