@@ -25,12 +25,12 @@ pub mod oracle {
     pub static ORACLE_ABI: ::ethers::contract::Lazy<::ethers::core::abi::Abi> =
         ::ethers::contract::Lazy::new(__abi);
     #[rustfmt::skip]
-    const __BYTECODE: &[u8] = b"`\xAF`#`\x0B\x82\x82\x829\x80Q`\0\x1A`s\x14`\x16W\xFE[0`\0R`s\x81S\x82\x81\xF3\xFEs\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\x000\x14`\x80`@RbF\x1B\xCD`\xE5\x1B`\0\x90\x81R` `\x04R`5`$R\x7FContract does not have fallback `D\x90\x81Rtnor receive functions`X\x1B`dR\x90`\x84\x90\xFD\xFE\xA2dipfsX\"\x12 \xCB\x10 \tA\xAF\x13\x8B\xE2oyz#\x19\x0C\x8D\xEA\xA88A\xE6\x8F\xC8\xF9\x12m\xCF\xC5\xB5\xC71adsolcC\0\x07\x06\x003";
+    const __BYTECODE: &[u8] = b"`\xAF`#`\x0B\x82\x82\x829\x80Q`\0\x1A`s\x14`\x16W\xFE[0`\0R`s\x81S\x82\x81\xF3\xFEs\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\x000\x14`\x80`@RbF\x1B\xCD`\xE5\x1B`\0\x90\x81R` `\x04R`5`$R\x7FContract does not have fallback `D\x90\x81Rtnor receive functions`X\x1B`dR\x90`\x84\x90\xFD\xFE\xA2dipfsX\"\x12 \xEA\x94j\x10=\x8E\xC6[M\xC2\x97\xF7\x1C\xC4VLcM\xE5\\pQ\x92%\xADt\xBA\x88\xEDs\x13\x9AdsolcC\0\x07\x06\x003";
     /// The bytecode of the contract.
     pub static ORACLE_BYTECODE: ::ethers::core::types::Bytes =
         ::ethers::core::types::Bytes::from_static(__BYTECODE);
     #[rustfmt::skip]
-    const __DEPLOYED_BYTECODE: &[u8] = b"s\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\x000\x14`\x80`@RbF\x1B\xCD`\xE5\x1B`\0\x90\x81R` `\x04R`5`$R\x7FContract does not have fallback `D\x90\x81Rtnor receive functions`X\x1B`dR\x90`\x84\x90\xFD\xFE\xA2dipfsX\"\x12 \xCB\x10 \tA\xAF\x13\x8B\xE2oyz#\x19\x0C\x8D\xEA\xA88A\xE6\x8F\xC8\xF9\x12m\xCF\xC5\xB5\xC71adsolcC\0\x07\x06\x003";
+    const __DEPLOYED_BYTECODE: &[u8] = b"s\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\x000\x14`\x80`@RbF\x1B\xCD`\xE5\x1B`\0\x90\x81R` `\x04R`5`$R\x7FContract does not have fallback `D\x90\x81Rtnor receive functions`X\x1B`dR\x90`\x84\x90\xFD\xFE\xA2dipfsX\"\x12 \xEA\x94j\x10=\x8E\xC6[M\xC2\x97\xF7\x1C\xC4VLcM\xE5\\pQ\x92%\xADt\xBA\x88\xEDs\x13\x9AdsolcC\0\x07\x06\x003";
     /// The deployed bytecode of the contract.
     pub static ORACLE_DEPLOYED_BYTECODE: ::ethers::core::types::Bytes =
         ::ethers::core::types::Bytes::from_static(__DEPLOYED_BYTECODE);

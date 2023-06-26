@@ -25,12 +25,12 @@ pub mod fixed_point {
     pub static FIXEDPOINT_ABI: ::ethers::contract::Lazy<::ethers::core::abi::Abi> =
         ::ethers::contract::Lazy::new(__abi);
     #[rustfmt::skip]
-    const __BYTECODE: &[u8] = b"`\xAF`#`\x0B\x82\x82\x829\x80Q`\0\x1A`s\x14`\x16W\xFE[0`\0R`s\x81S\x82\x81\xF3\xFEs\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\x000\x14`\x80`@RbF\x1B\xCD`\xE5\x1B`\0\x90\x81R` `\x04R`5`$R\x7FContract does not have fallback `D\x90\x81Rtnor receive functions`X\x1B`dR\x90`\x84\x90\xFD\xFE\xA2dipfsX\"\x12 \xED\xCDS<\xEE\xC4y\xEF\x01\xFF?j\xC6\xC8sO\xB1\xA6\xB5\xB5D\xC4\x18\x9F\xCA\xB1\x97\x16\xF4p\xDCkdsolcC\0\x06\x06\x003";
+    const __BYTECODE: &[u8] = b"`\xAF`#`\x0B\x82\x82\x829\x80Q`\0\x1A`s\x14`\x16W\xFE[0`\0R`s\x81S\x82\x81\xF3\xFEs\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\x000\x14`\x80`@RbF\x1B\xCD`\xE5\x1B`\0\x90\x81R` `\x04R`5`$R\x7FContract does not have fallback `D\x90\x81Rtnor receive functions`X\x1B`dR\x90`\x84\x90\xFD\xFE\xA2dipfsX\"\x12 >\xB8\xE9\x8F\x97;Dy\xED\xB6\xD0\x86\x8B\xBE\x05\xB1IkM\xA3\xD7U\xD1\x9A1:mz\xF4\xA3\xC5\xE9dsolcC\0\x06\x06\x003";
     /// The bytecode of the contract.
     pub static FIXEDPOINT_BYTECODE: ::ethers::core::types::Bytes =
         ::ethers::core::types::Bytes::from_static(__BYTECODE);
     #[rustfmt::skip]
-    const __DEPLOYED_BYTECODE: &[u8] = b"s\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\x000\x14`\x80`@RbF\x1B\xCD`\xE5\x1B`\0\x90\x81R` `\x04R`5`$R\x7FContract does not have fallback `D\x90\x81Rtnor receive functions`X\x1B`dR\x90`\x84\x90\xFD\xFE\xA2dipfsX\"\x12 \xED\xCDS<\xEE\xC4y\xEF\x01\xFF?j\xC6\xC8sO\xB1\xA6\xB5\xB5D\xC4\x18\x9F\xCA\xB1\x97\x16\xF4p\xDCkdsolcC\0\x06\x06\x003";
+    const __DEPLOYED_BYTECODE: &[u8] = b"s\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\x000\x14`\x80`@RbF\x1B\xCD`\xE5\x1B`\0\x90\x81R` `\x04R`5`$R\x7FContract does not have fallback `D\x90\x81Rtnor receive functions`X\x1B`dR\x90`\x84\x90\xFD\xFE\xA2dipfsX\"\x12 >\xB8\xE9\x8F\x97;Dy\xED\xB6\xD0\x86\x8B\xBE\x05\xB1IkM\xA3\xD7U\xD1\x9A1:mz\xF4\xA3\xC5\xE9dsolcC\0\x06\x06\x003";
     /// The deployed bytecode of the contract.
     pub static FIXEDPOINT_DEPLOYED_BYTECODE: ::ethers::core::types::Bytes =
         ::ethers::core::types::Bytes::from_static(__DEPLOYED_BYTECODE);

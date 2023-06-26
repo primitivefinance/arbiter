@@ -25,12 +25,12 @@ pub mod uq11_2x_112 {
     pub static UQ112X112_ABI: ::ethers::contract::Lazy<::ethers::core::abi::Abi> =
         ::ethers::contract::Lazy::new(__abi);
     #[rustfmt::skip]
-    const __BYTECODE: &[u8] = b"`U`#`\x0B\x82\x82\x829\x80Q`\0\x1A`s\x14`\x16W\xFE[0`\0R`s\x81S\x82\x81\xF3\xFEs\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\x000\x14`\x80`@R`\0\x80\xFD\xFE\xA2ebzzr1X }\xD94Ir\xB1\x11\xC0\x13\xD9]\xE7\xA0-\xE3\xDD\x91:\x8EO\x18\xC0\\\xFCR8B3#7\xC8\xF2dsolcC\0\x05\x10\x002";
+    const __BYTECODE: &[u8] = b"`U`#`\x0B\x82\x82\x829\x80Q`\0\x1A`s\x14`\x16W\xFE[0`\0R`s\x81S\x82\x81\xF3\xFEs\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\x000\x14`\x80`@R`\0\x80\xFD\xFE\xA2ebzzr1X \x99(\x1F\xB2\xFDW\xE4_\xEF\r\xE2_ M+\tXF\xFA\xF0b\xAF\x95\\M\xE4\xC5\xF2z\xDD\x05\xA5dsolcC\0\x05\x10\x002";
     /// The bytecode of the contract.
     pub static UQ112X112_BYTECODE: ::ethers::core::types::Bytes =
         ::ethers::core::types::Bytes::from_static(__BYTECODE);
     #[rustfmt::skip]
-    const __DEPLOYED_BYTECODE: &[u8] = b"s\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\x000\x14`\x80`@R`\0\x80\xFD\xFE\xA2ebzzr1X }\xD94Ir\xB1\x11\xC0\x13\xD9]\xE7\xA0-\xE3\xDD\x91:\x8EO\x18\xC0\\\xFCR8B3#7\xC8\xF2dsolcC\0\x05\x10\x002";
+    const __DEPLOYED_BYTECODE: &[u8] = b"s\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\x000\x14`\x80`@R`\0\x80\xFD\xFE\xA2ebzzr1X \x99(\x1F\xB2\xFDW\xE4_\xEF\r\xE2_ M+\tXF\xFA\xF0b\xAF\x95\\M\xE4\xC5\xF2z\xDD\x05\xA5dsolcC\0\x05\x10\x002";
     /// The deployed bytecode of the contract.
     pub static UQ112X112_DEPLOYED_BYTECODE: ::ethers::core::types::Bytes =
         ::ethers::core::types::Bytes::from_static(__DEPLOYED_BYTECODE);

@@ -25,12 +25,12 @@ pub mod swap_math {
     pub static SWAPMATH_ABI: ::ethers::contract::Lazy<::ethers::core::abi::Abi> =
         ::ethers::contract::Lazy::new(__abi);
     #[rustfmt::skip]
-    const __BYTECODE: &[u8] = b"`\xAF`#`\x0B\x82\x82\x829\x80Q`\0\x1A`s\x14`\x16W\xFE[0`\0R`s\x81S\x82\x81\xF3\xFEs\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\x000\x14`\x80`@RbF\x1B\xCD`\xE5\x1B`\0\x90\x81R` `\x04R`5`$R\x7FContract does not have fallback `D\x90\x81Rtnor receive functions`X\x1B`dR\x90`\x84\x90\xFD\xFE\xA2dipfsX\"\x12 \x8D\xAF9\xBB8N#\xF9\x8C\x93N)\xC7\x96_\xF4\xC4w\xA9jT(\xD7\x89T\x1D\x8ELD\x8Dz\xECdsolcC\0\x07\x06\x003";
+    const __BYTECODE: &[u8] = b"`\xAF`#`\x0B\x82\x82\x829\x80Q`\0\x1A`s\x14`\x16W\xFE[0`\0R`s\x81S\x82\x81\xF3\xFEs\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\x000\x14`\x80`@RbF\x1B\xCD`\xE5\x1B`\0\x90\x81R` `\x04R`5`$R\x7FContract does not have fallback `D\x90\x81Rtnor receive functions`X\x1B`dR\x90`\x84\x90\xFD\xFE\xA2dipfsX\"\x12 K\xD9\x1D\x9AD\x163\xEF\xBA\x93\x80.i\x11\x08\x0F\xE6\xC5>/\xD8\xFAvs\xC5\nsvBu\x99\xF1dsolcC\0\x07\x06\x003";
     /// The bytecode of the contract.
     pub static SWAPMATH_BYTECODE: ::ethers::core::types::Bytes =
         ::ethers::core::types::Bytes::from_static(__BYTECODE);
     #[rustfmt::skip]
-    const __DEPLOYED_BYTECODE: &[u8] = b"s\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\x000\x14`\x80`@RbF\x1B\xCD`\xE5\x1B`\0\x90\x81R` `\x04R`5`$R\x7FContract does not have fallback `D\x90\x81Rtnor receive functions`X\x1B`dR\x90`\x84\x90\xFD\xFE\xA2dipfsX\"\x12 \x8D\xAF9\xBB8N#\xF9\x8C\x93N)\xC7\x96_\xF4\xC4w\xA9jT(\xD7\x89T\x1D\x8ELD\x8Dz\xECdsolcC\0\x07\x06\x003";
+    const __DEPLOYED_BYTECODE: &[u8] = b"s\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\x000\x14`\x80`@RbF\x1B\xCD`\xE5\x1B`\0\x90\x81R` `\x04R`5`$R\x7FContract does not have fallback `D\x90\x81Rtnor receive functions`X\x1B`dR\x90`\x84\x90\xFD\xFE\xA2dipfsX\"\x12 K\xD9\x1D\x9AD\x163\xEF\xBA\x93\x80.i\x11\x08\x0F\xE6\xC5>/\xD8\xFAvs\xC5\nsvBu\x99\xF1dsolcC\0\x07\x06\x003";
     /// The deployed bytecode of the contract.
     pub static SWAPMATH_DEPLOYED_BYTECODE: ::ethers::core::types::Bytes =
         ::ethers::core::types::Bytes::from_static(__DEPLOYED_BYTECODE);

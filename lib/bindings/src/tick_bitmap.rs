@@ -25,12 +25,12 @@ pub mod tick_bitmap {
     pub static TICKBITMAP_ABI: ::ethers::contract::Lazy<::ethers::core::abi::Abi> =
         ::ethers::contract::Lazy::new(__abi);
     #[rustfmt::skip]
-    const __BYTECODE: &[u8] = b"`\xAF`#`\x0B\x82\x82\x829\x80Q`\0\x1A`s\x14`\x16W\xFE[0`\0R`s\x81S\x82\x81\xF3\xFEs\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\x000\x14`\x80`@RbF\x1B\xCD`\xE5\x1B`\0\x90\x81R` `\x04R`5`$R\x7FContract does not have fallback `D\x90\x81Rtnor receive functions`X\x1B`dR\x90`\x84\x90\xFD\xFE\xA2dipfsX\"\x12 \x1D]\xCFC\x86\xC1\xA0\xFCPY}'\xB6\xC4P\xBC\x97\xE1\xB8_\xBB\x12k\xC3\xD2\xCA6\xDC\xDFj\xBC\x7FdsolcC\0\x07\x06\x003";
+    const __BYTECODE: &[u8] = b"`\xAF`#`\x0B\x82\x82\x829\x80Q`\0\x1A`s\x14`\x16W\xFE[0`\0R`s\x81S\x82\x81\xF3\xFEs\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\x000\x14`\x80`@RbF\x1B\xCD`\xE5\x1B`\0\x90\x81R` `\x04R`5`$R\x7FContract does not have fallback `D\x90\x81Rtnor receive functions`X\x1B`dR\x90`\x84\x90\xFD\xFE\xA2dipfsX\"\x12 g\n<\\\x81\xD3h_\xF6+\xFC\xF2\x97Y\xEAmM\x9B\xF0)~\x13\xA0-\x90\xEC\x7F\xA7\x83c\xA5\x83dsolcC\0\x07\x06\x003";
     /// The bytecode of the contract.
     pub static TICKBITMAP_BYTECODE: ::ethers::core::types::Bytes =
         ::ethers::core::types::Bytes::from_static(__BYTECODE);
     #[rustfmt::skip]
-    const __DEPLOYED_BYTECODE: &[u8] = b"s\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\x000\x14`\x80`@RbF\x1B\xCD`\xE5\x1B`\0\x90\x81R` `\x04R`5`$R\x7FContract does not have fallback `D\x90\x81Rtnor receive functions`X\x1B`dR\x90`\x84\x90\xFD\xFE\xA2dipfsX\"\x12 \x1D]\xCFC\x86\xC1\xA0\xFCPY}'\xB6\xC4P\xBC\x97\xE1\xB8_\xBB\x12k\xC3\xD2\xCA6\xDC\xDFj\xBC\x7FdsolcC\0\x07\x06\x003";
+    const __DEPLOYED_BYTECODE: &[u8] = b"s\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\x000\x14`\x80`@RbF\x1B\xCD`\xE5\x1B`\0\x90\x81R` `\x04R`5`$R\x7FContract does not have fallback `D\x90\x81Rtnor receive functions`X\x1B`dR\x90`\x84\x90\xFD\xFE\xA2dipfsX\"\x12 g\n<\\\x81\xD3h_\xF6+\xFC\xF2\x97Y\xEAmM\x9B\xF0)~\x13\xA0-\x90\xEC\x7F\xA7\x83c\xA5\x83dsolcC\0\x07\x06\x003";
     /// The deployed bytecode of the contract.
     pub static TICKBITMAP_DEPLOYED_BYTECODE: ::ethers::core::types::Bytes =
         ::ethers::core::types::Bytes::from_static(__DEPLOYED_BYTECODE);

@@ -11,7 +11,7 @@ forge install https://github.com/Uniswap/solidity-lib --no-commit
 forge install https://github.com/primitivefinance/arbmod --no-commit
 
 TARGET="contracts/v2-periphery/contracts/libraries/UniswapV2Library.sol"
-CODEHASH="s/96e8ac4277198ff8b6f785478aa9a39f403cb768dd02cbee326c3e7da348845f/7fb0ae3175f4aef679d8e5eec91e7e16de3a6de15862774e2485db47122050f5/g"
+CODEHASH="s/7fb0ae3175f4aef679d8e5eec91e7e16de3a6de15862774e2485db47122050f5/74ab6266490e96629ce06b06feb6f74a53755463f6025d31c365adb67550f3dc/g"
 
 sed -i.bak -e ${CODEHASH} -- "${TARGET}" &&
   rm -- "${TARGET}.bak"

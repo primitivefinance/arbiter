@@ -32,4 +32,3 @@
 [submodule "contracts/arbmod"]
 	path = contracts/arbmod
 	url = https://github.com/primitivefinance/arbmod
-	branch = main

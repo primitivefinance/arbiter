@@ -1,10 +1,12 @@
-use bindings::{uniswap_v2_factory, uniswap_v2_router_02};
+use bindings::{uniswap_v2_factory, uniswap_v2_library, uniswap_v2_pair, uniswap_v2_router_02};
 use ethers::{
     abi::{Token, Tokenize},
     prelude::U256,
     types::{Address, H160},
+    utils::keccak256,
 };
 use eyre::Result;
+use hex;
 use revm::primitives::B160;
 use simulate::{
     agent::{
@@ -200,6 +202,10 @@ fn pair_intitalization(
         token_b: recast_address(arbiter_token_y.address),
     }
     .into_tokens();
+
+    // let bytecode = uniswap_v2_pair::UNISWAPV2PAIR_BYTECODE.clone();
+    // println!("bytecode: {:?}", hex::encode(keccak256(&bytecode)));
+
     let result = admin.call(factory, "createPair", create_pair_args)?;
     assert!(result.is_success());
 

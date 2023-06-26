@@ -25,12 +25,12 @@ pub mod unsafe_math {
     pub static UNSAFEMATH_ABI: ::ethers::contract::Lazy<::ethers::core::abi::Abi> =
         ::ethers::contract::Lazy::new(__abi);
     #[rustfmt::skip]
-    const __BYTECODE: &[u8] = b"`\xAF`#`\x0B\x82\x82\x829\x80Q`\0\x1A`s\x14`\x16W\xFE[0`\0R`s\x81S\x82\x81\xF3\xFEs\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\x000\x14`\x80`@RbF\x1B\xCD`\xE5\x1B`\0\x90\x81R` `\x04R`5`$R\x7FContract does not have fallback `D\x90\x81Rtnor receive functions`X\x1B`dR\x90`\x84\x90\xFD\xFE\xA2dipfsX\"\x12 G\xA5 Q0L\xF1\x8E\x0E\\\x93\xB4\xB9\xEE\xF29\x89\xBB\xC0\x80\x92\xB5\xDC56\x92\xF1\xCA\xE1\xC7\xBB\x07dsolcC\0\x07\x06\x003";
+    const __BYTECODE: &[u8] = b"`\xAF`#`\x0B\x82\x82\x829\x80Q`\0\x1A`s\x14`\x16W\xFE[0`\0R`s\x81S\x82\x81\xF3\xFEs\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\x000\x14`\x80`@RbF\x1B\xCD`\xE5\x1B`\0\x90\x81R` `\x04R`5`$R\x7FContract does not have fallback `D\x90\x81Rtnor receive functions`X\x1B`dR\x90`\x84\x90\xFD\xFE\xA2dipfsX\"\x12 J'\xA3s\\\xF1_\xE6Z\x8C%\xE0\xD1\"\xD1BB+\xA0\xC8U3T\x0C\xE2\x13\x02\xE9y\xACHndsolcC\0\x07\x06\x003";
     /// The bytecode of the contract.
     pub static UNSAFEMATH_BYTECODE: ::ethers::core::types::Bytes =
         ::ethers::core::types::Bytes::from_static(__BYTECODE);
     #[rustfmt::skip]
-    const __DEPLOYED_BYTECODE: &[u8] = b"s\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\x000\x14`\x80`@RbF\x1B\xCD`\xE5\x1B`\0\x90\x81R` `\x04R`5`$R\x7FContract does not have fallback `D\x90\x81Rtnor receive functions`X\x1B`dR\x90`\x84\x90\xFD\xFE\xA2dipfsX\"\x12 G\xA5 Q0L\xF1\x8E\x0E\\\x93\xB4\xB9\xEE\xF29\x89\xBB\xC0\x80\x92\xB5\xDC56\x92\xF1\xCA\xE1\xC7\xBB\x07dsolcC\0\x07\x06\x003";
+    const __DEPLOYED_BYTECODE: &[u8] = b"s\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\x000\x14`\x80`@RbF\x1B\xCD`\xE5\x1B`\0\x90\x81R` `\x04R`5`$R\x7FContract does not have fallback `D\x90\x81Rtnor receive functions`X\x1B`dR\x90`\x84\x90\xFD\xFE\xA2dipfsX\"\x12 J'\xA3s\\\xF1_\xE6Z\x8C%\xE0\xD1\"\xD1BB+\xA0\xC8U3T\x0C\xE2\x13\x02\xE9y\xACHndsolcC\0\x07\x06\x003";
     /// The deployed bytecode of the contract.
     pub static UNSAFEMATH_DEPLOYED_BYTECODE: ::ethers::core::types::Bytes =
         ::ethers::core::types::Bytes::from_static(__DEPLOYED_BYTECODE);
