@@ -7,7 +7,7 @@ pub use portfolio_lib::*;
     clippy::upper_case_acronyms,
     clippy::type_complexity,
     dead_code,
-    non_camel_case_types,
+    non_camel_case_types
 )]
 pub mod portfolio_lib {
     #[allow(deprecated)]
@@ -22,9 +22,8 @@ pub mod portfolio_lib {
         }
     }
     ///The parsed JSON ABI of the contract.
-    pub static PORTFOLIOLIB_ABI: ::ethers::contract::Lazy<::ethers::core::abi::Abi> = ::ethers::contract::Lazy::new(
-        __abi,
-    );
+    pub static PORTFOLIOLIB_ABI: ::ethers::contract::Lazy<::ethers::core::abi::Abi> =
+        ::ethers::contract::Lazy::new(__abi);
     pub struct PortfolioLib<M>(::ethers::contract::Contract<M>);
     impl<M> ::core::clone::Clone for PortfolioLib<M> {
         fn clone(&self) -> Self {
@@ -56,17 +55,14 @@ pub mod portfolio_lib {
             address: T,
             client: ::std::sync::Arc<M>,
         ) -> Self {
-            Self(
-                ::ethers::contract::Contract::new(
-                    address.into(),
-                    PORTFOLIOLIB_ABI.clone(),
-                    client,
-                ),
-            )
+            Self(::ethers::contract::Contract::new(
+                address.into(),
+                PORTFOLIOLIB_ABI.clone(),
+                client,
+            ))
         }
     }
-    impl<M: ::ethers::providers::Middleware> From<::ethers::contract::Contract<M>>
-    for PortfolioLib<M> {
+    impl<M: ::ethers::providers::Middleware> From<::ethers::contract::Contract<M>> for PortfolioLib<M> {
         fn from(contract: ::ethers::contract::Contract<M>) -> Self {
             Self::new(contract.address(), contract.client())
         }

@@ -7,55 +7,45 @@ pub use i_uniswap_v3_flash_callback::*;
     clippy::upper_case_acronyms,
     clippy::type_complexity,
     dead_code,
-    non_camel_case_types,
+    non_camel_case_types
 )]
 pub mod i_uniswap_v3_flash_callback {
     #[allow(deprecated)]
     fn __abi() -> ::ethers::core::abi::Abi {
         ::ethers::core::abi::ethabi::Contract {
             constructor: ::core::option::Option::None,
-            functions: ::core::convert::From::from([
-                (
-                    ::std::borrow::ToOwned::to_owned("uniswapV3FlashCallback"),
-                    ::std::vec![
-                        ::ethers::core::abi::ethabi::Function {
-                            name: ::std::borrow::ToOwned::to_owned(
-                                "uniswapV3FlashCallback",
+            functions: ::core::convert::From::from([(
+                ::std::borrow::ToOwned::to_owned("uniswapV3FlashCallback"),
+                ::std::vec![::ethers::core::abi::ethabi::Function {
+                    name: ::std::borrow::ToOwned::to_owned("uniswapV3FlashCallback",),
+                    inputs: ::std::vec![
+                        ::ethers::core::abi::ethabi::Param {
+                            name: ::std::borrow::ToOwned::to_owned("fee0"),
+                            kind: ::ethers::core::abi::ethabi::ParamType::Uint(256usize,),
+                            internal_type: ::core::option::Option::Some(
+                                ::std::borrow::ToOwned::to_owned("uint256"),
                             ),
-                            inputs: ::std::vec![
-                                ::ethers::core::abi::ethabi::Param {
-                                    name: ::std::borrow::ToOwned::to_owned("fee0"),
-                                    kind: ::ethers::core::abi::ethabi::ParamType::Uint(
-                                        256usize,
-                                    ),
-                                    internal_type: ::core::option::Option::Some(
-                                        ::std::borrow::ToOwned::to_owned("uint256"),
-                                    ),
-                                },
-                                ::ethers::core::abi::ethabi::Param {
-                                    name: ::std::borrow::ToOwned::to_owned("fee1"),
-                                    kind: ::ethers::core::abi::ethabi::ParamType::Uint(
-                                        256usize,
-                                    ),
-                                    internal_type: ::core::option::Option::Some(
-                                        ::std::borrow::ToOwned::to_owned("uint256"),
-                                    ),
-                                },
-                                ::ethers::core::abi::ethabi::Param {
-                                    name: ::std::borrow::ToOwned::to_owned("data"),
-                                    kind: ::ethers::core::abi::ethabi::ParamType::Bytes,
-                                    internal_type: ::core::option::Option::Some(
-                                        ::std::borrow::ToOwned::to_owned("bytes"),
-                                    ),
-                                },
-                            ],
-                            outputs: ::std::vec![],
-                            constant: ::core::option::Option::None,
-                            state_mutability: ::ethers::core::abi::ethabi::StateMutability::NonPayable,
+                        },
+                        ::ethers::core::abi::ethabi::Param {
+                            name: ::std::borrow::ToOwned::to_owned("fee1"),
+                            kind: ::ethers::core::abi::ethabi::ParamType::Uint(256usize,),
+                            internal_type: ::core::option::Option::Some(
+                                ::std::borrow::ToOwned::to_owned("uint256"),
+                            ),
+                        },
+                        ::ethers::core::abi::ethabi::Param {
+                            name: ::std::borrow::ToOwned::to_owned("data"),
+                            kind: ::ethers::core::abi::ethabi::ParamType::Bytes,
+                            internal_type: ::core::option::Option::Some(
+                                ::std::borrow::ToOwned::to_owned("bytes"),
+                            ),
                         },
                     ],
-                ),
-            ]),
+                    outputs: ::std::vec![],
+                    constant: ::core::option::Option::None,
+                    state_mutability: ::ethers::core::abi::ethabi::StateMutability::NonPayable,
+                },],
+            )]),
             events: ::std::collections::BTreeMap::new(),
             errors: ::std::collections::BTreeMap::new(),
             receive: false,
@@ -63,9 +53,8 @@ pub mod i_uniswap_v3_flash_callback {
         }
     }
     ///The parsed JSON ABI of the contract.
-    pub static IUNISWAPV3FLASHCALLBACK_ABI: ::ethers::contract::Lazy<
-        ::ethers::core::abi::Abi,
-    > = ::ethers::contract::Lazy::new(__abi);
+    pub static IUNISWAPV3FLASHCALLBACK_ABI: ::ethers::contract::Lazy<::ethers::core::abi::Abi> =
+        ::ethers::contract::Lazy::new(__abi);
     pub struct IUniswapV3FlashCallback<M>(::ethers::contract::Contract<M>);
     impl<M> ::core::clone::Clone for IUniswapV3FlashCallback<M> {
         fn clone(&self) -> Self {
@@ -97,13 +86,11 @@ pub mod i_uniswap_v3_flash_callback {
             address: T,
             client: ::std::sync::Arc<M>,
         ) -> Self {
-            Self(
-                ::ethers::contract::Contract::new(
-                    address.into(),
-                    IUNISWAPV3FLASHCALLBACK_ABI.clone(),
-                    client,
-                ),
-            )
+            Self(::ethers::contract::Contract::new(
+                address.into(),
+                IUNISWAPV3FLASHCALLBACK_ABI.clone(),
+                client,
+            ))
         }
         ///Calls the contract's `uniswapV3FlashCallback` (0xe9cbafb0) function
         pub fn uniswap_v3_flash_callback(
@@ -118,7 +105,8 @@ pub mod i_uniswap_v3_flash_callback {
         }
     }
     impl<M: ::ethers::providers::Middleware> From<::ethers::contract::Contract<M>>
-    for IUniswapV3FlashCallback<M> {
+        for IUniswapV3FlashCallback<M>
+    {
         fn from(contract: ::ethers::contract::Contract<M>) -> Self {
             Self::new(contract.address(), contract.client())
         }
@@ -132,7 +120,7 @@ pub mod i_uniswap_v3_flash_callback {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(
         name = "uniswapV3FlashCallback",

@@ -7,7 +7,7 @@ pub use no_delegate_call::*;
     clippy::upper_case_acronyms,
     clippy::type_complexity,
     dead_code,
-    non_camel_case_types,
+    non_camel_case_types
 )]
 pub mod no_delegate_call {
     #[allow(deprecated)]
@@ -22,9 +22,8 @@ pub mod no_delegate_call {
         }
     }
     ///The parsed JSON ABI of the contract.
-    pub static NODELEGATECALL_ABI: ::ethers::contract::Lazy<::ethers::core::abi::Abi> = ::ethers::contract::Lazy::new(
-        __abi,
-    );
+    pub static NODELEGATECALL_ABI: ::ethers::contract::Lazy<::ethers::core::abi::Abi> =
+        ::ethers::contract::Lazy::new(__abi);
     pub struct NoDelegateCall<M>(::ethers::contract::Contract<M>);
     impl<M> ::core::clone::Clone for NoDelegateCall<M> {
         fn clone(&self) -> Self {
@@ -56,17 +55,16 @@ pub mod no_delegate_call {
             address: T,
             client: ::std::sync::Arc<M>,
         ) -> Self {
-            Self(
-                ::ethers::contract::Contract::new(
-                    address.into(),
-                    NODELEGATECALL_ABI.clone(),
-                    client,
-                ),
-            )
+            Self(::ethers::contract::Contract::new(
+                address.into(),
+                NODELEGATECALL_ABI.clone(),
+                client,
+            ))
         }
     }
     impl<M: ::ethers::providers::Middleware> From<::ethers::contract::Contract<M>>
-    for NoDelegateCall<M> {
+        for NoDelegateCall<M>
+    {
         fn from(contract: ::ethers::contract::Contract<M>) -> Self {
             Self::new(contract.address(), contract.client())
         }

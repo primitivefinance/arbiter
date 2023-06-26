@@ -7,7 +7,7 @@ pub use gaussian::*;
     clippy::upper_case_acronyms,
     clippy::type_complexity,
     dead_code,
-    non_camel_case_types,
+    non_camel_case_types
 )]
 pub mod gaussian {
     #[allow(deprecated)]
@@ -19,30 +19,24 @@ pub mod gaussian {
             errors: ::core::convert::From::from([
                 (
                     ::std::borrow::ToOwned::to_owned("Infinity"),
-                    ::std::vec![
-                        ::ethers::core::abi::ethabi::AbiError {
-                            name: ::std::borrow::ToOwned::to_owned("Infinity"),
-                            inputs: ::std::vec![],
-                        },
-                    ],
+                    ::std::vec![::ethers::core::abi::ethabi::AbiError {
+                        name: ::std::borrow::ToOwned::to_owned("Infinity"),
+                        inputs: ::std::vec![],
+                    },],
                 ),
                 (
                     ::std::borrow::ToOwned::to_owned("NegativeInfinity"),
-                    ::std::vec![
-                        ::ethers::core::abi::ethabi::AbiError {
-                            name: ::std::borrow::ToOwned::to_owned("NegativeInfinity"),
-                            inputs: ::std::vec![],
-                        },
-                    ],
+                    ::std::vec![::ethers::core::abi::ethabi::AbiError {
+                        name: ::std::borrow::ToOwned::to_owned("NegativeInfinity"),
+                        inputs: ::std::vec![],
+                    },],
                 ),
                 (
                     ::std::borrow::ToOwned::to_owned("OutOfBounds"),
-                    ::std::vec![
-                        ::ethers::core::abi::ethabi::AbiError {
-                            name: ::std::borrow::ToOwned::to_owned("OutOfBounds"),
-                            inputs: ::std::vec![],
-                        },
-                    ],
+                    ::std::vec![::ethers::core::abi::ethabi::AbiError {
+                        name: ::std::borrow::ToOwned::to_owned("OutOfBounds"),
+                        inputs: ::std::vec![],
+                    },],
                 ),
             ]),
             receive: false,
@@ -50,21 +44,18 @@ pub mod gaussian {
         }
     }
     ///The parsed JSON ABI of the contract.
-    pub static GAUSSIAN_ABI: ::ethers::contract::Lazy<::ethers::core::abi::Abi> = ::ethers::contract::Lazy::new(
-        __abi,
-    );
+    pub static GAUSSIAN_ABI: ::ethers::contract::Lazy<::ethers::core::abi::Abi> =
+        ::ethers::contract::Lazy::new(__abi);
     #[rustfmt::skip]
     const __BYTECODE: &[u8] = b"`\xB2`7`\x0B\x82\x82\x829\x80Q`\0\x1A`s\x14`*WcNH{q`\xE0\x1B`\0R`\0`\x04R`$`\0\xFD[0`\0R`s\x81S\x82\x81\xF3\xFEs\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0`\x80`@\x81\x90RbF\x1B\xCD`\xE5\x1B\x81R` `\x84\x90\x81R`5`\xA4R\x7FContract does not have fallback `\xC4\x90\x81Rtnor receive functions`X\x1B`\xE4R0\x93\x90\x93\x14\x92\x90\x82\xFD\xFE\xA2dipfsX\"\x12 Q%Yh-J\xBAz\xD8L\xDDgPs4>\xCE<\x80\xC9\x95\xB9\xA7\x87\x89:uJ\xE8\xC0a\x85dsolcC\0\x08\x13\x003";
     /// The bytecode of the contract.
-    pub static GAUSSIAN_BYTECODE: ::ethers::core::types::Bytes = ::ethers::core::types::Bytes::from_static(
-        __BYTECODE,
-    );
+    pub static GAUSSIAN_BYTECODE: ::ethers::core::types::Bytes =
+        ::ethers::core::types::Bytes::from_static(__BYTECODE);
     #[rustfmt::skip]
     const __DEPLOYED_BYTECODE: &[u8] = b"s\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0`\x80`@\x81\x90RbF\x1B\xCD`\xE5\x1B\x81R` `\x84\x90\x81R`5`\xA4R\x7FContract does not have fallback `\xC4\x90\x81Rtnor receive functions`X\x1B`\xE4R0\x93\x90\x93\x14\x92\x90\x82\xFD\xFE\xA2dipfsX\"\x12 Q%Yh-J\xBAz\xD8L\xDDgPs4>\xCE<\x80\xC9\x95\xB9\xA7\x87\x89:uJ\xE8\xC0a\x85dsolcC\0\x08\x13\x003";
     /// The deployed bytecode of the contract.
-    pub static GAUSSIAN_DEPLOYED_BYTECODE: ::ethers::core::types::Bytes = ::ethers::core::types::Bytes::from_static(
-        __DEPLOYED_BYTECODE,
-    );
+    pub static GAUSSIAN_DEPLOYED_BYTECODE: ::ethers::core::types::Bytes =
+        ::ethers::core::types::Bytes::from_static(__DEPLOYED_BYTECODE);
     pub struct Gaussian<M>(::ethers::contract::Contract<M>);
     impl<M> ::core::clone::Clone for Gaussian<M> {
         fn clone(&self) -> Self {
@@ -84,7 +75,9 @@ pub mod gaussian {
     }
     impl<M> ::core::fmt::Debug for Gaussian<M> {
         fn fmt(&self, f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
-            f.debug_tuple(::core::stringify!(Gaussian)).field(&self.address()).finish()
+            f.debug_tuple(::core::stringify!(Gaussian))
+                .field(&self.address())
+                .finish()
         }
     }
     impl<M: ::ethers::providers::Middleware> Gaussian<M> {
@@ -94,13 +87,11 @@ pub mod gaussian {
             address: T,
             client: ::std::sync::Arc<M>,
         ) -> Self {
-            Self(
-                ::ethers::contract::Contract::new(
-                    address.into(),
-                    GAUSSIAN_ABI.clone(),
-                    client,
-                ),
-            )
+            Self(::ethers::contract::Contract::new(
+                address.into(),
+                GAUSSIAN_ABI.clone(),
+                client,
+            ))
         }
         /// Constructs the general purpose `Deployer` instance based on the provided constructor arguments and sends it.
         /// Returns a new instance of a deployer that returns an instance of this contract after sending the transaction
@@ -142,8 +133,7 @@ pub mod gaussian {
             Ok(deployer)
         }
     }
-    impl<M: ::ethers::providers::Middleware> From<::ethers::contract::Contract<M>>
-    for Gaussian<M> {
+    impl<M: ::ethers::providers::Middleware> From<::ethers::contract::Contract<M>> for Gaussian<M> {
         fn from(contract: ::ethers::contract::Contract<M>) -> Self {
             Self::new(contract.address(), contract.client())
         }
@@ -157,7 +147,7 @@ pub mod gaussian {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[etherror(name = "Infinity", abi = "Infinity()")]
     pub struct Infinity;
@@ -170,7 +160,7 @@ pub mod gaussian {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[etherror(name = "NegativeInfinity", abi = "NegativeInfinity()")]
     pub struct NegativeInfinity;
@@ -183,7 +173,7 @@ pub mod gaussian {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[etherror(name = "OutOfBounds", abi = "OutOfBounds()")]
     pub struct OutOfBounds;
@@ -202,22 +192,19 @@ pub mod gaussian {
             data: impl AsRef<[u8]>,
         ) -> ::core::result::Result<Self, ::ethers::core::abi::AbiError> {
             let data = data.as_ref();
-            if let Ok(decoded)
-                = <::std::string::String as ::ethers::core::abi::AbiDecode>::decode(
-                    data,
-                ) {
+            if let Ok(decoded) =
+                <::std::string::String as ::ethers::core::abi::AbiDecode>::decode(data)
+            {
                 return Ok(Self::RevertString(decoded));
             }
-            if let Ok(decoded)
-                = <Infinity as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <Infinity as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::Infinity(decoded));
             }
-            if let Ok(decoded)
-                = <NegativeInfinity as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <NegativeInfinity as ::ethers::core::abi::AbiDecode>::decode(data)
+            {
                 return Ok(Self::NegativeInfinity(decoded));
             }
-            if let Ok(decoded)
-                = <OutOfBounds as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <OutOfBounds as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::OutOfBounds(decoded));
             }
             Err(::ethers::core::abi::Error::InvalidData.into())
@@ -226,15 +213,9 @@ pub mod gaussian {
     impl ::ethers::core::abi::AbiEncode for GaussianErrors {
         fn encode(self) -> ::std::vec::Vec<u8> {
             match self {
-                Self::Infinity(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
-                Self::NegativeInfinity(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
-                Self::OutOfBounds(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
+                Self::Infinity(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::NegativeInfinity(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::OutOfBounds(element) => ::ethers::core::abi::AbiEncode::encode(element),
                 Self::RevertString(s) => ::ethers::core::abi::AbiEncode::encode(s),
             }
         }
@@ -243,14 +224,11 @@ pub mod gaussian {
         fn valid_selector(selector: [u8; 4]) -> bool {
             match selector {
                 [0x08, 0xc3, 0x79, 0xa0] => true,
-                _ if selector
-                    == <Infinity as ::ethers::contract::EthError>::selector() => true,
-                _ if selector
-                    == <NegativeInfinity as ::ethers::contract::EthError>::selector() => {
+                _ if selector == <Infinity as ::ethers::contract::EthError>::selector() => true,
+                _ if selector == <NegativeInfinity as ::ethers::contract::EthError>::selector() => {
                     true
                 }
-                _ if selector
-                    == <OutOfBounds as ::ethers::contract::EthError>::selector() => true,
+                _ if selector == <OutOfBounds as ::ethers::contract::EthError>::selector() => true,
                 _ => false,
             }
         }

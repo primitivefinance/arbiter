@@ -7,7 +7,7 @@ pub use account_lib::*;
     clippy::upper_case_acronyms,
     clippy::type_complexity,
     dead_code,
-    non_camel_case_types,
+    non_camel_case_types
 )]
 pub mod account_lib {
     #[allow(deprecated)]
@@ -22,9 +22,8 @@ pub mod account_lib {
         }
     }
     ///The parsed JSON ABI of the contract.
-    pub static ACCOUNTLIB_ABI: ::ethers::contract::Lazy<::ethers::core::abi::Abi> = ::ethers::contract::Lazy::new(
-        __abi,
-    );
+    pub static ACCOUNTLIB_ABI: ::ethers::contract::Lazy<::ethers::core::abi::Abi> =
+        ::ethers::contract::Lazy::new(__abi);
     pub struct AccountLib<M>(::ethers::contract::Contract<M>);
     impl<M> ::core::clone::Clone for AccountLib<M> {
         fn clone(&self) -> Self {
@@ -44,7 +43,9 @@ pub mod account_lib {
     }
     impl<M> ::core::fmt::Debug for AccountLib<M> {
         fn fmt(&self, f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
-            f.debug_tuple(::core::stringify!(AccountLib)).field(&self.address()).finish()
+            f.debug_tuple(::core::stringify!(AccountLib))
+                .field(&self.address())
+                .finish()
         }
     }
     impl<M: ::ethers::providers::Middleware> AccountLib<M> {
@@ -54,17 +55,14 @@ pub mod account_lib {
             address: T,
             client: ::std::sync::Arc<M>,
         ) -> Self {
-            Self(
-                ::ethers::contract::Contract::new(
-                    address.into(),
-                    ACCOUNTLIB_ABI.clone(),
-                    client,
-                ),
-            )
+            Self(::ethers::contract::Contract::new(
+                address.into(),
+                ACCOUNTLIB_ABI.clone(),
+                client,
+            ))
         }
     }
-    impl<M: ::ethers::providers::Middleware> From<::ethers::contract::Contract<M>>
-    for AccountLib<M> {
+    impl<M: ::ethers::providers::Middleware> From<::ethers::contract::Contract<M>> for AccountLib<M> {
         fn from(contract: ::ethers::contract::Contract<M>) -> Self {
             Self::new(contract.address(), contract.client())
         }

@@ -7,7 +7,7 @@ pub use uniswap_v2_library::*;
     clippy::upper_case_acronyms,
     clippy::type_complexity,
     dead_code,
-    non_camel_case_types,
+    non_camel_case_types
 )]
 pub mod uniswap_v2_library {
     #[allow(deprecated)]
@@ -22,21 +22,18 @@ pub mod uniswap_v2_library {
         }
     }
     ///The parsed JSON ABI of the contract.
-    pub static UNISWAPV2LIBRARY_ABI: ::ethers::contract::Lazy<
-        ::ethers::core::abi::Abi,
-    > = ::ethers::contract::Lazy::new(__abi);
+    pub static UNISWAPV2LIBRARY_ABI: ::ethers::contract::Lazy<::ethers::core::abi::Abi> =
+        ::ethers::contract::Lazy::new(__abi);
     #[rustfmt::skip]
     const __BYTECODE: &[u8] = b"`\xAF`#`\x0B\x82\x82\x829\x80Q`\0\x1A`s\x14`\x16W\xFE[0`\0R`s\x81S\x82\x81\xF3\xFEs\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\x000\x14`\x80`@RbF\x1B\xCD`\xE5\x1B`\0\x90\x81R` `\x04R`5`$R\x7FContract does not have fallback `D\x90\x81Rtnor receive functions`X\x1B`dR\x90`\x84\x90\xFD\xFE\xA2dipfsX\"\x12 P\x87\xE3z\xE4\x17\x9FOG`_6\xBDl\xF8s:\x0C\x94\x04\xC7>\r\xB2&\xD9\x04\xDF\xE7,h\xA3dsolcC\0\x06\x06\x003";
     /// The bytecode of the contract.
-    pub static UNISWAPV2LIBRARY_BYTECODE: ::ethers::core::types::Bytes = ::ethers::core::types::Bytes::from_static(
-        __BYTECODE,
-    );
+    pub static UNISWAPV2LIBRARY_BYTECODE: ::ethers::core::types::Bytes =
+        ::ethers::core::types::Bytes::from_static(__BYTECODE);
     #[rustfmt::skip]
     const __DEPLOYED_BYTECODE: &[u8] = b"s\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\x000\x14`\x80`@RbF\x1B\xCD`\xE5\x1B`\0\x90\x81R` `\x04R`5`$R\x7FContract does not have fallback `D\x90\x81Rtnor receive functions`X\x1B`dR\x90`\x84\x90\xFD\xFE\xA2dipfsX\"\x12 P\x87\xE3z\xE4\x17\x9FOG`_6\xBDl\xF8s:\x0C\x94\x04\xC7>\r\xB2&\xD9\x04\xDF\xE7,h\xA3dsolcC\0\x06\x06\x003";
     /// The deployed bytecode of the contract.
-    pub static UNISWAPV2LIBRARY_DEPLOYED_BYTECODE: ::ethers::core::types::Bytes = ::ethers::core::types::Bytes::from_static(
-        __DEPLOYED_BYTECODE,
-    );
+    pub static UNISWAPV2LIBRARY_DEPLOYED_BYTECODE: ::ethers::core::types::Bytes =
+        ::ethers::core::types::Bytes::from_static(__DEPLOYED_BYTECODE);
     pub struct UniswapV2Library<M>(::ethers::contract::Contract<M>);
     impl<M> ::core::clone::Clone for UniswapV2Library<M> {
         fn clone(&self) -> Self {
@@ -68,13 +65,11 @@ pub mod uniswap_v2_library {
             address: T,
             client: ::std::sync::Arc<M>,
         ) -> Self {
-            Self(
-                ::ethers::contract::Contract::new(
-                    address.into(),
-                    UNISWAPV2LIBRARY_ABI.clone(),
-                    client,
-                ),
-            )
+            Self(::ethers::contract::Contract::new(
+                address.into(),
+                UNISWAPV2LIBRARY_ABI.clone(),
+                client,
+            ))
         }
         /// Constructs the general purpose `Deployer` instance based on the provided constructor arguments and sends it.
         /// Returns a new instance of a deployer that returns an instance of this contract after sending the transaction
@@ -117,7 +112,8 @@ pub mod uniswap_v2_library {
         }
     }
     impl<M: ::ethers::providers::Middleware> From<::ethers::contract::Contract<M>>
-    for UniswapV2Library<M> {
+        for UniswapV2Library<M>
+    {
         fn from(contract: ::ethers::contract::Contract<M>) -> Self {
             Self::new(contract.address(), contract.client())
         }

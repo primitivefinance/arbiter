@@ -7,7 +7,7 @@ pub use invariant::*;
     clippy::upper_case_acronyms,
     clippy::type_complexity,
     dead_code,
-    non_camel_case_types,
+    non_camel_case_types
 )]
 pub mod invariant {
     #[allow(deprecated)]
@@ -16,37 +16,30 @@ pub mod invariant {
             constructor: ::core::option::Option::None,
             functions: ::std::collections::BTreeMap::new(),
             events: ::std::collections::BTreeMap::new(),
-            errors: ::core::convert::From::from([
-                (
-                    ::std::borrow::ToOwned::to_owned("OOB"),
-                    ::std::vec![
-                        ::ethers::core::abi::ethabi::AbiError {
-                            name: ::std::borrow::ToOwned::to_owned("OOB"),
-                            inputs: ::std::vec![],
-                        },
-                    ],
-                ),
-            ]),
+            errors: ::core::convert::From::from([(
+                ::std::borrow::ToOwned::to_owned("OOB"),
+                ::std::vec![::ethers::core::abi::ethabi::AbiError {
+                    name: ::std::borrow::ToOwned::to_owned("OOB"),
+                    inputs: ::std::vec![],
+                },],
+            )]),
             receive: false,
             fallback: false,
         }
     }
     ///The parsed JSON ABI of the contract.
-    pub static INVARIANT_ABI: ::ethers::contract::Lazy<::ethers::core::abi::Abi> = ::ethers::contract::Lazy::new(
-        __abi,
-    );
+    pub static INVARIANT_ABI: ::ethers::contract::Lazy<::ethers::core::abi::Abi> =
+        ::ethers::contract::Lazy::new(__abi);
     #[rustfmt::skip]
     const __BYTECODE: &[u8] = b"`\xB2`7`\x0B\x82\x82\x829\x80Q`\0\x1A`s\x14`*WcNH{q`\xE0\x1B`\0R`\0`\x04R`$`\0\xFD[0`\0R`s\x81S\x82\x81\xF3\xFEs\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0`\x80`@\x81\x90RbF\x1B\xCD`\xE5\x1B\x81R` `\x84\x90\x81R`5`\xA4R\x7FContract does not have fallback `\xC4\x90\x81Rtnor receive functions`X\x1B`\xE4R0\x93\x90\x93\x14\x92\x90\x82\xFD\xFE\xA2dipfsX\"\x12 U r\x15?\xB5D\xFF$\x93?\x0Fo\xCB\x1F\xED\x08r\xC3}1L\xDC\xE9\xC9-\x9D.y\xE5\xF1pdsolcC\0\x08\x13\x003";
     /// The bytecode of the contract.
-    pub static INVARIANT_BYTECODE: ::ethers::core::types::Bytes = ::ethers::core::types::Bytes::from_static(
-        __BYTECODE,
-    );
+    pub static INVARIANT_BYTECODE: ::ethers::core::types::Bytes =
+        ::ethers::core::types::Bytes::from_static(__BYTECODE);
     #[rustfmt::skip]
     const __DEPLOYED_BYTECODE: &[u8] = b"s\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0`\x80`@\x81\x90RbF\x1B\xCD`\xE5\x1B\x81R` `\x84\x90\x81R`5`\xA4R\x7FContract does not have fallback `\xC4\x90\x81Rtnor receive functions`X\x1B`\xE4R0\x93\x90\x93\x14\x92\x90\x82\xFD\xFE\xA2dipfsX\"\x12 U r\x15?\xB5D\xFF$\x93?\x0Fo\xCB\x1F\xED\x08r\xC3}1L\xDC\xE9\xC9-\x9D.y\xE5\xF1pdsolcC\0\x08\x13\x003";
     /// The deployed bytecode of the contract.
-    pub static INVARIANT_DEPLOYED_BYTECODE: ::ethers::core::types::Bytes = ::ethers::core::types::Bytes::from_static(
-        __DEPLOYED_BYTECODE,
-    );
+    pub static INVARIANT_DEPLOYED_BYTECODE: ::ethers::core::types::Bytes =
+        ::ethers::core::types::Bytes::from_static(__DEPLOYED_BYTECODE);
     pub struct Invariant<M>(::ethers::contract::Contract<M>);
     impl<M> ::core::clone::Clone for Invariant<M> {
         fn clone(&self) -> Self {
@@ -66,7 +59,9 @@ pub mod invariant {
     }
     impl<M> ::core::fmt::Debug for Invariant<M> {
         fn fmt(&self, f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
-            f.debug_tuple(::core::stringify!(Invariant)).field(&self.address()).finish()
+            f.debug_tuple(::core::stringify!(Invariant))
+                .field(&self.address())
+                .finish()
         }
     }
     impl<M: ::ethers::providers::Middleware> Invariant<M> {
@@ -76,13 +71,11 @@ pub mod invariant {
             address: T,
             client: ::std::sync::Arc<M>,
         ) -> Self {
-            Self(
-                ::ethers::contract::Contract::new(
-                    address.into(),
-                    INVARIANT_ABI.clone(),
-                    client,
-                ),
-            )
+            Self(::ethers::contract::Contract::new(
+                address.into(),
+                INVARIANT_ABI.clone(),
+                client,
+            ))
         }
         /// Constructs the general purpose `Deployer` instance based on the provided constructor arguments and sends it.
         /// Returns a new instance of a deployer that returns an instance of this contract after sending the transaction
@@ -124,8 +117,7 @@ pub mod invariant {
             Ok(deployer)
         }
     }
-    impl<M: ::ethers::providers::Middleware> From<::ethers::contract::Contract<M>>
-    for Invariant<M> {
+    impl<M: ::ethers::providers::Middleware> From<::ethers::contract::Contract<M>> for Invariant<M> {
         fn from(contract: ::ethers::contract::Contract<M>) -> Self {
             Self::new(contract.address(), contract.client())
         }
@@ -139,7 +131,7 @@ pub mod invariant {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[etherror(name = "OOB", abi = "OOB()")]
     pub struct OOB;
