@@ -13,7 +13,7 @@ use simulate::{
 };
 
 use super::OutputStorage;
-use crate::simulate::uniswap::arbitrage::{
+use crate::simulations::uniswap::arbitrage::{
     compute_trade_size, record_arb_balances, record_pool_reserves,
 };
 

@@ -5,7 +5,7 @@ use itertools_num::linspace;
 use serde::{Deserialize, Serialize};
 use visualize::{design::*, file_handler::*, plot::*};
 
-use crate::{simulate::OutputStorage, Configurable};
+use crate::{simulations::OutputStorage, Configurable};
 
 #[derive(Parser, Debug)]
 #[clap(about = "Visualize simulation results.")]

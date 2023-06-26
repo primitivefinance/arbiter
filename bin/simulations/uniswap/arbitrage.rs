@@ -231,7 +231,7 @@ mod test {
     use simulate::manager::SimulationManager;
 
     use super::*;
-    use crate::simulate::uniswap::startup;
+    use crate::simulations::uniswap::startup;
     #[test]
     fn test_arb_bool() -> Result<(), Box<dyn Error>> {
         let mut manager = SimulationManager::new();
