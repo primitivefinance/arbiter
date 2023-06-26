@@ -200,6 +200,10 @@ fn pair_intitalization(
         token_b: recast_address(arbiter_token_y.address),
     }
     .into_tokens();
+
+    // let bytecode = uniswap_v2_pair::UNISWAPV2PAIR_BYTECODE.clone();
+    // println!("bytecode: {:?}", hex::encode(keccak256(&bytecode)));
+
     let result = admin.call(factory, "createPair", create_pair_args)?;
     assert!(result.is_success());
 

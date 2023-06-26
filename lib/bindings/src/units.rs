@@ -10,13 +10,20 @@ pub use units::*;
     non_camel_case_types
 )]
 pub mod units {
-    #[rustfmt::skip]
-    const __ABI: &str = "[]";
+    #[allow(deprecated)]
+    fn __abi() -> ::ethers::core::abi::Abi {
+        ::ethers::core::abi::ethabi::Contract {
+            constructor: ::core::option::Option::None,
+            functions: ::std::collections::BTreeMap::new(),
+            events: ::std::collections::BTreeMap::new(),
+            errors: ::std::collections::BTreeMap::new(),
+            receive: false,
+            fallback: false,
+        }
+    }
     ///The parsed JSON ABI of the contract.
     pub static UNITS_ABI: ::ethers::contract::Lazy<::ethers::core::abi::Abi> =
-        ::ethers::contract::Lazy::new(|| {
-            ::ethers::core::utils::__serde_json::from_str(__ABI).expect("ABI is always valid")
-        });
+        ::ethers::contract::Lazy::new(__abi);
     pub struct Units<M>(::ethers::contract::Contract<M>);
     impl<M> ::core::clone::Clone for Units<M> {
         fn clone(&self) -> Self {
@@ -36,7 +43,7 @@ pub mod units {
     }
     impl<M> ::core::fmt::Debug for Units<M> {
         fn fmt(&self, f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
-            f.debug_tuple(stringify!(Units))
+            f.debug_tuple(::core::stringify!(Units))
                 .field(&self.address())
                 .finish()
         }
