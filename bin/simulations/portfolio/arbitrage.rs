@@ -1,34 +1,21 @@
-use std::error::Error;
+use std::{error::Error, hash, collections::HashMap};
 
 use bindings::rmm01_portfolio;
 use ethers::{
     prelude::U256,
-    types::{Sign, I256},
+    types::{Sign, I256}, abi::Tokenize,
 };
 use eyre::Result;
-use revm::primitives::{ruint::Uint, B160};
+use revm::primitives::ruint::Uint;
 use simulate::{
-    agent::{simple_arbitrageur::SimpleArbitrageur, Agent, AgentType, SimulationEventFilter},
+    agent::{Agent, AgentType, IsActive},
     environment::contract::{IsDeployed, SimulationContract},
     manager::SimulationManager,
-    utils::unpack_execution,
+    utils::{unpack_execution, recast_address},
 };
 
 use super::PoolParams;
 
-pub(crate) fn create_arbitrageur<S: Into<String>>(
-    manager: &mut SimulationManager,
-    liquid_exchange: &SimulationContract<IsDeployed>,
-    name: S,
-) {
-    let address = B160::from_low_u64_be(2);
-    let event_filters = vec![SimulationEventFilter::new(liquid_exchange, "PriceChange")];
-    let arbitrageur = SimpleArbitrageur::new(name, event_filters);
-    manager
-        .activate_agent(AgentType::SimpleArbitrageur(arbitrageur), address)
-        .unwrap();
-    println!("Created Arbitrageur at address: {}.", address);
-}
 #[derive(Clone)]
 /// [`compute_arb_size`] Output struct.
 pub struct ComputeArbOutput {
@@ -51,17 +38,16 @@ impl ComputeArbOutput {
 /// * `ratio` - Ratio of reference market price to strike price of the pool. (U256)
 /// # Returns
 /// * `ComputeArbOutput` - Arbitrage size and swap asset boolean. (ComputeArbOutput)
-pub(crate) fn compute_arb_size(
-    manager: &mut SimulationManager,
+pub(crate) fn compute_trade_size(
+    admin: &AgentType<IsActive>,
     pool_params: PoolParams,
     delta_liquidity: i128,
     pool_id: u64,
-    portfolio: &SimulationContract<IsDeployed>,
+    contracts: HashMap<String, SimulationContract<IsDeployed>>,
     ratio: U256, // ratio of reference market price to strike price of the pool
 ) -> Result<ComputeArbOutput, Box<dyn Error>> {
-    let manager = manager;
-    let admin = manager.agents.get("admin").unwrap();
-    let arbiter_math = manager.autodeployed_contracts.get("arbiter_math").unwrap();
+    let arbiter_math = contracts.get("arbiter_math").unwrap();
+    let portfolio = contracts.get("portfolio").unwrap();
     // Units
     let wad = U256::from(10u128.pow(18));
     let strike = U256::from(pool_params.strike);
@@ -74,12 +60,11 @@ pub(crate) fn compute_arb_size(
     //------------------------------------------------------------
     let log_input = int_ratio * I256::from_raw(wad) / I256::from_raw(gamma);
     // compute logarithm
-    let execution_result = admin.call_contract(
-        &mut manager.environment,
+    let execution_result = admin.call(
         arbiter_math,
-        arbiter_math.encode_function("log", log_input)?,
-        Uint::ZERO,
-    );
+        "log", 
+        log_input.into_tokens())?;
+
     let unpacked_result = unpack_execution(execution_result)?;
     let log: I256 = arbiter_math.decode_output("log", unpacked_result)?;
     let sign = log.sign();
@@ -98,23 +83,20 @@ pub(crate) fn compute_arb_size(
     // CDF input
     let cdf_input = scaled_log + I256::from_raw(additional_term);
     // compute the CDF
-    let execution_result = admin.call_contract(
-        &mut manager.environment,
+    let execution_result = admin.call(
         arbiter_math,
-        arbiter_math.encode_function("cdf", cdf_input)?,
-        Uint::ZERO,
-    );
+        "cdf",
+         cdf_input.into_tokens())?;
+
     let unpacked_result = unpack_execution(execution_result)?;
     let cdf_output: I256 = arbiter_math.decode_output("cdf", unpacked_result)?;
     let cdf = cdf_output * I256::from(delta_liquidity) / I256::from_raw(wad);
     let cdf = cdf * I256::from_raw(wad) / I256::from_raw(gamma);
     // call the reserve values
-    let reserves = admin.call_contract(
-        &mut manager.environment,
+    let reserves = admin.call(
         portfolio,
-        portfolio.encode_function("getVirtualReservesDec", pool_id)?,
-        Uint::ZERO,
-    );
+        "getVirtualReservesDec",
+         pool_id.into_tokens())?;
     let reserves = unpack_execution(reserves)?;
     let reserves: (u128, u128) = portfolio.decode_output("getVirtualReservesDec", reserves)?;
     let scaled_x_reserve = U256::from(reserves.0) * wad / gamma;
@@ -128,12 +110,11 @@ pub(crate) fn compute_arb_size(
     // --------------------------------------------------------------------------------------------
     let log_input = int_ratio * I256::from_raw(gamma) / I256::from_raw(wad);
     // compute logarithm
-    let execution_result = admin.call_contract(
-        &mut manager.environment,
+    let execution_result = admin.call(
         arbiter_math,
-        arbiter_math.encode_function("log", log_input)?,
-        Uint::ZERO,
-    );
+        "log", 
+        log_input.into_tokens())?;
+
     let unpacked_result = unpack_execution(execution_result)?;
     let log: I256 = arbiter_math.decode_output("log", unpacked_result)?;
     let sign = log.sign();
@@ -154,12 +135,11 @@ pub(crate) fn compute_arb_size(
     let ppf_output = cdf_input;
     let cdf_input = ppf_output - I256::from_raw(iv);
     // compute the CDF
-    let execution_result = admin.call_contract(
-        &mut manager.environment,
+    let execution_result = admin.call(
         arbiter_math,
-        arbiter_math.encode_function("cdf", cdf_input)?,
-        Uint::ZERO,
-    );
+        "cdf", 
+        cdf_input.into_tokens())?;
+
     let unpacked_result = unpack_execution(execution_result)?;
     let cdf_output: I256 = arbiter_math.decode_output("cdf", unpacked_result)?;
     // scale the CDF
@@ -171,12 +151,10 @@ pub(crate) fn compute_arb_size(
     let x_reserve = U256::from(reserves.0) * wad / U256::from(delta_liquidity);
     let y_reserve = U256::from(reserves.1) * wad / U256::from(delta_liquidity);
     // call invariant
-    let execution_result = admin.call_contract(
-        &mut manager.environment,
+    let execution_result = admin.call(
         arbiter_math,
-        arbiter_math.encode_function("invariant", (y_reserve, x_reserve, strike, iv, tau))?,
-        Uint::ZERO,
-    );
+        "invariant",
+        (y_reserve, x_reserve, strike, iv, tau).into_tokens())?;
     let unpacked_result = unpack_execution(execution_result)?;
     let invariant: U256 = arbiter_math.decode_output("invariant", unpacked_result)?;
     let b = cdf * I256::from_raw(wad) / I256::from_raw(gamma)
@@ -209,18 +187,16 @@ where
 {
     let arbitrageur = manager.agents.get("arbitrageur").unwrap();
     // Get the correct amount of ARBY to get from a certain amount of ARBX using `getAmountOut`
-    let get_amount_out_args = rmm01_portfolio::GetAmountOutCall {
-        pool_id,                               // pool_id: u64,
-        sell_asset, // sell_asset: bool. Setting this to true means we are selling ARBX for ARBY.
-        amount_in: U256::from(input_amount), // amount_in: ::ethers::core::types::U256,
-        swapper: arbitrageur.address().into(), // swapper: ::ethers::core::types::Address,
-    };
-    let get_amount_out_result = arbitrageur.call_contract(
-        &mut manager.environment,
+    let get_amount_out_args = (
+        pool_id,                        // pool_id: u64,
+        sell_asset,                     // sell_asset: bool. Setting this to true means we are selling ARBX for ARBY.
+        U256::from(input_amount),       // amount_in: ::ethers::core::types::U256,
+        recast_address(arbitrageur.address()),          // swapper: ::ethers::core::types::Address,
+    ).into_tokens();
+    let get_amount_out_result = arbitrageur.call(
         portfolio,
-        portfolio.encode_function("getAmountOut", get_amount_out_args)?,
-        Uint::from(0),
-    );
+        "getAmountOut",
+         get_amount_out_args)?;
     assert!(get_amount_out_result.is_success());
     let unpacked_get_amount_out = unpack_execution(get_amount_out_result)?;
     let decoded_amount_out: u128 =
@@ -249,12 +225,11 @@ where
         sell_asset,
     };
     let swap_args = (order,);
-    let swap_result = arbitrageur.call_contract(
-        &mut manager.environment,
+    let swap_result = arbitrageur.call(
         portfolio,
-        portfolio.encode_function("swap", swap_args)?,
-        Uint::from(0),
-    );
+        "swap",
+        swap_args.into_tokens())?;
+
     match unpack_execution(swap_result) {
         Ok(unpacked) => {
             let swap_result: (u64, U256, U256) = portfolio.decode_output("swap", unpacked)?;
@@ -275,7 +250,7 @@ mod test {
     use std::error::Error;
 
     use super::*;
-    use crate::simulate::portfolio::startup;
+    use crate::simulations::portfolio::startup;
 
     #[test]
     fn test_arb_bool() -> Result<(), Box<dyn Error>> {
@@ -305,12 +280,12 @@ mod test {
             15_000_000_000_000_000_000u128,
         );
         // Compute the arb size
-        let results = compute_arb_size(
-            &mut manager,
+        let results = compute_trade_size(
+            manager.agents.get("admin").unwrap(),
             pool_args,
             delta_liquidity,
             pool_id,
-            &contracts.portfolio,
+            manager.deployed_contracts,
             ratio,
         )?;
         let sell_asset = results.sell_asset;
