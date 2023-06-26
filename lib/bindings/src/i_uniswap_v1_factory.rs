@@ -10,13 +10,41 @@ pub use i_uniswap_v1_factory::*;
     non_camel_case_types
 )]
 pub mod i_uniswap_v1_factory {
-    #[rustfmt::skip]
-    const __ABI: &str = "[{\"inputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\",\"components\":[]}],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"getExchange\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\",\"components\":[]}]}]";
+    #[allow(deprecated)]
+    fn __abi() -> ::ethers::core::abi::Abi {
+        ::ethers::core::abi::ethabi::Contract {
+            constructor: ::core::option::Option::None,
+            functions: ::core::convert::From::from([(
+                ::std::borrow::ToOwned::to_owned("getExchange"),
+                ::std::vec![::ethers::core::abi::ethabi::Function {
+                    name: ::std::borrow::ToOwned::to_owned("getExchange"),
+                    inputs: ::std::vec![::ethers::core::abi::ethabi::Param {
+                        name: ::std::string::String::new(),
+                        kind: ::ethers::core::abi::ethabi::ParamType::Address,
+                        internal_type: ::core::option::Option::Some(
+                            ::std::borrow::ToOwned::to_owned("address"),
+                        ),
+                    },],
+                    outputs: ::std::vec![::ethers::core::abi::ethabi::Param {
+                        name: ::std::string::String::new(),
+                        kind: ::ethers::core::abi::ethabi::ParamType::Address,
+                        internal_type: ::core::option::Option::Some(
+                            ::std::borrow::ToOwned::to_owned("address"),
+                        ),
+                    },],
+                    constant: ::core::option::Option::None,
+                    state_mutability: ::ethers::core::abi::ethabi::StateMutability::View,
+                },],
+            )]),
+            events: ::std::collections::BTreeMap::new(),
+            errors: ::std::collections::BTreeMap::new(),
+            receive: false,
+            fallback: false,
+        }
+    }
     ///The parsed JSON ABI of the contract.
     pub static IUNISWAPV1FACTORY_ABI: ::ethers::contract::Lazy<::ethers::core::abi::Abi> =
-        ::ethers::contract::Lazy::new(|| {
-            ::ethers::core::utils::__serde_json::from_str(__ABI).expect("ABI is always valid")
-        });
+        ::ethers::contract::Lazy::new(__abi);
     pub struct IUniswapV1Factory<M>(::ethers::contract::Contract<M>);
     impl<M> ::core::clone::Clone for IUniswapV1Factory<M> {
         fn clone(&self) -> Self {
@@ -36,7 +64,7 @@ pub mod i_uniswap_v1_factory {
     }
     impl<M> ::core::fmt::Debug for IUniswapV1Factory<M> {
         fn fmt(&self, f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
-            f.debug_tuple(stringify!(IUniswapV1Factory))
+            f.debug_tuple(::core::stringify!(IUniswapV1Factory))
                 .field(&self.address())
                 .finish()
         }
