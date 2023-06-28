@@ -18,6 +18,7 @@ use crate::{
 };
 
 mod chain;
+mod init;
 mod simulations;
 mod visualize;
 
@@ -62,6 +63,11 @@ pub trait Configurable: Sized {
 /// * `ImportBacktest` - Import swap data from a csv file
 #[derive(Subcommand)]
 enum Commands {
+    Init {
+        /// Name of the simulation to initialize
+        #[arg(short, long, required = true)]
+        simulation_name: String,
+    },
     Simulate(SimulateArguments),
     Visualize(VisualizeArguments),
     Live {
@@ -165,7 +171,11 @@ async fn main() -> Result<(), Box<dyn Error>> {
                 }
             }
         }
-
+        Some(Commands::Init { simulation_name }) => {
+            println!("Initializing simulation...");
+            init::create_simulation(simulation_name)?;
+        }
+        // Visualize the results of a simulation.
         Some(Commands::Visualize(visualize_arguments)) => {
             println!(
                 "Loading config for the PriceProcess from: {}",
@@ -180,23 +190,23 @@ async fn main() -> Result<(), Box<dyn Error>> {
                 VisualizeSubcommand::LPReturns => {}
             }
         }
-
+        // live monitoring
         Some(Commands::Live { config: _ }) => {
             // Parse the contract address
             chain::live::run().await?;
         }
 
+        // Exports data on a contract for a given block range
         Some(Commands::ExportSwapRange {
             start_block,
             end_block,
             address,
         }) => {
-            // Export swap price data for a given block range
             chain::backtest_data::save_backtest_data(start_block, end_block, address).await?;
         }
 
+        // Import swap price data from a csv file
         Some(Commands::ImportBacktest { file_path }) => {
-            // Import swap price data from a csv file
             chain::backtest_data::load_backtest_data(file_path).await?;
         }
         None => {
