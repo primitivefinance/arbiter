@@ -63,7 +63,11 @@ pub trait Configurable: Sized {
 /// * `ImportBacktest` - Import swap data from a csv file
 #[derive(Subcommand)]
 enum Commands {
-    Init,
+    Init{
+        /// Name of the simulation to initialize
+        #[arg(short, long, required = true)]
+        simulation_name: String,
+    },
     Simulate(SimulateArguments),
     Visualize(VisualizeArguments),
     Live {
@@ -167,9 +171,9 @@ async fn main() -> Result<(), Box<dyn Error>> {
                 }
             }
         }
-        Some(Commands::Init) => {
+        Some(Commands::Init {simulation_name}) => {
             println!("Initializing simulation...");
-            init::create_simulation("test")?;
+            init::create_simulation(simulation_name)?;
         }
         // Visualize the results of a simulation.
         Some(Commands::Visualize(visualize_arguments)) => {
