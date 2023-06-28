@@ -18,9 +18,9 @@ use crate::{
 };
 
 mod chain;
+mod init;
 mod simulations;
 mod visualize;
-mod init;
 
 #[derive(Parser)]
 #[command(name = "Arbiter")]
@@ -63,7 +63,7 @@ pub trait Configurable: Sized {
 /// * `ImportBacktest` - Import swap data from a csv file
 #[derive(Subcommand)]
 enum Commands {
-    Init{
+    Init {
         /// Name of the simulation to initialize
         #[arg(short, long, required = true)]
         simulation_name: String,
@@ -171,7 +171,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
                 }
             }
         }
-        Some(Commands::Init {simulation_name}) => {
+        Some(Commands::Init { simulation_name }) => {
             println!("Initializing simulation...");
             init::create_simulation(simulation_name)?;
         }

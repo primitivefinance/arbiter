@@ -1,8 +1,7 @@
+use chrono::{DateTime, Datelike, Utc};
 use std::fs;
 use std::io::Write;
 use std::path::Path;
-use chrono::{DateTime, Utc, Datelike};
-
 
 pub(crate) fn create_simulation(simulation_name: &str) -> std::io::Result<()> {
     let now: DateTime<Utc> = Utc::now();
@@ -11,14 +10,18 @@ pub(crate) fn create_simulation(simulation_name: &str) -> std::io::Result<()> {
         simulation::run();
 }"#;
 
-    // TODO 
-    let toml = format!(r#"[package]
+    // TODO
+    let toml = format!(
+        r#"[package]
 name = "{} Simulation"
 version = "0.1.0"
 edition = "{}"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-[dependencies]"#, simulation_name, now.year());
+[dependencies]"#,
+        simulation_name,
+        now.year()
+    );
 
     let mod_rs = r#"pub async fn run(
     price_process: PriceProcess,
@@ -114,7 +117,6 @@ let liquid_exchange_xy_price: U256 =
 
     // Create a subdirectory
 
-
     let src_path = Path::new("arbiter").join("src");
     fs::create_dir_all(&src_path)?;
 
@@ -126,7 +128,6 @@ let liquid_exchange_xy_price: U256 =
 
     let sim = simulations_path.join(simulation_name);
     fs::create_dir_all(&sim)?;
-
 
     // Create a file in the subdirectory
     let file_path = Path::new("arbiter").join("Cargo.toml");
@@ -155,5 +156,3 @@ let liquid_exchange_xy_price: U256 =
 fn main() {
     create_simulation("portfolio").unwrap();
 }
-
-
