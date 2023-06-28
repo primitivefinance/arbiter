@@ -20,6 +20,7 @@ use crate::{
 mod chain;
 mod simulations;
 mod visualize;
+mod init;
 
 #[derive(Parser)]
 #[command(name = "Arbiter")]
@@ -62,6 +63,7 @@ pub trait Configurable: Sized {
 /// * `ImportBacktest` - Import swap data from a csv file
 #[derive(Subcommand)]
 enum Commands {
+    Init,
     Simulate(SimulateArguments),
     Visualize(VisualizeArguments),
     Live {
@@ -165,7 +167,11 @@ async fn main() -> Result<(), Box<dyn Error>> {
                 }
             }
         }
-
+        Some(Commands::Init) => {
+            println!("Initializing simulation...");
+            init::create_simulation("test")?;
+        }
+        // Visualize the results of a simulation.
         Some(Commands::Visualize(visualize_arguments)) => {
             println!(
                 "Loading config for the PriceProcess from: {}",
@@ -180,23 +186,23 @@ async fn main() -> Result<(), Box<dyn Error>> {
                 VisualizeSubcommand::LPReturns => {}
             }
         }
-
+        // live monitoring
         Some(Commands::Live { config: _ }) => {
             // Parse the contract address
             chain::live::run().await?;
         }
 
+        // Exports data on a contract for a given block range
         Some(Commands::ExportSwapRange {
             start_block,
             end_block,
             address,
         }) => {
-            // Export swap price data for a given block range
             chain::backtest_data::save_backtest_data(start_block, end_block, address).await?;
         }
 
+        // Import swap price data from a csv file
         Some(Commands::ImportBacktest { file_path }) => {
-            // Import swap price data from a csv file
             chain::backtest_data::load_backtest_data(file_path).await?;
         }
         None => {

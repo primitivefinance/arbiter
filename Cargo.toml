@@ -38,6 +38,7 @@ serde = { version = "1.0.163", features =["derive"] }
 thiserror = "1.0.40"
 tokio = { version = "1.28.1", features = ["macros", "full"] }
 toml = "0.7.4"
+chrono = "0.4"
 
 # Revm and related dependencies
 bytes = "1.4.0"
