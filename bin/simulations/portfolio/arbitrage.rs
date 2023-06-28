@@ -45,6 +45,7 @@ pub(crate) fn compute_trade_size(
     contracts: &HashMap<String, SimulationContract<IsDeployed>>,
     ratio: U256, // ratio of reference market price to strike price of the pool
 ) -> Result<ComputeArbOutput, Box<dyn Error>> {
+    println!("Computing arbitrage size and swap asset...");
     let arbiter_math = contracts.get("arbiter_math").unwrap();
     let portfolio = contracts.get("portfolio").unwrap();
     // Units
@@ -79,6 +80,7 @@ pub(crate) fn compute_trade_size(
     // CDF input
     let cdf_input = scaled_log + I256::from_raw(additional_term);
     // compute the CDF
+
     let execution_result = admin.call(arbiter_math, "cdf", cdf_input.into_tokens())?;
 
     let unpacked_result = unpack_execution(execution_result)?;
@@ -86,8 +88,10 @@ pub(crate) fn compute_trade_size(
     let cdf = cdf_output * I256::from(delta_liquidity) / I256::from_raw(wad);
     let cdf = cdf * I256::from_raw(wad) / I256::from_raw(gamma);
     // call the reserve values
+
     let reserves = admin.call(portfolio, "getVirtualReservesDec", pool_id.into_tokens())?;
     let reserves = unpack_execution(reserves)?;
+
     let reserves: (u128, u128) = portfolio.decode_output("getVirtualReservesDec", reserves)?;
     let scaled_x_reserve = U256::from(reserves.0) * wad / gamma;
     let a = I256::from(delta_liquidity) * I256::from_raw(wad) / I256::from_raw(gamma)
@@ -178,8 +182,11 @@ where
         recast_address(arbitrageur.address()), // swapper: ::ethers::core::types::Address,
     )
         .into_tokens();
+
+    // This fails with "Error Here"
+    println!("Error Here");
     let get_amount_out_result = arbitrageur.call(portfolio, "getAmountOut", get_amount_out_args)?;
-    // assert!(get_amount_out_result.is_success());
+
     let unpacked_get_amount_out = unpack_execution(get_amount_out_result.clone())?;
     println!("unpacked_get_amount_out: {:?}", unpacked_get_amount_out);
     assert!(get_amount_out_result.is_success());
@@ -209,7 +216,9 @@ where
         sell_asset,
     };
     let swap_args = (order,);
+    println!("Before Swap");
     let swap_result = arbitrageur.call(portfolio, "swap", swap_args.into_tokens())?;
+    println!("After Swap");
 
     match unpack_execution(swap_result) {
         Ok(unpacked) => {
