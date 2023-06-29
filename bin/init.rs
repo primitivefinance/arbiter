@@ -19,7 +19,7 @@ path = "arbiter/src/main.rs"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 [dependencies]
-arbiter = {{ git = "https://github.com/primitivefinance/arbiter/crates" }}"#,
+arbiter = {{ git = "https://github.com/primitivefinance/arbiter/crates", package = "simulate" }}"#,
         simulation_name,
     );
 
