@@ -10,18 +10,18 @@ use eyre::Result;
 use itertools_num::linspace;
 use thiserror::Error;
 
-use crate::config::{OutputStorage, PathSweep, SimulateArguments, SimulateSubcommand, VolatilitySweep};
-
-use crate::{
-    visualize::{plot_price_data, VisualizeArguments, VisualizeSubcommand},
+use crate::config::{
+    OutputStorage, PathSweep, SimulateArguments, SimulateSubcommand, VolatilitySweep,
 };
 
+use crate::visualize::{plot_price_data, VisualizeArguments, VisualizeSubcommand};
+
+mod bind;
 mod chain;
+mod config;
 mod init;
 mod simulations;
 mod visualize;
-mod config;
-mod bind;
 
 #[derive(Parser)]
 #[command(name = "Arbiter")]

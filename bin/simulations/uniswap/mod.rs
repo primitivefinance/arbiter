@@ -12,10 +12,10 @@ use simulate::{
     utils::{unpack_execution, wad_to_float},
 };
 
-use crate::OutputStorage;
 use crate::simulations::uniswap::arbitrage::{
     compute_trade_size, record_arb_balances, record_pool_reserves,
 };
+use crate::OutputStorage;
 
 pub mod arbitrage;
 pub mod startup;
