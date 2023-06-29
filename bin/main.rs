@@ -10,14 +10,15 @@ use eyre::Result;
 use itertools_num::linspace;
 use thiserror::Error;
 
-use crate::{
-    simulations::{
-        OutputStorage, PathSweep, SimulateArguments, SimulateSubcommand, VolatilitySweep,
-    },
-    visualize::{plot_price_data, VisualizeArguments, VisualizeSubcommand},
+use crate::config::{
+    OutputStorage, PathSweep, SimulateArguments, SimulateSubcommand, VolatilitySweep,
 };
 
+use crate::visualize::{plot_price_data, VisualizeArguments, VisualizeSubcommand};
+
+mod bind;
 mod chain;
+mod config;
 mod init;
 mod simulations;
 mod visualize;
@@ -63,9 +64,10 @@ pub trait Configurable: Sized {
 /// * `ImportBacktest` - Import swap data from a csv file
 #[derive(Subcommand)]
 enum Commands {
+    Bind,
     Init {
         /// Name of the simulation to initialize
-        #[arg(short, long, required = true)]
+        #[clap(index = 1)]
         simulation_name: String,
     },
     Simulate(SimulateArguments),
@@ -174,6 +176,10 @@ async fn main() -> Result<(), Box<dyn Error>> {
         Some(Commands::Init { simulation_name }) => {
             println!("Initializing simulation...");
             init::create_simulation(simulation_name)?;
+        }
+        Some(Commands::Bind) => {
+            println!("Generating bindings...");
+            bind::bind_forge()?;
         }
         // Visualize the results of a simulation.
         Some(Commands::Visualize(visualize_arguments)) => {

@@ -1,63 +1,39 @@
-use chrono::{DateTime, Datelike, Utc};
 use std::fs;
 use std::io::Write;
 use std::path::Path;
 
 pub(crate) fn create_simulation(simulation_name: &str) -> std::io::Result<()> {
-    let now: DateTime<Utc> = Utc::now();
+    let main = r#"
+    mod simulations;
 
-    let main = r#"fn main() { 
-        simulation::run();
-}"#;
+    fn main() { 
+        let _ = simulations::testsim::run();
+    }"#;
 
-    // TODO
     let toml = format!(
         r#"[package]
-name = "{} Simulation"
+name = "arbitersim"
 version = "0.1.0"
-edition = "{}"
+edition = "2021"
+
+[[bin]]
+name = "{}"
+path = "arbiter/src/main.rs"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-[dependencies]"#,
+[dependencies]
+simulate = {{ git = "https://github.com/primitivefinance/arbiter", package = "simulate" }}"#,
         simulation_name,
-        now.year()
     );
 
-    let mod_rs = r#"pub async fn run(
-    price_process: PriceProcess,
-    output_storage: OutputStorage,
-    label: usize,
-) -> Result<(), Box<dyn Error>> {
-    let _start = Instant::now();
+    let mod_rs = r#"
+    use std::error::Error;
 
-    // Create a `SimulationManager` that runs simulations in their `SimulationEnvironment`.
-    let mut manager = SimulationManager::new();
+    pub fn run() -> Result<(), Box<dyn Error>> {
+        todo!()
+    }"#;
 
-    // Run the startup script
-    startup::run(&mut manager)?;
-    let arbitrageur = manager.agents.get("arbitrageur").unwrap();
-    let admin = manager.agents.get("admin").unwrap();
-
-    // Intialize the arbitrageur with the prices from the two exchanges.
-    let arbitrageur = match arbitrageur {
-        AgentType::SimpleArbitrageur(base_arbitrageur) => base_arbitrageur,
-        _ => panic!(),
-    };
-    let liquid_exchange = manager
-    .deployed_contracts
-    .get("liquid_exchange_xy")
-    .unwrap();
-let result = arbitrageur.call(liquid_exchange, "price", vec![])?;
-assert!(result.is_success());
-
-let liquid_exchange_xy_price: U256 =
-    liquid_exchange.decode_output("price", unpack_execution(result)?)?;
-    // etc
-    
-    todo()
-}"#;
-
-    let run = r#"pub(crate) fn run(manager: &mut SimulationManager) -> Result<(), Box<dyn Error>> {
+    let startup = r#"pub(crate) fn run(manager: &mut SimulationManager) -> Result<(), Box<dyn Error>> {
         let weth_address = manager.deployed_contracts.get("weth").unwrap().address;
         deploy_contracts(manager, weth_address)?;
         let liquid_exchange_xy = manager
@@ -97,19 +73,19 @@ let liquid_exchange_xy_price: U256 =
         Ok()
     }
     pub fn deploy() {
-    todo()
+    todo!()
     }
     
     pub fn mint() {
-    todo()
+    todo!()
     }
 
     pub fn approve() {
-    todo()
+    todo!()
     }
 
     pub fn allocate() {
-    todo()
+    todo!()
     }
     "#;
     // Create a directory
@@ -130,9 +106,13 @@ let liquid_exchange_xy_price: U256 =
     fs::create_dir_all(&sim)?;
 
     // Create a file in the subdirectory
-    let file_path = Path::new("arbiter").join("Cargo.toml");
+    let file_path = Path::new(".").join("Cargo.toml");
     let mut file = fs::File::create(file_path)?;
     write!(file, "{}", toml)?;
+
+    let file_path = simulations_path.join("mod.rs");
+    let mut file = fs::File::create(file_path)?;
+    write!(file, "pub mod {};", simulation_name)?;
 
     let file_path = sim.join("mod.rs");
     let mut file = fs::File::create(file_path)?;
@@ -140,7 +120,7 @@ let liquid_exchange_xy_price: U256 =
 
     let file_path = sim.join("startup.rs");
     let mut file = fs::File::create(file_path)?;
-    write!(file, "{}", run)?;
+    write!(file, "{}", startup)?;
 
     let file_path = sim.join("arbitrage.rs");
     fs::File::create(file_path)?;

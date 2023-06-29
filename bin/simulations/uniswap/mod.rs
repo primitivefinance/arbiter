@@ -12,10 +12,10 @@ use simulate::{
     utils::{unpack_execution, wad_to_float},
 };
 
-use super::OutputStorage;
 use crate::simulations::uniswap::arbitrage::{
     compute_trade_size, record_arb_balances, record_pool_reserves,
 };
+use crate::OutputStorage;
 
 pub mod arbitrage;
 pub mod startup;
@@ -120,9 +120,7 @@ pub async fn run(
                 // check for arb bounds and compute size
                 let size = compute_trade_size(&uniswap_pair, admin, arbiter_math, wad_price)?;
                 // No arb opportunity check
-                if size.input == U256::from(0) {
-                    index += 1;
-                } else {
+                if size.input != U256::from(0) {
                     // else there is an arbitrage
                     let result = arbitrageur.call(&uniswap_pair, "getReserves", vec![])?;
                     assert!(result.is_success());
