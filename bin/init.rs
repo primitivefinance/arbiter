@@ -1,26 +1,26 @@
-use chrono::{DateTime, Datelike, Utc};
 use std::fs;
 use std::io::Write;
 use std::path::Path;
 
 pub(crate) fn create_simulation(simulation_name: &str) -> std::io::Result<()> {
-    let now: DateTime<Utc> = Utc::now();
-
     let main = r#"fn main() { 
         simulation::run();
 }"#;
 
-    // TODO
     let toml = format!(
         r#"[package]
-name = "{} Simulation"
+name = "arbitersim"
 version = "0.1.0"
-edition = "{}"
+edition = "2021"
+
+[[bin]]
+name = "{}"
+path = "arbiter/src/main.rs"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-[dependencies]"#,
+[dependencies]
+arbiter = {{ git = "https://github.com/primitivefinance/arbiter/crates" }}"#,
         simulation_name,
-        now.year()
     );
 
     let mod_rs = r#"pub async fn run(
@@ -130,9 +130,13 @@ let liquid_exchange_xy_price: U256 =
     fs::create_dir_all(&sim)?;
 
     // Create a file in the subdirectory
-    let file_path = Path::new("arbiter").join("Cargo.toml");
+    let file_path = Path::new(".").join("Cargo.toml");
     let mut file = fs::File::create(file_path)?;
     write!(file, "{}", toml)?;
+
+    let file_path = simulations_path.join("mod.rs");
+    let mut file = fs::File::create(file_path)?;
+    write!(file, "pub mod {};", simulation_name)?;
 
     let file_path = sim.join("mod.rs");
     let mut file = fs::File::create(file_path)?;
