@@ -178,7 +178,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
             init::create_simulation(simulation_name)?;
         }
         Some(Commands::Bind) => {
-            println!("Binding simulation...");
+            println!("Generating bindings...");
             bind::bind_forge()?;
         }
         // Visualize the results of a simulation.
