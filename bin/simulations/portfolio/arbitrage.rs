@@ -242,7 +242,7 @@ mod test {
     use simulate::manager::SimulationManager;
 
     use super::*;
-    use crate::simulations::portfolio::{startup};
+    use crate::simulations::portfolio::startup;
 
     #[test]
     fn test_arb_bool() -> Result<(), Box<dyn Error>> {
@@ -290,7 +290,6 @@ mod test {
         let reference_price = U256::from(14_900_000_000_000_000_000u128);
         let mut manager = SimulationManager::new();
 
-
         // pool config
         let pool_args = PoolParams::new(
             1_u16,
@@ -304,11 +303,13 @@ mod test {
         // liquidity config
         let delta_liquidity = 10_i128.pow(18);
         // Run the startup script
-        let (_pool_data, pool_id) =
-            startup::run(&mut manager, pool_args, delta_liquidity)?;
+        let (_pool_data, pool_id) = startup::run(&mut manager, pool_args, delta_liquidity)?;
 
         let portfolio = manager.deployed_contracts.get("portfolio").unwrap();
-        let liquid_exchange = manager.deployed_contracts.get("liquid_exchange_xy").unwrap();
+        let liquid_exchange = manager
+            .deployed_contracts
+            .get("liquid_exchange_xy")
+            .unwrap();
         let arbitrageur = manager.agents.get("arbitrageur").unwrap();
         let arbitrageur = match arbitrageur {
             AgentType::SimpleArbitrageur(base_arbitrageur) => base_arbitrageur,
@@ -332,16 +333,12 @@ mod test {
             ratio,
         )?;
         let sell_asset = results.sell_asset;
-        let input =results.input.as_u128();
+        let input = results.input.as_u128();
         swap(arbitrageur, portfolio, pool_id, input, sell_asset)?;
         let arbitrageur = manager.agents.get("arbitrageur").unwrap();
-        let portfolio_price = arbitrageur.call(
-                portfolio,
-                "getSpotPrice", 
-                pool_id.into_tokens())?;
+        let portfolio_price = arbitrageur.call(portfolio, "getSpotPrice", pool_id.into_tokens())?;
         let portfolio_price = unpack_execution(portfolio_price)?;
-        let portfolio_price: U256 = liquid_exchange
-            .decode_output("price", portfolio_price)?;
+        let portfolio_price: U256 = liquid_exchange.decode_output("price", portfolio_price)?;
         println!("Pool Price After Arb: {}", portfolio_price);
         Ok(())
     }

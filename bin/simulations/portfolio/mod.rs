@@ -97,12 +97,12 @@ pub async fn run() -> Result<(), Box<dyn Error>> {
     let _ = arbitrageur.detect_price_change().await;
 
     // Get prices
-    let ou = OU::new(0.001, 50.0, 1.0);
+    let ou = OU::new(0.1, 10.0, 1.0);
     let price_process = PriceProcess::new(
         PriceProcessType::OU(ou),
         0.01,
         "trade".to_string(),
-        5,
+        1000,
         1.0,
         1,
     );
@@ -114,12 +114,14 @@ pub async fn run() -> Result<(), Box<dyn Error>> {
     let mut index: usize = 1;
     while let Ok((next_tx, _sell_asset)) = arbitrageur.detect_price_change().await {
         println!("Entered Main's `while let` with index: {}", index);
+        println!("Next Tx: {:?}", next_tx);
         if index >= prices.len() {
             // end of price path
             manager.shutdown();
             break;
         }
         let price = prices[index];
+        println!("Price: {}", price);
         // let wad_price = simulate::utils::float_to_wad(price);
         assert!(price > 0.0);
         let ratio = U256::from((price * 1_000_000_000_000_000_000.0_f64).round() as i128);
@@ -134,14 +136,17 @@ pub async fn run() -> Result<(), Box<dyn Error>> {
                     &manager.deployed_contracts,
                     ratio,
                 )?;
-                arbitrage::swap(
-                    arbitrageur,
-                    portfolio,
-                    pool_id,
-                    size.input.as_u128(),
-                    size.sell_asset,
-                )?;
-                // TODO: Update the price of the Portfolio pool.
+                if size.input != U256::from(0) {
+                    arbitrage::swap(
+                        arbitrageur,
+                        portfolio,
+                        pool_id,
+                        size.input.as_u128(),
+                        size.sell_asset,
+                    )?;
+                    // TODO: Update the price of the Portfolio pool.
+                    println!("Did swap!");
+                }
                 update_price(manager.agents.get("admin").unwrap(), liquid_exchange, price)?;
                 index += 1;
                 continue;
@@ -175,7 +180,8 @@ fn update_price(
     println!("Price from price path: {}\n", price);
     let wad_price = simulate::utils::float_to_wad(price);
     // println!("WAD price: {}", wad_price);
-    let _ = admin.call(liquid_exchange, "setPrice", wad_price.into_tokens())?;
+    let update = admin.call(liquid_exchange, "setPrice", wad_price.into_tokens())?;
+    println!("Update: {:#?}", update);
 
     Ok(())
 }
