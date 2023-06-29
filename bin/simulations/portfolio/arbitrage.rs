@@ -13,6 +13,8 @@ use simulate::{
     utils::{recast_address, unpack_execution},
 };
 
+use bindings::i_portfolio_getters::PoolsReturn;
+
 use super::PoolParams;
 
 #[derive(Clone)]
@@ -232,6 +234,23 @@ where
             println!("The result of `InvalidInvariant` is: {:#?}", decoded_result)
         }
     };
+    Ok(())
+}
+
+pub(crate) fn record_pool_reserves(
+    admin: &AgentType<IsActive>,
+    pool_id: u64,
+    reserves_over_time: &mut (Vec<U256>, Vec<U256>),
+    portfolio: &SimulationContract<IsDeployed>,
+) -> Result<(), Box<dyn Error>> {
+    let result = admin.call(portfolio, "pools", pool_id.into_tokens())?;
+    assert!(result.is_success());
+    let reserves: PoolsReturn = portfolio.decode_output("pools", unpack_execution(result)?)?;
+    let reserve_x = U256::from(reserves.virtual_x);
+    let reserve_y = U256::from(reserves.virtual_y);
+    reserves_over_time.0.push(reserve_x);
+    reserves_over_time.1.push(reserve_y);
+    println!("reserves over time: {:?}", reserves_over_time);
     Ok(())
 }
 

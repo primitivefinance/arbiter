@@ -10,7 +10,9 @@ use simulate::{
     utils::unpack_execution,
 };
 
-use crate::simulations::portfolio::arbitrage::compute_trade_size;
+use bindings::i_portfolio::IPortfolio;
+
+use crate::simulations::portfolio::arbitrage::{compute_trade_size, record_pool_reserves};
 
 pub mod arbitrage;
 pub mod startup;
@@ -87,6 +89,7 @@ pub async fn run() -> Result<(), Box<dyn Error>> {
     let portfolio_price = arbitrageur.call(portfolio, "getSpotPrice", pool_id.into_tokens())?;
     let portfolio_price = unpack_execution(portfolio_price)?;
     let portfolio_price: U256 = liquid_exchange.decode_output("price", portfolio_price)?;
+    let mut pool_reserve_over_time: (Vec<U256>, Vec<U256>) = (Vec::new(), Vec::new());
     let mut prices = arbitrageur.prices.lock().await;
     prices[0] = liquid_exchange_xy_price.into();
     prices[1] = portfolio_price.into();
@@ -144,10 +147,15 @@ pub async fn run() -> Result<(), Box<dyn Error>> {
                         size.input.as_u128(),
                         size.sell_asset,
                     )?;
-                    // TODO: Update the price of the Portfolio pool.
                     println!("Did swap!");
                 }
                 update_price(manager.agents.get("admin").unwrap(), liquid_exchange, price)?;
+                record_pool_reserves(
+                    manager.agents.get("admin").unwrap(),
+                    pool_id,
+                    &mut pool_reserve_over_time,
+                    portfolio,
+                )?;
                 index += 1;
                 continue;
             }
@@ -162,6 +170,7 @@ pub async fn run() -> Result<(), Box<dyn Error>> {
             }
         }
     }
+    println!("pool_reserve_over_time: {:#?}", pool_reserve_over_time);
 
     println!("=======================================");
     println!("🎉 Simulation Completed 🎉");
