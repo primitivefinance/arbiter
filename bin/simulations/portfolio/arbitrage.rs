@@ -250,7 +250,39 @@ pub(crate) fn record_pool_reserves(
     let reserve_y = U256::from(reserves.virtual_y);
     reserves_over_time.0.push(reserve_x);
     reserves_over_time.1.push(reserve_y);
-    println!("reserves over time: {:?}", reserves_over_time);
+    Ok(())
+}
+
+pub(crate) fn record_arb_balances(
+    arbitrageur: &SimpleArbitrageur<IsActive>,
+    contracts: &HashMap<String, SimulationContract<IsDeployed>>,
+    arb_balance_paths: &mut (Vec<U256>, Vec<U256>),
+) -> Result<(), Box<dyn Error>> {
+    let result = arbitrageur.call(
+        contracts.get("arbiter_token_x").unwrap(),
+        "balanceOf",
+        recast_address(arbitrageur.address()).into_tokens(),
+    )?;
+    assert!(result.is_success());
+
+    let balance_x: U256 = contracts
+        .get("arbiter_token_x")
+        .unwrap()
+        .decode_output("balanceOf", unpack_execution(result)?)?;
+
+    let result = arbitrageur.call(
+        contracts.get("arbiter_token_y").unwrap(),
+        "balanceOf",
+        recast_address(arbitrageur.address()).into_tokens(),
+    )?;
+
+    let balance_y: U256 = contracts
+        .get("arbiter_token_y")
+        .unwrap()
+        .decode_output("balanceOf", unpack_execution(result)?)?;
+
+    arb_balance_paths.0.push(balance_x);
+    arb_balance_paths.1.push(balance_y);
     Ok(())
 }
 

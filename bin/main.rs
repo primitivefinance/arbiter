@@ -164,7 +164,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
                     println!("Time elapsed is: {:?}", duration);
                 }
                 SimulateSubcommand::Portfolio => {
-                    crate::simulations::portfolio::run().await?;
+                    crate::simulations::portfolio::run(output_storage).await?;
                 }
             }
         }

@@ -44,7 +44,7 @@ pub fn plot_price_data(configuration_file_path: &str) -> Result<(), Box<dyn Erro
         );
         let liquid_exchange_price_data =
             read_column_from_csv(output_file.as_str(), "liquid_exchange_prices")?;
-        let uniswap_price_data = read_column_from_csv(output_file.as_str(), "uniswap_prices")?;
+        let uniswap_price_data = read_column_from_csv(output_file.as_str(), "portfolio_prices")?;
         // println!("{:?}", liquid_exchange_price_data.len());
         let trade_number = linspace(
             0.0,

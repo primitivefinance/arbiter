@@ -7,7 +7,7 @@ price_paths = 10
 worker_limit = 32
 # File output parameters struct.
 output_path = "output"
-output_file_names = "uniswap"
+output_file_names = "portfolio"
 
 # Volatility sweeping parameters.
 volatility_low = 0.01
