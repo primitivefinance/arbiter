@@ -9,14 +9,13 @@
 // The middleware/client needs to be able to send transactions from an address (and also have access to some specific channels and what not)
 
 
-use std::{fmt::Debug, sync::Arc};
+use std::fmt::Debug;
 
 use ethers::{
-    abi::ethereum_types::Signature,
     prelude::ProviderError,
     providers::{
         erc, FilterKind, FilterWatcher, LogQuery, Middleware, MiddlewareError, MockProvider,
-        NodeInfo, PeerInfo, PendingTransaction, Provider, PubsubClient, SubscriptionStream, state, NodeClient,
+        NodeInfo, PeerInfo, PendingTransaction, Provider
     },
     types::{
         transaction::{eip2718::TypedTransaction, eip2930::AccessListWithGasUsed},
@@ -26,14 +25,12 @@ use ethers::{
         TransactionReceipt, TxHash, TxpoolContent, TxpoolInspect, TxpoolStatus, H256, U256, U64,
     },
 };
-use futures::lock::Mutex;
 use revm::{
-    primitives::{ruint::Uint, TransactTo, TxEnv, B160, ExecutionResult},
+    primitives::{TransactTo, TxEnv, B160},
 };
 use serde::{de::DeserializeOwned, Serialize};
 use url::Url;
 
-use crate::utils::recast_address;
 
 use super::SimulationEnvironment;
 
@@ -52,9 +49,9 @@ impl<M> SimulationMiddleware<M> {
 
 #[async_trait::async_trait]
 impl Middleware for SimulationEnvironment {
-    /// Error type returned by most operations
-    type Provider = MockProvider;
     /// The JSON-RPC client type at the bottom of the stack
+    type Provider = MockProvider;
+    /// Error type returned by most operations
     type Error = ProviderError;
     /// The next-lower middleware in the middleware stack
     type Inner = Self;
@@ -648,7 +645,7 @@ impl Middleware for SimulationEnvironment {
     /// started is equal to the number of logical CPUs that are usable by this process. If mining
     /// is already running, this method adjust the number of threads allowed to use and updates the
     /// minimum price required by the transaction pool.
-    async fn start_mining(&self, threads: Option<usize>) -> Result<(), Self::Error> {
+    async fn start_mining(&self) -> Result<(), Self::Error> {
         unimplemented!("we don't need to start mining.")
     }
 
@@ -921,11 +918,9 @@ mod tests {
     use std::sync::Arc;
 
     use bindings::writer::Writer;
-    use bytes::Bytes;
-    use ethers::{prelude::BaseContract, types::Address, signers::{Wallet, LocalWallet}};
 
     use super::*;
-    use crate::{environment::contract::SimulationContract, manager::SimulationManager};
+    use crate::manager::SimulationManager;
 
     #[tokio::test]
     async fn test_something() -> anyhow::Result<()> {

@@ -4,7 +4,6 @@
 
 pub mod agent;
 pub mod environment;
-pub mod exchange;
 pub mod historic;
 pub mod manager;
 pub mod stochastic;
