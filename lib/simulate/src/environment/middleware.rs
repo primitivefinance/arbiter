@@ -36,6 +36,7 @@ use super::SimulationEnvironment;
 
 /// The [`SimulationMiddleware`] allows for a "dummy" middleware to be used in the simulation environment.
 #[derive(Debug, Default)]
+#[allow(dead_code)]
 pub struct SimulationMiddleware<M> {
     inner: M,
 }
@@ -63,7 +64,7 @@ impl Middleware for SimulationEnvironment {
 
     /// Convert a provider error into the associated error type by successively
     /// converting it to every intermediate middleware error
-    fn convert_err(p: ProviderError) -> Self::Error {
+    fn convert_err(_p: ProviderError) -> Self::Error {
         unimplemented!("revm should not output any provider errors.")
     }
 
@@ -103,8 +104,8 @@ impl Middleware for SimulationEnvironment {
     /// _after_ delegating and allowing the default implementation to poll gas.
     async fn fill_transaction(
         &self,
-        tx: &mut TypedTransaction,
-        block: Option<BlockId>,
+        _tx: &mut TypedTransaction,
+        _block: Option<BlockId>,
     ) -> Result<(), Self::Error> {
         todo!("we should be able to fill the transaction.")
     }
@@ -121,7 +122,7 @@ impl Middleware for SimulationEnvironment {
     async fn send_transaction<T: Into<TypedTransaction> + Send + Sync>(
         &self,
         tx: T,
-        block: Option<BlockId>,
+        _block: Option<BlockId>,
     ) -> Result<PendingTransaction<'_, Self::Provider>, Self::Error> {
         let tx: TypedTransaction = tx.into();
 
@@ -152,7 +153,7 @@ impl Middleware for SimulationEnvironment {
             access_list: Vec::new(),
         };
         let (sender, receiver) = crossbeam_channel::unbounded();
-        let transaction = self.transaction_channel.0.send((tx_env, sender));
+        let _transaction = self.transaction_channel.0.send((tx_env, sender));
         let result = receiver.recv().unwrap();
         println!("result: {:?}", result);
         let pending_tx = PendingTransaction::new(H256::default(), self.provider());
@@ -189,7 +190,7 @@ impl Middleware for SimulationEnvironment {
     ///
     /// If the bytes returned from the ENS registrar/resolver cannot be interpreted as
     /// an address. This should theoretically never happen.
-    async fn resolve_name(&self, ens_name: &str) -> Result<Address, Self::Error> {
+    async fn resolve_name(&self, _ens_name: &str) -> Result<Address, Self::Error> {
         unimplemented!("revm does not need ens at the moment.")
     }
 
@@ -199,7 +200,7 @@ impl Middleware for SimulationEnvironment {
     ///
     /// If the bytes returned from the ENS registrar/resolver cannot be interpreted as
     /// a string. This should theoretically never happen.
-    async fn lookup_address(&self, address: Address) -> Result<String, Self::Error> {
+    async fn lookup_address(&self, _address: Address) -> Result<String, Self::Error> {
         unimplemented!("revm does not need ens at the moment.")
     }
 
@@ -220,7 +221,7 @@ impl Middleware for SimulationEnvironment {
     ///
     /// If the bytes returned from the ENS registrar/resolver cannot be interpreted as
     /// a string. This should theoretically never happen.
-    async fn resolve_avatar(&self, ens_name: &str) -> Result<Url, Self::Error> {
+    async fn resolve_avatar(&self, _ens_name: &str) -> Result<Url, Self::Error> {
         unimplemented!("revm does not need ens at the moment.")
     }
 
@@ -244,7 +245,7 @@ impl Middleware for SimulationEnvironment {
     ///
     /// If the bytes returned from the ENS registrar/resolver cannot be interpreted as
     /// a string. This should theoretically never happen.
-    async fn resolve_nft(&self, token: erc::ERCNFT) -> Result<Url, Self::Error> {
+    async fn resolve_nft(&self, _token: erc::ERCNFT) -> Result<Url, Self::Error> {
         unimplemented!("revm does not need nfts at the moment.")
     }
 
@@ -254,14 +255,14 @@ impl Middleware for SimulationEnvironment {
     ///
     /// If the bytes returned from the ENS registrar/resolver cannot be interpreted as
     /// a string. This should theoretically never happen.
-    async fn resolve_field(&self, ens_name: &str, field: &str) -> Result<String, Self::Error> {
+    async fn resolve_field(&self, _ens_name: &str, _field: &str) -> Result<String, Self::Error> {
         unimplemented!("revm does not need ens at the moment.")
     }
 
     /// Gets the block at `block_hash_or_number` (transaction hashes only)
     async fn get_block<T: Into<BlockId> + Send + Sync>(
         &self,
-        block_hash_or_number: T,
+        _block_hash_or_number: T,
     ) -> Result<Option<Block<TxHash>>, Self::Error> {
         todo!("we should be able to get the block.")
     }
@@ -269,7 +270,7 @@ impl Middleware for SimulationEnvironment {
     /// Gets the block at `block_hash_or_number` (full transactions included)
     async fn get_block_with_txs<T: Into<BlockId> + Send + Sync>(
         &self,
-        block_hash_or_number: T,
+        _block_hash_or_number: T,
     ) -> Result<Option<Block<Transaction>>, Self::Error> {
         todo!("we should be able to get the block.")
     }
@@ -277,7 +278,7 @@ impl Middleware for SimulationEnvironment {
     /// Gets the block uncle count at `block_hash_or_number`
     async fn get_uncle_count<T: Into<BlockId> + Send + Sync>(
         &self,
-        block_hash_or_number: T,
+        _block_hash_or_number: T,
     ) -> Result<U256, Self::Error> {
         unimplemented!("revm does not need uncles at the moment.")
     }
@@ -285,8 +286,8 @@ impl Middleware for SimulationEnvironment {
     /// Gets the block uncle at `block_hash_or_number` and `idx`
     async fn get_uncle<T: Into<BlockId> + Send + Sync>(
         &self,
-        block_hash_or_number: T,
-        idx: U64,
+        _block_hash_or_number: T,
+        _idx: U64,
     ) -> Result<Option<Block<H256>>, Self::Error> {
         unimplemented!("revm does not need uncles at the moment.")
     }
@@ -323,8 +324,8 @@ impl Middleware for SimulationEnvironment {
     /// blockchain.
     async fn call(
         &self,
-        tx: &TypedTransaction,
-        block: Option<BlockId>,
+        _tx: &TypedTransaction,
+        _block: Option<BlockId>,
     ) -> Result<Bytes, Self::Error> {
         todo!("we should be able to call. We will have to consider adding a function to the `SimulationEnvironment` that uses `transact` and not `transact_commit`")
     }
@@ -348,8 +349,8 @@ impl Middleware for SimulationEnvironment {
     /// Returns the account's balance
     async fn get_balance<T: Into<NameOrAddress> + Send + Sync>(
         &self,
-        from: T,
-        block: Option<BlockId>,
+        _from: T,
+       _block: Option<BlockId>,
     ) -> Result<U256, Self::Error> {
         todo!("we should be able to get the balance.")
     }
@@ -357,7 +358,7 @@ impl Middleware for SimulationEnvironment {
     /// Gets the transaction with `transaction_hash`
     async fn get_transaction<T: Send + Sync + Into<TxHash>>(
         &self,
-        transaction_hash: T,
+        _transaction_hash: T,
     ) -> Result<Option<Transaction>, Self::Error> {
         todo!("we should be able to get the transaction.")
     }
@@ -365,7 +366,7 @@ impl Middleware for SimulationEnvironment {
     /// Gets the transaction receipt with `transaction_hash`
     async fn get_transaction_receipt<T: Send + Sync + Into<TxHash>>(
         &self,
-        transaction_hash: T,
+        _transaction_hash: T,
     ) -> Result<Option<TransactionReceipt>, Self::Error> {
         todo!("we should be able to get the transaction receipt.")
     }
@@ -376,7 +377,7 @@ impl Middleware for SimulationEnvironment {
     /// non-standard and currently supported by Erigon.
     async fn get_block_receipts<T: Into<BlockNumber> + Send + Sync>(
         &self,
-        block: T,
+        _block: T,
     ) -> Result<Vec<TransactionReceipt>, Self::Error> {
         todo!("we should be able to get the block receipts.")
     }
@@ -390,7 +391,7 @@ impl Middleware for SimulationEnvironment {
     /// EIP-1559 compatible transactions.
     async fn estimate_eip1559_fees(
         &self,
-        estimator: Option<fn(U256, Vec<Vec<U256>>) -> (U256, U256)>,
+        _estimator: Option<fn(U256, Vec<Vec<U256>>) -> (U256, U256)>,
     ) -> Result<(U256, U256), Self::Error> {
         todo!("low priority, but we should be able to set and get gas price for our environment.")
     }
@@ -404,7 +405,7 @@ impl Middleware for SimulationEnvironment {
     /// transaction's hash This will consume gas from the account that signed the transaction.
     async fn send_raw_transaction<'a>(
         &'a self,
-        tx: Bytes,
+        _tx: Bytes,
     ) -> Result<PendingTransaction<'a, Self::Provider>, Self::Error> {
         todo!("we should be able to send raw transactions.")
     }
@@ -440,15 +441,15 @@ impl Middleware for SimulationEnvironment {
     ////// Contract state
 
     /// Returns an array (possibly empty) of logs that match the filter
-    async fn get_logs(&self, filter: &Filter) -> Result<Vec<Log>, Self::Error> {
+    async fn get_logs(&self, _filter: &Filter) -> Result<Vec<Log>, Self::Error> {
         todo!("we should be able to get logs.")
     }
 
     /// Returns a stream of logs are loaded in pages of given page size
     fn get_logs_paginated<'a>(
         &'a self,
-        filter: &Filter,
-        page_size: u64,
+        _filter: &Filter,
+        _page_size: u64,
     ) -> LogQuery<'a, Self::Provider> {
         todo!("we should be able to get logs paginated.")
     }
@@ -458,7 +459,7 @@ impl Middleware for SimulationEnvironment {
     /// This method is hidden because filter lifecycle  should be managed by
     /// the [`FilterWatcher`]
     #[doc(hidden)]
-    async fn new_filter(&self, filter: FilterKind<'_>) -> Result<U256, Self::Error> {
+    async fn new_filter(&self, _filter: FilterKind<'_>) -> Result<U256, Self::Error> {
         todo!("we should be able to install a new filter.")
     }
 
@@ -469,7 +470,7 @@ impl Middleware for SimulationEnvironment {
     #[doc(hidden)]
     async fn uninstall_filter<T: Into<U256> + Send + Sync>(
         &self,
-        id: T,
+        _id: T,
     ) -> Result<bool, Self::Error> {
         todo!("we should be able to uninstall a filter.")
     }
@@ -481,7 +482,7 @@ impl Middleware for SimulationEnvironment {
     /// `stream` interface
     async fn watch<'a>(
         &'a self,
-        filter: &Filter,
+        _filter: &Filter,
     ) -> Result<FilterWatcher<'a, Self::Provider, Log>, Self::Error> {
         todo!("we should be able to watch. we already have this partially implemented for agents.")
     }
@@ -514,7 +515,7 @@ impl Middleware for SimulationEnvironment {
     /// This method is hidden because filter lifecycle  should be managed by
     /// the [`FilterWatcher`]
     #[doc(hidden)]
-    async fn get_filter_changes<T, R>(&self, id: T) -> Result<Vec<R>, Self::Error>
+    async fn get_filter_changes<T, R>(&self, _id: T) -> Result<Vec<R>, Self::Error>
     where
         T: Into<U256> + Send + Sync,
         R: Serialize + DeserializeOwned + Send + Sync + Debug,
@@ -534,8 +535,8 @@ impl Middleware for SimulationEnvironment {
     /// Returns the deployed code at a given address
     async fn get_code<T: Into<NameOrAddress> + Send + Sync>(
         &self,
-        at: T,
-        block: Option<BlockId>,
+        _at: T,
+        _block: Option<BlockId>,
     ) -> Result<Bytes, Self::Error> {
         todo!("we should be able to get code.")
     }
@@ -557,9 +558,9 @@ impl Middleware for SimulationEnvironment {
     /// <https://github.com/ethereum/EIPs/issues/1186>
     async fn get_proof<T: Into<NameOrAddress> + Send + Sync>(
         &self,
-        from: T,
-        locations: Vec<H256>,
-        block: Option<BlockId>,
+        _from: T,
+        _locations: Vec<H256>,
+        _block: Option<BlockId>,
     ) -> Result<EIP1186ProofResponse, Self::Error> {
         unimplemented!("we don't need to get proofs.")
     }
@@ -581,8 +582,8 @@ impl Middleware for SimulationEnvironment {
     /// The key represents a secp256k1 private key and should be 32 bytes.
     async fn import_raw_key(
         &self,
-        private_key: Bytes,
-        passphrase: String,
+        _private_key: Bytes,
+        _passphrase: String,
     ) -> Result<Address, Self::Error> {
         unimplemented!("we don't need to import raw keys.")
     }
@@ -594,9 +595,9 @@ impl Middleware for SimulationEnvironment {
     /// number of seconds.
     async fn unlock_account<T: Into<Address> + Send + Sync>(
         &self,
-        account: T,
-        passphrase: String,
-        duration: Option<u64>,
+        _account: T,
+        _passphrase: String,
+        _duration: Option<u64>,
     ) -> Result<bool, Self::Error> {
         unimplemented!("we don't need to unlock accounts.")
     }
@@ -605,13 +606,13 @@ impl Middleware for SimulationEnvironment {
 
     /// Requests adding the given peer, returning a boolean representing
     /// whether or not the peer was accepted for tracking.
-    async fn add_peer(&self, enode_url: String) -> Result<bool, Self::Error> {
+    async fn add_peer(&self, _enode_url: String) -> Result<bool, Self::Error> {
         unimplemented!("we don't need to add peers.")
     }
 
     /// Requests adding the given peer as a trusted peer, which the node will
     /// always connect to even when its peer slots are full.
-    async fn add_trusted_peer(&self, enode_url: String) -> Result<bool, Self::Error> {
+    async fn add_trusted_peer(&self, _enode_url: String) -> Result<bool, Self::Error> {
         unimplemented!("we don't need to add trusted peers.")
     }
 
@@ -628,14 +629,14 @@ impl Middleware for SimulationEnvironment {
 
     /// Requests to remove the given peer, returning true if the enode was successfully parsed and
     /// the peer was removed.
-    async fn remove_peer(&self, enode_url: String) -> Result<bool, Self::Error> {
+    async fn remove_peer(&self, _enode_url: String) -> Result<bool, Self::Error> {
         unimplemented!("we don't need to remove peers.")
     }
 
     /// Requests to remove the given peer, returning a boolean representing whether or not the
     /// enode url passed was validated. A return value of `true` does not necessarily mean that the
     /// peer was disconnected.
-    async fn remove_trusted_peer(&self, enode_url: String) -> Result<bool, Self::Error> {
+    async fn remove_trusted_peer(&self, _enode_url: String) -> Result<bool, Self::Error> {
         unimplemented!("we don't need to remove trusted peers.")
     }
 
@@ -684,8 +685,8 @@ impl Middleware for SimulationEnvironment {
     /// Replays a transaction, returning the traces configured with passed options
     async fn debug_trace_transaction(
         &self,
-        tx_hash: TxHash,
-        trace_options: GethDebugTracingOptions,
+        _tx_hash: TxHash,
+        _trace_options: GethDebugTracingOptions,
     ) -> Result<GethTrace, Self::Error> {
         unimplemented!("we don't need to debug transaction traces yet.")
     }
@@ -693,9 +694,9 @@ impl Middleware for SimulationEnvironment {
     /// Executes the given call and returns a number of possible traces for it
     async fn debug_trace_call<T: Into<TypedTransaction> + Send + Sync>(
         &self,
-        req: T,
-        block: Option<BlockId>,
-        trace_options: GethDebugTracingCallOptions,
+        _req: T,
+        _block: Option<BlockId>,
+        _trace_options: GethDebugTracingCallOptions,
     ) -> Result<GethTrace, Self::Error> {
         unimplemented!("we don't need to debug call traces yet.")
     }
@@ -706,8 +707,8 @@ impl Middleware for SimulationEnvironment {
     /// [Here](https://geth.ethereum.org/docs/interacting-with-geth/rpc/ns-debug#debugtraceblockbynumber)
     async fn debug_trace_block_by_number(
         &self,
-        block: Option<BlockNumber>,
-        trace_options: GethDebugTracingOptions,
+        _block: Option<BlockNumber>,
+        _trace_options: GethDebugTracingOptions,
     ) -> Result<Vec<GethTrace>, Self::Error> {
         unimplemented!("we don't need to debug block traces yet.")
     }
@@ -718,8 +719,8 @@ impl Middleware for SimulationEnvironment {
     /// [Here](https://geth.ethereum.org/docs/interacting-with-geth/rpc/ns-debug#debugtraceblockbyhash)
     async fn debug_trace_block_by_hash(
         &self,
-        block: H256,
-        trace_options: GethDebugTracingOptions,
+        _block: H256,
+        _trace_options: GethDebugTracingOptions,
     ) -> Result<Vec<GethTrace>, Self::Error> {
         unimplemented!("we don't need to debug block traces yet.")
     }
@@ -729,9 +730,9 @@ impl Middleware for SimulationEnvironment {
     /// Executes the given call and returns a number of possible traces for it
     async fn trace_call<T: Into<TypedTransaction> + Send + Sync>(
         &self,
-        req: T,
-        trace_type: Vec<TraceType>,
-        block: Option<BlockNumber>,
+        _req: T,
+        _trace_type: Vec<TraceType>,
+        _block: Option<BlockNumber>,
     ) -> Result<BlockTrace, Self::Error> {
         unimplemented!("we don't need to trace calls yet.")
     }
@@ -740,8 +741,8 @@ impl Middleware for SimulationEnvironment {
     /// call
     async fn trace_call_many<T: Into<TypedTransaction> + Send + Sync>(
         &self,
-        req: Vec<(T, Vec<TraceType>)>,
-        block: Option<BlockNumber>,
+        _req: Vec<(T, Vec<TraceType>)>,
+        _block: Option<BlockNumber>,
     ) -> Result<Vec<BlockTrace>, Self::Error> {
         unimplemented!("we don't need to trace calls yet.")
     }
@@ -749,8 +750,8 @@ impl Middleware for SimulationEnvironment {
     /// Traces a call to `eth_sendRawTransaction` without making the call, returning the traces
     async fn trace_raw_transaction(
         &self,
-        data: Bytes,
-        trace_type: Vec<TraceType>,
+        _data: Bytes,
+        _trace_type: Vec<TraceType>,
     ) -> Result<BlockTrace, Self::Error> {
         unimplemented!("we don't need to trace raw transactions yet.")
     }
@@ -758,8 +759,8 @@ impl Middleware for SimulationEnvironment {
     /// Replays a transaction, returning the traces
     async fn trace_replay_transaction(
         &self,
-        hash: H256,
-        trace_type: Vec<TraceType>,
+        _hash: H256,
+        _trace_type: Vec<TraceType>,
     ) -> Result<BlockTrace, Self::Error> {
         unimplemented!("we don't need to trace transactions yet.")
     }
@@ -767,33 +768,33 @@ impl Middleware for SimulationEnvironment {
     /// Replays all transactions in a block returning the requested traces for each transaction
     async fn trace_replay_block_transactions(
         &self,
-        block: BlockNumber,
-        trace_type: Vec<TraceType>,
+        _block: BlockNumber,
+        _trace_type: Vec<TraceType>,
     ) -> Result<Vec<BlockTrace>, Self::Error> {
         unimplemented!("we don't need to trace transactions yet.")
     }
 
     /// Returns traces created at given block
-    async fn trace_block(&self, block: BlockNumber) -> Result<Vec<Trace>, Self::Error> {
+    async fn trace_block(&self, _block: BlockNumber) -> Result<Vec<Trace>, Self::Error> {
         unimplemented!("we don't need to trace blocks yet.")
     }
 
     /// Return traces matching the given filter
-    async fn trace_filter(&self, filter: TraceFilter) -> Result<Vec<Trace>, Self::Error> {
+    async fn trace_filter(&self, _filter: TraceFilter) -> Result<Vec<Trace>, Self::Error> {
         unimplemented!("we don't need to trace filters yet.")
     }
 
     /// Returns trace at the given position
     async fn trace_get<T: Into<U64> + Send + Sync>(
         &self,
-        hash: H256,
-        index: Vec<T>,
+        _hash: H256,
+        _index: Vec<T>,
     ) -> Result<Trace, Self::Error> {
         unimplemented!("we don't need to trace get yet.")
     }
 
     /// Returns all traces of a given transaction
-    async fn trace_transaction(&self, hash: H256) -> Result<Vec<Trace>, Self::Error> {
+    async fn trace_transaction(&self, _hash: H256) -> Result<Vec<Trace>, Self::Error> {
         unimplemented!("we don't need to trace transactions yet.")
     }
 
@@ -802,7 +803,7 @@ impl Middleware for SimulationEnvironment {
     /// Returns all receipts for that block. Must be done on a parity node.
     async fn parity_block_receipts<T: Into<BlockNumber> + Send + Sync>(
         &self,
-        block: T,
+        _block: T,
     ) -> Result<Vec<TransactionReceipt>, Self::Error> {
         unimplemented!("we don't need to get block receipts yet.")
     }
@@ -892,9 +893,9 @@ impl Middleware for SimulationEnvironment {
     /// details
     async fn fee_history<T: Into<U256> + serde::Serialize + Send + Sync>(
         &self,
-        block_count: T,
-        last_block: BlockNumber,
-        reward_percentiles: &[f64],
+        _block_count: T,
+        _last_block: BlockNumber,
+        _reward_percentiles: &[f64],
     ) -> Result<FeeHistory, Self::Error> {
         unimplemented!("we don't need to get fee history yet.")
     }
@@ -906,8 +907,8 @@ impl Middleware for SimulationEnvironment {
     /// details
     async fn create_access_list(
         &self,
-        tx: &TypedTransaction,
-        block: Option<BlockId>,
+        _tx: &TypedTransaction,
+        _block: Option<BlockId>,
     ) -> Result<AccessListWithGasUsed, Self::Error> {
         unimplemented!("we don't need to create access lists yet.")
     }
@@ -918,8 +919,6 @@ mod tests {
     use std::sync::Arc;
 
     use bindings::writer::Writer;
-
-    use super::*;
     use crate::manager::SimulationManager;
 
     #[tokio::test]
@@ -938,6 +937,5 @@ mod tests {
 
 
         Ok(())
-        // let writer = Writer::new(middleware, String::from("test"), writer_deploy.address);
     }
 }

@@ -7,7 +7,7 @@ pub mod contract;
 pub mod middleware;
 
 use crossbeam_channel::{unbounded, Receiver, Sender};
-use ethers::{abi::Token, prelude::AbiError, providers::{MockProvider, Provider, NodeClient}};
+use ethers::{abi::Token, prelude::AbiError, providers::{MockProvider, Provider}};
 use futures::Stream;
 use revm::{
     db::{CacheDB, EmptyDB},
