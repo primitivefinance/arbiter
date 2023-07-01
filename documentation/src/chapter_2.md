@@ -14,6 +14,10 @@ The `executor` module deals with the creation and execution of transactions. It 
 
 The `objectives` module defines the objective functions for convex optimization. This module is currently under development with the goal of implementing optimal routing algorithms in Rust.
 
+## Manager Module
+
+The `manager.rs` file contains the `SimulationManager` structure, which is responsible for managing simulations. The `SimulationManager` oversees the simulation environment, activates agents, handles contract deployment, calls contracts, and reads logs. It contains key functions such as `activate_agent`, which adds and activates an agent in the simulation environment, `auto_deploy`, which deploys all contracts necessary for any simulation, and `_deploy_contracts`, a generic contract deployment function.
+
 ## Lib Crate Integration
 
 The `lib` crate provides the foundational structures and mechanisms for simulations, integrating closely with the `onchain` crate to enable efficient, live Ethereum interaction.
@@ -44,14 +48,12 @@ In relation to the `onchain` crate's role in Ethereum RPC interaction, its promi
 
 * **Real-Time Data Monitoring:** The crate facilitates the real-time analysis of Ethereum logs, with filters based on contract address, event name, and block range.
 
-* **Flexible Transaction Execution:** The crate supports the creation and execution of both Flashbots relayer bundles and standard transactions.
+* **Flexible Transaction Execution:** The crate supports both Flashbots relayer bundles and standard transactions, thus offering versatility in transaction execution.
 
-* **Convex Optimization:** The crate provides objective functions for convex optimization, aiding in the development of optimal routing algorithms.
+* **Optimal Routing Algorithm:** The crate is in the process of developing an optimal routing algorithm. When completed, this feature will enhance efficiency and performance in interacting with the Ethereum network.
 
-* **Token Swapping Functionality:** Through the `Exchange` and `Cfmm` traits, the crate provides a robust framework for implementing token swapping functionality in contracts.
+* **Interactive Simulations:** The crate allows the management and running of simulations, making it a valuable tool for testing and development. The `SimulationManager` structure oversees the simulation environment and controls various operations, including agent activation, contract deployment, contract calling, and log reading.
 
-* **Historical Price Data Utilization:** The `historic` module allows importing price data from from CSV files, facilitating the use of this data in simulations.
+* **Contract Deployment:** The crate provides a comprehensive contract deployment system, where all necessary contracts for any simulation can be automatically deployed.
 
-* **Real-Time Risk Monitoring:** A future direction for this crate is real-time risk monitoring, critical for decentralized applications, offering swift responses to real-time data.
-
-* **Accelerated Innovation:** By providing a common framework for on-chain actors, the crate aims to stimulate innovation in the blockchain space.
+* **Historic Price Data:** The crate supports importing price data from CSV files. This feature is crucial for generating price paths for simulations and for working with historical price data.
