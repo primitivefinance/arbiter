@@ -12,6 +12,13 @@ The primary features of the `simulate` crate are as follows:
 
 * **Compatibility:** With a `no_std` design, `simulate` can be compiled to a WebAssembly (wasm) library, facilitating seamless integration with Javascript. Furthermore, this design also provides C++ bindings if required, thereby enhancing its cross-language adaptability.
 
+* **Manager Module:** The `manager.rs` file contains the `SimulationManager` structure, which is responsible for managing simulations. The `SimulationManager` oversees the simulation environment, activates agents, handles contract deployment, calls contracts, and reads logs.
+
+* **Lib Crate Integration:** The `lib` crate provides foundational structures and mechanisms for simulations, integrating closely with the `onchain` crate for efficient, live Ethereum interaction.
+
+* **Exchange Module:** The `Exchange` and `Cfmm` traits from the `exchange.rs` file describe the functionality of any contract that can be used to swap tokens.
+
+* **Historic Module:** The `historic.rs` file is key for generating price paths for a simulation, allowing managers to alter prices for infinitely liquid pools. This module also allows for the importation of price data from a CSV file.
 
 The `simulate` crate constitutes a key component of our Rust ecosystem, primarily dealing with agent-based simulations, price paths, and middleware that interfaces with the `revm`.
 
@@ -37,4 +44,8 @@ Given the `simulate` crate's role in interfacing with `revm`, its key features c
 
 * **Extensibility:** The crate is designed with user customization in mind, enabling developers to define their own agents and processes to expand upon the existing pre-built options.
 
+* **Interactive Simulations:** The crate allows the management and running of simulations, making it a valuable tool for testing and development. The `SimulationManager` structure oversees the simulation environment and controls various operations, including agent activation, contract deployment, contract calling, and log reading.
 
+* **Historic Price Data:** The crate supports importing price data from CSV files. This feature is crucial for generating price paths for simulations and for working with historical price data.
+
+* **Optimal Routing Algorithm:** The crate is in the process of developing an optimal routing algorithm. When completed, this feature will enhance efficiency and performance in interacting with the Ethereum network.
