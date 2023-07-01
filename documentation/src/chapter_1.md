@@ -20,6 +20,8 @@ The primary features of the `simulate` crate are as follows:
 
 * **Historic Module:** The `historic.rs` file is key for generating price paths for a simulation, allowing managers to alter prices for infinitely liquid pools. This module also allows for the importation of price data from a CSV file.
 
+* **Utility Module:** The `utils.rs` file is a utility module that contains various tools for streamlining the development process. This includes error handling through the `UnpackError` type and functions for recasting addresses, converting floats to U256 and vice versa, and unpacking execution results.
+
 The `simulate` crate constitutes a key component of our Rust ecosystem, primarily dealing with agent-based simulations, price paths, and middleware that interfaces with the `revm`.
 
 ## Primary Submodules
@@ -30,7 +32,9 @@ There are two primary submodules in the `simulate` crate:
 
 * **Stochastic:** As a pivotal submodule of the `simulate` crate, `stochastic` is where price paths and other stochastic processes crucial for simulations are defined. Currently, we support Gaussian Geometric Brownian Motion (GBM) and Ornstein-Uhlenbeck (OU) price paths.
 
-Aside from these two submodules, the `simulate` crate also includes a variety of middleware utilities and tools designed to interface with `revm`. This includes tools for backtesting using historical data.
+* **Utils:** The `utils` module provides various utility functions and error handling for streamlining the development process. This includes tools for recasting addresses, converting floats to U256 and vice versa, and unpacking execution results.
+
+Aside from these submodules, the `simulate` crate also includes a variety of middleware utilities and tools designed to interface with `revm`. This includes tools for backtesting using historical data.
 
 ## Crate Features
 
@@ -38,7 +42,7 @@ Given the `simulate` crate's role in interfacing with `revm`, its key features c
 
 * **Customizable Agent Behavior:** The `simulate` crate allows for the definition of various agent behaviors, enabling unique simulation scenarios.
 
-* **Diverse Stochastic Processes:** The crate supports various stochastic processes, such as GBM and OU price paths, providing a wide array of possibilities for simulations.
+* **Diverse Stochastic Processes:** The crate supports various stochastic processes , such as GBM and OU price paths, providing a wide array of possibilities for simulations.
 
 * **Robust Middleware Tools:** With a suite of middleware utilities, `simulate` facilitates interaction with `revm` and enables backtesting with historical data.
 
@@ -49,3 +53,19 @@ Given the `simulate` crate's role in interfacing with `revm`, its key features c
 * **Historic Price Data:** The crate supports importing price data from CSV files. This feature is crucial for generating price paths for simulations and for working with historical price data.
 
 * **Optimal Routing Algorithm:** The crate is in the process of developing an optimal routing algorithm. When completed, this feature will enhance efficiency and performance in interacting with the Ethereum network.
+
+## Utility Module
+
+The `utils.rs` module provides utility functionality for the `simulate` crate. It contains the following functions:
+
+* `recast_address`: Recasts a `B160` type into an `Address` type.
+* `float_to_wad`: Converts a `f64` float into a WAD fixed point prepared `U256` number.
+* `wad_to_float`: Converts a WAD fixed point prepared `U256` number into a `f64` float.
+* `unpack_execution`: Takes an `ExecutionResult` and returns the raw bytes of the output that can be decoded.
+
+Additionally, the module includes the `UnpackError` struct, which represents an error encountered during simulation execution. It contains an error message and an optional byte output.
+
+These utility functions and error handling mechanisms streamline the development process and enhance the functionality of the `simulate` crate.
+
+The `simulate` crate, with its various submodules and utility module, provides a comprehensive framework for agent-based simulations, price paths, and middleware integration with the `revm`. It offers a wide range of features and customization options, making it a powerful tool for developers in the Rust ecosystem.
+
