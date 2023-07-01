@@ -1,10 +1,10 @@
-# Chapter 1: Interface over revm (simulate crate)
+# Chapter 1: Simulate Crate (Interface over revm)
 
 ```revm``` is an EVM written is Rust that focuses on **speed** and **simplicity**.
 
 Features, **interfacing** - ```no_std``` so that it can be used as a wasm lib to integrate with Javascript and cpp bindings if necessary.
 
-## Features of the simulate crate
+## Features of the Simulate Crate
 
 The primary features of the `simulate` crate are as follows:
 

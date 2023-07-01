@@ -1,1 +1,1 @@
-# Chapter 3
+# Chapter 3: Simulations Directory in ```/bin```
