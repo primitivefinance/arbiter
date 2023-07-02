@@ -90,7 +90,8 @@ pub(crate) fn create_simulation(simulation_name: &str) -> std::io::Result<()> {
     pub fn allocate() {
     todo!()
     }
-    "#;
+}.to_string();
+    
     // Create a directory
     fs::create_dir_all("arbiter")?;
 
