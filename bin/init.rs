@@ -4,28 +4,28 @@ use std::path::Path;
 use quote::quote;
 
 pub(crate) fn create_simulation(simulation_name: &str) -> std::io::Result<()> {
-    let main = r#"
-    mod simulations;
+    let main = quote! {
+        mod simulations;
 
-    fn main() { 
-        let _ = simulations::testsim::run();
-    }"#;
+        fn main() { 
+            let _ = simulations::testsim::run();
+        }
+    }.to_string();
 
-    let toml = format!(
-        r#"[package]
-name = "arbitersim"
-version = "0.1.0"
-edition = "2021"
+    let toml = quote! {
+        [package]
+        name = "arbitersim"
+        version = "0.1.0"
+        edition = "2021"
 
-[[bin]]
-name = "{}"
-path = "arbiter/src/main.rs"
+        [[bin]]
+        name = {simulation_name}
+        path = "arbiter/src/main.rs"
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-[dependencies]
-simulate = {{ git = "https://github.com/primitivefinance/arbiter", package = "simulate" }}"#,
-        simulation_name,
-    );
+        # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+        [dependencies]
+        simulate = {{ git = "https://github.com/primitivefinance/arbiter", package = "simulate" }}
+    }.to_string();
 
     let mod_rs = quote! {
         use std::error::Error;
