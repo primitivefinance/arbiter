@@ -117,24 +117,24 @@ pub(crate) fn create_simulation(simulation_name: &str) -> std::io::Result<()> {
     let file_path = Path::new(".").join("Cargo.toml");
     let mut file = fs::File::create(file_path)?;
     let toml_token = quote! {#toml};
-    write!(file, "{}", toml_token.to_string())?;
+    write!(file, "{}", toml_token)?;
 
     let file_path = simulations_path.join("mod.rs");
     let mut file = fs::File::create(file_path)?;
     let mod_token = quote! {
         pub mod #simulation_name;
     };
-    write!(file, "{}", mod_token.to_string())?;
+    write!(file, "{}", mod_token)?;
 
     let file_path = sim.join("mod.rs");
     let mut file = fs::File::create(file_path)?;
     let mod_rs_token = quote! {#mod_rs};
-    write!(file, "{}", mod_rs_token.to_string())?;
+    write!(file, "{}", mod_rs_token)?;
 
     let file_path = sim.join("startup.rs");
     let mut file = fs::File::create(file_path)?;
     let startup_token = quote! {#startup};
-    write!(file, "{}", startup_token.to_string())?;
+    write!(file, "{}", startup_token)?;
 
     let file_path = sim.join("arbitrage.rs");
     fs::File::create(file_path)?;
@@ -142,7 +142,7 @@ pub(crate) fn create_simulation(simulation_name: &str) -> std::io::Result<()> {
     let file_path = src_path.join("main.rs");
     let mut file = fs::File::create(file_path)?;
     let main_token = quote! {#main};
-    write!(file, "{}", main_token.to_string())?;
+    write!(file, "{}", main_token)?;
 
     Ok(())
 }
