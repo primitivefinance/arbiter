@@ -93,50 +93,57 @@ pub(crate) fn create_simulation(simulation_name: &str) -> std::io::Result<()> {
 }.to_string();
     
     // Create a directory
-    fs::create_dir_all("arbiter")?;
+fs::create_dir_all("arbiter")?;
 
-    // Create a subdirectory
+// Create a subdirectory
 
-    let src_path = Path::new("arbiter").join("src");
-    fs::create_dir_all(&src_path)?;
+let src_path = Path::new("arbiter").join("src");
+fs::create_dir_all(&src_path)?;
 
-    let bindings_path = src_path.join("bindings");
-    fs::create_dir_all(bindings_path)?;
+let bindings_path = src_path.join("bindings");
+fs::create_dir_all(bindings_path)?;
 
-    let simulations_path = src_path.join("simulations");
-    fs::create_dir_all(&simulations_path)?;
+let simulations_path = src_path.join("simulations");
+fs::create_dir_all(&simulations_path)?;
 
-    let sim = simulations_path.join(simulation_name);
-    fs::create_dir_all(&sim)?;
+let sim = simulations_path.join(simulation_name);
+fs::create_dir_all(&sim)?;
 
-    // Create a file in the subdirectory
-    let file_path = Path::new(".").join("Cargo.toml");
-    let mut file = fs::File::create(file_path)?;
-    write!(file, "{}", toml)?;
+// Create a file in the subdirectory
+let file_path = Path::new(".").join("Cargo.toml");
+let mut file = fs::File::create(file_path)?;
+let toml_token = quote! {#toml};
+write!(file, "{}", toml_token.to_string())?;
 
-    let file_path = simulations_path.join("mod.rs");
-    let mut file = fs::File::create(file_path)?;
-    write!(file, "pub mod {};", simulation_name)?;
+let file_path = simulations_path.join("mod.rs");
+let mut file = fs::File::create(file_path)?;
+let mod_token = quote! {
+    pub mod #simulation_name;
+};
+write!(file, "{}", mod_token.to_string())?;
 
-    let file_path = sim.join("mod.rs");
-    let mut file = fs::File::create(file_path)?;
-    write!(file, "{}", mod_rs)?;
+let file_path = sim.join("mod.rs");
+let mut file = fs::File::create(file_path)?;
+let mod_rs_token = quote! {#mod_rs};
+write!(file, "{}", mod_rs_token.to_string())?;
 
-    let file_path = sim.join("startup.rs");
-    let mut file = fs::File::create(file_path)?;
-    write!(file, "{}", startup)?;
+let file_path = sim.join("startup.rs");
+let mut file = fs::File::create(file_path)?;
+let startup_token = quote! {#startup};
+write!(file, "{}", startup_token.to_string())?;
 
-    let file_path = sim.join("arbitrage.rs");
-    fs::File::create(file_path)?;
+let file_path = sim.join("arbitrage.rs");
+fs::File::create(file_path)?;
 
-    let file_path = src_path.join("main.rs");
-    let mut file = fs::File::create(file_path)?;
-    write!(file, "{}", main)?;
+let file_path = src_path.join("main.rs");
+let mut file = fs::File::create(file_path)?;
+let main_token = quote! {#main};
+write!(file, "{}", main_token.to_string())?;
 
-    Ok(())
+Ok(())
 }
 
 #[test]
 fn main() {
-    create_simulation("portfolio").unwrap();
+create_simulation("portfolio").unwrap();
 }
