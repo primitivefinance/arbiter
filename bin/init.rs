@@ -1,16 +1,17 @@
+use quote::quote;
 use std::fs;
 use std::io::Write;
 use std::path::Path;
-use quote::quote;
 
 pub(crate) fn create_simulation(simulation_name: &str) -> std::io::Result<()> {
     let main = quote! {
         mod simulations;
 
-        fn main() { 
+        fn main() {
             let _ = simulations::testsim::run();
         }
-    }.to_string();
+    }
+    .to_string();
 
     let toml = quote! {
         [package]
@@ -25,73 +26,76 @@ pub(crate) fn create_simulation(simulation_name: &str) -> std::io::Result<()> {
         # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
         [dependencies]
         simulate = {{ git = "https://github.com/primitivefinance/arbiter", package = "simulate" }}
-    }.to_string();
+    }
+    .to_string();
 
     let mod_rs = quote! {
         use std::error::Error;
-    
+
         pub fn run() -> Result<(), Box<dyn Error>> {
             todo!()
         }
-    }.to_string();
+    }
+    .to_string();
 
     let startup = quote! {
-        pub(crate) fn run(manager: &mut SimulationManager) -> Result<(), Box<dyn Error>> {
-            let weth_address = manager.deployed_contracts.get("weth").unwrap().address;
-            deploy_contracts(manager, weth_address)?;
-            let liquid_exchange_xy = manager
-                .deployed_contracts
-                .get("liquid_exchange_xy")
-                .unwrap();
-            let address = B160::from_low_u64_be(2);
-            let event_filters = vec![SimulationEventFilter::new(
-                liquid_exchange_xy,
-                "PriceChange",
-            )];
-            let arbitrageur = SimpleArbitrageur::new(
-                "arbitrageur",
-                event_filters,
-                U256::from(997_000_000_000_000_000u128).into(),
-            );
-            manager
-                .activate_agent(AgentType::SimpleArbitrageur(arbitrageur), address)
-                .unwrap();
+            pub(crate) fn run(manager: &mut SimulationManager) -> Result<(), Box<dyn Error>> {
+                let weth_address = manager.deployed_contracts.get("weth").unwrap().address;
+                deploy_contracts(manager, weth_address)?;
+                let liquid_exchange_xy = manager
+                    .deployed_contracts
+                    .get("liquid_exchange_xy")
+                    .unwrap();
+                let address = B160::from_low_u64_be(2);
+                let event_filters = vec![SimulationEventFilter::new(
+                    liquid_exchange_xy,
+                    "PriceChange",
+                )];
+                let arbitrageur = SimpleArbitrageur::new(
+                    "arbitrageur",
+                    event_filters,
+                    U256::from(997_000_000_000_000_000u128).into(),
+                );
+                manager
+                    .activate_agent(AgentType::SimpleArbitrageur(arbitrageur), address)
+                    .unwrap();
 
-            mint(
-                &manager.deployed_contracts,
-                manager.agents.get("admin").unwrap(),
-                manager.agents.get("arbitrageur").unwrap(),
-            )?;
-            approve(
-                manager.agents.get("admin").unwrap(),
-                manager.agents.get("arbitrageur").unwrap(),
-                &manager.deployed_contracts,
-            )?;
+                mint(
+                    &manager.deployed_contracts,
+                    manager.agents.get("admin").unwrap(),
+                    manager.agents.get("arbitrageur").unwrap(),
+                )?;
+                approve(
+                    manager.agents.get("admin").unwrap(),
+                    manager.agents.get("arbitrageur").unwrap(),
+                    &manager.deployed_contracts,
+                )?;
 
-            allocate(
-                manager.agents.get("admin").unwrap(),
-                &manager.deployed_contracts,
-            )?;
+                allocate(
+                    manager.agents.get("admin").unwrap(),
+                    &manager.deployed_contracts,
+                )?;
 
-            Ok(())
-    }
-    pub fn deploy() {
-    todo!()
-    }
-    
-    pub fn mint() {
-    todo!()
-    }
+                Ok(())
+        }
+        pub fn deploy() {
+        todo!()
+        }
 
-    pub fn approve() {
-    todo!()
-    }
+        pub fn mint() {
+        todo!()
+        }
 
-    pub fn allocate() {
-    todo!()
+        pub fn approve() {
+        todo!()
+        }
+
+        pub fn allocate() {
+        todo!()
+        }
     }
-}.to_string();
-    
+    .to_string();
+
     // Create a directory
     fs::create_dir_all("arbiter")?;
 
@@ -141,9 +145,9 @@ pub(crate) fn create_simulation(simulation_name: &str) -> std::io::Result<()> {
     write!(file, "{}", main_token.to_string())?;
 
     Ok(())
-    }
+}
 
-    #[test]
-    fn main() {
+#[test]
+fn main() {
     create_simulation("portfolio").unwrap();
-    }
+}
