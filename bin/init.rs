@@ -23,7 +23,7 @@ pub(crate) fn create_simulation(simulation_name: &str) -> std::io::Result<()> {
         name = {simulation_name}
         path = "arbiter/src/main.rs"
 
-        # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+        // See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
         [dependencies]
         simulate = {{ git = "https://github.com/primitivefinance/arbiter", package = "simulate" }}
     }
