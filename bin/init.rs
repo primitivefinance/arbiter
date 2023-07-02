@@ -1,6 +1,7 @@
 use std::fs;
 use std::io::Write;
 use std::path::Path;
+use quote::quote;
 
 pub(crate) fn create_simulation(simulation_name: &str) -> std::io::Result<()> {
     let main = r#"
@@ -26,12 +27,13 @@ simulate = {{ git = "https://github.com/primitivefinance/arbiter", package = "si
         simulation_name,
     );
 
-    let mod_rs = r#"
-    use std::error::Error;
-
-    pub fn run() -> Result<(), Box<dyn Error>> {
-        todo!()
-    }"#;
+    let mod_rs = quote! {
+        use std::error::Error;
+    
+        pub fn run() -> Result<(), Box<dyn Error>> {
+            todo!()
+        }
+    }.to_string();
 
     let startup = r#"pub(crate) fn run(manager: &mut SimulationManager) -> Result<(), Box<dyn Error>> {
         let weth_address = manager.deployed_contracts.get("weth").unwrap().address;
