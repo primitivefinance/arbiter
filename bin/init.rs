@@ -1,93 +1,101 @@
+use quote::quote;
 use std::fs;
 use std::io::Write;
 use std::path::Path;
 
 pub(crate) fn create_simulation(simulation_name: &str) -> std::io::Result<()> {
-    let main = r#"
-    mod simulations;
+    let main = quote! {
+        mod simulations;
 
-    fn main() { 
-        let _ = simulations::testsim::run();
-    }"#;
+        fn main() {
+            let _ = simulations::testsim::run();
+        }
+    }
+    .to_string();
 
-    let toml = format!(
-        r#"[package]
-name = "arbitersim"
-version = "0.1.0"
-edition = "2021"
+    let toml = quote! {
+        [package]
+        name = "arbitersim"
+        version = "0.1.0"
+        edition = "2021"
 
-[[bin]]
-name = "{}"
-path = "arbiter/src/main.rs"
+        [[bin]]
+        name = {simulation_name}
+        path = "arbiter/src/main.rs"
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-[dependencies]
-simulate = {{ git = "https://github.com/primitivefinance/arbiter", package = "simulate" }}"#,
-        simulation_name,
-    );
+        // See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+        [dependencies]
+        simulate = {{ git = "https://github.com/primitivefinance/arbiter", package = "simulate" }}
+    }
+    .to_string();
 
-    let mod_rs = r#"
-    use std::error::Error;
+    let mod_rs = quote! {
+        use std::error::Error;
 
-    pub fn run() -> Result<(), Box<dyn Error>> {
+        pub fn run() -> Result<(), Box<dyn Error>> {
+            todo!()
+        }
+    }
+    .to_string();
+
+    let startup = quote! {
+            pub(crate) fn run(manager: &mut SimulationManager) -> Result<(), Box<dyn Error>> {
+                let weth_address = manager.deployed_contracts.get("weth").unwrap().address;
+                deploy_contracts(manager, weth_address)?;
+                let liquid_exchange_xy = manager
+                    .deployed_contracts
+                    .get("liquid_exchange_xy")
+                    .unwrap();
+                let address = B160::from_low_u64_be(2);
+                let event_filters = vec![SimulationEventFilter::new(
+                    liquid_exchange_xy,
+                    "PriceChange",
+                )];
+                let arbitrageur = SimpleArbitrageur::new(
+                    "arbitrageur",
+                    event_filters,
+                    U256::from(997_000_000_000_000_000u128).into(),
+                );
+                manager
+                    .activate_agent(AgentType::SimpleArbitrageur(arbitrageur), address)
+                    .unwrap();
+
+                mint(
+                    &manager.deployed_contracts,
+                    manager.agents.get("admin").unwrap(),
+                    manager.agents.get("arbitrageur").unwrap(),
+                )?;
+                approve(
+                    manager.agents.get("admin").unwrap(),
+                    manager.agents.get("arbitrageur").unwrap(),
+                    &manager.deployed_contracts,
+                )?;
+
+                allocate(
+                    manager.agents.get("admin").unwrap(),
+                    &manager.deployed_contracts,
+                )?;
+
+                Ok(())
+        }
+        pub fn deploy() {
         todo!()
-    }"#;
+        }
 
-    let startup = r#"pub(crate) fn run(manager: &mut SimulationManager) -> Result<(), Box<dyn Error>> {
-        let weth_address = manager.deployed_contracts.get("weth").unwrap().address;
-        deploy_contracts(manager, weth_address)?;
-        let liquid_exchange_xy = manager
-            .deployed_contracts
-            .get("liquid_exchange_xy")
-            .unwrap();
-        let address = B160::from_low_u64_be(2);
-        let event_filters = vec![SimulationEventFilter::new(
-            liquid_exchange_xy,
-            "PriceChange",
-        )];
-        let arbitrageur = SimpleArbitrageur::new(
-            "arbitrageur",
-            event_filters,
-            U256::from(997_000_000_000_000_000u128).into(),
-        );
-        manager
-            .activate_agent(AgentType::SimpleArbitrageur(arbitrageur), address)
-            .unwrap();
-    
-        mint(
-            &manager.deployed_contracts,
-            manager.agents.get("admin").unwrap(),
-            manager.agents.get("arbitrageur").unwrap(),
-        )?;
-        approve(
-            manager.agents.get("admin").unwrap(),
-            manager.agents.get("arbitrageur").unwrap(),
-            &manager.deployed_contracts,
-        )?;
-    
-        allocate(
-            manager.agents.get("admin").unwrap(),
-            &manager.deployed_contracts,
-        )?;
-    
-        Ok()
-    }
-    pub fn deploy() {
-    todo!()
-    }
-    
-    pub fn mint() {
-    todo!()
-    }
+        pub fn mint() {
+        todo!()
+        }
 
-    pub fn approve() {
-    todo!()
-    }
+        pub fn approve() {
+        todo!()
+        }
 
-    pub fn allocate() {
-    todo!()
+        pub fn allocate() {
+        todo!()
+        }
     }
-    "#;
+    .to_string();
+
     // Create a directory
     fs::create_dir_all("arbiter")?;
 
@@ -108,26 +116,33 @@ simulate = {{ git = "https://github.com/primitivefinance/arbiter", package = "si
     // Create a file in the subdirectory
     let file_path = Path::new(".").join("Cargo.toml");
     let mut file = fs::File::create(file_path)?;
-    write!(file, "{}", toml)?;
+    let toml_token = quote! {#toml};
+    write!(file, "{}", toml_token)?;
 
     let file_path = simulations_path.join("mod.rs");
     let mut file = fs::File::create(file_path)?;
-    write!(file, "pub mod {};", simulation_name)?;
+    let mod_token = quote! {
+        pub mod #simulation_name;
+    };
+    write!(file, "{}", mod_token)?;
 
     let file_path = sim.join("mod.rs");
     let mut file = fs::File::create(file_path)?;
-    write!(file, "{}", mod_rs)?;
+    let mod_rs_token = quote! {#mod_rs};
+    write!(file, "{}", mod_rs_token)?;
 
     let file_path = sim.join("startup.rs");
     let mut file = fs::File::create(file_path)?;
-    write!(file, "{}", startup)?;
+    let startup_token = quote! {#startup};
+    write!(file, "{}", startup_token)?;
 
     let file_path = sim.join("arbitrage.rs");
     fs::File::create(file_path)?;
 
     let file_path = src_path.join("main.rs");
     let mut file = fs::File::create(file_path)?;
-    write!(file, "{}", main)?;
+    let main_token = quote! {#main};
+    write!(file, "{}", main_token)?;
 
     Ok(())
 }
