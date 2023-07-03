@@ -359,8 +359,9 @@ mod tests {
 
     use crate::{
         agent::{user::User, Agent, AgentType, SimulationEventFilter},
+        bindings,
         environment::contract::SimulationContract,
-        manager::SimulationManager, bindings,
+        manager::SimulationManager,
     };
 
     use futures::stream::StreamExt;

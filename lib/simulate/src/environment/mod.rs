@@ -7,7 +7,11 @@ pub mod contract;
 pub mod middleware;
 
 use crossbeam_channel::{unbounded, Receiver, Sender};
-use ethers::{abi::Token, prelude::AbiError, providers::{MockProvider, Provider}};
+use ethers::{
+    abi::Token,
+    prelude::AbiError,
+    providers::{MockProvider, Provider},
+};
 use futures::Stream;
 use revm::{
     db::{CacheDB, EmptyDB},
@@ -40,7 +44,6 @@ pub struct SimulationEnvironment {
     pub(crate) transaction_channel: (TxEnvSender, TxEnvReceiver),
     /// The provider for [`Middleware`].
     pub(crate) provider: Provider<MockProvider>,
-    
 }
 
 impl fmt::Debug for SimulationEnvironment {
@@ -163,9 +166,9 @@ impl EventStream {
 
 #[cfg(test)]
 mod tests {
-    use crate::{agent::Agent, bindings};
     use crate::environment::contract::SimulationContract;
     use crate::manager::SimulationManager;
+    use crate::{agent::Agent, bindings};
 
     use super::*;
     use bindings::writer;

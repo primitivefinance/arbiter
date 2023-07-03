@@ -169,9 +169,10 @@ mod tests {
     use super::SimpleArbitrageur;
     use crate::{
         agent::{simple_arbitrageur::is_arbitrage, Agent, AgentType, SimulationEventFilter},
+        bindings,
         environment::contract::SimulationContract,
         manager::SimulationManager,
-        utils::recast_address, bindings,
+        utils::recast_address,
     };
 
     #[tokio::test]

@@ -23,11 +23,12 @@ use crate::{
         simple_arbitrageur::SimpleArbitrageur, user::User, Agent, AgentType, IsActive, NotActive,
         TransactSettings,
     },
+    bindings,
     environment::{
         contract::{IsDeployed, NotDeployed, SimulationContract},
         EventStream, SimulationEnvironment,
     },
-    utils::recast_address, bindings,
+    utils::recast_address,
 };
 
 #[derive(Clone, Debug)]

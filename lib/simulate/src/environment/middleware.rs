@@ -3,11 +3,9 @@
 //! This module contains the middleware for the Revm simulation environment.
 //! Most of the middleware is essentially a placeholder, but it is necessary to have a middleware to work with bindings more efficiently.
 
-
 // TODO and notes:
 // The middleware/client should be something like `AgentClient` or `AgentMiddleware`.
 // The middleware/client needs to be able to send transactions from an address (and also have access to some specific channels and what not)
-
 
 use std::fmt::Debug;
 
@@ -15,7 +13,7 @@ use ethers::{
     prelude::ProviderError,
     providers::{
         erc, FilterKind, FilterWatcher, LogQuery, Middleware, MiddlewareError, MockProvider,
-        NodeInfo, PeerInfo, PendingTransaction, Provider
+        NodeInfo, PeerInfo, PendingTransaction, Provider,
     },
     types::{
         transaction::{eip2718::TypedTransaction, eip2930::AccessListWithGasUsed},
@@ -25,12 +23,9 @@ use ethers::{
         TransactionReceipt, TxHash, TxpoolContent, TxpoolInspect, TxpoolStatus, H256, U256, U64,
     },
 };
-use revm::{
-    primitives::{TransactTo, TxEnv, B160},
-};
+use revm::primitives::{TransactTo, TxEnv, B160};
 use serde::{de::DeserializeOwned, Serialize};
 use url::Url;
-
 
 use super::SimulationEnvironment;
 
@@ -350,7 +345,7 @@ impl Middleware for SimulationEnvironment {
     async fn get_balance<T: Into<NameOrAddress> + Send + Sync>(
         &self,
         _from: T,
-       _block: Option<BlockId>,
+        _block: Option<BlockId>,
     ) -> Result<U256, Self::Error> {
         todo!("we should be able to get the balance.")
     }
@@ -916,18 +911,17 @@ impl Middleware for SimulationEnvironment {
 
 #[cfg(test)]
 mod tests {
-    use std::sync::Arc;
     use anyhow;
+    use std::sync::Arc;
 
+    use crate::{bindings, manager::SimulationManager};
     use bindings::writer::Writer;
-    use crate::{manager::SimulationManager, bindings};
 
     #[tokio::test]
     async fn test_something() -> anyhow::Result<()> {
-
         let manager = SimulationManager::new();
         let client = Arc::new(manager.environment);
-        
+
         let deployer = Writer::deploy(client, ())?;
         println!("deployer: {:?}", deployer);
         let writer = deployer.send().await?;
@@ -935,7 +929,6 @@ mod tests {
             .echo_string(String::from("test_string"))
             .send()
             .await?;
-
 
         Ok(())
     }

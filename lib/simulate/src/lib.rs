@@ -3,12 +3,12 @@
 //! Lib crate for describing simulations.
 
 pub mod agent;
+pub mod bindings;
 pub mod environment;
 pub mod historic;
 pub mod manager;
 pub mod stochastic;
 pub mod utils;
-pub mod bindings;
 
 #[cfg(test)]
 mod tests {
@@ -20,9 +20,10 @@ mod tests {
 
     use crate::{
         agent::{user::User, Agent, AgentType},
+        bindings,
         environment::contract::SimulationContract,
         manager::SimulationManager,
-        utils::{recast_address, unpack_execution}, bindings,
+        utils::{recast_address, unpack_execution},
     };
 
     #[test]
