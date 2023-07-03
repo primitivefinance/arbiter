@@ -4,7 +4,6 @@
 members = [
     "crates/bindings",
     "crates/simulate",
-    "crates/onchain",
 ]
 
 # Package configuration
@@ -24,7 +23,6 @@ path = "bin/main.rs"
 # Local dependencies
 simulate = {path = "crates/simulate"}
 bindings = {path = "crates/bindings"}
-onchain = {path = "crates/onchain"}
 
 # Primitive dependencies
 visualize = { git = "https://github.com/primitivefinance/visualization-rs.git"}
@@ -50,11 +48,16 @@ ethers = { version = "2.0.4", default-features = false, features = ["abigen"] }
 # Simulation dependencies
 crossbeam-channel = "0.5.8"
 polars = "0.29.0"
-quote = "1.0.29"
+quote = "1.0.28"
+url = { version = "2.3.1", default-features = false }
+
+# Execution
+ethers-flashbots = { version = "0.13.1" }
+futures = { version = "0.3.27" }
 
 # workspace dependencies
 [workspace.dependencies]
-futures = { version = "0.3.28" }
+futures = { version = "0.3.27" }
 csv = { version = "1.2.1" }
 ethers = { version = "2.0.4", default-features = false, features = ["abigen"] }
 serde = { version = "1.0.163", features= ["derive"]}
