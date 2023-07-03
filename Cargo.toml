@@ -2,7 +2,6 @@
 [workspace]
 # List of crates included in this workspace
 members = [
-    "crates/bindings",
     "crates/simulate",
 ]
 
@@ -22,7 +21,6 @@ path = "bin/main.rs"
 [dependencies]
 # Local dependencies
 simulate = {path = "crates/simulate"}
-bindings = {path = "crates/bindings"}
 
 # Primitive dependencies
 visualize = { git = "https://github.com/primitivefinance/visualization-rs.git"}
@@ -62,7 +60,6 @@ csv = { version = "1.2.1" }
 ethers = { version = "2.0.4", default-features = false, features = ["abigen"] }
 serde = { version = "1.0.163", features= ["derive"]}
 serde_json = { version = "1.0.96" }
-bindings = {path = "crates/bindings"}
 tokio = { version = "1.28.1", features = ["macros", "full"] }
 
 # Development dependencies

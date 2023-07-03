@@ -1,6 +1,6 @@
 use std::{collections::HashMap, error::Error};
 
-use bindings::{liquid_exchange, uniswap_v2_router_01::uniswap_v2_router_01};
+use simulate::bindings::{liquid_exchange, uniswap_v2_router_01::uniswap_v2_router_01};
 use ethers::{
     abi::{Tokenizable, Tokenize},
     prelude::U256,
@@ -241,7 +241,7 @@ mod test {
         let pair_address = startup::run(&mut manager)?;
         let uniswap_pair = SimulationContract::<IsDeployed> {
             address: pair_address.into(),
-            base_contract: BaseContract::from(bindings::uniswap_v2_pair::UNISWAPV2PAIR_ABI.clone()),
+            base_contract: BaseContract::from(simulate::bindings::uniswap_v2_pair::UNISWAPV2PAIR_ABI.clone()),
             bytecode: (),
             constructor_arguments: Vec::new(),
         };
@@ -261,7 +261,7 @@ mod test {
         let pair_address = startup::run(&mut manager)?;
         let uniswap_pair = SimulationContract::<IsDeployed> {
             address: pair_address.into(),
-            base_contract: BaseContract::from(bindings::uniswap_v2_pair::UNISWAPV2PAIR_ABI.clone()),
+            base_contract: BaseContract::from(simulate::bindings::uniswap_v2_pair::UNISWAPV2PAIR_ABI.clone()),
             bytecode: (),
             constructor_arguments: Vec::new(),
         };

@@ -171,7 +171,7 @@ mod tests {
         agent::{simple_arbitrageur::is_arbitrage, Agent, AgentType, SimulationEventFilter},
         environment::contract::SimulationContract,
         manager::SimulationManager,
-        utils::recast_address,
+        utils::recast_address, bindings,
     };
 
     #[tokio::test]

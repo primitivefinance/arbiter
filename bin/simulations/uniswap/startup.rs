@@ -1,4 +1,4 @@
-use bindings::{uniswap_v2_factory, uniswap_v2_router_02};
+use simulate::bindings::{uniswap_v2_factory, uniswap_v2_router_02};
 use ethers::{
     abi::{Token, Tokenize},
     prelude::U256,

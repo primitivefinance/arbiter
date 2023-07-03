@@ -920,7 +920,7 @@ mod tests {
     use anyhow;
 
     use bindings::writer::Writer;
-    use crate::manager::SimulationManager;
+    use crate::{manager::SimulationManager, bindings};
 
     #[tokio::test]
     async fn test_something() -> anyhow::Result<()> {

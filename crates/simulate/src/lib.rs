@@ -8,6 +8,7 @@ pub mod historic;
 pub mod manager;
 pub mod stochastic;
 pub mod utils;
+pub mod bindings;
 
 #[cfg(test)]
 mod tests {
@@ -21,7 +22,7 @@ mod tests {
         agent::{user::User, Agent, AgentType},
         environment::contract::SimulationContract,
         manager::SimulationManager,
-        utils::{recast_address, unpack_execution},
+        utils::{recast_address, unpack_execution}, bindings,
     };
 
     #[test]

@@ -35,5 +35,4 @@ csv.workspace = true
 ethers.workspace = true
 serde.workspace = true
 serde_json.workspace = true
-bindings.workspace = true
 tokio.workspace = true

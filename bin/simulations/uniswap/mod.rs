@@ -39,7 +39,7 @@ pub async fn run(
     // maybe we can make a custome deployed_by for this, i was looking into this and i think to do this maybe we would have to take away the constructor args attribute, but I think that is okay and things will still work
     let uniswap_pair = SimulationContract::<IsDeployed> {
         address: pair_address.into(),
-        base_contract: BaseContract::from(bindings::uniswap_v2_pair::UNISWAPV2PAIR_ABI.clone()),
+        base_contract: BaseContract::from(simulate::bindings::uniswap_v2_pair::UNISWAPV2PAIR_ABI.clone()),
         bytecode: (),
         constructor_arguments: Vec::new(),
     };

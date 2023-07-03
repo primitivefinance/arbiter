@@ -27,7 +27,7 @@ use crate::{
         contract::{IsDeployed, NotDeployed, SimulationContract},
         EventStream, SimulationEnvironment,
     },
-    utils::recast_address,
+    utils::recast_address, bindings,
 };
 
 #[derive(Clone, Debug)]

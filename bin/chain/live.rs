@@ -3,7 +3,7 @@
 
 use std::error::Error;
 
-use bindings::uniswap_v3_pool;
+use simulate::bindings::uniswap_v3_pool;
 use monitor::EventMonitor;
 
 use super::monitor;

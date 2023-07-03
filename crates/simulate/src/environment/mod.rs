@@ -163,7 +163,7 @@ impl EventStream {
 
 #[cfg(test)]
 mod tests {
-    use crate::agent::Agent;
+    use crate::{agent::Agent, bindings};
     use crate::environment::contract::SimulationContract;
     use crate::manager::SimulationManager;
 
