@@ -25,6 +25,10 @@ async-trait = "0.1.68"
 # For tests
 hex = { version = "0.4.3", default-features = false }
 
+# For Errors
+anyhow = "1.0.71"
+url = "2.2.2"
+
 # Workspace dependencies
 futures.workspace = true
 csv.workspace = true

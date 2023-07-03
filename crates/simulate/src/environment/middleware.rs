@@ -917,6 +917,7 @@ impl Middleware for SimulationEnvironment {
 #[cfg(test)]
 mod tests {
     use std::sync::Arc;
+    use anyhow;
 
     use bindings::writer::Writer;
     use crate::manager::SimulationManager;
