@@ -130,6 +130,46 @@ pub(crate) fn compute_trade_size(
     // compute the CDF
     let execution_result = admin.call(arbiter_math, "cdf", cdf_input.into_tokens())?;
 
+    let pool = admin.call(portfolio, "pools", pool_id.into_tokens())?;
+    assert!(pool.is_success());
+    let pools_return: PoolsReturn = portfolio.decode_output("pools", unpack_execution(pool)?)?;
+
+    let liquidity = pools_return.liquidity;
+    let reserve_x = pools_return.virtual_x;
+    let reserve_y = pools_return.virtual_y;
+
+    let max_input_x = admin.call(
+        portfolio,
+        "computeMaxInput",
+        (
+            pool_id,
+            true,
+            U256::from(reserve_x) * wad / liquidity,
+            liquidity,
+        )
+            .into_tokens(),
+    )?;
+
+    let max_input_y = admin.call(
+        portfolio,
+        "computeMaxInput",
+        (
+            pool_id,
+            false,
+            U256::from(reserve_y) * wad / liquidity,
+            liquidity,
+        )
+            .into_tokens(),
+    )?;
+
+    let decoded_max_input_x =
+        portfolio.decode_output("computeMaxInput", unpack_execution(max_input_x)?)?;
+    let decoded_max_input_y =
+        portfolio.decode_output("computeMaxInput", unpack_execution(max_input_y)?)?;
+
+    println!("max_input_x: {:?}", decoded_max_input_x);
+    println!("max_input_y: {:?}", decoded_max_input_y);
+
     let unpacked_result = unpack_execution(execution_result)?;
     let cdf_output: I256 = arbiter_math.decode_output("cdf", unpacked_result)?;
     // scale the CDF

@@ -55,12 +55,12 @@ pub async fn run(output_storage: OutputStorage) -> Result<(), Box<dyn Error>> {
     let mut manager = SimulationManager::new();
     // Define the pool arguments
     let pool_args = PoolParams::new(
-        100_u16,
-        100_u16,
-        100_u16,
+        1_u16,
+        1_u16,
+        10_u16,
         65535_u16,
-        10_000_000_000_000_000_000u128,
-        10_000_000_000_000_000_000u128,
+        1_000_000_000_000_000_000u128,
+        1_000_000_000_000_000_000u128,
     );
     // Define liquidity arguments
     let delta_liquidity = 10_i128.pow(19);
@@ -121,12 +121,12 @@ pub async fn run(output_storage: OutputStorage) -> Result<(), Box<dyn Error>> {
     let _ = arbitrageur.detect_price_change().await;
 
     // Get prices
-    let ou = OU::new(0.1, 10.0, 1.0);
+    let ou = OU::new(0.05, 10.0, 1.0);
     let price_process = PriceProcess::new(
         PriceProcessType::OU(ou),
         0.01,
         "trade".to_string(),
-        50,
+        500,
         1.0,
         1,
     );
@@ -160,6 +160,7 @@ pub async fn run(output_storage: OutputStorage) -> Result<(), Box<dyn Error>> {
                     &manager.deployed_contracts,
                     ratio,
                 )?;
+                println!("Size: {:?}", size.input);
                 if size.input != U256::from(0) {
                     arbitrage::swap(
                         arbitrageur,
