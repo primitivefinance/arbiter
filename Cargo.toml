@@ -1,49 +1,68 @@
+# Workspace configuration
 [workspace]
+# List of crates included in this workspace
 members = [
-    "lib/bindings",
-    "lib/simulate",
-    "lib/onchain",
+    "crates/bindings",
+    "crates/simulate",
+    "crates/onchain",
 ]
 
+# Package configuration
 [package]
 name = "arbiter"
 version = "0.2.0"
 edition = "2021"
+authors = ["Colin Roberts", "Waylon Jepsen"]
 
+# Binary configuration
+[[bin]]
+name = "arbiter"
+path = "bin/main.rs"
+
+# Dependency configuration
 [dependencies]
-# Local
-simulate = {path = "lib/simulate"}
-bindings = {path = "lib/bindings"}
-onchain = {path = "lib/onchain"}
+# Local dependencies
+simulate = {path = "crates/simulate"}
+bindings = {path = "crates/bindings"}
+onchain = {path = "crates/onchain"}
 
-# Primitive
+# Primitive dependencies
 visualize = { git = "https://github.com/primitivefinance/visualization-rs.git"}
 
-# External
-tokio = { version = "1.28.1", features = [
-    "macros",
-    "full"
-]}
+# External dependencies
 clap = { version = "4.3.0", features = ["derive"] }
+csv = "1.2.1"
+eyre = "0.6.8"
+itertools-num = "0.1.3"
 serde = { version = "1.0.163", features =["derive"] }
 thiserror = "1.0.40"
-eyre = "0.6.8"
+tokio = { version = "1.28.1", features = ["macros", "full"] }
 toml = "0.7.4"
-ethers = "2.0.4"
-csv = "1.2.1"
-itertools-num = "0.1.3"
+chrono = "0.4"
 
-
-# revm and related
-revm = "3.3.0"
+# Revm and related dependencies
 bytes = "1.4.0"
 hex = { version = "0.4.3", default-features = false }
+revm = "3.3.0"
 ruint = "1.8.0"
+ethers = { version = "2.0.4", default-features = false, features = ["abigen"] }
 
-# Simulation
+# Simulation dependencies
 crossbeam-channel = "0.5.8"
 polars = "0.29.0"
+quote = "1.0.29"
 
+# workspace dependencies
+[workspace.dependencies]
+futures = { version = "0.3.28" }
+csv = { version = "1.2.1" }
+ethers = { version = "2.0.4", default-features = false, features = ["abigen"] }
+serde = { version = "1.0.163", features= ["derive"]}
+serde_json = { version = "1.0.96" }
+bindings = {path = "crates/bindings"}
+tokio = { version = "1.28.1", features = ["macros", "full"] }
+
+# Development dependencies
 [dev-dependencies]
 assert_cmd = "2.0.11"
 
