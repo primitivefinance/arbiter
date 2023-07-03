@@ -2,7 +2,7 @@
 [workspace]
 # List of crates included in this workspace
 members = [
-    "crates/simulate",
+    "lib/simulate",
 ]
 
 # Package configuration
@@ -20,7 +20,7 @@ path = "bin/main.rs"
 # Dependency configuration
 [dependencies]
 # Local dependencies
-simulate = {path = "crates/simulate"}
+simulate = {path = "lib/simulate"}
 
 # Primitive dependencies
 visualize = { git = "https://github.com/primitivefinance/visualization-rs.git"}
