@@ -201,6 +201,7 @@ pub trait Agent: Identifiable {
         let tx = self.build_call_transaction(contract.address, call_data);
         self.transaction_sender()
             .send((tx, self.result_channel().0))?;
+        println!("function_name: {}", function_name);
         Ok(self.result_channel().1.recv()?)
     }
 

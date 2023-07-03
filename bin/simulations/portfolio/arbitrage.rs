@@ -149,6 +149,7 @@ pub(crate) fn compute_trade_size(
         )
             .into_tokens(),
     )?;
+    assert!(max_input_x.is_success());
 
     let max_input_y = admin.call(
         portfolio,
@@ -161,10 +162,11 @@ pub(crate) fn compute_trade_size(
         )
             .into_tokens(),
     )?;
+    assert!(max_input_y.is_success());
 
-    let decoded_max_input_x =
+    let decoded_max_input_x: U256 =
         portfolio.decode_output("computeMaxInput", unpack_execution(max_input_x)?)?;
-    let decoded_max_input_y =
+    let decoded_max_input_y: U256 =
         portfolio.decode_output("computeMaxInput", unpack_execution(max_input_y)?)?;
 
     println!("max_input_x: {:?}", decoded_max_input_x);
@@ -196,11 +198,19 @@ pub(crate) fn compute_trade_size(
     let fn_output = if arb_amount_x > I256::from(0) {
         let sell_asset = true;
         let input = arb_amount_x.into_raw();
-        ComputeArbOutput::new(sell_asset, input)
+        if input > decoded_max_input_x {
+            ComputeArbOutput::new(true, decoded_max_input_x)
+        } else {
+            ComputeArbOutput::new(sell_asset, input)
+        }
     } else {
         let sell_asset = false;
         let input = arb_amount_y.into_raw();
-        ComputeArbOutput::new(sell_asset, input)
+        if input > decoded_max_input_y {
+            ComputeArbOutput::new(true, decoded_max_input_y)
+        } else {
+            ComputeArbOutput::new(sell_asset, input)
+        }
     };
     Ok(fn_output)
 }
@@ -224,6 +234,7 @@ where
         recast_address(arbitrageur.address()), // swapper: ::ethers::core::types::Address,
     )
         .into_tokens();
+    println!("get_amount_out_args: {:?}", get_amount_out_args);
 
     // This fails with "Error Here"
     println!("Error Here");

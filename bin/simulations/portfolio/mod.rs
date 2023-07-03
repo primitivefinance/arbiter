@@ -57,7 +57,7 @@ pub async fn run(output_storage: OutputStorage) -> Result<(), Box<dyn Error>> {
     let pool_args = PoolParams::new(
         1_u16,
         1_u16,
-        10_u16,
+        50_u16,
         65535_u16,
         1_000_000_000_000_000_000u128,
         1_000_000_000_000_000_000u128,
@@ -121,7 +121,7 @@ pub async fn run(output_storage: OutputStorage) -> Result<(), Box<dyn Error>> {
     let _ = arbitrageur.detect_price_change().await;
 
     // Get prices
-    let ou = OU::new(0.05, 10.0, 1.0);
+    let ou = OU::new(0.01, 10.0, 1.0);
     let price_process = PriceProcess::new(
         PriceProcessType::OU(ou),
         0.01,
@@ -201,7 +201,31 @@ pub async fn run(output_storage: OutputStorage) -> Result<(), Box<dyn Error>> {
                 continue;
             }
             NextTx::UpdatePrice => {
+                record_pool_reserves(
+                    manager.agents.get("admin").unwrap(),
+                    pool_id,
+                    &mut pool_reserve_over_time,
+                    portfolio,
+                )?;
+                record_arb_balances(
+                    arbitrageur,
+                    &manager.deployed_contracts,
+                    &mut arb_balance_paths,
+                )?;
                 update_price(manager.agents.get("admin").unwrap(), liquid_exchange, price)?;
+                let portfolio_spot =
+                    arbitrageur.call(portfolio, "getSpotPrice", pool_id.into_tokens())?;
+                let portfolio_spot: U256 =
+                    portfolio.decode_output("getSpotPrice", unpack_execution(portfolio_spot)?)?;
+
+                portfolio_price_path.push(portfolio_spot);
+
+                let liquid_exchange_xy_price =
+                    arbitrageur.call(liquid_exchange, "price", vec![])?;
+                let liquid_exchange_xy_price = unpack_execution(liquid_exchange_xy_price)?;
+                let liquid_exchange_xy_price: U256 =
+                    liquid_exchange.decode_output("price", liquid_exchange_xy_price)?;
+                liq_price_path.push(liquid_exchange_xy_price);
                 index += 1;
                 continue;
             }
