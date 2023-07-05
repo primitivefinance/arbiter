@@ -27,7 +27,7 @@ use revm::primitives::{TransactTo, TxEnv, B160};
 use serde::{de::DeserializeOwned, Serialize};
 use url::Url;
 
-use super::SimulationEnvironment;
+use crate::agent::AgentMiddleware;
 
 /// The [`SimulationMiddleware`] allows for a "dummy" middleware to be used in the simulation environment.
 #[derive(Debug, Default)]
@@ -44,7 +44,7 @@ impl<M> SimulationMiddleware<M> {
 }
 
 #[async_trait::async_trait]
-impl Middleware for SimulationEnvironment {
+impl Middleware for AgentMiddleware {
     /// The JSON-RPC client type at the bottom of the stack
     type Provider = MockProvider;
     /// Error type returned by most operations
@@ -149,7 +149,7 @@ impl Middleware for SimulationEnvironment {
             access_list: Vec::new(),
         };
         let (sender, receiver) = crossbeam_channel::unbounded();
-        let _transaction = self.transaction_channel.0.send((tx_env, sender));
+        let _transaction = self.tx_sender.send((tx_env, sender));
         let result = receiver.recv().unwrap();
         println!("result: {:?}", result);
         let pending_tx = PendingTransaction::new(H256::default(), self.provider());
@@ -915,14 +915,17 @@ mod tests {
     use anyhow;
     use std::sync::Arc;
 
-    use crate::{bindings, manager::SimulationManager};
+    use crate::{bindings, manager::SimulationManager, agent::AgentMiddleware, environment::SimulationEnvironment};
     use bindings::writer::Writer;
 
     #[tokio::test]
     async fn test_something() -> anyhow::Result<()> {
-        let manager = SimulationManager::new();
+
+        let env = SimulationEnvironment::new();
+
+        let provider = AgentMiddleware::new(env);
         // need to associate this with an agent
-        let client = Arc::new(manager.environment);
+        let client = Arc::new(provider);
 
         let deployer = Writer::deploy(client, ())?;
         println!("deployer: {:?}", deployer);

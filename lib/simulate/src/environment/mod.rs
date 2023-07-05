@@ -3,16 +3,12 @@
 //! ## module for the environment
 //!
 //! An abstraction on the EVM, to be used in simulations.
-pub mod contract;
 pub mod middleware;
 
 use crossbeam_channel::{unbounded, Receiver, Sender};
 use ethers::{
-    abi::Token,
-    prelude::AbiError,
-    providers::{MockProvider, Provider}, types::Address,
+    providers::{MockProvider, Provider},
 };
-use futures::Stream;
 use revm::{
     db::{CacheDB, EmptyDB},
     primitives::{ExecutionResult, Log, TxEnv, U256},
@@ -24,7 +20,6 @@ use std::{
     thread,
 };
 
-use crate::agent::{filter_events, SimulationEventFilter};
 /// Type Aliases for the event channel.
 pub(crate) type ExecutionSender = Sender<ExecutionResult>;
 pub(crate) type TxEnvSender = Sender<(TxEnv, ExecutionSender)>;
@@ -44,8 +39,6 @@ pub struct SimulationEnvironment {
     pub(crate) transaction_channel: (TxEnvSender, TxEnvReceiver),
     /// The provider for [`Middleware`].
     pub(crate) provider: Provider<MockProvider>,
-    /// Address of EOA
-    pub(crate) eoa: Address,
 
     // Idea : agents are owned here
     // problem: if we create a client, then if we call the send_transactions
@@ -75,7 +68,6 @@ impl SimulationEnvironment {
             event_broadcaster: Arc::new(Mutex::new(EventBroadcaster::new())),
             transaction_channel,
             provider,
-            eoa: Address::zero(),
         }
     }
 
@@ -129,120 +121,5 @@ impl EventBroadcaster {
         for sender in &self.0 {
             sender.send(logs.clone()).unwrap();
         }
-    }
-}
-
-/// The event stream is an agents individual stream of events that it owns.
-#[derive(Clone, Debug)]
-pub struct EventStream {
-    pub(crate) receiver: crossbeam_channel::Receiver<Vec<Log>>,
-    pub(crate) filters: Vec<SimulationEventFilter>,
-}
-
-impl EventStream {
-    fn next(&mut self) -> Option<Result<(Vec<Token>, usize), AbiError>> {
-        let event_filters = self.filters.clone();
-        assert!(!event_filters.is_empty());
-        let decoder = |input, filter_number: usize| {
-            event_filters[filter_number].base_contract.decode_event_raw(
-                event_filters[filter_number].event_name.as_str(),
-                vec![event_filters[filter_number].topic],
-                input,
-            )
-        };
-
-        self.receiver.recv().ok().and_then(|logs| {
-            let (filtered_events, index) = filter_events(event_filters.clone(), logs);
-            if filtered_events.is_empty() {
-                None // Skip logs that don't pass the filter
-            } else {
-                let data = filtered_events[0].data.clone().into_iter().collect();
-                Some(decoder(data, index).map(|tokens| (tokens, index)))
-            }
-        })
-    }
-
-    /// Converts the event stream into a stream of events.
-    pub fn into_stream(self) -> impl Stream<Item = Result<(Vec<Token>, usize), AbiError>> {
-        futures::stream::unfold(self, |mut state| async {
-            state.next().map(|item| (item, state))
-        })
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use crate::environment::contract::SimulationContract;
-    use crate::manager::SimulationManager;
-    use crate::{agent::Agent, bindings};
-
-    use super::*;
-    use bindings::writer;
-    use ethers::abi::Tokenize;
-    use futures::StreamExt;
-    use std::error::Error;
-
-    #[tokio::test]
-    async fn event_stream() -> Result<(), Box<dyn Error>> {
-        // Start a new environment
-        let manager = SimulationManager::new();
-        // let admin = manager.agents["admin"].inner();
-
-        // Create writer contract.
-        let writer =
-            SimulationContract::new(writer::WRITER_ABI.clone(), writer::WRITER_BYTECODE.clone());
-
-        // Deploy the writer.
-        let test_string = "Hello, world..?".to_string();
-        let (writer, execution_result) =
-            manager.agents["admin"].deploy(writer, test_string.into_tokens())?;
-        assert!(execution_result.is_success());
-
-        // Create a filter.
-        let filters = vec![SimulationEventFilter::new(&writer, "WasWritten")];
-
-        // Create a new event stream and add the sender to the event broadcaster.
-        let (sender, receiver) = crossbeam_channel::unbounded();
-        let mut event_stream = Box::pin(EventStream { receiver, filters }.into_stream());
-        manager
-            .environment
-            .event_broadcaster
-            .lock()
-            .unwrap()
-            .add_sender(sender);
-
-        // Check that the event stream has the event
-        let handle = tokio::spawn(async move {
-            println!("Waiting for event...");
-            let mut i = 0;
-            while let Some(event_result) = event_stream.next().await {
-                match event_result {
-                    Ok((tokens, filter_index)) => {
-                        println!("Got event!");
-                        println!("Tokens: {:?}\nAddress: {:?}", tokens, filter_index);
-                        assert_eq!(
-                            tokens[0].clone().into_string().unwrap(),
-                            format!("Hello, world..? {}", i)
-                        );
-                        i += 1;
-                    }
-                    Err(e) => {
-                        println!("Error: {}", e);
-                    }
-                }
-            }
-        });
-
-        // Check that the event stream records events async and we can get next events
-        for i in 0..3 {
-            println!("Calling echoString... {i}");
-            let new_string = format!("Hello, world..? {}", i);
-            manager.agents["admin"].call(&writer, "echoString", new_string.into_tokens())?;
-        }
-
-        manager.shutdown();
-        handle.await?;
-
-        Ok(())
     }
 }
