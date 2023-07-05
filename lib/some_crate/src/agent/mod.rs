@@ -9,6 +9,8 @@
 //! 
 
 
+use std::sync::Arc;
+use thiserror::Error;
 use ethers::{signers::{Wallet, Signer}, providers::Middleware};
 use crossbeam_channel::Sender;
 
@@ -20,31 +22,44 @@ use crate::environment::SimulationEnvironment;
 
 // can an agent be be a struct? well API wants users
 #[derive(Debug)]
-pub struct AgentMiddleware {
-    /// The address of the agent.
-    pub address: Address,
+pub struct AgentMiddleware<S> where S: Signer {
     /// tansaction sender
     pub tx_sender: Sender<(TxEnv, Sender<ExecutionResult>)>,
     // Provider
     pub provider: Provider<MockProvider>,
+    // Wallet
+    pub wallet: Wallet<S>,
 
 }
 
-impl AgentMiddleware {
-    pub fn address(&self) -> Address {
-        self.address
-    }
-    pub fn new(env: SimulationEnvironment) -> Self {
+pub(crate) struct Agent<S, D, B> where S: Signer, B: Behavior {
+    pub client: Arc<AgentMiddleware<S>>,
+    pub data: D,
+    pub behaviors: Vec<B>,
+}
+
+
+impl<S, D, B> Agent<S, D, B> {
+    pub fn new(env: SimulationEnvironment) -> Self{
         Self {
-            address: Wallet::new(&mut rand::thread_rng()).address().into(),
-            tx_sender: env.transaction_channel.0,
-            provider: env.provider,
+            client: Arc::new(AgentMiddleware::new(env, Wallet::new(&mut rand::thread_rng()))),
+            data: todo!(),
+            behaviors: vec![],
         }
     }
 }
 
 
-use thiserror::Error;
+impl<S> AgentMiddleware<S> {
+    pub fn new(env: SimulationEnvironment, wallet: Wallet<S>) -> Self {
+        Self {
+            tx_sender: env.transaction_channel.0,
+            provider: env.provider,
+            wallet,
+        }
+    }
+}
+
 
 #[derive(Error, Debug)]
 pub enum AgentError {
@@ -58,10 +73,13 @@ use anyhow::Result;
 
 /// Basic traits that every `Agent` must implement in order to properly interact with an EVM.
 #[async_trait::async_trait]
-pub trait Agent {
+pub trait AgentProperties {
+    // type Data;
     // type FilterWatcher: Stream<Item = Result<(Vec<Token>, usize), AbiError>> + Send + Sync;
     /// Returns the address of the agent.
-    fn address(&self) -> Address;
+    fn address(&self) -> Address {
+        self.address()
+    }
     /// The event's channel receiver for the agent.
 
     async fn act(&self) -> Result<()> {
@@ -72,6 +90,10 @@ pub trait Agent {
         "Agent".to_string()
     }
 
+}
+pub trait Behavior {
+    fn act(&self) -> Result<()>;
+    fn watch(&self) -> Result<()>;
 }
 
 

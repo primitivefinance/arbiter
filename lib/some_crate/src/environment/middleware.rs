@@ -21,7 +21,7 @@ use ethers::{
         Filter, GethDebugTracingCallOptions, GethDebugTracingOptions, GethTrace, Log,
         NameOrAddress, SyncingStatus, Trace, TraceFilter, TraceType, Transaction,
         TransactionReceipt, TxHash, TxpoolContent, TxpoolInspect, TxpoolStatus, H256, U256, U64,
-    },
+    }, signers::Signer,
 };
 use revm::primitives::{TransactTo, TxEnv, B160};
 use serde::{de::DeserializeOwned, Serialize};
@@ -44,7 +44,7 @@ impl<M> SimulationMiddleware<M> {
 }
 
 #[async_trait::async_trait]
-impl Middleware for AgentMiddleware {
+impl<S> Middleware for AgentMiddleware<S> where S: Signer {
     /// The JSON-RPC client type at the bottom of the stack
     type Provider = MockProvider;
     /// Error type returned by most operations
@@ -908,14 +908,127 @@ impl Middleware for AgentMiddleware {
     ) -> Result<AccessListWithGasUsed, Self::Error> {
         unimplemented!("we don't need to create access lists yet.")
     }
+
+    async fn send_escalating<'a>(
+        &'a self,
+        tx: &TypedTransaction,
+        escalations: usize,
+        policy: ethers::providers::EscalationPolicy,
+    ) -> Result<ethers::providers::EscalatingPending<'a, Self::Provider>, Self::Error> {
+        // let mut original = tx.clone();
+        // self.fill_transaction(&mut original, None).await?;
+
+        // // set the nonce, if no nonce is found
+        // if original.nonce().is_none() {
+        //     let nonce =
+        //         self.get_transaction_count(tx.from().copied().unwrap_or_default(), None).await?;
+        //     original.set_nonce(nonce);
+        // }
+
+        // let gas_price = original.gas_price().expect("filled");
+        // let sign_futs: Vec<_> = (0..escalations)
+        //     .map(|i| {
+        //         let new_price = policy(gas_price, i);
+        //         let mut r = original.clone();
+        //         r.set_gas_price(new_price);
+        //         r
+        //     })
+        //     .map(|req| async move {
+        //         self.sign_transaction(&req, self.default_sender().unwrap_or_default())
+        //             .await
+        //             .map(|sig| req.rlp_signed(&sig))
+        //     })
+        //     .collect();
+
+        // // we reverse for convenience. Ensuring that we can always just
+        // // `pop()` the next tx off the back later
+        // let mut signed = futures::future::join_all(sign_futs).await.into_iter().collect::<Result<Vec<_>, _>>()?;
+        // signed.reverse();
+
+        // Ok(ethers::providers::EscalatingPending::new(self.provider(), signed))
+        todo!("do this")
+    }
+
+    async fn sign<T: Into<Bytes> + Send + Sync>(
+        &self,
+        data: T,
+        from: &Address,
+    ) -> Result<ethers::types::Signature, Self::Error> {
+        self.inner().sign(data, from).await.map_err(MiddlewareError::from_err)
+    }
+
+    async fn sign_transaction(
+        &self,
+        tx: &TypedTransaction,
+        from: Address,
+    ) -> Result<ethers::types::Signature, Self::Error> {
+        self.inner().sign_transaction(tx, from).await.map_err(MiddlewareError::from_err)
+    }
+
+    async fn subscribe<T, R>(
+        &self,
+        params: T,
+    ) -> Result<ethers::providers::SubscriptionStream<'_, Self::Provider, R>, Self::Error>
+    where
+        T: Debug + Serialize + Send + Sync,
+        R: DeserializeOwned + Send + Sync,
+        <Self as Middleware>::Provider: ethers::providers::PubsubClient,
+    {
+        self.inner().subscribe(params).await.map_err(MiddlewareError::from_err)
+    }
+
+    async fn unsubscribe<T>(&self, id: T) -> Result<bool, Self::Error>
+    where
+        T: Into<U256> + Send + Sync,
+        <Self as Middleware>::Provider: ethers::providers::PubsubClient,
+    {
+        self.inner().unsubscribe(id).await.map_err(MiddlewareError::from_err)
+    }
+
+    async fn subscribe_blocks(
+        &self,
+    ) -> Result<ethers::providers::SubscriptionStream<'_, Self::Provider, Block<TxHash>>, Self::Error>
+    where
+        <Self as Middleware>::Provider: ethers::providers::PubsubClient,
+    {
+        self.inner().subscribe_blocks().await.map_err(MiddlewareError::from_err)
+    }
+
+    async fn subscribe_pending_txs(
+        &self,
+    ) -> Result<ethers::providers::SubscriptionStream<'_, Self::Provider, TxHash>, Self::Error>
+    where
+        <Self as Middleware>::Provider: ethers::providers::PubsubClient,
+    {
+        self.inner().subscribe_pending_txs().await.map_err(MiddlewareError::from_err)
+    }
+
+    async fn subscribe_full_pending_txs(
+        &self,
+    ) -> Result<ethers::providers::SubscriptionStream<'_, Self::Provider, Transaction>, Self::Error>
+    where
+        <Self as Middleware>::Provider: ethers::providers::PubsubClient,
+    {
+        self.inner().subscribe_full_pending_txs().await.map_err(MiddlewareError::from_err)
+    }
+
+    async fn subscribe_logs<'a>(
+        &'a self,
+        filter: &Filter,
+    ) -> Result<ethers::providers::SubscriptionStream<'a, Self::Provider, Log>, Self::Error>
+    where
+        <Self as Middleware>::Provider: ethers::providers::PubsubClient,
+    {
+        self.inner().subscribe_logs(filter).await.map_err(MiddlewareError::from_err)
+    }
 }
 
 #[cfg(test)]
 mod tests {
     use anyhow;
-    use std::sync::Arc;
+    use crate::agent::Agent;
 
-    use crate::{bindings, agent::AgentMiddleware, environment::SimulationEnvironment};
+    use crate::{bindings, environment::SimulationEnvironment};
     use bindings::writer::Writer;
 
     #[tokio::test]
@@ -923,11 +1036,9 @@ mod tests {
 
         let env = SimulationEnvironment::new();
 
-        let provider = AgentMiddleware::new(env);
-        // need to associate this with an agent
-        let client = Arc::new(provider);
+        let agent = Agent::new(env);
 
-        let deployer = Writer::deploy(client, ())?;
+        let deployer = Writer::deploy(agent.client, ())?;
         println!("deployer: {:?}", deployer);
         let writer = deployer.send().await?;
         writer

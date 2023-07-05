@@ -46,10 +46,7 @@ use ethers::contract::Contract;
 pub struct SimulationManager {
     /// [`SimulationEnvironment`] that the simulation manager controls. Middleware is wrapped around the environement
     pub environment: SimulationEnvironment,
-    /// The agents that are currently running in the [`SimulationEnvironment`].
-    pub agents: HashMap<String, Box<dyn Agent>>,
-    /// The collection of different [`SimulationContract`] that are currently deployed in the [`SimulationEnvironment`].
-    pub deployed_contracts: HashMap<String, Contract<AgentMiddleware>>,
+    // Maybe Aika Goes here?
 }
 
 impl Default for SimulationManager {
@@ -66,8 +63,6 @@ impl SimulationManager {
     pub fn new() -> Self {
         let mut simulation_manager = Self {
             environment: SimulationEnvironment::new(),
-            agents: HashMap::new(),
-            deployed_contracts: HashMap::new(),
         };
         // made an admin eoa
         simulation_manager.environment.run();

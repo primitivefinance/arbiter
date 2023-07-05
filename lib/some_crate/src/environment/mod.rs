@@ -7,7 +7,7 @@ pub mod middleware;
 
 use crossbeam_channel::{unbounded, Receiver, Sender};
 use ethers::{
-    providers::{MockProvider, Provider},
+    providers::{MockProvider, Provider}, signers::Signer,
 };
 use revm::{
     db::{CacheDB, EmptyDB},
@@ -17,9 +17,11 @@ use revm::{
 use std::{
     fmt,
     sync::{Arc, Mutex},
-    thread,
+    thread, collections::HashMap,
 };
 
+use crate::agent::{Agent, AgentMiddleware};
+use ethers::contract::Contract;
 /// Type Aliases for the event channel.
 pub(crate) type ExecutionSender = Sender<ExecutionResult>;
 pub(crate) type TxEnvSender = Sender<(TxEnv, ExecutionSender)>;
@@ -29,7 +31,7 @@ pub(crate) type TxEnvReceiver = Receiver<(TxEnv, ExecutionSender)>;
 /// # Fields
 /// * `evm` - The EVM that is used for the simulation.
 /// * `event_senders` - The senders on the event channel that is used to send events to the agents and simulation manager.
-pub struct SimulationEnvironment {
+pub struct SimulationEnvironment<S, D, B> where S: Signer {
     /// The EVM that is used for the simulation.
     pub(crate) evm: EVM<CacheDB<EmptyDB>>,
     /// The sender on the event channel that is used to send events to the agents and simulation manager.
@@ -39,9 +41,10 @@ pub struct SimulationEnvironment {
     pub(crate) transaction_channel: (TxEnvSender, TxEnvReceiver),
     /// The provider for [`Middleware`].
     pub(crate) provider: Provider<MockProvider>,
-
-    // Idea : agents are owned here
-    // problem: if we create a client, then if we call the send_transactions
+    /// Agents in the environment
+    pub agents: Vec<Agent<S, D, B>>,
+    /// The collection of different [`SimulationContract`] that are currently deployed in the [`SimulationEnvironment`].
+    pub deployed_contracts: HashMap<String, Contract<AgentMiddleware<S>>>,
 }
 
 impl fmt::Debug for SimulationEnvironment {
@@ -68,6 +71,8 @@ impl SimulationEnvironment {
             event_broadcaster: Arc::new(Mutex::new(EventBroadcaster::new())),
             transaction_channel,
             provider,
+            agents: vec![],
+            deployed_contracts: HashMap::new(),
         }
     }
 
