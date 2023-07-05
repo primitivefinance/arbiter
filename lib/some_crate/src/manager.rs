@@ -62,7 +62,7 @@ impl Default for SimulationManager {
 impl SimulationManager {
     /// Constructor function to instantiate a manager that has a default admin user and a simulation environment.
     /// The admin will always be given the 0x0...1 address.
-    /// needs to put agents and contracts in here
+    /// needs to put agents and contracts in here.
     pub fn new() -> Self {
         let mut simulation_manager = Self {
             environment: SimulationEnvironment::new(),

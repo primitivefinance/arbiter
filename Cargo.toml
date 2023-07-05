@@ -2,7 +2,7 @@
 [workspace]
 # List of crates included in this workspace
 members = [
-    "lib/simulate",
+    "lib/some_crate",
 ]
 
 # Package configuration
@@ -21,7 +21,7 @@ path = "bin/main.rs"
 # Dependency configuration
 [dependencies]
 # Local dependencies
-simulate = { path = "lib/simulate" }
+some-crate = { path = "lib/some_crate" }
 # TODO get a better name for this, it's the "arbiterapi"
 # Arbiter Binary is CLI should have the namespace "arbiter" on crates.io
 

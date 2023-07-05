@@ -8,7 +8,6 @@
 //! All agents must implement the [`Agent`] traits and be included in the [`AgentType`] enum.
 //! 
 
-use std::sync::Arc;
 
 use ethers::{signers::{Wallet, Signer}, providers::Middleware};
 use crossbeam_channel::Sender;
@@ -17,7 +16,7 @@ use ethers::providers::{Provider, MockProvider};
 use revm::primitives::{
     Address, ExecutionResult, TxEnv,
 };
-use crate::{environment::{TxEnvReceiver, SimulationEnvironment}, manager::SimulationManager};
+use crate::environment::SimulationEnvironment;
 
 // can an agent be be a struct? well API wants users
 #[derive(Debug)]
@@ -26,8 +25,6 @@ pub struct AgentMiddleware {
     pub address: Address,
     /// tansaction sender
     pub tx_sender: Sender<(TxEnv, Sender<ExecutionResult>)>,
-    /// Event broadcast receiver
-    pub event_receiver: TxEnvReceiver,
     // Provider
     pub provider: Provider<MockProvider>,
 
@@ -41,7 +38,6 @@ impl AgentMiddleware {
         Self {
             address: Wallet::new(&mut rand::thread_rng()).address().into(),
             tx_sender: env.transaction_channel.0,
-            event_receiver: env.event_receiver,
             provider: env.provider,
         }
     }

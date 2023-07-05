@@ -915,7 +915,7 @@ mod tests {
     use anyhow;
     use std::sync::Arc;
 
-    use crate::{bindings, manager::SimulationManager, agent::AgentMiddleware, environment::SimulationEnvironment};
+    use crate::{bindings, agent::AgentMiddleware, environment::SimulationEnvironment};
     use bindings::writer::Writer;
 
     #[tokio::test]
