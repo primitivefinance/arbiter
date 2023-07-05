@@ -9,7 +9,6 @@ use rand_distr::{
     Poisson as PoissonDistr,
 };
 
-
 /// A trait for distribution sampling.
 pub trait Distribution<T> {
     /// Sample from a distribution

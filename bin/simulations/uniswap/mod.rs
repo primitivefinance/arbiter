@@ -8,10 +8,13 @@ use simulate::{
     agent::{simple_arbitrageur::NextTx, Agent, AgentType, IsActive},
     environment::contract::{IsDeployed, SimulationContract},
     manager::SimulationManager,
-    math::{wad_to_float, price_process::{PriceProcess, PriceProcessType, GBM, OU}, float_to_wad},
-    utils::{unpack_execution},
+    math::{
+        float_to_wad,
+        price_process::{PriceProcess, PriceProcessType, GBM, OU},
+        wad_to_float,
+    },
+    utils::unpack_execution,
 };
-
 
 use crate::simulations::uniswap::arbitrage::{
     compute_trade_size, record_arb_balances, record_pool_reserves,

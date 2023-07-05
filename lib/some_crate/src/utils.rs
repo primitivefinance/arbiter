@@ -6,11 +6,10 @@ use std::{
 };
 
 use bytes::Bytes;
-use ethers::prelude::{Address};
+use ethers::prelude::Address;
 use revm::primitives::{ExecutionResult, Output, B160};
 
 #[derive(Debug)]
-
 // We should use anyhow / thisError instead
 /// Error type for the simulation manager.
 /// # Fields
@@ -42,7 +41,6 @@ pub fn recast_address(address: B160) -> Address {
     let temp: [u8; 20] = address.as_bytes().try_into().unwrap();
     Address::from(temp)
 }
-
 
 // TODO: Can maybe get rid of this with middleware
 /// Takes an `ExecutionResult` and returns the raw bytes of the output that can then be decoded.

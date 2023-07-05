@@ -9,42 +9,58 @@
 
 use std::fmt::Debug;
 
+use crossbeam_channel::Sender;
 use ethers::{
+    prelude::k256::{
+        ecdsa::{
+            signature::hazmat::PrehashSigner, RecoveryId, Signature as RecoverySignature,
+            SigningKey,
+        },
+        Secp256k1,
+    },
     prelude::ProviderError,
     providers::{
         erc, FilterKind, FilterWatcher, LogQuery, Middleware, MiddlewareError, MockProvider,
         NodeInfo, PeerInfo, PendingTransaction, Provider,
     },
+    signers::{LocalWallet, Signer, Wallet},
     types::{
         transaction::{eip2718::TypedTransaction, eip2930::AccessListWithGasUsed},
         Address, Block, BlockId, BlockNumber, BlockTrace, Bytes, EIP1186ProofResponse, FeeHistory,
         Filter, GethDebugTracingCallOptions, GethDebugTracingOptions, GethTrace, Log,
         NameOrAddress, SyncingStatus, Trace, TraceFilter, TraceType, Transaction,
         TransactionReceipt, TxHash, TxpoolContent, TxpoolInspect, TxpoolStatus, H256, U256, U64,
-    }, signers::Signer,
+    },
 };
-use revm::primitives::{TransactTo, TxEnv, B160};
+use rand::thread_rng;
+use revm::primitives::{ExecutionResult, TransactTo, TxEnv, B160};
 use serde::{de::DeserializeOwned, Serialize};
 use url::Url;
 
-use crate::agent::AgentMiddleware;
-
-/// The [`SimulationMiddleware`] allows for a "dummy" middleware to be used in the simulation environment.
-#[derive(Debug, Default)]
-#[allow(dead_code)]
-pub struct SimulationMiddleware<M> {
-    inner: M,
+// can an agent be be a struct? well API wants users
+#[derive(Debug)]
+pub struct RevmMiddleware {
+    /// tansaction sender
+    pub tx_sender: Sender<(TxEnv, Sender<ExecutionResult>)>,
+    // Provider
+    pub provider: Provider<MockProvider>,
+    // Wallet
+    pub wallet: Wallet<SigningKey>,
 }
 
-impl<M> SimulationMiddleware<M> {
-    /// Creates a new [`SimulationMiddleware`] with the given middleware.
-    pub fn new(inner: M) -> Self {
-        Self { inner }
+impl RevmMiddleware {
+    pub fn new(tx_sender: Sender<(TxEnv, Sender<ExecutionResult>)>) -> Self {
+        let wallet = Wallet::new(&mut thread_rng());
+        Self {
+            tx_sender,
+            provider: ethers::providers::Provider::new(MockProvider::default()),
+            wallet: Wallet::new(&mut thread_rng()),
+        }
     }
 }
 
 #[async_trait::async_trait]
-impl<S> Middleware for AgentMiddleware<S> where S: Signer {
+impl Middleware for RevmMiddleware {
     /// The JSON-RPC client type at the bottom of the stack
     type Provider = MockProvider;
     /// Error type returned by most operations
@@ -642,7 +658,7 @@ impl<S> Middleware for AgentMiddleware<S> where S: Signer {
     /// started is equal to the number of logical CPUs that are usable by this process. If mining
     /// is already running, this method adjust the number of threads allowed to use and updates the
     /// minimum price required by the transaction pool.
-    async fn start_mining(&self) -> Result<(), Self::Error> {
+    async fn start_mining(&self, threads: Option<usize>) -> Result<(), Self::Error> {
         unimplemented!("we don't need to start mining.")
     }
 
@@ -954,7 +970,10 @@ impl<S> Middleware for AgentMiddleware<S> where S: Signer {
         data: T,
         from: &Address,
     ) -> Result<ethers::types::Signature, Self::Error> {
-        self.inner().sign(data, from).await.map_err(MiddlewareError::from_err)
+        self.inner()
+            .sign(data, from)
+            .await
+            .map_err(MiddlewareError::from_err)
     }
 
     async fn sign_transaction(
@@ -962,81 +981,75 @@ impl<S> Middleware for AgentMiddleware<S> where S: Signer {
         tx: &TypedTransaction,
         from: Address,
     ) -> Result<ethers::types::Signature, Self::Error> {
-        self.inner().sign_transaction(tx, from).await.map_err(MiddlewareError::from_err)
+        self.inner()
+            .sign_transaction(tx, from)
+            .await
+            .map_err(MiddlewareError::from_err)
     }
 
-    async fn subscribe<T, R>(
-        &self,
-        params: T,
-    ) -> Result<ethers::providers::SubscriptionStream<'_, Self::Provider, R>, Self::Error>
-    where
-        T: Debug + Serialize + Send + Sync,
-        R: DeserializeOwned + Send + Sync,
-        <Self as Middleware>::Provider: ethers::providers::PubsubClient,
-    {
-        self.inner().subscribe(params).await.map_err(MiddlewareError::from_err)
-    }
+    // async fn subscribe<T, R>(
+    //     &self,
+    //     params: T,
+    // ) -> Result<ethers::providers::SubscriptionStream<'_, Self::Provider, R>, Self::Error>
+    // where
+    //     T: Debug + Serialize + Send + Sync,
+    //     R: DeserializeOwned + Send + Sync,
+    //     <Self as Middleware>::Provider: ethers::providers::PubsubClient,
+    // {
+    //     todo!("we will need to subscribe to something soon.")
+    // }
 
-    async fn unsubscribe<T>(&self, id: T) -> Result<bool, Self::Error>
-    where
-        T: Into<U256> + Send + Sync,
-        <Self as Middleware>::Provider: ethers::providers::PubsubClient,
-    {
-        self.inner().unsubscribe(id).await.map_err(MiddlewareError::from_err)
-    }
+    // async fn unsubscribe<T>(&self, id: T) -> Result<bool, Self::Error>
+    // where
+    //     T: Into<U256> + Send + Sync,
+    //     <Self as Middleware>::Provider: ethers::providers::PubsubClient,
+    // {
+    //     todo!("we will need to unsubscribe from something soon.")
+    // }
 
-    async fn subscribe_blocks(
-        &self,
-    ) -> Result<ethers::providers::SubscriptionStream<'_, Self::Provider, Block<TxHash>>, Self::Error>
-    where
-        <Self as Middleware>::Provider: ethers::providers::PubsubClient,
-    {
-        self.inner().subscribe_blocks().await.map_err(MiddlewareError::from_err)
-    }
+    // async fn subscribe_blocks(
+    //     &self,
+    // ) -> Result<ethers::providers::SubscriptionStream<'_, Self::Provider, Block<TxHash>>, Self::Error>
+    // where
+    //     <Self as Middleware>::Provider: ethers::providers::PubsubClient,
+    // {
+    //     todo!("we will need to subscribe to blocks soon.")
+    // }
 
-    async fn subscribe_pending_txs(
-        &self,
-    ) -> Result<ethers::providers::SubscriptionStream<'_, Self::Provider, TxHash>, Self::Error>
-    where
-        <Self as Middleware>::Provider: ethers::providers::PubsubClient,
-    {
-        self.inner().subscribe_pending_txs().await.map_err(MiddlewareError::from_err)
-    }
+    // async fn subscribe_pending_txs(
+    //     &self,
+    // ) -> Result<ethers::providers::SubscriptionStream<'_, Self::Provider, TxHash>, Self::Error>
+    // where
+    //     <Self as Middleware>::Provider: ethers::providers::PubsubClient,
+    // {
+    //     todo!("we will need to subscribe to pending txs soon.")
+    // }
 
-    async fn subscribe_full_pending_txs(
-        &self,
-    ) -> Result<ethers::providers::SubscriptionStream<'_, Self::Provider, Transaction>, Self::Error>
-    where
-        <Self as Middleware>::Provider: ethers::providers::PubsubClient,
-    {
-        self.inner().subscribe_full_pending_txs().await.map_err(MiddlewareError::from_err)
-    }
-
-    async fn subscribe_logs<'a>(
-        &'a self,
-        filter: &Filter,
-    ) -> Result<ethers::providers::SubscriptionStream<'a, Self::Provider, Log>, Self::Error>
-    where
-        <Self as Middleware>::Provider: ethers::providers::PubsubClient,
-    {
-        self.inner().subscribe_logs(filter).await.map_err(MiddlewareError::from_err)
-    }
+    // async fn subscribe_logs<'a>(
+    //     &'a self,
+    //     filter: &Filter,
+    // ) -> Result<ethers::providers::SubscriptionStream<'a, Self::Provider, Log>, Self::Error>
+    // where
+    //     <Self as Middleware>::Provider: ethers::providers::PubsubClient,
+    // {
+    //     todo!("we will need to subscribe to logs soon.")
+    // }
 }
 
 #[cfg(test)]
 mod tests {
-    use anyhow;
     use crate::agent::Agent;
+    use anyhow;
 
     use crate::{bindings, environment::SimulationEnvironment};
     use bindings::writer::Writer;
 
     #[tokio::test]
     async fn test_something() -> anyhow::Result<()> {
-
+        // TODO: Specify the signer to use here ::<SIGNER>.
         let env = SimulationEnvironment::new();
 
-        let agent = Agent::new(env);
+        let agent = Agent::new(crossbeam_channel::unbounded().0);
 
         let deployer = Writer::deploy(agent.client, ())?;
         println!("deployer: {:?}", deployer);

@@ -6,60 +6,40 @@
 //! An abstract representation of an agent on the EVM, to be used in simulations.
 //! Some examples of agents are market makers or arbitrageurs.
 //! All agents must implement the [`Agent`] traits and be included in the [`AgentType`] enum.
-//! 
+//!
 
-
+use crossbeam_channel::Sender;
+use ethers::{
+    prelude::k256::ecdsa::{
+        signature::hazmat::PrehashSigner, RecoveryId, Signature as RecoverySignature,
+    },
+    providers::Middleware,
+    signers::{LocalWallet, Wallet},
+};
+use rand::thread_rng;
 use std::sync::Arc;
 use thiserror::Error;
-use ethers::{signers::{Wallet, Signer}, providers::Middleware};
-use crossbeam_channel::Sender;
 
-use ethers::providers::{Provider, MockProvider};
-use revm::primitives::{
-    Address, ExecutionResult, TxEnv,
-};
-use crate::environment::SimulationEnvironment;
+use crate::environment::{middleware::RevmMiddleware, SimulationEnvironment};
+use ethers::providers::{MockProvider, Provider};
+use revm::primitives::{Address, ExecutionResult, TxEnv};
+// pub type Signature = ecdsa_core::Signature<Secp256k1>;
 
-// can an agent be be a struct? well API wants users
-#[derive(Debug)]
-pub struct AgentMiddleware<S> where S: Signer {
-    /// tansaction sender
-    pub tx_sender: Sender<(TxEnv, Sender<ExecutionResult>)>,
-    // Provider
-    pub provider: Provider<MockProvider>,
-    // Wallet
-    pub wallet: Wallet<S>,
-
+pub struct Agent {
+    pub client: Arc<RevmMiddleware>,
+    pub behaviors: Vec<Box<dyn Behavior<Data = dyn std::any::Any>>>,
 }
 
-pub(crate) struct Agent<S, D, B> where S: Signer, B: Behavior {
-    pub client: Arc<AgentMiddleware<S>>,
-    pub data: D,
-    pub behaviors: Vec<B>,
-}
-
-
-impl<S, D, B> Agent<S, D, B> {
-    pub fn new(env: SimulationEnvironment) -> Self{
+impl Agent {
+    pub fn new(
+        tx_sender: crossbeam_channel::Sender<(TxEnv, crossbeam_channel::Sender<ExecutionResult>)>,
+    ) -> Self {
         Self {
-            client: Arc::new(AgentMiddleware::new(env, Wallet::new(&mut rand::thread_rng()))),
-            data: todo!(),
+            client: Arc::new(RevmMiddleware::new(tx_sender)),
             behaviors: vec![],
         }
     }
 }
-
-
-impl<S> AgentMiddleware<S> {
-    pub fn new(env: SimulationEnvironment, wallet: Wallet<S>) -> Self {
-        Self {
-            tx_sender: env.transaction_channel.0,
-            provider: env.provider,
-            wallet,
-        }
-    }
-}
-
 
 #[derive(Error, Debug)]
 pub enum AgentError {
@@ -89,13 +69,53 @@ pub trait AgentProperties {
     fn name(&self) -> String {
         "Agent".to_string()
     }
-
 }
+
 pub trait Behavior {
+    type Data;
     fn act(&self) -> Result<()>;
     fn watch(&self) -> Result<()>;
 }
 
-
 #[cfg(test)]
-mod tests {}
+mod tests {
+    use super::*;
+    use ethers::types::U256;
+
+    struct TestBehavior {
+        data: String,
+    }
+
+    impl Behavior for TestBehavior {
+        type Data = String;
+        fn act(&self) -> Result<()> {
+            Ok(())
+        }
+        fn watch(&self) -> Result<()> {
+            Ok(())
+        }
+    }
+
+    struct TestBehavior2 {
+        data: U256,
+    }
+
+    impl Behavior for TestBehavior2 {
+        type Data = U256;
+        fn act(&self) -> Result<()> {
+            Ok(())
+        }
+        fn watch(&self) -> Result<()> {
+            Ok(())
+        }
+    }
+
+    fn multiple_behavior_data() {
+        let mut agent = Agent::new(crossbeam_channel::unbounded().0);
+        // TODO: Do something like this to make sure this works.
+        // agent.add_behavior(TestBehavior {
+        //     data: "test".to_string(),
+        // });
+        // agent.add_behavior(TestBehavior2 { data: U256::zero() });
+    }
+}

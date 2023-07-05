@@ -1,9 +1,9 @@
 //! Module for price process generation and plotting.
 
+use super::stochastic::{Distribution, Normal};
 use plotly::{Plot, Scatter};
 use rand::SeedableRng;
 use serde::{Deserialize, Serialize};
-use super::stochastic::{Normal, Distribution};
 
 /// Trait for all price processes.
 pub trait Plotting {
