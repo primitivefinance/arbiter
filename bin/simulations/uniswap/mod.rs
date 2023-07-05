@@ -8,9 +8,10 @@ use simulate::{
     agent::{simple_arbitrageur::NextTx, Agent, AgentType, IsActive},
     environment::contract::{IsDeployed, SimulationContract},
     manager::SimulationManager,
-    stochastic::price_process::{PriceProcess, PriceProcessType, GBM, OU},
-    utils::{unpack_execution, wad_to_float},
+    math::{wad_to_float, price_process::{PriceProcess, PriceProcessType, GBM, OU}, float_to_wad},
+    utils::{unpack_execution},
 };
+
 
 use crate::simulations::uniswap::arbitrage::{
     compute_trade_size, record_arb_balances, record_pool_reserves,
@@ -115,7 +116,7 @@ pub async fn run(
         }
         // else continute with simulation
         let price = prices[index];
-        let wad_price = simulate::utils::float_to_wad(price);
+        let wad_price = float_to_wad(price);
 
         match next_tx {
             NextTx::Swap => {
@@ -247,7 +248,7 @@ fn update_liquid_exchange_price(
     price: f64,
     price_path: &mut Vec<U256>,
 ) -> Result<(), Box<dyn Error>> {
-    let wad_price = simulate::utils::float_to_wad(price);
+    let wad_price = float_to_wad(price);
     price_path.push(wad_price);
     admin.call(liquid_exchange, "setPrice", vec![wad_price.into_token()])?;
     Ok(())

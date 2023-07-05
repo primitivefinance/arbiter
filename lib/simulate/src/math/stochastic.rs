@@ -9,7 +9,6 @@ use rand_distr::{
     Poisson as PoissonDistr,
 };
 
-pub mod price_process;
 
 /// A trait for distribution sampling.
 pub trait Distribution<T> {
@@ -33,8 +32,8 @@ pub struct Normal {
 
 impl Normal {
     /// Create a new normal distribution
-    fn new(mean: f64, std_dev: f64) -> Normal {
-        let distribution = NormalDistr::new(mean, std_dev).unwrap();
+    pub fn new(mean: f64, std_dev: f64) -> Normal {
+        let distribution: NormalDistr<f64> = NormalDistr::new(mean, std_dev).unwrap();
         Normal {
             mean,
             std_dev,

@@ -10,7 +10,7 @@ use crossbeam_channel::{unbounded, Receiver, Sender};
 use ethers::{
     abi::Token,
     prelude::AbiError,
-    providers::{MockProvider, Provider},
+    providers::{MockProvider, Provider}, types::Address,
 };
 use futures::Stream;
 use revm::{
@@ -44,6 +44,11 @@ pub struct SimulationEnvironment {
     pub(crate) transaction_channel: (TxEnvSender, TxEnvReceiver),
     /// The provider for [`Middleware`].
     pub(crate) provider: Provider<MockProvider>,
+    /// Address of EOA
+    pub(crate) eoa: Address,
+
+    // Idea : agents are owned here
+    // problem: if we create a client, then if we call the send_transactions
 }
 
 impl fmt::Debug for SimulationEnvironment {
@@ -70,6 +75,7 @@ impl SimulationEnvironment {
             event_broadcaster: Arc::new(Mutex::new(EventBroadcaster::new())),
             transaction_channel,
             provider,
+            eoa: Address::zero(),
         }
     }
 

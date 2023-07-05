@@ -57,7 +57,7 @@ impl Display for ManagerError {
 /// * `environment` - The simulation environment that the manager controls.
 /// * `agents` - The agents that are currently running in the simulation environment.
 pub struct SimulationManager {
-    /// [`SimulationEnvironment`] that the simulation manager controls.
+    /// [`SimulationEnvironment`] that the simulation manager controls. Middleware is wrapped around the environement
     pub environment: SimulationEnvironment,
     /// The agents that are currently running in the [`SimulationEnvironment`].
     pub agents: HashMap<String, AgentType<IsActive>>,

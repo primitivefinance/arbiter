@@ -17,13 +17,16 @@ authors = ["Colin Roberts", "Waylon Jepsen"]
 name = "arbiter"
 path = "bin/main.rs"
 
+
 # Dependency configuration
 [dependencies]
 # Local dependencies
-simulate = {path = "lib/simulate"}
+simulate = { path = "lib/simulate" }
+# TODO get a better name for this, it's the "arbiterapi"
+# Arbiter Binary is CLI should have the namespace "arbiter" on crates.io
 
 # Primitive dependencies
-visualize = { git = "https://github.com/primitivefinance/visualization-rs.git"}
+visualize = { git = "https://github.com/primitivefinance/visualization-rs.git" }
 
 # External dependencies
 clap = { version = "4.3.0", features = ["derive"] }

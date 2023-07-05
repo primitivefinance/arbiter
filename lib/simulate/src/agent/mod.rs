@@ -23,7 +23,7 @@ use revm::primitives::{
 };
 
 use self::{simple_arbitrageur::SimpleArbitrageur, user::User};
-use crate::environment::contract::{IsDeployed, NotDeployed, SimulationContract};
+use crate::environment::{contract::{IsDeployed, NotDeployed, SimulationContract}, TxEnvReceiver};
 use futures::Stream;
 
 pub mod simple_arbitrageur;
@@ -44,6 +44,16 @@ impl Display for AgentError {
     fn fmt(&self, f: &mut Formatter) -> FmtResult {
         write!(f, "{}", self.0)
     }
+}
+
+// can an agent be be a struct? well API wants users
+pub struct AgentMiddleware {
+    /// The address of the agent.
+    pub address: Address,
+    /// tansaction sender
+    pub tx_sender: Sender<(TxEnv, Sender<ExecutionResult>)>,
+    /// Event broadcast receiver
+    pub event_receiver: TxEnvReceiver
 }
 
 /// A marker trait for [`Agent`] types.

@@ -5,9 +5,8 @@
 pub mod agent;
 pub mod bindings;
 pub mod environment;
-pub mod historic;
 pub mod manager;
-pub mod stochastic;
+pub mod math;
 pub mod utils;
 
 #[cfg(test)]

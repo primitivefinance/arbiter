@@ -3,8 +3,7 @@
 use plotly::{Plot, Scatter};
 use rand::SeedableRng;
 use serde::{Deserialize, Serialize};
-
-use crate::stochastic::*;
+use super::stochastic::{Normal, Distribution};
 
 /// Trait for all price processes.
 pub trait Plotting {
@@ -212,6 +211,8 @@ impl OU {
 
 #[cfg(test)]
 mod tests {
+    use crate::math::stochastic::Normal;
+
     use super::*;
 
     #[test]

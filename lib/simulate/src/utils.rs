@@ -6,10 +6,12 @@ use std::{
 };
 
 use bytes::Bytes;
-use ethers::prelude::{Address, U256};
+use ethers::prelude::{Address};
 use revm::primitives::{ExecutionResult, Output, B160};
 
 #[derive(Debug)]
+
+// We should use anyhow / thisError instead
 /// Error type for the simulation manager.
 /// # Fields
 /// * `message` - Error message.
@@ -30,6 +32,7 @@ impl Display for UnpackError {
     }
 }
 
+// Certainly will go away with alloy-types
 /// Recast a B160 into an Address type
 /// # Arguments
 /// * `address` - B160 to recast. (B160)
@@ -40,24 +43,8 @@ pub fn recast_address(address: B160) -> Address {
     Address::from(temp)
 }
 
-/// Converts a float to a WAD fixed point prepared U256 number.
-/// # Arguments
-/// * `x` - Float to convert. (f64)
-/// # Returns
-/// * `U256` - Converted U256 number.
-pub fn float_to_wad(x: f64) -> U256 {
-    U256::from((x * 1e18) as u128)
-}
 
-/// Converts a float to a WAD fixed point prepared U256 number.
-/// # Arguments
-/// * `x` - WAD to convert. (U256)
-/// # Returns
-/// * `f64` - Converted f64 number.
-pub fn wad_to_float(x: U256) -> f64 {
-    x.as_u128() as f64 / 1e18
-}
-
+// TODO: Can maybe get rid of this with middleware
 /// Takes an `ExecutionResult` and returns the raw bytes of the output that can then be decoded.
 /// # Arguments
 /// * `execution_result` - The `ExecutionResult` that we want to unpack.

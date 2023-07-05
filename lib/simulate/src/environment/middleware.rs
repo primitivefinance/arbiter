@@ -133,6 +133,7 @@ impl Middleware for SimulationEnvironment {
             Some(to) => TransactTo::Call(B160::from(*to.as_address().unwrap()).into()),
             None => TransactTo::create(),
         };
+        // tx.set_from(&self.eoa);
 
         // Build the TxEnv
         let tx_env = TxEnv {
@@ -920,6 +921,7 @@ mod tests {
     #[tokio::test]
     async fn test_something() -> anyhow::Result<()> {
         let manager = SimulationManager::new();
+        // need to associate this with an agent
         let client = Arc::new(manager.environment);
 
         let deployer = Writer::deploy(client, ())?;
