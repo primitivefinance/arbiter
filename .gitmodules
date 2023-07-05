@@ -8,9 +8,6 @@
 	path = contracts/v3-core
 	url = https://github.com/Uniswap/v3-core
 	branch = v1.0.0
-[submodule "contracts/portfolio"]
-	path = contracts/portfolio
-	url = https://github.com/primitivefinance/portfolio
 [submodule "contracts/v2-core"]
 	path = contracts/v2-core
 	url = https://github.com/Uniswap/v2-core
