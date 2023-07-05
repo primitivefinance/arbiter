@@ -48,24 +48,30 @@ pub(crate) fn compute_trade_size(
     ratio: U256, // ratio of reference market price to strike price of the pool
 ) -> Result<ComputeArbOutput, Box<dyn Error>> {
     println!("Computing arbitrage size and swap asset...");
-    let arbiter_math = contracts.get("arbiter_math").unwrap();
-    let portfolio = contracts.get("portfolio").unwrap();
+    // Contracts
+    let (arbiter_math, portfolio) = (
+        contracts.get("arbiter_math").unwrap(),
+        contracts.get("portfolio").unwrap(),
+    );
+
     // Units
     let wad = U256::from(10u128.pow(18));
-    let strike = U256::from(pool_params.strike);
-    let iv = U256::from(pool_params.volatility) * wad / U256::from(10u128.pow(4));
-    let tau = U256::from(31556953u128); // 1 year in seconds
-    let int_ratio = I256::from_raw(ratio);
-    let gamma = U256::from(10000u16 - pool_params.fee) * U256::from(10u128.pow(14));
+    let (strike, iv, tau, int_ratio, gamma) = (
+        U256::from(pool_params.strike),
+        U256::from(pool_params.volatility) * wad / U256::from(10u128.pow(4)),
+        U256::from(31556953u128), // 1 year in seconds
+        I256::from_raw(ratio),
+        U256::from(10000u16 - pool_params.fee) * U256::from(10u128.pow(14)),
+    );
+
     //------------------------------------------------------------
     // Calculate X Arbitrage Amount
     //------------------------------------------------------------
+    // Compute the logarithm
     let log_input = int_ratio * I256::from_raw(wad) / I256::from_raw(gamma);
-    // compute logarithm
-    let execution_result = admin.call(arbiter_math, "log", log_input.into_tokens())?;
+    let log_call = admin.call(arbiter_math, "log", log_input.into_tokens())?;
+    let log: I256 = arbiter_math.decode_output("log", unpack_execution(log_call)?)?;
 
-    let unpacked_result = unpack_execution(execution_result)?;
-    let log: I256 = arbiter_math.decode_output("log", unpacked_result)?;
     let sign = log.sign();
     let unsigned_log = match sign {
         Sign::Positive => log.into_raw(),
@@ -82,7 +88,6 @@ pub(crate) fn compute_trade_size(
     // CDF input
     let cdf_input = scaled_log + I256::from_raw(additional_term);
     // compute the CDF
-
     let execution_result = admin.call(arbiter_math, "cdf", cdf_input.into_tokens())?;
 
     let unpacked_result = unpack_execution(execution_result)?;
@@ -106,10 +111,8 @@ pub(crate) fn compute_trade_size(
     // --------------------------------------------------------------------------------------------
     let log_input = int_ratio * I256::from_raw(gamma) / I256::from_raw(wad);
     // compute logarithm
-    let execution_result = admin.call(arbiter_math, "log", log_input.into_tokens())?;
-
-    let unpacked_result = unpack_execution(execution_result)?;
-    let log: I256 = arbiter_math.decode_output("log", unpacked_result)?;
+    let log_call = admin.call(arbiter_math, "log", log_input.into_tokens())?;
+    let log: I256 = arbiter_math.decode_output("log", unpack_execution(log_call)?)?;
     let sign = log.sign();
     let unsigned_log = match sign {
         Sign::Positive => log.into_raw(),
@@ -121,9 +124,6 @@ pub(crate) fn compute_trade_size(
         Sign::Positive => I256::from_raw(output),
         Sign::Negative => I256::from_raw(output) * I256::from(-1),
     };
-    // compute the additional term
-    let additional_term = iv * U256::from(500_000_000_000_000_000_u128) / wad;
-    // CDF input
     let cdf_input = scaled_log + I256::from_raw(additional_term);
     let ppf_output = cdf_input;
     let cdf_input = ppf_output - I256::from_raw(iv);
@@ -239,28 +239,33 @@ where
     // This fails with "Error Here"
     println!("Error Here");
     let get_amount_out_result = arbitrageur.call(portfolio, "getAmountOut", get_amount_out_args)?;
-
-    let unpacked_get_amount_out = unpack_execution(get_amount_out_result.clone())?;
-    println!("unpacked_get_amount_out: {:?}", unpacked_get_amount_out);
-    assert!(get_amount_out_result.is_success());
-    let decoded_amount_out: u128 =
-        portfolio.decode_output("getAmountOut", unpacked_get_amount_out)?;
-    if sell_asset {
-        println!(
-            "Inputting {} ARBX yields {} ARBY out.",
-            U256::from(input_amount),
-            decoded_amount_out,
-        );
+    println!("wut");
+    let mut amount_out: u128 = 1;
+    if !get_amount_out_result.is_success() {
+        println!("get_amount_out_result: {:?}", get_amount_out_result);
     } else {
-        println!(
-            "Inputting {} ARBY yields {} ARBX out.",
-            U256::from(input_amount),
-            decoded_amount_out,
-        );
-    }
+        let unpacked_get_amount_out = unpack_execution(get_amount_out_result.clone())?;
+        println!("unpacked_get_amount_out: {:?}", unpacked_get_amount_out);
+        let decoded_amount_out: u128 =
+            portfolio.decode_output("getAmountOut", unpacked_get_amount_out)?;
+        if sell_asset {
+            println!(
+                "Inputting {} ARBX yields {} ARBY out.",
+                U256::from(input_amount),
+                decoded_amount_out,
+            );
+        } else {
+            println!(
+                "Inputting {} ARBY yields {} ARBX out.",
+                U256::from(input_amount),
+                decoded_amount_out,
+            );
+        }
 
-    // Construct the swap using the above amount
-    let amount_out = decoded_amount_out;
+        // Construct the swap using the above amount
+        amount_out = decoded_amount_out;
+    }
+    println!("amount_out: {:?}", amount_out);
     let order = rmm01_portfolio::Order {
         input: u128::from(input_amount),
         output: amount_out,
@@ -280,6 +285,7 @@ where
         }
         Err(e) => {
             // This `InvalidInvariant` can pop up in multiple ways. Best to check for this.
+            println!("Error: {:?}", e);
             let value = e.output.unwrap();
             let decoded_result = portfolio.decode_error("InvalidInvariant".to_string(), value);
             println!("The result of `InvalidInvariant` is: {:#?}", decoded_result)

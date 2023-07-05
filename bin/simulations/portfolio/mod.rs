@@ -57,7 +57,7 @@ pub async fn run(output_storage: OutputStorage) -> Result<(), Box<dyn Error>> {
     let pool_args = PoolParams::new(
         1_u16,
         1_u16,
-        50_u16,
+        5_u16,
         65535_u16,
         1_000_000_000_000_000_000u128,
         1_000_000_000_000_000_000u128,
@@ -96,6 +96,11 @@ pub async fn run(output_storage: OutputStorage) -> Result<(), Box<dyn Error>> {
         portfolio.decode_output("getSpotPrice", unpack_execution(portfolio_price)?)?;
     portfolio_price_path.push(portfolio_price);
 
+    let version_call = arbitrageur.call(portfolio, "VERSION", vec![])?;
+    let version_call = unpack_execution(version_call)?;
+    let version: String = portfolio.decode_output("VERSION", version_call)?;
+    println!("Portfolio version: {}", version);
+
     let mut pool_reserve_over_time: (Vec<U256>, Vec<U256>) = (Vec::new(), Vec::new());
     record_pool_reserves(
         manager.agents.get("admin").unwrap(),
@@ -126,7 +131,7 @@ pub async fn run(output_storage: OutputStorage) -> Result<(), Box<dyn Error>> {
         PriceProcessType::OU(ou),
         0.01,
         "trade".to_string(),
-        500,
+        1,
         1.0,
         1,
     );
