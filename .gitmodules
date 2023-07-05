@@ -28,3 +28,6 @@
 [submodule "contracts/arbmod"]
 	path = contracts/arbmod
 	url = https://github.com/primitivefinance/arbmod
+[submodule "contracts/portfolio"]
+	path = contracts/portfolio
+	url = https://github.com/primitivefinance/portfolio
