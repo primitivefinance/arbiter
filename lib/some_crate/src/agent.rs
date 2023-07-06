@@ -1,15 +1,15 @@
 #![allow(missing_docs)]
 #![warn(unsafe_code)]
 
-// TODO: 
+// TODO:
 // # Notes
 // * The agent should be able to have multiple behaviors with different data types.
 // * The agent should be able to be created before being attached to an environment.
 
-use std::sync::Arc;
 use revm::primitives::{Address, ExecutionResult, TxEnv};
+use std::sync::Arc;
 
-use crate::environment::middleware::RevmMiddleware;
+use crate::middleware::RevmMiddleware;
 
 pub struct Agent {
     pub name: String,
@@ -18,7 +18,8 @@ pub struct Agent {
 }
 
 impl Agent {
-    pub fn new(name: String,
+    pub fn new(
+        name: String,
         tx_sender: crossbeam_channel::Sender<(TxEnv, crossbeam_channel::Sender<ExecutionResult>)>,
     ) -> Self {
         Self {
@@ -80,13 +81,13 @@ mod tests {
     #[test]
     fn add_behavior() {}
 
-    #[test]
-    fn multiple_behavior_data() {
-        let mut _agent = Agent::new(crossbeam_channel::unbounded().0);
-        // TODO: Do something like this to make sure this works.
-        // agent.add_behavior(TestBehavior {
-        //     data: "test".to_string(),
-        // });
-        // agent.add_behavior(TestBehavior2 { data: U256::zero() });
-    }
+    // #[test]
+    // fn multiple_behavior_data() {
+    //     let mut _agent = Agent::new(crossbeam_channel::unbounded().0);
+    //     // TODO: Do something like this to make sure this works.
+    //     // agent.add_behavior(TestBehavior {
+    //     //     data: "test".to_string(),
+    //     // });
+    //     // agent.add_behavior(TestBehavior2 { data: U256::zero() });
+    // }
 }

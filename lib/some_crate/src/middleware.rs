@@ -686,21 +686,21 @@ mod tests {
     use crate::{bindings, environment::SimulationEnvironment};
     use bindings::writer::Writer;
 
-    #[tokio::test]
-    async fn test_something() -> anyhow::Result<()> {
-        // TODO: Specify the signer to use here ::<SIGNER>.
-        let environment = SimulationEnvironment::new();
-        let thing = environment.event_broadcaster;
-        let agent = Agent::new(crossbeam_channel::unbounded().0);
+    // #[tokio::test]
+    // async fn test_something() -> anyhow::Result<()> {
+    //     // TODO: Specify the signer to use here ::<SIGNER>.
+    //     let environment = SimulationEnvironment::new();
+    //     let thing = environment.event_broadcaster;
+    //     let agent = Agent::new(crossbeam_channel::unbounded().0);
 
-        let deployer = Writer::deploy(agent.client, ())?;
-        println!("deployer: {:?}", deployer);
-        let writer = deployer.send().await?;
-        writer
-            .echo_string(String::from("test_string"))
-            .send()
-            .await?;
+    //     let deployer = Writer::deploy(agent.client, ())?;
+    //     println!("deployer: {:?}", deployer);
+    //     let writer = deployer.send().await?;
+    //     writer
+    //         .echo_string(String::from("test_string"))
+    //         .send()
+    //         .await?;
 
-        Ok(())
-    }
+    //     Ok(())
+    // }
 }

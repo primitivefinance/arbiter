@@ -5,6 +5,7 @@
 pub mod agent;
 pub mod bindings;
 pub mod environment;
+pub mod middleware;
 pub mod manager;
 pub mod math;
 pub mod tests;

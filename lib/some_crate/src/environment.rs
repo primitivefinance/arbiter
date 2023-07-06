@@ -1,9 +1,5 @@
 #![warn(missing_docs)]
 #![warn(unsafe_code)]
-//! ## module for the environment
-//!
-//! An abstraction on the EVM, to be used in simulations.
-pub mod middleware;
 
 use crossbeam_channel::{unbounded, Receiver, Sender};
 use ethers::providers::{MockProvider, Provider};
@@ -14,18 +10,18 @@ use revm::{
 };
 use std::{
     collections::HashMap,
-    fmt,
     sync::{Arc, Mutex},
     thread,
 };
 
-use crate::{agent::Agent, environment::middleware::RevmMiddleware};
+use crate::{agent::Agent, middleware::RevmMiddleware};
 use ethers::contract::Contract;
 /// Type Aliases for the event channel.
 pub(crate) type ExecutionSender = Sender<ExecutionResult>;
 pub(crate) type TxEnvSender = Sender<(TxEnv, ExecutionSender)>;
 pub(crate) type TxEnvReceiver = Receiver<(TxEnv, ExecutionSender)>;
 
+#[derive(Debug, Eq, PartialEq, Clone, Copy)]
 pub enum State {
     /// The [`SimulationEnvironment`] is currently running.
     /// [`Agent`]s cannot be added if the environment is [`State::Running`].
@@ -41,7 +37,7 @@ pub enum State {
 /// * `event_senders` - The senders on the event channel that is used to send events to the agents and simulation manager.
 pub struct SimulationEnvironment {
     pub label: String,
-    pub state: State,
+    pub(crate) state: State,
     /// The EVM that is used for the simulation.
     pub(crate) evm: EVM<CacheDB<EmptyDB>>,
     /// The sender on the event channel that is used to send events to the agents and simulation manager.
@@ -53,9 +49,8 @@ pub struct SimulationEnvironment {
     pub(crate) provider: Provider<MockProvider>,
     /// Agents in the environment
     pub agents: Vec<Agent>,
-    /// The collection of different [`SimulationContract`] that are currently deployed in the [`SimulationEnvironment`].
+
     pub deployed_contracts: HashMap<String, Contract<RevmMiddleware>>,
-    
 }
 
 impl SimulationEnvironment {
@@ -77,6 +72,10 @@ impl SimulationEnvironment {
             deployed_contracts: HashMap::new(),
             state: State::Stopped,
         }
+    }
+
+    pub fn add_agent(&mut self, agent: Agent) {
+        self.agents.push(agent);
     }
 
     pub(crate) fn run(&mut self) {
