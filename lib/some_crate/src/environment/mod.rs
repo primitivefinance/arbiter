@@ -26,11 +26,22 @@ pub(crate) type ExecutionSender = Sender<ExecutionResult>;
 pub(crate) type TxEnvSender = Sender<(TxEnv, ExecutionSender)>;
 pub(crate) type TxEnvReceiver = Receiver<(TxEnv, ExecutionSender)>;
 
+pub enum State {
+    /// The [`SimulationEnvironment`] is currently running.
+    /// [`Agent`]s cannot be added if the environment is [`State::Running`].
+    Running,
+    /// The [`SimulationEnvironment`] is currently stopped.
+    /// [`Agent`]s can only be added if the environment is [`State::Stopped`].
+    Stopped,
+}
+
 /// The simulation environment that houses the execution environment and event logs.
 /// # Fields
 /// * `evm` - The EVM that is used for the simulation.
 /// * `event_senders` - The senders on the event channel that is used to send events to the agents and simulation manager.
 pub struct SimulationEnvironment {
+    pub label: String,
+    pub state: State,
     /// The EVM that is used for the simulation.
     pub(crate) evm: EVM<CacheDB<EmptyDB>>,
     /// The sender on the event channel that is used to send events to the agents and simulation manager.
@@ -44,20 +55,11 @@ pub struct SimulationEnvironment {
     pub agents: Vec<Agent>,
     /// The collection of different [`SimulationContract`] that are currently deployed in the [`SimulationEnvironment`].
     pub deployed_contracts: HashMap<String, Contract<RevmMiddleware>>,
-}
-
-impl fmt::Debug for SimulationEnvironment {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.debug_struct("SimulationEnvironment")
-            // .field("evm", &self.evm)  // Skip the `evm` field
-            .field("event_broadcaster", &self.event_broadcaster)
-            .field("transaction_channel", &self.transaction_channel)
-            .finish()
-    }
+    
 }
 
 impl SimulationEnvironment {
-    pub(crate) fn new() -> Self {
+    pub(crate) fn new(label: String) -> Self {
         let mut evm = EVM::new();
         let db = CacheDB::new(EmptyDB {});
         evm.env.cfg.limit_contract_code_size = Some(0x100000); // This is a large contract size limit, beware!
@@ -66,23 +68,31 @@ impl SimulationEnvironment {
         let transaction_channel = unbounded::<(TxEnv, Sender<ExecutionResult>)>();
         let provider = Provider::new(MockProvider::new());
         Self {
+            label,
             evm,
             event_broadcaster: Arc::new(Mutex::new(EventBroadcaster::new())),
             transaction_channel,
             provider,
             agents: vec![],
             deployed_contracts: HashMap::new(),
+            state: State::Stopped,
         }
     }
 
-    pub(crate) fn run(&self) {
+    pub(crate) fn run(&mut self) {
         let tx_receiver = self.transaction_channel.1.clone();
         let mut evm = self.evm.clone();
         let event_broadcaster = self.event_broadcaster.clone();
+        self.state = State::Running;
         thread::spawn(move || {
             while let Ok((tx, sender)) = tx_receiver.recv() {
                 // Execute the transaction, echo the logs to all agents, and report the execution result to the agent who made the call.
-                let execution_result = execute(&mut evm, tx);
+                evm.env.tx = tx;
+                let execution_result = match evm.transact_commit() {
+                    Ok(val) => val,
+                    // URGENT: change this to a custom error
+                    Err(_) => panic!("failed"),
+                };
                 event_broadcaster
                     .lock()
                     .unwrap()
@@ -90,21 +100,6 @@ impl SimulationEnvironment {
                 sender.send(execution_result).unwrap();
             }
         });
-    }
-}
-
-/// Execute a transaction in the execution environment.
-/// # Arguments
-/// * `tx` - The transaction environment that is used to execute the transaction.
-/// # Returns
-/// * `ExecutionResult` - The execution result of the transaction.
-fn execute(evm: &mut EVM<CacheDB<EmptyDB>>, tx: TxEnv) -> ExecutionResult {
-    evm.env.tx = tx;
-
-    match evm.transact_commit() {
-        Ok(val) => val,
-        // URGENT: change this to a custom error
-        Err(_) => panic!("failed"),
     }
 }
 
