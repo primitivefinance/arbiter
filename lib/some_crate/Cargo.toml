@@ -34,17 +34,7 @@ url = "2.2.2"
 futures = { version = "0.3.27" }
 csv = { version = "1.2.1" }
 ethers = { version = "2.0.4", default-features = false, features = ["abigen"] }
-# ethers_signers = { version = "2.0.4" }
+ethers-middleware = { version = "2.0.4" }
 serde = { version = "1.0.163", features= ["derive"]}
 serde_json = { version = "1.0.96" }
 tokio = { version = "1.28.1", features = ["macros", "full"] }
-
-# What is an env?
-
-# Is like an in memeory provider to revm. It has the evmDB, it Has channels, and log broadcasters
-# could have agents and contracts
-
-
-
-# What is a manager
-# Manager has an env, end user api, controls the env. 

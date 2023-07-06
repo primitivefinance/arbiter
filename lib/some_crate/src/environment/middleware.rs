@@ -11,19 +11,13 @@ use std::fmt::Debug;
 
 use crossbeam_channel::Sender;
 use ethers::{
-    prelude::k256::{
-        ecdsa::{
-            signature::hazmat::PrehashSigner, RecoveryId, Signature as RecoverySignature,
-            SigningKey,
-        },
-        Secp256k1,
-    },
+    prelude::k256::ecdsa::SigningKey,
     prelude::ProviderError,
     providers::{
         erc, FilterKind, FilterWatcher, LogQuery, Middleware, MiddlewareError, MockProvider,
         NodeInfo, PeerInfo, PendingTransaction, Provider,
     },
-    signers::{LocalWallet, Signer, Wallet},
+    signers::Wallet,
     types::{
         transaction::{eip2718::TypedTransaction, eip2930::AccessListWithGasUsed},
         Address, Block, BlockId, BlockNumber, BlockTrace, Bytes, EIP1186ProofResponse, FeeHistory,
@@ -50,7 +44,6 @@ pub struct RevmMiddleware {
 
 impl RevmMiddleware {
     pub fn new(tx_sender: Sender<(TxEnv, Sender<ExecutionResult>)>) -> Self {
-        let wallet = Wallet::new(&mut thread_rng());
         Self {
             tx_sender,
             provider: ethers::providers::Provider::new(MockProvider::default()),
@@ -658,7 +651,7 @@ impl Middleware for RevmMiddleware {
     /// started is equal to the number of logical CPUs that are usable by this process. If mining
     /// is already running, this method adjust the number of threads allowed to use and updates the
     /// minimum price required by the transaction pool.
-    async fn start_mining(&self, threads: Option<usize>) -> Result<(), Self::Error> {
+    async fn start_mining(&self) -> Result<(), Self::Error> {
         unimplemented!("we don't need to start mining.")
     }
 

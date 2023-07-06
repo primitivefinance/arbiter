@@ -1,4 +1,4 @@
-#![warn(missing_docs)]
+#![allow(missing_docs)]
 #![warn(unsafe_code)]
 
 //! ## Agent trait and associated functionality
@@ -8,20 +8,10 @@
 //! All agents must implement the [`Agent`] traits and be included in the [`AgentType`] enum.
 //!
 
-use crossbeam_channel::Sender;
-use ethers::{
-    prelude::k256::ecdsa::{
-        signature::hazmat::PrehashSigner, RecoveryId, Signature as RecoverySignature,
-    },
-    providers::Middleware,
-    signers::{LocalWallet, Wallet},
-};
-use rand::thread_rng;
 use std::sync::Arc;
 use thiserror::Error;
 
-use crate::environment::{middleware::RevmMiddleware, SimulationEnvironment};
-use ethers::providers::{MockProvider, Provider};
+use crate::environment::middleware::RevmMiddleware;
 use revm::primitives::{Address, ExecutionResult, TxEnv};
 // pub type Signature = ecdsa_core::Signature<Secp256k1>;
 
@@ -57,6 +47,7 @@ pub trait AgentProperties {
     // type Data;
     // type FilterWatcher: Stream<Item = Result<(Vec<Token>, usize), AbiError>> + Send + Sync;
     /// Returns the address of the agent.
+    #[allow(unconditional_recursion)]
     fn address(&self) -> Address {
         self.address()
     }
@@ -83,7 +74,7 @@ mod tests {
     use ethers::types::U256;
 
     struct TestBehavior {
-        data: String,
+        _data: String,
     }
 
     impl Behavior for TestBehavior {
@@ -97,7 +88,7 @@ mod tests {
     }
 
     struct TestBehavior2 {
-        data: U256,
+        _data: U256,
     }
 
     impl Behavior for TestBehavior2 {
@@ -109,9 +100,8 @@ mod tests {
             Ok(())
         }
     }
-
     fn multiple_behavior_data() {
-        let mut agent = Agent::new(crossbeam_channel::unbounded().0);
+        let mut _agent = Agent::new(crossbeam_channel::unbounded().0);
         // TODO: Do something like this to make sure this works.
         // agent.add_behavior(TestBehavior {
         //     data: "test".to_string(),

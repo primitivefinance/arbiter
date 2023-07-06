@@ -6,10 +6,7 @@
 pub mod middleware;
 
 use crossbeam_channel::{unbounded, Receiver, Sender};
-use ethers::{
-    prelude::k256::ecdsa::{signature::hazmat::PrehashSigner, RecoveryId, Signature},
-    providers::{MockProvider, Provider},
-};
+use ethers::providers::{MockProvider, Provider};
 use revm::{
     db::{CacheDB, EmptyDB},
     primitives::{ExecutionResult, Log, TxEnv, U256},
@@ -33,8 +30,7 @@ pub(crate) type TxEnvReceiver = Receiver<(TxEnv, ExecutionSender)>;
 /// # Fields
 /// * `evm` - The EVM that is used for the simulation.
 /// * `event_senders` - The senders on the event channel that is used to send events to the agents and simulation manager.
-pub struct SimulationEnvironment
-{
+pub struct SimulationEnvironment {
     /// The EVM that is used for the simulation.
     pub(crate) evm: EVM<CacheDB<EmptyDB>>,
     /// The sender on the event channel that is used to send events to the agents and simulation manager.
@@ -50,8 +46,7 @@ pub struct SimulationEnvironment
     pub deployed_contracts: HashMap<String, Contract<RevmMiddleware>>,
 }
 
-impl fmt::Debug for SimulationEnvironment
-{
+impl fmt::Debug for SimulationEnvironment {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_struct("SimulationEnvironment")
             // .field("evm", &self.evm)  // Skip the `evm` field
@@ -61,8 +56,7 @@ impl fmt::Debug for SimulationEnvironment
     }
 }
 
-impl SimulationEnvironment
-{
+impl SimulationEnvironment {
     pub(crate) fn new() -> Self {
         let mut evm = EVM::new();
         let db = CacheDB::new(EmptyDB {});
