@@ -2,8 +2,7 @@
 
 use ethers::types::U256;
 
-pub mod price_process;
-pub mod stochastic;
+pub mod stochastic_process;
 
 /// Converts a float to a WAD fixed point prepared U256 number.
 /// # Arguments
