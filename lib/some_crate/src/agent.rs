@@ -6,11 +6,9 @@
 // * The agent should be able to have multiple behaviors with different data types.
 // * The agent should be able to be created before being attached to an environment.
 
-use revm::primitives::{Address, ExecutionResult, TxEnv};
 use std::sync::Arc;
-use thiserror::Error;
 
-use crate::{middleware::RevmMiddleware, environment::RevmEnvironment};
+use crate::{environment::RevmEnvironment, middleware::RevmMiddleware};
 
 pub struct Agent {
     pub name: String,
@@ -27,19 +25,15 @@ impl std::fmt::Debug for Agent {
     }
 }
 
-
 impl Agent {
-    fn new(
-        name: String,
-        environment: RevmEnvironment,
-    ) -> Self {
+    fn new(name: String, environment: RevmEnvironment) -> Self {
         Self {
             name,
             client: Arc::new(RevmMiddleware::new(environment)),
             behaviors: vec![],
         }
     }
-    // TODO: We probably don't need static lifetimes. We could just set the lifetime of the environment and everything inside of it. 
+    // TODO: We probably don't need static lifetimes. We could just set the lifetime of the environment and everything inside of it.
     // The manager can outlive any environment.
     pub fn add_behavior<B>(&mut self, behavior: B)
     where
@@ -49,7 +43,7 @@ impl Agent {
     }
 }
 
-// TODO: Note -- Artemis uses a `process_event` function that returns an `Option<Action>` for something to happen. 
+// TODO: Note -- Artemis uses a `process_event` function that returns an `Option<Action>` for something to happen.
 // https://github.com/paradigmxyz/artemis/blob/c8ab223a363a875f685ab177839eacfffc9d8de0/crates/artemis-core/src/types.rs#L25
 #[async_trait::async_trait]
 pub trait Behavior: Send + Sync {
@@ -59,47 +53,42 @@ pub trait Behavior: Send + Sync {
 
 #[cfg(test)]
 mod tests {
+    const TEST_ENV_LABEL: &str = "test_env";
+    const TEST_AGENT_NAME: &str = "test_agent";
+    const TEST_BEHAVIOR_DATA: &str = "test_behavior_data";
     use super::*;
 
     struct TestBehavior {
-        _data: String,
+        data: String,
     }
 
     #[async_trait::async_trait]
     impl Behavior for TestBehavior {
         async fn process_event(&mut self) -> bool {
             true
-
         }
         fn sync_state(&mut self) {
-            println!("Hello, world!")
+            assert_eq!(self.data, TEST_BEHAVIOR_DATA.to_string());
         }
     }
 
-    struct TestBehavior2 {
-        _data: u64,
+    #[tokio::test]
+    async fn test_behavior() {
+        let label = TEST_ENV_LABEL.to_string();
+        let name = TEST_AGENT_NAME.to_string();
+        let mut agent = Agent::new(
+            name,
+            RevmEnvironment::new(label),
+        );
+
+        // Add a behavior of the first type.
+        let data = TEST_BEHAVIOR_DATA.to_string();
+        let behavior = TestBehavior {
+            data,
+        };
+        agent.add_behavior(behavior);
+        assert!(agent.behaviors.len() == 1);
+        assert!(agent.behaviors[0].process_event().await);
+        agent.behaviors[0].sync_state();
     }
-
-    #[async_trait::async_trait]
-    impl Behavior for TestBehavior2 {
-        async fn process_event(&mut self) -> bool {
-            false
-        }
-        fn sync_state(&mut self) {
-            println!("Hello, world, it's me, number 2")
-        }
-    }
-
-    #[test]
-    fn add_behavior() {}
-
-    // #[test]
-    // fn multiple_behavior_data() {
-    //     let mut _agent = Agent::new(crossbeam_channel::unbounded().0);
-    //     // TODO: Do something like this to make sure this works.
-    //     // agent.add_behavior(TestBehavior {
-    //     //     data: "test".to_string(),
-    //     // });
-    //     // agent.add_behavior(TestBehavior2 { data: U256::zero() });
-    // }
 }

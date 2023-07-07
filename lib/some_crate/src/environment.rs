@@ -9,13 +9,14 @@ use revm::{
     primitives::{ExecutionResult, Log, TxEnv, U256},
     EVM,
 };
-use serde::{Serialize, de::DeserializeOwned};
-use thiserror::Error;
+use serde::{de::DeserializeOwned, Serialize};
 use std::{
     collections::HashMap,
+    fmt::Formatter,
     sync::{Arc, Mutex},
-    thread, fmt::Formatter,
+    thread,
 };
+use thiserror::Error;
 
 use crate::{agent::Agent, middleware::RevmMiddleware};
 use ethers::contract::Contract;
@@ -48,8 +49,6 @@ pub struct RevmEnvironment {
     /// The receiver of txs from agents.
     /// Bundles with a sender to send the execution result back to the agent.
     pub(crate) transaction_channel: (TxEnvSender, TxEnvReceiver),
-    /// The provider for [`Middleware`].
-    pub(crate) provider: Provider<MockProvider>,
     /// Agents in the environment
     pub agents: Vec<Agent>,
 
@@ -63,7 +62,6 @@ impl std::fmt::Debug for RevmEnvironment {
             .field("state", &self.state)
             .field("event_broadcaster", &self.event_broadcaster)
             .field("transaction_channel", &self.transaction_channel)
-            .field("provider", &self.provider)
             .field("agents", &self.agents)
             .field("deployed_contracts", &self.deployed_contracts)
             .finish()
@@ -84,7 +82,6 @@ impl RevmEnvironment {
             evm,
             event_broadcaster: Arc::new(Mutex::new(EventBroadcaster::new())),
             transaction_channel,
-            provider,
             agents: vec![],
             deployed_contracts: HashMap::new(),
             state: State::Stopped,
@@ -141,16 +138,16 @@ impl From<RevmEnvironmentError> for ethers::providers::ProviderError {
     }
 }
 
-
 #[async_trait::async_trait]
 impl JsonRpcClient for RevmEnvironment {
     type Error = RevmEnvironmentError;
     async fn request<T, R>(&self, method: &str, params: T) -> Result<R, Self::Error>
     where
         T: std::fmt::Debug + Serialize + Send + Sync,
-        R: DeserializeOwned + Send {
+        R: DeserializeOwned + Send,
+    {
         todo!("we should be able to request something from the provider.")
-        }
+    }
 }
 
 /// The event broadcaster that is used to broadcast events to the agents from the simulation manager.

@@ -6,7 +6,6 @@
 // TODO and notes:
 // The middleware/client should be something like `AgentClient` or `AgentMiddleware`.
 // The middleware/client needs to be able to send transactions from an address (and also have access to some specific channels and what not)
-use std::{fmt::Debug, sync::Arc}; 
 use crossbeam_channel::Sender;
 use ethers::{
     prelude::k256::ecdsa::SigningKey,
@@ -25,6 +24,7 @@ use ethers_middleware::providers::JsonRpcClient;
 use rand::thread_rng;
 use revm::primitives::{ExecutionResult, TransactTo, TxEnv, B160};
 use serde::{de::DeserializeOwned, Serialize};
+use std::{fmt::Debug, sync::Arc};
 use thiserror::Error;
 
 use crate::environment::RevmEnvironment;
