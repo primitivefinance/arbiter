@@ -63,55 +63,14 @@ impl Middleware for RevmMiddleware {
 
     /// Get a reference to the next-lower middleware in the middleware stack
     fn inner(&self) -> &Self::Inner {
-        unimplemented!("revm does not need any inner middleware.")
-    }
-
-    /// Convert a provider error into the associated error type by successively
-    /// converting it to every intermediate middleware error
-    fn convert_err(_p: ProviderError) -> Self::Error {
-        unimplemented!("revm should not output any provider errors.")
-    }
-
-    /// The HTTP or Websocket provider.
-    fn provider(&self) -> &Provider<Self::Provider> {
-        &self.provider
+        self
     }
 
     /// Return the default sender (if any). This will typically be the
     /// connected node's first address, or the address of a Signer in a lower
     /// middleware stack
     fn default_sender(&self) -> Option<Address> {
-        todo!("this may be the transaction channel.")
-    }
-
-    /// Returns the current client version using the `web3_clientVersion` RPC.
-    async fn client_version(&self) -> Result<String, Self::Error> {
-        todo!("we should be able to return the client version.")
-    }
-
-    /// Fill necessary details of a transaction for dispatch
-    ///
-    /// This function is defined on providers to behave as follows:
-    /// 1. populate the `from` field with the default sender
-    /// 2. resolve any ENS names in the tx `to` field
-    /// 3. Estimate gas usage
-    /// 4. Poll and set legacy or 1559 gas prices
-    /// 5. Set the chain_id with the provider's, if not already set
-    ///
-    /// It does NOT set the nonce by default.
-    ///
-    /// Middleware are encouraged to override any values _before_ delegating
-    /// to the inner implementation AND/OR modify the values provided by the
-    /// default implementation _after_ delegating.
-    ///
-    /// E.g. a middleware wanting to double gas prices should consider doing so
-    /// _after_ delegating and allowing the default implementation to poll gas.
-    async fn fill_transaction(
-        &self,
-        _tx: &mut TypedTransaction,
-        _block: Option<BlockId>,
-    ) -> Result<(), Self::Error> {
-        todo!("we should be able to fill the transaction.")
+        todo!("This should be an Agent's address")
     }
 
     /// Get the block number
@@ -165,105 +124,6 @@ impl Middleware for RevmMiddleware {
         Ok(pending_tx)
     }
 
-    /// Send a transaction with a simple escalation policy.
-    ///
-    /// `policy` should be a boxed function that maps `original_gas_price`
-    /// and `number_of_previous_escalations` -> `new_gas_price`.
-    ///
-    /// e.g. `Box::new(|start, escalation_index| start * 1250.pow(escalations) /
-    /// 1000.pow(escalations))`
-    // async fn send_escalating<'a>(
-    //     &'a self,
-    //     tx: &TypedTransaction,
-    //     escalations: usize,
-    //     policy: ethers::providers::EscalationPolicy,
-    // ) -> Result<ethers::providers::EscalatingPending<'a,Self::Provider> , Self::Error> {
-    //     unimplemented!("revm does not need to escalate transactions at the moment.")
-    // }
-
-    ////// Ethereum Naming Service
-    // The Ethereum Naming Service (ENS) allows easy to remember and use names to
-    // be assigned to Ethereum addresses. Any provider operation which takes an address
-    // may also take an ENS name.
-    //
-    // ENS also provides the ability for a reverse lookup, which determines the name for an address
-    // if it has been configured.
-
-    /// Returns the address that the `ens_name` resolves to (or None if not configured).
-    ///
-    /// # Panics
-    ///
-    /// If the bytes returned from the ENS registrar/resolver cannot be interpreted as
-    /// an address. This should theoretically never happen.
-    async fn resolve_name(&self, _ens_name: &str) -> Result<Address, Self::Error> {
-        unimplemented!("revm does not need ens at the moment.")
-    }
-
-    /// Returns the ENS name the `address` resolves to (or None if not configured).
-    ///
-    /// # Panics
-    ///
-    /// If the bytes returned from the ENS registrar/resolver cannot be interpreted as
-    /// a string. This should theoretically never happen.
-    async fn lookup_address(&self, _address: Address) -> Result<String, Self::Error> {
-        unimplemented!("revm does not need ens at the moment.")
-    }
-
-    /// Returns the avatar HTTP link of the avatar that the `ens_name` resolves to (or None
-    /// if not configured)
-    ///
-    /// # Examples
-    ///
-    /// ```no_run
-    /// # use ethers_providers::{Provider, Http, Middleware};
-    /// # async fn foo(provider: Provider<Http>) -> Result<(), Box<dyn std::error::Error>> {
-    /// let avatar = provider.resolve_avatar("parishilton.eth").await?;
-    /// assert_eq!(avatar.to_string(), "https://i.imgur.com/YW3Hzph.jpg");
-    /// # Ok(()) }
-    /// ```
-    ///
-    /// # Panics
-    ///
-    /// If the bytes returned from the ENS registrar/resolver cannot be interpreted as
-    /// a string. This should theoretically never happen.
-    async fn resolve_avatar(&self, _ens_name: &str) -> Result<Url, Self::Error> {
-        unimplemented!("revm does not need ens at the moment.")
-    }
-
-    /// Returns the URL (not necesserily HTTP) of the image behind a token.
-    ///
-    /// # Example
-    /// ```no_run
-    /// # use ethers_providers::{Provider, Http, Middleware};
-    /// use ethers_providers::erc::ERCNFT;
-    /// # async fn foo(provider: Provider<Http>) -> Result<(), Box<dyn std::error::Error>> {
-    /// let token = "erc721:0xc92ceddfb8dd984a89fb494c376f9a48b999aafc/9018".parse()?;
-    /// let token_image = provider.resolve_nft(token).await?;
-    /// assert_eq!(
-    ///     token_image.to_string(),
-    ///     "https://creature.mypinata.cloud/ipfs/QmNwj3aUzXfG4twV3no7hJRYxLLAWNPk6RrfQaqJ6nVJFa/9018.jpg"
-    /// );
-    /// # Ok(()) }
-    /// ```
-    ///
-    /// # Panics
-    ///
-    /// If the bytes returned from the ENS registrar/resolver cannot be interpreted as
-    /// a string. This should theoretically never happen.
-    async fn resolve_nft(&self, _token: erc::ERCNFT) -> Result<Url, Self::Error> {
-        unimplemented!("revm does not need nfts at the moment.")
-    }
-
-    /// Fetch a field for the `ens_name` (no None if not configured).
-    ///
-    /// # Panics
-    ///
-    /// If the bytes returned from the ENS registrar/resolver cannot be interpreted as
-    /// a string. This should theoretically never happen.
-    async fn resolve_field(&self, _ens_name: &str, _field: &str) -> Result<String, Self::Error> {
-        unimplemented!("revm does not need ens at the moment.")
-    }
-
     /// Gets the block at `block_hash_or_number` (transaction hashes only)
     async fn get_block<T: Into<BlockId> + Send + Sync>(
         &self,
@@ -280,23 +140,6 @@ impl Middleware for RevmMiddleware {
         todo!("we should be able to get the block.")
     }
 
-    /// Gets the block uncle count at `block_hash_or_number`
-    async fn get_uncle_count<T: Into<BlockId> + Send + Sync>(
-        &self,
-        _block_hash_or_number: T,
-    ) -> Result<U256, Self::Error> {
-        unimplemented!("revm does not need uncles at the moment.")
-    }
-
-    /// Gets the block uncle at `block_hash_or_number` and `idx`
-    async fn get_uncle<T: Into<BlockId> + Send + Sync>(
-        &self,
-        _block_hash_or_number: T,
-        _idx: U64,
-    ) -> Result<Option<Block<H256>>, Self::Error> {
-        unimplemented!("revm does not need uncles at the moment.")
-    }
-
     /// Returns the nonce of the address
     async fn get_transaction_count<T: Into<NameOrAddress> + Send + Sync>(
         &self,
@@ -305,21 +148,6 @@ impl Middleware for RevmMiddleware {
     ) -> Result<U256, Self::Error> {
         self.inner()
             .get_transaction_count(from, block)
-            .await
-            .map_err(MiddlewareError::from_err)
-    }
-
-    /// Sends a transaction to a single Ethereum node and return the estimated amount of gas
-    /// required (as a U256) to send it This is free, but only an estimate. Providing too little
-    /// gas will result in a transaction being rejected (while still consuming all provided
-    /// gas).
-    async fn estimate_gas(
-        &self,
-        tx: &TypedTransaction,
-        block: Option<BlockId>,
-    ) -> Result<U256, Self::Error> {
-        self.inner()
-            .estimate_gas(tx, block)
             .await
             .map_err(MiddlewareError::from_err)
     }
@@ -333,22 +161,6 @@ impl Middleware for RevmMiddleware {
         _block: Option<BlockId>,
     ) -> Result<Bytes, Self::Error> {
         todo!("we should be able to call. We will have to consider adding a function to the `SimulationEnvironment` that uses `transact` and not `transact_commit`")
-    }
-
-    /// Return current client syncing status. If IsFalse sync is over.
-    async fn syncing(&self) -> Result<SyncingStatus, Self::Error> {
-        unimplemented!("revm does not need syncing at the moment.")
-    }
-
-    /// Returns the currently configured chain id, a value used in replay-protected
-    /// transaction signing as introduced by EIP-155.
-    async fn get_chainid(&self) -> Result<U256, Self::Error> {
-        unimplemented!("revm does not need chainid at the moment.")
-    }
-
-    /// Returns the network version.
-    async fn get_net_version(&self) -> Result<String, Self::Error> {
-        unimplemented!("revm does not need net_version at the moment.")
     }
 
     /// Returns the account's balance
@@ -391,57 +203,6 @@ impl Middleware for RevmMiddleware {
     async fn get_gas_price(&self) -> Result<U256, Self::Error> {
         todo!("low priority, but we should be able to set and get gas price for our environment.")
     }
-
-    /// Gets a heuristic recommendation of max fee per gas and max priority fee per gas for
-    /// EIP-1559 compatible transactions.
-    async fn estimate_eip1559_fees(
-        &self,
-        _estimator: Option<fn(U256, Vec<Vec<U256>>) -> (U256, U256)>,
-    ) -> Result<(U256, U256), Self::Error> {
-        todo!("low priority, but we should be able to set and get gas price for our environment.")
-    }
-
-    /// Gets the accounts on the node
-    async fn get_accounts(&self) -> Result<Vec<Address>, Self::Error> {
-        todo!("we should be able to get the accounts.")
-    }
-
-    /// Send the raw RLP encoded transaction to the entire Ethereum network and returns the
-    /// transaction's hash This will consume gas from the account that signed the transaction.
-    async fn send_raw_transaction<'a>(
-        &'a self,
-        _tx: Bytes,
-    ) -> Result<PendingTransaction<'a, Self::Provider>, Self::Error> {
-        todo!("we should be able to send raw transactions.")
-    }
-
-    /// This returns true if either the middleware stack contains a `SignerMiddleware`, or the
-    /// JSON-RPC provider has an unlocked key that can sign using the `eth_sign` call. If none of
-    /// the above conditions are met, then the middleware stack is not capable of signing data.
-    async fn is_signer(&self) -> bool {
-        unimplemented!(
-            "should we be able to check if we are a signer (I'm not sure how this works)."
-        )
-    }
-
-    /// Signs data using a specific account. This account needs to be unlocked,
-    /// or the middleware stack must contain a `SignerMiddleware`
-    // async fn sign<T: Into<Bytes> + Send + Sync>(
-    //     &self,
-    //     data: T,
-    //     from: &Address,
-    // ) -> Result<Signature, Self::Error> {
-    //     unimplemented!("should we be able to sign data (I'm not sure how this works).")
-    // }
-
-    /// Sign a transaction via RPC call
-    // async fn sign_transaction(
-    //     &self,
-    //     tx: &TypedTransaction,
-    //     from: Address,
-    // ) -> Result<Signature, Self::Error> {
-    //     unimplemented!("should we be able to sign transactions (I'm not sure how this works).")
-    // }
 
     ////// Contract state
 
@@ -490,17 +251,6 @@ impl Middleware for RevmMiddleware {
         _filter: &Filter,
     ) -> Result<FilterWatcher<'a, Self::Provider, Log>, Self::Error> {
         todo!("we should be able to watch. we already have this partially implemented for agents.")
-    }
-
-    /// Streams pending transactions.
-    ///
-    /// This function streams via a polling system, by repeatedly dispatching
-    /// RPC requests. If possible, prefer using a WS or IPC connection and the
-    /// `stream` interface
-    async fn watch_pending_transactions(
-        &self,
-    ) -> Result<FilterWatcher<'_, Self::Provider, H256>, Self::Error> {
-        unimplemented!("we should not have to watch pending transactions.")
     }
 
     /// Polling method for a filter, which returns an array of logs which occurred since last poll.
@@ -559,22 +309,6 @@ impl Middleware for RevmMiddleware {
             .map_err(MiddlewareError::from_err)
     }
 
-    /// Returns the EIP-1186 proof response
-    /// <https://github.com/ethereum/EIPs/issues/1186>
-    async fn get_proof<T: Into<NameOrAddress> + Send + Sync>(
-        &self,
-        _from: T,
-        _locations: Vec<H256>,
-        _block: Option<BlockId>,
-    ) -> Result<EIP1186ProofResponse, Self::Error> {
-        unimplemented!("we don't need to get proofs.")
-    }
-
-    /// Returns an indication if this node is currently mining.
-    async fn mining(&self) -> Result<bool, Self::Error> {
-        unimplemented!("there is no node to be mining.")
-    }
-
     // Personal namespace
     // NOTE: This will eventually need to be enabled by users explicitly because the personal
     // namespace is being deprecated:
@@ -628,54 +362,6 @@ impl Middleware for RevmMiddleware {
             .await
             .map_err(MiddlewareError::from_err)
     }
-
-    // async fn subscribe<T, R>(
-    //     &self,
-    //     params: T,
-    // ) -> Result<ethers::providers::SubscriptionStream<'_, Self::Provider, R>, Self::Error>
-    // where
-    //     T: Debug + Serialize + Send + Sync,
-    //     R: DeserializeOwned + Send + Sync,
-    //     <Self as Middleware>::Provider: ethers::providers::PubsubClient,
-    // {
-    //     todo!("we will need to subscribe to something soon.")
-    // }
-
-    // async fn unsubscribe<T>(&self, id: T) -> Result<bool, Self::Error>
-    // where
-    //     T: Into<U256> + Send + Sync,
-    //     <Self as Middleware>::Provider: ethers::providers::PubsubClient,
-    // {
-    //     todo!("we will need to unsubscribe from something soon.")
-    // }
-
-    // async fn subscribe_blocks(
-    //     &self,
-    // ) -> Result<ethers::providers::SubscriptionStream<'_, Self::Provider, Block<TxHash>>, Self::Error>
-    // where
-    //     <Self as Middleware>::Provider: ethers::providers::PubsubClient,
-    // {
-    //     todo!("we will need to subscribe to blocks soon.")
-    // }
-
-    // async fn subscribe_pending_txs(
-    //     &self,
-    // ) -> Result<ethers::providers::SubscriptionStream<'_, Self::Provider, TxHash>, Self::Error>
-    // where
-    //     <Self as Middleware>::Provider: ethers::providers::PubsubClient,
-    // {
-    //     todo!("we will need to subscribe to pending txs soon.")
-    // }
-
-    // async fn subscribe_logs<'a>(
-    //     &'a self,
-    //     filter: &Filter,
-    // ) -> Result<ethers::providers::SubscriptionStream<'a, Self::Provider, Log>, Self::Error>
-    // where
-    //     <Self as Middleware>::Provider: ethers::providers::PubsubClient,
-    // {
-    //     todo!("we will need to subscribe to logs soon.")
-    // }
 }
 
 #[cfg(test)]
