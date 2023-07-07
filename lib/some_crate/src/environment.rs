@@ -155,12 +155,14 @@ impl JsonRpcClient for RevmEnvironment {
         T: std::fmt::Debug + Serialize + Send + Sync,
         R: DeserializeOwned + Send,
     {
+        // TODO: START WITH ETH_CALL!!!
         match method {
             "eth_getBalance" => {
-                let (address, _block_id) = serde_json::from_value::<(Address, Option<BlockId>)>(params)?;
-                let accounts = self.evm.db().unwrap().accounts;
-                let account = accounts.get(&address).unwrap();
-                let balance = account.balance;
+                let (address, _block_id) = params.serialize();
+                // let accounts = self.evm.db().unwrap().accounts;
+                // let account = accounts.get(&address).unwrap();
+                // let balance = account.balance;
+                let balance = ethers::types::U256::zero();
                 Ok(balance)
             }
         }
@@ -190,7 +192,9 @@ impl EventBroadcaster {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use ethers::providers::{Middleware, Provider};
+    use ethers::providers::Middleware;
+
+    const ENVIRONMENT: RevmEnvironment = RevmEnvironment::new("test".to_string());
 
     #[test]
     fn new() {

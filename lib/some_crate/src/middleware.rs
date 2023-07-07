@@ -4,8 +4,16 @@
 //! Most of the middleware is essentially a placeholder, but it is necessary to have a middleware to work with bindings more efficiently.
 
 // TODO and notes:
-// The middleware/client should be something like `AgentClient` or `AgentMiddleware`.
-// The middleware/client needs to be able to send transactions from an address (and also have access to some specific channels and what not)
+// We should be able to just implement middleware for the Simulation/RevmEnvironment. 
+// If we do this, we can have the environment own Agents and also each agent will own a wallet.
+// We will have to see how we can let an agent make a call nicely, i.e., do something like
+// ```
+// writer = Writer::new(client, ());
+// writer.echo_string("hello world");
+// ```
+// Each contract instance like this will be associated to the sender and this environment must be able to be referenced by the agent.
+
+
 use ethers::{
     prelude::k256::ecdsa::SigningKey,
     prelude::ProviderError,
