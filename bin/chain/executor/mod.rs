@@ -3,6 +3,9 @@
 //!
 //! Executor is the bundling, simulation and execution module of Arbiter.
 
+// use ::core::error;
+use std::error;
+
 use ethers::{
     core::{rand::thread_rng, types::transaction::eip2718::TypedTransaction},
     prelude::*,
@@ -32,7 +35,7 @@ where
 /// * `SigningError` - Error with signing a transaction.
 /// * `BlockNumberError` - Error with fetching block number from middleware.
 #[derive(Debug)]
-pub enum Executor {
+pub enum ExecutorError {
     /// Error with parsing the Flashbots relay URL.
     #[error(transparent)]
     RelayParseError(#[from] url::ParseError),

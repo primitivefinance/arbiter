@@ -1,6 +1,6 @@
 use std::error::Error;
 
-use bindings::rmm01_portfolio;
+use simulate::bindings::rmm01_portfolio;
 use ethers::{
     prelude::U256,
     types::{Sign, I256},

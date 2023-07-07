@@ -3,20 +3,21 @@
 //! This module contains the middleware for the Revm simulation environment.
 //! Most of the middleware is essentially a placeholder, but it is necessary to have a middleware to work with bindings more efficiently.
 
-
 // TODO and notes:
 // The middleware/client should be something like `AgentClient` or `AgentMiddleware`.
 // The middleware/client needs to be able to send transactions from an address (and also have access to some specific channels and what not)
 
-
 use std::fmt::Debug;
 
+use crossbeam_channel::Sender;
 use ethers::{
+    prelude::k256::ecdsa::SigningKey,
     prelude::ProviderError,
     providers::{
         erc, FilterKind, FilterWatcher, LogQuery, Middleware, MiddlewareError, MockProvider,
-        NodeInfo, PeerInfo, PendingTransaction, Provider
+        NodeInfo, PeerInfo, PendingTransaction, Provider,
     },
+    signers::Wallet,
     types::{
         transaction::{eip2718::TypedTransaction, eip2930::AccessListWithGasUsed},
         Address, Block, BlockId, BlockNumber, BlockTrace, Bytes, EIP1186ProofResponse, FeeHistory,
@@ -25,31 +26,34 @@ use ethers::{
         TransactionReceipt, TxHash, TxpoolContent, TxpoolInspect, TxpoolStatus, H256, U256, U64,
     },
 };
-use revm::{
-    primitives::{TransactTo, TxEnv, B160},
-};
+use rand::thread_rng;
+use revm::primitives::{ExecutionResult, TransactTo, TxEnv, B160};
 use serde::{de::DeserializeOwned, Serialize};
 use url::Url;
 
-
-use super::SimulationEnvironment;
-
-/// The [`SimulationMiddleware`] allows for a "dummy" middleware to be used in the simulation environment.
-#[derive(Debug, Default)]
-#[allow(dead_code)]
-pub struct SimulationMiddleware<M> {
-    inner: M,
+// can an agent be be a struct? well API wants users
+#[derive(Debug)]
+pub struct RevmMiddleware {
+    /// tansaction sender
+    pub tx_sender: Sender<(TxEnv, Sender<ExecutionResult>)>,
+    // Provider
+    pub provider: Provider<MockProvider>,
+    // Wallet
+    pub wallet: Wallet<SigningKey>,
 }
 
-impl<M> SimulationMiddleware<M> {
-    /// Creates a new [`SimulationMiddleware`] with the given middleware.
-    pub fn new(inner: M) -> Self {
-        Self { inner }
+impl RevmMiddleware {
+    pub fn new(tx_sender: Sender<(TxEnv, Sender<ExecutionResult>)>) -> Self {
+        Self {
+            tx_sender,
+            provider: ethers::providers::Provider::new(MockProvider::default()),
+            wallet: Wallet::new(&mut thread_rng()),
+        }
     }
 }
 
 #[async_trait::async_trait]
-impl Middleware for SimulationEnvironment {
+impl Middleware for RevmMiddleware {
     /// The JSON-RPC client type at the bottom of the stack
     type Provider = MockProvider;
     /// Error type returned by most operations
@@ -138,6 +142,7 @@ impl Middleware for SimulationEnvironment {
             Some(to) => TransactTo::Call(B160::from(*to.as_address().unwrap()).into()),
             None => TransactTo::create(),
         };
+        // tx.set_from(&self.eoa);
 
         // Build the TxEnv
         let tx_env = TxEnv {
@@ -153,7 +158,7 @@ impl Middleware for SimulationEnvironment {
             access_list: Vec::new(),
         };
         let (sender, receiver) = crossbeam_channel::unbounded();
-        let _transaction = self.transaction_channel.0.send((tx_env, sender));
+        let _transaction = self.tx_sender.send((tx_env, sender));
         let result = receiver.recv().unwrap();
         println!("result: {:?}", result);
         let pending_tx = PendingTransaction::new(H256::default(), self.provider());
@@ -350,7 +355,7 @@ impl Middleware for SimulationEnvironment {
     async fn get_balance<T: Into<NameOrAddress> + Send + Sync>(
         &self,
         _from: T,
-       _block: Option<BlockId>,
+        _block: Option<BlockId>,
     ) -> Result<U256, Self::Error> {
         todo!("we should be able to get the balance.")
     }
@@ -602,341 +607,100 @@ impl Middleware for SimulationEnvironment {
         unimplemented!("we don't need to unlock accounts.")
     }
 
-    // Admin namespace
-
-    /// Requests adding the given peer, returning a boolean representing
-    /// whether or not the peer was accepted for tracking.
-    async fn add_peer(&self, _enode_url: String) -> Result<bool, Self::Error> {
-        unimplemented!("we don't need to add peers.")
-    }
-
-    /// Requests adding the given peer as a trusted peer, which the node will
-    /// always connect to even when its peer slots are full.
-    async fn add_trusted_peer(&self, _enode_url: String) -> Result<bool, Self::Error> {
-        unimplemented!("we don't need to add trusted peers.")
-    }
-
-    /// Returns general information about the node as well as information about the running p2p
-    /// protocols (e.g. `eth`, `snap`).
-    async fn node_info(&self) -> Result<NodeInfo, Self::Error> {
-        unimplemented!("we don't need to get node info.")
-    }
-
-    /// Returns the list of peers currently connected to the node.
-    async fn peers(&self) -> Result<Vec<PeerInfo>, Self::Error> {
-        unimplemented!("we don't need to get peers.")
-    }
-
-    /// Requests to remove the given peer, returning true if the enode was successfully parsed and
-    /// the peer was removed.
-    async fn remove_peer(&self, _enode_url: String) -> Result<bool, Self::Error> {
-        unimplemented!("we don't need to remove peers.")
-    }
-
-    /// Requests to remove the given peer, returning a boolean representing whether or not the
-    /// enode url passed was validated. A return value of `true` does not necessarily mean that the
-    /// peer was disconnected.
-    async fn remove_trusted_peer(&self, _enode_url: String) -> Result<bool, Self::Error> {
-        unimplemented!("we don't need to remove trusted peers.")
-    }
-
-    // Miner namespace
-
-    /// Starts the miner with the given number of threads. If threads is nil, the number of workers
-    /// started is equal to the number of logical CPUs that are usable by this process. If mining
-    /// is already running, this method adjust the number of threads allowed to use and updates the
-    /// minimum price required by the transaction pool.
-    async fn start_mining(&self) -> Result<(), Self::Error> {
-        unimplemented!("we don't need to start mining.")
-    }
-
-    /// Stop terminates the miner, both at the consensus engine level as well as at
-    /// the block creation level.
-    async fn stop_mining(&self) -> Result<(), Self::Error> {
-        unimplemented!("we don't need to stop mining.")
-    }
-
-    // Mempool inspection for Geth's API
-
-    /// Returns the details of all transactions currently pending for inclusion in the next
-    /// block(s), as well as the ones that are being scheduled for future execution only.
-    /// Ref: [Here](https://geth.ethereum.org/docs/rpc/ns-txpool#txpool_content)
-    async fn txpool_content(&self) -> Result<TxpoolContent, Self::Error> {
-        todo!("we should have a mempool, but we don't yet.")
-    }
-
-    /// Returns a summary of all the transactions currently pending for inclusion in the next
-    /// block(s), as well as the ones that are being scheduled for future execution only.
-    /// Ref: [Here](https://geth.ethereum.org/docs/rpc/ns-txpool#txpool_inspect)
-    async fn txpool_inspect(&self) -> Result<TxpoolInspect, Self::Error> {
-        todo!("we should have a mempool, but we don't yet.")
-    }
-
-    /// Returns the number of transactions currently pending for inclusion in the next block(s), as
-    /// well as the ones that are being scheduled for future execution only.
-    /// Ref: [Here](https://geth.ethereum.org/docs/rpc/ns-txpool#txpool_status)
-    async fn txpool_status(&self) -> Result<TxpoolStatus, Self::Error> {
-        todo!("we should have a mempool, but we don't yet.")
-    }
-
-    // Geth `trace` support
-
-    /// After replaying any previous transactions in the same block,
-    /// Replays a transaction, returning the traces configured with passed options
-    async fn debug_trace_transaction(
+    async fn sign<T: Into<Bytes> + Send + Sync>(
         &self,
-        _tx_hash: TxHash,
-        _trace_options: GethDebugTracingOptions,
-    ) -> Result<GethTrace, Self::Error> {
-        unimplemented!("we don't need to debug transaction traces yet.")
+        data: T,
+        from: &Address,
+    ) -> Result<ethers::types::Signature, Self::Error> {
+        self.inner()
+            .sign(data, from)
+            .await
+            .map_err(MiddlewareError::from_err)
     }
 
-    /// Executes the given call and returns a number of possible traces for it
-    async fn debug_trace_call<T: Into<TypedTransaction> + Send + Sync>(
+    async fn sign_transaction(
         &self,
-        _req: T,
-        _block: Option<BlockId>,
-        _trace_options: GethDebugTracingCallOptions,
-    ) -> Result<GethTrace, Self::Error> {
-        unimplemented!("we don't need to debug call traces yet.")
+        tx: &TypedTransaction,
+        from: Address,
+    ) -> Result<ethers::types::Signature, Self::Error> {
+        self.inner()
+            .sign_transaction(tx, from)
+            .await
+            .map_err(MiddlewareError::from_err)
     }
 
-    /// Replays all transactions in a given block (specified by block number) and returns the traces
-    /// configured with passed options
-    /// Ref:
-    /// [Here](https://geth.ethereum.org/docs/interacting-with-geth/rpc/ns-debug#debugtraceblockbynumber)
-    async fn debug_trace_block_by_number(
-        &self,
-        _block: Option<BlockNumber>,
-        _trace_options: GethDebugTracingOptions,
-    ) -> Result<Vec<GethTrace>, Self::Error> {
-        unimplemented!("we don't need to debug block traces yet.")
-    }
-
-    /// Replays all transactions in a given block (specified by block hash) and returns the traces
-    /// configured with passed options
-    /// Ref:
-    /// [Here](https://geth.ethereum.org/docs/interacting-with-geth/rpc/ns-debug#debugtraceblockbyhash)
-    async fn debug_trace_block_by_hash(
-        &self,
-        _block: H256,
-        _trace_options: GethDebugTracingOptions,
-    ) -> Result<Vec<GethTrace>, Self::Error> {
-        unimplemented!("we don't need to debug block traces yet.")
-    }
-
-    // Parity `trace` support
-
-    /// Executes the given call and returns a number of possible traces for it
-    async fn trace_call<T: Into<TypedTransaction> + Send + Sync>(
-        &self,
-        _req: T,
-        _trace_type: Vec<TraceType>,
-        _block: Option<BlockNumber>,
-    ) -> Result<BlockTrace, Self::Error> {
-        unimplemented!("we don't need to trace calls yet.")
-    }
-
-    /// Executes given calls and returns a number of possible traces for each
-    /// call
-    async fn trace_call_many<T: Into<TypedTransaction> + Send + Sync>(
-        &self,
-        _req: Vec<(T, Vec<TraceType>)>,
-        _block: Option<BlockNumber>,
-    ) -> Result<Vec<BlockTrace>, Self::Error> {
-        unimplemented!("we don't need to trace calls yet.")
-    }
-
-    /// Traces a call to `eth_sendRawTransaction` without making the call, returning the traces
-    async fn trace_raw_transaction(
-        &self,
-        _data: Bytes,
-        _trace_type: Vec<TraceType>,
-    ) -> Result<BlockTrace, Self::Error> {
-        unimplemented!("we don't need to trace raw transactions yet.")
-    }
-
-    /// Replays a transaction, returning the traces
-    async fn trace_replay_transaction(
-        &self,
-        _hash: H256,
-        _trace_type: Vec<TraceType>,
-    ) -> Result<BlockTrace, Self::Error> {
-        unimplemented!("we don't need to trace transactions yet.")
-    }
-
-    /// Replays all transactions in a block returning the requested traces for each transaction
-    async fn trace_replay_block_transactions(
-        &self,
-        _block: BlockNumber,
-        _trace_type: Vec<TraceType>,
-    ) -> Result<Vec<BlockTrace>, Self::Error> {
-        unimplemented!("we don't need to trace transactions yet.")
-    }
-
-    /// Returns traces created at given block
-    async fn trace_block(&self, _block: BlockNumber) -> Result<Vec<Trace>, Self::Error> {
-        unimplemented!("we don't need to trace blocks yet.")
-    }
-
-    /// Return traces matching the given filter
-    async fn trace_filter(&self, _filter: TraceFilter) -> Result<Vec<Trace>, Self::Error> {
-        unimplemented!("we don't need to trace filters yet.")
-    }
-
-    /// Returns trace at the given position
-    async fn trace_get<T: Into<U64> + Send + Sync>(
-        &self,
-        _hash: H256,
-        _index: Vec<T>,
-    ) -> Result<Trace, Self::Error> {
-        unimplemented!("we don't need to trace get yet.")
-    }
-
-    /// Returns all traces of a given transaction
-    async fn trace_transaction(&self, _hash: H256) -> Result<Vec<Trace>, Self::Error> {
-        unimplemented!("we don't need to trace transactions yet.")
-    }
-
-    // Parity namespace
-
-    /// Returns all receipts for that block. Must be done on a parity node.
-    async fn parity_block_receipts<T: Into<BlockNumber> + Send + Sync>(
-        &self,
-        _block: T,
-    ) -> Result<Vec<TransactionReceipt>, Self::Error> {
-        unimplemented!("we don't need to get block receipts yet.")
-    }
-
-    /// Create a new subscription
-    ///
-    /// This method is hidden as subscription lifecycles are intended to be
-    /// handled by a [`SubscriptionStream`] object.
-    // #[doc(hidden)]
     // async fn subscribe<T, R>(
     //     &self,
     //     params: T,
-    // ) -> Result<SubscriptionStream<'_, Self::Provider, R>, Self::Error>
+    // ) -> Result<ethers::providers::SubscriptionStream<'_, Self::Provider, R>, Self::Error>
     // where
     //     T: Debug + Serialize + Send + Sync,
     //     R: DeserializeOwned + Send + Sync,
-    //     <Self as Middleware>::Provider: PubsubClient,
+    //     <Self as Middleware>::Provider: ethers::providers::PubsubClient,
     // {
-    //     todo!("we will need to subscribe to events soon.")
+    //     todo!("we will need to subscribe to something soon.")
     // }
 
-    /// Instruct the RPC to cancel a subscription by its ID
-    ///
-    /// This method is hidden as subscription lifecycles are intended to be
-    /// handled by a [`SubscriptionStream`] object
-    // #[doc(hidden)]
     // async fn unsubscribe<T>(&self, id: T) -> Result<bool, Self::Error>
     // where
     //     T: Into<U256> + Send + Sync,
-    //     <Self as Middleware>::Provider: PubsubClient,
+    //     <Self as Middleware>::Provider: ethers::providers::PubsubClient,
     // {
-    //     todo!("we will need to unsubscribe to events soon.")
+    //     todo!("we will need to unsubscribe from something soon.")
     // }
 
-    /// Subscribe to a stream of incoming blocks.
-    ///
-    /// This function is only available on pubsub clients, such as Websockets
-    /// or IPC. For a polling alternative available over HTTP, use
-    /// [`Middleware::watch_blocks`]. However, be aware that polling increases
-    /// RPC usage drastically.
     // async fn subscribe_blocks(
     //     &self,
-    // ) -> Result<SubscriptionStream<'_, Self::Provider, Block<TxHash>>, Self::Error>
+    // ) -> Result<ethers::providers::SubscriptionStream<'_, Self::Provider, Block<TxHash>>, Self::Error>
     // where
-    //     <Self as Middleware>::Provider: PubsubClient,
+    //     <Self as Middleware>::Provider: ethers::providers::PubsubClient,
     // {
     //     todo!("we will need to subscribe to blocks soon.")
     // }
 
-    /// Subscribe to a stream of pending transactions.
-    ///
-    /// This function is only available on pubsub clients, such as Websockets
-    /// or IPC. For a polling alternative available over HTTP, use
-    /// [`Middleware::watch_pending_transactions`]. However, be aware that
-    /// polling increases RPC usage drastically.
     // async fn subscribe_pending_txs(
     //     &self,
-    // ) -> Result<SubscriptionStream<'_, Self::Provider, TxHash>, Self::Error>
+    // ) -> Result<ethers::providers::SubscriptionStream<'_, Self::Provider, TxHash>, Self::Error>
     // where
-    //     <Self as Middleware>::Provider: PubsubClient,
+    //     <Self as Middleware>::Provider: ethers::providers::PubsubClient,
     // {
-    //     todo!("we will need to subscribe to pending transactions soon, if we have a TxPool.")
+    //     todo!("we will need to subscribe to pending txs soon.")
     // }
 
-    /// Subscribe to a stream of event logs matchin the provided [`Filter`].
-    ///
-    /// This function is only available on pubsub clients, such as Websockets
-    /// or IPC. For a polling alternative available over HTTP, use
-    /// [`Middleware::watch`]. However, be aware that polling increases
-    /// RPC usage drastically.
     // async fn subscribe_logs<'a>(
     //     &'a self,
     //     filter: &Filter,
-    // ) -> Result<SubscriptionStream<'a, Self::Provider, Log>, Self::Error>
+    // ) -> Result<ethers::providers::SubscriptionStream<'a, Self::Provider, Log>, Self::Error>
     // where
-    //     <Self as Middleware>::Provider: PubsubClient,
+    //     <Self as Middleware>::Provider: ethers::providers::PubsubClient,
     // {
     //     todo!("we will need to subscribe to logs soon.")
     // }
-
-    /// Query the node for a [`FeeHistory`] object. This objct contains
-    /// information about the EIP-1559 base fee in past blocks, as well as gas
-    /// utilization within those blocks.
-    ///
-    /// See the
-    /// [EIP-1559 documentation](https://eips.ethereum.org/EIPS/eip-1559) for
-    /// details
-    async fn fee_history<T: Into<U256> + serde::Serialize + Send + Sync>(
-        &self,
-        _block_count: T,
-        _last_block: BlockNumber,
-        _reward_percentiles: &[f64],
-    ) -> Result<FeeHistory, Self::Error> {
-        unimplemented!("we don't need to get fee history yet.")
-    }
-
-    /// Querty the node for an EIP-2930 Access List.
-    ///
-    /// See the
-    /// [EIP-2930 documentation](https://eips.ethereum.org/EIPS/eip-2930) for
-    /// details
-    async fn create_access_list(
-        &self,
-        _tx: &TypedTransaction,
-        _block: Option<BlockId>,
-    ) -> Result<AccessListWithGasUsed, Self::Error> {
-        unimplemented!("we don't need to create access lists yet.")
-    }
 }
 
 #[cfg(test)]
 mod tests {
-    use std::sync::Arc;
+    use crate::agent::Agent;
     use anyhow;
 
+    use crate::{bindings, environment::SimulationEnvironment};
     use bindings::writer::Writer;
-    use crate::manager::SimulationManager;
 
-    #[tokio::test]
-    async fn test_something() -> anyhow::Result<()> {
+    // #[tokio::test]
+    // async fn test_something() -> anyhow::Result<()> {
+    //     // TODO: Specify the signer to use here ::<SIGNER>.
+    //     let environment = SimulationEnvironment::new();
+    //     let thing = environment.event_broadcaster;
+    //     let agent = Agent::new(crossbeam_channel::unbounded().0);
 
-        let manager = SimulationManager::new();
-        let client = Arc::new(manager.environment);
-        
-        let deployer = Writer::deploy(client, ())?;
-        println!("deployer: {:?}", deployer);
-        let writer = deployer.send().await?;
-        writer
-            .echo_string(String::from("test_string"))
-            .send()
-            .await?;
+    //     let deployer = Writer::deploy(agent.client, ())?;
+    //     println!("deployer: {:?}", deployer);
+    //     let writer = deployer.send().await?;
+    //     writer
+    //         .echo_string(String::from("test_string"))
+    //         .send()
+    //         .await?;
 
-
-        Ok(())
-    }
+    //     Ok(())
+    // }
 }

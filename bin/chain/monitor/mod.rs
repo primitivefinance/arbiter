@@ -162,6 +162,7 @@ impl HistoricalMonitor {
     /// * `price_data` - Vector of U256 values that represent the historical sqrt_price_x96 for all swap events between specified block range.
     /// # Returns
     /// * `Vec<f64>` - Vector of f64 values that represent the historical price for all swap events between specified block range.
+    #[allow(dead_code)]
     pub fn sqrt_price_x96_to_price(&self, price_data: Vec<u128>) -> Vec<f64> {
         let mut normalized_price_data: Vec<f64> = Vec::new();
 

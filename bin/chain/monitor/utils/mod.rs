@@ -21,7 +21,7 @@ macro_rules! token_insert {
         $tokens:expr
     ) => {
         let address = $address.parse::<Address>().unwrap();
-        let token = Token::new(address, $decimals, String::from($name), $is_stable);
+        let token = Token::_new(address, $decimals, String::from($name), $is_stable);
 
         $tokens.insert(String::from($name), token);
     };
@@ -46,7 +46,7 @@ pub struct Token {
 }
 impl Token {
     /// Public builder function that instantiates a `Token`.
-    pub fn new(address: H160, decimals: u16, name: String, is_stable: bool) -> Self {
+    pub fn _new(address: H160, decimals: u16, name: String, is_stable: bool) -> Self {
         Self {
             address,
             decimals,
@@ -59,7 +59,7 @@ impl Token {
 /// return hashmap, name = key, value = token object
 /// # Returns
 /// * `tokens` - HashMap of tokens. (HashMap<String, Token>)
-pub fn get_tokens() -> HashMap<String, Token> {
+pub fn _get_tokens() -> HashMap<String, Token> {
     let mut tokens = HashMap::new();
 
     // ETH
@@ -229,14 +229,14 @@ use ethers::{prelude::*, providers::Provider};
 /// * `Mainnet` - Mainnet rpc
 /// * `Default` - Default rpc
 /// * `Goerli` - Goerli rpc
-#[derive(Debug, PartialEq)]
+#[derive(PartialEq)]
 pub enum RpcTypes {
     /// Mainet rpc
     Mainnet,
     /// Default rpc
-    Default,
+    _Default,
     /// Goerli rpc
-    Goerli,
+    _Goerli,
 }
 /// Get a specified provider based on network.
 /// # Arguments
@@ -249,10 +249,10 @@ pub async fn get_provider(rpc_type: RpcTypes) -> Arc<Provider<Http>> {
             )
             .unwrap(),
         ),
-        RpcTypes::Default => {
+        RpcTypes::_Default => {
             Arc::new(Provider::try_from(var_os("RPC_URL").unwrap().into_string().unwrap()).unwrap())
         }
-        RpcTypes::Goerli => {
+        RpcTypes::_Goerli => {
             Arc::new(Provider::try_from("https://rpc.ankr.com/eth_goerli").unwrap())
         }
     }

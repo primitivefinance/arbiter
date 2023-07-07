@@ -8,8 +8,12 @@ use simulate::{
     agent::{simple_arbitrageur::NextTx, Agent, AgentType, IsActive},
     environment::contract::{IsDeployed, SimulationContract},
     manager::SimulationManager,
-    stochastic::price_process::{PriceProcess, PriceProcessType, GBM, OU},
-    utils::{unpack_execution, wad_to_float},
+    math::{
+        float_to_wad,
+        price_process::{PriceProcess, PriceProcessType, GBM, OU},
+        wad_to_float,
+    },
+    utils::unpack_execution,
 };
 
 use crate::simulations::uniswap::arbitrage::{
@@ -39,7 +43,9 @@ pub async fn run(
     // maybe we can make a custome deployed_by for this, i was looking into this and i think to do this maybe we would have to take away the constructor args attribute, but I think that is okay and things will still work
     let uniswap_pair = SimulationContract::<IsDeployed> {
         address: pair_address.into(),
-        base_contract: BaseContract::from(bindings::uniswap_v2_pair::UNISWAPV2PAIR_ABI.clone()),
+        base_contract: BaseContract::from(
+            simulate::bindings::uniswap_v2_pair::UNISWAPV2PAIR_ABI.clone(),
+        ),
         bytecode: (),
         constructor_arguments: Vec::new(),
     };
@@ -113,7 +119,7 @@ pub async fn run(
         }
         // else continute with simulation
         let price = prices[index];
-        let wad_price = simulate::utils::float_to_wad(price);
+        let wad_price = float_to_wad(price);
 
         match next_tx {
             NextTx::Swap => {
@@ -245,7 +251,7 @@ fn update_liquid_exchange_price(
     price: f64,
     price_path: &mut Vec<U256>,
 ) -> Result<(), Box<dyn Error>> {
-    let wad_price = simulate::utils::float_to_wad(price);
+    let wad_price = float_to_wad(price);
     price_path.push(wad_price);
     admin.call(liquid_exchange, "setPrice", vec![wad_price.into_token()])?;
     Ok(())

@@ -1,16 +1,11 @@
 //! Module for price process generation and plotting.
-
-use plotly::{Plot, Scatter};
+use anyhow::Result;
 use rand::SeedableRng;
+use rand_distr::{Distribution, Normal};
 use serde::{Deserialize, Serialize};
 
-use crate::stochastic::*;
-
-/// Trait for all price processes.
-pub trait Plotting {
-    /// Plots a price path vs time.
-    fn plot(&self, time: &[f64], price_path: &[f64]);
-}
+// TODO: I think that this could probably be made a trait so that people can readily implement their own processes too.
+// Errors also need to be better handled here.
 
 /// Enum for type of price process being used.
 #[derive(Clone, Serialize, Deserialize, Debug)]
@@ -68,45 +63,10 @@ impl PriceProcess {
     }
 
     /// Generates a price path.
-    pub fn generate_price_path(&self) -> (Vec<f64>, Vec<f64>) {
+    pub fn generate_price_path(&self) -> Result<(Vec<f64>, Vec<f64>)> {
         match &self.process_type {
             PriceProcessType::GBM(gbm) => gbm.generate(self),
             PriceProcessType::OU(ou) => ou.generate(self),
-        }
-    }
-}
-
-impl Plotting for PriceProcess {
-    /// Plots a price path vs time.
-    /// # Arguments
-    /// * `time` - Vector of time steps. (Vec<f64>)
-    /// * `price_path` - Vector of prices. (Vec<f64>)
-    /// # Returns
-    /// * `filename` - Name of the file. (String)
-    /// # Panics
-    /// * `PlottingPrice.html` - If the file cannot be created.
-    fn plot(&self, time: &[f64], price_path: &[f64]) {
-        match self.process_type {
-            PriceProcessType::GBM(..) => {
-                let mut filename = String::from("Plotting_GBM_Price");
-                filename.push_str(".html");
-
-                let mut plot = Plot::new();
-                let trace = Scatter::new(time.to_owned(), price_path.to_owned());
-                plot.add_trace(trace);
-
-                plot.write_html(filename)
-            }
-            PriceProcessType::OU(..) => {
-                let mut filename = String::from("Plotting_OU_Price");
-                filename.push_str(".html");
-
-                let mut plot = Plot::new();
-                let trace = Scatter::new(time.to_owned(), price_path.to_owned());
-                plot.add_trace(trace);
-
-                plot.write_html(filename) // Produces .html using the identifier in arbiter root directory.
-            }
         }
     }
 }
@@ -137,9 +97,9 @@ impl GBM {
     /// # Returns
     /// * `time` - Vector of time steps. (Vec<f64>)
     /// * `prices` - Vector of prices. (Vec<f64>)
-    fn generate(&self, price_process: &PriceProcess) -> (Vec<f64>, Vec<f64>) {
+    fn generate(&self, price_process: &PriceProcess) -> Result<(Vec<f64>, Vec<f64>)> {
         let mut rng = rand::rngs::StdRng::seed_from_u64(price_process.seed);
-        let normal = Normal::new(0.0, 1.0);
+        let normal = Normal::new(0.0, 1.0)?;
         let mut prices = vec![price_process.initial_price];
         let mut new_price = price_process.initial_price;
 
@@ -153,7 +113,7 @@ impl GBM {
         let time = (0..price_process.num_steps)
             .map(|i| i as f64 * price_process.timestep)
             .collect::<Vec<f64>>();
-        (time, prices)
+        Ok((time, prices))
     }
 }
 
@@ -190,9 +150,9 @@ impl OU {
     /// # Returns
     /// * `time` - Vector of time steps. (Vec<f64>)
     /// * `prices` - Vector of prices. (Vec<f64>)
-    fn generate(&self, price_process: &PriceProcess) -> (Vec<f64>, Vec<f64>) {
+    fn generate(&self, price_process: &PriceProcess) -> Result<(Vec<f64>, Vec<f64>)> {
         let mut rng = rand::rngs::StdRng::seed_from_u64(price_process.seed);
-        let normal = Normal::new(0.0, 1.0);
+        let normal = Normal::new(0.0, 1.0)?;
         let mut prices = vec![price_process.initial_price];
         let mut new_price = price_process.initial_price;
 
@@ -206,16 +166,17 @@ impl OU {
         let time = (0..price_process.num_steps)
             .map(|i| i as f64 * price_process.timestep)
             .collect::<Vec<f64>>();
-        (time, prices)
+        Ok((time, prices))
     }
 }
 
 #[cfg(test)]
 mod tests {
+
     use super::*;
 
     #[test]
-    fn seeded_randomness_test() {
+    fn seeded_randomness_test() -> Result<()> {
         let gbm = GBM::new(0.05, 0.3);
         let price_process = PriceProcess::new(
             PriceProcessType::GBM(gbm),
@@ -226,8 +187,8 @@ mod tests {
             1,
         );
         // Test to see if same seed yields same result
-        let (time, prices) = price_process.generate_price_path();
-        let (time2, prices2) = price_process.generate_price_path();
+        let (time, prices) = price_process.generate_price_path()?;
+        let (time2, prices2) = price_process.generate_price_path()?;
         assert_eq!(time, time2);
         assert_eq!(prices, prices2);
         // Test to see if different seed yields different result
@@ -239,13 +200,14 @@ mod tests {
             100.0,
             2,
         );
-        let (time3, prices3) = price_process_diff_seed.generate_price_path();
+        let (time3, prices3) = price_process_diff_seed.generate_price_path()?;
         assert_eq!(time, time3);
         assert_ne!(prices, prices3);
+        Ok(())
     }
 
     #[test]
-    fn gbm_step_test() {
+    fn gbm_step_test() -> Result<()> {
         let gbm = GBM::new(0.05, 0.2);
         let price_process = PriceProcess::new(
             PriceProcessType::GBM(gbm),
@@ -255,14 +217,15 @@ mod tests {
             100.0,
             42,
         );
-        let (_, prices) = price_process.generate_price_path();
+        let (_, prices) = price_process.generate_price_path()?;
         let initial_price = prices[0];
         let final_price = prices[1];
 
         let mut rng = rand::rngs::StdRng::seed_from_u64(price_process.seed);
         let expected_final_price = initial_price
         // Check if the GBM is evolving as it should
-            * (1.0 + 0.05 * 0.01 + 0.2 * Normal::new(0.0, 1.0).sample(&mut rng) * (0.01_f64).sqrt());
+            * (1.0 + 0.05 * 0.01 + 0.2 * Normal::new(0.0, 1.0)?.sample(&mut rng) * (0.01_f64).sqrt());
         assert_eq!(final_price, expected_final_price);
+        Ok(())
     }
 }

@@ -1,5 +1,6 @@
 pub mod backtest_data;
 pub mod live;
+pub mod monitor;
 
 use serde::{Deserialize, Serialize};
 

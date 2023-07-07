@@ -1,6 +1,6 @@
 # Package configuration
 [package]
-name = "simulate"
+name = "some-crate"
 version = "0.2.0"
 edition = "2021"
 
@@ -27,13 +27,14 @@ hex = { version = "0.4.3", default-features = false }
 
 # For Errors
 anyhow = "1.0.71"
+thiserror = "1.0.30"
 url = "2.2.2"
 
 # Workspace dependencies
-futures.workspace = true
-csv.workspace = true
-ethers.workspace = true
-serde.workspace = true
-serde_json.workspace = true
-bindings.workspace = true
-tokio.workspace = true
+futures = { version = "0.3.27" }
+csv = { version = "1.2.1" }
+ethers = { version = "2.0.4", default-features = false, features = ["abigen"] }
+ethers-middleware = { version = "2.0.4" }
+serde = { version = "1.0.163", features= ["derive"]}
+serde_json = { version = "1.0.96" }
+tokio = { version = "1.28.1", features = ["macros", "full"] }

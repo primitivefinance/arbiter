@@ -1,4 +1,3 @@
-use bindings::{uniswap_v2_factory, uniswap_v2_router_02};
 use ethers::{
     abi::{Token, Tokenize},
     prelude::U256,
@@ -6,6 +5,7 @@ use ethers::{
 };
 use eyre::Result;
 use revm::primitives::B160;
+use simulate::bindings::{uniswap_v2_factory, uniswap_v2_router_02};
 use simulate::{
     agent::{
         simple_arbitrageur::SimpleArbitrageur, Agent, AgentType, IsActive, SimulationEventFilter,

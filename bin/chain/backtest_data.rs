@@ -3,9 +3,11 @@
 
 use std::error::Error;
 
-use bindings::uniswap_v3_pool;
 use ethers::types::U256;
-use onchain::monitor::HistoricalMonitor;
+use monitor::HistoricalMonitor;
+use simulate::bindings::uniswap_v3_pool;
+
+use super::monitor;
 
 /// Save historical sqrt_price_x96 data from a Uniswap V3 pool contract to a csv file.
 /// # Arguments
@@ -21,8 +23,7 @@ pub async fn save_backtest_data(
     let range = *start_block..*end_block;
     let step = 100_u64; // doing this so we don't hit rpc limits
     let contract_address = address;
-    let historical_monitor =
-        HistoricalMonitor::new(onchain::monitor::utils::RpcTypes::Mainnet).await;
+    let historical_monitor = HistoricalMonitor::new(monitor::utils::RpcTypes::Mainnet).await;
     let contract_abi = uniswap_v3_pool::UNISWAPV3POOL_ABI.to_owned();
     let mut pricedata: Vec<U256> = Vec::new();
     for block in range.step_by(step as usize) {

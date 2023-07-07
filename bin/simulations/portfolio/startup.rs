@@ -1,6 +1,6 @@
 use std::error::Error;
 
-use bindings::{arbiter_token, liquid_exchange, rmm01_portfolio, simple_registry, weth9};
+use simulate::bindings::{arbiter_token, liquid_exchange, rmm01_portfolio, simple_registry, weth9};
 use ethers::prelude::U256;
 use eyre::Result;
 use revm::primitives::{ruint::Uint, Address, ExecutionResult};
