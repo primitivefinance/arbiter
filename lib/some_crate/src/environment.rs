@@ -2,8 +2,11 @@
 #![warn(unsafe_code)]
 
 use crossbeam_channel::{unbounded, Receiver, Sender};
-use ethers::providers::{MockProvider, Provider};
-use ethers_middleware::providers::{JsonRpcClient, RpcError};
+use ethers::{
+    providers::{MockProvider, Provider},
+    types::{Address, BlockId},
+    middleware::providers::{JsonRpcClient, RpcError},
+};
 use revm::{
     db::{CacheDB, EmptyDB},
     primitives::{ExecutionResult, Log, TxEnv, U256},
@@ -139,6 +142,11 @@ impl From<RevmEnvironmentError> for ethers::providers::ProviderError {
     }
 }
 
+// TODO: This request function has exposed that we need to be careful of how we store data of blocks.
+// I'm not sure exactly how we should do this. 
+// We can change the BlockEnv, but I don't know all the effects of this. 
+// If we want to get the historical balance of an account, we need to store the block number that the balance was at.
+// We could potentially save the state of the DB after each block.
 #[async_trait::async_trait]
 impl JsonRpcClient for RevmEnvironment {
     type Error = RevmEnvironmentError;
@@ -147,8 +155,15 @@ impl JsonRpcClient for RevmEnvironment {
         T: std::fmt::Debug + Serialize + Send + Sync,
         R: DeserializeOwned + Send,
     {
-        let thing = self.evm.db().unwrap();
-        // TODO: The DB implements all the things that we would want to "request".
+        match method {
+            "eth_getBalance" => {
+                let (address, _block_id) = serde_json::from_value::<(Address, Option<BlockId>)>(params)?;
+                let accounts = self.evm.db().unwrap().accounts;
+                let account = accounts.get(&address).unwrap();
+                let balance = account.balance;
+                Ok(balance)
+            }
+        }
     }
 }
 
@@ -175,9 +190,10 @@ impl EventBroadcaster {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use ethers::providers::{Middleware, Provider};
 
     #[test]
-    fn new_environment() {
+    fn new() {
         let env = RevmEnvironment::new("test".to_string());
         assert_eq!(env.label, "test");
         assert_eq!(env.state, State::Stopped);
@@ -186,9 +202,14 @@ mod tests {
     }
 
     #[test]
-    fn request() {
+    fn run() {}
+
+    #[tokio::test]
+    async fn request_get_balance() {
         let environment = RevmEnvironment::new("test".to_string());
         let revm_middleware = RevmMiddleware::new(environment);
-        let accounts = revm_middleware.get_accounts();
+        let from = Address::zero();
+        let block = Some(BlockId::Number(1.into()));
+        let balance = revm_middleware.get_balance(from, block).await.unwrap();
     }
 }

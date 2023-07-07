@@ -10,8 +10,8 @@ use ethers::{
     prelude::k256::ecdsa::SigningKey,
     prelude::ProviderError,
     providers::{
-        FilterKind, FilterWatcher, LogQuery, Middleware, MiddlewareError, MockProvider,
-        PendingTransaction, Provider,
+        FilterKind, FilterWatcher, LogQuery, Middleware, MiddlewareError, PendingTransaction,
+        Provider,
     },
     signers::Wallet,
     types::{
@@ -21,7 +21,7 @@ use ethers::{
 };
 use rand::thread_rng;
 use serde::{de::DeserializeOwned, Serialize};
-use std::{fmt::Debug, sync::Arc};
+use std::fmt::Debug;
 
 use crate::environment::RevmEnvironment;
 
@@ -145,10 +145,14 @@ impl Middleware for RevmMiddleware {
 
     async fn get_balance<T: Into<NameOrAddress> + Send + Sync>(
         &self,
-        _from: T,
-        _block: Option<BlockId>,
+        from: T,
+        block: Option<BlockId>,
     ) -> Result<U256, Self::Error> {
-        todo!("we should be able to get the balance.")
+        let thing = self.inner();
+        self.inner()
+            .get_balance(from, block)
+            .await
+            .map_err(MiddlewareError::from_err)
     }
 
     async fn get_transaction<T: Send + Sync + Into<TxHash>>(
