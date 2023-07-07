@@ -6,47 +6,42 @@
 // TODO and notes:
 // The middleware/client should be something like `AgentClient` or `AgentMiddleware`.
 // The middleware/client needs to be able to send transactions from an address (and also have access to some specific channels and what not)
-
-use std::fmt::Debug;
-
+use std::{fmt::Debug, sync::Arc}; 
 use crossbeam_channel::Sender;
 use ethers::{
     prelude::k256::ecdsa::SigningKey,
     prelude::ProviderError,
     providers::{
-        erc, FilterKind, FilterWatcher, LogQuery, Middleware, MiddlewareError, MockProvider,
-        NodeInfo, PeerInfo, PendingTransaction, Provider,
+        FilterKind, FilterWatcher, LogQuery, Middleware, MiddlewareError, MockProvider,
+        PendingTransaction, Provider,
     },
     signers::Wallet,
     types::{
-        transaction::{eip2718::TypedTransaction, eip2930::AccessListWithGasUsed},
-        Address, Block, BlockId, BlockNumber, BlockTrace, Bytes, EIP1186ProofResponse, FeeHistory,
-        Filter, GethDebugTracingCallOptions, GethDebugTracingOptions, GethTrace, Log,
-        NameOrAddress, SyncingStatus, Trace, TraceFilter, TraceType, Transaction,
-        TransactionReceipt, TxHash, TxpoolContent, TxpoolInspect, TxpoolStatus, H256, U256, U64,
+        transaction::eip2718::TypedTransaction, Address, Block, BlockId, BlockNumber, Bytes,
+        Filter, Log, NameOrAddress, Transaction, TransactionReceipt, TxHash, H256, U256, U64,
     },
 };
+use ethers_middleware::providers::JsonRpcClient;
 use rand::thread_rng;
 use revm::primitives::{ExecutionResult, TransactTo, TxEnv, B160};
 use serde::{de::DeserializeOwned, Serialize};
-use url::Url;
+use thiserror::Error;
+
+use crate::environment::RevmEnvironment;
 
 // can an agent be be a struct? well API wants users
 #[derive(Debug)]
 pub struct RevmMiddleware {
-    /// tansaction sender
-    pub tx_sender: Sender<(TxEnv, Sender<ExecutionResult>)>,
-    // Provider
-    pub provider: Provider<MockProvider>,
+    // Provider/inner since this is the lowest level middleware
+    inner: Provider<RevmEnvironment>,
     // Wallet
     pub wallet: Wallet<SigningKey>,
 }
 
 impl RevmMiddleware {
-    pub fn new(tx_sender: Sender<(TxEnv, Sender<ExecutionResult>)>) -> Self {
+    pub fn new(environment: RevmEnvironment) -> Self {
         Self {
-            tx_sender,
-            provider: ethers::providers::Provider::new(MockProvider::default()),
+            inner: Provider::new(environment),
             wallet: Wallet::new(&mut thread_rng()),
         }
     }
@@ -55,15 +50,19 @@ impl RevmMiddleware {
 #[async_trait::async_trait]
 impl Middleware for RevmMiddleware {
     /// The JSON-RPC client type at the bottom of the stack
-    type Provider = MockProvider;
+    type Provider = RevmEnvironment;
     /// Error type returned by most operations
-    type Error = ProviderError;
+    type Error = ProviderError; //RevmMiddlewareError;
     /// The next-lower middleware in the middleware stack
-    type Inner = Self;
+    type Inner = Provider<RevmEnvironment>;
 
-    /// Get a reference to the next-lower middleware in the middleware stack
     fn inner(&self) -> &Self::Inner {
-        self
+        &self.inner
+    }
+
+    fn provider(&self) -> &Provider<Self::Provider> {
+        self.inner.provider();
+        self.inner().provider()
     }
 
     /// Return the default sender (if any). This will typically be the
@@ -87,39 +86,39 @@ impl Middleware for RevmMiddleware {
         tx: T,
         _block: Option<BlockId>,
     ) -> Result<PendingTransaction<'_, Self::Provider>, Self::Error> {
-        let tx: TypedTransaction = tx.into();
+        // let tx: TypedTransaction = tx.into();
 
-        // Conversions
-        // let caller = B160::from(*tx.from().unwrap()).into();
-        let caller = B160::from_low_u64_be(1);
-        println!("caller: {:?}", caller);
-        let gas_limit = u64::MAX;
-        let gas_price: revm::primitives::U256 = revm::primitives::U256::from(0);
-        let bytes = tx.data().unwrap().clone().to_vec();
-        let data = bytes::Bytes::from(bytes);
-        let transact_to = match tx.to() {
-            Some(to) => TransactTo::Call(B160::from(*to.as_address().unwrap()).into()),
-            None => TransactTo::create(),
-        };
-        // tx.set_from(&self.eoa);
+        // // Conversions
+        // // let caller = B160::from(*tx.from().unwrap()).into();
+        // let caller = B160::from_low_u64_be(1);
+        // println!("caller: {:?}", caller);
+        // let gas_limit = u64::MAX;
+        // let gas_price: revm::primitives::U256 = revm::primitives::U256::from(0);
+        // let bytes = tx.data().unwrap().clone().to_vec();
+        // let data = bytes::Bytes::from(bytes);
+        // let transact_to = match tx.to() {
+        //     Some(to) => TransactTo::Call(B160::from(*to.as_address().unwrap()).into()),
+        //     None => TransactTo::create(),
+        // };
+        // // tx.set_from(&self.eoa);
 
-        // Build the TxEnv
-        let tx_env = TxEnv {
-            caller,
-            gas_limit,
-            gas_price,
-            gas_priority_fee: None,
-            transact_to,
-            value: revm::primitives::U256::ZERO, // TODO: I doubt we want to ever send any raw eth to a contract.
-            data,
-            chain_id: None,
-            nonce: None,
-            access_list: Vec::new(),
-        };
-        let (sender, receiver) = crossbeam_channel::unbounded();
-        let _transaction = self.tx_sender.send((tx_env, sender));
-        let result = receiver.recv().unwrap();
-        println!("result: {:?}", result);
+        // // Build the TxEnv
+        // let tx_env = TxEnv {
+        //     caller,
+        //     gas_limit,
+        //     gas_price,
+        //     gas_priority_fee: None,
+        //     transact_to,
+        //     value: revm::primitives::U256::ZERO, // TODO: I doubt we want to ever send any raw eth to a contract.
+        //     data,
+        //     chain_id: None,
+        //     nonce: None,
+        //     access_list: Vec::new(),
+        // };
+        // let (sender, receiver) = crossbeam_channel::unbounded();
+        // let _transaction = self.tx_sender.send((tx_env, sender));
+        // let result = receiver.recv().unwrap();
+        // println!("result: {:?}", result);
         let pending_tx = PendingTransaction::new(H256::default(), self.provider());
         Ok(pending_tx)
     }
@@ -366,10 +365,12 @@ impl Middleware for RevmMiddleware {
 
 #[cfg(test)]
 mod tests {
+    use super::*;
     use crate::agent::Agent;
     use anyhow;
+    use ethers_middleware::providers::Provider;
 
-    use crate::{bindings, environment::SimulationEnvironment};
+    use crate::{bindings, environment::RevmEnvironment};
     use bindings::writer::Writer;
 
     // #[tokio::test]
@@ -389,4 +390,15 @@ mod tests {
 
     //     Ok(())
     // }
+
+    #[test]
+    fn request() {
+        let environment = RevmEnvironment::new("test".to_string());
+        let revm_middleware = RevmMiddleware::new(environment);
+        let provider = revm_middleware.provider();
+
+        let thing = provider.get_accounts();
+    }
 }
+
+// TODO: Notes, maybe we just implement the JsonRpcClient for the `environment`? That way we can put the provider inside of the middleware properly

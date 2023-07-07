@@ -5,13 +5,13 @@
 
 use std::collections::HashMap;
 
-use crate::environment::{SimulationEnvironment, State};
+use crate::environment::{RevmEnvironment, State};
 use anyhow::{anyhow, Result};
 
 /// Manages simulations.
 pub struct SimulationManager {
     /// The list of [`SimulationEnvironment`] that the simulation manager controls.
-    pub environments: HashMap<String, SimulationEnvironment>,
+    pub environments: HashMap<String, RevmEnvironment>,
 }
 
 impl SimulationManager {
@@ -29,7 +29,7 @@ impl SimulationManager {
         }
         self.environments.insert(
             environment_label.clone(),
-            SimulationEnvironment::new(environment_label),
+            RevmEnvironment::new(environment_label),
         );
         Ok(())
     }

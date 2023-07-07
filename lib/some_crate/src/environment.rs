@@ -3,15 +3,18 @@
 
 use crossbeam_channel::{unbounded, Receiver, Sender};
 use ethers::providers::{MockProvider, Provider};
+use ethers_middleware::providers::{JsonRpcClient, RpcError};
 use revm::{
     db::{CacheDB, EmptyDB},
     primitives::{ExecutionResult, Log, TxEnv, U256},
     EVM,
 };
+use serde::{Serialize, de::DeserializeOwned};
+use thiserror::Error;
 use std::{
     collections::HashMap,
     sync::{Arc, Mutex},
-    thread,
+    thread, fmt::Formatter,
 };
 
 use crate::{agent::Agent, middleware::RevmMiddleware};
@@ -35,7 +38,7 @@ pub enum State {
 /// # Fields
 /// * `evm` - The EVM that is used for the simulation.
 /// * `event_senders` - The senders on the event channel that is used to send events to the agents and simulation manager.
-pub struct SimulationEnvironment {
+pub struct RevmEnvironment {
     pub label: String,
     pub(crate) state: State,
     /// The EVM that is used for the simulation.
@@ -53,7 +56,21 @@ pub struct SimulationEnvironment {
     pub deployed_contracts: HashMap<String, Contract<RevmMiddleware>>,
 }
 
-impl SimulationEnvironment {
+impl std::fmt::Debug for RevmEnvironment {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("RevmEnvironment")
+            .field("label", &self.label)
+            .field("state", &self.state)
+            .field("event_broadcaster", &self.event_broadcaster)
+            .field("transaction_channel", &self.transaction_channel)
+            .field("provider", &self.provider)
+            .field("agents", &self.agents)
+            .field("deployed_contracts", &self.deployed_contracts)
+            .finish()
+    }
+}
+
+impl RevmEnvironment {
     pub(crate) fn new(label: String) -> Self {
         let mut evm = EVM::new();
         let db = CacheDB::new(EmptyDB {});
@@ -100,6 +117,40 @@ impl SimulationEnvironment {
             }
         });
     }
+}
+
+#[derive(Debug, Error)]
+pub enum RevmEnvironmentError {
+    #[error("The `RevmEnvironment` had an error.")]
+    Error,
+}
+
+impl RpcError for RevmEnvironmentError {
+    fn as_error_response(&self) -> Option<&ethers_middleware::providers::JsonRpcError> {
+        todo!()
+    }
+
+    fn as_serde_error(&self) -> Option<&serde_json::Error> {
+        todo!()
+    }
+}
+
+impl From<RevmEnvironmentError> for ethers::providers::ProviderError {
+    fn from(err: RevmEnvironmentError) -> Self {
+        ethers::providers::ProviderError::CustomError(err.to_string())
+    }
+}
+
+
+#[async_trait::async_trait]
+impl JsonRpcClient for RevmEnvironment {
+    type Error = RevmEnvironmentError;
+    async fn request<T, R>(&self, method: &str, params: T) -> Result<R, Self::Error>
+    where
+        T: std::fmt::Debug + Serialize + Send + Sync,
+        R: DeserializeOwned + Send {
+        todo!("we should be able to request something from the provider.")
+        }
 }
 
 /// The event broadcaster that is used to broadcast events to the agents from the simulation manager.

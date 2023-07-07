@@ -8,41 +8,53 @@
 
 use revm::primitives::{Address, ExecutionResult, TxEnv};
 use std::sync::Arc;
+use thiserror::Error;
 
-use crate::middleware::RevmMiddleware;
+use crate::{middleware::RevmMiddleware, environment::RevmEnvironment};
 
 pub struct Agent {
     pub name: String,
     pub client: Arc<RevmMiddleware>,
-    pub behaviors: Vec<Box<dyn Behavior<Data = dyn std::any::Any>>>,
+    pub behaviors: Vec<Box<dyn Behavior>>,
 }
 
+impl std::fmt::Debug for Agent {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("Agent")
+            .field("name", &self.name)
+            .field("client", &self.client)
+            .finish()
+    }
+}
+
+
 impl Agent {
-    pub fn new(
+    fn new(
         name: String,
-        tx_sender: crossbeam_channel::Sender<(TxEnv, crossbeam_channel::Sender<ExecutionResult>)>,
+        environment: RevmEnvironment,
     ) -> Self {
         Self {
             name,
-            client: Arc::new(RevmMiddleware::new(tx_sender)),
+            client: Arc::new(RevmMiddleware::new(environment)),
             behaviors: vec![],
         }
     }
-
+    // TODO: We probably don't need static lifetimes. We could just set the lifetime of the environment and everything inside of it. 
+    // The manager can outlive any environment.
     pub fn add_behavior<B>(&mut self, behavior: B)
     where
-        B: Behavior<Data = dyn std::any::Any> + 'static,
+        B: Behavior + 'static,
     {
         self.behaviors.push(Box::new(behavior));
     }
 }
 
-use anyhow::Result;
-
-pub trait Behavior {
-    type Data;
-    fn act(&self) -> Result<()>;
-    fn condition(&self) -> Result<()>;
+// TODO: Note -- Artemis uses a `process_event` function that returns an `Option<Action>` for something to happen. 
+// https://github.com/paradigmxyz/artemis/blob/c8ab223a363a875f685ab177839eacfffc9d8de0/crates/artemis-core/src/types.rs#L25
+#[async_trait::async_trait]
+pub trait Behavior: Send + Sync {
+    async fn process_event(&mut self) -> bool;
+    fn sync_state(&mut self);
 }
 
 #[cfg(test)]
@@ -53,14 +65,14 @@ mod tests {
         _data: String,
     }
 
+    #[async_trait::async_trait]
     impl Behavior for TestBehavior {
-        // TODO: We may not need the Data type inside of the trait.
-        type Data = String;
-        fn act(&self) -> Result<()> {
-            Ok(())
+        async fn process_event(&mut self) -> bool {
+            true
+
         }
-        fn condition(&self) -> Result<()> {
-            Ok(())
+        fn sync_state(&mut self) {
+            println!("Hello, world!")
         }
     }
 
@@ -68,13 +80,13 @@ mod tests {
         _data: u64,
     }
 
+    #[async_trait::async_trait]
     impl Behavior for TestBehavior2 {
-        type Data = u64;
-        fn act(&self) -> Result<()> {
-            Ok(())
+        async fn process_event(&mut self) -> bool {
+            false
         }
-        fn condition(&self) -> Result<()> {
-            Ok(())
+        fn sync_state(&mut self) {
+            println!("Hello, world, it's me, number 2")
         }
     }
 
