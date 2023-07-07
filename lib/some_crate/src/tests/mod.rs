@@ -1,7 +1,7 @@
 #[allow(missing_docs)]
 #[cfg(test)]
 
-// TODO: Add contract bindings and integration tests here. 
+// TODO: Add contract bindings and integration tests here.
 // We need to test things like: having managers create environments with agents that run.
 // This will lead to testing out transactions and contract calls.
 

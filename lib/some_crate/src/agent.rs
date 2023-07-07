@@ -73,19 +73,14 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn test_behavior() {
+    async fn agent_behavior() {
         let label = TEST_ENV_LABEL.to_string();
         let name = TEST_AGENT_NAME.to_string();
-        let mut agent = Agent::new(
-            name,
-            RevmEnvironment::new(label),
-        );
+        let mut agent = Agent::new(name, RevmEnvironment::new(label));
 
         // Add a behavior of the first type.
         let data = TEST_BEHAVIOR_DATA.to_string();
-        let behavior = TestBehavior {
-            data,
-        };
+        let behavior = TestBehavior { data };
         agent.add_behavior(behavior);
         assert!(agent.behaviors.len() == 1);
         assert!(agent.behaviors[0].process_event().await);

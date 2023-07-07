@@ -92,6 +92,7 @@ impl RevmEnvironment {
         self.agents.push(agent);
     }
 
+    // TODO: Run should now run the agents as well as the evm.
     pub(crate) fn run(&mut self) {
         let tx_receiver = self.transaction_channel.1.clone();
         let mut evm = self.evm.clone();
@@ -146,7 +147,8 @@ impl JsonRpcClient for RevmEnvironment {
         T: std::fmt::Debug + Serialize + Send + Sync,
         R: DeserializeOwned + Send,
     {
-        todo!("we should be able to request something from the provider.")
+        let thing = self.evm.db().unwrap();
+        // TODO: The DB implements all the things that we would want to "request".
     }
 }
 
@@ -167,5 +169,26 @@ impl EventBroadcaster {
         for sender in &self.0 {
             sender.send(logs.clone()).unwrap();
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn new_environment() {
+        let env = RevmEnvironment::new("test".to_string());
+        assert_eq!(env.label, "test");
+        assert_eq!(env.state, State::Stopped);
+        // assert_eq!(env.agents, vec![]);
+        // assert_eq!(env.deployed_contracts, HashMap::new());
+    }
+
+    #[test]
+    fn request() {
+        let environment = RevmEnvironment::new("test".to_string());
+        let revm_middleware = RevmMiddleware::new(environment);
+        let accounts = revm_middleware.get_accounts();
     }
 }
