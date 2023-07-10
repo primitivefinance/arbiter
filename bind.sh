@@ -3,7 +3,7 @@
 forge clean
 
 forge install https://github.com/Uniswap/v3-core --no-commit
-forge install https://github.com/primitivefinance/portfolio --no-commit
+forge install https://github.com/primitivefinance/portfolio@e7b947b7e2c1da6d7ee6dc6d76b25638babfa6e5 --no-commit
 forge install https://github.com/gnosis/canonical-weth --no-commit
 forge install https://github.com/Uniswap/v2-core --no-commit
 forge install https://github.com/Uniswap/v2-periphery --no-commit
@@ -16,34 +16,34 @@ CODEHASH="s/7fb0ae3175f4aef679d8e5eec91e7e16de3a6de15862774e2485db47122050f5/74a
 sed -i.bak -e ${CODEHASH} -- "${TARGET}" &&
   rm -- "${TARGET}.bak"
 
-forge bind --skip "^UniswapV3.*" -C contracts/v3-core/contracts --revert-strings debug -b lib/bindings/ --crate-name bindings --overwrite
+forge bind --skip "^UniswapV3.*" -C contracts/v3-core/contracts --revert-strings debug -b crates/bindings/ --crate-name bindings --overwrite
 echo "Generated bindings for v3-core"
-forge bind -C contracts/portfolio/contracts --revert-strings debug -b lib/bindings/ --crate-name bindings --overwrite
+forge bind -C contracts/portfolio/contracts --revert-strings debug -b crates/bindings/ --crate-name bindings --overwrite
 echo "Generated bindings for portfolio"
-forge bind -C contracts/canonical-weth/contracts --revert-strings debug -b lib/bindings/ --crate-name bindings --overwrite
+forge bind -C contracts/canonical-weth/contracts --revert-strings debug -b crates/bindings/ --crate-name bindings --overwrite
 echo "Generated bindings for canonical-weth"
-forge bind -C contracts/v2-core/contracts --revert-strings debug -b lib/bindings/ --crate-name bindings --overwrite
+forge bind -C contracts/v2-core/contracts --revert-strings debug -b crates/bindings/ --crate-name bindings --overwrite
 echo "Generated bindings for v2-core"
-forge bind -C contracts/v2-periphery/contracts --revert-strings debug -b lib/bindings/ --crate-name bindings --overwrite
+forge bind -C contracts/v2-periphery/contracts --revert-strings debug -b crates/bindings/ --crate-name bindings --overwrite
 echo "Generated bindings for v2-periphery"
-forge bind -C contracts/arbmod/src --revert-strings debug -b lib/bindings/ --crate-name bindings --overwrite
+forge bind -C contracts/arbmod/src --revert-strings debug -b crates/bindings/ --crate-name bindings --overwrite
 echo "Generated bindings for arbmod"
 
-rm -f lib/bindings/src/mock_time_uniswap_v3_pool_deployer.rs
+rm -f crates/bindings/src/mock_time_uniswap_v3_pool_deployer.rs
 
 # Edit the init code hash used in the contracts/v2-periphery/contracts/libraries/UniswapV2Library.sol file on line 24.
 
 # Define the input and output files
-input_file="lib/bindings/Cargo.toml"
-output_file="lib/bindings/Cargo-updated.toml"
+input_file="crates/bindings/Cargo.toml"
+output_file="crates/bindings/Cargo-updated.toml"
 
 # Use sed to search and replace a string in the input file
 sed 's/git = "https:\/\/github.com\/gakonst\/ethers-rs"/version = "2.0.2"/g' "$input_file" > "$output_file"
 mv "$output_file" "$input_file"
 
 # Use sed to search and replace a string in the input file
-input_file="lib/bindings/src/lib.rs"
-output_file="lib/bindings/src/lib_temp.rs"
+input_file="crates/bindings/src/lib.rs"
+output_file="crates/bindings/src/lib_temp.rs"
 
 # Remove the specified string
 grep -v 'pub mod mock_time_uniswap_v3_pool_deployer;' "$input_file" > "$output_file"
@@ -241,4 +241,4 @@ echo "                                 Apache License
    distributed under the License is distributed on an "AS IS" BASIS,
    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
    See the License for the specific language governing permissions and
-   limitations under the License." > lib/bindings/LICENSE 
+   limitations under the License." > crates/bindings/LICENSE 

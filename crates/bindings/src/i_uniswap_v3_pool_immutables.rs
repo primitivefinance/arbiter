@@ -7,7 +7,7 @@ pub use i_uniswap_v3_pool_immutables::*;
     clippy::upper_case_acronyms,
     clippy::type_complexity,
     dead_code,
-    non_camel_case_types
+    non_camel_case_types,
 )]
 pub mod i_uniswap_v3_pool_immutables {
     #[allow(deprecated)]
@@ -17,99 +17,127 @@ pub mod i_uniswap_v3_pool_immutables {
             functions: ::core::convert::From::from([
                 (
                     ::std::borrow::ToOwned::to_owned("factory"),
-                    ::std::vec![::ethers::core::abi::ethabi::Function {
-                        name: ::std::borrow::ToOwned::to_owned("factory"),
-                        inputs: ::std::vec![],
-                        outputs: ::std::vec![::ethers::core::abi::ethabi::Param {
-                            name: ::std::string::String::new(),
-                            kind: ::ethers::core::abi::ethabi::ParamType::Address,
-                            internal_type: ::core::option::Option::Some(
-                                ::std::borrow::ToOwned::to_owned("address"),
-                            ),
-                        },],
-                        constant: ::core::option::Option::None,
-                        state_mutability: ::ethers::core::abi::ethabi::StateMutability::View,
-                    },],
+                    ::std::vec![
+                        ::ethers::core::abi::ethabi::Function {
+                            name: ::std::borrow::ToOwned::to_owned("factory"),
+                            inputs: ::std::vec![],
+                            outputs: ::std::vec![
+                                ::ethers::core::abi::ethabi::Param {
+                                    name: ::std::string::String::new(),
+                                    kind: ::ethers::core::abi::ethabi::ParamType::Address,
+                                    internal_type: ::core::option::Option::Some(
+                                        ::std::borrow::ToOwned::to_owned("address"),
+                                    ),
+                                },
+                            ],
+                            constant: ::core::option::Option::None,
+                            state_mutability: ::ethers::core::abi::ethabi::StateMutability::View,
+                        },
+                    ],
                 ),
                 (
                     ::std::borrow::ToOwned::to_owned("fee"),
-                    ::std::vec![::ethers::core::abi::ethabi::Function {
-                        name: ::std::borrow::ToOwned::to_owned("fee"),
-                        inputs: ::std::vec![],
-                        outputs: ::std::vec![::ethers::core::abi::ethabi::Param {
-                            name: ::std::string::String::new(),
-                            kind: ::ethers::core::abi::ethabi::ParamType::Uint(24usize),
-                            internal_type: ::core::option::Option::Some(
-                                ::std::borrow::ToOwned::to_owned("uint24"),
-                            ),
-                        },],
-                        constant: ::core::option::Option::None,
-                        state_mutability: ::ethers::core::abi::ethabi::StateMutability::View,
-                    },],
+                    ::std::vec![
+                        ::ethers::core::abi::ethabi::Function {
+                            name: ::std::borrow::ToOwned::to_owned("fee"),
+                            inputs: ::std::vec![],
+                            outputs: ::std::vec![
+                                ::ethers::core::abi::ethabi::Param {
+                                    name: ::std::string::String::new(),
+                                    kind: ::ethers::core::abi::ethabi::ParamType::Uint(24usize),
+                                    internal_type: ::core::option::Option::Some(
+                                        ::std::borrow::ToOwned::to_owned("uint24"),
+                                    ),
+                                },
+                            ],
+                            constant: ::core::option::Option::None,
+                            state_mutability: ::ethers::core::abi::ethabi::StateMutability::View,
+                        },
+                    ],
                 ),
                 (
                     ::std::borrow::ToOwned::to_owned("maxLiquidityPerTick"),
-                    ::std::vec![::ethers::core::abi::ethabi::Function {
-                        name: ::std::borrow::ToOwned::to_owned("maxLiquidityPerTick",),
-                        inputs: ::std::vec![],
-                        outputs: ::std::vec![::ethers::core::abi::ethabi::Param {
-                            name: ::std::string::String::new(),
-                            kind: ::ethers::core::abi::ethabi::ParamType::Uint(128usize,),
-                            internal_type: ::core::option::Option::Some(
-                                ::std::borrow::ToOwned::to_owned("uint128"),
+                    ::std::vec![
+                        ::ethers::core::abi::ethabi::Function {
+                            name: ::std::borrow::ToOwned::to_owned(
+                                "maxLiquidityPerTick",
                             ),
-                        },],
-                        constant: ::core::option::Option::None,
-                        state_mutability: ::ethers::core::abi::ethabi::StateMutability::View,
-                    },],
+                            inputs: ::std::vec![],
+                            outputs: ::std::vec![
+                                ::ethers::core::abi::ethabi::Param {
+                                    name: ::std::string::String::new(),
+                                    kind: ::ethers::core::abi::ethabi::ParamType::Uint(
+                                        128usize,
+                                    ),
+                                    internal_type: ::core::option::Option::Some(
+                                        ::std::borrow::ToOwned::to_owned("uint128"),
+                                    ),
+                                },
+                            ],
+                            constant: ::core::option::Option::None,
+                            state_mutability: ::ethers::core::abi::ethabi::StateMutability::View,
+                        },
+                    ],
                 ),
                 (
                     ::std::borrow::ToOwned::to_owned("tickSpacing"),
-                    ::std::vec![::ethers::core::abi::ethabi::Function {
-                        name: ::std::borrow::ToOwned::to_owned("tickSpacing"),
-                        inputs: ::std::vec![],
-                        outputs: ::std::vec![::ethers::core::abi::ethabi::Param {
-                            name: ::std::string::String::new(),
-                            kind: ::ethers::core::abi::ethabi::ParamType::Int(24usize),
-                            internal_type: ::core::option::Option::Some(
-                                ::std::borrow::ToOwned::to_owned("int24"),
-                            ),
-                        },],
-                        constant: ::core::option::Option::None,
-                        state_mutability: ::ethers::core::abi::ethabi::StateMutability::View,
-                    },],
+                    ::std::vec![
+                        ::ethers::core::abi::ethabi::Function {
+                            name: ::std::borrow::ToOwned::to_owned("tickSpacing"),
+                            inputs: ::std::vec![],
+                            outputs: ::std::vec![
+                                ::ethers::core::abi::ethabi::Param {
+                                    name: ::std::string::String::new(),
+                                    kind: ::ethers::core::abi::ethabi::ParamType::Int(24usize),
+                                    internal_type: ::core::option::Option::Some(
+                                        ::std::borrow::ToOwned::to_owned("int24"),
+                                    ),
+                                },
+                            ],
+                            constant: ::core::option::Option::None,
+                            state_mutability: ::ethers::core::abi::ethabi::StateMutability::View,
+                        },
+                    ],
                 ),
                 (
                     ::std::borrow::ToOwned::to_owned("token0"),
-                    ::std::vec![::ethers::core::abi::ethabi::Function {
-                        name: ::std::borrow::ToOwned::to_owned("token0"),
-                        inputs: ::std::vec![],
-                        outputs: ::std::vec![::ethers::core::abi::ethabi::Param {
-                            name: ::std::string::String::new(),
-                            kind: ::ethers::core::abi::ethabi::ParamType::Address,
-                            internal_type: ::core::option::Option::Some(
-                                ::std::borrow::ToOwned::to_owned("address"),
-                            ),
-                        },],
-                        constant: ::core::option::Option::None,
-                        state_mutability: ::ethers::core::abi::ethabi::StateMutability::View,
-                    },],
+                    ::std::vec![
+                        ::ethers::core::abi::ethabi::Function {
+                            name: ::std::borrow::ToOwned::to_owned("token0"),
+                            inputs: ::std::vec![],
+                            outputs: ::std::vec![
+                                ::ethers::core::abi::ethabi::Param {
+                                    name: ::std::string::String::new(),
+                                    kind: ::ethers::core::abi::ethabi::ParamType::Address,
+                                    internal_type: ::core::option::Option::Some(
+                                        ::std::borrow::ToOwned::to_owned("address"),
+                                    ),
+                                },
+                            ],
+                            constant: ::core::option::Option::None,
+                            state_mutability: ::ethers::core::abi::ethabi::StateMutability::View,
+                        },
+                    ],
                 ),
                 (
                     ::std::borrow::ToOwned::to_owned("token1"),
-                    ::std::vec![::ethers::core::abi::ethabi::Function {
-                        name: ::std::borrow::ToOwned::to_owned("token1"),
-                        inputs: ::std::vec![],
-                        outputs: ::std::vec![::ethers::core::abi::ethabi::Param {
-                            name: ::std::string::String::new(),
-                            kind: ::ethers::core::abi::ethabi::ParamType::Address,
-                            internal_type: ::core::option::Option::Some(
-                                ::std::borrow::ToOwned::to_owned("address"),
-                            ),
-                        },],
-                        constant: ::core::option::Option::None,
-                        state_mutability: ::ethers::core::abi::ethabi::StateMutability::View,
-                    },],
+                    ::std::vec![
+                        ::ethers::core::abi::ethabi::Function {
+                            name: ::std::borrow::ToOwned::to_owned("token1"),
+                            inputs: ::std::vec![],
+                            outputs: ::std::vec![
+                                ::ethers::core::abi::ethabi::Param {
+                                    name: ::std::string::String::new(),
+                                    kind: ::ethers::core::abi::ethabi::ParamType::Address,
+                                    internal_type: ::core::option::Option::Some(
+                                        ::std::borrow::ToOwned::to_owned("address"),
+                                    ),
+                                },
+                            ],
+                            constant: ::core::option::Option::None,
+                            state_mutability: ::ethers::core::abi::ethabi::StateMutability::View,
+                        },
+                    ],
                 ),
             ]),
             events: ::std::collections::BTreeMap::new(),
@@ -119,8 +147,9 @@ pub mod i_uniswap_v3_pool_immutables {
         }
     }
     ///The parsed JSON ABI of the contract.
-    pub static IUNISWAPV3POOLIMMUTABLES_ABI: ::ethers::contract::Lazy<::ethers::core::abi::Abi> =
-        ::ethers::contract::Lazy::new(__abi);
+    pub static IUNISWAPV3POOLIMMUTABLES_ABI: ::ethers::contract::Lazy<
+        ::ethers::core::abi::Abi,
+    > = ::ethers::contract::Lazy::new(__abi);
     pub struct IUniswapV3PoolImmutables<M>(::ethers::contract::Contract<M>);
     impl<M> ::core::clone::Clone for IUniswapV3PoolImmutables<M> {
         fn clone(&self) -> Self {
@@ -152,16 +181,21 @@ pub mod i_uniswap_v3_pool_immutables {
             address: T,
             client: ::std::sync::Arc<M>,
         ) -> Self {
-            Self(::ethers::contract::Contract::new(
-                address.into(),
-                IUNISWAPV3POOLIMMUTABLES_ABI.clone(),
-                client,
-            ))
+            Self(
+                ::ethers::contract::Contract::new(
+                    address.into(),
+                    IUNISWAPV3POOLIMMUTABLES_ABI.clone(),
+                    client,
+                ),
+            )
         }
         ///Calls the contract's `factory` (0xc45a0155) function
         pub fn factory(
             &self,
-        ) -> ::ethers::contract::builders::ContractCall<M, ::ethers::core::types::Address> {
+        ) -> ::ethers::contract::builders::ContractCall<
+            M,
+            ::ethers::core::types::Address,
+        > {
             self.0
                 .method_hash([196, 90, 1, 85], ())
                 .expect("method not found (this should never happen)")
@@ -181,7 +215,9 @@ pub mod i_uniswap_v3_pool_immutables {
                 .expect("method not found (this should never happen)")
         }
         ///Calls the contract's `tickSpacing` (0xd0c93a7c) function
-        pub fn tick_spacing(&self) -> ::ethers::contract::builders::ContractCall<M, i32> {
+        pub fn tick_spacing(
+            &self,
+        ) -> ::ethers::contract::builders::ContractCall<M, i32> {
             self.0
                 .method_hash([208, 201, 58, 124], ())
                 .expect("method not found (this should never happen)")
@@ -189,7 +225,10 @@ pub mod i_uniswap_v3_pool_immutables {
         ///Calls the contract's `token0` (0x0dfe1681) function
         pub fn token_0(
             &self,
-        ) -> ::ethers::contract::builders::ContractCall<M, ::ethers::core::types::Address> {
+        ) -> ::ethers::contract::builders::ContractCall<
+            M,
+            ::ethers::core::types::Address,
+        > {
             self.0
                 .method_hash([13, 254, 22, 129], ())
                 .expect("method not found (this should never happen)")
@@ -197,15 +236,17 @@ pub mod i_uniswap_v3_pool_immutables {
         ///Calls the contract's `token1` (0xd21220a7) function
         pub fn token_1(
             &self,
-        ) -> ::ethers::contract::builders::ContractCall<M, ::ethers::core::types::Address> {
+        ) -> ::ethers::contract::builders::ContractCall<
+            M,
+            ::ethers::core::types::Address,
+        > {
             self.0
                 .method_hash([210, 18, 32, 167], ())
                 .expect("method not found (this should never happen)")
         }
     }
     impl<M: ::ethers::providers::Middleware> From<::ethers::contract::Contract<M>>
-        for IUniswapV3PoolImmutables<M>
-    {
+    for IUniswapV3PoolImmutables<M> {
         fn from(contract: ::ethers::contract::Contract<M>) -> Self {
             Self::new(contract.address(), contract.client())
         }
@@ -219,7 +260,7 @@ pub mod i_uniswap_v3_pool_immutables {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(name = "factory", abi = "factory()")]
     pub struct FactoryCall;
@@ -232,7 +273,7 @@ pub mod i_uniswap_v3_pool_immutables {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(name = "fee", abi = "fee()")]
     pub struct FeeCall;
@@ -245,7 +286,7 @@ pub mod i_uniswap_v3_pool_immutables {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(name = "maxLiquidityPerTick", abi = "maxLiquidityPerTick()")]
     pub struct MaxLiquidityPerTickCall;
@@ -258,7 +299,7 @@ pub mod i_uniswap_v3_pool_immutables {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(name = "tickSpacing", abi = "tickSpacing()")]
     pub struct TickSpacingCall;
@@ -271,7 +312,7 @@ pub mod i_uniswap_v3_pool_immutables {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(name = "token0", abi = "token0()")]
     pub struct Token0Call;
@@ -284,7 +325,7 @@ pub mod i_uniswap_v3_pool_immutables {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(name = "token1", abi = "token1()")]
     pub struct Token1Call;
@@ -303,24 +344,30 @@ pub mod i_uniswap_v3_pool_immutables {
             data: impl AsRef<[u8]>,
         ) -> ::core::result::Result<Self, ::ethers::core::abi::AbiError> {
             let data = data.as_ref();
-            if let Ok(decoded) = <FactoryCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded)
+                = <FactoryCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::Factory(decoded));
             }
-            if let Ok(decoded) = <FeeCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded)
+                = <FeeCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::Fee(decoded));
             }
-            if let Ok(decoded) =
-                <MaxLiquidityPerTickCall as ::ethers::core::abi::AbiDecode>::decode(data)
-            {
+            if let Ok(decoded)
+                = <MaxLiquidityPerTickCall as ::ethers::core::abi::AbiDecode>::decode(
+                    data,
+                ) {
                 return Ok(Self::MaxLiquidityPerTick(decoded));
             }
-            if let Ok(decoded) = <TickSpacingCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded)
+                = <TickSpacingCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::TickSpacing(decoded));
             }
-            if let Ok(decoded) = <Token0Call as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded)
+                = <Token0Call as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::Token0(decoded));
             }
-            if let Ok(decoded) = <Token1Call as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded)
+                = <Token1Call as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::Token1(decoded));
             }
             Err(::ethers::core::abi::Error::InvalidData.into())
@@ -334,7 +381,9 @@ pub mod i_uniswap_v3_pool_immutables {
                 Self::MaxLiquidityPerTick(element) => {
                     ::ethers::core::abi::AbiEncode::encode(element)
                 }
-                Self::TickSpacing(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::TickSpacing(element) => {
+                    ::ethers::core::abi::AbiEncode::encode(element)
+                }
                 Self::Token0(element) => ::ethers::core::abi::AbiEncode::encode(element),
                 Self::Token1(element) => ::ethers::core::abi::AbiEncode::encode(element),
             }
@@ -345,7 +394,9 @@ pub mod i_uniswap_v3_pool_immutables {
             match self {
                 Self::Factory(element) => ::core::fmt::Display::fmt(element, f),
                 Self::Fee(element) => ::core::fmt::Display::fmt(element, f),
-                Self::MaxLiquidityPerTick(element) => ::core::fmt::Display::fmt(element, f),
+                Self::MaxLiquidityPerTick(element) => {
+                    ::core::fmt::Display::fmt(element, f)
+                }
                 Self::TickSpacing(element) => ::core::fmt::Display::fmt(element, f),
                 Self::Token0(element) => ::core::fmt::Display::fmt(element, f),
                 Self::Token1(element) => ::core::fmt::Display::fmt(element, f),
@@ -362,7 +413,8 @@ pub mod i_uniswap_v3_pool_immutables {
             Self::Fee(value)
         }
     }
-    impl ::core::convert::From<MaxLiquidityPerTickCall> for IUniswapV3PoolImmutablesCalls {
+    impl ::core::convert::From<MaxLiquidityPerTickCall>
+    for IUniswapV3PoolImmutablesCalls {
         fn from(value: MaxLiquidityPerTickCall) -> Self {
             Self::MaxLiquidityPerTick(value)
         }
@@ -391,7 +443,7 @@ pub mod i_uniswap_v3_pool_immutables {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     pub struct FactoryReturn(pub ::ethers::core::types::Address);
     ///Container type for all return fields from the `fee` function with signature `fee()` and selector `0xddca3f43`
@@ -403,7 +455,7 @@ pub mod i_uniswap_v3_pool_immutables {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     pub struct FeeReturn(pub u32);
     ///Container type for all return fields from the `maxLiquidityPerTick` function with signature `maxLiquidityPerTick()` and selector `0x70cf754a`
@@ -415,7 +467,7 @@ pub mod i_uniswap_v3_pool_immutables {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     pub struct MaxLiquidityPerTickReturn(pub u128);
     ///Container type for all return fields from the `tickSpacing` function with signature `tickSpacing()` and selector `0xd0c93a7c`
@@ -427,7 +479,7 @@ pub mod i_uniswap_v3_pool_immutables {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     pub struct TickSpacingReturn(pub i32);
     ///Container type for all return fields from the `token0` function with signature `token0()` and selector `0x0dfe1681`
@@ -439,7 +491,7 @@ pub mod i_uniswap_v3_pool_immutables {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     pub struct Token0Return(pub ::ethers::core::types::Address);
     ///Container type for all return fields from the `token1` function with signature `token1()` and selector `0xd21220a7`
@@ -451,7 +503,7 @@ pub mod i_uniswap_v3_pool_immutables {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     pub struct Token1Return(pub ::ethers::core::types::Address);
 }
