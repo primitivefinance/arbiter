@@ -3,9 +3,15 @@
 
 use crossbeam_channel::{unbounded, Receiver, Sender};
 use ethers::{
-    providers::{MockProvider, Provider},
-    types::{Address, BlockId},
     middleware::providers::{JsonRpcClient, RpcError},
+    providers::{MockProvider, Provider},
+    types::{
+        transaction::eip2718::TypedTransaction, Address, BlockId, Bytes, Filter, NameOrAddress,
+        H256, U64,
+    },
+};
+use ethers_middleware::providers::{
+    FilterKind, FilterWatcher, Middleware, MiddlewareError, PendingTransaction, ProviderError,
 };
 use revm::{
     db::{CacheDB, EmptyDB},
@@ -15,7 +21,7 @@ use revm::{
 use serde::{de::DeserializeOwned, Serialize};
 use std::{
     collections::HashMap,
-    fmt::Formatter,
+    fmt::{Debug, Formatter},
     sync::{Arc, Mutex},
     thread,
 };
@@ -79,7 +85,6 @@ impl RevmEnvironment {
         evm.env.block.gas_limit = U256::MAX;
         evm.database(db);
         let transaction_channel = unbounded::<(TxEnv, Sender<ExecutionResult>)>();
-        let provider = Provider::new(MockProvider::new());
         Self {
             label,
             evm,
@@ -142,30 +147,24 @@ impl From<RevmEnvironmentError> for ethers::providers::ProviderError {
     }
 }
 
-// TODO: This request function has exposed that we need to be careful of how we store data of blocks.
-// I'm not sure exactly how we should do this. 
-// We can change the BlockEnv, but I don't know all the effects of this. 
-// If we want to get the historical balance of an account, we need to store the block number that the balance was at.
-// We could potentially save the state of the DB after each block.
-#[async_trait::async_trait]
-impl JsonRpcClient for RevmEnvironment {
-    type Error = RevmEnvironmentError;
-    async fn request<T, R>(&self, method: &str, params: T) -> Result<R, Self::Error>
-    where
-        T: std::fmt::Debug + Serialize + Send + Sync,
-        R: DeserializeOwned + Send,
-    {
-        // TODO: START WITH ETH_CALL!!!
-        match method {
-            "eth_getBalance" => {
-                let (address, _block_id) = params.serialize();
-                // let accounts = self.evm.db().unwrap().accounts;
-                // let account = accounts.get(&address).unwrap();
-                // let balance = account.balance;
-                let balance = ethers::types::U256::zero();
-                Ok(balance)
-            }
-        }
+// impl std::fmt::Display for RevmEnvironmentError {
+//     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+//         // Implement how you want to display the error
+//         // Example: write!(f, "RevmEnvironmentError: {}", self)
+//         // You can also use the `thiserror` derive to customize the formatting
+//         write!(f, "{}", self)
+//     }
+// }
+
+impl MiddlewareError for RevmEnvironmentError {
+    type Inner = Self;
+
+    fn from_err(e: Self::Inner) -> Self {
+        todo!()
+    }
+
+    fn as_inner(&self) -> Option<&Self::Inner> {
+        todo!()
     }
 }
 
@@ -189,31 +188,139 @@ impl EventBroadcaster {
     }
 }
 
+// TODO: This request function has exposed that we need to be careful of how we store data of blocks.
+// I'm not sure exactly how we should do this.
+// We can change the BlockEnv, but I don't know all the effects of this.
+// If we want to get the historical balance of an account, we need to store the block number that the balance was at.
+// We could potentially save the state of the DB after each block.
+#[async_trait::async_trait]
+impl JsonRpcClient for RevmEnvironment {
+    type Error = RevmEnvironmentError;
+    async fn request<T, R>(&self, method: &str, params: T) -> Result<R, Self::Error>
+    where
+        T: std::fmt::Debug + Serialize + Send + Sync,
+        R: DeserializeOwned + Send,
+    {
+        unreachable!("There is no need to make a raw serialized request here")
+    }
+}
+
+#[async_trait::async_trait]
+impl Middleware for RevmEnvironment {
+    type Error = RevmEnvironmentError;
+    type Provider = Self;
+    type Inner = Self;
+
+    fn inner(&self) -> &Self::Inner {
+        unreachable!("There is no inner provider here")
+    }
+
+    fn provider(&self) -> &Provider<Self::Provider> {
+        unreachable!("There is no inner provider here")
+    }
+
+    fn default_sender(&self) -> Option<Address> {
+        None
+    }
+
+    async fn fill_transaction(
+        &self,
+        tx: &mut TypedTransaction,
+        block: Option<BlockId>,
+    ) -> Result<(), Self::Error> {
+        // Use the Agent's address from an outer middleware and only execute here.
+
+        Ok(())
+    }
+
+    async fn get_block_number(&self) -> Result<U64, Self::Error> {
+        todo!()
+        // self.evm.env.block.number().map_err(|_| Self::Error)
+    }
+
+    async fn get_gas_price(&self) -> Result<ethers::types::U256, Self::Error> {
+        todo!()
+        // self.evm.env.gas_price().map_err(|_| Self::Error)
+    }
+
+    async fn get_accounts(&self) -> Result<Vec<Address>, Self::Error> {
+        todo!()
+        // self.evm.db().accounts
+    }
+
+    async fn get_balance<T: Into<NameOrAddress> + Send + Sync>(
+        &self,
+        from: T,
+        block: Option<BlockId>,
+    ) -> Result<ethers::types::U256, Self::Error> {
+        todo!()
+        // self.evm.db().accounts.get(&from.into()).map(|account| account.balance)
+    }
+
+    async fn call(
+        &self,
+        tx: &TypedTransaction,
+        block: Option<BlockId>,
+    ) -> Result<Bytes, Self::Error> {
+        todo!()
+        // self.evm.env.tx = tx;
+        // TODO: transact but don't commit with a call?
+    }
+
+    async fn send_transaction<T: Into<TypedTransaction> + Send + Sync>(
+        &self,
+        tx: T,
+        block: Option<BlockId>,
+    ) -> Result<PendingTransaction<'_, Self::Provider>, Self::Error> {
+        todo!()
+    }
+
+    async fn get_logs(&self, filter: &Filter) -> Result<Vec<ethers::types::Log>, Self::Error> {
+        todo!()
+    }
+
+    async fn watch<'a>(
+        &'a self,
+        filter: &Filter,
+    ) -> Result<FilterWatcher<'a, Self::Provider, ethers::types::Log>, Self::Error> {
+        todo!()
+    }
+
+    async fn watch_blocks(&self) -> Result<FilterWatcher<'_, Self::Provider, H256>, Self::Error> {
+        todo!()
+    }
+
+    async fn new_filter(&self, filter: FilterKind<'_>) -> Result<ethers::types::U256, Self::Error> {
+        todo!()
+    }
+
+    async fn uninstall_filter<T: Into<ethers::types::U256> + Send + Sync>(
+        &self,
+        id: T,
+    ) -> Result<bool, Self::Error> {
+        todo!()
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
     use ethers::providers::Middleware;
 
-    const ENVIRONMENT: RevmEnvironment = RevmEnvironment::new("test".to_string());
+    const TEST_LABEL: &str = "test";
 
     #[test]
     fn new() {
         let env = RevmEnvironment::new("test".to_string());
         assert_eq!(env.label, "test");
         assert_eq!(env.state, State::Stopped);
-        // assert_eq!(env.agents, vec![]);
-        // assert_eq!(env.deployed_contracts, HashMap::new());
     }
 
     #[test]
     fn run() {}
 
     #[tokio::test]
-    async fn request_get_balance() {
-        let environment = RevmEnvironment::new("test".to_string());
-        let revm_middleware = RevmMiddleware::new(environment);
-        let from = Address::zero();
-        let block = Some(BlockId::Number(1.into()));
-        let balance = revm_middleware.get_balance(from, block).await.unwrap();
+    async fn call() {
+        let environment = RevmEnvironment::new(TEST_LABEL.to_string());
     }
 }
