@@ -215,7 +215,7 @@ impl Middleware for RevmEnvironment {
     type Inner = Self;
 
     fn inner(&self) -> &Self::Inner {
-        unreachable!("There is no inner provider here")
+        self
     }
 
     fn provider(&self) -> &Provider<Self::Provider> {
@@ -223,7 +223,8 @@ impl Middleware for RevmEnvironment {
     }
 
     fn default_sender(&self) -> Option<Address> {
-        None
+        // TODO: We should implement a default sender here so that deploys, for example, can be done more easily.
+        Some(Address::from_low_u64_be(1))
     }
 
     async fn get_block_number(&self) -> Result<U64, Self::Error> {
