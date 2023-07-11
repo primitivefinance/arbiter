@@ -205,6 +205,9 @@ impl JsonRpcClient for RevmEnvironment {
     }
 }
 
+// TODO: At the moment we should use the `fill_transaction()` method for doing transactions.
+// However, it is not totally implemented and will require higher middleware stack for agents.
+// Also, we will need to figure out what to do with `ExecutionResult`s.
 #[async_trait::async_trait]
 impl Middleware for RevmEnvironment {
     type Error = RevmEnvironmentError;
@@ -223,16 +226,6 @@ impl Middleware for RevmEnvironment {
         None
     }
 
-    async fn fill_transaction(
-        &self,
-        tx: &mut TypedTransaction,
-        block: Option<BlockId>,
-    ) -> Result<(), Self::Error> {
-        // Use the Agent's address from an outer middleware and only execute here.
-
-        Ok(())
-    }
-
     async fn get_block_number(&self) -> Result<U64, Self::Error> {
         todo!()
         // self.evm.env.block.number().map_err(|_| Self::Error)
@@ -241,11 +234,6 @@ impl Middleware for RevmEnvironment {
     async fn get_gas_price(&self) -> Result<ethers::types::U256, Self::Error> {
         todo!()
         // self.evm.env.gas_price().map_err(|_| Self::Error)
-    }
-
-    async fn get_accounts(&self) -> Result<Vec<Address>, Self::Error> {
-        todo!()
-        // self.evm.db().accounts
     }
 
     async fn get_balance<T: Into<NameOrAddress> + Send + Sync>(
@@ -257,22 +245,15 @@ impl Middleware for RevmEnvironment {
         // self.evm.db().accounts.get(&from.into()).map(|account| account.balance)
     }
 
-    async fn call(
+    async fn fill_transaction(
         &self,
-        tx: &TypedTransaction,
+        tx: &mut TypedTransaction,
         block: Option<BlockId>,
-    ) -> Result<Bytes, Self::Error> {
-        todo!()
-        // self.evm.env.tx = tx;
-        // TODO: transact but don't commit with a call?
-    }
-
-    async fn send_transaction<T: Into<TypedTransaction> + Send + Sync>(
-        &self,
-        tx: T,
-        block: Option<BlockId>,
-    ) -> Result<PendingTransaction<'_, Self::Provider>, Self::Error> {
-        todo!()
+    ) -> Result<(), Self::Error> {
+        let tx_sender = &self.transaction_channel.0;
+        let tx_env = TxEnv::default();
+        tx_sender.send((tx_env, crossbeam_channel::unbounded().0)).unwrap();
+        Ok(())
     }
 
     async fn get_logs(&self, filter: &Filter) -> Result<Vec<ethers::types::Log>, Self::Error> {
@@ -305,22 +286,30 @@ impl Middleware for RevmEnvironment {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use ethers::providers::Middleware;
+    use crate::bindings::writer::Writer;
+    use anyhow::Result;
 
     const TEST_LABEL: &str = "test";
 
     #[test]
     fn new() {
-        let env = RevmEnvironment::new("test".to_string());
-        assert_eq!(env.label, "test");
+        let env = RevmEnvironment::new(TEST_LABEL.to_string());
+        assert_eq!(env.label, TEST_LABEL);
         assert_eq!(env.state, State::Stopped);
     }
 
     #[test]
-    fn run() {}
+    fn run() {
+        let mut environment = RevmEnvironment::new(TEST_LABEL.to_string());
+        environment.run();
+        assert_eq!(environment.state, State::Running);
+    }
 
     #[tokio::test]
-    async fn call() {
-        let environment = RevmEnvironment::new(TEST_LABEL.to_string());
+    async fn deploy_transaction() -> Result<()> {
+        let environment = Arc::new(RevmEnvironment::new(TEST_LABEL.to_string()));
+        let writer = Writer::deploy(environment, ())?.send().await;
+        println!("{:#?}", writer);
+        Ok(())
     }
 }
