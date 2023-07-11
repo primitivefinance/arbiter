@@ -1,6 +1,6 @@
 use std::{collections::HashMap, error::Error};
 
-use bindings::rmm01_portfolio;
+use bindings::{i_portfolio::SwapReturn, rmm01_portfolio};
 use ethers::{
     abi::Tokenize,
     prelude::U256,
@@ -88,18 +88,17 @@ pub(crate) fn compute_trade_size(
     // CDF input
     let cdf_input = scaled_log + I256::from_raw(additional_term);
     // compute the CDF
-    let execution_result = admin.call(arbiter_math, "cdf", cdf_input.into_tokens())?;
+    let cdf_return = admin.call(arbiter_math, "cdf", cdf_input.into_tokens())?;
 
-    let unpacked_result = unpack_execution(execution_result)?;
-    let cdf_output: I256 = arbiter_math.decode_output("cdf", unpacked_result)?;
-    let cdf = cdf_output * I256::from(delta_liquidity) / I256::from_raw(wad);
-    let cdf = cdf * I256::from_raw(wad) / I256::from_raw(gamma);
-    // call the reserve values
+    let cdf_output: I256 = arbiter_math.decode_output("cdf", unpack_execution(cdf_return)?)?;
+    let cdf = cdf_output * I256::from(delta_liquidity) / I256::from_raw(wad)
+        * I256::from_raw(gamma)
+        / I256::from_raw(wad);
 
     let reserves = admin.call(portfolio, "getVirtualReservesDec", pool_id.into_tokens())?;
-    let reserves = unpack_execution(reserves)?;
+    let reserves: (u128, u128) =
+        portfolio.decode_output("getVirtualReservesDec", unpack_execution(reserves)?)?;
 
-    let reserves: (u128, u128) = portfolio.decode_output("getVirtualReservesDec", reserves)?;
     let scaled_x_reserve = U256::from(reserves.0) * wad / gamma;
     let a = I256::from(delta_liquidity) * I256::from_raw(wad) / I256::from_raw(gamma)
         - cdf
@@ -113,6 +112,7 @@ pub(crate) fn compute_trade_size(
     // compute logarithm
     let log_call = admin.call(arbiter_math, "log", log_input.into_tokens())?;
     let log: I256 = arbiter_math.decode_output("log", unpack_execution(log_call)?)?;
+
     let sign = log.sign();
     let unsigned_log = match sign {
         Sign::Positive => log.into_raw(),
@@ -128,52 +128,9 @@ pub(crate) fn compute_trade_size(
     let ppf_output = cdf_input;
     let cdf_input = ppf_output - I256::from_raw(iv);
     // compute the CDF
-    let execution_result = admin.call(arbiter_math, "cdf", cdf_input.into_tokens())?;
+    let cdf_result = admin.call(arbiter_math, "cdf", cdf_input.into_tokens())?;
 
-    let pool = admin.call(portfolio, "pools", pool_id.into_tokens())?;
-    assert!(pool.is_success());
-    let pools_return: PoolsReturn = portfolio.decode_output("pools", unpack_execution(pool)?)?;
-
-    let liquidity = pools_return.liquidity;
-    let reserve_x = pools_return.virtual_x;
-    let reserve_y = pools_return.virtual_y;
-
-    let max_input_x = admin.call(
-        portfolio,
-        "computeMaxInput",
-        (
-            pool_id,
-            true,
-            U256::from(reserve_x) * wad / liquidity,
-            liquidity,
-        )
-            .into_tokens(),
-    )?;
-    assert!(max_input_x.is_success());
-
-    let max_input_y = admin.call(
-        portfolio,
-        "computeMaxInput",
-        (
-            pool_id,
-            false,
-            U256::from(reserve_y) * wad / liquidity,
-            liquidity,
-        )
-            .into_tokens(),
-    )?;
-    assert!(max_input_y.is_success());
-
-    let decoded_max_input_x: U256 =
-        portfolio.decode_output("computeMaxInput", unpack_execution(max_input_x)?)?;
-    let decoded_max_input_y: U256 =
-        portfolio.decode_output("computeMaxInput", unpack_execution(max_input_y)?)?;
-
-    println!("max_input_x: {:?}", decoded_max_input_x);
-    println!("max_input_y: {:?}", decoded_max_input_y);
-
-    let unpacked_result = unpack_execution(execution_result)?;
-    let cdf_output: I256 = arbiter_math.decode_output("cdf", unpacked_result)?;
+    let cdf_output: I256 = arbiter_math.decode_output("cdf", unpack_execution(cdf_result)?)?;
     // scale the CDF
     let scaled_cdf = cdf_output.into_raw() * strike / wad;
     // scale by shares
@@ -195,6 +152,47 @@ pub(crate) fn compute_trade_size(
         - I256::from(reserves.1) * I256::from_raw(wad) / I256::from_raw(gamma);
     let arb_amount_y = b.max(I256::from(0));
     // bool for which asset is being sold.
+    let pool = admin.call(portfolio, "pools", pool_id.into_tokens())?;
+    assert!(pool.is_success());
+
+    let pools_return: PoolsReturn = portfolio.decode_output("pools", unpack_execution(pool)?)?;
+
+    let liquidity = pools_return.liquidity;
+    let reserve_x = pools_return.virtual_x;
+    let reserve_y = pools_return.virtual_y;
+
+    let max_input_x = admin.call(
+        portfolio,
+        "computeMaxInput",
+        (
+            pool_id,
+            true,
+            U256::from(reserve_x) * wad / liquidity,
+            liquidity,
+        )
+            .into_tokens(),
+    )?;
+
+    let max_input_y = admin.call(
+        portfolio,
+        "computeMaxInput",
+        (
+            pool_id,
+            false,
+            U256::from(reserve_y) * wad / liquidity,
+            liquidity,
+        )
+            .into_tokens(),
+    )?;
+
+    let decoded_max_input_x: U256 =
+        portfolio.decode_output("computeMaxInput", unpack_execution(max_input_x)?)?;
+    let decoded_max_input_y: U256 =
+        portfolio.decode_output("computeMaxInput", unpack_execution(max_input_y)?)?;
+
+    println!("max_input_x: {:?}", decoded_max_input_x);
+    println!("max_input_y: {:?}", decoded_max_input_y);
+
     let fn_output = if arb_amount_x > I256::from(0) {
         let sell_asset = true;
         let input = arb_amount_x.into_raw();
@@ -239,7 +237,6 @@ where
     // This fails with "Error Here"
     println!("Error Here");
     let get_amount_out_result = arbitrageur.call(portfolio, "getAmountOut", get_amount_out_args)?;
-    println!("wut");
     let mut amount_out: u128 = 1;
     if !get_amount_out_result.is_success() {
         println!("get_amount_out_result: {:?}", get_amount_out_result);
@@ -275,13 +272,16 @@ where
     };
     let swap_args = (order,);
     println!("Before Swap");
-    let swap_result = arbitrageur.call(portfolio, "swap", swap_args.into_tokens())?;
+    let swap_return = arbitrageur.call(portfolio, "swap", swap_args.into_tokens())?;
     println!("After Swap");
 
-    match unpack_execution(swap_result) {
+    match unpack_execution(swap_return) {
         Ok(unpacked) => {
-            let swap_result: (u64, U256, U256) = portfolio.decode_output("swap", unpacked)?;
-            println!("Swap result is {:#?}", swap_result);
+            let swap_return: SwapReturn = portfolio.decode_output("swap", unpacked)?;
+            println!(
+                "Swap return: poolId {}, input {}, output {}",
+                swap_return.pool_id, swap_return.input, swap_return.output
+            );
         }
         Err(e) => {
             // This `InvalidInvariant` can pop up in multiple ways. Best to check for this.

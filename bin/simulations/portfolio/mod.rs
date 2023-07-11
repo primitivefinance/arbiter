@@ -57,13 +57,13 @@ pub async fn run(output_storage: OutputStorage) -> Result<(), Box<dyn Error>> {
     let pool_args = PoolParams::new(
         1_u16,
         1_u16,
-        5_u16,
+        10_u16,
         65535_u16,
         1_000_000_000_000_000_000u128,
         1_000_000_000_000_000_000u128,
     );
     // Define liquidity arguments
-    let delta_liquidity = 10_i128.pow(19);
+    let delta_liquidity = 10_i128.pow(20);
     // Run the startup script
     let (_pool_data, pool_id) = startup::run(&mut manager, pool_args.clone(), delta_liquidity)?;
 
@@ -83,9 +83,8 @@ pub async fn run(output_storage: OutputStorage) -> Result<(), Box<dyn Error>> {
 
     let mut liq_price_path: Vec<U256> = Vec::new();
     let liquid_exchange_xy_price = arbitrageur.call(liquid_exchange, "price", vec![])?;
-    let liquid_exchange_xy_price = unpack_execution(liquid_exchange_xy_price)?;
     let liquid_exchange_xy_price: U256 =
-        liquid_exchange.decode_output("price", liquid_exchange_xy_price)?;
+        liquid_exchange.decode_output("price", unpack_execution(liquid_exchange_xy_price)?)?;
     liq_price_path.push(liquid_exchange_xy_price);
 
     // get price from portfolio
@@ -123,7 +122,8 @@ pub async fn run(output_storage: OutputStorage) -> Result<(), Box<dyn Error>> {
 
     println!("Initial prices for Arbitrageur: {:#?}", arbitrageur.prices);
 
-    let _ = arbitrageur.detect_price_change().await;
+    // toggle arb on
+    arbitrageur.detect_price_change().await?;
 
     // Get prices
     let ou = OU::new(0.01, 10.0, 1.0);
@@ -131,7 +131,7 @@ pub async fn run(output_storage: OutputStorage) -> Result<(), Box<dyn Error>> {
         PriceProcessType::OU(ou),
         0.01,
         "trade".to_string(),
-        1,
+        2000,
         1.0,
         1,
     );
@@ -142,15 +142,13 @@ pub async fn run(output_storage: OutputStorage) -> Result<(), Box<dyn Error>> {
     update_price(manager.agents.get("admin").unwrap(), liquid_exchange, price)?;
     let mut index: usize = 1;
     while let Ok((next_tx, _sell_asset)) = arbitrageur.detect_price_change().await {
-        println!("Entered Main's `while let` with index: {}", index);
-        println!("Next Tx: {:?}", next_tx);
+        println!("Iteration: {}", index);
         if index >= prices.len() {
             // end of price path
             manager.shutdown();
             break;
         }
         let price = prices[index];
-        println!("Price: {}", price);
         // let wad_price = simulate::utils::float_to_wad(price);
         assert!(price > 0.0);
         let ratio = U256::from((price * 1_000_000_000_000_000_000.0_f64).round() as i128);
@@ -197,9 +195,8 @@ pub async fn run(output_storage: OutputStorage) -> Result<(), Box<dyn Error>> {
 
                 let liquid_exchange_xy_price =
                     arbitrageur.call(liquid_exchange, "price", vec![])?;
-                let liquid_exchange_xy_price = unpack_execution(liquid_exchange_xy_price)?;
-                let liquid_exchange_xy_price: U256 =
-                    liquid_exchange.decode_output("price", liquid_exchange_xy_price)?;
+                let liquid_exchange_xy_price: U256 = liquid_exchange
+                    .decode_output("price", unpack_execution(liquid_exchange_xy_price)?)?;
                 liq_price_path.push(liquid_exchange_xy_price);
 
                 index += 1;
@@ -227,15 +224,13 @@ pub async fn run(output_storage: OutputStorage) -> Result<(), Box<dyn Error>> {
 
                 let liquid_exchange_xy_price =
                     arbitrageur.call(liquid_exchange, "price", vec![])?;
-                let liquid_exchange_xy_price = unpack_execution(liquid_exchange_xy_price)?;
-                let liquid_exchange_xy_price: U256 =
-                    liquid_exchange.decode_output("price", liquid_exchange_xy_price)?;
+                let liquid_exchange_xy_price: U256 = liquid_exchange
+                    .decode_output("price", unpack_execution(liquid_exchange_xy_price)?)?;
                 liq_price_path.push(liquid_exchange_xy_price);
                 index += 1;
                 continue;
             }
             NextTx::None => {
-                println!("Can't update prices\n");
                 continue;
             }
         }
@@ -269,8 +264,7 @@ fn update_price(
     println!("Price from price path: {}\n", price);
     let wad_price = simulate::utils::float_to_wad(price);
     // println!("WAD price: {}", wad_price);
-    let update = admin.call(liquid_exchange, "setPrice", wad_price.into_tokens())?;
-    println!("Update: {:#?}", update);
+    admin.call(liquid_exchange, "setPrice", wad_price.into_tokens())?;
 
     Ok(())
 }
