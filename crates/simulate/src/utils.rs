@@ -81,7 +81,14 @@ pub fn unpack_execution(execution_result: ExecutionResult) -> Result<Bytes, Unpa
                 "This call reverted with output {:#?} and used {} gas.",
                 output, gas_used
             ),
-            output: Some(output),
+            output: Some(
+                output
+                    .iter()
+                    .map(|b| format!("{:02x}", b))
+                    .collect::<Vec<String>>()
+                    .join("")
+                    .into(),
+            ),
         }),
     }
 }

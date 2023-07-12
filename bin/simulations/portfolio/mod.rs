@@ -142,7 +142,6 @@ pub async fn run(output_storage: OutputStorage) -> Result<(), Box<dyn Error>> {
     update_price(manager.agents.get("admin").unwrap(), liquid_exchange, price)?;
     let mut index: usize = 1;
     while let Ok((next_tx, _sell_asset)) = arbitrageur.detect_price_change().await {
-        println!("Iteration: {}", index);
         if index >= prices.len() {
             // end of price path
             manager.shutdown();

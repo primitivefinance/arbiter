@@ -145,6 +145,11 @@ pub(crate) fn compute_trade_size(
         "invariant",
         (y_reserve, x_reserve, strike, iv, tau).into_tokens(),
     )?;
+    println!(
+        "y: {} x: {} strike: {} iv: {} tau: {}",
+        y_reserve, x_reserve, strike, iv, tau
+    );
+    println!("execution result: {:?}", execution_result);
     let unpacked_result = unpack_execution(execution_result)?;
     let invariant: U256 = arbiter_math.decode_output("invariant", unpacked_result)?;
     let b = cdf * I256::from_raw(wad) / I256::from_raw(gamma)
