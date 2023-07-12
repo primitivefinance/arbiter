@@ -122,9 +122,6 @@ pub async fn run(output_storage: OutputStorage) -> Result<(), Box<dyn Error>> {
 
     println!("Initial prices for Arbitrageur: {:#?}", arbitrageur.prices);
 
-    // toggle arb on
-    arbitrageur.detect_price_change().await?;
-
     // Get prices
     let ou = OU::new(0.01, 10.0, 1.0);
     let price_process = PriceProcess::new(
