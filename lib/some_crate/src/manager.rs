@@ -5,13 +5,13 @@
 
 use std::collections::HashMap;
 
-use crate::environment::{RevmEnvironment, State};
+use crate::environment::{Environment, State};
 use anyhow::{anyhow, Result};
 
 /// Manages simulations.
 pub struct SimulationManager {
     /// The list of [`SimulationEnvironment`] that the simulation manager controls.
-    pub environments: HashMap<String, RevmEnvironment>,
+    pub environments: HashMap<String, Environment>,
 }
 
 impl SimulationManager {
@@ -29,7 +29,7 @@ impl SimulationManager {
         }
         self.environments.insert(
             environment_label.clone(),
-            RevmEnvironment::new(environment_label),
+            Environment::new(environment_label),
         );
         Ok(())
     }
@@ -48,7 +48,10 @@ impl SimulationManager {
 
 #[cfg(test)]
 mod tests {
+    use ethers::types::Address;
+
     use super::*;
+    use crate::bindings::writer::Writer;
 
     #[test]
     fn new_manager() {
