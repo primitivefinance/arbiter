@@ -3,7 +3,7 @@
 forge clean
 
 forge install https://github.com/Uniswap/v3-core --no-commit
-forge install https://github.com/primitivefinance/portfolio@e7b947b7e2c1da6d7ee6dc6d76b25638babfa6e5 --no-commit
+forge install https://github.com/primitivefinance/portfolio@dfacbc69492ae16974f1ddb5ddba6b6feb4adc1e --no-commit
 forge install https://github.com/gnosis/canonical-weth --no-commit
 forge install https://github.com/Uniswap/v2-core --no-commit
 forge install https://github.com/Uniswap/v2-periphery --no-commit

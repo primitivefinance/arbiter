@@ -146,9 +146,7 @@ pub async fn run(output_storage: OutputStorage) -> Result<(), Box<dyn Error>> {
         }
         let price = prices[index];
         // let wad_price = simulate::utils::float_to_wad(price);
-        assert!(price > 0.0);
         let ratio = U256::from((price * 1_000_000_000_000_000_000.0_f64).round() as i128);
-
         match next_tx {
             NextTx::Swap => {
                 let size = compute_trade_size(

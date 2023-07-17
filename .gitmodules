@@ -31,4 +31,4 @@
 [submodule "contracts/portfolio"]
 	path = contracts/portfolio
 	url = https://github.com/primitivefinance/portfolio
-	branch = feat/v1.3.1-beta
+	branch = feat/v1.4.0-beta

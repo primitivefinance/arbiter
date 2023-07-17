@@ -139,6 +139,7 @@ pub(crate) fn compute_trade_size(
     // unscale reserves by shares
     let x_reserve = U256::from(reserves.0) * wad / U256::from(delta_liquidity);
     let y_reserve = U256::from(reserves.1) * wad / U256::from(delta_liquidity);
+    println!("x_reserve: {} y_reserve: {}", x_reserve, y_reserve);
     // call invariant
     let execution_result = admin.call(
         arbiter_math,
@@ -162,9 +163,12 @@ pub(crate) fn compute_trade_size(
 
     let pools_return: PoolsReturn = portfolio.decode_output("pools", unpack_execution(pool)?)?;
 
-    let liquidity = pools_return.liquidity;
-    let reserve_x = pools_return.virtual_x;
-    let reserve_y = pools_return.virtual_y;
+    let (liquidity, reserve_x, reserve_y) = (
+        pools_return.liquidity,
+        pools_return.virtual_x,
+        pools_return.virtual_y,
+    );
+    println!("virtual reserves: {} {}", reserve_x, reserve_y);
 
     let max_input_x = admin.call(
         portfolio,
@@ -237,10 +241,7 @@ where
         recast_address(arbitrageur.address()), // swapper: ::ethers::core::types::Address,
     )
         .into_tokens();
-    println!("get_amount_out_args: {:?}", get_amount_out_args);
 
-    // This fails with "Error Here"
-    println!("Error Here");
     let get_amount_out_result = arbitrageur.call(portfolio, "getAmountOut", get_amount_out_args)?;
     let mut amount_out: u128 = 1;
     if !get_amount_out_result.is_success() {
@@ -276,6 +277,18 @@ where
         sell_asset,
     };
     let swap_args = (order,);
+    let pool = arbitrageur.call(portfolio, "pools", pool_id.into_tokens())?;
+    let new_pool_state: PoolsReturn = portfolio.decode_output("pools", unpack_execution(pool)?)?;
+    let (liquidity, reserve_x, reserve_y) = (
+        new_pool_state.liquidity,
+        new_pool_state.virtual_x,
+        new_pool_state.virtual_y,
+    );
+
+    println!(
+        "virtual reserves: r_x {} r_y {} liquidity {}",
+        reserve_x, reserve_y, liquidity
+    );
     println!("Before Swap");
     let swap_return = arbitrageur.call(portfolio, "swap", swap_args.into_tokens())?;
     println!("After Swap");
@@ -296,6 +309,19 @@ where
             println!("The result of `InvalidInvariant` is: {:#?}", decoded_result)
         }
     };
+    let pool = arbitrageur.call(portfolio, "pools", pool_id.into_tokens())?;
+    let new_pool_state: PoolsReturn = portfolio.decode_output("pools", unpack_execution(pool)?)?;
+    let (liquidity, reserve_x, reserve_y) = (
+        new_pool_state.liquidity,
+        new_pool_state.virtual_x,
+        new_pool_state.virtual_y,
+    );
+
+    println!(
+        "virtual reserves: r_x {} r_y {} liquidity {}",
+        reserve_x, reserve_y, liquidity
+    );
+
     Ok(())
 }
 
