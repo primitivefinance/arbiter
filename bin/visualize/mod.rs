@@ -94,7 +94,7 @@ pub fn plot_price_data(configuration_file_path: &str) -> Result<(), Box<dyn Erro
         show: true,
     };
 
-    transparent_plot(Some(curves), None, axes, title, display);
+    transparent_plot(Some(curves), None, axes, title, display, None);
 
     Ok(())
 }
