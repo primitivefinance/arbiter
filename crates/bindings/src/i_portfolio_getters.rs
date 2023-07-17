@@ -130,6 +130,34 @@ pub mod i_portfolio_getters {
                     ],
                 ),
                 (
+                    ::std::borrow::ToOwned::to_owned("getInvariant"),
+                    ::std::vec![
+                        ::ethers::core::abi::ethabi::Function {
+                            name: ::std::borrow::ToOwned::to_owned("getInvariant"),
+                            inputs: ::std::vec![
+                                ::ethers::core::abi::ethabi::Param {
+                                    name: ::std::borrow::ToOwned::to_owned("poolId"),
+                                    kind: ::ethers::core::abi::ethabi::ParamType::Uint(64usize),
+                                    internal_type: ::core::option::Option::Some(
+                                        ::std::borrow::ToOwned::to_owned("uint64"),
+                                    ),
+                                },
+                            ],
+                            outputs: ::std::vec![
+                                ::ethers::core::abi::ethabi::Param {
+                                    name: ::std::string::String::new(),
+                                    kind: ::ethers::core::abi::ethabi::ParamType::Int(256usize),
+                                    internal_type: ::core::option::Option::Some(
+                                        ::std::borrow::ToOwned::to_owned("int256"),
+                                    ),
+                                },
+                            ],
+                            constant: ::core::option::Option::None,
+                            state_mutability: ::ethers::core::abi::ethabi::StateMutability::View,
+                        },
+                    ],
+                ),
+                (
                     ::std::borrow::ToOwned::to_owned("getLiquidityDeltas"),
                     ::std::vec![
                         ::ethers::core::abi::ethabi::Function {
@@ -215,6 +243,56 @@ pub mod i_portfolio_getters {
                                     ),
                                     internal_type: ::core::option::Option::Some(
                                         ::std::borrow::ToOwned::to_owned("uint128"),
+                                    ),
+                                },
+                            ],
+                            constant: ::core::option::Option::None,
+                            state_mutability: ::ethers::core::abi::ethabi::StateMutability::View,
+                        },
+                    ],
+                ),
+                (
+                    ::std::borrow::ToOwned::to_owned("getMaxOrder"),
+                    ::std::vec![
+                        ::ethers::core::abi::ethabi::Function {
+                            name: ::std::borrow::ToOwned::to_owned("getMaxOrder"),
+                            inputs: ::std::vec![
+                                ::ethers::core::abi::ethabi::Param {
+                                    name: ::std::borrow::ToOwned::to_owned("poolId"),
+                                    kind: ::ethers::core::abi::ethabi::ParamType::Uint(64usize),
+                                    internal_type: ::core::option::Option::Some(
+                                        ::std::borrow::ToOwned::to_owned("uint64"),
+                                    ),
+                                },
+                                ::ethers::core::abi::ethabi::Param {
+                                    name: ::std::borrow::ToOwned::to_owned("sellAsset"),
+                                    kind: ::ethers::core::abi::ethabi::ParamType::Bool,
+                                    internal_type: ::core::option::Option::Some(
+                                        ::std::borrow::ToOwned::to_owned("bool"),
+                                    ),
+                                },
+                                ::ethers::core::abi::ethabi::Param {
+                                    name: ::std::borrow::ToOwned::to_owned("swapper"),
+                                    kind: ::ethers::core::abi::ethabi::ParamType::Address,
+                                    internal_type: ::core::option::Option::Some(
+                                        ::std::borrow::ToOwned::to_owned("address"),
+                                    ),
+                                },
+                            ],
+                            outputs: ::std::vec![
+                                ::ethers::core::abi::ethabi::Param {
+                                    name: ::std::string::String::new(),
+                                    kind: ::ethers::core::abi::ethabi::ParamType::Tuple(
+                                        ::std::vec![
+                                            ::ethers::core::abi::ethabi::ParamType::Uint(128usize),
+                                            ::ethers::core::abi::ethabi::ParamType::Uint(128usize),
+                                            ::ethers::core::abi::ethabi::ParamType::Bool,
+                                            ::ethers::core::abi::ethabi::ParamType::Uint(64usize),
+                                            ::ethers::core::abi::ethabi::ParamType::Bool,
+                                        ],
+                                    ),
+                                    internal_type: ::core::option::Option::Some(
+                                        ::std::borrow::ToOwned::to_owned("struct Order"),
                                     ),
                                 },
                             ],
@@ -434,12 +512,10 @@ pub mod i_portfolio_getters {
                     ],
                 ),
                 (
-                    ::std::borrow::ToOwned::to_owned("getVirtualReservesDec"),
+                    ::std::borrow::ToOwned::to_owned("getStrategy"),
                     ::std::vec![
                         ::ethers::core::abi::ethabi::Function {
-                            name: ::std::borrow::ToOwned::to_owned(
-                                "getVirtualReservesDec",
-                            ),
+                            name: ::std::borrow::ToOwned::to_owned("getStrategy"),
                             inputs: ::std::vec![
                                 ::ethers::core::abi::ethabi::Param {
                                     name: ::std::borrow::ToOwned::to_owned("poolId"),
@@ -451,21 +527,10 @@ pub mod i_portfolio_getters {
                             ],
                             outputs: ::std::vec![
                                 ::ethers::core::abi::ethabi::Param {
-                                    name: ::std::borrow::ToOwned::to_owned("deltaAsset"),
-                                    kind: ::ethers::core::abi::ethabi::ParamType::Uint(
-                                        128usize,
-                                    ),
+                                    name: ::std::string::String::new(),
+                                    kind: ::ethers::core::abi::ethabi::ParamType::Address,
                                     internal_type: ::core::option::Option::Some(
-                                        ::std::borrow::ToOwned::to_owned("uint128"),
-                                    ),
-                                },
-                                ::ethers::core::abi::ethabi::Param {
-                                    name: ::std::borrow::ToOwned::to_owned("deltaQuote"),
-                                    kind: ::ethers::core::abi::ethabi::ParamType::Uint(
-                                        128usize,
-                                    ),
-                                    internal_type: ::core::option::Option::Some(
-                                        ::std::borrow::ToOwned::to_owned("uint128"),
+                                        ::std::borrow::ToOwned::to_owned("contract IStrategy"),
                                     ),
                                 },
                             ],
@@ -573,40 +638,26 @@ pub mod i_portfolio_getters {
                                     ),
                                 },
                                 ::ethers::core::abi::ethabi::Param {
+                                    name: ::std::borrow::ToOwned::to_owned("feeBasisPoints"),
+                                    kind: ::ethers::core::abi::ethabi::ParamType::Uint(16usize),
+                                    internal_type: ::core::option::Option::Some(
+                                        ::std::borrow::ToOwned::to_owned("uint16"),
+                                    ),
+                                },
+                                ::ethers::core::abi::ethabi::Param {
+                                    name: ::std::borrow::ToOwned::to_owned(
+                                        "priorityFeeBasisPoints",
+                                    ),
+                                    kind: ::ethers::core::abi::ethabi::ParamType::Uint(16usize),
+                                    internal_type: ::core::option::Option::Some(
+                                        ::std::borrow::ToOwned::to_owned("uint16"),
+                                    ),
+                                },
+                                ::ethers::core::abi::ethabi::Param {
                                     name: ::std::borrow::ToOwned::to_owned("controller"),
                                     kind: ::ethers::core::abi::ethabi::ParamType::Address,
                                     internal_type: ::core::option::Option::Some(
                                         ::std::borrow::ToOwned::to_owned("address"),
-                                    ),
-                                },
-                                ::ethers::core::abi::ethabi::Param {
-                                    name: ::std::string::String::new(),
-                                    kind: ::ethers::core::abi::ethabi::ParamType::Tuple(
-                                        ::std::vec![
-                                            ::ethers::core::abi::ethabi::ParamType::Uint(128usize),
-                                            ::ethers::core::abi::ethabi::ParamType::Uint(16usize),
-                                            ::ethers::core::abi::ethabi::ParamType::Uint(16usize),
-                                            ::ethers::core::abi::ethabi::ParamType::Uint(16usize),
-                                            ::ethers::core::abi::ethabi::ParamType::Uint(16usize),
-                                            ::ethers::core::abi::ethabi::ParamType::Uint(32usize),
-                                        ],
-                                    ),
-                                    internal_type: ::core::option::Option::Some(
-                                        ::std::borrow::ToOwned::to_owned("struct PortfolioCurve"),
-                                    ),
-                                },
-                                ::ethers::core::abi::ethabi::Param {
-                                    name: ::std::string::String::new(),
-                                    kind: ::ethers::core::abi::ethabi::ParamType::Tuple(
-                                        ::std::vec![
-                                            ::ethers::core::abi::ethabi::ParamType::Address,
-                                            ::ethers::core::abi::ethabi::ParamType::Uint(8usize),
-                                            ::ethers::core::abi::ethabi::ParamType::Address,
-                                            ::ethers::core::abi::ethabi::ParamType::Uint(8usize),
-                                        ],
-                                    ),
-                                    internal_type: ::core::option::Option::Some(
-                                        ::std::borrow::ToOwned::to_owned("struct PortfolioPair"),
                                     ),
                                 },
                             ],
@@ -696,6 +747,72 @@ pub mod i_portfolio_getters {
                                     ),
                                     internal_type: ::core::option::Option::Some(
                                         ::std::borrow::ToOwned::to_owned("uint256"),
+                                    ),
+                                },
+                            ],
+                            constant: ::core::option::Option::None,
+                            state_mutability: ::ethers::core::abi::ethabi::StateMutability::View,
+                        },
+                    ],
+                ),
+                (
+                    ::std::borrow::ToOwned::to_owned("simulateSwap"),
+                    ::std::vec![
+                        ::ethers::core::abi::ethabi::Function {
+                            name: ::std::borrow::ToOwned::to_owned("simulateSwap"),
+                            inputs: ::std::vec![
+                                ::ethers::core::abi::ethabi::Param {
+                                    name: ::std::borrow::ToOwned::to_owned("args"),
+                                    kind: ::ethers::core::abi::ethabi::ParamType::Tuple(
+                                        ::std::vec![
+                                            ::ethers::core::abi::ethabi::ParamType::Uint(128usize),
+                                            ::ethers::core::abi::ethabi::ParamType::Uint(128usize),
+                                            ::ethers::core::abi::ethabi::ParamType::Bool,
+                                            ::ethers::core::abi::ethabi::ParamType::Uint(64usize),
+                                            ::ethers::core::abi::ethabi::ParamType::Bool,
+                                        ],
+                                    ),
+                                    internal_type: ::core::option::Option::Some(
+                                        ::std::borrow::ToOwned::to_owned("struct Order"),
+                                    ),
+                                },
+                                ::ethers::core::abi::ethabi::Param {
+                                    name: ::std::borrow::ToOwned::to_owned("timestamp"),
+                                    kind: ::ethers::core::abi::ethabi::ParamType::Uint(
+                                        256usize,
+                                    ),
+                                    internal_type: ::core::option::Option::Some(
+                                        ::std::borrow::ToOwned::to_owned("uint256"),
+                                    ),
+                                },
+                                ::ethers::core::abi::ethabi::Param {
+                                    name: ::std::borrow::ToOwned::to_owned("swapper"),
+                                    kind: ::ethers::core::abi::ethabi::ParamType::Address,
+                                    internal_type: ::core::option::Option::Some(
+                                        ::std::borrow::ToOwned::to_owned("address"),
+                                    ),
+                                },
+                            ],
+                            outputs: ::std::vec![
+                                ::ethers::core::abi::ethabi::Param {
+                                    name: ::std::borrow::ToOwned::to_owned("success"),
+                                    kind: ::ethers::core::abi::ethabi::ParamType::Bool,
+                                    internal_type: ::core::option::Option::Some(
+                                        ::std::borrow::ToOwned::to_owned("bool"),
+                                    ),
+                                },
+                                ::ethers::core::abi::ethabi::Param {
+                                    name: ::std::borrow::ToOwned::to_owned("prevInvariant"),
+                                    kind: ::ethers::core::abi::ethabi::ParamType::Int(256usize),
+                                    internal_type: ::core::option::Option::Some(
+                                        ::std::borrow::ToOwned::to_owned("int256"),
+                                    ),
+                                },
+                                ::ethers::core::abi::ethabi::Param {
+                                    name: ::std::borrow::ToOwned::to_owned("postInvariant"),
+                                    kind: ::ethers::core::abi::ethabi::ParamType::Int(256usize),
+                                    internal_type: ::core::option::Option::Some(
+                                        ::std::borrow::ToOwned::to_owned("int256"),
                                     ),
                                 },
                             ],
@@ -796,6 +913,15 @@ pub mod i_portfolio_getters {
                 .method_hash([25, 5, 120, 7], (pool_id, sell_asset, amount_in, swapper))
                 .expect("method not found (this should never happen)")
         }
+        ///Calls the contract's `getInvariant` (0x39434d5a) function
+        pub fn get_invariant(
+            &self,
+            pool_id: u64,
+        ) -> ::ethers::contract::builders::ContractCall<M, ::ethers::core::types::I256> {
+            self.0
+                .method_hash([57, 67, 77, 90], pool_id)
+                .expect("method not found (this should never happen)")
+        }
         ///Calls the contract's `getLiquidityDeltas` (0x8992f20a) function
         pub fn get_liquidity_deltas(
             &self,
@@ -815,6 +941,17 @@ pub mod i_portfolio_getters {
         ) -> ::ethers::contract::builders::ContractCall<M, u128> {
             self.0
                 .method_hash([214, 183, 222, 197], (pool_id, delta_asset, delta_quote))
+                .expect("method not found (this should never happen)")
+        }
+        ///Calls the contract's `getMaxOrder` (0xf07b879e) function
+        pub fn get_max_order(
+            &self,
+            pool_id: u64,
+            sell_asset: bool,
+            swapper: ::ethers::core::types::Address,
+        ) -> ::ethers::contract::builders::ContractCall<M, Order> {
+            self.0
+                .method_hash([240, 123, 135, 158], (pool_id, sell_asset, swapper))
                 .expect("method not found (this should never happen)")
         }
         ///Calls the contract's `getNetBalance` (0x4dc68a90) function
@@ -883,13 +1020,16 @@ pub mod i_portfolio_getters {
                 .method_hash([227, 49, 186, 52], pool_id)
                 .expect("method not found (this should never happen)")
         }
-        ///Calls the contract's `getVirtualReservesDec` (0xa21b9ba0) function
-        pub fn get_virtual_reserves_dec(
+        ///Calls the contract's `getStrategy` (0x30244be7) function
+        pub fn get_strategy(
             &self,
             pool_id: u64,
-        ) -> ::ethers::contract::builders::ContractCall<M, (u128, u128)> {
+        ) -> ::ethers::contract::builders::ContractCall<
+            M,
+            ::ethers::core::types::Address,
+        > {
             self.0
-                .method_hash([162, 27, 155, 160], pool_id)
+                .method_hash([48, 36, 75, 231], pool_id)
                 .expect("method not found (this should never happen)")
         }
         ///Calls the contract's `pairs` (0x5e47663c) function
@@ -910,15 +1050,7 @@ pub mod i_portfolio_getters {
             pool_id: u64,
         ) -> ::ethers::contract::builders::ContractCall<
             M,
-            (
-                u128,
-                u128,
-                u128,
-                u32,
-                ::ethers::core::types::Address,
-                PortfolioCurve,
-                PortfolioPair,
-            ),
+            (u128, u128, u128, u32, u16, u16, ::ethers::core::types::Address),
         > {
             self.0
                 .method_hash([137, 165, 240, 132], pool_id)
@@ -949,6 +1081,20 @@ pub mod i_portfolio_getters {
         ) -> ::ethers::contract::builders::ContractCall<M, ::ethers::core::types::U256> {
             self.0
                 .method_hash([220, 248, 68, 167], token)
+                .expect("method not found (this should never happen)")
+        }
+        ///Calls the contract's `simulateSwap` (0x80af9d76) function
+        pub fn simulate_swap(
+            &self,
+            args: Order,
+            timestamp: ::ethers::core::types::U256,
+            swapper: ::ethers::core::types::Address,
+        ) -> ::ethers::contract::builders::ContractCall<
+            M,
+            (bool, ::ethers::core::types::I256, ::ethers::core::types::I256),
+        > {
+            self.0
+                .method_hash([128, 175, 157, 118], (args, timestamp, swapper))
                 .expect("method not found (this should never happen)")
         }
     }
@@ -1015,6 +1161,21 @@ pub mod i_portfolio_getters {
         pub amount_in: ::ethers::core::types::U256,
         pub swapper: ::ethers::core::types::Address,
     }
+    ///Container type for all input parameters for the `getInvariant` function with signature `getInvariant(uint64)` and selector `0x39434d5a`
+    #[derive(
+        Clone,
+        ::ethers::contract::EthCall,
+        ::ethers::contract::EthDisplay,
+        Default,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash
+    )]
+    #[ethcall(name = "getInvariant", abi = "getInvariant(uint64)")]
+    pub struct GetInvariantCall {
+        pub pool_id: u64,
+    }
     ///Container type for all input parameters for the `getLiquidityDeltas` function with signature `getLiquidityDeltas(uint64,int128)` and selector `0x8992f20a`
     #[derive(
         Clone,
@@ -1047,6 +1208,23 @@ pub mod i_portfolio_getters {
         pub pool_id: u64,
         pub delta_asset: ::ethers::core::types::U256,
         pub delta_quote: ::ethers::core::types::U256,
+    }
+    ///Container type for all input parameters for the `getMaxOrder` function with signature `getMaxOrder(uint64,bool,address)` and selector `0xf07b879e`
+    #[derive(
+        Clone,
+        ::ethers::contract::EthCall,
+        ::ethers::contract::EthDisplay,
+        Default,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash
+    )]
+    #[ethcall(name = "getMaxOrder", abi = "getMaxOrder(uint64,bool,address)")]
+    pub struct GetMaxOrderCall {
+        pub pool_id: u64,
+        pub sell_asset: bool,
+        pub swapper: ::ethers::core::types::Address,
     }
     ///Container type for all input parameters for the `getNetBalance` function with signature `getNetBalance(address)` and selector `0x4dc68a90`
     #[derive(
@@ -1152,7 +1330,7 @@ pub mod i_portfolio_getters {
     pub struct GetSpotPriceCall {
         pub pool_id: u64,
     }
-    ///Container type for all input parameters for the `getVirtualReservesDec` function with signature `getVirtualReservesDec(uint64)` and selector `0xa21b9ba0`
+    ///Container type for all input parameters for the `getStrategy` function with signature `getStrategy(uint64)` and selector `0x30244be7`
     #[derive(
         Clone,
         ::ethers::contract::EthCall,
@@ -1163,8 +1341,8 @@ pub mod i_portfolio_getters {
         Eq,
         Hash
     )]
-    #[ethcall(name = "getVirtualReservesDec", abi = "getVirtualReservesDec(uint64)")]
-    pub struct GetVirtualReservesDecCall {
+    #[ethcall(name = "getStrategy", abi = "getStrategy(uint64)")]
+    pub struct GetStrategyCall {
         pub pool_id: u64,
     }
     ///Container type for all input parameters for the `pairs` function with signature `pairs(uint24)` and selector `0x5e47663c`
@@ -1241,6 +1419,26 @@ pub mod i_portfolio_getters {
     pub struct ProtocolFeesCall {
         pub token: ::ethers::core::types::Address,
     }
+    ///Container type for all input parameters for the `simulateSwap` function with signature `simulateSwap((uint128,uint128,bool,uint64,bool),uint256,address)` and selector `0x80af9d76`
+    #[derive(
+        Clone,
+        ::ethers::contract::EthCall,
+        ::ethers::contract::EthDisplay,
+        Default,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash
+    )]
+    #[ethcall(
+        name = "simulateSwap",
+        abi = "simulateSwap((uint128,uint128,bool,uint64,bool),uint256,address)"
+    )]
+    pub struct SimulateSwapCall {
+        pub args: Order,
+        pub timestamp: ::ethers::core::types::U256,
+        pub swapper: ::ethers::core::types::Address,
+    }
     ///Container type for all of the contract's call
     #[derive(Clone, ::ethers::contract::EthAbiType, Debug, PartialEq, Eq, Hash)]
     pub enum IPortfolioGettersCalls {
@@ -1248,8 +1446,10 @@ pub mod i_portfolio_getters {
         Version(VersionCall),
         Weth(WethCall),
         GetAmountOut(GetAmountOutCall),
+        GetInvariant(GetInvariantCall),
         GetLiquidityDeltas(GetLiquidityDeltasCall),
         GetMaxLiquidity(GetMaxLiquidityCall),
+        GetMaxOrder(GetMaxOrderCall),
         GetNetBalance(GetNetBalanceCall),
         GetPairId(GetPairIdCall),
         GetPairNonce(GetPairNonceCall),
@@ -1257,12 +1457,13 @@ pub mod i_portfolio_getters {
         GetPoolReserves(GetPoolReservesCall),
         GetReserve(GetReserveCall),
         GetSpotPrice(GetSpotPriceCall),
-        GetVirtualReservesDec(GetVirtualReservesDecCall),
+        GetStrategy(GetStrategyCall),
         Pairs(PairsCall),
         Pools(PoolsCall),
         Positions(PositionsCall),
         ProtocolFee(ProtocolFeeCall),
         ProtocolFees(ProtocolFeesCall),
+        SimulateSwap(SimulateSwapCall),
     }
     impl ::ethers::core::abi::AbiDecode for IPortfolioGettersCalls {
         fn decode(
@@ -1286,6 +1487,10 @@ pub mod i_portfolio_getters {
                 return Ok(Self::GetAmountOut(decoded));
             }
             if let Ok(decoded)
+                = <GetInvariantCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+                return Ok(Self::GetInvariant(decoded));
+            }
+            if let Ok(decoded)
                 = <GetLiquidityDeltasCall as ::ethers::core::abi::AbiDecode>::decode(
                     data,
                 ) {
@@ -1294,6 +1499,10 @@ pub mod i_portfolio_getters {
             if let Ok(decoded)
                 = <GetMaxLiquidityCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::GetMaxLiquidity(decoded));
+            }
+            if let Ok(decoded)
+                = <GetMaxOrderCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+                return Ok(Self::GetMaxOrder(decoded));
             }
             if let Ok(decoded)
                 = <GetNetBalanceCall as ::ethers::core::abi::AbiDecode>::decode(data) {
@@ -1324,10 +1533,8 @@ pub mod i_portfolio_getters {
                 return Ok(Self::GetSpotPrice(decoded));
             }
             if let Ok(decoded)
-                = <GetVirtualReservesDecCall as ::ethers::core::abi::AbiDecode>::decode(
-                    data,
-                ) {
-                return Ok(Self::GetVirtualReservesDec(decoded));
+                = <GetStrategyCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+                return Ok(Self::GetStrategy(decoded));
             }
             if let Ok(decoded)
                 = <PairsCall as ::ethers::core::abi::AbiDecode>::decode(data) {
@@ -1349,6 +1556,10 @@ pub mod i_portfolio_getters {
                 = <ProtocolFeesCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::ProtocolFees(decoded));
             }
+            if let Ok(decoded)
+                = <SimulateSwapCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+                return Ok(Self::SimulateSwap(decoded));
+            }
             Err(::ethers::core::abi::Error::InvalidData.into())
         }
     }
@@ -1363,10 +1574,16 @@ pub mod i_portfolio_getters {
                 Self::GetAmountOut(element) => {
                     ::ethers::core::abi::AbiEncode::encode(element)
                 }
+                Self::GetInvariant(element) => {
+                    ::ethers::core::abi::AbiEncode::encode(element)
+                }
                 Self::GetLiquidityDeltas(element) => {
                     ::ethers::core::abi::AbiEncode::encode(element)
                 }
                 Self::GetMaxLiquidity(element) => {
+                    ::ethers::core::abi::AbiEncode::encode(element)
+                }
+                Self::GetMaxOrder(element) => {
                     ::ethers::core::abi::AbiEncode::encode(element)
                 }
                 Self::GetNetBalance(element) => {
@@ -1390,7 +1607,7 @@ pub mod i_portfolio_getters {
                 Self::GetSpotPrice(element) => {
                     ::ethers::core::abi::AbiEncode::encode(element)
                 }
-                Self::GetVirtualReservesDec(element) => {
+                Self::GetStrategy(element) => {
                     ::ethers::core::abi::AbiEncode::encode(element)
                 }
                 Self::Pairs(element) => ::ethers::core::abi::AbiEncode::encode(element),
@@ -1404,6 +1621,9 @@ pub mod i_portfolio_getters {
                 Self::ProtocolFees(element) => {
                     ::ethers::core::abi::AbiEncode::encode(element)
                 }
+                Self::SimulateSwap(element) => {
+                    ::ethers::core::abi::AbiEncode::encode(element)
+                }
             }
         }
     }
@@ -1414,10 +1634,12 @@ pub mod i_portfolio_getters {
                 Self::Version(element) => ::core::fmt::Display::fmt(element, f),
                 Self::Weth(element) => ::core::fmt::Display::fmt(element, f),
                 Self::GetAmountOut(element) => ::core::fmt::Display::fmt(element, f),
+                Self::GetInvariant(element) => ::core::fmt::Display::fmt(element, f),
                 Self::GetLiquidityDeltas(element) => {
                     ::core::fmt::Display::fmt(element, f)
                 }
                 Self::GetMaxLiquidity(element) => ::core::fmt::Display::fmt(element, f),
+                Self::GetMaxOrder(element) => ::core::fmt::Display::fmt(element, f),
                 Self::GetNetBalance(element) => ::core::fmt::Display::fmt(element, f),
                 Self::GetPairId(element) => ::core::fmt::Display::fmt(element, f),
                 Self::GetPairNonce(element) => ::core::fmt::Display::fmt(element, f),
@@ -1425,14 +1647,13 @@ pub mod i_portfolio_getters {
                 Self::GetPoolReserves(element) => ::core::fmt::Display::fmt(element, f),
                 Self::GetReserve(element) => ::core::fmt::Display::fmt(element, f),
                 Self::GetSpotPrice(element) => ::core::fmt::Display::fmt(element, f),
-                Self::GetVirtualReservesDec(element) => {
-                    ::core::fmt::Display::fmt(element, f)
-                }
+                Self::GetStrategy(element) => ::core::fmt::Display::fmt(element, f),
                 Self::Pairs(element) => ::core::fmt::Display::fmt(element, f),
                 Self::Pools(element) => ::core::fmt::Display::fmt(element, f),
                 Self::Positions(element) => ::core::fmt::Display::fmt(element, f),
                 Self::ProtocolFee(element) => ::core::fmt::Display::fmt(element, f),
                 Self::ProtocolFees(element) => ::core::fmt::Display::fmt(element, f),
+                Self::SimulateSwap(element) => ::core::fmt::Display::fmt(element, f),
             }
         }
     }
@@ -1456,6 +1677,11 @@ pub mod i_portfolio_getters {
             Self::GetAmountOut(value)
         }
     }
+    impl ::core::convert::From<GetInvariantCall> for IPortfolioGettersCalls {
+        fn from(value: GetInvariantCall) -> Self {
+            Self::GetInvariant(value)
+        }
+    }
     impl ::core::convert::From<GetLiquidityDeltasCall> for IPortfolioGettersCalls {
         fn from(value: GetLiquidityDeltasCall) -> Self {
             Self::GetLiquidityDeltas(value)
@@ -1464,6 +1690,11 @@ pub mod i_portfolio_getters {
     impl ::core::convert::From<GetMaxLiquidityCall> for IPortfolioGettersCalls {
         fn from(value: GetMaxLiquidityCall) -> Self {
             Self::GetMaxLiquidity(value)
+        }
+    }
+    impl ::core::convert::From<GetMaxOrderCall> for IPortfolioGettersCalls {
+        fn from(value: GetMaxOrderCall) -> Self {
+            Self::GetMaxOrder(value)
         }
     }
     impl ::core::convert::From<GetNetBalanceCall> for IPortfolioGettersCalls {
@@ -1501,9 +1732,9 @@ pub mod i_portfolio_getters {
             Self::GetSpotPrice(value)
         }
     }
-    impl ::core::convert::From<GetVirtualReservesDecCall> for IPortfolioGettersCalls {
-        fn from(value: GetVirtualReservesDecCall) -> Self {
-            Self::GetVirtualReservesDec(value)
+    impl ::core::convert::From<GetStrategyCall> for IPortfolioGettersCalls {
+        fn from(value: GetStrategyCall) -> Self {
+            Self::GetStrategy(value)
         }
     }
     impl ::core::convert::From<PairsCall> for IPortfolioGettersCalls {
@@ -1529,6 +1760,11 @@ pub mod i_portfolio_getters {
     impl ::core::convert::From<ProtocolFeesCall> for IPortfolioGettersCalls {
         fn from(value: ProtocolFeesCall) -> Self {
             Self::ProtocolFees(value)
+        }
+    }
+    impl ::core::convert::From<SimulateSwapCall> for IPortfolioGettersCalls {
+        fn from(value: SimulateSwapCall) -> Self {
+            Self::SimulateSwap(value)
         }
     }
     ///Container type for all return fields from the `REGISTRY` function with signature `REGISTRY()` and selector `0x06433b1b`
@@ -1579,6 +1815,18 @@ pub mod i_portfolio_getters {
         Hash
     )]
     pub struct GetAmountOutReturn(pub ::ethers::core::types::U256);
+    ///Container type for all return fields from the `getInvariant` function with signature `getInvariant(uint64)` and selector `0x39434d5a`
+    #[derive(
+        Clone,
+        ::ethers::contract::EthAbiType,
+        ::ethers::contract::EthAbiCodec,
+        Default,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash
+    )]
+    pub struct GetInvariantReturn(pub ::ethers::core::types::I256);
     ///Container type for all return fields from the `getLiquidityDeltas` function with signature `getLiquidityDeltas(uint64,int128)` and selector `0x8992f20a`
     #[derive(
         Clone,
@@ -1608,6 +1856,18 @@ pub mod i_portfolio_getters {
     pub struct GetMaxLiquidityReturn {
         pub delta_liquidity: u128,
     }
+    ///Container type for all return fields from the `getMaxOrder` function with signature `getMaxOrder(uint64,bool,address)` and selector `0xf07b879e`
+    #[derive(
+        Clone,
+        ::ethers::contract::EthAbiType,
+        ::ethers::contract::EthAbiCodec,
+        Default,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash
+    )]
+    pub struct GetMaxOrderReturn(pub Order);
     ///Container type for all return fields from the `getNetBalance` function with signature `getNetBalance(address)` and selector `0x4dc68a90`
     #[derive(
         Clone,
@@ -1699,7 +1959,7 @@ pub mod i_portfolio_getters {
     pub struct GetSpotPriceReturn {
         pub price: ::ethers::core::types::U256,
     }
-    ///Container type for all return fields from the `getVirtualReservesDec` function with signature `getVirtualReservesDec(uint64)` and selector `0xa21b9ba0`
+    ///Container type for all return fields from the `getStrategy` function with signature `getStrategy(uint64)` and selector `0x30244be7`
     #[derive(
         Clone,
         ::ethers::contract::EthAbiType,
@@ -1710,10 +1970,7 @@ pub mod i_portfolio_getters {
         Eq,
         Hash
     )]
-    pub struct GetVirtualReservesDecReturn {
-        pub delta_asset: u128,
-        pub delta_quote: u128,
-    }
+    pub struct GetStrategyReturn(pub ::ethers::core::types::Address);
     ///Container type for all return fields from the `pairs` function with signature `pairs(uint24)` and selector `0x5e47663c`
     #[derive(
         Clone,
@@ -1747,9 +2004,9 @@ pub mod i_portfolio_getters {
         pub virtual_y: u128,
         pub liquidity: u128,
         pub last_timestamp: u32,
+        pub fee_basis_points: u16,
+        pub priority_fee_basis_points: u16,
         pub controller: ::ethers::core::types::Address,
-        pub p5: PortfolioCurve,
-        pub p6: PortfolioPair,
     }
     ///Container type for all return fields from the `positions` function with signature `positions(address,uint64)` and selector `0xb68513ea`
     #[derive(
@@ -1789,4 +2046,20 @@ pub mod i_portfolio_getters {
         Hash
     )]
     pub struct ProtocolFeesReturn(pub ::ethers::core::types::U256);
+    ///Container type for all return fields from the `simulateSwap` function with signature `simulateSwap((uint128,uint128,bool,uint64,bool),uint256,address)` and selector `0x80af9d76`
+    #[derive(
+        Clone,
+        ::ethers::contract::EthAbiType,
+        ::ethers::contract::EthAbiCodec,
+        Default,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash
+    )]
+    pub struct SimulateSwapReturn {
+        pub success: bool,
+        pub prev_invariant: ::ethers::core::types::I256,
+        pub post_invariant: ::ethers::core::types::I256,
+    }
 }

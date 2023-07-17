@@ -208,6 +208,40 @@ pub mod i_portfolio_actions {
                                     ),
                                 },
                                 ::ethers::core::abi::ethabi::Param {
+                                    name: ::std::borrow::ToOwned::to_owned("reserveXPerWad"),
+                                    kind: ::ethers::core::abi::ethabi::ParamType::Uint(
+                                        256usize,
+                                    ),
+                                    internal_type: ::core::option::Option::Some(
+                                        ::std::borrow::ToOwned::to_owned("uint256"),
+                                    ),
+                                },
+                                ::ethers::core::abi::ethabi::Param {
+                                    name: ::std::borrow::ToOwned::to_owned("reserveYPerWad"),
+                                    kind: ::ethers::core::abi::ethabi::ParamType::Uint(
+                                        256usize,
+                                    ),
+                                    internal_type: ::core::option::Option::Some(
+                                        ::std::borrow::ToOwned::to_owned("uint256"),
+                                    ),
+                                },
+                                ::ethers::core::abi::ethabi::Param {
+                                    name: ::std::borrow::ToOwned::to_owned("feeBasisPoints"),
+                                    kind: ::ethers::core::abi::ethabi::ParamType::Uint(16usize),
+                                    internal_type: ::core::option::Option::Some(
+                                        ::std::borrow::ToOwned::to_owned("uint16"),
+                                    ),
+                                },
+                                ::ethers::core::abi::ethabi::Param {
+                                    name: ::std::borrow::ToOwned::to_owned(
+                                        "priorityFeeBasisPoints",
+                                    ),
+                                    kind: ::ethers::core::abi::ethabi::ParamType::Uint(16usize),
+                                    internal_type: ::core::option::Option::Some(
+                                        ::std::borrow::ToOwned::to_owned("uint16"),
+                                    ),
+                                },
+                                ::ethers::core::abi::ethabi::Param {
                                     name: ::std::borrow::ToOwned::to_owned("controller"),
                                     kind: ::ethers::core::abi::ethabi::ParamType::Address,
                                     internal_type: ::core::option::Option::Some(
@@ -215,49 +249,10 @@ pub mod i_portfolio_actions {
                                     ),
                                 },
                                 ::ethers::core::abi::ethabi::Param {
-                                    name: ::std::borrow::ToOwned::to_owned("priorityFee"),
-                                    kind: ::ethers::core::abi::ethabi::ParamType::Uint(16usize),
+                                    name: ::std::borrow::ToOwned::to_owned("data"),
+                                    kind: ::ethers::core::abi::ethabi::ParamType::Bytes,
                                     internal_type: ::core::option::Option::Some(
-                                        ::std::borrow::ToOwned::to_owned("uint16"),
-                                    ),
-                                },
-                                ::ethers::core::abi::ethabi::Param {
-                                    name: ::std::borrow::ToOwned::to_owned("fee"),
-                                    kind: ::ethers::core::abi::ethabi::ParamType::Uint(16usize),
-                                    internal_type: ::core::option::Option::Some(
-                                        ::std::borrow::ToOwned::to_owned("uint16"),
-                                    ),
-                                },
-                                ::ethers::core::abi::ethabi::Param {
-                                    name: ::std::borrow::ToOwned::to_owned("volatility"),
-                                    kind: ::ethers::core::abi::ethabi::ParamType::Uint(16usize),
-                                    internal_type: ::core::option::Option::Some(
-                                        ::std::borrow::ToOwned::to_owned("uint16"),
-                                    ),
-                                },
-                                ::ethers::core::abi::ethabi::Param {
-                                    name: ::std::borrow::ToOwned::to_owned("duration"),
-                                    kind: ::ethers::core::abi::ethabi::ParamType::Uint(16usize),
-                                    internal_type: ::core::option::Option::Some(
-                                        ::std::borrow::ToOwned::to_owned("uint16"),
-                                    ),
-                                },
-                                ::ethers::core::abi::ethabi::Param {
-                                    name: ::std::borrow::ToOwned::to_owned("strikePrice"),
-                                    kind: ::ethers::core::abi::ethabi::ParamType::Uint(
-                                        128usize,
-                                    ),
-                                    internal_type: ::core::option::Option::Some(
-                                        ::std::borrow::ToOwned::to_owned("uint128"),
-                                    ),
-                                },
-                                ::ethers::core::abi::ethabi::Param {
-                                    name: ::std::borrow::ToOwned::to_owned("price"),
-                                    kind: ::ethers::core::abi::ethabi::ParamType::Uint(
-                                        128usize,
-                                    ),
-                                    internal_type: ::core::option::Option::Some(
-                                        ::std::borrow::ToOwned::to_owned("uint128"),
+                                        ::std::borrow::ToOwned::to_owned("bytes"),
                                     ),
                                 },
                             ],
@@ -568,30 +563,28 @@ pub mod i_portfolio_actions {
                 .method_hash([201, 198, 83, 150], (asset, quote))
                 .expect("method not found (this should never happen)")
         }
-        ///Calls the contract's `createPool` (0x339ae29f) function
+        ///Calls the contract's `createPool` (0xd701c21c) function
         pub fn create_pool(
             &self,
             pair_id: u32,
+            reserve_x_per_wad: ::ethers::core::types::U256,
+            reserve_y_per_wad: ::ethers::core::types::U256,
+            fee_basis_points: u16,
+            priority_fee_basis_points: u16,
             controller: ::ethers::core::types::Address,
-            priority_fee: u16,
-            fee: u16,
-            volatility: u16,
-            duration: u16,
-            strike_price: u128,
-            price: u128,
+            data: ::ethers::core::types::Bytes,
         ) -> ::ethers::contract::builders::ContractCall<M, u64> {
             self.0
                 .method_hash(
-                    [51, 154, 226, 159],
+                    [215, 1, 194, 28],
                     (
                         pair_id,
+                        reserve_x_per_wad,
+                        reserve_y_per_wad,
+                        fee_basis_points,
+                        priority_fee_basis_points,
                         controller,
-                        priority_fee,
-                        fee,
-                        volatility,
-                        duration,
-                        strike_price,
-                        price,
+                        data,
                     ),
                 )
                 .expect("method not found (this should never happen)")
@@ -727,7 +720,7 @@ pub mod i_portfolio_actions {
         pub asset: ::ethers::core::types::Address,
         pub quote: ::ethers::core::types::Address,
     }
-    ///Container type for all input parameters for the `createPool` function with signature `createPool(uint24,address,uint16,uint16,uint16,uint16,uint128,uint128)` and selector `0x339ae29f`
+    ///Container type for all input parameters for the `createPool` function with signature `createPool(uint24,uint256,uint256,uint16,uint16,address,bytes)` and selector `0xd701c21c`
     #[derive(
         Clone,
         ::ethers::contract::EthCall,
@@ -740,17 +733,16 @@ pub mod i_portfolio_actions {
     )]
     #[ethcall(
         name = "createPool",
-        abi = "createPool(uint24,address,uint16,uint16,uint16,uint16,uint128,uint128)"
+        abi = "createPool(uint24,uint256,uint256,uint16,uint16,address,bytes)"
     )]
     pub struct CreatePoolCall {
         pub pair_id: u32,
+        pub reserve_x_per_wad: ::ethers::core::types::U256,
+        pub reserve_y_per_wad: ::ethers::core::types::U256,
+        pub fee_basis_points: u16,
+        pub priority_fee_basis_points: u16,
         pub controller: ::ethers::core::types::Address,
-        pub priority_fee: u16,
-        pub fee: u16,
-        pub volatility: u16,
-        pub duration: u16,
-        pub strike_price: u128,
-        pub price: u128,
+        pub data: ::ethers::core::types::Bytes,
     }
     ///Container type for all input parameters for the `deallocate` function with signature `deallocate(bool,uint64,uint128,uint128,uint128)` and selector `0x5bc55464`
     #[derive(
@@ -998,7 +990,7 @@ pub mod i_portfolio_actions {
     pub struct CreatePairReturn {
         pub pair_id: u32,
     }
-    ///Container type for all return fields from the `createPool` function with signature `createPool(uint24,address,uint16,uint16,uint16,uint16,uint128,uint128)` and selector `0x339ae29f`
+    ///Container type for all return fields from the `createPool` function with signature `createPool(uint24,uint256,uint256,uint16,uint16,address,bytes)` and selector `0xd701c21c`
     #[derive(
         Clone,
         ::ethers::contract::EthAbiType,

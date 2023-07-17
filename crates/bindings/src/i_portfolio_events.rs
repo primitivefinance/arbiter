@@ -170,35 +170,34 @@ pub mod i_portfolio_events {
                                     indexed: true,
                                 },
                                 ::ethers::core::abi::ethabi::EventParam {
-                                    name: ::std::borrow::ToOwned::to_owned("controller"),
-                                    kind: ::ethers::core::abi::ethabi::ParamType::Address,
-                                    indexed: false,
-                                },
-                                ::ethers::core::abi::ethabi::EventParam {
-                                    name: ::std::borrow::ToOwned::to_owned("strikePrice"),
+                                    name: ::std::borrow::ToOwned::to_owned("reserveXPerWad"),
                                     kind: ::ethers::core::abi::ethabi::ParamType::Uint(
-                                        128usize,
+                                        256usize,
                                     ),
                                     indexed: false,
                                 },
                                 ::ethers::core::abi::ethabi::EventParam {
-                                    name: ::std::borrow::ToOwned::to_owned("fee"),
+                                    name: ::std::borrow::ToOwned::to_owned("reserveYPerWad"),
+                                    kind: ::ethers::core::abi::ethabi::ParamType::Uint(
+                                        256usize,
+                                    ),
+                                    indexed: false,
+                                },
+                                ::ethers::core::abi::ethabi::EventParam {
+                                    name: ::std::borrow::ToOwned::to_owned("feeBasisPoints"),
                                     kind: ::ethers::core::abi::ethabi::ParamType::Uint(16usize),
                                     indexed: false,
                                 },
                                 ::ethers::core::abi::ethabi::EventParam {
-                                    name: ::std::borrow::ToOwned::to_owned("duration"),
+                                    name: ::std::borrow::ToOwned::to_owned(
+                                        "priorityFeeBasisPoints",
+                                    ),
                                     kind: ::ethers::core::abi::ethabi::ParamType::Uint(16usize),
                                     indexed: false,
                                 },
                                 ::ethers::core::abi::ethabi::EventParam {
-                                    name: ::std::borrow::ToOwned::to_owned("volatility"),
-                                    kind: ::ethers::core::abi::ethabi::ParamType::Uint(16usize),
-                                    indexed: false,
-                                },
-                                ::ethers::core::abi::ethabi::EventParam {
-                                    name: ::std::borrow::ToOwned::to_owned("priorityFee"),
-                                    kind: ::ethers::core::abi::ethabi::ParamType::Uint(16usize),
+                                    name: ::std::borrow::ToOwned::to_owned("controller"),
+                                    kind: ::ethers::core::abi::ethabi::ParamType::Address,
                                     indexed: false,
                                 },
                             ],
@@ -670,7 +669,7 @@ pub mod i_portfolio_events {
     )]
     #[ethevent(
         name = "CreatePool",
-        abi = "CreatePool(uint64,address,address,address,uint128,uint16,uint16,uint16,uint16)"
+        abi = "CreatePool(uint64,address,address,uint256,uint256,uint16,uint16,address)"
     )]
     pub struct CreatePoolFilter {
         #[ethevent(indexed)]
@@ -679,12 +678,11 @@ pub mod i_portfolio_events {
         pub asset: ::ethers::core::types::Address,
         #[ethevent(indexed)]
         pub quote: ::ethers::core::types::Address,
+        pub reserve_x_per_wad: ::ethers::core::types::U256,
+        pub reserve_y_per_wad: ::ethers::core::types::U256,
+        pub fee_basis_points: u16,
+        pub priority_fee_basis_points: u16,
         pub controller: ::ethers::core::types::Address,
-        pub strike_price: u128,
-        pub fee: u16,
-        pub duration: u16,
-        pub volatility: u16,
-        pub priority_fee: u16,
     }
     #[derive(
         Clone,

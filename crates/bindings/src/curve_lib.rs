@@ -1,4 +1,4 @@
-pub use rmm01_extended_lib::*;
+pub use curve_lib::*;
 /// This module was auto-generated with ethers-rs Abigen.
 /// More information at: <https://github.com/gakonst/ethers-rs>
 #[allow(
@@ -9,7 +9,7 @@ pub use rmm01_extended_lib::*;
     dead_code,
     non_camel_case_types,
 )]
-pub mod rmm01_extended_lib {
+pub mod curve_lib {
     #[allow(deprecated)]
     fn __abi() -> ::ethers::core::abi::Abi {
         ::ethers::core::abi::ethabi::Contract {
@@ -22,46 +22,44 @@ pub mod rmm01_extended_lib {
         }
     }
     ///The parsed JSON ABI of the contract.
-    pub static RMM01EXTENDEDLIB_ABI: ::ethers::contract::Lazy<
-        ::ethers::core::abi::Abi,
-    > = ::ethers::contract::Lazy::new(__abi);
+    pub static CURVELIB_ABI: ::ethers::contract::Lazy<::ethers::core::abi::Abi> = ::ethers::contract::Lazy::new(
+        __abi,
+    );
     #[rustfmt::skip]
-    const __BYTECODE: &[u8] = b"`\xB2`7`\x0B\x82\x82\x829\x80Q`\0\x1A`s\x14`*WcNH{q`\xE0\x1B`\0R`\0`\x04R`$`\0\xFD[0`\0R`s\x81S\x82\x81\xF3\xFEs\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0`\x80`@\x81\x90RbF\x1B\xCD`\xE5\x1B\x81R` `\x84\x90\x81R`5`\xA4R\x7FContract does not have fallback `\xC4\x90\x81Rtnor receive functions`X\x1B`\xE4R0\x93\x90\x93\x14\x92\x90\x82\xFD\xFE\xA2dipfsX\"\x12 \x0BR\xC0<\xB0\xEB\x8Et\xD2)d\x99@\x19\x1A@\xE2\x9FF\xE1)\xFA\xA1\xD9\xE3\x8A\xCE\x1C\0\xEA\x1E\xDBdsolcC\0\x08\x13\x003";
+    const __BYTECODE: &[u8] = b"`\xB2`7`\x0B\x82\x82\x829\x80Q`\0\x1A`s\x14`*WcNH{q`\xE0\x1B`\0R`\0`\x04R`$`\0\xFD[0`\0R`s\x81S\x82\x81\xF3\xFEs\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0`\x80`@\x81\x90RbF\x1B\xCD`\xE5\x1B\x81R` `\x84\x90\x81R`5`\xA4R\x7FContract does not have fallback `\xC4\x90\x81Rtnor receive functions`X\x1B`\xE4R0\x93\x90\x93\x14\x92\x90\x82\xFD\xFE\xA2dipfsX\"\x12 PK\xE7E\x04GK\xA3\\\xE8e\n)1\xFCJ6\xEC\xC9\xA3.\xF5jh\xD9\xDF\xE4T\xF7daudsolcC\0\x08\x13\x003";
     /// The bytecode of the contract.
-    pub static RMM01EXTENDEDLIB_BYTECODE: ::ethers::core::types::Bytes = ::ethers::core::types::Bytes::from_static(
+    pub static CURVELIB_BYTECODE: ::ethers::core::types::Bytes = ::ethers::core::types::Bytes::from_static(
         __BYTECODE,
     );
     #[rustfmt::skip]
-    const __DEPLOYED_BYTECODE: &[u8] = b"s\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0`\x80`@\x81\x90RbF\x1B\xCD`\xE5\x1B\x81R` `\x84\x90\x81R`5`\xA4R\x7FContract does not have fallback `\xC4\x90\x81Rtnor receive functions`X\x1B`\xE4R0\x93\x90\x93\x14\x92\x90\x82\xFD\xFE\xA2dipfsX\"\x12 \x0BR\xC0<\xB0\xEB\x8Et\xD2)d\x99@\x19\x1A@\xE2\x9FF\xE1)\xFA\xA1\xD9\xE3\x8A\xCE\x1C\0\xEA\x1E\xDBdsolcC\0\x08\x13\x003";
+    const __DEPLOYED_BYTECODE: &[u8] = b"s\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0`\x80`@\x81\x90RbF\x1B\xCD`\xE5\x1B\x81R` `\x84\x90\x81R`5`\xA4R\x7FContract does not have fallback `\xC4\x90\x81Rtnor receive functions`X\x1B`\xE4R0\x93\x90\x93\x14\x92\x90\x82\xFD\xFE\xA2dipfsX\"\x12 PK\xE7E\x04GK\xA3\\\xE8e\n)1\xFCJ6\xEC\xC9\xA3.\xF5jh\xD9\xDF\xE4T\xF7daudsolcC\0\x08\x13\x003";
     /// The deployed bytecode of the contract.
-    pub static RMM01EXTENDEDLIB_DEPLOYED_BYTECODE: ::ethers::core::types::Bytes = ::ethers::core::types::Bytes::from_static(
+    pub static CURVELIB_DEPLOYED_BYTECODE: ::ethers::core::types::Bytes = ::ethers::core::types::Bytes::from_static(
         __DEPLOYED_BYTECODE,
     );
-    pub struct RMM01ExtendedLib<M>(::ethers::contract::Contract<M>);
-    impl<M> ::core::clone::Clone for RMM01ExtendedLib<M> {
+    pub struct CurveLib<M>(::ethers::contract::Contract<M>);
+    impl<M> ::core::clone::Clone for CurveLib<M> {
         fn clone(&self) -> Self {
             Self(::core::clone::Clone::clone(&self.0))
         }
     }
-    impl<M> ::core::ops::Deref for RMM01ExtendedLib<M> {
+    impl<M> ::core::ops::Deref for CurveLib<M> {
         type Target = ::ethers::contract::Contract<M>;
         fn deref(&self) -> &Self::Target {
             &self.0
         }
     }
-    impl<M> ::core::ops::DerefMut for RMM01ExtendedLib<M> {
+    impl<M> ::core::ops::DerefMut for CurveLib<M> {
         fn deref_mut(&mut self) -> &mut Self::Target {
             &mut self.0
         }
     }
-    impl<M> ::core::fmt::Debug for RMM01ExtendedLib<M> {
+    impl<M> ::core::fmt::Debug for CurveLib<M> {
         fn fmt(&self, f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
-            f.debug_tuple(::core::stringify!(RMM01ExtendedLib))
-                .field(&self.address())
-                .finish()
+            f.debug_tuple(::core::stringify!(CurveLib)).field(&self.address()).finish()
         }
     }
-    impl<M: ::ethers::providers::Middleware> RMM01ExtendedLib<M> {
+    impl<M: ::ethers::providers::Middleware> CurveLib<M> {
         /// Creates a new contract instance with the specified `ethers` client at
         /// `address`. The contract derefs to a `ethers::Contract` object.
         pub fn new<T: Into<::ethers::core::types::Address>>(
@@ -71,7 +69,7 @@ pub mod rmm01_extended_lib {
             Self(
                 ::ethers::contract::Contract::new(
                     address.into(),
-                    RMM01EXTENDEDLIB_ABI.clone(),
+                    CURVELIB_ABI.clone(),
                     client,
                 ),
             )
@@ -107,8 +105,8 @@ pub mod rmm01_extended_lib {
             ::ethers::contract::ContractError<M>,
         > {
             let factory = ::ethers::contract::ContractFactory::new(
-                RMM01EXTENDEDLIB_ABI.clone(),
-                RMM01EXTENDEDLIB_BYTECODE.clone().into(),
+                CURVELIB_ABI.clone(),
+                CURVELIB_BYTECODE.clone().into(),
                 client,
             );
             let deployer = factory.deploy(constructor_args)?;
@@ -117,7 +115,7 @@ pub mod rmm01_extended_lib {
         }
     }
     impl<M: ::ethers::providers::Middleware> From<::ethers::contract::Contract<M>>
-    for RMM01ExtendedLib<M> {
+    for CurveLib<M> {
         fn from(contract: ::ethers::contract::Contract<M>) -> Self {
             Self::new(contract.address(), contract.client())
         }
