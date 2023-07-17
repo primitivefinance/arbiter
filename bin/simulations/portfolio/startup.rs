@@ -1,6 +1,6 @@
 use std::{collections::HashMap, error::Error};
 
-use bindings::{rmm01_portfolio, simple_registry};
+use bindings::{portfolio, simple_registry};
 use ethers::{
     abi::{Token, Tokenize},
     prelude::U256,
@@ -129,8 +129,8 @@ fn deploy_contracts(manager: &mut SimulationManager) -> Result<(), Box<dyn Error
         .insert("registry".to_string(), registry.clone());
     // Deploy the portfolio contract.
     let portfolio = SimulationContract::new(
-        rmm01_portfolio::RMM01PORTFOLIO_ABI.clone(),
-        rmm01_portfolio::RMM01PORTFOLIO_BYTECODE.clone(),
+        portfolio::PORTFOLIO_ABI.clone(),
+        portfolio::PORTFOLIO_BYTECODE.clone(),
     );
     let portfolio_args = (
         recast_address(weth_address),
@@ -348,7 +348,7 @@ fn allocate(
     // PORTFOLIO POOL ALLOCATE
     // --------------------------------------------------------------------------------------------
 
-    let allocate_args = rmm01_portfolio::AllocateCall {
+    let allocate_args = portfolio::AllocateCall {
         use_max: false,                             // use_max: bool, // Usually set to false?
         pool_id,                                    // pool_id: u64,
         delta_liquidity: delta_liquidity as u128,   // delta_liquidity: u128,

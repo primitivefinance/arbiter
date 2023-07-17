@@ -1,6 +1,6 @@
 use std::{collections::HashMap, error::Error};
 
-use bindings::{i_portfolio::SwapReturn, rmm01_portfolio};
+use bindings::{i_portfolio::SwapReturn, portfolio};
 use ethers::{
     abi::Tokenize,
     prelude::U256,
@@ -269,7 +269,7 @@ where
         amount_out = decoded_amount_out;
     }
     println!("amount_out: {:?}", amount_out);
-    let order = rmm01_portfolio::Order {
+    let order = portfolio::Order {
         input: u128::from(input_amount),
         output: amount_out,
         use_max: false,
