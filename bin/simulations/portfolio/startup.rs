@@ -1,6 +1,9 @@
 use std::{collections::HashMap, error::Error};
 
-use bindings::{portfolio, simple_registry};
+use bindings::{
+    normal_strategy::{GetStrategyDataCall, GetStrategyDataReturn, NORMALSTRATEGY_ABI},
+    portfolio, simple_registry,
+};
 use ethers::{
     abi::{Token, Tokenize},
     prelude::U256,
@@ -138,12 +141,21 @@ fn deploy_contracts(manager: &mut SimulationManager) -> Result<(), Box<dyn Error
     )
         .into_tokens();
     let (portfolio, result) = admin.deploy(portfolio, portfolio_args)?;
+    println!("{:?}", portfolio);
     assert!(result.is_success());
     println!("Portfolio deployed at: {}", portfolio.address);
     manager
         .deployed_contracts
         .insert("portfolio".to_string(), portfolio);
-
+    let portfolio = manager.deployed_contracts.get("portfolio").unwrap();
+    let default_strategy_result = admin.call(portfolio, "defaultStrategy", ().into_tokens())?;
+    let default_strategy_unpack = unpack_execution(default_strategy_result)?;
+    let default_strategy: H160 =
+        portfolio.decode_output("defaultStrategy", default_strategy_unpack)?;
+    let default_strategy_bytes = B160::from(default_strategy.as_fixed_bytes());
+    let strategy_contract =
+        SimulationContract::bind(NORMALSTRATEGY_ABI.clone(), default_strategy_bytes);
+    println!("strategy contract: {:?}", strategy_contract);
     Ok(())
 }
 
@@ -283,6 +295,7 @@ fn pool_intitalization(
     let arbiter_token_x = contracts.get("arbiter_token_x").unwrap();
     let arbiter_token_y = contracts.get("arbiter_token_y").unwrap();
     let portfolio = contracts.get("portfolio").unwrap();
+
     // --------------------------------------------------------------------------------------------
     // CREATE PORTFOLIO PAIR
     // --------------------------------------------------------------------------------------------
@@ -301,6 +314,19 @@ fn pool_intitalization(
     // --------------------------------------------------------------------------------------------
     // CREATE PORTFOLIO POOL
     // --------------------------------------------------------------------------------------------
+    let strategy_args: GetStrategyDataCall = GetStrategyDataCall {
+        strike_price_wad: U256::from(1_000_000_000_000_000_000_i128),
+        volatility_basis_points: U256::from(1_000_000_000_000_000_000_i128),
+        duration_seconds: U256::from(65535),
+        is_perpetual: true,
+        price_wad: U256::from(1_000_000_000_000_000_000_i128),
+    };
+    let strategy = admin.call(portfolio, "getStrategyData", strategy_args.into_tokens())?;
+    let strategy_unpack = unpack_execution(strategy)?;
+    let strategy_data: GetStrategyDataReturn =
+        portfolio.decode_output("getStrategyData", strategy_unpack)?;
+
+    println!("Strategy Data: {:#?}", strategy_data);
 
     let create_pool_args = (
         pair_id,                         // pub pair_id: u32

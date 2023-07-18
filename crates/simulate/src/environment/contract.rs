@@ -71,6 +71,16 @@ impl SimulationContract<NotDeployed> {
 }
 
 impl SimulationContract<IsDeployed> {
+    /// A constructor function for [`SimulationContract`] that takes a [`BaseContract`] and the address of the deployed contract.
+    pub fn bind(contract: Contract, address: B160) -> Self {
+        Self {
+            base_contract: BaseContract::from(contract),
+            bytecode: (),
+            address,
+            // deployed: PhantomData,
+            constructor_arguments: vec![],
+        }
+    }
     /// Encodes the arguments for a function call for the [`SimulationContract`].
     /// # Arguments
     /// * `function_name` - The name of the function to encode.
