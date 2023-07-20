@@ -289,7 +289,6 @@ fn approve(
 /// * `manager` - Simulation manager to deploy contracts to. (SimulationManager)
 /// * `contracts` - Contracts deployed to the simulation environment. (SimulationContracts)
 /// * `decimals` - Decimals to use for the simulation. (u8)
-type PoolArgs = (u32, H160, u16, u16, u16, u16, u128, u128);
 fn pool_intitalization(
     admin: &AgentType<IsActive>,
     contracts: &HashMap<String, SimulationContract<IsDeployed>>,
