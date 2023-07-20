@@ -1,10 +1,14 @@
 use std::{collections::HashMap, error::Error};
 
-use bindings::{i_portfolio::SwapReturn, portfolio};
+use bindings::{
+    i_portfolio::SwapReturn,
+    portfolio::{self, GetMaxOrderCall, GetPoolReservesReturn},
+    shared_types::Order,
+};
 use ethers::{
     abi::Tokenize,
     prelude::U256,
-    types::{Sign, I256},
+    types::{Sign, H160, I256},
 };
 use eyre::Result;
 use simulate::{
@@ -56,7 +60,7 @@ pub(crate) fn compute_trade_size(
 
     // Units
     let wad = U256::from(10u128.pow(18));
-    let (strike, iv, tau, int_ratio, gamma) = (
+    let (strike, iv, _tau, int_ratio, gamma) = (
         U256::from(pool_params.strike),
         U256::from(pool_params.volatility) * wad / U256::from(10u128.pow(4)),
         U256::from(31556953u128), // 1 year in seconds
@@ -95,11 +99,11 @@ pub(crate) fn compute_trade_size(
         * I256::from_raw(gamma)
         / I256::from_raw(wad);
 
-    let reserves = admin.call(portfolio, "getVirtualReservesDec", pool_id.into_tokens())?;
-    let reserves: (u128, u128) =
-        portfolio.decode_output("getVirtualReservesDec", unpack_execution(reserves)?)?;
+    let reserves = admin.call(portfolio, "getPoolReserves", pool_id.into_tokens())?;
+    let reserves: GetPoolReservesReturn =
+        portfolio.decode_output("getPoolReserves", unpack_execution(reserves)?)?;
 
-    let scaled_x_reserve = U256::from(reserves.0) * wad / gamma;
+    let scaled_x_reserve = U256::from(reserves.delta_asset) / gamma;
     let a = I256::from(delta_liquidity) * I256::from_raw(wad) / I256::from_raw(gamma)
         - cdf
         - I256::from_raw(scaled_x_reserve);
@@ -137,25 +141,17 @@ pub(crate) fn compute_trade_size(
     let scaled_cdf = scaled_cdf * U256::from(delta_liquidity) / wad;
     let cdf = I256::from_raw(scaled_cdf);
     // unscale reserves by shares
-    let x_reserve = U256::from(reserves.0) * wad / U256::from(delta_liquidity);
-    let y_reserve = U256::from(reserves.1) * wad / U256::from(delta_liquidity);
+    let x_reserve = reserves.delta_asset / U256::from(delta_liquidity);
+    let y_reserve = reserves.delta_quote / U256::from(delta_liquidity);
     println!("x_reserve: {} y_reserve: {}", x_reserve, y_reserve);
     // call invariant
-    let execution_result = admin.call(
-        arbiter_math,
-        "invariant",
-        (y_reserve, x_reserve, strike, iv, tau).into_tokens(),
-    )?;
-    println!(
-        "y: {} x: {} strike: {} iv: {} tau: {}",
-        y_reserve, x_reserve, strike, iv, tau
-    );
+    let execution_result = admin.call(portfolio, "getInvariant", (pool_id).into_tokens())?;
     println!("execution result: {:?}", execution_result);
     let unpacked_result = unpack_execution(execution_result)?;
-    let invariant: U256 = arbiter_math.decode_output("invariant", unpacked_result)?;
+    let invariant: U256 = portfolio.decode_output("getInvariant", unpacked_result)?;
     let b = cdf * I256::from_raw(wad) / I256::from_raw(gamma)
-        + I256::from_raw(invariant) * I256::from_raw(wad) / I256::from_raw(gamma)
-        - I256::from(reserves.1) * I256::from_raw(wad) / I256::from_raw(gamma);
+        + I256::from_raw(invariant) / I256::from_raw(gamma)
+        - I256::from_raw(reserves.delta_asset) / I256::from_raw(gamma);
     let arb_amount_y = b.max(I256::from(0));
     // bool for which asset is being sold.
     let pool = admin.call(portfolio, "pools", pool_id.into_tokens())?;
@@ -163,58 +159,58 @@ pub(crate) fn compute_trade_size(
 
     let pools_return: PoolsReturn = portfolio.decode_output("pools", unpack_execution(pool)?)?;
 
-    let (liquidity, reserve_x, reserve_y) = (
+    let (_, reserve_x, reserve_y) = (
         pools_return.liquidity,
         pools_return.virtual_x,
         pools_return.virtual_y,
     );
     println!("virtual reserves: {} {}", reserve_x, reserve_y);
 
+    let get_max_order_sell_asset = GetMaxOrderCall {
+        pool_id,
+        sell_asset: true,
+        swapper: H160::from(admin.address()),
+    };
+
     let max_input_x = admin.call(
         portfolio,
-        "computeMaxInput",
-        (
-            pool_id,
-            true,
-            U256::from(reserve_x) * wad / liquidity,
-            liquidity,
-        )
-            .into_tokens(),
+        "getMaxOrder",
+        get_max_order_sell_asset.into_tokens(),
     )?;
+
+    let get_max_order_buy_asset = GetMaxOrderCall {
+        pool_id,
+        sell_asset: false,
+        swapper: H160::from(admin.address()),
+    };
 
     let max_input_y = admin.call(
         portfolio,
-        "computeMaxInput",
-        (
-            pool_id,
-            false,
-            U256::from(reserve_y) * wad / liquidity,
-            liquidity,
-        )
-            .into_tokens(),
+        "getMaxOrder",
+        get_max_order_buy_asset.into_tokens(),
     )?;
 
-    let decoded_max_input_x: U256 =
-        portfolio.decode_output("computeMaxInput", unpack_execution(max_input_x)?)?;
-    let decoded_max_input_y: U256 =
-        portfolio.decode_output("computeMaxInput", unpack_execution(max_input_y)?)?;
+    let order_input_x: Order =
+        portfolio.decode_output("getMaxOrder", unpack_execution(max_input_x)?)?;
+    let order_input_y: Order =
+        portfolio.decode_output("getMaxOrder", unpack_execution(max_input_y)?)?;
 
-    println!("max_input_x: {:?}", decoded_max_input_x);
-    println!("max_input_y: {:?}", decoded_max_input_y);
+    println!("max_input_x: {:?}", order_input_x);
+    println!("max_input_y: {:?}", order_input_y);
 
     let fn_output = if arb_amount_x > I256::from(0) {
         let sell_asset = true;
         let input = arb_amount_x.into_raw();
-        if input > decoded_max_input_x {
-            ComputeArbOutput::new(true, decoded_max_input_x)
+        if input > U256::from(order_input_x.input) {
+            ComputeArbOutput::new(true, U256::from(order_input_x.input))
         } else {
             ComputeArbOutput::new(sell_asset, input)
         }
     } else {
         let sell_asset = false;
         let input = arb_amount_y.into_raw();
-        if input > decoded_max_input_y {
-            ComputeArbOutput::new(true, decoded_max_input_y)
+        if input > U256::from(order_input_y.input) {
+            ComputeArbOutput::new(true, U256::from(order_input_y.input))
         } else {
             ComputeArbOutput::new(sell_asset, input)
         }

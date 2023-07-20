@@ -128,7 +128,7 @@ pub async fn run(output_storage: OutputStorage) -> Result<(), Box<dyn Error>> {
         PriceProcessType::OU(ou),
         0.01,
         "trade".to_string(),
-        1,
+        500,
         1.0,
         1,
     );
