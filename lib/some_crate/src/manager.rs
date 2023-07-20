@@ -47,7 +47,7 @@ impl SimulationManager {
 }
 
 #[cfg(test)]
-mod tests {
+pub(crate) mod tests {
     use ethers::types::Address;
 
     use super::*;

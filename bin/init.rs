@@ -25,7 +25,7 @@ pub(crate) fn create_simulation(simulation_name: &str) -> std::io::Result<()> {
 
         // See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
         [dependencies]
-        simulate = {{ git = "https://github.com/primitivefinance/arbiter", package = "simulate" }}
+        revm_middleware = {{ git = "https://github.com/primitivefinance/arbiter", package = "revm-middleware" }}
     }
     .to_string();
 

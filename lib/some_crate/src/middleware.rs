@@ -3,45 +3,45 @@
 //! This module contains the middleware for the Revm simulation environment.
 //! Most of the middleware is essentially a placeholder, but it is necessary to have a middleware to work with bindings more efficiently.
 
-// TODO and notes:
-// We should be able to just implement middleware for the Simulation/RevmEnvironment.
-// If we do this, we can have the environment own Agents and also each agent will own a wallet.
-// We will have to see how we can let an agent make a call nicely, i.e., do something like
-// ```
-// writer = Writer::new(client, ());
-// writer.echo_string("hello world");
-// ```
-// Each contract instance like this will be associated to the sender and this environment must be able to be referenced by the agent.
-
+use ethers::prelude::pending_transaction::PendingTxState;
+use ethers::providers::{PendingTransaction, Provider};
 use ethers::{
     prelude::k256::ecdsa::SigningKey,
     prelude::ProviderError,
-    providers::{FilterWatcher, Middleware},
+    providers::{FilterWatcher, Middleware, MockProvider},
     signers::{Signer, Wallet},
     types::{transaction::eip2718::TypedTransaction, Address, BlockId, Bytes, Filter, Log},
 };
-use ethers_middleware::providers::MockProvider;
-use rand::{thread_rng, SeedableRng};
 use rand::rngs::StdRng;
-use revm::primitives::{TransactTo, TxEnv, B160, U256};
+use rand::SeedableRng;
+use revm::primitives::{CreateScheme, TransactTo, TxEnv, B160, U256, ExecutionResult, Output};
 use std::fmt::Debug;
 
 use crate::environment::Connection;
+use crate::utils::recast_address;
 
-// can an agent be be a struct? well API wants users
+// TODO: Refactor the connection and channels slightly to be more intuitive
 #[derive(Debug)]
 pub struct RevmMiddleware {
+    provider: Provider<MockProvider>,
     connection: Connection,
     wallet: Wallet<SigningKey>,
+    result_sender: crossbeam_channel::Sender<ExecutionResult>,
+    result_receiver: crossbeam_channel::Receiver<ExecutionResult>,
 }
 
-// We can let an agent create their own middleware that has their own environment
 impl RevmMiddleware {
-    pub(crate) fn new(connection: Connection) -> Self {
+    pub fn new(connection: Connection) -> Self {
+        let provider = Provider::new(MockProvider::new());
         let mut rng = StdRng::from_seed([1; 32]);
+        let wallet = Wallet::new(&mut rng);
+        let (result_sender, result_receiver) = crossbeam_channel::unbounded();
         Self {
+            provider,
             connection,
-            wallet: Wallet::new(&mut rng),
+            wallet,
+            result_sender,
+            result_receiver,
         }
     }
 }
@@ -59,32 +59,63 @@ impl Middleware for RevmMiddleware {
         &self
     }
 
+    fn provider(&self) -> &Provider<Self::Provider> {
+        &self.provider
+    }
+
     fn default_sender(&self) -> Option<Address> {
         Some(self.wallet.address())
     }
 
-    async fn fill_transaction(
+    async fn send_transaction<T: Into<TypedTransaction> + Send + Sync>(
         &self,
-        tx: &mut TypedTransaction,
-        _block: Option<BlockId>,
-    ) -> Result<(), Self::Error> {
-        // tx.set_from(self.address());
+        tx: T,
+        block: Option<BlockId>,
+    ) -> Result<PendingTransaction<'_, Self::Provider>, Self::Error> {
+        // TODO: This is just hacked together for now.
+        let mut tx: TypedTransaction = tx.into();
+        tx.set_from(self.wallet.address());
         println!("the tx is: {:?}", tx);
+        let transact_to = match tx.to_addr() {
+            Some(to) => TransactTo::Call(B160::from(*to)),
+            None => TransactTo::Create(CreateScheme::Create),
+        };
         let ethers_bytes = tx.data().unwrap().clone();
         let bytes = bytes::Bytes::from(ethers_bytes.to_vec());
-        let _tx_env = TxEnv {
+        let tx_env = TxEnv {
             caller: B160::from(*tx.from().unwrap()),
             gas_limit: u64::MAX,
             gas_price: U256::ZERO,
             gas_priority_fee: None,
-            transact_to: TransactTo::Call(B160::from(*tx.to_addr().unwrap())),
+            transact_to,
             value: U256::ZERO,
             data: bytes,
             chain_id: None,
             nonce: None,
             access_list: Vec::new(),
         };
-        Ok(())
+        // TODO: Modify this to work for calls/deploys
+        self.connection
+            .tx_sender
+            .send((tx_env.clone(), self.result_sender.clone()))
+            .unwrap();
+        let result = self.result_receiver.recv().unwrap();
+        let output = match result.clone() {
+            ExecutionResult::Success { output, .. } => output,
+            ExecutionResult::Revert { output, .. } => panic!("Failed due to revert: {:?}", output),
+            ExecutionResult::Halt { reason, .. } => panic!("Failed due to halt: {:?}", reason),
+        };
+        let address = match output {
+            Output::Create(_, address) => address.unwrap(),
+            _ => panic!("failed"),
+        };
+        println!("the tx_env is: {:?}", tx_env);
+        let mut pending_tx = PendingTransaction::new(ethers::types::H256::zero(), self.provider());
+        pending_tx.state = PendingTxState::RevmReceipt(recast_address(address));
+        println!("the pending tx is: {:?}", pending_tx);
+
+        // pending_tx.confirmations(1);
+        Ok(pending_tx)
     }
 
     async fn call(
@@ -108,12 +139,8 @@ impl Middleware for RevmMiddleware {
 }
 
 #[cfg(test)]
-mod tests {
+pub(crate) mod tests {
     use super::*;
-
-    fn default_sender() {
-        todo!("This should be an Agent's address")
-    }
 
     async fn send_transaction() {
         todo!("Send shouldn't be called as we just need to FILL transactions.")
@@ -123,47 +150,11 @@ mod tests {
         todo!("we should be able to call. We will have to consider adding a function to the `SimulationEnvironment` that uses `transact` and not `transact_commit`")
     }
 
-    async fn get_balance() {
-        todo!("we should be able to get the balance.")
-    }
-
-    async fn get_transaction() {
-        todo!("we should be able to get the transaction.")
-    }
-
-    async fn get_transaction_receipt() {
-        todo!("we should be able to get the transaction receipt.")
-    }
-
-    async fn get_gas_price() {
-        todo!("low priority, but we should be able to set and get gas price for our environment.")
-    }
-
     async fn get_logs() {
         todo!("we should be able to get logs.")
     }
 
-    async fn new_filter() {
-        todo!("we should be able to install a new filter.")
-    }
-
-    async fn uninstall_filter() {
-        todo!("we should be able to uninstall a filter.")
-    }
-
     async fn watch() {
         todo!("we should be able to watch. we already have this partially implemented for agents.")
-    }
-
-    async fn get_filter_changes() {
-        todo!("we should be able to get filter changes.")
-    }
-
-    async fn watch_blocks() {
-        todo!("we should be able to watch blocks.")
-    }
-
-    async fn get_code() {
-        todo!("we should be able to get code.")
     }
 }

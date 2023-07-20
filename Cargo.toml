@@ -55,7 +55,6 @@ quote = "1.0.28"
 url = { version = "2.3.1", default-features = false }
 
 # Execution
-ethers-flashbots = { version = "0.13.1" }
 futures = { version = "0.3.27" }
 
 # Development dependencies

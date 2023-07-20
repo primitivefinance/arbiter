@@ -1,14 +1,9 @@
 #![allow(missing_docs)]
 #![warn(unsafe_code)]
 
-// TODO:
-// # Notes
-// * The agent should be able to have multiple behaviors with different data types.
-// * The agent should be able to be created before being attached to an environment.
-
 use std::sync::Arc;
 
-use ethers_middleware::providers::Middleware;
+use ethers::providers::Middleware;
 
 use crate::{environment::Connection, middleware::RevmMiddleware};
 
@@ -45,8 +40,7 @@ impl<M: Middleware> Agent<M> {
             behaviors: vec![],
         }
     }
-    // TODO: We probably don't need static lifetimes. We could just set the lifetime of the environment and everything inside of it.
-    // The manager can outlive any environment.
+
     pub fn add_behavior<B>(&mut self, behavior: B)
     where
         B: Behavior + 'static,
@@ -65,10 +59,24 @@ pub trait Behavior: Send + Sync {
 
 #[cfg(test)]
 pub(crate) mod tests {
-    pub(crate) const TEST_ENV_LABEL: &str = "test_env";
     pub(crate) const TEST_AGENT_NAME: &str = "test_agent";
     pub(crate) const TEST_BEHAVIOR_DATA: &str = "test_behavior_data";
+
     use super::*;
+    use ethers::providers::{MockProvider, ProviderError};
+
+    #[derive(Debug)]
+    pub(crate) struct TestMiddleware {}
+
+    impl Middleware for TestMiddleware {
+        type Inner = Self;
+        type Provider = MockProvider;
+        type Error = ProviderError;
+
+        fn inner(&self) -> &Self::Inner {
+            self
+        }
+    }
 
     pub(crate) struct TestBehavior {
         data: String,
@@ -84,22 +92,17 @@ pub(crate) mod tests {
         }
     }
 
-    // #[tokio::test]
-    // async fn agent_behavior() {
-    //     let label = TEST_ENV_LABEL.to_string();
-    //     let name = TEST_AGENT_NAME.to_string();
-    //     let mut agent = Agent::new(
-    //         name,
-    //         Address::from_low_u64_be(1),
-    //         Arc::new(Environment::new(label)),
-    //     );
+    #[tokio::test]
+    async fn agent_behavior() {
+        let name = TEST_AGENT_NAME.to_string();
+        let mut agent = Agent::new(name, TestMiddleware {});
 
-    //     // Add a behavior of the first type.
-    //     let data = TEST_BEHAVIOR_DATA.to_string();
-    //     let behavior = TestBehavior { data };
-    //     agent.add_behavior(behavior);
-    //     assert!(agent.behaviors.len() == 1);
-    //     assert!(agent.behaviors[0].process_event().await);
-    //     agent.behaviors[0].sync_state();
-    // }
+        // Add a behavior of the first type.
+        let data = TEST_BEHAVIOR_DATA.to_string();
+        let behavior = TestBehavior { data };
+        agent.add_behavior(behavior);
+        assert!(agent.behaviors.len() == 1);
+        assert!(agent.behaviors[0].process_event().await);
+        agent.behaviors[0].sync_state();
+    }
 }
