@@ -30,7 +30,7 @@ pub(crate) type TxEnvReceiver = Receiver<(TxEnv, ExecutionSender)>;
 /// * `event_senders` - The senders on the event channel that is used to send events to the agents and simulation manager.
 pub struct SimulationEnvironment {
     /// The EVM that is used for the simulation.
-    pub(crate) evm: EVM<CacheDB<EmptyDB>>,
+    pub evm: EVM<CacheDB<EmptyDB>>,
     /// The sender on the event channel that is used to send events to the agents and simulation manager.
     pub(crate) event_broadcaster: Arc<Mutex<EventBroadcaster>>,
     /// The receiver of txs from agents.

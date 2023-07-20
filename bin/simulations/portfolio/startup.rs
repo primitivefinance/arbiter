@@ -2,7 +2,8 @@ use std::{collections::HashMap, error::Error};
 
 use bindings::{
     normal_strategy::{GetStrategyDataCall, GetStrategyDataReturn, NORMALSTRATEGY_ABI},
-    portfolio, simple_registry,
+    portfolio::{self, CreatePoolCall},
+    simple_registry,
 };
 use ethers::{
     abi::{Token, Tokenize},
@@ -26,7 +27,7 @@ pub(crate) fn run(
     manager: &mut SimulationManager,
     pool_args: PoolParams,
     delta_liquidity: i128,
-) -> Result<(PoolArgs, u64), Box<dyn Error>> {
+) -> Result<(CreatePoolCall, u64), Box<dyn Error>> {
     // define the wad constant
     // let decimals = 18_u8;
     // let wad: U256 = U256::from(10_i64.pow(decimals as u32));
@@ -141,7 +142,6 @@ fn deploy_contracts(manager: &mut SimulationManager) -> Result<(), Box<dyn Error
     )
         .into_tokens();
     let (portfolio, result) = admin.deploy(portfolio, portfolio_args)?;
-    println!("{:?}", portfolio);
     assert!(result.is_success());
     println!("Portfolio deployed at: {}", portfolio.address);
     manager
@@ -155,7 +155,10 @@ fn deploy_contracts(manager: &mut SimulationManager) -> Result<(), Box<dyn Error
     let default_strategy_bytes = B160::from(default_strategy.as_fixed_bytes());
     let strategy_contract =
         SimulationContract::bind(NORMALSTRATEGY_ABI.clone(), default_strategy_bytes);
-    println!("strategy contract: {:?}", strategy_contract);
+    manager
+        .deployed_contracts
+        .insert("strategy".to_string(), strategy_contract);
+    println!("Strategy deployed at: {}", default_strategy);
     Ok(())
 }
 
@@ -291,10 +294,11 @@ fn pool_intitalization(
     admin: &AgentType<IsActive>,
     contracts: &HashMap<String, SimulationContract<IsDeployed>>,
     pool_args: PoolParams,
-) -> Result<(PoolArgs, u64), Box<dyn Error>> {
+) -> Result<(CreatePoolCall, u64), Box<dyn Error>> {
     let arbiter_token_x = contracts.get("arbiter_token_x").unwrap();
     let arbiter_token_y = contracts.get("arbiter_token_y").unwrap();
     let portfolio = contracts.get("portfolio").unwrap();
+    let strategy_contract = contracts.get("strategy").unwrap();
 
     // --------------------------------------------------------------------------------------------
     // CREATE PORTFOLIO PAIR
@@ -315,36 +319,42 @@ fn pool_intitalization(
     // CREATE PORTFOLIO POOL
     // --------------------------------------------------------------------------------------------
     let strategy_args: GetStrategyDataCall = GetStrategyDataCall {
-        strike_price_wad: U256::from(1_000_000_000_000_000_000_i128),
-        volatility_basis_points: U256::from(1_000_000_000_000_000_000_i128),
-        duration_seconds: U256::from(65535),
+        strike_price_wad: U256::from(pool_args.strike),
+        volatility_basis_points: U256::from(pool_args.volatility),
+        duration_seconds: U256::from(pool_args.duration),
         is_perpetual: true,
-        price_wad: U256::from(1_000_000_000_000_000_000_i128),
+        price_wad: U256::from(pool_args.price),
     };
-    let strategy = admin.call(portfolio, "getStrategyData", strategy_args.into_tokens())?;
+    println!("Strategy Args: {:#?}", strategy_args);
+    let strategy = admin.call(
+        strategy_contract,
+        "getStrategyData",
+        strategy_args.into_tokens(),
+    )?;
     let strategy_unpack = unpack_execution(strategy)?;
+    println!("Strategy Unpack: {:#?}", strategy_unpack);
     let strategy_data: GetStrategyDataReturn =
-        portfolio.decode_output("getStrategyData", strategy_unpack)?;
+        strategy_contract.decode_output("getStrategyData", strategy_unpack)?;
 
     println!("Strategy Data: {:#?}", strategy_data);
 
-    let create_pool_args = (
-        pair_id,                         // pub pair_id: u32
-        recast_address(admin.address()), /* pub controller: ::ethers::core::types::Address */
-        pool_args.priority_fee,          // pub priority_fee: u16,
-        pool_args.fee,                   // pub fee: u16,
-        pool_args.volatility,            // pub vol: u16,
-        pool_args.duration,              // pub dur: u16,
-        pool_args.strike,                // pub max_price: u128,
-        pool_args.price,                 // pub price: u128,
-    );
+    let create_pool_args: CreatePoolCall = CreatePoolCall {
+        pair_id, // pub pair_id: u32
+        reserve_x_per_wad: strategy_data.initial_x,
+        reserve_y_per_wad: strategy_data.initial_y,
+        fee_basis_points: pool_args.fee, // pub fee: u16,
+        priority_fee_basis_points: pool_args.priority_fee, // pub priority_fee: u16,
+        controller: recast_address(admin.address()), /* pub controller: ::ethers::core::types::Address */
+        data: strategy_data.strategy_data,
+    };
+    let args = create_pool_args.clone();
     let create_pool_result = admin.call(portfolio, "createPool", create_pool_args.into_tokens())?;
 
     assert!(create_pool_result.is_success());
     let create_pool_unpack = unpack_execution(create_pool_result)?;
     let pool_id: u64 = portfolio.decode_output("createPool", create_pool_unpack)?;
     println!("Created Portfolio pool with PoolID: {:#?}", pool_id);
-    Ok((create_pool_args, pool_id))
+    Ok((args, pool_id))
 }
 
 fn allocate(

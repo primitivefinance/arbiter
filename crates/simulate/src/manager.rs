@@ -16,7 +16,10 @@ use ethers::{
     abi::{Token, Tokenize},
     types::U256,
 };
-use revm::primitives::{AccountInfo, Address, B160, U256 as rU256};
+use revm::{
+    db::{CacheDB, DbAccount, EmptyDB},
+    primitives::{AccountInfo, Address, Bytecode, HashMap as rHashMap, B160, B256, U256 as rU256},
+};
 
 use crate::{
     agent::{
@@ -89,6 +92,7 @@ impl SimulationManager {
 
         simulation_manager
     }
+
     /// generic contract deploy function that takse a vector of contracts and constructor args
     pub fn _deploy_contracts(
         mut self,
