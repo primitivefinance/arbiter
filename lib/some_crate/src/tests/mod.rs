@@ -1,8 +1,5 @@
 #[allow(missing_docs)]
 #[cfg(test)]
-// TODO: Add contract bindings and integration tests here.
-// We need to test things like: having managers create environments with agents that run.
-// This will lead to testing out transactions and contract calls.
 use std::str::FromStr;
 
 use anyhow::Result;
@@ -10,11 +7,13 @@ use ethers::{prelude::Middleware, types::Address};
 
 use crate::{
     agent::{tests::*, *},
+    bindings::writer::*,
     environment::{tests::*, *},
     manager::{tests::*, *},
     middleware::{tests::*, *},
-    bindings::writer::*,
 };
+
+const TEST_STRING: &str = "Hello, world!";
 
 #[test]
 /// Test that the writer contract can echo a string.
@@ -49,31 +48,49 @@ fn simulation_agent_wallet() {
     );
 }
 
-#[tokio::test]
-async fn deploy() -> Result<()> {
+
+// TODO: Replace this all with arbitertoken tests and remove the writer contract
+async fn deploy() -> Result<Writer<RevmMiddleware>> {
     let mut environment = Environment::new(TEST_ENV_LABEL.to_string());
     environment.run();
     let agent =
         Agent::new_simulation_agent(TEST_AGENT_NAME.to_string(), environment.provider.connection);
-    let writer = Writer::deploy(agent.client, ())?.send().await?;
-    println!("Contract: {:#?}", writer);
-    assert_eq!(writer.address(), Address::from_str("0x6b1d802fba7ec153ece61bb06f1c5580c3025233").unwrap());
-    Ok(())
-
-
+    Ok(Writer::deploy(agent.client, ())?.send().await?)
 }
 
-const TEST_STRING: &str = "Hello, world!";
 #[tokio::test]
-async fn transaction() {
-    let label = TEST_ENV_LABEL.to_string();
-    let name = TEST_AGENT_NAME.to_string();
+async fn test_deploy() -> Result<()> {
+    let writer = deploy().await?;
+    assert_eq!(
+        writer.address(),
+        Address::from_str("0x6b1d802fba7ec153ece61bb06f1c5580c3025233").unwrap()
+    );
+    Ok(())
+}
 
-    // let mut environment = Arc::new(Environment::new(label));
-    // let mut agent = Agent::new;
-    // environment.add_agent(agent);
+#[tokio::test]
+async fn call() -> Result<()> {
+    let writer = deploy().await?;
+    let echo_string = writer.echo_string(TEST_STRING.to_string());
+    let output = echo_string.call().await?;
+    assert_eq!(output, TEST_STRING.to_string());
+    Ok(())
+}
 
-    // let dummy_address = Address::from_low_u64_be(0);
-    // let writer = Writer::new(dummy_address, Arc::clone(&agent.provider));
-    // let writer = writer.echo_string(TEST_STRING.to_string()).send().await;
+#[tokio::test]
+async fn transact() -> Result<()> {
+    let writer = deploy().await?;
+    let echo_string = writer.echo_string(TEST_STRING.to_string());
+    let receipt = echo_string.send().await?.await?.unwrap();
+    Ok(())
+}
+
+#[tokio::test]
+async fn watch() {
+    todo!()
+}
+
+#[tokio::test]
+async fn filter_watcher() {
+    todo!()
 }

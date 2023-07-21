@@ -21,9 +21,10 @@ use thiserror::Error;
 use crate::{agent::Agent, middleware::RevmMiddleware};
 use ethers::contract::Contract;
 /// Type Aliases for the event channel.
+pub(crate) type ToTransact = bool;
 pub(crate) type ExecutionSender = Sender<ExecutionResult>;
-pub(crate) type TxEnvSender = Sender<(TxEnv, ExecutionSender)>;
-pub(crate) type TxEnvReceiver = Receiver<(TxEnv, ExecutionSender)>;
+pub(crate) type TxEnvSender = Sender<(ToTransact, TxEnv, ExecutionSender)>;
+pub(crate) type TxEnvReceiver = Receiver<(ToTransact, TxEnv, ExecutionSender)>;
 
 #[derive(Debug, Eq, PartialEq, Clone, Copy)]
 pub enum State {
@@ -98,7 +99,7 @@ impl Environment {
         evm.database(db);
         evm.env.cfg.limit_contract_code_size = Some(0x100000); // This is a large contract size limit, beware!
         evm.env.block.gas_limit = U256::MAX;
-        let transaction_channel = unbounded::<(TxEnv, Sender<ExecutionResult>)>();
+        let transaction_channel = unbounded::<(ToTransact, TxEnv, Sender<ExecutionResult>)>();
         let connection = Connection {
             tx_sender: transaction_channel.0,
             tx_receiver: transaction_channel.1,
@@ -127,20 +128,28 @@ impl Environment {
 
         //give all agents their own thread and let them start watching for their evnts
         thread::spawn(move || {
-            while let Ok((tx, sender)) = tx_receiver.recv() {
-                // Execute the transaction, echo the logs to all agents, and report the execution result to the agent who made the call.
+            while let Ok((to_transact, tx, sender)) = tx_receiver.recv() {
+                // Execute the transaction, echo the logs to all agents, and report the execution result to the agent who made the transaction.
                 evm.env.tx = tx;
-                let execution_result = match evm.transact_commit() {
-                    Ok(val) => val,
-                    // URGENT: change this to a custom error
-                    Err(_) => panic!("failed"),
-                };
-                event_broadcaster
-                    .lock()
-                    .unwrap()
-                    .broadcast(execution_result.logs());
-                sender.send(execution_result).unwrap();
-                let db = evm.db().unwrap();
+                if to_transact {
+                    let execution_result = match evm.transact_commit() {
+                        Ok(val) => val,
+                        // URGENT: change this to a custom error
+                        Err(_) => panic!("failed"),
+                    };
+                    event_broadcaster
+                        .lock()
+                        .unwrap()
+                        .broadcast(execution_result.logs());
+                    sender.send(execution_result).unwrap();
+                } else {
+                    let execution_result = match evm.transact() {
+                        Ok(val) => val,
+                        // URGENT: change this to a custom error
+                        Err(_) => panic!("failed"),
+                    };
+                    sender.send(execution_result.result).unwrap();
+                }
             }
         });
     }
@@ -203,8 +212,6 @@ impl EventBroadcaster {
 #[cfg(test)]
 pub(crate) mod tests {
     use super::*;
-    use crate::bindings::writer::Writer;
-    use anyhow::Result;
 
     pub(crate) const TEST_ENV_LABEL: &str = "test";
 

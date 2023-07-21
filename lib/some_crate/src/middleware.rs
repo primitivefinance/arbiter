@@ -14,7 +14,7 @@ use ethers::{
 };
 use rand::rngs::StdRng;
 use rand::SeedableRng;
-use revm::primitives::{CreateScheme, TransactTo, TxEnv, B160, U256, ExecutionResult, Output};
+use revm::primitives::{CreateScheme, ExecutionResult, Output, TransactTo, TxEnv, B160, U256};
 use std::fmt::Debug;
 
 use crate::environment::Connection;
@@ -67,21 +67,21 @@ impl Middleware for RevmMiddleware {
         Some(self.wallet.address())
     }
 
+    /// sending a transaction to revm is the same as committing a transaction and it won't return the output of the call but will cause logs to echo. Deploys are ran through here as well.
     async fn send_transaction<T: Into<TypedTransaction> + Send + Sync>(
         &self,
         tx: T,
         block: Option<BlockId>,
     ) -> Result<PendingTransaction<'_, Self::Provider>, Self::Error> {
-        // TODO: This is just hacked together for now.
         let mut tx: TypedTransaction = tx.into();
         tx.set_from(self.wallet.address());
-        println!("the tx is: {:?}", tx);
+
+        // Check the `to` field of the transaction to determine if it is a call or a deploy.
+        // If there is no `to` field, then it is a `Deploy` else it is a `Call`.
         let transact_to = match tx.to_addr() {
             Some(to) => TransactTo::Call(B160::from(*to)),
             None => TransactTo::Create(CreateScheme::Create),
         };
-        let ethers_bytes = tx.data().unwrap().clone();
-        let bytes = bytes::Bytes::from(ethers_bytes.to_vec());
         let tx_env = TxEnv {
             caller: B160::from(*tx.from().unwrap()),
             gas_limit: u64::MAX,
@@ -89,7 +89,7 @@ impl Middleware for RevmMiddleware {
             gas_priority_fee: None,
             transact_to,
             value: U256::ZERO,
-            data: bytes,
+            data: bytes::Bytes::from(tx.data().unwrap().clone().to_vec()),
             chain_id: None,
             nonce: None,
             access_list: Vec::new(),
@@ -97,7 +97,7 @@ impl Middleware for RevmMiddleware {
         // TODO: Modify this to work for calls/deploys
         self.connection
             .tx_sender
-            .send((tx_env.clone(), self.result_sender.clone()))
+            .send((true, tx_env.clone(), self.result_sender.clone()))
             .unwrap();
         let result = self.result_receiver.recv().unwrap();
         let output = match result.clone() {
@@ -105,25 +105,70 @@ impl Middleware for RevmMiddleware {
             ExecutionResult::Revert { output, .. } => panic!("Failed due to revert: {:?}", output),
             ExecutionResult::Halt { reason, .. } => panic!("Failed due to halt: {:?}", reason),
         };
-        let address = match output {
-            Output::Create(_, address) => address.unwrap(),
-            _ => panic!("failed"),
-        };
-        println!("the tx_env is: {:?}", tx_env);
-        let mut pending_tx = PendingTransaction::new(ethers::types::H256::zero(), self.provider());
-        pending_tx.state = PendingTxState::RevmReceipt(recast_address(address));
-        println!("the pending tx is: {:?}", pending_tx);
+        match output {
+            Output::Create(_, address) => {
+                let mut pending_tx =
+                    PendingTransaction::new(ethers::types::H256::zero(), self.provider());
+                pending_tx.state = PendingTxState::RevmReceipt(recast_address(address.unwrap()));
+                return Ok(pending_tx);
+            }
+            Output::Call(bytes) => {
+                let mut pending_tx =
+                    PendingTransaction::new(ethers::types::H256::zero(), self.provider());
+                pending_tx.state = PendingTxState::RevmReceipt(Address::from_low_u64_be(1));
+                return Ok(pending_tx);
+            }
+        }
 
-        // pending_tx.confirmations(1);
-        Ok(pending_tx)
+        // TODO: we can use `let data = decode_function_data(&self.function, &bytes, false)?;` to get the data out of a function call
     }
 
+    /// Makes a call to revm that will not commit a state change to the DB. Can be used for a mock transaction
     async fn call(
         &self,
-        _tx: &TypedTransaction,
+        tx: &TypedTransaction,
         _block: Option<BlockId>,
     ) -> Result<Bytes, Self::Error> {
-        todo!("we should be able to call. We will have to consider adding a function to the `SimulationEnvironment` that uses `transact` and not `transact_commit`")
+        let mut tx = tx.clone();
+        tx.set_from(self.wallet.address());
+
+        // Check the `to` field of the transaction to determine if it is a call or a deploy.
+        // If there is no `to` field, then it is a `Deploy` else it is a `Call`.
+        let transact_to = match tx.to_addr() {
+            Some(to) => TransactTo::Call(B160::from(*to)),
+            None => TransactTo::Create(CreateScheme::Create),
+        };
+        let tx_env = TxEnv {
+            caller: B160::from(*tx.from().unwrap()),
+            gas_limit: u64::MAX,
+            gas_price: U256::ZERO,
+            gas_priority_fee: None,
+            transact_to,
+            value: U256::ZERO,
+            data: bytes::Bytes::from(tx.data().unwrap().clone().to_vec()),
+            chain_id: None,
+            nonce: None,
+            access_list: Vec::new(),
+        };
+        // TODO: Modify this to work for calls/deploys
+        self.connection
+            .tx_sender
+            .send((false, tx_env.clone(), self.result_sender.clone()))
+            .unwrap();
+        let result = self.result_receiver.recv().unwrap();
+        let output = match result.clone() {
+            ExecutionResult::Success { output, .. } => output,
+            ExecutionResult::Revert { output, .. } => panic!("Failed due to revert: {:?}", output),
+            ExecutionResult::Halt { reason, .. } => panic!("Failed due to halt: {:?}", reason),
+        };
+        match output {
+            Output::Create(bytes, ..) => {
+                return Ok(Bytes::from(bytes.to_vec()));
+            }
+            Output::Call(bytes) => {
+                return Ok(Bytes::from(bytes.to_vec()));
+            }
+        }
     }
 
     async fn get_logs(&self, _filter: &Filter) -> Result<Vec<Log>, Self::Error> {

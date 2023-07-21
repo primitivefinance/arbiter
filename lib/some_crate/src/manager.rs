@@ -48,10 +48,8 @@ impl SimulationManager {
 
 #[cfg(test)]
 pub(crate) mod tests {
-    use ethers::types::Address;
 
     use super::*;
-    use crate::bindings::writer::Writer;
 
     #[test]
     fn new_manager() {
