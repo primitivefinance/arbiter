@@ -7,13 +7,17 @@ use ethers::{prelude::Middleware, types::Address};
 
 use crate::{
     agent::{tests::*, *},
-    bindings::writer::*,
+    bindings::arbiter_token::*,
     environment::{tests::*, *},
     manager::{tests::*, *},
     middleware::{tests::*, *},
 };
 
-const TEST_STRING: &str = "Hello, world!";
+const TEST_ARG_NAME: &str = "ArbiterToken";
+const TEST_ARG_SYMBOL: &str = "ARBT";
+const TEST_ARG_DECIMALS: u8 = 18;
+const TEST_MINT_AMOUNT: u128 = 1;
+const TEST_MINT_TO: &str = "0xf7e93cc543d97af6632c9b8864417379dba4bf15";
 
 #[test]
 /// Test that the writer contract can echo a string.
@@ -50,19 +54,20 @@ fn simulation_agent_wallet() {
 
 
 // TODO: Replace this all with arbitertoken tests and remove the writer contract
-async fn deploy() -> Result<Writer<RevmMiddleware>> {
+async fn deploy() -> Result<ArbiterToken<RevmMiddleware>> {
     let mut environment = Environment::new(TEST_ENV_LABEL.to_string());
     environment.run();
     let agent =
         Agent::new_simulation_agent(TEST_AGENT_NAME.to_string(), environment.provider.connection);
-    Ok(Writer::deploy(agent.client, ())?.send().await?)
+    Ok(ArbiterToken::deploy(agent.client, (TEST_ARG_NAME.to_string(), TEST_ARG_SYMBOL.to_string(), TEST_ARG_DECIMALS))?.send().await?)
 }
 
 #[tokio::test]
 async fn test_deploy() -> Result<()> {
-    let writer = deploy().await?;
+    let arbiter_token = deploy().await?;
+    println!("{:?}", arbiter_token);
     assert_eq!(
-        writer.address(),
+        arbiter_token.address(),
         Address::from_str("0x6b1d802fba7ec153ece61bb06f1c5580c3025233").unwrap()
     );
     Ok(())
@@ -70,18 +75,18 @@ async fn test_deploy() -> Result<()> {
 
 #[tokio::test]
 async fn call() -> Result<()> {
-    let writer = deploy().await?;
-    let echo_string = writer.echo_string(TEST_STRING.to_string());
-    let output = echo_string.call().await?;
-    assert_eq!(output, TEST_STRING.to_string());
+    let arbiter_token = deploy().await?;
+    let admin = arbiter_token.admin();
+    let output = admin.call().await?;
+    assert_eq!(output, Address::from_str("0xf7e93cc543d97af6632c9b8864417379dba4bf15")?);
     Ok(())
 }
 
 #[tokio::test]
 async fn transact() -> Result<()> {
-    let writer = deploy().await?;
-    let echo_string = writer.echo_string(TEST_STRING.to_string());
-    let receipt = echo_string.send().await?.await?.unwrap();
+    let arbiter_token = deploy().await?;
+    let mint = arbiter_token.mint(Address::from_str(TEST_MINT_TO).unwrap(), ethers::types::U256::from(TEST_MINT_AMOUNT));
+    let receipt = mint.send().await?.await?.unwrap();
     Ok(())
 }
 
