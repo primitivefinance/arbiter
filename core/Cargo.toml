@@ -1,7 +1,7 @@
 # Package configuration
 [package]
-name = "some-crate"
-version = "0.2.0"
+name = "core"
+version = "0.3.0"
 edition = "2021"
 
 # Dependency configuration
