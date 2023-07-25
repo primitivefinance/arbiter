@@ -1,153 +1,134 @@
-use quote::quote;
-use std::fs;
-use std::io::Write;
-use std::path::Path;
+use std::{
+    fs::{self, File, OpenOptions},
+    io::{Read, Write},
+};
+use toml::value::{Table, Value};
+
+const MAIN: &str = r#"
+use std::error::Error;
+
+pub fn run() -> Result<(), Box<dyn Error>> {
+    todo!()
+}
+"#;
 
 pub(crate) fn create_simulation(simulation_name: &str) -> std::io::Result<()> {
-    let main = quote! {
-        mod simulations;
+    // move the src dir to contracts
+    fs::rename("src", "contracts")?;
 
-        fn main() {
-            let _ = simulations::testsim::run();
-        }
-    }
-    .to_string();
+    // Update path
+    update_import_paths("test/Counter.t.sol")?;
 
-    let toml = quote! {
-        [package]
-        name = "arbitersim"
-        version = "0.1.0"
-        edition = "2021"
+    // change foundry.toml to point to contracts
+    rewrite_foundry_toml()?;
 
-        [[bin]]
-        name = {simulation_name}
-        path = "arbiter/src/main.rs"
+    // make the dirs
+    fs::create_dir_all("src/bindings")?;
+    fs::create_dir_all("src/simulations")?;
+    let sim_path = format!("src/simulations/{}", simulation_name);
+    fs::create_dir_all(sim_path)?;
 
-        // See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-        [dependencies]
-        simulate = {{ git = "https://github.com/primitivefinance/arbiter", package = "simulate" }}
-    }
-    .to_string();
+    // Add bidings to gitignore
+    add_to_gitignore("src/bindings")?;
 
-    let mod_rs = quote! {
-        use std::error::Error;
+    // write the cargo toml
+    write_cargo_toml(simulation_name)?;
 
-        pub fn run() -> Result<(), Box<dyn Error>> {
-            todo!()
-        }
-    }
-    .to_string();
-
-    let startup = quote! {
-            pub(crate) fn run(manager: &mut SimulationManager) -> Result<(), Box<dyn Error>> {
-                let weth_address = manager.deployed_contracts.get("weth").unwrap().address;
-                deploy_contracts(manager, weth_address)?;
-                let liquid_exchange_xy = manager
-                    .deployed_contracts
-                    .get("liquid_exchange_xy")
-                    .unwrap();
-                let address = B160::from_low_u64_be(2);
-                let event_filters = vec![SimulationEventFilter::new(
-                    liquid_exchange_xy,
-                    "PriceChange",
-                )];
-                let arbitrageur = SimpleArbitrageur::new(
-                    "arbitrageur",
-                    event_filters,
-                    U256::from(997_000_000_000_000_000u128).into(),
-                );
-                manager
-                    .activate_agent(AgentType::SimpleArbitrageur(arbitrageur), address)
-                    .unwrap();
-
-                mint(
-                    &manager.deployed_contracts,
-                    manager.agents.get("admin").unwrap(),
-                    manager.agents.get("arbitrageur").unwrap(),
-                )?;
-                approve(
-                    manager.agents.get("admin").unwrap(),
-                    manager.agents.get("arbitrageur").unwrap(),
-                    &manager.deployed_contracts,
-                )?;
-
-                allocate(
-                    manager.agents.get("admin").unwrap(),
-                    &manager.deployed_contracts,
-                )?;
-
-                Ok(())
-        }
-        pub fn deploy() {
-        todo!()
-        }
-
-        pub fn mint() {
-        todo!()
-        }
-
-        pub fn approve() {
-        todo!()
-        }
-
-        pub fn allocate() {
-        todo!()
-        }
-    }
-    .to_string();
-
-    // Create a directory
-    fs::create_dir_all("arbiter")?;
-
-    // Create a subdirectory
-
-    let src_path = Path::new("arbiter").join("src");
-    fs::create_dir_all(&src_path)?;
-
-    let bindings_path = src_path.join("bindings");
-    fs::create_dir_all(bindings_path)?;
-
-    let simulations_path = src_path.join("simulations");
-    fs::create_dir_all(&simulations_path)?;
-
-    let sim = simulations_path.join(simulation_name);
-    fs::create_dir_all(&sim)?;
-
-    // Create a file in the subdirectory
-    let file_path = Path::new(".").join("Cargo.toml");
+    // Write to mod.rs
+    let file_path = format!("src/simulations/{}/mod.rs", simulation_name);
     let mut file = fs::File::create(file_path)?;
-    let toml_token = quote! {#toml};
-    write!(file, "{}", toml_token)?;
+    file.write_all(format!("pub mod {};", simulation_name).as_bytes())?;
 
-    let file_path = simulations_path.join("mod.rs");
-    let mut file = fs::File::create(file_path)?;
-    let mod_token = quote! {
-        pub mod #simulation_name;
-    };
-    write!(file, "{}", mod_token)?;
-
-    let file_path = sim.join("mod.rs");
-    let mut file = fs::File::create(file_path)?;
-    let mod_rs_token = quote! {#mod_rs};
-    write!(file, "{}", mod_rs_token)?;
-
-    let file_path = sim.join("startup.rs");
-    let mut file = fs::File::create(file_path)?;
-    let startup_token = quote! {#startup};
-    write!(file, "{}", startup_token)?;
-
-    let file_path = sim.join("arbitrage.rs");
-    fs::File::create(file_path)?;
-
-    let file_path = src_path.join("main.rs");
-    let mut file = fs::File::create(file_path)?;
-    let main_token = quote! {#main};
-    write!(file, "{}", main_token)?;
+    // Write to main.rs
+    let mut file = fs::File::create("src/main.rs")?;
+    file.write_all(MAIN.as_bytes())?;
 
     Ok(())
 }
 
-#[test]
-fn main() {
-    create_simulation("portfolio").unwrap();
+fn write_cargo_toml(name: &str) -> std::io::Result<()> {
+    let mut cargo_toml = Table::new();
+
+    // [package]
+    let mut package = Table::new();
+    package.insert("name".to_string(), Value::String(name.to_string()));
+    package.insert("version".to_string(), Value::String("0.1.0".to_string()));
+    package.insert("edition".to_string(), Value::String("2021".to_string()));
+    cargo_toml.insert("package".to_string(), Value::Table(package));
+
+    // [[bin]]
+    let mut bin = Table::new();
+    bin.insert("name".to_string(), Value::String(name.to_string()));
+    bin.insert(
+        "path".to_string(),
+        Value::String("arbiter/src/main.rs".to_string()),
+    );
+    cargo_toml.insert("bin".to_string(), Value::Array(vec![Value::Table(bin)]));
+
+    // [dependencies]
+    let mut simulate = Table::new();
+    simulate.insert(
+        "git".to_string(),
+        Value::String("https://github.com/primitivefinance/arbiter".to_string()),
+    );
+    simulate.insert("package".to_string(), Value::String("simulate".to_string()));
+    let mut dependencies = Table::new();
+    dependencies.insert("simulate".to_string(), Value::Table(simulate));
+    cargo_toml.insert("dependencies".to_string(), Value::Table(dependencies));
+
+    // Write to a file
+    let toml = toml::to_string(&cargo_toml).expect("Failed to serialize the TOML");
+    let mut file = File::create("Cargo.toml").expect("Could not create file");
+    file.write_all(toml.as_bytes())
+        .expect("Could not write to file");
+    Ok(())
+}
+
+fn _write_arbiter_toml() -> std::io::Result<()> {
+    todo!("write arbiter toml");
+}
+
+fn rewrite_foundry_toml() -> std::io::Result<()> {
+    // Load existing file
+    let mut file = File::open("foundry.toml")?;
+    let mut contents = String::new();
+    file.read_to_string(&mut contents)?;
+
+    // Parse toml and modify it
+    let mut config: Value = contents.parse().expect("Failed to parse TOML");
+    config["profile"]["default"]["src"] = Value::String("contracts".to_string());
+
+    // Write modified config back to file
+    let modified_config = toml::to_string(&config).expect("Failed to serialize TOML");
+    let mut file = File::create("foundry.toml")?;
+    file.write_all(modified_config.as_bytes())?;
+
+    Ok(())
+}
+
+fn update_import_paths(file_path: &str) -> std::io::Result<()> {
+    // Read the file to a String.
+    let content = fs::read_to_string(file_path)?;
+
+    // Replace "src" with "contracts".
+    let updated_content = content.replace("src", "contracts");
+
+    // Write the updated content back to the file.
+    fs::write(file_path, updated_content)?;
+
+    Ok(())
+}
+
+fn add_to_gitignore(path: &str) -> std::io::Result<()> {
+    // Open the file in append mode (or create it if it doesn't exist yet)
+    let mut file = OpenOptions::new()
+        .write(true)
+        .append(true)
+        .create(true)
+        .open(".gitignore")?;
+
+    // Add a newline and the path to the end of the file
+    writeln!(file, "{}", path)?;
+
+    Ok(())
 }

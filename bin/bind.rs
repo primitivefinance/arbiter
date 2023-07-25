@@ -6,7 +6,7 @@ pub(crate) fn bind_forge() -> std::io::Result<()> {
         .arg("--revert-strings")
         .arg("debug")
         .arg("-b")
-        .arg("arbiter/src/bindings/")
+        .arg("src/bindings/")
         .arg("--module")
         .arg("--overwrite")
         .output()?;
@@ -14,6 +14,7 @@ pub(crate) fn bind_forge() -> std::io::Result<()> {
     if output.status.success() {
         let output_str = String::from_utf8_lossy(&output.stdout);
         println!("Command output: {}", output_str);
+        println!("Note: revert strings are on");
         Ok(())
     } else {
         let err_str = String::from_utf8_lossy(&output.stderr);
