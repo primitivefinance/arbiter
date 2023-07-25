@@ -2,7 +2,7 @@
 [workspace]
 # List of crates included in this workspace
 members = [
-    "lib/some_crate",
+    "core",
 ]
 
 # Package configuration
@@ -21,7 +21,7 @@ path = "bin/main.rs"
 # Dependency configuration
 [dependencies]
 # Local dependencies
-some-crate = { path = "lib/some_crate" }
+core = { path = "core" }
 # TODO get a better name for this, it's the "arbiterapi"
 # Arbiter Binary is CLI should have the namespace "arbiter" on crates.io
 
@@ -55,7 +55,6 @@ quote = "1.0.28"
 url = { version = "2.3.1", default-features = false }
 
 # Execution
-ethers-flashbots = { version = "0.13.1" }
 futures = { version = "0.3.27" }
 
 # Development dependencies
