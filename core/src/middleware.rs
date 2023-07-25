@@ -18,7 +18,7 @@ use revm::primitives::{CreateScheme, ExecutionResult, Output, TransactTo, TxEnv,
 use std::fmt::Debug;
 
 use crate::environment::Connection;
-use crate::utils::recast_address;
+use crate::utils::{recast_address, recast_b256};
 
 // TODO: Refactor the connection and channels slightly to be more intuitive
 #[derive(Debug)]
@@ -100,8 +100,8 @@ impl Middleware for RevmMiddleware {
             .send((true, tx_env.clone(), self.result_sender.clone()))
             .unwrap();
         let result = self.result_receiver.recv().unwrap();
-        let output = match result.clone() {
-            ExecutionResult::Success { output, .. } => output,
+        let (output, revm_logs) = match result.clone() {
+            ExecutionResult::Success { output, logs, .. } => (output, logs),
             ExecutionResult::Revert { output, .. } => panic!("Failed due to revert: {:?}", output),
             ExecutionResult::Halt { reason, .. } => panic!("Failed due to halt: {:?}", reason),
         };
@@ -109,13 +109,32 @@ impl Middleware for RevmMiddleware {
             Output::Create(_, address) => {
                 let mut pending_tx =
                     PendingTransaction::new(ethers::types::H256::zero(), self.provider());
-                pending_tx.state = PendingTxState::RevmReceipt(recast_address(address.unwrap()));
+                pending_tx.state = PendingTxState::RevmDeployOutput(recast_address(address.unwrap()));
                 return Ok(pending_tx);
             }
-            Output::Call(bytes) => {
+            Output::Call(_) => {
                 let mut pending_tx =
                     PendingTransaction::new(ethers::types::H256::zero(), self.provider());
-                pending_tx.state = PendingTxState::RevmReceipt(Address::from_low_u64_be(1));
+                let mut logs: Vec<ethers::core::types::Log> = vec![];
+                for revm_log in revm_logs {
+                    let topics = revm_log.topics.into_iter().map(|x| recast_b256(x)).collect();
+                    let log = ethers::core::types::Log {
+                        address: recast_address(revm_log.address),
+                        topics: topics,
+                        data: ethers::core::types::Bytes::from(revm_log.data),
+                        block_hash: None,
+                        block_number: None,
+                        transaction_hash: None,
+                        transaction_index: None,
+                        log_index: None,
+                        transaction_log_index: None,
+                        log_type: None,
+                        removed: None,
+                    };
+                    logs.push(log);
+                }
+                
+                pending_tx.state = PendingTxState::RevmTransactOutput(logs);
                 return Ok(pending_tx);
             }
         }

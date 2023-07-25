@@ -87,6 +87,16 @@ async fn transact() -> Result<()> {
     let arbiter_token = deploy().await?;
     let mint = arbiter_token.mint(Address::from_str(TEST_MINT_TO).unwrap(), ethers::types::U256::from(TEST_MINT_AMOUNT));
     let receipt = mint.send().await?.await?.unwrap();
+    assert_eq!(receipt.logs[0].address, arbiter_token.address());
+    let topics = vec![
+        ethers::core::types::H256::from_str("0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef").unwrap(),
+        ethers::core::types::H256::from_str("0x0000000000000000000000000000000000000000000000000000000000000000").unwrap(),
+        ethers::core::types::H256::from_str("0x000000000000000000000000f7e93cc543d97af6632c9b8864417379dba4bf15").unwrap(), 
+    ];
+    assert_eq!(receipt.logs[0].topics, topics);
+    let bytes = hex::decode("0000000000000000000000000000000000000000000000000000000000000001")?;
+    assert_eq!(receipt.logs[0].data, ethers::core::types::Bytes::from(bytes));
+    println!("logs are: {:#?}", receipt.logs);
     Ok(())
 }
 

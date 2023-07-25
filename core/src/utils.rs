@@ -6,8 +6,8 @@ use std::{
 };
 
 use bytes::Bytes;
-use ethers::prelude::Address;
-use revm::primitives::{ExecutionResult, Output, B160};
+use ethers::{prelude::Address, types::H256};
+use revm::primitives::{ExecutionResult, Output, B160, B256};
 
 #[derive(Debug)]
 // We should use anyhow / thisError instead
@@ -42,6 +42,10 @@ pub fn recast_address(address: B160) -> Address {
     Address::from(temp)
 }
 
+pub fn recast_b256(input: B256) -> H256 {
+    let temp: [u8; 32] = input.as_bytes().try_into().unwrap();
+    H256::from(temp)
+}
 // TODO: Can maybe get rid of this with middleware
 /// Takes an `ExecutionResult` and returns the raw bytes of the output that can then be decoded.
 /// # Arguments
