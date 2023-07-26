@@ -14,7 +14,6 @@ revm = "3.3.0"
 crossbeam-channel = "0.5.8"
 
 # For price simulation
-plotly = "0.8.3"
 rand = "0.8.5"
 rand_chacha = "0.3.1"
 rand_distr = "0.4.3"
@@ -31,8 +30,6 @@ thiserror = "1.0.30"
 # url = "2.2.2"
 
 # Workspace dependencies
-futures = { version = "0.3.27" }
-csv = { version = "1.2.1" }
 ethers = { git = "https://github.com/Autoparallel/ethers-rs.git" }
 # ethers-middleware = { version = "2.0.4" }
 serde = { version = "1.0.163", features= ["derive"]}

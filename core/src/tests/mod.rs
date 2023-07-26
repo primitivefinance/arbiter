@@ -1,10 +1,10 @@
 #[allow(missing_docs)]
-#[cfg(test)]
 use std::str::FromStr;
 
 use anyhow::Result;
 use ethers::{prelude::Middleware, types::Address};
 
+#[cfg(test)]
 use crate::{
     agent::{tests::*, *},
     bindings::arbiter_token::*,
@@ -52,8 +52,6 @@ fn simulation_agent_wallet() {
     );
 }
 
-
-// TODO: Replace this all with arbitertoken tests and remove the writer contract
 async fn deploy() -> Result<ArbiterToken<RevmMiddleware>> {
     let mut environment = Environment::new(TEST_ENV_LABEL.to_string());
     environment.run();
