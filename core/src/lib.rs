@@ -8,7 +8,6 @@ pub mod environment;
 pub mod manager;
 pub mod math;
 pub mod middleware;
-pub mod utils;
 #[cfg(test)]
 pub mod tests;
-
+pub mod utils;

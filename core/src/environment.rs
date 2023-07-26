@@ -2,24 +2,20 @@
 #![warn(unsafe_code)]
 
 use crossbeam_channel::{unbounded, Receiver, Sender};
-use ethers::middleware::providers::RpcError;
-use ethers::providers::{JsonRpcClient, MiddlewareError};
 use revm::{
     db::{CacheDB, EmptyDB},
     primitives::{ExecutionResult, Log, TxEnv, U256},
     EVM,
 };
-use serde::{de::DeserializeOwned, Serialize};
 use std::{
-    collections::HashMap,
-    fmt::{Debug, Formatter},
+    fmt::Debug,
     sync::{Arc, Mutex},
     thread,
 };
-use thiserror::Error;
 
+use crate::utils::revm_logs_to_ethers_logs;
 use crate::{agent::Agent, middleware::RevmMiddleware};
-use ethers::contract::Contract;
+
 /// Type Aliases for the event channel.
 pub(crate) type ToTransact = bool;
 pub(crate) type ExecutionSender = Sender<ExecutionResult>;
@@ -36,60 +32,21 @@ pub enum State {
     Stopped,
 }
 
-// TODO: RENAME PROVIDER HERE IT IS BAD
 pub struct Environment {
     pub label: String,
     pub(crate) state: State,
-    pub(crate) provider: RevmProvider, //bad name lol
+    pub(crate) evm: EVM<CacheDB<EmptyDB>>,
+    pub connection: Connection,
     /// Clients (Agents) in the environment
     pub clients: Vec<Arc<Agent<RevmMiddleware>>>,
-
-    pub deployed_contracts: HashMap<String, Contract<RevmMiddleware>>,
-}
-
-// TODO: Implement the request function for the provider here so that we can use the
-// get_transaction call
-pub(crate) struct RevmProvider {
-    pub(crate) evm: EVM<CacheDB<EmptyDB>>,
-    pub(crate) connection: Connection,
-}
-
-impl Debug for RevmProvider {
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("RevmProvider")
-            .field("EVM<CacheDB>", &self.evm.db)
-            .field("connection", &self.connection)
-            .finish()
-    }
+    // pub deployed_contracts: HashMap<String, Contract<RevmMiddleware>>,
 }
 
 #[derive(Debug, Clone)]
 pub struct Connection {
     pub(crate) tx_sender: TxEnvSender,
     tx_receiver: TxEnvReceiver,
-    event_broadcaster: Arc<Mutex<EventBroadcaster>>,
-}
-
-#[async_trait::async_trait]
-impl JsonRpcClient for Connection {
-    #[doc = " A JSON-RPC Error"]
-    type Error = RevmProviderError;
-
-    async fn request<T, R>(&self, method: &str, params: T) -> Result<R, Self::Error>
-    where
-        T: Debug + Serialize + Send + Sync,
-        R: DeserializeOwned + Send,
-    {
-        match method {
-            "eth_getTransactionByHash" => {
-                // Ok(ethers::core::types::Transaction::default())
-                Ok(serde_json::from_str("thing").unwrap())
-            }
-            _ => {
-                panic!("Method not implemented")
-            }
-        }
-    }
+    pub(crate) event_broadcaster: Arc<Mutex<EventBroadcaster>>,
 }
 
 impl Environment {
@@ -105,25 +62,26 @@ impl Environment {
             tx_receiver: transaction_channel.1,
             event_broadcaster: Arc::new(Mutex::new(EventBroadcaster::new())),
         };
-        let provider = RevmProvider { evm, connection };
         Self {
             label,
             state: State::Stopped,
-            provider,
+            evm,
+            connection,
             clients: vec![],
-            deployed_contracts: HashMap::new(),
         }
     }
-
+    // TODO: We need to make this the way to add agents to the environment.
+    // in `agent.rs` we have `new_simulation_agent` which should probably just be called from this function instead.
+    // OR agents can be created (without a connection?) and then added to the environment where they will gain a connection?
     pub fn add_agent(&mut self, agent: Agent<RevmMiddleware>) {
         self.clients.push(Arc::new(agent));
     }
 
     // TODO: Run should now run the agents as well as the evm.
     pub(crate) fn run(&mut self) {
-        let tx_receiver = self.provider.connection.tx_receiver.clone();
-        let mut evm = self.provider.evm.clone();
-        let event_broadcaster = self.provider.connection.event_broadcaster.clone();
+        let tx_receiver = self.connection.tx_receiver.clone();
+        let mut evm = self.evm.clone();
+        let event_broadcaster = self.connection.event_broadcaster.clone();
         self.state = State::Running;
 
         //give all agents their own thread and let them start watching for their evnts
@@ -155,56 +113,25 @@ impl Environment {
     }
 }
 
-#[derive(Debug, Error)]
-pub enum RevmProviderError {
-    #[error("The `RevmEnvironment` had an error.")]
-    Error,
-}
-
-impl RpcError for RevmProviderError {
-    fn as_error_response(&self) -> Option<&ethers::providers::JsonRpcError> {
-        todo!()
-    }
-
-    fn as_serde_error(&self) -> Option<&serde_json::Error> {
-        todo!()
-    }
-}
-
-impl From<RevmProviderError> for ethers::providers::ProviderError {
-    fn from(err: RevmProviderError) -> Self {
-        ethers::providers::ProviderError::CustomError(err.to_string())
-    }
-}
-
-impl MiddlewareError for RevmProviderError {
-    type Inner = Self;
-
-    fn from_err(e: Self::Inner) -> Self {
-        todo!()
-    }
-
-    fn as_inner(&self) -> Option<&Self::Inner> {
-        todo!()
-    }
-}
-
 /// The event broadcaster that is used to broadcast events to the agents from the simulation manager.
 #[derive(Clone, Debug)]
-pub struct EventBroadcaster(Vec<crossbeam_channel::Sender<Vec<Log>>>);
+pub struct EventBroadcaster(Vec<crossbeam_channel::Sender<Vec<ethers::core::types::Log>>>);
 
 impl EventBroadcaster {
     pub(crate) fn new() -> Self {
         Self(vec![])
     }
 
-    pub(crate) fn add_sender(&mut self, sender: crossbeam_channel::Sender<Vec<Log>>) {
+    pub(crate) fn add_sender(
+        &mut self,
+        sender: crossbeam_channel::Sender<Vec<ethers::core::types::Log>>,
+    ) {
         self.0.push(sender);
     }
 
     pub(crate) fn broadcast(&self, logs: Vec<Log>) {
         for sender in &self.0 {
-            sender.send(logs.clone()).unwrap();
+            sender.send(revm_logs_to_ethers_logs(logs.clone())).unwrap();
         }
     }
 }

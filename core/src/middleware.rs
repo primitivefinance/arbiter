@@ -6,7 +6,7 @@
 use ethers::prelude::pending_transaction::PendingTxState;
 use ethers::providers::{PendingTransaction, Provider};
 use ethers::{
-    prelude::k256::ecdsa::SigningKey,
+    prelude::k256::{ecdsa::SigningKey,sha2::{Digest, Sha256}},
     prelude::ProviderError,
     providers::{FilterWatcher, Middleware, MockProvider},
     signers::{Signer, Wallet},
@@ -18,9 +18,9 @@ use revm::primitives::{CreateScheme, ExecutionResult, Output, TransactTo, TxEnv,
 use std::fmt::Debug;
 
 use crate::environment::Connection;
-use crate::utils::{recast_address, recast_b256};
+use crate::utils::{recast_address, revm_logs_to_ethers_logs};
 
-// TODO: Refactor the connection and channels slightly to be more intuitive
+// TODO: Refactor the connection and channels slightly to be more intuitive. For instance, the middleware may not really need to own a connection, but input one to set up everything else?
 #[derive(Debug)]
 pub struct RevmMiddleware {
     provider: Provider<MockProvider>,
@@ -28,20 +28,32 @@ pub struct RevmMiddleware {
     wallet: Wallet<SigningKey>,
     result_sender: crossbeam_channel::Sender<ExecutionResult>,
     result_receiver: crossbeam_channel::Receiver<ExecutionResult>,
+    event_receiver: crossbeam_channel::Receiver<Vec<Log>>,
 }
 
 impl RevmMiddleware {
-    pub fn new(connection: Connection) -> Self {
+    pub fn new(connection: Connection, name: String) -> Self {
         let provider = Provider::new(MockProvider::new());
-        let mut rng = StdRng::from_seed([1; 32]);
+        let mut hasher = Sha256::new();
+        hasher.update(name.as_bytes());
+        let seed = hasher.finalize();
+        let mut rng = StdRng::from_seed(seed.into());
         let wallet = Wallet::new(&mut rng);
         let (result_sender, result_receiver) = crossbeam_channel::unbounded();
+        let (event_sender, event_receiver) = crossbeam_channel::unbounded();
+        connection
+            .event_broadcaster
+            .lock()
+            .unwrap()
+            .add_sender(event_sender);
+
         Self {
             provider,
             connection,
             wallet,
             result_sender,
             result_receiver,
+            event_receiver,
         }
     }
 }
@@ -94,7 +106,6 @@ impl Middleware for RevmMiddleware {
             nonce: None,
             access_list: Vec::new(),
         };
-        // TODO: Modify this to work for calls/deploys
         self.connection
             .tx_sender
             .send((true, tx_env.clone(), self.result_sender.clone()))
@@ -109,31 +120,15 @@ impl Middleware for RevmMiddleware {
             Output::Create(_, address) => {
                 let mut pending_tx =
                     PendingTransaction::new(ethers::types::H256::zero(), self.provider());
-                pending_tx.state = PendingTxState::RevmDeployOutput(recast_address(address.unwrap()));
+                pending_tx.state =
+                    PendingTxState::RevmDeployOutput(recast_address(address.unwrap()));
                 return Ok(pending_tx);
             }
             Output::Call(_) => {
                 let mut pending_tx =
                     PendingTransaction::new(ethers::types::H256::zero(), self.provider());
-                let mut logs: Vec<ethers::core::types::Log> = vec![];
-                for revm_log in revm_logs {
-                    let topics = revm_log.topics.into_iter().map(|x| recast_b256(x)).collect();
-                    let log = ethers::core::types::Log {
-                        address: recast_address(revm_log.address),
-                        topics: topics,
-                        data: ethers::core::types::Bytes::from(revm_log.data),
-                        block_hash: None,
-                        block_number: None,
-                        transaction_hash: None,
-                        transaction_index: None,
-                        log_index: None,
-                        transaction_log_index: None,
-                        log_type: None,
-                        removed: None,
-                    };
-                    logs.push(log);
-                }
-                
+                let logs = revm_logs_to_ethers_logs(revm_logs);
+
                 pending_tx.state = PendingTxState::RevmTransactOutput(logs);
                 return Ok(pending_tx);
             }

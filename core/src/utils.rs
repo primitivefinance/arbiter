@@ -31,6 +31,30 @@ impl Display for UnpackError {
     }
 }
 
+pub fn revm_logs_to_ethers_logs(
+    revm_logs: Vec<revm::primitives::Log>,
+) -> Vec<ethers::core::types::Log> {
+    let mut logs: Vec<ethers::core::types::Log> = vec![];
+    for revm_log in revm_logs {
+        let topics = revm_log.topics.into_iter().map(recast_b256).collect();
+        let log = ethers::core::types::Log {
+            address: recast_address(revm_log.address),
+            topics,
+            data: ethers::core::types::Bytes::from(revm_log.data),
+            block_hash: None,
+            block_number: None,
+            transaction_hash: None,
+            transaction_index: None,
+            log_index: None,
+            transaction_log_index: None,
+            log_type: None,
+            removed: None,
+        };
+        logs.push(log);
+    }
+    logs
+}
+
 // Certainly will go away with alloy-types
 /// Recast a B160 into an Address type
 /// # Arguments

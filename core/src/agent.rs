@@ -23,10 +23,10 @@ impl<M: Middleware> std::fmt::Debug for Agent<M> {
 }
 
 impl Agent<RevmMiddleware> {
-    pub fn new_simulation_agent(name: String, connection: Connection) -> Self {
+    pub(crate) fn new_simulation_agent(name: String, connection: Connection) -> Self {
         Self {
-            name,
-            client: Arc::new(RevmMiddleware::new(connection)),
+            name: name.clone(),
+            client: Arc::new(RevmMiddleware::new(connection, name)),
             behaviors: vec![],
         }
     }

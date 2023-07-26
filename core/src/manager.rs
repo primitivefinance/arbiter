@@ -24,7 +24,7 @@ impl SimulationManager {
 
     /// Adds an environment to the [`SimulationManager`]'s list.
     pub fn add_environment(&mut self, environment_label: String) -> Result<()> {
-        if let Some(_) = self.environments.get(&environment_label) {
+        if self.environments.get(&environment_label).is_some() {
             return Err(anyhow!("Environment already exists."));
         }
         self.environments.insert(
@@ -39,7 +39,10 @@ impl SimulationManager {
         match self.environments.get_mut(&environment_label) {
             Some(environment) => match environment.state {
                 State::Running => Err(anyhow!("Environment is already running.")),
-                State::Stopped => Ok(environment.run()),
+                State::Stopped => {
+                    environment.run();
+                    Ok(())
+                }
             },
             None => Err(anyhow!("Environment does not exist.")),
         }
