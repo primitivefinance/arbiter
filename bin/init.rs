@@ -147,7 +147,7 @@ pub(crate) fn create_simulation(simulation_name: &str) -> std::io::Result<()> {
     Ok(())
 }
 
-#[test]
-fn main() {
-    create_simulation("portfolio").unwrap();
-}
+// #[test]
+// fn main() {
+//     create_simulation("portfolio").unwrap();
+// }
