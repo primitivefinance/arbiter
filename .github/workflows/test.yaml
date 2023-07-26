@@ -19,7 +19,7 @@ jobs:
           toolchain: stable
 
       - name: test
-        run: cargo test --all --all-features --exclude bindings
+        run: cargo test --all --all-features
         
   codecov:
     name: codecov
@@ -36,4 +36,4 @@ jobs:
         uses: taiki-e/install-action@cargo-llvm-cov
 
       - name: codecov
-        run: cargo llvm-cov --all-features --workspace --lcov --output-path lcov.info  --exclude bindings
+        run: cargo llvm-cov --all-features --workspace --lcov --output-path lcov.info

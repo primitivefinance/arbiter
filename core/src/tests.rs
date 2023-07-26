@@ -4,7 +4,6 @@ use std::str::FromStr;
 use anyhow::Result;
 use ethers::{prelude::Middleware, types::Address};
 
-#[cfg(test)]
 use crate::{
     agent::{tests::*, *},
     bindings::arbiter_token::*,
