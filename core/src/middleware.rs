@@ -4,6 +4,8 @@
 //! Most of the middleware is essentially a placeholder, but it is necessary to have a middleware to work with bindings more efficiently.
 
 use std::fmt::Debug;
+use ethers::prelude::pending_transaction::PendingTxState;
+use ethers::providers::{PendingTransaction, Provider, FilterKind};
 
 use ethers::{
     prelude::{
@@ -20,6 +22,9 @@ use ethers::{
 };
 use rand::{rngs::StdRng, SeedableRng};
 use revm::primitives::{CreateScheme, ExecutionResult, Output, TransactTo, TxEnv, B160, U256};
+
+use std::fmt::Debug;
+use std::time::Duration;
 
 use crate::{
     environment::Connection,
@@ -52,7 +57,6 @@ impl RevmMiddleware {
             .lock()
             .unwrap()
             .add_sender(event_sender);
-
         Self {
             provider,
             connection,
@@ -140,7 +144,7 @@ impl Middleware for RevmMiddleware {
             }
         }
 
-        // TODO: we can use `let data = decode_function_data(&self.function, &bytes, false)?;` to get the data out of a function call
+        // TODO: RECEIPTS OF TRANSACTIONS SHOULD STORE THE BLOCKNUMBERS THEY OCCURED IN
     }
 
     /// Makes a call to revm that will not commit a state change to the DB. Can be used for a mock transaction
@@ -195,11 +199,27 @@ impl Middleware for RevmMiddleware {
         todo!("we should be able to get logs.")
     }
 
+
+    // NOTES: It might be good to have individual channels for the EVM to send events to so that an agent can install a filter and the logs can be filtered by the EVM itself.
+    // This could be handled similarly to how broadcasts are done now and maybe nothing there needs to change except for attaching a filter to the event channels.
+    // It would be good to also pass to a separate thread to do broadcasting if we aren't already doing that so that the EVM can process while events are being sent out.
+    async fn new_filter(&self, filter: FilterKind<'_>) -> Result<ethers::types::U256, ProviderError> {
+        todo!()
+        // let (method, args) = match filter {
+        //     FilterKind::NewBlocks => unimplemented!("We will need to implement this."),
+        //     FilterKind::PendingTransactions => unimplemented!("Not sure if we need to implement this."),
+        //     FilterKind::Logs(filter) => ("eth_newFilter", vec![utils::serialize(&filter)]),
+        // };
+
+        // self.request(method, args).await
+    }
+
     async fn watch<'a>(
         &'a self,
-        _filter: &Filter,
+        filter: &Filter,
     ) -> Result<FilterWatcher<'a, Self::Provider, Log>, Self::Error> {
-        todo!("we should be able to watch. we already have this partially implemented for agents.")
+        let id = self.new_filter(FilterKind::Logs(filter)).await?;
+        Ok(FilterWatcher::new(id, self.provider()).interval(Duration::ZERO))
     }
 }
 

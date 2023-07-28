@@ -2,7 +2,7 @@
 use std::str::FromStr;
 
 use anyhow::Result;
-use ethers::{prelude::Middleware, types::Address};
+use ethers::{prelude::{FilterWatcher, Middleware, StreamExt}, types::{Address, Filter}};
 
 use crate::{
     agent::{tests::*, *},
@@ -129,11 +129,19 @@ async fn transact() -> Result<()> {
 }
 
 #[tokio::test]
-async fn watch() {
-    todo!()
+async fn watch() -> Result<()> {
+    let mut environment = Environment::new(TEST_ENV_LABEL.to_string());
+    environment.run();
+    let agent = Agent::new_simulation_agent(TEST_AGENT_NAME.to_string(), environment.connection);
+    let mut thing = agent.client.watch(&Filter::default()).await?; // this can give agents multiple filters to watch!
+    let output = thing.next().await;
+    Ok(())
 }
 
 #[tokio::test]
 async fn filter_watcher() {
+    let arbiter_token = deploy().await.unwrap();
+    let filter = arbiter_token.approval_filter().filter;
+    // TODO: Test that we can filter out approvals and NOT transfers (or something like this)
     todo!()
 }
