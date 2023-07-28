@@ -1,20 +1,26 @@
 #![warn(missing_docs)]
 #![warn(unsafe_code)]
 
+use std::{
+    fmt::Debug,
+    sync::{
+        atomic::{AtomicUsize, Ordering},
+        Arc, Mutex,
+    },
+    thread,
+};
+
 use crossbeam_channel::{unbounded, Receiver, Sender};
 use revm::{
     db::{CacheDB, EmptyDB},
     primitives::{ExecutionResult, Log, TxEnv, U256},
     EVM,
 };
-use std::{
-    fmt::Debug,
-    sync::{Arc, Mutex},
-    thread,
-};
 
-use crate::utils::revm_logs_to_ethers_logs;
-use crate::{agent::Agent, middleware::RevmMiddleware};
+use crate::{
+    agent::Agent, math::stochastic_process::poisson_process, middleware::RevmMiddleware,
+    utils::revm_logs_to_ethers_logs,
+};
 
 /// Type Aliases for the event channel.
 pub(crate) type ToTransact = bool;
@@ -22,6 +28,7 @@ pub(crate) type ExecutionSender = Sender<ExecutionResult>;
 pub(crate) type TxEnvSender = Sender<(ToTransact, TxEnv, ExecutionSender)>;
 pub(crate) type TxEnvReceiver = Receiver<(ToTransact, TxEnv, ExecutionSender)>;
 
+/// State enum for the [`Environment`].
 #[derive(Debug, Eq, PartialEq, Clone, Copy)]
 pub enum State {
     /// The [`Environment`] is currently running.
@@ -32,21 +39,28 @@ pub enum State {
     Stopped,
 }
 
+/// The environment struct.
 pub struct Environment {
+    /// label for the environment
     pub label: String,
     pub(crate) state: State,
     pub(crate) evm: EVM<CacheDB<EmptyDB>>,
+    /// Connection to the environment
     pub connection: Connection,
     /// Clients (Agents) in the environment
     pub clients: Vec<Arc<Agent<RevmMiddleware>>>,
-    // pub deployed_contracts: HashMap<String, Contract<RevmMiddleware>>,
+    /// expected events per block
+    pub lambda: f64,
 }
 
+/// Connection struct for the [`Environment`].
 #[derive(Debug, Clone)]
 pub struct Connection {
     pub(crate) tx_sender: TxEnvSender,
     tx_receiver: TxEnvReceiver,
     pub(crate) event_broadcaster: Arc<Mutex<EventBroadcaster>>,
+    /// expected events per block
+    pub tx_per_block: Arc<AtomicUsize>,
 }
 
 impl Environment {
@@ -61,6 +75,7 @@ impl Environment {
             tx_sender: transaction_channel.0,
             tx_receiver: transaction_channel.1,
             event_broadcaster: Arc::new(Mutex::new(EventBroadcaster::new())),
+            tx_per_block: Arc::new(AtomicUsize::new(0)),
         };
         Self {
             label,
@@ -68,12 +83,17 @@ impl Environment {
             evm,
             connection,
             clients: vec![],
+            lambda: 0.0,
         }
     }
-    // TODO: We need to make this the way to add agents to the environment.
-    // in `agent.rs` we have `new_simulation_agent` which should probably just be called from this function instead.
-    // OR agents can be created (without a connection?) and then added to the environment where they will gain a connection?
-    pub fn add_agent(&mut self, agent: Agent<RevmMiddleware>) {
+    /// Set the expected events per block
+    pub fn configure_lambda(&mut self, lambda: f64) {
+        self.lambda = lambda;
+    }
+
+    /// Creates a new [`Agent<RevmMiddleware`] with the given label.
+    pub fn add_agent(&mut self, name: String, connection: Connection) {
+        let agent = Agent::new_simulation_agent(name, connection);
         self.clients.push(Arc::new(agent));
     }
 
@@ -82,13 +102,20 @@ impl Environment {
         let tx_receiver = self.connection.tx_receiver.clone();
         let mut evm = self.evm.clone();
         let event_broadcaster = self.connection.event_broadcaster.clone();
+        let counter = Arc::clone(&self.connection.tx_per_block);
+        let expected_occurance = poisson_process(self.lambda, 1).unwrap();
         self.state = State::Running;
 
         //give all agents their own thread and let them start watching for their evnts
         thread::spawn(move || {
             while let Ok((to_transact, tx, sender)) = tx_receiver.recv() {
                 // Execute the transaction, echo the logs to all agents, and report the execution result to the agent who made the transaction.
+                if counter.load(Ordering::Relaxed) >= expected_occurance[0] as usize {
+                    evm.env.block.number += U256::from(1);
+                    counter.store(0, Ordering::Relaxed);
+                }
                 evm.env.tx = tx;
+                counter.fetch_add(1, Ordering::Relaxed);
                 if to_transact {
                     let execution_result = match evm.transact_commit() {
                         Ok(val) => val,

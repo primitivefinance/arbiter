@@ -36,6 +36,8 @@ bytes = "1.4.0"
 
 # Simulation dependencies
 quote = "1.0.28"
+statrs = "0.16.0"
+RustQuant = "0.0.23"
 
 # Development dependencies
 [dev-dependencies]

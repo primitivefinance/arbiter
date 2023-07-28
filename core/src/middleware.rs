@@ -3,22 +3,28 @@
 //! This module contains the middleware for the Revm simulation environment.
 //! Most of the middleware is essentially a placeholder, but it is necessary to have a middleware to work with bindings more efficiently.
 
-use ethers::prelude::pending_transaction::PendingTxState;
-use ethers::providers::{PendingTransaction, Provider};
+use std::fmt::Debug;
+
 use ethers::{
-    prelude::k256::{ecdsa::SigningKey,sha2::{Digest, Sha256}},
-    prelude::ProviderError,
-    providers::{FilterWatcher, Middleware, MockProvider},
+    prelude::{
+        k256::{
+            ecdsa::SigningKey,
+            sha2::{Digest, Sha256},
+        },
+        pending_transaction::PendingTxState,
+        ProviderError,
+    },
+    providers::{FilterWatcher, Middleware, MockProvider, PendingTransaction, Provider},
     signers::{Signer, Wallet},
     types::{transaction::eip2718::TypedTransaction, Address, BlockId, Bytes, Filter, Log},
 };
-use rand::rngs::StdRng;
-use rand::SeedableRng;
+use rand::{rngs::StdRng, SeedableRng};
 use revm::primitives::{CreateScheme, ExecutionResult, Output, TransactTo, TxEnv, B160, U256};
-use std::fmt::Debug;
 
-use crate::environment::Connection;
-use crate::utils::{recast_address, revm_logs_to_ethers_logs};
+use crate::{
+    environment::Connection,
+    utils::{recast_address, revm_logs_to_ethers_logs},
+};
 
 // TODO: Refactor the connection and channels slightly to be more intuitive. For instance, the middleware may not really need to own a connection, but input one to set up everything else?
 #[derive(Debug)]

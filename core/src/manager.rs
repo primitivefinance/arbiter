@@ -5,8 +5,9 @@
 
 use std::collections::HashMap;
 
-use crate::environment::{Environment, State};
 use anyhow::{anyhow, Result};
+
+use crate::environment::{Environment, State};
 
 /// Manages simulations.
 pub struct SimulationManager {

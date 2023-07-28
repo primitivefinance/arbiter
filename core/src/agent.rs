@@ -62,8 +62,9 @@ pub(crate) mod tests {
     pub(crate) const TEST_AGENT_NAME: &str = "test_agent";
     pub(crate) const TEST_BEHAVIOR_DATA: &str = "test_behavior_data";
 
-    use super::*;
     use ethers::providers::{MockProvider, ProviderError};
+
+    use super::*;
 
     #[derive(Debug)]
     pub(crate) struct TestMiddleware {}

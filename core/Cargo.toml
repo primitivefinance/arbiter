@@ -9,6 +9,7 @@ edition = "2021"
 # For execution
 bytes = "1.4.0"
 revm = "3.3.0"
+statrs = "0.16.0"
 
 # For handling events
 crossbeam-channel = "0.5.8"
@@ -17,6 +18,7 @@ crossbeam-channel = "0.5.8"
 rand = "0.8.5"
 rand_chacha = "0.3.1"
 rand_distr = "0.4.3"
+RustQuant = "*"
 
 # For void middleware
 async-trait = "0.1.68"

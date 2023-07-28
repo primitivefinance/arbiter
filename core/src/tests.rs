@@ -41,9 +41,14 @@ fn simulation_agent_wallet() {
 #[test]
 fn multiple_agent_addresses() {
     let environment = Environment::new(TEST_ENV_LABEL.to_string());
-    let agent = Agent::new_simulation_agent(TEST_AGENT_NAME.to_string(), environment.connection.clone());
-    let agent2 = Agent::new_simulation_agent(format!("new_{}", TEST_AGENT_NAME), environment.connection);
-    assert_ne!(agent.client.default_sender(), agent2.client.default_sender());
+    let agent =
+        Agent::new_simulation_agent(TEST_AGENT_NAME.to_string(), environment.connection.clone());
+    let agent2 =
+        Agent::new_simulation_agent(format!("new_{}", TEST_AGENT_NAME), environment.connection);
+    assert_ne!(
+        agent.client.default_sender(),
+        agent2.client.default_sender()
+    );
 }
 
 #[test]

@@ -1,173 +1,65 @@
-//! Module for price process generation and plotting.
-use anyhow::Result;
-use rand::SeedableRng;
-use rand_distr::{Distribution, Normal};
-use serde::{Deserialize, Serialize};
+use anyhow::{Ok, Result};
+use RustQuant::{
+    statistics::distributions::{Distribution, Poisson},
+    stochastics::{BrownianMotion, OrnsteinUhlenbeck, StochasticProcess, Trajectories},
+};
 
-// TODO: I think that this could probably be made a trait so that people can readily implement their own processes too.
-// Errors also need to be better handled here.
-
-/// Enum for type of price process being used.
-#[derive(Clone, Serialize, Deserialize, Debug)]
-#[serde(tag = "price_process_type", content = "price_process")]
-pub enum PriceProcessType {
-    /// Geometric Brownian Motion (GBM) process.
-    GBM(GBM),
-    /// Ornstein-Uhlenbeck (OU) process.
-    OU(OU),
+/// Type enum for process
+pub enum StochasticProcessType {
+    /// Brownian motion
+    BrownianMotion(BrownianMotion),
+    /// Ornstein-Uhlenbeck
+    OrnsteinUhlenbeck(OrnsteinUhlenbeck),
+}
+/// Struct for all processes init parameters.
+pub struct EulerMaruyamaInput {
+    /// initial value at t_0
+    pub x_0: f64,
+    /// initial time point
+    pub t_0: f64,
+    /// terminal time point
+    pub t_n: f64,
+    /// number of time steps between t_0 and t_n
+    pub n_steps: usize,
+    /// how many process trajectories to simulate
+    pub m_paths: usize,
+    /// run in parallel or not (recommended for > 1000 paths)
+    pub parallel: bool,
 }
 
-/// Struct for all price processes init parameters.
-/// A price process is a stochastic process that describes the evolution of a price_process.
-/// # Fields
-/// * `process_type` - Type of price process. (PriceProcessType)
-/// * `timestep` - Time step of the simulation. (f64)
-/// * `timescale` - Time in string interpretation. (String)
-/// * `num_steps` - Number of steps in the simulation. (usize)
-/// * `initial_price` - Initial price of the simulation. (f64)
-/// * `seed` - Seed for testing. (u64)
-#[derive(Clone, Serialize, Deserialize, Debug)]
-pub struct PriceProcess {
-    /// Type of price process.
-    pub process_type: PriceProcessType,
-    /// Time step of the simulation.
-    pub timestep: f64,
-    /// Timescale in string interpretation.
-    pub timescale: String,
-    /// Number of steps in the simulation.
-    pub num_steps: usize,
-    /// Initial price of the simulation.
-    pub initial_price: f64,
-    /// Seed for testing.
-    pub seed: u64,
+/// Create new process and run euler maruyama.
+pub fn new_procces(
+    proccess_type: StochasticProcessType,
+    config: EulerMaruyamaInput,
+) -> Result<Trajectories> {
+    let trajectories: Trajectories = match proccess_type {
+        StochasticProcessType::BrownianMotion(process) => process.euler_maruyama(
+            config.x_0,
+            config.t_0,
+            config.t_n,
+            config.n_steps,
+            config.m_paths,
+            config.parallel,
+        ),
+        StochasticProcessType::OrnsteinUhlenbeck(process) => process.euler_maruyama(
+            config.x_0,
+            config.t_0,
+            config.t_n,
+            config.n_steps,
+            config.m_paths,
+            config.parallel,
+        ),
+    };
+
+    Ok(trajectories)
 }
 
-impl PriceProcess {
-    /// Public builder function that instantiates a [`Price`].
-    pub fn new(
-        process_type: PriceProcessType,
-        timestep: f64,
-        timescale: String,
-        num_steps: usize,
-        initial_price: f64,
-        seed: u64,
-    ) -> Self {
-        PriceProcess {
-            process_type,
-            timestep,
-            timescale,
-            num_steps,
-            initial_price,
-            seed,
-        }
-    }
-
-    /// Generates a price path.
-    pub fn generate_price_path(&self) -> Result<(Vec<f64>, Vec<f64>)> {
-        match &self.process_type {
-            PriceProcessType::GBM(gbm) => gbm.generate(self),
-            PriceProcessType::OU(ou) => ou.generate(self),
-        }
-    }
-}
-
-/// Geometric Brownian Motion process parameters struct.
-/// # Fields
-/// * `drift` - Price drift of the underlying asset. (f64)
-/// * `volatility` - Volatility of the underlying asset. (f64)
-#[derive(Copy, Clone, Serialize, Deserialize, Debug)]
-pub struct GBM {
-    /// Price drift of the underlying asset.
-    pub drift: f64,
-    /// Volatility of the underlying asset.
-    pub volatility: f64,
-}
-
-impl GBM {
-    /// Public builder function that instantiates a [`GBM`].
-    pub fn new(drift: f64, volatility: f64) -> Self {
-        GBM { drift, volatility }
-    }
-    /// Generates a GBM price path.
-    /// # Arguments
-    /// * `timestep` - Time step of the simulation. (f64)
-    /// * `num_steps` - Number of steps in the simulation. (usize)
-    /// * `initial_price` - Initial price of the simulation. (f64)
-    /// * `seed` - Seed for testing. (u64)
-    /// # Returns
-    /// * `time` - Vector of time steps. (Vec<f64>)
-    /// * `prices` - Vector of prices. (Vec<f64>)
-    fn generate(&self, price_process: &PriceProcess) -> Result<(Vec<f64>, Vec<f64>)> {
-        let mut rng = rand::rngs::StdRng::seed_from_u64(price_process.seed);
-        let normal = Normal::new(0.0, 1.0)?;
-        let mut prices = vec![price_process.initial_price];
-        let mut new_price = price_process.initial_price;
-
-        for _ in 0..price_process.num_steps {
-            let noise = normal.sample(&mut rng);
-            new_price *= 1.0
-                + self.drift * price_process.timestep
-                + self.volatility * noise * price_process.timestep.sqrt();
-            prices.push(new_price);
-        }
-        let time = (0..price_process.num_steps)
-            .map(|i| i as f64 * price_process.timestep)
-            .collect::<Vec<f64>>();
-        Ok((time, prices))
-    }
-}
-
-/// Ornstein-Uhlenbeck process parameters struct.
-/// # Fields
-/// * `volatility` - Volatility of the underlying asset. (f64)
-/// * `mean_reversion_speed` - Mean reversion speed of the underlying asset. (f64)
-/// * `mean_price` - Mean price of the underlying asset. (f64)
-#[derive(Copy, Clone, Serialize, Deserialize, Debug)]
-pub struct OU {
-    /// Volatility of the underlying asset.
-    pub volatility: f64,
-    /// Mean reversion speed of the underlying asset.
-    pub mean_reversion_speed: f64,
-    /// Mean price of the underlying asset.
-    pub mean_price: f64,
-}
-
-impl OU {
-    /// Public builder function that instantiates a [`OU`].
-    pub fn new(volatility: f64, mean_reversion_speed: f64, mean_price: f64) -> Self {
-        OU {
-            volatility,
-            mean_reversion_speed,
-            mean_price,
-        }
-    }
-    /// Generates an OU price path.
-    /// # Arguments
-    /// * `timestep` - Time step of the simulation. (f64)
-    /// * `num_steps` - Number of steps in the simulation. (usize)
-    /// * `initial_price` - Initial price of the simulation. (f64)
-    /// * `seed` - Seed for testing. (u64)
-    /// # Returns
-    /// * `time` - Vector of time steps. (Vec<f64>)
-    /// * `prices` - Vector of prices. (Vec<f64>)
-    fn generate(&self, price_process: &PriceProcess) -> Result<(Vec<f64>, Vec<f64>)> {
-        let mut rng = rand::rngs::StdRng::seed_from_u64(price_process.seed);
-        let normal = Normal::new(0.0, 1.0)?;
-        let mut prices = vec![price_process.initial_price];
-        let mut new_price = price_process.initial_price;
-
-        for _ in 0..price_process.num_steps {
-            let noise = normal.sample(&mut rng);
-            new_price +=
-                self.mean_reversion_speed * (self.mean_price - new_price) * price_process.timestep
-                    + self.volatility * noise * price_process.timestep.sqrt();
-            prices.push(new_price);
-        }
-        let time = (0..price_process.num_steps)
-            .map(|i| i as f64 * price_process.timestep)
-            .collect::<Vec<f64>>();
-        Ok((time, prices))
-    }
+/// Sample Poisson process.
+pub fn poisson_process(lambda: f64, length: usize) -> Result<Vec<i32>> {
+    let poisson = Poisson::new(lambda);
+    let float_samples = poisson.sample(length);
+    let int_samples: Vec<i32> = float_samples.iter().map(|&x| x.round() as i32).collect();
+    Ok(int_samples)
 }
 
 #[cfg(test)]
@@ -176,56 +68,64 @@ mod tests {
     use super::*;
 
     #[test]
-    fn seeded_randomness_test() -> Result<()> {
-        let gbm = GBM::new(0.05, 0.3);
-        let price_process = PriceProcess::new(
-            PriceProcessType::GBM(gbm),
-            0.1,
-            "Days".to_string(),
-            100,
-            100.0,
-            1,
-        );
-        // Test to see if same seed yields same result
-        let (time, prices) = price_process.generate_price_path()?;
-        let (time2, prices2) = price_process.generate_price_path()?;
-        assert_eq!(time, time2);
-        assert_eq!(prices, prices2);
-        // Test to see if different seed yields different result
-        let price_process_diff_seed = PriceProcess::new(
-            PriceProcessType::GBM(GBM::new(0.05, 0.3)),
-            0.1,
-            "Days".to_string(),
-            100,
-            100.0,
-            2,
-        );
-        let (time3, prices3) = price_process_diff_seed.generate_price_path()?;
-        assert_eq!(time, time3);
-        assert_ne!(prices, prices3);
-        Ok(())
+    fn new_process_brownian_motion() {
+        let bm = BrownianMotion::new();
+        let config = EulerMaruyamaInput {
+            x_0: 0.0,
+            t_0: 0.0,
+            t_n: 1.0,
+            n_steps: 100,
+            m_paths: 10,
+            parallel: false,
+        };
+        let process = StochasticProcessType::BrownianMotion(bm);
+        let result = new_procces(process, config);
+
+        assert!(result.is_ok());
+        let trajectories = result.unwrap();
+        assert_eq!(trajectories.times.len(), 101);
+        assert_eq!(trajectories.paths.len(), 10);
     }
 
     #[test]
-    fn gbm_step_test() -> Result<()> {
-        let gbm = GBM::new(0.05, 0.2);
-        let price_process = PriceProcess::new(
-            PriceProcessType::GBM(gbm),
-            0.01,
-            "1D".to_string(),
-            1,
-            100.0,
-            42,
-        );
-        let (_, prices) = price_process.generate_price_path()?;
-        let initial_price = prices[0];
-        let final_price = prices[1];
+    fn new_process_ornstein_uhlenbeck() {
+        let ou = OrnsteinUhlenbeck::new(1.0, 1.0, 1.0);
+        let config = EulerMaruyamaInput {
+            x_0: 0.0,
+            t_0: 0.0,
+            t_n: 1.0,
+            n_steps: 100,
+            m_paths: 10,
+            parallel: false,
+        };
+        let process = StochasticProcessType::OrnsteinUhlenbeck(ou);
+        let result = new_procces(process, config);
 
-        let mut rng = rand::rngs::StdRng::seed_from_u64(price_process.seed);
-        let expected_final_price = initial_price
-        // Check if the GBM is evolving as it should
-            * (1.0 + 0.05 * 0.01 + 0.2 * Normal::new(0.0, 1.0)?.sample(&mut rng) * (0.01_f64).sqrt());
-        assert_eq!(final_price, expected_final_price);
-        Ok(())
+        assert!(result.is_ok());
+        let trajectories = result.unwrap();
+        assert_eq!(trajectories.times.len(), 101);
+        assert_eq!(trajectories.paths.len(), 10);
+    }
+
+    #[test]
+    fn poisson_process_test() {
+        let lambda = 1.0;
+        let length = 100;
+        let result = poisson_process(lambda, length);
+
+        assert!(result.is_ok());
+        let samples = result.unwrap();
+        assert_eq!(samples.len(), length);
+        // Because Poisson distribution is a random process,
+        // we cannot predict exact values, but we can check if mean is close to lambda.
+        let mean: f64 = samples.iter().map(|&x| x as f64).sum::<f64>() / length as f64;
+        assert!((mean - lambda).abs() < 0.2 * lambda); // tolerance of 20%
+    }
+
+    #[test]
+    pub fn brownian_motion() {
+        let bm = BrownianMotion::new();
+        let trajectory = bm.euler_maruyama(10.0, 0.0, 0.5, 1000, 1000, false);
+        assert_eq!(trajectory.times.len(), 1001);
     }
 }
