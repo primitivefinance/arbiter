@@ -2,7 +2,10 @@
 use std::str::FromStr;
 
 use anyhow::Result;
-use ethers::{prelude::{FilterWatcher, Middleware, StreamExt}, types::{Address, Filter}};
+use ethers::{
+    prelude::{FilterWatcher, Middleware, StreamExt},
+    types::{Address, Filter},
+};
 
 use crate::{
     agent::{tests::*, *},

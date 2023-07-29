@@ -3,9 +3,7 @@
 //! This module contains the middleware for the Revm simulation environment.
 //! Most of the middleware is essentially a placeholder, but it is necessary to have a middleware to work with bindings more efficiently.
 
-use std::fmt::Debug;
-use ethers::prelude::pending_transaction::PendingTxState;
-use ethers::providers::{PendingTransaction, Provider, FilterKind};
+use std::{fmt::Debug, time::Duration};
 
 use ethers::{
     prelude::{
@@ -16,15 +14,14 @@ use ethers::{
         pending_transaction::PendingTxState,
         ProviderError,
     },
-    providers::{FilterWatcher, Middleware, MockProvider, PendingTransaction, Provider},
+    providers::{
+        FilterKind, FilterWatcher, Middleware, MockProvider, PendingTransaction, Provider,
+    },
     signers::{Signer, Wallet},
     types::{transaction::eip2718::TypedTransaction, Address, BlockId, Bytes, Filter, Log},
 };
 use rand::{rngs::StdRng, SeedableRng};
 use revm::primitives::{CreateScheme, ExecutionResult, Output, TransactTo, TxEnv, B160, U256};
-
-use std::fmt::Debug;
-use std::time::Duration;
 
 use crate::{
     environment::Connection,
@@ -199,11 +196,13 @@ impl Middleware for RevmMiddleware {
         todo!("we should be able to get logs.")
     }
 
-
     // NOTES: It might be good to have individual channels for the EVM to send events to so that an agent can install a filter and the logs can be filtered by the EVM itself.
     // This could be handled similarly to how broadcasts are done now and maybe nothing there needs to change except for attaching a filter to the event channels.
     // It would be good to also pass to a separate thread to do broadcasting if we aren't already doing that so that the EVM can process while events are being sent out.
-    async fn new_filter(&self, filter: FilterKind<'_>) -> Result<ethers::types::U256, ProviderError> {
+    async fn new_filter(
+        &self,
+        filter: FilterKind<'_>,
+    ) -> Result<ethers::types::U256, ProviderError> {
         todo!()
         // let (method, args) = match filter {
         //     FilterKind::NewBlocks => unimplemented!("We will need to implement this."),

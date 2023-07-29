@@ -1,7 +1,11 @@
 use anyhow::{Ok, Result};
 use RustQuant::{
     statistics::distributions::{Distribution, Poisson},
-    stochastics::{BrownianMotion, OrnsteinUhlenbeck, StochasticProcess, Trajectories},
+    stochastics::{
+        cox_ingersoll_ross::CoxIngersollRoss, extended_vasicek::ExtendedVasicek, ho_lee::HoLee,
+        hull_white::HullWhite, BlackDermanToy, BrownianMotion, OrnsteinUhlenbeck,
+        StochasticProcess, Trajectories,
+    },
 };
 
 /// Type enum for process
@@ -10,6 +14,16 @@ pub enum StochasticProcessType {
     BrownianMotion(BrownianMotion),
     /// Ornstein-Uhlenbeck
     OrnsteinUhlenbeck(OrnsteinUhlenbeck),
+    /// Black-Derman-Toy
+    BlackDermanToy(BlackDermanToy),
+    /// Cox-Ingersoll-Ross
+    CoxIngersollRoss(CoxIngersollRoss),
+    /// Extended Vasicek
+    ExtendedVasicek(ExtendedVasicek),
+    /// Ho-Lee
+    HoLee(HoLee),
+    /// Hull-White
+    HullWhite(HullWhite),
 }
 /// Struct for all processes init parameters.
 pub struct EulerMaruyamaInput {
@@ -49,6 +63,46 @@ pub fn new_procces(
             config.m_paths,
             config.parallel,
         ),
+        StochasticProcessType::BlackDermanToy(process) => process.euler_maruyama(
+            config.x_0,
+            config.t_0,
+            config.t_n,
+            config.n_steps,
+            config.m_paths,
+            config.parallel,
+        ),
+        StochasticProcessType::CoxIngersollRoss(process) => process.euler_maruyama(
+            config.x_0,
+            config.t_0,
+            config.t_n,
+            config.n_steps,
+            config.m_paths,
+            config.parallel,
+        ),
+        StochasticProcessType::ExtendedVasicek(process) => process.euler_maruyama(
+            config.x_0,
+            config.t_0,
+            config.t_n,
+            config.n_steps,
+            config.m_paths,
+            config.parallel,
+        ),
+        StochasticProcessType::HoLee(process) => process.euler_maruyama(
+            config.x_0,
+            config.t_0,
+            config.t_n,
+            config.n_steps,
+            config.m_paths,
+            config.parallel,
+        ),
+        StochasticProcessType::HullWhite(process) => process.euler_maruyama(
+            config.x_0,
+            config.t_0,
+            config.t_n,
+            config.n_steps,
+            config.m_paths,
+            config.parallel,
+        ),
     };
 
     Ok(trajectories)
@@ -64,6 +118,8 @@ pub fn poisson_process(lambda: f64, length: usize) -> Result<Vec<i32>> {
 
 #[cfg(test)]
 mod tests {
+
+    use RustQuant::stochastics::Sigma;
 
     use super::*;
 
@@ -126,6 +182,70 @@ mod tests {
     pub fn brownian_motion() {
         let bm = BrownianMotion::new();
         let trajectory = bm.euler_maruyama(10.0, 0.0, 0.5, 1000, 1000, false);
+        assert_eq!(trajectory.times.len(), 1001);
+    }
+
+    #[test]
+    pub fn ornstein_uhlenbeck() {
+        let ou = OrnsteinUhlenbeck::new(1.0, 1.0, 1.0);
+        let trajectory = ou.euler_maruyama(10.0, 0.0, 0.5, 1000, 1000, false);
+        assert_eq!(trajectory.times.len(), 1001);
+    }
+
+    #[test]
+    pub fn black_derman_toy() {
+        fn theta_t(_t: f64) -> f64 {
+            1.5
+        }
+
+        let sig = Sigma::Const(0.13);
+        let bdt = BlackDermanToy::new(sig, theta_t);
+        let trajectory = bdt.euler_maruyama(10.0, 0.0, 0.5, 1000, 1000, false);
+        assert_eq!(trajectory.times.len(), 1001);
+    }
+
+    #[test]
+    pub fn cox_ingersoll_ross() {
+        let cir = CoxIngersollRoss::new(0.15, 0.45, 0.01);
+        let trajectory = cir.euler_maruyama(10.0, 0.0, 0.5, 1000, 1000, false);
+        assert_eq!(trajectory.times.len(), 1001);
+    }
+
+    #[test]
+    pub fn extended_vasicek() {
+        fn theta_t(_t: f64) -> f64 {
+            0.5
+        }
+        fn alpha_t(_t: f64) -> f64 {
+            2.0
+        }
+        let sig = 2.0;
+
+        let ev = ExtendedVasicek::new(alpha_t, sig, theta_t);
+        let trajectory = ev.euler_maruyama(10.0, 0.0, 0.5, 1000, 1000, false);
+        assert_eq!(trajectory.times.len(), 1001);
+    }
+
+    #[test]
+    pub fn ho_lee() {
+        fn theta_t(_t: f64) -> f64 {
+            2.0
+        }
+        let hl = HoLee::new(1.6, theta_t);
+        let trajectory = hl.euler_maruyama(10.0, 0.0, 0.5, 1000, 1000, false);
+        assert_eq!(trajectory.times.len(), 1001);
+    }
+
+    #[test]
+    pub fn hull_white() {
+        fn theta_t(_t: f64) -> f64 {
+            0.5
+        }
+        let alpha = 2.0;
+        let sig = 2.0;
+
+        let hw = HullWhite::new(alpha, sig, theta_t);
+        let trajectory = hw.euler_maruyama(10.0, 0.0, 0.5, 1000, 1000, false);
         assert_eq!(trajectory.times.len(), 1001);
     }
 }
