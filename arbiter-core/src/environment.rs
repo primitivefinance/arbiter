@@ -76,7 +76,7 @@ pub struct Connection {
 
 impl Environment {
     /// Create a new [`Environment`].
-    pub fn new(label: String) -> Self {
+    pub(crate) fn new(label: String) -> Self {
         let mut evm = EVM::new();
         let db = CacheDB::new(EmptyDB {});
         evm.database(db);
@@ -99,12 +99,12 @@ impl Environment {
         }
     }
     /// Set the expected events per block
-    pub fn configure_lambda(&mut self, lambda: f64) {
+    pub(crate) fn configure_lambda(&mut self, lambda: f64) {
         self.lambda = lambda;
     }
 
     /// Creates a new [`Agent<RevmMiddleware`] with the given label.
-    pub fn add_agent(&mut self, name: String) {
+    pub(crate) fn add_agent(&mut self, name: String) {
         let agent = Agent::new_simulation_agent(name.clone(), &self.connection);
         self.clients.insert(name, agent);
     }

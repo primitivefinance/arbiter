@@ -36,6 +36,28 @@ impl SimulationManager {
         Ok(())
     }
 
+    /// Configure the lambda for an environment.
+    pub fn configure_lambda(&mut self, lambda: f64, label: String) -> Result<()> {
+        match self.environments.get_mut(&environment_label) {
+            Some(environment) => {
+                environment.configure_lambda(lambda);
+                Ok(())
+            }
+            None => Err(anyhow!("Environment does not exist.")),
+        }
+    }
+
+    /// adds an agent to an environment
+    pub fn add_agent(&mut self, agent: Agent, environment_label: String) -> Result<()> {
+        match self.environments.get_mut(&environment_label) {
+            Some(environment) => {
+                environment.add_agent(agent);
+                Ok(())
+            }
+            None => Err(anyhow!("Environment does not exist.")),
+        }
+    }
+
     /// Runs an environment that is in the [`SimulationManager`]'s list.
     pub fn run_environment(&mut self, environment_label: String) -> Result<()> {
         match self.environments.get_mut(&environment_label) {
