@@ -48,10 +48,10 @@ impl SimulationManager {
     }
 
     /// adds an agent to an environment
-    pub fn add_agent(&mut self, agent: Agent, environment_label: String) -> Result<()> {
+    pub fn add_agent(&mut self, agent_name: String, environment_label: String) -> Result<()> {
         match self.environments.get_mut(&environment_label) {
             Some(environment) => {
-                environment.add_agent(agent);
+                environment.add_agent(agent_name);
                 Ok(())
             }
             None => Err(anyhow!("Environment does not exist.")),
