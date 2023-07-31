@@ -4,9 +4,12 @@
 //! Most of the middleware is essentially a placeholder, but it is necessary to have a middleware to work with bindings more efficiently.
 
 use ethers::prelude::pending_transaction::PendingTxState;
-use ethers::providers::{PendingTransaction, Provider, FilterKind};
+use ethers::providers::{FilterKind, JsonRpcClient, JsonRpcError, PendingTransaction, Provider};
 use ethers::{
-    prelude::k256::{ecdsa::SigningKey,sha2::{Digest, Sha256}},
+    prelude::k256::{
+        ecdsa::SigningKey,
+        sha2::{Digest, Sha256},
+    },
     prelude::ProviderError,
     providers::{FilterWatcher, Middleware, MockProvider},
     signers::{Signer, Wallet},
@@ -14,54 +17,55 @@ use ethers::{
 };
 use rand::rngs::StdRng;
 use rand::SeedableRng;
-use revm::primitives::{CreateScheme, ExecutionResult, Output, TransactTo, TxEnv, B160, U256};
+use revm::primitives::{
+    result, CreateScheme, ExecutionResult, Output, TransactTo, TxEnv, B160, U256,
+};
+use serde::de::DeserializeOwned;
+use serde::Serialize;
 use std::fmt::Debug;
 use std::time::Duration;
 
-use crate::environment::Connection;
+use crate::agent::{Agent, NotAttached};
+use crate::environment::{Environment, RevmProvider};
 use crate::utils::{recast_address, revm_logs_to_ethers_logs};
 
 // TODO: Refactor the connection and channels slightly to be more intuitive. For instance, the middleware may not really need to own a connection, but input one to set up everything else?
 #[derive(Debug)]
 pub struct RevmMiddleware {
-    provider: Provider<MockProvider>,
-    connection: Connection,
+    provider: Provider<RevmProvider>,
     wallet: Wallet<SigningKey>,
-    result_sender: crossbeam_channel::Sender<ExecutionResult>,
-    result_receiver: crossbeam_channel::Receiver<ExecutionResult>,
-    event_receiver: crossbeam_channel::Receiver<Vec<Log>>,
 }
 
 impl RevmMiddleware {
-    pub fn new(connection: Connection, name: String) -> Self {
-        let provider = Provider::new(MockProvider::new());
-        let mut hasher = Sha256::new();
-        hasher.update(name.as_bytes());
-        let seed = hasher.finalize();
-        let mut rng = StdRng::from_seed(seed.into());
-        let wallet = Wallet::new(&mut rng);
-        let (result_sender, result_receiver) = crossbeam_channel::unbounded();
+    pub fn new(agent: &Agent<NotAttached>, environment: &Environment) -> Self {
         let (event_sender, event_receiver) = crossbeam_channel::unbounded();
-        connection
+        environment
             .event_broadcaster
             .lock()
             .unwrap()
             .add_sender(event_sender);
-        Self {
-            provider,
-            connection,
-            wallet,
+        let tx_sender = environment.tx_sender.clone();
+        let (result_sender, result_receiver) = crossbeam_channel::unbounded();
+        let revm_provider = RevmProvider {
+            tx_sender,
             result_sender,
             result_receiver,
             event_receiver,
-        }
+        };
+        let provider = Provider::new(revm_provider);
+        let mut hasher = Sha256::new();
+        hasher.update(agent.name.as_bytes());
+        let seed = hasher.finalize();
+        let mut rng = StdRng::from_seed(seed.into());
+        let wallet = Wallet::new(&mut rng);
+        Self { provider, wallet }
     }
 }
 
 #[async_trait::async_trait]
 impl Middleware for RevmMiddleware {
     /// The JSON-RPC client type at the bottom of the stack
-    type Provider = MockProvider;
+    type Provider = RevmProvider;
     /// Error type returned by most operations
     type Error = ProviderError; //RevmMiddlewareError;
     /// The next-lower middleware in the middleware stack
@@ -106,11 +110,16 @@ impl Middleware for RevmMiddleware {
             nonce: None,
             access_list: Vec::new(),
         };
-        self.connection
+        self.provider
+            .as_ref()
             .tx_sender
-            .send((true, tx_env.clone(), self.result_sender.clone()))
+            .send((
+                true,
+                tx_env.clone(),
+                self.provider.as_ref().result_sender.clone(),
+            ))
             .unwrap();
-        let result = self.result_receiver.recv().unwrap();
+        let result = self.provider.as_ref().result_receiver.recv().unwrap();
         let (output, revm_logs) = match result.clone() {
             ExecutionResult::Success { output, logs, .. } => (output, logs),
             ExecutionResult::Revert { output, .. } => panic!("Failed due to revert: {:?}", output),
@@ -165,11 +174,16 @@ impl Middleware for RevmMiddleware {
             access_list: Vec::new(),
         };
         // TODO: Modify this to work for calls/deploys
-        self.connection
+        self.provider
+            .as_ref()
             .tx_sender
-            .send((false, tx_env.clone(), self.result_sender.clone()))
+            .send((
+                false,
+                tx_env.clone(),
+                self.provider.as_ref().result_sender.clone(),
+            ))
             .unwrap();
-        let result = self.result_receiver.recv().unwrap();
+        let result = self.provider.as_ref().result_receiver.recv().unwrap();
         let output = match result.clone() {
             ExecutionResult::Success { output, .. } => output,
             ExecutionResult::Revert { output, .. } => panic!("Failed due to revert: {:?}", output),
@@ -189,11 +203,13 @@ impl Middleware for RevmMiddleware {
         todo!("we should be able to get logs.")
     }
 
-
     // NOTES: It might be good to have individual channels for the EVM to send events to so that an agent can install a filter and the logs can be filtered by the EVM itself.
     // This could be handled similarly to how broadcasts are done now and maybe nothing there needs to change except for attaching a filter to the event channels.
     // It would be good to also pass to a separate thread to do broadcasting if we aren't already doing that so that the EVM can process while events are being sent out.
-    async fn new_filter(&self, filter: FilterKind<'_>) -> Result<ethers::types::U256, ProviderError> {
+    async fn new_filter(
+        &self,
+        filter: FilterKind<'_>,
+    ) -> Result<ethers::types::U256, ProviderError> {
         todo!()
         // let (method, args) = match filter {
         //     FilterKind::NewBlocks => unimplemented!("We will need to implement this."),

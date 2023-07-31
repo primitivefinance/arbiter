@@ -5,38 +5,33 @@ use std::sync::Arc;
 
 use ethers::providers::Middleware;
 
-use crate::{environment::Connection, middleware::RevmMiddleware};
+use crate::middleware::RevmMiddleware;
 
-pub struct Agent<M: Middleware> {
+pub trait Attached {
+    type Client;
+}
+pub struct IsAttached<M: Middleware> {
+    marker: std::marker::PhantomData<M>,
+}
+pub struct NotAttached {}
+impl<M: Middleware> Attached for IsAttached<M> {
+    type Client = Arc<M>;
+}
+impl Attached for NotAttached {
+    type Client = ();
+}
+
+pub struct Agent<A: Attached> {
     pub name: String,
-    pub client: Arc<M>,
+    pub client: A::Client,
     pub behaviors: Vec<Box<dyn Behavior>>,
 }
 
-impl<M: Middleware> std::fmt::Debug for Agent<M> {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("Agent")
-            .field("name", &self.name)
-            .field("client", &self.client)
-            .finish()
-    }
-}
-
-impl Agent<RevmMiddleware> {
-    pub(crate) fn new_simulation_agent(name: String, connection: Connection) -> Self {
+impl Agent<NotAttached> {
+    pub(crate) fn new<S: Into<String>>(name: S) -> Self {
         Self {
-            name: name.clone(),
-            client: Arc::new(RevmMiddleware::new(connection, name)),
-            behaviors: vec![],
-        }
-    }
-}
-
-impl<M: Middleware> Agent<M> {
-    pub fn new(name: String, middleware: M) -> Self {
-        Self {
-            name,
-            client: Arc::new(middleware),
+            name: name.into(),
+            client: (),
             behaviors: vec![],
         }
     }
@@ -46,6 +41,24 @@ impl<M: Middleware> Agent<M> {
         B: Behavior + 'static,
     {
         self.behaviors.push(Box::new(behavior));
+    }
+
+    pub fn attach_to_client<M: Middleware>(self, client: Arc<M>) -> Agent<IsAttached<M>> {
+        Agent::<IsAttached<M>> {
+            name: self.name,
+            client,
+            behaviors: self.behaviors,
+        }
+    }
+
+    pub fn attach_to_environment(self, environment: &mut crate::environment::Environment) {
+        let middleware = RevmMiddleware::new(&self, environment);
+        let agent = Agent::<IsAttached<RevmMiddleware>> {
+            name: self.name,
+            client: Arc::new(middleware),
+            behaviors: self.behaviors,
+        };
+        environment.add_agent(agent);
     }
 }
 
@@ -95,7 +108,7 @@ pub(crate) mod tests {
     #[tokio::test]
     async fn agent_behavior() {
         let name = TEST_AGENT_NAME.to_string();
-        let mut agent = Agent::new(name, TestMiddleware {});
+        let mut agent = Agent::new(name);
 
         // Add a behavior of the first type.
         let data = TEST_BEHAVIOR_DATA.to_string();
