@@ -75,6 +75,7 @@ pub struct Connection {
 }
 
 impl Environment {
+    /// Create a new [`Environment`].
     pub fn new(label: String) -> Self {
         let mut evm = EVM::new();
         let db = CacheDB::new(EmptyDB {});
