@@ -1,6 +1,6 @@
 # Package configuration
 [package]
-name = "core"
+name = "arbiter-core"
 version = "0.3.0"
 edition = "2021"
 
