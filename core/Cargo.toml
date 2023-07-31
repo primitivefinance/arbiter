@@ -7,6 +7,7 @@ edition = "2021"
 # Dependency configuration
 [dependencies]
 # For execution
+dashmap = "5.5.0"
 bytes = "1.4.0"
 revm = "3.3.0"
 statrs = "0.16.0"
@@ -32,8 +33,7 @@ thiserror = "1.0.30"
 # url = "2.2.2"
 
 # Workspace dependencies
-# TODO: Move to main after PR is merged
-ethers = { git = "https://github.com/primitivefinance/ethers-rs.git", branch = "add_block_number" }
+ethers = { git = "https://github.com/primitivefinance/ethers-rs.git"}
 # ethers-middleware = { version = "2.0.4" }
 serde = { version = "1.0.163", features= ["derive"]}
 serde_json = { version = "1.0.96" }

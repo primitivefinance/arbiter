@@ -31,7 +31,7 @@ use crate::{
 // TODO: Refactor the connection and channels slightly to be more intuitive. For instance, the middleware may not really need to own a connection, but input one to set up everything else?
 /// The Revm middleware struct.
 /// This struct is modular with ther ethers.rs middleware, and is used to connect the Revm environment in memory rather than over the network.
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct RevmMiddleware {
     provider: Provider<MockProvider>,
     connection: Connection,

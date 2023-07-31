@@ -8,6 +8,7 @@ use std::{
         Arc, Mutex,
     },
     thread,
+    collections::HashMap,
 };
 
 use crossbeam_channel::{unbounded, Receiver, Sender};
@@ -58,7 +59,7 @@ pub struct Environment {
     /// Connection to the environment
     pub connection: Connection,
     /// Clients (Agents) in the environment
-    pub clients: Vec<Arc<Agent<RevmMiddleware>>>,
+    pub clients: HashMap<String, Agent<RevmMiddleware>>,
     /// expected events per block
     pub lambda: f64,
 }
@@ -92,7 +93,7 @@ impl Environment {
             state: State::Stopped,
             evm,
             connection,
-            clients: vec![],
+            clients: HashMap::new(),
             lambda: 0.0,
         }
     }
@@ -103,8 +104,8 @@ impl Environment {
 
     /// Creates a new [`Agent<RevmMiddleware`] with the given label.
     pub fn add_agent(&mut self, name: String) {
-        let agent = Agent::new_simulation_agent(name, &self.connection);
-        self.clients.push(Arc::new(agent));
+        let agent = Agent::new_simulation_agent(name.clone(), &self.connection);
+        self.clients.insert(name, agent);
     }
 
     // TODO: Run should now run the agents as well as the evm.
