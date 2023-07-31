@@ -24,9 +24,16 @@ use crate::{
 
 /// Type Aliases for the event channel.
 pub(crate) type ToTransact = bool;
-pub(crate) type ExecutionSender = Sender<ExecutionResult>;
+pub(crate) type ExecutionSender = Sender<RevmResult>;
 pub(crate) type TxEnvSender = Sender<(ToTransact, TxEnv, ExecutionSender)>;
 pub(crate) type TxEnvReceiver = Receiver<(ToTransact, TxEnv, ExecutionSender)>;
+
+/// Result struct for the [`Environment`]. that wraps the [`ExecutionResult`] and the block number.
+#[derive(Debug, Clone)]
+pub struct RevmResult {
+    pub(crate) result: ExecutionResult,
+    pub(crate) block_number: U256,
+}
 
 /// State enum for the [`Environment`].
 #[derive(Debug, Eq, PartialEq, Clone, Copy)]
@@ -70,7 +77,7 @@ impl Environment {
         evm.database(db);
         evm.env.cfg.limit_contract_code_size = Some(0x100000); // This is a large contract size limit, beware!
         evm.env.block.gas_limit = U256::MAX;
-        let transaction_channel = unbounded::<(ToTransact, TxEnv, Sender<ExecutionResult>)>();
+        let transaction_channel = unbounded::<(ToTransact, TxEnv, Sender<RevmResult>)>();
         let connection = Connection {
             tx_sender: transaction_channel.0,
             tx_receiver: transaction_channel.1,
@@ -126,6 +133,10 @@ impl Environment {
                         .lock()
                         .unwrap()
                         .broadcast(execution_result.logs());
+                    let execution_result = RevmResult { 
+                        result: execution_result, 
+                        block_number: evm.env.block.number 
+                    };
                     sender.send(execution_result).unwrap();
                 } else {
                     let execution_result = match evm.transact() {
@@ -133,7 +144,11 @@ impl Environment {
                         // URGENT: change this to a custom error
                         Err(_) => panic!("failed"),
                     };
-                    sender.send(execution_result.result).unwrap();
+                    let result_and_block = RevmResult { 
+                        result: execution_result.result, 
+                        block_number: evm.env.block.number 
+                    };
+                    sender.send(result_and_block).unwrap();
                 }
             }
         });

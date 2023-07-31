@@ -24,7 +24,7 @@ use rand::{rngs::StdRng, SeedableRng};
 use revm::primitives::{CreateScheme, ExecutionResult, Output, TransactTo, TxEnv, B160, U256};
 
 use crate::{
-    environment::Connection,
+    environment::{Connection, RevmResult},
     utils::{recast_address, revm_logs_to_ethers_logs},
 };
 
@@ -34,8 +34,8 @@ pub struct RevmMiddleware {
     provider: Provider<MockProvider>,
     connection: Connection,
     wallet: Wallet<SigningKey>,
-    result_sender: crossbeam_channel::Sender<ExecutionResult>,
-    result_receiver: crossbeam_channel::Receiver<ExecutionResult>,
+    result_sender: crossbeam_channel::Sender<RevmResult>,
+    result_receiver: crossbeam_channel::Receiver<RevmResult>,
     event_receiver: crossbeam_channel::Receiver<Vec<Log>>,
 }
 
@@ -117,8 +117,8 @@ impl Middleware for RevmMiddleware {
             .tx_sender
             .send((true, tx_env.clone(), self.result_sender.clone()))
             .unwrap();
-        let result = self.result_receiver.recv().unwrap();
-        let (output, revm_logs) = match result.clone() {
+        let revm_result = self.result_receiver.recv().unwrap();
+        let (output, revm_logs) = match revm_result.result {
             ExecutionResult::Success { output, logs, .. } => (output, logs),
             ExecutionResult::Revert { output, .. } => panic!("Failed due to revert: {:?}", output),
             ExecutionResult::Halt { reason, .. } => panic!("Failed due to halt: {:?}", reason),
@@ -176,8 +176,8 @@ impl Middleware for RevmMiddleware {
             .tx_sender
             .send((false, tx_env.clone(), self.result_sender.clone()))
             .unwrap();
-        let result = self.result_receiver.recv().unwrap();
-        let output = match result.clone() {
+        let revm_result = self.result_receiver.recv().unwrap();
+        let output = match revm_result.result.clone() {
             ExecutionResult::Success { output, .. } => output,
             ExecutionResult::Revert { output, .. } => panic!("Failed due to revert: {:?}", output),
             ExecutionResult::Halt { reason, .. } => panic!("Failed due to halt: {:?}", reason),
