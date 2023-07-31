@@ -32,7 +32,8 @@ thiserror = "1.0.30"
 # url = "2.2.2"
 
 # Workspace dependencies
-ethers = { git = "https://github.com/Autoparallel/ethers-rs.git"}
+# TODO: Move to main after PR is merged
+ethers = { git = "https://github.com/primitivefinance/ethers-rs.git", branch = "add_block_number" }
 # ethers-middleware = { version = "2.0.4" }
 serde = { version = "1.0.163", features= ["derive"]}
 serde_json = { version = "1.0.96" }

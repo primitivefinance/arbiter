@@ -10,6 +10,7 @@ use anyhow::{anyhow, Result};
 use crate::environment::{Environment, State};
 
 /// Manages simulations.
+#[derive(Default)]
 pub struct SimulationManager {
     /// The list of [`SimulationEnvironment`] that the simulation manager controls.
     pub environments: HashMap<String, Environment>,

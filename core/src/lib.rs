@@ -4,6 +4,7 @@
 
 pub mod agent;
 pub mod bindings;
+/// Module for managing the environment.
 pub mod environment;
 pub mod manager;
 pub mod math;

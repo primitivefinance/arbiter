@@ -11,6 +11,7 @@ use std::{
 };
 
 use crossbeam_channel::{unbounded, Receiver, Sender};
+use ethers::core::types::U64;
 use revm::{
     db::{CacheDB, EmptyDB},
     primitives::{ExecutionResult, Log, TxEnv, U256},
@@ -18,8 +19,10 @@ use revm::{
 };
 
 use crate::{
-    agent::Agent, math::stochastic_process::poisson_process, middleware::RevmMiddleware,
-    utils::revm_logs_to_ethers_logs,
+    agent::Agent,
+    math::stochastic_process::poisson_process,
+    middleware::RevmMiddleware,
+    utils::{convert_uint_to_u64, revm_logs_to_ethers_logs},
 };
 
 /// Type Aliases for the event channel.
@@ -32,7 +35,7 @@ pub(crate) type TxEnvReceiver = Receiver<(ToTransact, TxEnv, ExecutionSender)>;
 #[derive(Debug, Clone)]
 pub struct RevmResult {
     pub(crate) result: ExecutionResult,
-    pub(crate) block_number: U256,
+    pub(crate) block_number: U64,
 }
 
 /// State enum for the [`Environment`].
@@ -133,9 +136,9 @@ impl Environment {
                         .lock()
                         .unwrap()
                         .broadcast(execution_result.logs());
-                    let execution_result = RevmResult { 
-                        result: execution_result, 
-                        block_number: evm.env.block.number 
+                    let execution_result = RevmResult {
+                        result: execution_result,
+                        block_number: convert_uint_to_u64(evm.env.block.number).unwrap(),
                     };
                     sender.send(execution_result).unwrap();
                 } else {
@@ -144,9 +147,9 @@ impl Environment {
                         // URGENT: change this to a custom error
                         Err(_) => panic!("failed"),
                     };
-                    let result_and_block = RevmResult { 
-                        result: execution_result.result, 
-                        block_number: evm.env.block.number 
+                    let result_and_block = RevmResult {
+                        result: execution_result.result,
+                        block_number: convert_uint_to_u64(evm.env.block.number).unwrap(),
                     };
                     sender.send(result_and_block).unwrap();
                 }

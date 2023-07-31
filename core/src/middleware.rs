@@ -29,6 +29,8 @@ use crate::{
 };
 
 // TODO: Refactor the connection and channels slightly to be more intuitive. For instance, the middleware may not really need to own a connection, but input one to set up everything else?
+/// The Revm middleware struct.
+/// This struct is modular with ther ethers.rs middleware, and is used to connect the Revm environment in memory rather than over the network.
 #[derive(Debug)]
 pub struct RevmMiddleware {
     provider: Provider<MockProvider>,
@@ -40,6 +42,7 @@ pub struct RevmMiddleware {
 }
 
 impl RevmMiddleware {
+    /// Creates a new Revm middleware struct.
     pub fn new(connection: Connection, name: String) -> Self {
         let provider = Provider::new(MockProvider::new());
         let mut hasher = Sha256::new();
@@ -90,7 +93,7 @@ impl Middleware for RevmMiddleware {
     async fn send_transaction<T: Into<TypedTransaction> + Send + Sync>(
         &self,
         tx: T,
-        block: Option<BlockId>,
+        _block: Option<BlockId>,
     ) -> Result<PendingTransaction<'_, Self::Provider>, Self::Error> {
         let mut tx: TypedTransaction = tx.into();
         tx.set_from(self.wallet.address());
@@ -118,8 +121,10 @@ impl Middleware for RevmMiddleware {
             .send((true, tx_env.clone(), self.result_sender.clone()))
             .unwrap();
         let revm_result = self.result_receiver.recv().unwrap();
-        let (output, revm_logs) = match revm_result.result {
-            ExecutionResult::Success { output, logs, .. } => (output, logs),
+        let (output, revm_logs, block) = match revm_result.result {
+            ExecutionResult::Success { output, logs, .. } => {
+                (output, logs, revm_result.block_number)
+            }
             ExecutionResult::Revert { output, .. } => panic!("Failed due to revert: {:?}", output),
             ExecutionResult::Halt { reason, .. } => panic!("Failed due to halt: {:?}", reason),
         };
@@ -136,12 +141,10 @@ impl Middleware for RevmMiddleware {
                     PendingTransaction::new(ethers::types::H256::zero(), self.provider());
                 let logs = revm_logs_to_ethers_logs(revm_logs);
 
-                pending_tx.state = PendingTxState::RevmTransactOutput(logs);
+                pending_tx.state = PendingTxState::RevmTransactOutput(logs, block);
                 return Ok(pending_tx);
             }
         }
-
-        // TODO: RECEIPTS OF TRANSACTIONS SHOULD STORE THE BLOCKNUMBERS THEY OCCURED IN
     }
 
     /// Makes a call to revm that will not commit a state change to the DB. Can be used for a mock transaction

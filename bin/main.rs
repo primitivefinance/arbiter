@@ -4,7 +4,7 @@
 
 use std::error::Error;
 
-use clap::{arg, command, CommandFactory, Parser, Subcommand};
+use clap::{command, CommandFactory, Parser, Subcommand};
 use eyre::Result;
 use thiserror::Error;
 
