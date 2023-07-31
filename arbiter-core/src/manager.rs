@@ -37,7 +37,7 @@ impl SimulationManager {
     }
 
     /// Configure the lambda for an environment.
-    pub fn configure_lambda(&mut self, lambda: f64, label: String) -> Result<()> {
+    pub fn configure_lambda(&mut self, lambda: f64, environment_label: String) -> Result<()> {
         match self.environments.get_mut(&environment_label) {
             Some(environment) => {
                 environment.configure_lambda(lambda);
