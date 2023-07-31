@@ -74,7 +74,7 @@ pub struct Connection {
 }
 
 impl Environment {
-    pub(crate) fn new(label: String) -> Self {
+    pub fn new(label: String) -> Self {
         let mut evm = EVM::new();
         let db = CacheDB::new(EmptyDB {});
         evm.database(db);
@@ -102,8 +102,8 @@ impl Environment {
     }
 
     /// Creates a new [`Agent<RevmMiddleware`] with the given label.
-    pub fn add_agent(&mut self, name: String, connection: Connection) {
-        let agent = Agent::new_simulation_agent(name, connection);
+    pub fn add_agent(&mut self, name: String) {
+        let agent = Agent::new_simulation_agent(name, &self.connection);
         self.clients.push(Arc::new(agent));
     }
 
