@@ -109,11 +109,11 @@ pub fn new_procces(
 }
 
 /// Sample Poisson process.
-pub fn poisson_process(lambda: f64, length: usize) -> Result<Vec<i32>> {
+pub fn poisson_process(lambda: f64) -> Result<Vec<i32>> {
     let poisson = Poisson::new(lambda);
-    let float_samples = poisson.sample(length);
+    let float_samples = poisson.sample(1);
     let int_samples: Vec<i32> = float_samples.iter().map(|&x| x.round() as i32).collect();
-    Ok(int_samples)
+    Ok(int_sample)
 }
 
 #[cfg(test)]
@@ -166,8 +166,7 @@ mod tests {
     #[test]
     fn poisson_process_test() {
         let lambda = 1.0;
-        let length = 100;
-        let result = poisson_process(lambda, length);
+        let result = poisson_process(lambda);
 
         assert!(result.is_ok());
         let samples = result.unwrap();

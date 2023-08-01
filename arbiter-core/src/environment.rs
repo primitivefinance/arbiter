@@ -61,7 +61,7 @@ pub struct Environment {
     /// Clients (Agents) in the environment
     pub clients: HashMap<String, Agent<RevmMiddleware>>,
     /// expected events per block
-    pub lambda: f64,
+    pub lambda: Some(f64),
 }
 
 /// Connection struct for the [`Environment`].
@@ -95,12 +95,13 @@ impl Environment {
             evm,
             connection,
             clients: HashMap::new(),
-            lambda: 0.0,
+            // Default is none
+            lambda: None,
         }
     }
-    /// Set the expected events per block
-    pub(crate) fn configure_lambda(&mut self, lambda: f64) {
-        self.lambda = lambda;
+
+    pub(crate) fn configure_lambda(&mut self, lamda: f64) {
+        self.lambda = Some(lamda);
     }
 
     /// Creates a new [`Agent<RevmMiddleware`] with the given label.
@@ -115,7 +116,7 @@ impl Environment {
         let mut evm = self.evm.clone();
         let event_broadcaster = self.connection.event_broadcaster.clone();
         let counter = Arc::clone(&self.connection.tx_per_block);
-        let expected_occurance = poisson_process(self.lambda, 1).unwrap();
+        let expected_occurance = poisson_process(self.lambda).unwrap();
         self.state = State::Running;
 
         //give all agents their own thread and let them start watching for their evnts
@@ -127,7 +128,6 @@ impl Environment {
                     counter.store(0, Ordering::Relaxed);
                 }
                 evm.env.tx = tx;
-                counter.fetch_add(1, Ordering::Relaxed);
                 if to_transact {
                     let execution_result = match evm.transact_commit() {
                         Ok(val) => val,
@@ -143,6 +143,7 @@ impl Environment {
                         block_number: convert_uint_to_u64(evm.env.block.number).unwrap(),
                     };
                     sender.send(execution_result).unwrap();
+                    counter.fetch_add(1, Ordering::Relaxed);
                 } else {
                     let execution_result = match evm.transact() {
                         Ok(val) => val,
