@@ -5,6 +5,7 @@
 
 use ethers::prelude::pending_transaction::PendingTxState;
 use ethers::providers::{FilterKind, JsonRpcClient, JsonRpcError, PendingTransaction, Provider};
+use ethers::utils;
 use ethers::{
     prelude::k256::{
         ecdsa::SigningKey,
@@ -87,7 +88,7 @@ impl Middleware for RevmMiddleware {
     async fn send_transaction<T: Into<TypedTransaction> + Send + Sync>(
         &self,
         tx: T,
-        block: Option<BlockId>,
+        _block: Option<BlockId>,
     ) -> Result<PendingTransaction<'_, Self::Provider>, Self::Error> {
         let mut tx: TypedTransaction = tx.into();
         tx.set_from(self.wallet.address());
@@ -210,14 +211,13 @@ impl Middleware for RevmMiddleware {
         &self,
         filter: FilterKind<'_>,
     ) -> Result<ethers::types::U256, ProviderError> {
-        todo!()
-        // let (method, args) = match filter {
-        //     FilterKind::NewBlocks => unimplemented!("We will need to implement this."),
-        //     FilterKind::PendingTransactions => unimplemented!("Not sure if we need to implement this."),
-        //     FilterKind::Logs(filter) => ("eth_newFilter", vec![utils::serialize(&filter)]),
-        // };
+        let (method, args) = match filter {
+            FilterKind::NewBlocks => unimplemented!("We will need to implement this."),
+            FilterKind::PendingTransactions => unimplemented!("Not sure if we need to implement this."),
+            FilterKind::Logs(filter) => ("eth_newFilter", vec![utils::serialize(&filter)]),
+        };
 
-        // self.request(method, args).await
+        self.provider().request(method, args).await
     }
 
     async fn watch<'a>(
