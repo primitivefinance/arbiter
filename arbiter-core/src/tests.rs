@@ -9,11 +9,10 @@ use ethers::{
 };
 
 use crate::{
-    agent::{tests::*, *},
+    agent::{*},
     bindings::arbiter_token::*,
-    environment::{tests::*, *},
-    manager::{tests::*, *},
-    middleware::{tests::*, *},
+    environment::{*},
+    middleware::{*},
 };
 
 const TEST_ARG_NAME: &str = "ArbiterToken";
