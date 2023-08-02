@@ -27,51 +27,71 @@ use crate::{
     environment::{Connection, RevmResult},
     utils::{recast_address, revm_logs_to_ethers_logs},
 };
+use ethers::prelude::pending_transaction::PendingTxState;
+use ethers::providers::{FilterKind, JsonRpcClient, JsonRpcError, PendingTransaction, Provider};
+use ethers::{
+    prelude::k256::{
+        ecdsa::SigningKey,
+        sha2::{Digest, Sha256},
+    },
+    prelude::ProviderError,
+    providers::{FilterWatcher, Middleware, MockProvider},
+    signers::{Signer, Wallet},
+    types::{transaction::eip2718::TypedTransaction, Address, BlockId, Bytes, Filter, Log},
+};
+use rand::rngs::StdRng;
+use rand::SeedableRng;
+use revm::primitives::{
+    result, CreateScheme, ExecutionResult, Output, TransactTo, TxEnv, B160, U256,
+};
+use serde::de::DeserializeOwned;
+use serde::Serialize;
+use std::fmt::Debug;
+use std::time::Duration;
+
+use crate::agent::{Agent, NotAttached};
+use crate::environment::{Environment, RevmProvider};
+use crate::utils::{recast_address, revm_logs_to_ethers_logs};
 
 // TODO: Refactor the connection and channels slightly to be more intuitive. For instance, the middleware may not really need to own a connection, but input one to set up everything else?
 /// The Revm middleware struct.
 /// This struct is modular with ther ethers.rs middleware, and is used to connect the Revm environment in memory rather than over the network.
 #[derive(Debug, Clone)]
 pub struct RevmMiddleware {
-    provider: Provider<MockProvider>,
-    connection: Connection,
+    provider: Provider<RevmProvider>,
     wallet: Wallet<SigningKey>,
-    result_sender: crossbeam_channel::Sender<RevmResult>,
-    result_receiver: crossbeam_channel::Receiver<RevmResult>,
-    event_receiver: crossbeam_channel::Receiver<Vec<Log>>,
 }
 
 impl RevmMiddleware {
-    /// Creates a new Revm middleware struct.
-    pub fn new(connection: Connection, name: String) -> Self {
-        let provider = Provider::new(MockProvider::new());
-        let mut hasher = Sha256::new();
-        hasher.update(name.as_bytes());
-        let seed = hasher.finalize();
-        let mut rng = StdRng::from_seed(seed.into());
-        let wallet = Wallet::new(&mut rng);
-        let (result_sender, result_receiver) = crossbeam_channel::unbounded();
+    pub fn new(agent: &Agent<NotAttached>, environment: &Environment) -> Self {
         let (event_sender, event_receiver) = crossbeam_channel::unbounded();
-        connection
+        environment
             .event_broadcaster
             .lock()
             .unwrap()
             .add_sender(event_sender);
-        Self {
-            provider,
-            connection,
-            wallet,
+        let tx_sender = environment.tx_sender.clone();
+        let (result_sender, result_receiver) = crossbeam_channel::unbounded();
+        let revm_provider = RevmProvider {
+            tx_sender,
             result_sender,
             result_receiver,
             event_receiver,
-        }
+        };
+        let provider = Provider::new(revm_provider);
+        let mut hasher = Sha256::new();
+        hasher.update(agent.name.as_bytes());
+        let seed = hasher.finalize();
+        let mut rng = StdRng::from_seed(seed.into());
+        let wallet = Wallet::new(&mut rng);
+        Self { provider, wallet }
     }
 }
 
 #[async_trait::async_trait]
 impl Middleware for RevmMiddleware {
     /// The JSON-RPC client type at the bottom of the stack
-    type Provider = MockProvider;
+    type Provider = RevmProvider;
     /// Error type returned by most operations
     type Error = ProviderError; //RevmMiddlewareError;
     /// The next-lower middleware in the middleware stack
@@ -116,15 +136,19 @@ impl Middleware for RevmMiddleware {
             nonce: None,
             access_list: Vec::new(),
         };
-        self.connection
+        self.provider
+            .as_ref()
             .tx_sender
-            .send((true, tx_env.clone(), self.result_sender.clone()))
+            .send((
+                true,
+                tx_env.clone(),
+                self.provider.as_ref().result_sender.clone(),
+            ))
             .unwrap();
-        let revm_result = self.result_receiver.recv().unwrap();
-        let (output, revm_logs, block) = match revm_result.result {
-            ExecutionResult::Success { output, logs, .. } => {
-                (output, logs, revm_result.block_number)
-            }
+
+        let revm_result = self.provider.as_ref().result_receiver.recv().unwrap();
+        let (output, revm_logs, block) = match result.clone() {
+            ExecutionResult::Success { output, logs, .. } => (output, logs, revm_result.block_number),
             ExecutionResult::Revert { output, .. } => panic!("Failed due to revert: {:?}", output),
             ExecutionResult::Halt { reason, .. } => panic!("Failed due to halt: {:?}", reason),
         };
@@ -175,12 +199,18 @@ impl Middleware for RevmMiddleware {
             access_list: Vec::new(),
         };
         // TODO: Modify this to work for calls/deploys
-        self.connection
+        self.provider
+            .as_ref()
             .tx_sender
-            .send((false, tx_env.clone(), self.result_sender.clone()))
+            .send((
+                false,
+                tx_env.clone(),
+                self.provider.as_ref().result_sender.clone(),
+            ))
             .unwrap();
-        let revm_result = self.result_receiver.recv().unwrap();
-        let output = match revm_result.result.clone() {
+
+        let revm_result = self.provider.as_ref().result_receiver.recv().unwrap();
+        let output = match result.clone() {
             ExecutionResult::Success { output, .. } => output,
             ExecutionResult::Revert { output, .. } => panic!("Failed due to revert: {:?}", output),
             ExecutionResult::Halt { reason, .. } => panic!("Failed due to halt: {:?}", reason),

@@ -13,6 +13,7 @@ use std::{
 
 use crossbeam_channel::{unbounded, Receiver, Sender};
 use ethers::core::types::U64;
+use ethers::providers::{JsonRpcClient, ProviderError};
 use revm::{
     db::{CacheDB, EmptyDB},
     primitives::{ExecutionResult, Log, TxEnv, U256},
@@ -25,6 +26,15 @@ use crate::{
     middleware::RevmMiddleware,
     utils::{convert_uint_to_u64, revm_logs_to_ethers_logs},
 };
+use serde::{de::DeserializeOwned, Serialize};
+use std::{
+    fmt::Debug,
+    sync::{Arc, Mutex},
+    thread,
+};
+
+use crate::{utils::revm_logs_to_ethers_logs, agent::IsAttached};
+use crate::{agent::Agent, middleware::RevmMiddleware};
 
 /// Type Aliases for the event channel.
 pub(crate) type ToTransact = bool;
@@ -77,20 +87,69 @@ pub struct Connection {
 impl Environment {
     /// Create a new [`Environment`].
     pub(crate) fn new(label: String) -> Self {
+    pub(crate) tx_sender: TxEnvSender,
+    tx_receiver: TxEnvReceiver,
+    pub(crate) event_broadcaster: Arc<Mutex<EventBroadcaster>>,
+    /// Clients (Agents) in the environment
+    pub agents: Vec<Agent<IsAttached<RevmMiddleware>>>,
+    // pub deployed_contracts: HashMap<String, Contract<RevmMiddleware>>,
+}
+
+// TODO: If the provider holds the connection then this can work better.
+pub struct RevmProvider {
+    pub(crate) tx_sender: TxEnvSender,
+    pub(crate) result_sender: crossbeam_channel::Sender<ExecutionResult>,
+    pub(crate) result_receiver: crossbeam_channel::Receiver<ExecutionResult>,
+    pub(crate) event_receiver: crossbeam_channel::Receiver<Vec<ethers::types::Log>>,
+}
+
+impl Debug for RevmProvider {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("RevmProvider").finish()
+    }
+}
+
+#[async_trait::async_trait]
+impl JsonRpcClient for RevmProvider {
+    type Error = ProviderError;
+
+    async fn request<T: Serialize + Send + Sync, R: DeserializeOwned>(
+        &self,
+        method: &str,
+        params: T,
+    ) -> Result<R, ProviderError> {
+        match method {
+            "eth_getFilterChanges" => {
+                let logs = self.event_receiver.recv().unwrap();
+                println!("logs: {:?}", logs);
+                let logs_str = serde_json::to_string(&logs).unwrap();
+                let logs_deserializeowned: R = serde_json::from_str(&logs_str)?;
+                return Ok(logs_deserializeowned);
+                // return Ok(serde::to_value(self.event_receiver.recv().ok()).unwrap())
+            },
+            _ => {
+                unimplemented!("We don't cover this case yet.")
+            }
+        }
+    }
+}
+
+impl Environment {
+    pub(crate) fn new<S: Into<String>>(label: S) -> Self {
         let mut evm = EVM::new();
         let db = CacheDB::new(EmptyDB {});
         evm.database(db);
         evm.env.cfg.limit_contract_code_size = Some(0x100000); // This is a large contract size limit, beware!
         evm.env.block.gas_limit = U256::MAX;
-        let transaction_channel = unbounded::<(ToTransact, TxEnv, Sender<RevmResult>)>();
+        let (tx_sender, tx_receiver) = unbounded::<(ToTransact, TxEnv, Sender<RevmResult>)>();
         let connection = Connection {
-            tx_sender: transaction_channel.0,
-            tx_receiver: transaction_channel.1,
+            tx_sender: tx_sender,
+            tx_receiver: tx_receiver,
             event_broadcaster: Arc::new(Mutex::new(EventBroadcaster::new())),
             tx_per_block: Arc::new(AtomicUsize::new(0)),
         };
         Self {
-            label,
+            label: label.into(),
             state: State::Stopped,
             evm,
             connection,
@@ -108,11 +167,22 @@ impl Environment {
     pub(crate) fn add_agent(&mut self, name: String) {
         let agent = Agent::new_simulation_agent(name.clone(), &self.connection);
         self.clients.insert(name, agent);
+            tx_sender,
+            tx_receiver,
+            event_broadcaster: Arc::new(Mutex::new(EventBroadcaster::new())),
+            agents: vec![],
+        }
+    }
+    // TODO: We need to make this the way to add agents to the environment.
+    // in `agent.rs` we have `new_simulation_agent` which should probably just be called from this function instead.
+    // OR agents can be created (without a connection?) and then added to the environment where they will gain a connection?
+    pub fn add_agent(&mut self, agent: Agent<IsAttached<RevmMiddleware>>) {
+        self.agents.push(agent);
     }
 
     // TODO: Run should now run the agents as well as the evm.
     pub(crate) fn run(&mut self) {
-        let tx_receiver = self.connection.tx_receiver.clone();
+        let tx_receiver = self.tx_receiver.clone();
         let mut evm = self.evm.clone();
         let event_broadcaster = self.connection.event_broadcaster.clone();
         let counter = Arc::clone(&self.connection.tx_per_block);
