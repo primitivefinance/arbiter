@@ -29,7 +29,7 @@ pub struct Agent<A: Attached> {
 
 
 impl Agent<NotAttached> {
-    pub(crate) fn new<S: Into<String>>(name: S) -> Self {
+    pub fn new<S: Into<String>>(name: S) -> Self {
         Self {
             name: name.into(),
             client: (),
