@@ -4,7 +4,7 @@
 use std::{
     fmt::Debug,
     sync::{
-        atomic::{AtomicUsize, Ordering},
+        atomic::{AtomicBool, AtomicUsize, Ordering},
         Arc, Mutex,
     },
     thread,
@@ -18,12 +18,13 @@ use revm::{
     primitives::{ExecutionResult, Log, TxEnv, U256},
     EVM,
 };
+use RustQuant::statistics::distributions::i;
 
 use crate::{
     agent::{Agent, IsAttached, NotAttached},
-    math::stochastic_process::sample_poisson,
+    math::stochastic_process::{sample_poisson, SeededPoisson},
     middleware::RevmMiddleware,
-    utils::{convert_uint_to_u64, revm_logs_to_ethers_logs, },
+    utils::{convert_uint_to_u64, revm_logs_to_ethers_logs},
 };
 use serde::{de::DeserializeOwned, Serialize};
 
@@ -63,11 +64,8 @@ pub struct Environment {
     /// Clients (Agents) in the environment
     pub agents: Vec<Agent<IsAttached<RevmMiddleware>>>,
     /// expected events per block
-    pub lambda: Option<f64>,
-    pub tx_per_block: Arc<AtomicUsize>,
-
+    pub seeded_poisson: SeededPoisson,
 }
-
 
 // TODO: If the provider holds the connection then this can work better.
 #[derive(Clone)]
@@ -101,7 +99,7 @@ impl JsonRpcClient for RevmProvider {
                 let logs_deserializeowned: R = serde_json::from_str(&logs_str)?;
                 return Ok(logs_deserializeowned);
                 // return Ok(serde::to_value(self.event_receiver.recv().ok()).unwrap())
-            },
+            }
             _ => {
                 unimplemented!("We don't cover this case yet.")
             }
@@ -109,13 +107,14 @@ impl JsonRpcClient for RevmProvider {
     }
 }
 
-
 impl Environment {
     /// Creates a new [`Environment`] with the given label.
-    pub(crate) fn new<S: Into<String>>(label: S) -> Self {
+    pub(crate) fn new<S: Into<String>>(label: S, block_rate: f64, seed: u64) -> Self {
         let mut evm = EVM::new();
         let db = CacheDB::new(EmptyDB {});
         evm.database(db);
+
+        let seeded_poisson = SeededPoisson::new(block_rate, seed);
         evm.env.cfg.limit_contract_code_size = Some(0x100000); // This is a large contract size limit, beware!
         evm.env.block.gas_limit = U256::MAX;
         let (tx_sender, tx_receiver) = unbounded::<(ToTransact, TxEnv, Sender<RevmResult>)>();
@@ -127,13 +126,8 @@ impl Environment {
             tx_receiver,
             event_broadcaster: Arc::new(Mutex::new(EventBroadcaster::new())),
             agents: vec![],
-            lambda: None,
-            tx_per_block: Arc::new(AtomicUsize::new(0)),
+            seeded_poisson,
         }
-    }
-
-    pub(crate) fn configure_lambda(&mut self, lamda: f64) {
-        self.lambda = Some(lamda);
     }
 
     /// Creates a new [`Agent<RevmMiddleware`] with the given label.
@@ -150,21 +144,24 @@ impl Environment {
         let tx_receiver = self.tx_receiver.clone();
         let mut evm = self.evm.clone();
         let event_broadcaster = self.event_broadcaster.clone();
-        let counter = Arc::clone(&self.tx_per_block);
+
+        let mut seeded_poisson = self.seeded_poisson.clone();
+
+        let mut counter: usize = 0;
         self.state = State::Running;
-        let mut expected_occurance: Option<Vec<i32>> = None;
-        if let Some(lambda) = self.lambda {
-            expected_occurance = Some(sample_poisson(lambda).unwrap());
-        }
-        //give all agents their own thread and let them start watching for their evnts
+
         thread::spawn(move || {
+            let mut expected_events_per_block = seeded_poisson.sample();
+
             while let Ok((to_transact, tx, sender)) = tx_receiver.recv() {
                 // Execute the transaction, echo the logs to all agents, and report the execution result to the agent who made the transaction.
-                if let Some(occurance) = &expected_occurance {
-                    if counter.load(Ordering::Relaxed) >= occurance[0] as usize {
-                        evm.env.block.number += U256::from(1);
-                        counter.store(0, Ordering::Relaxed);
-                    }
+                if counter == expected_events_per_block {
+                    counter = 0;
+                    println!("EVM expected number of transactions reached. Moving to next block.");
+                    println!("old block number: {:?}", evm.env.block.number);
+                    evm.env.block.number += U256::from(1);
+                    println!("new block number: {:?}", evm.env.block.number);
+                    expected_events_per_block = seeded_poisson.sample();
                 }
 
                 evm.env.tx = tx;
@@ -184,10 +181,7 @@ impl Environment {
                         block_number: convert_uint_to_u64(evm.env.block.number).unwrap(),
                     };
                     sender.send(revm_result).unwrap();
-                    if let Some(_occurance) = &expected_occurance {
-                        counter.fetch_add(1, Ordering::Relaxed);
-                    }
-
+                    counter += 1;
                 } else {
                     let execution_result = match evm.transact() {
                         Ok(val) => val,
@@ -230,20 +224,27 @@ impl EventBroadcaster {
 
 #[cfg(test)]
 pub(crate) mod tests {
+    use std::time::Duration;
+
+    use anyhow::{Ok, Result};
+    use ethers::types::Address;
+
+    use crate::bindings::arbiter_token::ArbiterToken;
+
     use super::*;
 
     pub(crate) const TEST_ENV_LABEL: &str = "test";
 
     #[test]
     fn new() {
-        let env = Environment::new(TEST_ENV_LABEL.to_string());
+        let env = Environment::new(TEST_ENV_LABEL.to_string(), 1.0, 1);
         assert_eq!(env.label, TEST_ENV_LABEL);
         assert_eq!(env.state, State::Stopped);
     }
 
     #[test]
     fn run() {
-        let mut environment = Environment::new(TEST_ENV_LABEL.to_string());
+        let mut environment = Environment::new(TEST_ENV_LABEL.to_string(), 1.0, 1);
         environment.run();
         assert_eq!(environment.state, State::Running);
     }

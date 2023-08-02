@@ -27,7 +27,6 @@ pub struct Agent<A: Attached> {
     pub behaviors: Vec<Box<dyn Behavior>>,
 }
 
-
 impl Agent<NotAttached> {
     pub fn new<S: Into<String>>(name: S) -> Self {
         Self {

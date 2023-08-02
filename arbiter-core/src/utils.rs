@@ -119,15 +119,29 @@ pub fn unpack_execution(execution_result: ExecutionResult) -> Result<Bytes, Unpa
 /// * `Ok(U64)` - The converted U64.
 /// Used for block number which is a U64.
 pub fn convert_uint_to_u64(input: U256) -> Result<U64, &'static str> {
-    // Convert to base 2^64 digits
-    let digits: Vec<_> = input.to_base_le(2u64.pow(64)).collect();
-
-    // If there are no digits, the value was 0
-    if digits.is_empty() {
-        return Ok(U64::from(0));
+    let as_str = input.to_string();
+    match as_str.parse::<u64>() {
+        Ok(val) => Ok(val.into()),
+        Err(_) => Err("U256 value is too large to fit into u64"),
     }
+}
 
-    // Otherwise, return the least significant 64 bits
-    // If the number was larger than 2^64, this will silently discard the higher bits
-    Ok(U64::from(digits[0]))
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_conversion() {
+        // Test with a value that fits in u64.
+        let input = U256::from(10000);
+        assert_eq!(convert_uint_to_u64(input).unwrap(), U64::from(10000));
+
+        // Test with a value that is exactly at the limit of u64.
+        let input = U256::from(u64::MAX);
+        assert_eq!(convert_uint_to_u64(input).unwrap(), U64::from(u64::MAX));
+
+        // Test with a value that exceeds the limit of u64.
+        let input = U256::from(u64::MAX) + U256::from(1);
+        assert!(convert_uint_to_u64(input).is_err());
+    }
 }
