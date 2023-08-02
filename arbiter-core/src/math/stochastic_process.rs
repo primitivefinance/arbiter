@@ -1,5 +1,5 @@
 use anyhow::{Ok, Result};
-use RustQuant::{
+pub use RustQuant::{
     statistics::distributions::{Distribution, Poisson},
     stochastics::{
         cox_ingersoll_ross::CoxIngersollRoss, extended_vasicek::ExtendedVasicek, ho_lee::HoLee,
@@ -41,75 +41,8 @@ pub struct EulerMaruyamaInput {
     pub parallel: bool,
 }
 
-/// Create new process and run euler maruyama.
-pub fn new_procces(
-    proccess_type: StochasticProcessType,
-    config: EulerMaruyamaInput,
-) -> Result<Trajectories> {
-    let trajectories: Trajectories = match proccess_type {
-        StochasticProcessType::BrownianMotion(process) => process.euler_maruyama(
-            config.x_0,
-            config.t_0,
-            config.t_n,
-            config.n_steps,
-            config.m_paths,
-            config.parallel,
-        ),
-        StochasticProcessType::OrnsteinUhlenbeck(process) => process.euler_maruyama(
-            config.x_0,
-            config.t_0,
-            config.t_n,
-            config.n_steps,
-            config.m_paths,
-            config.parallel,
-        ),
-        StochasticProcessType::BlackDermanToy(process) => process.euler_maruyama(
-            config.x_0,
-            config.t_0,
-            config.t_n,
-            config.n_steps,
-            config.m_paths,
-            config.parallel,
-        ),
-        StochasticProcessType::CoxIngersollRoss(process) => process.euler_maruyama(
-            config.x_0,
-            config.t_0,
-            config.t_n,
-            config.n_steps,
-            config.m_paths,
-            config.parallel,
-        ),
-        StochasticProcessType::ExtendedVasicek(process) => process.euler_maruyama(
-            config.x_0,
-            config.t_0,
-            config.t_n,
-            config.n_steps,
-            config.m_paths,
-            config.parallel,
-        ),
-        StochasticProcessType::HoLee(process) => process.euler_maruyama(
-            config.x_0,
-            config.t_0,
-            config.t_n,
-            config.n_steps,
-            config.m_paths,
-            config.parallel,
-        ),
-        StochasticProcessType::HullWhite(process) => process.euler_maruyama(
-            config.x_0,
-            config.t_0,
-            config.t_n,
-            config.n_steps,
-            config.m_paths,
-            config.parallel,
-        ),
-    };
-
-    Ok(trajectories)
-}
-
 /// Sample Poisson process.
-pub fn poisson_process(lambda: f64) -> Result<Vec<i32>> {
+pub fn sample_poisson(lambda: f64) -> Result<Vec<i32>> {
     let poisson = Poisson::new(lambda);
     let float_samples = poisson.sample(1);
     let int_sample: Vec<i32> = float_samples.iter().map(|&x| x.round() as i32).collect();
@@ -124,49 +57,9 @@ mod tests {
     use super::*;
 
     #[test]
-    fn new_process_brownian_motion() {
-        let bm = BrownianMotion::new();
-        let config = EulerMaruyamaInput {
-            x_0: 0.0,
-            t_0: 0.0,
-            t_n: 1.0,
-            n_steps: 100,
-            m_paths: 10,
-            parallel: false,
-        };
-        let process = StochasticProcessType::BrownianMotion(bm);
-        let result = new_procces(process, config);
-
-        assert!(result.is_ok());
-        let trajectories = result.unwrap();
-        assert_eq!(trajectories.times.len(), 101);
-        assert_eq!(trajectories.paths.len(), 10);
-    }
-
-    #[test]
-    fn new_process_ornstein_uhlenbeck() {
-        let ou = OrnsteinUhlenbeck::new(1.0, 1.0, 1.0);
-        let config = EulerMaruyamaInput {
-            x_0: 0.0,
-            t_0: 0.0,
-            t_n: 1.0,
-            n_steps: 100,
-            m_paths: 10,
-            parallel: false,
-        };
-        let process = StochasticProcessType::OrnsteinUhlenbeck(ou);
-        let result = new_procces(process, config);
-
-        assert!(result.is_ok());
-        let trajectories = result.unwrap();
-        assert_eq!(trajectories.times.len(), 101);
-        assert_eq!(trajectories.paths.len(), 10);
-    }
-
-    #[test]
     fn poisson_process_test() {
         let lambda = 1.0;
-        let result = poisson_process(lambda);
+        let result = sample_poisson(lambda);
 
         assert!(result.is_ok());
         let samples = result.unwrap();

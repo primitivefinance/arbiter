@@ -21,7 +21,7 @@ use revm::{
 
 use crate::{
     agent::{Agent, IsAttached, NotAttached},
-    math::stochastic_process::poisson_process,
+    math::stochastic_process::sample_poisson,
     middleware::RevmMiddleware,
     utils::{convert_uint_to_u64, revm_logs_to_ethers_logs, },
 };
@@ -154,7 +154,7 @@ impl Environment {
         self.state = State::Running;
         let mut expected_occurance: Option<Vec<i32>> = None;
         if let Some(lambda) = self.lambda {
-            expected_occurance = Some(poisson_process(lambda).unwrap());
+            expected_occurance = Some(sample_poisson(lambda).unwrap());
         }
         //give all agents their own thread and let them start watching for their evnts
         thread::spawn(move || {
