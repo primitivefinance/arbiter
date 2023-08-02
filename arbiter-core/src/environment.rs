@@ -57,8 +57,8 @@ pub struct Environment {
     pub label: String,
     pub(crate) state: State,
     pub(crate) evm: EVM<CacheDB<EmptyDB>>,
-    pub(crate) tx_sender: Sender<(bool, TxEnv, Sender<RevmResult>)>,
-    pub tx_receiver: Receiver<(bool, TxEnv, Sender<RevmResult>)>,
+    pub(crate) tx_sender: TxEnvSender,
+    pub tx_receiver: TxEnvReceiver,
     pub(crate) event_broadcaster: Arc<Mutex<EventBroadcaster>>,
     /// Clients (Agents) in the environment
     pub agents: Vec<Agent<IsAttached<RevmMiddleware>>>,
@@ -70,6 +70,7 @@ pub struct Environment {
 
 
 // TODO: If the provider holds the connection then this can work better.
+#[derive(Clone)]
 pub struct RevmProvider {
     pub(crate) tx_sender: TxEnvSender,
     pub(crate) result_sender: crossbeam_channel::Sender<RevmResult>,
@@ -90,7 +91,7 @@ impl JsonRpcClient for RevmProvider {
     async fn request<T: Serialize + Send + Sync, R: DeserializeOwned>(
         &self,
         method: &str,
-        params: T,
+        _params: T,
     ) -> Result<R, ProviderError> {
         match method {
             "eth_getFilterChanges" => {
@@ -141,14 +142,7 @@ impl Environment {
     // OR agents can be created (without a connection?) and then added to the environment where they will gain a connection?
     // Waylon: I like them being created without a connection and then added to the environment where they will gain a connection.
     pub fn add_agent(&mut self, agent: Agent<NotAttached>) {
-        let client = RevmProvider::new(
-            self.tx_sender.clone(),
-            self.event_broadcaster.clone(),
-            self.tx_per_block.clone(),
-        );
-        let attached = agent.attach_to_client(client);
-        agent.attach_to_client(self.tx_sender.clone());
-        self.agents.push(agent);
+        agent.attach_to_environment(self);
     }
 
     // TODO: Run should now run the agents as well as the evm.
@@ -158,19 +152,21 @@ impl Environment {
         let event_broadcaster = self.event_broadcaster.clone();
         let counter = Arc::clone(&self.tx_per_block);
         self.state = State::Running;
-        let mut expected_occurance: Vec<i32>;
+        let mut expected_occurance: Option<Vec<i32>> = None;
         if let Some(lambda) = self.lambda {
-            let expected_occurance = poisson_process(lambda).unwrap();
+            expected_occurance = Some(poisson_process(lambda).unwrap());
         }
-
         //give all agents their own thread and let them start watching for their evnts
         thread::spawn(move || {
             while let Ok((to_transact, tx, sender)) = tx_receiver.recv() {
                 // Execute the transaction, echo the logs to all agents, and report the execution result to the agent who made the transaction.
-                if counter.load(Ordering::Relaxed) >= expected_occurance[0] as usize {
-                    evm.env.block.number += U256::from(1);
-                    counter.store(0, Ordering::Relaxed);
+                if let Some(occurance) = &expected_occurance {
+                    if counter.load(Ordering::Relaxed) >= occurance[0] as usize {
+                        evm.env.block.number += U256::from(1);
+                        counter.store(0, Ordering::Relaxed);
+                    }
                 }
+
                 evm.env.tx = tx;
                 if to_transact {
                     let execution_result = match evm.transact_commit() {
@@ -178,16 +174,17 @@ impl Environment {
                         // URGENT: change this to a custom error
                         Err(_) => panic!("failed"),
                     };
+
                     event_broadcaster
                         .lock()
                         .unwrap()
                         .broadcast(execution_result.logs());
-                    let execution_result = RevmResult {
+                    let revm_result = RevmResult {
                         result: execution_result,
                         block_number: convert_uint_to_u64(evm.env.block.number).unwrap(),
                     };
-                    sender.send(execution_result).unwrap();
-                    if let Some(lambda) = self.lambda {
+                    sender.send(revm_result).unwrap();
+                    if let Some(_occurance) = &expected_occurance {
                         counter.fetch_add(1, Ordering::Relaxed);
                     }
 

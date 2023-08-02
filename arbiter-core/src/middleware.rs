@@ -15,7 +15,7 @@ use ethers::{
         ProviderError,
     },
     providers::{
-        FilterKind, FilterWatcher, Middleware, MockProvider, PendingTransaction, Provider,
+        FilterKind, FilterWatcher, Middleware, PendingTransaction, Provider,
     },
     signers::{Signer, Wallet},
     types::{transaction::eip2718::TypedTransaction, Address, BlockId, Bytes, Filter, Log},
@@ -24,34 +24,11 @@ use rand::{rngs::StdRng, SeedableRng};
 use revm::primitives::{CreateScheme, ExecutionResult, Output, TransactTo, TxEnv, B160, U256};
 
 use crate::{
-    environment::{Connection, RevmResult},
     utils::{recast_address, revm_logs_to_ethers_logs},
+    environment::{Environment, RevmProvider},
+    agent::{Agent, NotAttached},
 };
-use ethers::prelude::pending_transaction::PendingTxState;
-use ethers::providers::{FilterKind, JsonRpcClient, JsonRpcError, PendingTransaction, Provider};
-use ethers::{
-    prelude::k256::{
-        ecdsa::SigningKey,
-        sha2::{Digest, Sha256},
-    },
-    prelude::ProviderError,
-    providers::{FilterWatcher, Middleware, MockProvider},
-    signers::{Signer, Wallet},
-    types::{transaction::eip2718::TypedTransaction, Address, BlockId, Bytes, Filter, Log},
-};
-use rand::rngs::StdRng;
-use rand::SeedableRng;
-use revm::primitives::{
-    result, CreateScheme, ExecutionResult, Output, TransactTo, TxEnv, B160, U256,
-};
-use serde::de::DeserializeOwned;
-use serde::Serialize;
-use std::fmt::Debug;
-use std::time::Duration;
 
-use crate::agent::{Agent, NotAttached};
-use crate::environment::{Environment, RevmProvider};
-use crate::utils::{recast_address, revm_logs_to_ethers_logs};
 
 // TODO: Refactor the connection and channels slightly to be more intuitive. For instance, the middleware may not really need to own a connection, but input one to set up everything else?
 /// The Revm middleware struct.
@@ -147,7 +124,8 @@ impl Middleware for RevmMiddleware {
             .unwrap();
 
         let revm_result = self.provider.as_ref().result_receiver.recv().unwrap();
-        let (output, revm_logs, block) = match result.clone() {
+
+        let (output, revm_logs, block) = match revm_result.result.clone() {
             ExecutionResult::Success { output, logs, .. } => (output, logs, revm_result.block_number),
             ExecutionResult::Revert { output, .. } => panic!("Failed due to revert: {:?}", output),
             ExecutionResult::Halt { reason, .. } => panic!("Failed due to halt: {:?}", reason),
@@ -210,7 +188,7 @@ impl Middleware for RevmMiddleware {
             .unwrap();
 
         let revm_result = self.provider.as_ref().result_receiver.recv().unwrap();
-        let output = match result.clone() {
+        let output = match revm_result.result.clone() {
             ExecutionResult::Success { output, .. } => output,
             ExecutionResult::Revert { output, .. } => panic!("Failed due to revert: {:?}", output),
             ExecutionResult::Halt { reason, .. } => panic!("Failed due to halt: {:?}", reason),

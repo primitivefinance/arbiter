@@ -173,7 +173,7 @@ mod tests {
         assert_eq!(samples.len(), 1);
         // Because Poisson distribution is a random process,
         // we cannot predict exact values, but we can check if mean is close to lambda.
-        let mean: f64 = samples.iter().map(|&x| x as f64).sum::<f64>() / 1 as f64;
+        let mean: f64 = samples.iter().map(|&x| x as f64).sum::<f64>();
         assert!((mean - lambda).abs() < 0.2 * lambda); // tolerance of 20%
     }
 
