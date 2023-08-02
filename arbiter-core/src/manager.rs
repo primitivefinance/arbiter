@@ -7,7 +7,7 @@ use std::collections::HashMap;
 
 use anyhow::{anyhow, Result};
 
-use crate::environment::{Environment, State};
+use crate::{environment::{Environment, State}, agent::{Agent, NotAttached}};
 
 /// Manages simulations.
 #[derive(Default)]
@@ -48,10 +48,10 @@ impl SimulationManager {
     }
 
     /// adds an agent to an environment
-    pub fn add_agent(&mut self, agent_name: String, environment_label: String) -> Result<()> {
+    pub fn add_agent(&mut self, agent: Agent<NotAttached>, environment_label: String) -> Result<()> {
         match self.environments.get_mut(&environment_label) {
             Some(environment) => {
-                environment.add_agent(agent_name);
+                environment.add_agent(agent);
                 Ok(())
             }
             None => Err(anyhow!("Environment does not exist.")),

@@ -8,7 +8,6 @@ use std::{
         Arc, Mutex,
     },
     thread,
-    collections::HashMap,
 };
 
 use crossbeam_channel::{unbounded, Receiver, Sender};
@@ -21,20 +20,12 @@ use revm::{
 };
 
 use crate::{
-    agent::Agent,
+    agent::{Agent, IsAttached, NotAttached},
     math::stochastic_process::poisson_process,
     middleware::RevmMiddleware,
-    utils::{convert_uint_to_u64, revm_logs_to_ethers_logs},
+    utils::{convert_uint_to_u64, revm_logs_to_ethers_logs, },
 };
 use serde::{de::DeserializeOwned, Serialize};
-use std::{
-    fmt::Debug,
-    sync::{Arc, Mutex},
-    thread,
-};
-
-use crate::{utils::revm_logs_to_ethers_logs, agent::IsAttached};
-use crate::{agent::Agent, middleware::RevmMiddleware};
 
 /// Type Aliases for the event channel.
 pub(crate) type ToTransact = bool;
@@ -66,40 +57,23 @@ pub struct Environment {
     pub label: String,
     pub(crate) state: State,
     pub(crate) evm: EVM<CacheDB<EmptyDB>>,
-    /// Connection to the environment
-    pub connection: Connection,
-    /// Clients (Agents) in the environment
-    pub clients: HashMap<String, Agent<RevmMiddleware>>,
-    /// expected events per block
-    pub lambda: Some(f64),
-}
-
-/// Connection struct for the [`Environment`].
-#[derive(Debug, Clone)]
-pub struct Connection {
-    pub(crate) tx_sender: TxEnvSender,
-    tx_receiver: TxEnvReceiver,
-    pub(crate) event_broadcaster: Arc<Mutex<EventBroadcaster>>,
-    /// expected events per block
-    pub tx_per_block: Arc<AtomicUsize>,
-}
-
-impl Environment {
-    /// Create a new [`Environment`].
-    pub(crate) fn new(label: String) -> Self {
-    pub(crate) tx_sender: TxEnvSender,
-    tx_receiver: TxEnvReceiver,
+    pub(crate) tx_sender: Sender<(bool, TxEnv, Sender<RevmResult>)>,
+    pub tx_receiver: Receiver<(bool, TxEnv, Sender<RevmResult>)>,
     pub(crate) event_broadcaster: Arc<Mutex<EventBroadcaster>>,
     /// Clients (Agents) in the environment
     pub agents: Vec<Agent<IsAttached<RevmMiddleware>>>,
-    // pub deployed_contracts: HashMap<String, Contract<RevmMiddleware>>,
+    /// expected events per block
+    pub lambda: Option<f64>,
+    pub tx_per_block: Arc<AtomicUsize>,
+
 }
+
 
 // TODO: If the provider holds the connection then this can work better.
 pub struct RevmProvider {
     pub(crate) tx_sender: TxEnvSender,
-    pub(crate) result_sender: crossbeam_channel::Sender<ExecutionResult>,
-    pub(crate) result_receiver: crossbeam_channel::Receiver<ExecutionResult>,
+    pub(crate) result_sender: crossbeam_channel::Sender<RevmResult>,
+    pub(crate) result_receiver: crossbeam_channel::Receiver<RevmResult>,
     pub(crate) event_receiver: crossbeam_channel::Receiver<Vec<ethers::types::Log>>,
 }
 
@@ -134,7 +108,9 @@ impl JsonRpcClient for RevmProvider {
     }
 }
 
+
 impl Environment {
+    /// Creates a new [`Environment`] with the given label.
     pub(crate) fn new<S: Into<String>>(label: S) -> Self {
         let mut evm = EVM::new();
         let db = CacheDB::new(EmptyDB {});
@@ -142,20 +118,16 @@ impl Environment {
         evm.env.cfg.limit_contract_code_size = Some(0x100000); // This is a large contract size limit, beware!
         evm.env.block.gas_limit = U256::MAX;
         let (tx_sender, tx_receiver) = unbounded::<(ToTransact, TxEnv, Sender<RevmResult>)>();
-        let connection = Connection {
-            tx_sender: tx_sender,
-            tx_receiver: tx_receiver,
-            event_broadcaster: Arc::new(Mutex::new(EventBroadcaster::new())),
-            tx_per_block: Arc::new(AtomicUsize::new(0)),
-        };
         Self {
             label: label.into(),
             state: State::Stopped,
             evm,
-            connection,
-            clients: HashMap::new(),
-            // Default is none
+            tx_sender,
+            tx_receiver,
+            event_broadcaster: Arc::new(Mutex::new(EventBroadcaster::new())),
+            agents: vec![],
             lambda: None,
+            tx_per_block: Arc::new(AtomicUsize::new(0)),
         }
     }
 
@@ -164,19 +136,18 @@ impl Environment {
     }
 
     /// Creates a new [`Agent<RevmMiddleware`] with the given label.
-    pub(crate) fn add_agent(&mut self, name: String) {
-        let agent = Agent::new_simulation_agent(name.clone(), &self.connection);
-        self.clients.insert(name, agent);
-            tx_sender,
-            tx_receiver,
-            event_broadcaster: Arc::new(Mutex::new(EventBroadcaster::new())),
-            agents: vec![],
-        }
-    }
     // TODO: We need to make this the way to add agents to the environment.
     // in `agent.rs` we have `new_simulation_agent` which should probably just be called from this function instead.
     // OR agents can be created (without a connection?) and then added to the environment where they will gain a connection?
-    pub fn add_agent(&mut self, agent: Agent<IsAttached<RevmMiddleware>>) {
+    // Waylon: I like them being created without a connection and then added to the environment where they will gain a connection.
+    pub fn add_agent(&mut self, agent: Agent<NotAttached>) {
+        let client = RevmProvider::new(
+            self.tx_sender.clone(),
+            self.event_broadcaster.clone(),
+            self.tx_per_block.clone(),
+        );
+        let attached = agent.attach_to_client(client);
+        agent.attach_to_client(self.tx_sender.clone());
         self.agents.push(agent);
     }
 
@@ -184,10 +155,13 @@ impl Environment {
     pub(crate) fn run(&mut self) {
         let tx_receiver = self.tx_receiver.clone();
         let mut evm = self.evm.clone();
-        let event_broadcaster = self.connection.event_broadcaster.clone();
-        let counter = Arc::clone(&self.connection.tx_per_block);
-        let expected_occurance = poisson_process(self.lambda).unwrap();
+        let event_broadcaster = self.event_broadcaster.clone();
+        let counter = Arc::clone(&self.tx_per_block);
         self.state = State::Running;
+        let mut expected_occurance: Vec<i32>;
+        if let Some(lambda) = self.lambda {
+            let expected_occurance = poisson_process(lambda).unwrap();
+        }
 
         //give all agents their own thread and let them start watching for their evnts
         thread::spawn(move || {
@@ -213,7 +187,10 @@ impl Environment {
                         block_number: convert_uint_to_u64(evm.env.block.number).unwrap(),
                     };
                     sender.send(execution_result).unwrap();
-                    counter.fetch_add(1, Ordering::Relaxed);
+                    if let Some(lambda) = self.lambda {
+                        counter.fetch_add(1, Ordering::Relaxed);
+                    }
+
                 } else {
                     let execution_result = match evm.transact() {
                         Ok(val) => val,

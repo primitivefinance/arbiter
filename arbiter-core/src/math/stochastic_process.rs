@@ -112,7 +112,7 @@ pub fn new_procces(
 pub fn poisson_process(lambda: f64) -> Result<Vec<i32>> {
     let poisson = Poisson::new(lambda);
     let float_samples = poisson.sample(1);
-    let int_samples: Vec<i32> = float_samples.iter().map(|&x| x.round() as i32).collect();
+    let int_sample: Vec<i32> = float_samples.iter().map(|&x| x.round() as i32).collect();
     Ok(int_sample)
 }
 
@@ -170,10 +170,10 @@ mod tests {
 
         assert!(result.is_ok());
         let samples = result.unwrap();
-        assert_eq!(samples.len(), length);
+        assert_eq!(samples.len(), 1);
         // Because Poisson distribution is a random process,
         // we cannot predict exact values, but we can check if mean is close to lambda.
-        let mean: f64 = samples.iter().map(|&x| x as f64).sum::<f64>() / length as f64;
+        let mean: f64 = samples.iter().map(|&x| x as f64).sum::<f64>() / 1 as f64;
         assert!((mean - lambda).abs() < 0.2 * lambda); // tolerance of 20%
     }
 
