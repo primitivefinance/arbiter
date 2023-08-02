@@ -7,7 +7,6 @@ edition = "2021"
 # Dependency configuration
 [dependencies]
 # For execution
-dashmap = "5.5.0"
 bytes = "1.4.0"
 revm = "3.3.0"
 statrs = "0.16.0"

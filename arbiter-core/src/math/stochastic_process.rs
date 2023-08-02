@@ -8,39 +8,6 @@ pub use RustQuant::{
     },
 };
 
-/// Type enum for process
-pub enum StochasticProcessType {
-    /// Brownian motion
-    BrownianMotion(BrownianMotion),
-    /// Ornstein-Uhlenbeck
-    OrnsteinUhlenbeck(OrnsteinUhlenbeck),
-    /// Black-Derman-Toy
-    BlackDermanToy(BlackDermanToy),
-    /// Cox-Ingersoll-Ross
-    CoxIngersollRoss(CoxIngersollRoss),
-    /// Extended Vasicek
-    ExtendedVasicek(ExtendedVasicek),
-    /// Ho-Lee
-    HoLee(HoLee),
-    /// Hull-White
-    HullWhite(HullWhite),
-}
-/// Struct for all processes init parameters.
-pub struct EulerMaruyamaInput {
-    /// initial value at t_0
-    pub x_0: f64,
-    /// initial time point
-    pub t_0: f64,
-    /// terminal time point
-    pub t_n: f64,
-    /// number of time steps between t_0 and t_n
-    pub n_steps: usize,
-    /// how many process trajectories to simulate
-    pub m_paths: usize,
-    /// run in parallel or not (recommended for > 1000 paths)
-    pub parallel: bool,
-}
-
 /// Sample Poisson process.
 pub fn sample_poisson(lambda: f64) -> Result<Vec<i32>> {
     let poisson = Poisson::new(lambda);

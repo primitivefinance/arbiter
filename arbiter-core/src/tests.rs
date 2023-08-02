@@ -9,9 +9,9 @@ use ethers::{
 };
 
 use crate::{
-    agent::{*},
+    agent::{*, tests::TEST_AGENT_NAME},
     bindings::arbiter_token::*,
-    environment::{*},
+    environment::{*, tests::TEST_ENV_LABEL},
     middleware::{*},
 };
 
@@ -20,8 +20,6 @@ const TEST_ARG_SYMBOL: &str = "ARBT";
 const TEST_ARG_DECIMALS: u8 = 18;
 const TEST_MINT_AMOUNT: u128 = 1;
 const TEST_MINT_TO: &str = "0xf7e93cc543d97af6632c9b8864417379dba4bf15";
-const TEST_ENV_LABEL: &str = "test_env";
-const TEST_AGENT_NAME: &str = "test_agent";
 
 #[test]
 fn token_mint() -> Result<()> {
