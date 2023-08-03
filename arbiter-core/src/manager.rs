@@ -68,7 +68,7 @@ impl SimulationManager {
         match self.environments.get_mut(&environment_label) {
             Some(environment) => match environment.state {
                 State::Running => Err(anyhow!("Environment is already running.")),
-                State::Stopped => {
+                State::Initialization => {
                     environment.run();
                     Ok(())
                 }

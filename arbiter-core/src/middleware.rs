@@ -3,9 +3,11 @@
 //! This module contains the middleware for the Revm simulation environment.
 //! Most of the middleware is essentially a placeholder, but it is necessary to have a middleware to work with bindings more efficiently.
 
+use std::collections::HashMap;
+use std::sync::Arc;
 use std::{fmt::Debug, time::Duration};
 
-use ethers::utils;
+use ethers::providers::JsonRpcClient;
 use ethers::{
     prelude::{
         k256::{
@@ -15,61 +17,119 @@ use ethers::{
         pending_transaction::PendingTxState,
         ProviderError,
     },
-    providers::{
-        FilterKind, FilterWatcher, Middleware, PendingTransaction, Provider,
-    },
+    providers::{FilterKind, FilterWatcher, Middleware, PendingTransaction, Provider},
     signers::{Signer, Wallet},
     types::{transaction::eip2718::TypedTransaction, Address, BlockId, Bytes, Filter, Log},
 };
 use rand::{rngs::StdRng, SeedableRng};
 use revm::primitives::{CreateScheme, ExecutionResult, Output, TransactTo, TxEnv, B160, U256};
+use serde::Serialize;
+use serde::de::DeserializeOwned;
 
+use crate::environment::{ResultReceiver, ResultSender, TxSender, EventBroadcaster};
 use crate::{
-    utils::{recast_address, revm_logs_to_ethers_logs},
-    environment::{Environment, RevmProvider},
     agent::{Agent, NotAttached},
+    environment::Environment,
+    utils::{recast_address, revm_logs_to_ethers_logs},
 };
 
+pub struct Connection {
+    pub(crate) tx_sender: TxSender,
+    pub(crate) result_sender: ResultSender,
+    pub(crate) result_receiver: ResultReceiver,
+    event_sender: EventBroadcaster,
+    filter_receivers: Arc<tokio::sync::Mutex<HashMap<ethers::types::U256, FilterReceiver>>>,
+}
+
+#[derive(Debug)]
+pub(crate) struct FilterReceiver {
+    pub(crate) filter: Filter,
+    pub(crate) receiver: tokio::sync::broadcast::Receiver<Vec<ethers::types::Log>>,
+}
+
+impl Debug for Connection {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("Connection")
+            .field("tx_sender", &"TxSender")
+            .field("result_sender", &"ResultSender")
+            .field("result_receiver", &"ResultReceiver")
+            .field("filter_receivers", &"HashMap<ethers::types::U256, FilterReceiver>")
+            .finish()
+    }
+}
+
+// TODO: This below seems needlessly clunky. There is a lot of serialize/deserialize and I bet we can avoid it and avoid a match all together.
+#[async_trait::async_trait]
+impl JsonRpcClient for Connection {
+    type Error = ProviderError;
+
+    async fn request<T: Serialize + Send + Sync, R: DeserializeOwned>(
+        &self,
+        method: &str,
+        params: T,
+    ) -> Result<R, ProviderError> {
+        match method {
+            "eth_getFilterChanges" => {
+                // TODO: Store a Map of filters with their IDs as keys. The ID should take into account the agent that is listening to it as well so that multiple agents can listen to the same event stream!
+                let value = serde_json::to_value(&params).unwrap();
+                let id: ethers::types::U256 = serde_json::from_value(value).unwrap();
+                let filter_receiver = self.filter_receivers.clone();
+                let mut filter_receiver = filter_receiver.lock().await;
+                let filter_receiver = filter_receiver.get_mut(&id).unwrap();
+                let logs = filter_receiver.receiver.recv().await.unwrap();
+                println!("logs: {:?}", logs);
+                let logs_str = serde_json::to_string(&logs).unwrap();
+                let logs_deserializeowned: R = serde_json::from_str(&logs_str)?;
+                return Ok(logs_deserializeowned);
+                // todo!()
+                // return Ok(serde::to_value(self.event_receiver.recv().ok()).unwrap())
+            }
+            _ => {
+                unimplemented!("We don't cover this case yet.")
+            }
+        }
+    }
+}
 
 // TODO: Refactor the connection and channels slightly to be more intuitive. For instance, the middleware may not really need to own a connection, but input one to set up everything else?
 /// The Revm middleware struct.
 /// This struct is modular with ther ethers.rs middleware, and is used to connect the Revm environment in memory rather than over the network.
-#[derive(Debug, Clone)]
+#[derive(Debug)]
 pub struct RevmMiddleware {
-    provider: Provider<RevmProvider>,
+    provider: Provider<Connection>,
     wallet: Wallet<SigningKey>,
+    // filter_receivers: Mutex<HashMap<ethers::types::U256, FilterReceiver>>,
+    // connection: Connection,
 }
 
 impl RevmMiddleware {
     pub fn new(agent: &Agent<NotAttached>, environment: &Environment) -> Self {
-        let (event_sender, event_receiver) = crossbeam_channel::unbounded();
-        environment
-            .event_broadcaster
-            .lock()
-            .unwrap()
-            .add_sender(event_sender);
-        let tx_sender = environment.tx_sender.clone();
-        let (result_sender, result_receiver) = crossbeam_channel::unbounded();
-        let revm_provider = RevmProvider {
+        let tx_sender = environment.socket.tx_sender.clone();
+        let (result_sender, result_receiver) = crossbeam_channel::bounded(1);
+        let connection = Connection {
             tx_sender,
             result_sender,
             result_receiver,
-            event_receiver,
+            event_sender: environment.socket.event_sender.clone(),
+            filter_receivers: Arc::new(tokio::sync::Mutex::new(HashMap::new())),
         };
-        let provider = Provider::new(revm_provider);
+        let provider = Provider::new(connection);
         let mut hasher = Sha256::new();
         hasher.update(agent.name.as_bytes());
         let seed = hasher.finalize();
         let mut rng = StdRng::from_seed(seed.into());
         let wallet = Wallet::new(&mut rng);
-        Self { provider, wallet }
+        Self {
+            provider,
+            wallet,
+        }
     }
 }
 
 #[async_trait::async_trait]
 impl Middleware for RevmMiddleware {
     /// The JSON-RPC client type at the bottom of the stack
-    type Provider = RevmProvider;
+    type Provider = Connection;
     /// Error type returned by most operations
     type Error = ProviderError; //RevmMiddlewareError;
     /// The next-lower middleware in the middleware stack
@@ -114,20 +174,16 @@ impl Middleware for RevmMiddleware {
             nonce: None,
             access_list: Vec::new(),
         };
-        self.provider
-            .as_ref()
+        self.provider().as_ref()
             .tx_sender
-            .send((
-                true,
-                tx_env.clone(),
-                self.provider.as_ref().result_sender.clone(),
-            ))
-            .unwrap();
+            .send((true, tx_env.clone(), self.provider().as_ref().result_sender.clone())).unwrap();
 
-        let revm_result = self.provider.as_ref().result_receiver.recv().unwrap();
+        let revm_result = self.provider().as_ref().result_receiver.recv().unwrap();
 
-        let (output, revm_logs, block) = match revm_result.result.clone() {
-            ExecutionResult::Success { output, logs, .. } => (output, logs, revm_result.block_number),
+        let (output, revm_logs, block) = match revm_result.result {
+            ExecutionResult::Success { output, logs, .. } => {
+                (output, logs, revm_result.block_number)
+            }
             ExecutionResult::Revert { output, .. } => panic!("Failed due to revert: {:?}", output),
             ExecutionResult::Halt { reason, .. } => panic!("Failed due to halt: {:?}", reason),
         };
@@ -178,17 +234,11 @@ impl Middleware for RevmMiddleware {
             access_list: Vec::new(),
         };
         // TODO: Modify this to work for calls/deploys
-        self.provider
-            .as_ref()
+        self.provider().as_ref()
             .tx_sender
-            .send((
-                false,
-                tx_env.clone(),
-                self.provider.as_ref().result_sender.clone(),
-            ))
-            .unwrap();
+            .send((false, tx_env.clone(), self.provider().as_ref().result_sender.clone())).unwrap();
 
-        let revm_result = self.provider.as_ref().result_receiver.recv().unwrap();
+        let revm_result = self.provider().as_ref().result_receiver.recv().unwrap();
         let output = match revm_result.result.clone() {
             ExecutionResult::Success { output, .. } => output,
             ExecutionResult::Revert { output, .. } => panic!("Failed due to revert: {:?}", output),
@@ -215,41 +265,32 @@ impl Middleware for RevmMiddleware {
         &self,
         filter: FilterKind<'_>,
     ) -> Result<ethers::types::U256, ProviderError> {
-        let (method, args) = match filter {
-            FilterKind::NewBlocks => unimplemented!("We will need to implement this."),
-            FilterKind::PendingTransactions => unimplemented!("Not sure if we need to implement this."),
-            FilterKind::Logs(filter) => ("eth_newFilter", vec![utils::serialize(&filter)]),
+        let (_method, args) = match filter {
+            FilterKind::NewBlocks => unimplemented!("We will want to implement this."),
+            FilterKind::PendingTransactions => {
+                unimplemented!("Not sure if we need to implement this.")
+            }
+            FilterKind::Logs(filter) => ("eth_newFilter", filter),
         };
-
-        self.provider().request(method, args).await
+        let filter = args.clone();
+        let mut hasher = Sha256::new();
+        hasher.update(serde_json::to_string(&args).unwrap());
+        let hash = hasher.finalize();
+        let id = ethers::types::U256::from(ethers::types::H256::from_slice(&hash).as_bytes());
+        // let event_receiver = self.provider.as_ref().event_sender.subscribe();
+        let filter_receiver = FilterReceiver {
+            filter,
+            receiver: self.provider.as_ref().event_sender.subscribe(),
+        };
+        self.provider().as_ref().filter_receivers.lock().await.insert(id, filter_receiver);
+        Ok(id)
     }
 
-    async fn watch<'a>(
-        &'a self,
+    async fn watch<'b>(
+        &'b self,
         filter: &Filter,
-    ) -> Result<FilterWatcher<'a, Self::Provider, Log>, Self::Error> {
+    ) -> Result<FilterWatcher<'b, Self::Provider, Log>, Self::Error> {
         let id = self.new_filter(FilterKind::Logs(filter)).await?;
         Ok(FilterWatcher::new(id, self.provider()).interval(Duration::ZERO))
-    }
-}
-
-#[cfg(test)]
-pub(crate) mod tests {
-    use super::*;
-
-    async fn send_transaction() {
-        todo!("Send shouldn't be called as we just need to FILL transactions.")
-    }
-
-    async fn call() {
-        todo!("we should be able to call. We will have to consider adding a function to the `SimulationEnvironment` that uses `transact` and not `transact_commit`")
-    }
-
-    async fn get_logs() {
-        todo!("we should be able to get logs.")
-    }
-
-    async fn watch() {
-        todo!("we should be able to watch. we already have this partially implemented for agents.")
     }
 }

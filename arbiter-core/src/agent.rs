@@ -5,7 +5,7 @@ use std::sync::Arc;
 
 use ethers::providers::Middleware;
 
-use crate::middleware::RevmMiddleware;
+use crate::{middleware::RevmMiddleware, environment::Environment};
 
 pub trait Attached {
     type Client;
@@ -51,9 +51,9 @@ impl Agent<NotAttached> {
         }
     }
 
-    pub fn attach_to_environment(self, environment: &mut crate::environment::Environment) {
-        let middleware = RevmMiddleware::new(&self, environment);
-        let agent_attached = self.attach_to_client(middleware.into());
+    pub fn attach_to_environment(self, environment: &mut Environment) {
+        let middleware = Arc::new(RevmMiddleware::new(&self, environment));
+        let agent_attached = self.attach_to_client(middleware);
         environment.agents.push(agent_attached);
     }
 }

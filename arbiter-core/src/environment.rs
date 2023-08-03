@@ -1,40 +1,36 @@
 #![warn(missing_docs)]
 #![warn(unsafe_code)]
 
-use crossbeam_channel::{unbounded, Receiver, Sender};
+// use crossbeam_channel::{unbounded, Receiver, Sender};
 use ethers::core::types::U64;
-use ethers::{providers::{JsonRpcClient, ProviderError}, types::{Filter, H256}, prelude::k256::sha2::{Digest, Sha256}, utils::serialize};
 use revm::{
     db::{CacheDB, EmptyDB},
-    primitives::{ExecutionResult, Log, TxEnv, U256},
+    primitives::{ExecutionResult, TxEnv, U256},
     EVM,
 };
-use serde::{de::DeserializeOwned, Serialize};
-use std::{
-    fmt::Debug,
-    sync::{Arc, Mutex},
-    thread, collections::HashMap,
-};
+use std::fmt::Debug;
 
 use crate::{
     agent::{Agent, IsAttached, NotAttached},
-    math::stochastic_process::{sample_poisson, SeededPoisson},
+    math::stochastic_process::SeededPoisson,
     middleware::RevmMiddleware,
-    utils::{convert_uint_to_u64, revm_logs_to_ethers_logs},
+    utils::convert_uint_to_u64,
 };
-
-/// Type Aliases for the event channel.
-pub(crate) type ToTransact = bool;
-pub(crate) type ExecutionSender = Sender<RevmResult>;
-pub(crate) type TxEnvSender = Sender<(ToTransact, TxEnv, ExecutionSender)>;
-pub(crate) type TxEnvReceiver = Receiver<(ToTransact, TxEnv, ExecutionSender)>;
+use tokio::sync::broadcast;
 
 /// Result struct for the [`Environment`]. that wraps the [`ExecutionResult`] and the block number.
 #[derive(Debug, Clone)]
-pub struct RevmResult {
+pub(crate) struct RevmResult {
     pub(crate) result: ExecutionResult,
     pub(crate) block_number: U64,
 }
+
+pub(crate) type ToTransact = bool;
+pub(crate) type ResultSender = crossbeam_channel::Sender<RevmResult>;
+pub(crate) type ResultReceiver = crossbeam_channel::Receiver<RevmResult>;
+pub(crate) type TxSender = crossbeam_channel::Sender<(ToTransact, TxEnv, ResultSender)>;
+pub(crate) type TxReceiver = crossbeam_channel::Receiver<(ToTransact, TxEnv, ResultSender)>;
+pub(crate) type EventBroadcaster = broadcast::Sender<Vec<ethers::types::Log>>;
 
 /// State enum for the [`Environment`].
 #[derive(Debug, Eq, PartialEq, Clone, Copy)]
@@ -43,75 +39,30 @@ pub enum State {
     /// [`Agent`]s cannot be added if the environment is [`State::Running`].
     Running,
     /// The [`Environment`] is currently stopped.
-    /// [`Agent`]s can only be added if the environment is [`State::Stopped`].
-    Stopped,
+    /// [`Agent`]s can only be added if the environment is [`State::Initialized`].
+    Initialization,
+}
+
+pub(crate) struct Socket {
+    pub(crate) tx_sender: TxSender,
+    tx_receiver: TxReceiver,
+    pub(crate) event_sender: EventBroadcaster,
 }
 
 /// The environment struct.
 pub struct Environment {
-    /// label for the environment
     pub label: String,
     pub(crate) state: State,
     pub(crate) evm: EVM<CacheDB<EmptyDB>>,
-    pub(crate) tx_sender: TxEnvSender,
-    pub tx_receiver: TxEnvReceiver,
-    pub(crate) event_broadcaster: Arc<Mutex<EventBroadcaster>>,
-    /// Clients (Agents) in the environment
+    pub(crate) socket: Socket,
     pub agents: Vec<Agent<IsAttached<RevmMiddleware>>>,
-    /// expected events per block
     pub seeded_poisson: SeededPoisson,
 }
 
-// TODO: If the provider holds the connection then this can work better.
-#[derive(Clone)]
-pub struct RevmProvider {
-    pub(crate) tx_sender: TxEnvSender,
-    pub(crate) result_sender: crossbeam_channel::Sender<RevmResult>,
-    pub(crate) result_receiver: crossbeam_channel::Receiver<RevmResult>,
-    pub(crate) event_receiver: crossbeam_channel::Receiver<Vec<ethers::types::Log>>,
-    // pub(crate) filter_receivers: HashMap<ethers::types::U256, crossbeam_channel::Receiver<Vec<ethers::types::Log>>>, // TODO: Use this to replace event_receivers so we can look for updates in specific filters
-}
-
-impl Debug for RevmProvider {
+// TODO: This could be improved.
+impl Debug for Socket {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("RevmProvider").finish()
-    }
-}
-
-#[async_trait::async_trait]
-impl JsonRpcClient for RevmProvider {
-    type Error = ProviderError;
-
-    async fn request<T: Serialize + Send + Sync, R: DeserializeOwned>(
-        &self,
-        method: &str,
-        params: T,
-    ) -> Result<R, ProviderError> {
-        match method {
-            "eth_getFilterChanges" => {
-                // Store a Map of filters with their IDs as keys
-                let logs = self.event_receiver.recv().unwrap();
-                println!("logs: {:?}", logs);
-                let logs_str = serde_json::to_string(&logs).unwrap();
-                let logs_deserializeowned: R = serde_json::from_str(&logs_str)?;
-                return Ok(logs_deserializeowned);
-                // return Ok(serde::to_value(self.event_receiver.recv().ok()).unwrap())
-            },
-            "eth_newFilter" => {
-                let filter_string = serde_json::to_string(&params).unwrap();
-                let filter: Filter = serde_json::from_str(&filter_string).unwrap();
-                let mut hasher = Sha256::new();
-                hasher.update(filter_string.as_bytes());
-                let hash = hasher.finalize();
-                let id = ethers::types::U256::from(ethers::types::H256::from_slice(&hash).as_bytes());
-                let id_str = serde_json::to_string(&id).unwrap();
-                let id_deserializeowned: R = serde_json::from_str(&id_str)?;
-                Ok(id_deserializeowned)
-            },
-            _ => {
-                unimplemented!("We don't cover this case yet.")
-            }
-        }
+        f.debug_struct("Socket").finish()
     }
 }
 
@@ -121,44 +72,45 @@ impl Environment {
         let mut evm = EVM::new();
         let db = CacheDB::new(EmptyDB {});
         evm.database(db);
-
         let seeded_poisson = SeededPoisson::new(block_rate, seed);
         evm.env.cfg.limit_contract_code_size = Some(0x100000); // This is a large contract size limit, beware!
         evm.env.block.gas_limit = U256::MAX;
-        let (tx_sender, tx_receiver) = unbounded::<(ToTransact, TxEnv, Sender<RevmResult>)>();
-        Self {
-            label: label.into(),
-            state: State::Stopped,
-            evm,
+
+        let (tx_sender, tx_receiver) = crossbeam_channel::bounded(16);
+        let (event_sender, _) = tokio::sync::broadcast::channel(16);
+        let socket = Socket {
             tx_sender,
             tx_receiver,
-            event_broadcaster: Arc::new(Mutex::new(EventBroadcaster::new())),
+            event_sender,
+        };
+
+        Self {
+            label: label.into(),
+            state: State::Initialization,
+            evm,
+            socket,
             agents: vec![],
             seeded_poisson,
         }
     }
 
     /// Creates a new [`Agent<RevmMiddleware`] with the given label.
-    // TODO: We need to make this the way to add agents to the environment.
-    // in `agent.rs` we have `new_simulation_agent` which should probably just be called from this function instead.
-    // OR agents can be created (without a connection?) and then added to the environment where they will gain a connection?
-    // Waylon: I like them being created without a connection and then added to the environment where they will gain a connection.
     pub fn add_agent(&mut self, agent: Agent<NotAttached>) {
         agent.attach_to_environment(self);
     }
 
     // TODO: Run should now run the agents as well as the evm.
     pub(crate) fn run(&mut self) {
-        let tx_receiver = self.tx_receiver.clone();
         let mut evm = self.evm.clone();
-        let event_broadcaster = self.event_broadcaster.clone();
+        let tx_receiver = self.socket.tx_receiver.clone();
+        let event_broadcaster = self.socket.event_sender.clone();
 
         let mut seeded_poisson = self.seeded_poisson.clone();
 
         let mut counter: usize = 0;
         self.state = State::Running;
 
-        thread::spawn(move || {
+        tokio::spawn(async move {
             let mut expected_events_per_block = seeded_poisson.sample();
 
             while let Ok((to_transact, tx, sender)) = tx_receiver.recv() {
@@ -180,10 +132,9 @@ impl Environment {
                         Err(_) => panic!("failed"),
                     };
 
-                    event_broadcaster
-                        .lock()
-                        .unwrap()
-                        .broadcast(execution_result.logs());
+                    event_broadcaster.send(crate::utils::revm_logs_to_ethers_logs(
+                        execution_result.logs(),
+                    ));
                     let revm_result = RevmResult {
                         result: execution_result,
                         block_number: convert_uint_to_u64(evm.env.block.number).unwrap(),
@@ -207,37 +158,8 @@ impl Environment {
     }
 }
 
-/// The event broadcaster that is used to broadcast events to the agents from the simulation manager.
-#[derive(Clone, Debug)]
-pub struct EventBroadcaster(Vec<crossbeam_channel::Sender<Vec<ethers::core::types::Log>>>);
-
-impl EventBroadcaster {
-    pub(crate) fn new() -> Self {
-        Self(vec![])
-    }
-
-    pub(crate) fn add_sender(
-        &mut self,
-        sender: crossbeam_channel::Sender<Vec<ethers::core::types::Log>>,
-    ) {
-        self.0.push(sender);
-    }
-
-    pub(crate) fn broadcast(&self, logs: Vec<Log>) {
-        for sender in &self.0 {
-            sender.send(revm_logs_to_ethers_logs(logs.clone())).unwrap();
-        }
-    }
-}
-
 #[cfg(test)]
 pub(crate) mod tests {
-    use std::time::Duration;
-
-    use anyhow::{Ok, Result};
-    use ethers::types::Address;
-
-    use crate::bindings::arbiter_token::ArbiterToken;
 
     use super::*;
 
@@ -247,7 +169,7 @@ pub(crate) mod tests {
     fn new() {
         let env = Environment::new(TEST_ENV_LABEL.to_string(), 1.0, 1);
         assert_eq!(env.label, TEST_ENV_LABEL);
-        assert_eq!(env.state, State::Stopped);
+        assert_eq!(env.state, State::Initialization);
     }
 
     #[test]

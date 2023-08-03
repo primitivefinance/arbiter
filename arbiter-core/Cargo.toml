@@ -10,8 +10,6 @@ edition = "2021"
 bytes = "1.4.0"
 revm = "3.3.0"
 statrs = "0.16.0"
-
-# For handling events
 crossbeam-channel = "0.5.8"
 
 # For price simulation
