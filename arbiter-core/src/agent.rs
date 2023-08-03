@@ -28,7 +28,7 @@ pub struct Agent<A: Attached> {
 }
 
 impl Agent<NotAttached> {
-    pub(crate) fn new<S: Into<String>>(name: S) -> Self {
+    pub fn new<S: Into<String>>(name: S) -> Self {
         Self {
             name: name.into(),
             client: (),
@@ -53,12 +53,8 @@ impl Agent<NotAttached> {
 
     pub fn attach_to_environment(self, environment: &mut crate::environment::Environment) {
         let middleware = RevmMiddleware::new(&self, environment);
-        let agent = Agent::<IsAttached<RevmMiddleware>> {
-            name: self.name,
-            client: Arc::new(middleware),
-            behaviors: self.behaviors,
-        };
-        environment.add_agent(agent);
+        let agent_attached = self.attach_to_client(middleware.into());
+        environment.agents.push(agent_attached);
     }
 }
 
@@ -75,8 +71,9 @@ pub(crate) mod tests {
     pub(crate) const TEST_AGENT_NAME: &str = "test_agent";
     pub(crate) const TEST_BEHAVIOR_DATA: &str = "test_behavior_data";
 
-    use super::*;
     use ethers::providers::{MockProvider, ProviderError};
+
+    use super::*;
 
     #[derive(Debug)]
     pub(crate) struct TestMiddleware {}

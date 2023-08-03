@@ -5,10 +5,15 @@
 
 use std::collections::HashMap;
 
-use crate::environment::{Environment, State};
 use anyhow::{anyhow, Result};
 
+use crate::{
+    agent::{Agent, NotAttached},
+    environment::{Environment, State},
+};
+
 /// Manages simulations.
+#[derive(Default)]
 pub struct SimulationManager {
     /// The list of [`SimulationEnvironment`] that the simulation manager controls.
     pub environments: HashMap<String, Environment>,
@@ -23,15 +28,39 @@ impl SimulationManager {
     }
 
     /// Adds an environment to the [`SimulationManager`]'s list.
-    pub fn add_environment(&mut self, environment_label: String) -> Result<()> {
+    pub fn add_environment(
+        &mut self,
+        environment_label: String,
+        block_rate: f64,
+        seed: u64,
+    ) -> Result<()> {
         if self.environments.get(&environment_label).is_some() {
             return Err(anyhow!("Environment already exists."));
         }
         self.environments.insert(
             environment_label.clone(),
-            Environment::new(environment_label),
+            Environment::new(environment_label, block_rate, seed),
         );
         Ok(())
+    }
+
+    pub fn _stop_environemt(self, _environment_label: String) -> Result<()> {
+        todo!()
+    }
+
+    /// adds an agent to an environment
+    pub fn add_agent(
+        &mut self,
+        agent: Agent<NotAttached>,
+        environment_label: String,
+    ) -> Result<()> {
+        match self.environments.get_mut(&environment_label) {
+            Some(environment) => {
+                environment.add_agent(agent);
+                Ok(())
+            }
+            None => Err(anyhow!("Environment does not exist.")),
+        }
     }
 
     /// Runs an environment that is in the [`SimulationManager`]'s list.
@@ -64,7 +93,7 @@ pub(crate) mod tests {
     fn add_environment() {
         let mut manager = SimulationManager::new();
         let label = "test".to_string();
-        manager.add_environment(label.clone()).unwrap();
+        manager.add_environment(label.clone(), 1.0, 1).unwrap();
         assert!(manager.environments.contains_key(&label));
     }
 
@@ -72,7 +101,7 @@ pub(crate) mod tests {
     fn run_environment() {
         let mut manager = SimulationManager::new();
         let label = "test".to_string();
-        manager.add_environment(label.clone()).unwrap();
+        manager.add_environment(label.clone(), 1.0, 1).unwrap();
         manager.run_environment(label.clone()).unwrap();
         assert_eq!(
             manager.environments.get(&label).unwrap().state,

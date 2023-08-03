@@ -6,8 +6,11 @@ use std::{
 };
 
 use bytes::Bytes;
-use ethers::{prelude::Address, types::H256};
-use revm::primitives::{ExecutionResult, Output, B160, B256};
+use ethers::{
+    prelude::Address,
+    types::{H256, U64},
+};
+use revm::primitives::{ExecutionResult, Output, B160, B256, U256};
 
 #[derive(Debug)]
 // We should use anyhow / thisError instead
@@ -31,6 +34,11 @@ impl Display for UnpackError {
     }
 }
 
+/// Recast a logs from Revm into the ethers.rs Log type.
+/// # Arguments
+/// * `revm_logs` - Logs from Revm. (Vec<revm::primitives::Log>)
+/// # Returns
+/// * `Vec<ethers::core::types::Log>` - Logs recasted into ethers.rs Log type.
 pub fn revm_logs_to_ethers_logs(
     revm_logs: Vec<revm::primitives::Log>,
 ) -> Vec<ethers::core::types::Log> {
@@ -66,6 +74,11 @@ pub fn recast_address(address: B160) -> Address {
     Address::from(temp)
 }
 
+/// Recast a B256 into an H256 type
+/// # Arguments
+/// * `input` - B256 to recast. (B256)  
+/// # Returns
+/// * `H256` - Recasted H256.
 pub fn recast_b256(input: B256) -> H256 {
     let temp: [u8; 32] = input.as_bytes().try_into().unwrap();
     H256::from(temp)
@@ -96,5 +109,39 @@ pub fn unpack_execution(execution_result: ExecutionResult) -> Result<Bytes, Unpa
             ),
             output: Some(output),
         }),
+    }
+}
+
+/// Convert a U256 to a U64, discarding the higher bits if the number is larger than 2^64
+/// # Arguments
+/// * `input` - The U256 to convert.
+/// # Returns
+/// * `Ok(U64)` - The converted U64.
+/// Used for block number which is a U64.
+pub fn convert_uint_to_u64(input: U256) -> Result<U64, &'static str> {
+    let as_str = input.to_string();
+    match as_str.parse::<u64>() {
+        Ok(val) => Ok(val.into()),
+        Err(_) => Err("U256 value is too large to fit into u64"),
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_conversion() {
+        // Test with a value that fits in u64.
+        let input = U256::from(10000);
+        assert_eq!(convert_uint_to_u64(input).unwrap(), U64::from(10000));
+
+        // Test with a value that is exactly at the limit of u64.
+        let input = U256::from(u64::MAX);
+        assert_eq!(convert_uint_to_u64(input).unwrap(), U64::from(u64::MAX));
+
+        // Test with a value that exceeds the limit of u64.
+        let input = U256::from(u64::MAX) + U256::from(1);
+        assert!(convert_uint_to_u64(input).is_err());
     }
 }

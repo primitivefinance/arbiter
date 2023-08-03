@@ -1,7 +1,6 @@
+use std::{fs, io::Write, path::Path};
+
 use quote::quote;
-use std::fs;
-use std::io::Write;
-use std::path::Path;
 
 pub(crate) fn create_simulation(simulation_name: &str) -> std::io::Result<()> {
     let main = quote! {

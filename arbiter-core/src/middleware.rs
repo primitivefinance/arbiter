@@ -3,35 +3,38 @@
 //! This module contains the middleware for the Revm simulation environment.
 //! Most of the middleware is essentially a placeholder, but it is necessary to have a middleware to work with bindings more efficiently.
 
-use ethers::prelude::pending_transaction::PendingTxState;
-use ethers::providers::{FilterKind, JsonRpcClient, JsonRpcError, PendingTransaction, Provider};
+use std::{fmt::Debug, time::Duration};
+
 use ethers::utils;
 use ethers::{
-    prelude::k256::{
-        ecdsa::SigningKey,
-        sha2::{Digest, Sha256},
+    prelude::{
+        k256::{
+            ecdsa::SigningKey,
+            sha2::{Digest, Sha256},
+        },
+        pending_transaction::PendingTxState,
+        ProviderError,
     },
-    prelude::ProviderError,
-    providers::{FilterWatcher, Middleware, MockProvider},
+    providers::{
+        FilterKind, FilterWatcher, Middleware, PendingTransaction, Provider,
+    },
     signers::{Signer, Wallet},
     types::{transaction::eip2718::TypedTransaction, Address, BlockId, Bytes, Filter, Log},
 };
-use rand::rngs::StdRng;
-use rand::SeedableRng;
-use revm::primitives::{
-    result, CreateScheme, ExecutionResult, Output, TransactTo, TxEnv, B160, U256,
-};
-use serde::de::DeserializeOwned;
-use serde::Serialize;
-use std::fmt::Debug;
-use std::time::Duration;
+use rand::{rngs::StdRng, SeedableRng};
+use revm::primitives::{CreateScheme, ExecutionResult, Output, TransactTo, TxEnv, B160, U256};
 
-use crate::agent::{Agent, NotAttached};
-use crate::environment::{Environment, RevmProvider};
-use crate::utils::{recast_address, revm_logs_to_ethers_logs};
+use crate::{
+    utils::{recast_address, revm_logs_to_ethers_logs},
+    environment::{Environment, RevmProvider},
+    agent::{Agent, NotAttached},
+};
+
 
 // TODO: Refactor the connection and channels slightly to be more intuitive. For instance, the middleware may not really need to own a connection, but input one to set up everything else?
-#[derive(Debug)]
+/// The Revm middleware struct.
+/// This struct is modular with ther ethers.rs middleware, and is used to connect the Revm environment in memory rather than over the network.
+#[derive(Debug, Clone)]
 pub struct RevmMiddleware {
     provider: Provider<RevmProvider>,
     wallet: Wallet<SigningKey>,
@@ -120,9 +123,11 @@ impl Middleware for RevmMiddleware {
                 self.provider.as_ref().result_sender.clone(),
             ))
             .unwrap();
-        let result = self.provider.as_ref().result_receiver.recv().unwrap();
-        let (output, revm_logs) = match result.clone() {
-            ExecutionResult::Success { output, logs, .. } => (output, logs),
+
+        let revm_result = self.provider.as_ref().result_receiver.recv().unwrap();
+
+        let (output, revm_logs, block) = match revm_result.result.clone() {
+            ExecutionResult::Success { output, logs, .. } => (output, logs, revm_result.block_number),
             ExecutionResult::Revert { output, .. } => panic!("Failed due to revert: {:?}", output),
             ExecutionResult::Halt { reason, .. } => panic!("Failed due to halt: {:?}", reason),
         };
@@ -139,12 +144,10 @@ impl Middleware for RevmMiddleware {
                     PendingTransaction::new(ethers::types::H256::zero(), self.provider());
                 let logs = revm_logs_to_ethers_logs(revm_logs);
 
-                pending_tx.state = PendingTxState::RevmTransactOutput(logs);
+                pending_tx.state = PendingTxState::RevmTransactOutput(logs, block);
                 return Ok(pending_tx);
             }
         }
-
-        // TODO: RECEIPTS OF TRANSACTIONS SHOULD STORE THE BLOCKNUMBERS THEY OCCURED IN
     }
 
     /// Makes a call to revm that will not commit a state change to the DB. Can be used for a mock transaction
@@ -184,8 +187,9 @@ impl Middleware for RevmMiddleware {
                 self.provider.as_ref().result_sender.clone(),
             ))
             .unwrap();
-        let result = self.provider.as_ref().result_receiver.recv().unwrap();
-        let output = match result.clone() {
+
+        let revm_result = self.provider.as_ref().result_receiver.recv().unwrap();
+        let output = match revm_result.result.clone() {
             ExecutionResult::Success { output, .. } => output,
             ExecutionResult::Revert { output, .. } => panic!("Failed due to revert: {:?}", output),
             ExecutionResult::Halt { reason, .. } => panic!("Failed due to halt: {:?}", reason),

@@ -2,6 +2,7 @@
 #![warn(unsafe_code)]
 
 use crossbeam_channel::{unbounded, Receiver, Sender};
+use ethers::core::types::U64;
 use ethers::{providers::{JsonRpcClient, ProviderError}, types::{Filter, H256}, prelude::k256::sha2::{Digest, Sha256}, utils::serialize};
 use revm::{
     db::{CacheDB, EmptyDB},
@@ -15,15 +16,27 @@ use std::{
     thread, collections::HashMap,
 };
 
-use crate::{utils::revm_logs_to_ethers_logs, agent::IsAttached};
-use crate::{agent::Agent, middleware::RevmMiddleware};
+use crate::{
+    agent::{Agent, IsAttached, NotAttached},
+    math::stochastic_process::{sample_poisson, SeededPoisson},
+    middleware::RevmMiddleware,
+    utils::{convert_uint_to_u64, revm_logs_to_ethers_logs},
+};
 
 /// Type Aliases for the event channel.
 pub(crate) type ToTransact = bool;
-pub(crate) type ExecutionSender = Sender<ExecutionResult>;
+pub(crate) type ExecutionSender = Sender<RevmResult>;
 pub(crate) type TxEnvSender = Sender<(ToTransact, TxEnv, ExecutionSender)>;
 pub(crate) type TxEnvReceiver = Receiver<(ToTransact, TxEnv, ExecutionSender)>;
 
+/// Result struct for the [`Environment`]. that wraps the [`ExecutionResult`] and the block number.
+#[derive(Debug, Clone)]
+pub struct RevmResult {
+    pub(crate) result: ExecutionResult,
+    pub(crate) block_number: U64,
+}
+
+/// State enum for the [`Environment`].
 #[derive(Debug, Eq, PartialEq, Clone, Copy)]
 pub enum State {
     /// The [`Environment`] is currently running.
@@ -34,23 +47,27 @@ pub enum State {
     Stopped,
 }
 
+/// The environment struct.
 pub struct Environment {
+    /// label for the environment
     pub label: String,
     pub(crate) state: State,
     pub(crate) evm: EVM<CacheDB<EmptyDB>>,
     pub(crate) tx_sender: TxEnvSender,
-    tx_receiver: TxEnvReceiver,
+    pub tx_receiver: TxEnvReceiver,
     pub(crate) event_broadcaster: Arc<Mutex<EventBroadcaster>>,
     /// Clients (Agents) in the environment
     pub agents: Vec<Agent<IsAttached<RevmMiddleware>>>,
-    // pub deployed_contracts: HashMap<String, Contract<RevmMiddleware>>,
+    /// expected events per block
+    pub seeded_poisson: SeededPoisson,
 }
 
 // TODO: If the provider holds the connection then this can work better.
+#[derive(Clone)]
 pub struct RevmProvider {
     pub(crate) tx_sender: TxEnvSender,
-    pub(crate) result_sender: crossbeam_channel::Sender<ExecutionResult>,
-    pub(crate) result_receiver: crossbeam_channel::Receiver<ExecutionResult>,
+    pub(crate) result_sender: crossbeam_channel::Sender<RevmResult>,
+    pub(crate) result_receiver: crossbeam_channel::Receiver<RevmResult>,
     pub(crate) event_receiver: crossbeam_channel::Receiver<Vec<ethers::types::Log>>,
     // pub(crate) filter_receivers: HashMap<ethers::types::U256, crossbeam_channel::Receiver<Vec<ethers::types::Log>>>, // TODO: Use this to replace event_receivers so we can look for updates in specific filters
 }
@@ -99,13 +116,16 @@ impl JsonRpcClient for RevmProvider {
 }
 
 impl Environment {
-    pub(crate) fn new<S: Into<String>>(label: S) -> Self {
+    /// Creates a new [`Environment`] with the given label.
+    pub(crate) fn new<S: Into<String>>(label: S, block_rate: f64, seed: u64) -> Self {
         let mut evm = EVM::new();
         let db = CacheDB::new(EmptyDB {});
         evm.database(db);
+
+        let seeded_poisson = SeededPoisson::new(block_rate, seed);
         evm.env.cfg.limit_contract_code_size = Some(0x100000); // This is a large contract size limit, beware!
         evm.env.block.gas_limit = U256::MAX;
-        let (tx_sender, tx_receiver) = unbounded::<(ToTransact, TxEnv, Sender<ExecutionResult>)>();
+        let (tx_sender, tx_receiver) = unbounded::<(ToTransact, TxEnv, Sender<RevmResult>)>();
         Self {
             label: label.into(),
             state: State::Stopped,
@@ -114,13 +134,17 @@ impl Environment {
             tx_receiver,
             event_broadcaster: Arc::new(Mutex::new(EventBroadcaster::new())),
             agents: vec![],
+            seeded_poisson,
         }
     }
+
+    /// Creates a new [`Agent<RevmMiddleware`] with the given label.
     // TODO: We need to make this the way to add agents to the environment.
     // in `agent.rs` we have `new_simulation_agent` which should probably just be called from this function instead.
     // OR agents can be created (without a connection?) and then added to the environment where they will gain a connection?
-    pub fn add_agent(&mut self, agent: Agent<IsAttached<RevmMiddleware>>) {
-        self.agents.push(agent);
+    // Waylon: I like them being created without a connection and then added to the environment where they will gain a connection.
+    pub fn add_agent(&mut self, agent: Agent<NotAttached>) {
+        agent.attach_to_environment(self);
     }
 
     // TODO: Run should now run the agents as well as the evm.
@@ -128,12 +152,26 @@ impl Environment {
         let tx_receiver = self.tx_receiver.clone();
         let mut evm = self.evm.clone();
         let event_broadcaster = self.event_broadcaster.clone();
+
+        let mut seeded_poisson = self.seeded_poisson.clone();
+
+        let mut counter: usize = 0;
         self.state = State::Running;
 
-        //give all agents their own thread and let them start watching for their evnts
         thread::spawn(move || {
+            let mut expected_events_per_block = seeded_poisson.sample();
+
             while let Ok((to_transact, tx, sender)) = tx_receiver.recv() {
                 // Execute the transaction, echo the logs to all agents, and report the execution result to the agent who made the transaction.
+                if counter == expected_events_per_block {
+                    counter = 0;
+                    println!("EVM expected number of transactions reached. Moving to next block.");
+                    println!("old block number: {:?}", evm.env.block.number);
+                    evm.env.block.number += U256::from(1);
+                    println!("new block number: {:?}", evm.env.block.number);
+                    expected_events_per_block = seeded_poisson.sample();
+                }
+
                 evm.env.tx = tx;
                 if to_transact {
                     let execution_result = match evm.transact_commit() {
@@ -141,18 +179,28 @@ impl Environment {
                         // URGENT: change this to a custom error
                         Err(_) => panic!("failed"),
                     };
+
                     event_broadcaster
                         .lock()
                         .unwrap()
                         .broadcast(execution_result.logs());
-                    sender.send(execution_result).unwrap();
+                    let revm_result = RevmResult {
+                        result: execution_result,
+                        block_number: convert_uint_to_u64(evm.env.block.number).unwrap(),
+                    };
+                    sender.send(revm_result).unwrap();
+                    counter += 1;
                 } else {
                     let execution_result = match evm.transact() {
                         Ok(val) => val,
                         // URGENT: change this to a custom error
                         Err(_) => panic!("failed"),
                     };
-                    sender.send(execution_result.result).unwrap();
+                    let result_and_block = RevmResult {
+                        result: execution_result.result,
+                        block_number: convert_uint_to_u64(evm.env.block.number).unwrap(),
+                    };
+                    sender.send(result_and_block).unwrap();
                 }
             }
         });
@@ -184,20 +232,27 @@ impl EventBroadcaster {
 
 #[cfg(test)]
 pub(crate) mod tests {
+    use std::time::Duration;
+
+    use anyhow::{Ok, Result};
+    use ethers::types::Address;
+
+    use crate::bindings::arbiter_token::ArbiterToken;
+
     use super::*;
 
     pub(crate) const TEST_ENV_LABEL: &str = "test";
 
     #[test]
     fn new() {
-        let env = Environment::new(TEST_ENV_LABEL.to_string());
+        let env = Environment::new(TEST_ENV_LABEL.to_string(), 1.0, 1);
         assert_eq!(env.label, TEST_ENV_LABEL);
         assert_eq!(env.state, State::Stopped);
     }
 
     #[test]
     fn run() {
-        let mut environment = Environment::new(TEST_ENV_LABEL.to_string());
+        let mut environment = Environment::new(TEST_ENV_LABEL.to_string(), 1.0, 1);
         environment.run();
         assert_eq!(environment.state, State::Running);
     }
