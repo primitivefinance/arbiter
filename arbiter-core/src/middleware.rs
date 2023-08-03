@@ -5,6 +5,7 @@
 
 use std::{fmt::Debug, time::Duration};
 
+use ethers::utils;
 use ethers::{
     prelude::{
         k256::{
@@ -214,14 +215,13 @@ impl Middleware for RevmMiddleware {
         &self,
         filter: FilterKind<'_>,
     ) -> Result<ethers::types::U256, ProviderError> {
-        todo!()
-        // let (method, args) = match filter {
-        //     FilterKind::NewBlocks => unimplemented!("We will need to implement this."),
-        //     FilterKind::PendingTransactions => unimplemented!("Not sure if we need to implement this."),
-        //     FilterKind::Logs(filter) => ("eth_newFilter", vec![utils::serialize(&filter)]),
-        // };
+        let (method, args) = match filter {
+            FilterKind::NewBlocks => unimplemented!("We will need to implement this."),
+            FilterKind::PendingTransactions => unimplemented!("Not sure if we need to implement this."),
+            FilterKind::Logs(filter) => ("eth_newFilter", vec![utils::serialize(&filter)]),
+        };
 
-        // self.request(method, args).await
+        self.provider().request(method, args).await
     }
 
     async fn watch<'a>(

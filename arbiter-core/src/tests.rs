@@ -68,6 +68,7 @@ fn multiple_agent_addresses() {
     );
 }
 
+// TODO: Test to see that we prvent agents with the same name from being added.
 #[test]
 fn agent_name_collision() {
     todo!();
@@ -158,18 +159,19 @@ async fn transact() -> Result<()> {
 
 #[tokio::test]
 async fn filter_watcher() -> Result<()> {
-    // let mut environment = Environment::new(TEST_ENV_LABEL.to_string());
-    // environment.run();
-    // let agent = Agent::new_simulation_agent(TEST_AGENT_NAME.to_string(), environment.connection);
-    // let arbiter_token = deploy().await.unwrap();
-    // let filter = arbiter_token.approval_filter().filter;
-    // let mut filter_watcher = agent.client.watch(&filter).await?;
-    // let event = filter_watcher.next().await;
-    // println!("{:?}", event);
-    // Ok(())
+    let environment = &mut Environment::new(TEST_ENV_LABEL);
+    let agent = Agent::new(TEST_AGENT_NAME);
+    agent.attach_to_environment(environment);
+    environment.run();
+    let client = environment.agents[0].client.clone();
+    let arbiter_token = deploy().await.unwrap();
+    let filter = arbiter_token.approval_filter().filter;
+    let mut filter_watcher = client.watch(&filter).await?;
+    let event = filter_watcher.next().await;
+    println!("{:?}", event);
+    Ok(())
 
     // TODO: Test that we can filter out approvals and NOT transfers (or something like this)
-    todo!()
 }
 
 // This test has two parts

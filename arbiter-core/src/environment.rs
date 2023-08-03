@@ -1,24 +1,20 @@
 #![warn(missing_docs)]
 #![warn(unsafe_code)]
 
-use std::{
-    fmt::Debug,
-    sync::{
-        atomic::{AtomicBool, AtomicUsize, Ordering},
-        Arc, Mutex,
-    },
-    thread,
-};
-
 use crossbeam_channel::{unbounded, Receiver, Sender};
 use ethers::core::types::U64;
-use ethers::providers::{JsonRpcClient, ProviderError};
+use ethers::{providers::{JsonRpcClient, ProviderError}, types::{Filter, H256}, prelude::k256::sha2::{Digest, Sha256}, utils::serialize};
 use revm::{
     db::{CacheDB, EmptyDB},
     primitives::{ExecutionResult, Log, TxEnv, U256},
     EVM,
 };
-use RustQuant::statistics::distributions::i;
+use serde::{de::DeserializeOwned, Serialize};
+use std::{
+    fmt::Debug,
+    sync::{Arc, Mutex},
+    thread, collections::HashMap,
+};
 
 use crate::{
     agent::{Agent, IsAttached, NotAttached},
@@ -26,7 +22,6 @@ use crate::{
     middleware::RevmMiddleware,
     utils::{convert_uint_to_u64, revm_logs_to_ethers_logs},
 };
-use serde::{de::DeserializeOwned, Serialize};
 
 /// Type Aliases for the event channel.
 pub(crate) type ToTransact = bool;
@@ -74,6 +69,7 @@ pub struct RevmProvider {
     pub(crate) result_sender: crossbeam_channel::Sender<RevmResult>,
     pub(crate) result_receiver: crossbeam_channel::Receiver<RevmResult>,
     pub(crate) event_receiver: crossbeam_channel::Receiver<Vec<ethers::types::Log>>,
+    // pub(crate) filter_receivers: HashMap<ethers::types::U256, crossbeam_channel::Receiver<Vec<ethers::types::Log>>>, // TODO: Use this to replace event_receivers so we can look for updates in specific filters
 }
 
 impl Debug for RevmProvider {
@@ -89,17 +85,29 @@ impl JsonRpcClient for RevmProvider {
     async fn request<T: Serialize + Send + Sync, R: DeserializeOwned>(
         &self,
         method: &str,
-        _params: T,
+        params: T,
     ) -> Result<R, ProviderError> {
         match method {
             "eth_getFilterChanges" => {
+                // Store a Map of filters with their IDs as keys
                 let logs = self.event_receiver.recv().unwrap();
                 println!("logs: {:?}", logs);
                 let logs_str = serde_json::to_string(&logs).unwrap();
                 let logs_deserializeowned: R = serde_json::from_str(&logs_str)?;
                 return Ok(logs_deserializeowned);
                 // return Ok(serde::to_value(self.event_receiver.recv().ok()).unwrap())
-            }
+            },
+            "eth_newFilter" => {
+                let filter_string = serde_json::to_string(&params).unwrap();
+                let filter: Filter = serde_json::from_str(&filter_string).unwrap();
+                let mut hasher = Sha256::new();
+                hasher.update(filter_string.as_bytes());
+                let hash = hasher.finalize();
+                let id = ethers::types::U256::from(ethers::types::H256::from_slice(&hash).as_bytes());
+                let id_str = serde_json::to_string(&id).unwrap();
+                let id_deserializeowned: R = serde_json::from_str(&id_str)?;
+                Ok(id_deserializeowned)
+            },
             _ => {
                 unimplemented!("We don't cover this case yet.")
             }
