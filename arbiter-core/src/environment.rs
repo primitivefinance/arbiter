@@ -39,7 +39,7 @@ pub enum State {
     /// [`Agent`]s cannot be added if the environment is [`State::Running`].
     Running,
     /// The [`Environment`] is currently stopped.
-    /// [`Agent`]s can only be added if the environment is [`State::Initialized`].
+    /// [`Agent`]s can only be added if the environment is [`State::Initialization`].
     Initialization,
 }
 
@@ -110,7 +110,7 @@ impl Environment {
         let mut counter: usize = 0;
         self.state = State::Running;
 
-        tokio::spawn(async move {
+        std::thread::spawn(move || {
             let mut expected_events_per_block = seeded_poisson.sample();
 
             while let Ok((to_transact, tx, sender)) = tx_receiver.recv() {

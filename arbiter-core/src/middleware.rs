@@ -22,7 +22,7 @@ use ethers::{
     types::{transaction::eip2718::TypedTransaction, Address, BlockId, Bytes, Filter, Log},
 };
 use rand::{rngs::StdRng, SeedableRng};
-use revm::primitives::{CreateScheme, ExecutionResult, Output, TransactTo, TxEnv, B160, U256};
+use revm::primitives::{CreateScheme, ExecutionResult, Output, TransactTo, TxEnv, B160, U256, B256};
 use serde::Serialize;
 use serde::de::DeserializeOwned;
 
@@ -72,17 +72,18 @@ impl JsonRpcClient for Connection {
             "eth_getFilterChanges" => {
                 // TODO: Store a Map of filters with their IDs as keys. The ID should take into account the agent that is listening to it as well so that multiple agents can listen to the same event stream!
                 let value = serde_json::to_value(&params).unwrap();
-                let id: ethers::types::U256 = serde_json::from_value(value).unwrap();
+                let str = value.as_array().unwrap()[0].as_str().unwrap();
+                let id = ethers::types::U256::from_str_radix(str, 16).unwrap();
+                println!("id: {:?}", id);
                 let filter_receiver = self.filter_receivers.clone();
                 let mut filter_receiver = filter_receiver.lock().await;
                 let filter_receiver = filter_receiver.get_mut(&id).unwrap();
+                println!("filter_receiver: {:?}", filter_receiver);
                 let logs = filter_receiver.receiver.recv().await.unwrap();
                 println!("logs: {:?}", logs);
                 let logs_str = serde_json::to_string(&logs).unwrap();
                 let logs_deserializeowned: R = serde_json::from_str(&logs_str)?;
                 return Ok(logs_deserializeowned);
-                // todo!()
-                // return Ok(serde::to_value(self.event_receiver.recv().ok()).unwrap())
             }
             _ => {
                 unimplemented!("We don't cover this case yet.")
@@ -272,12 +273,12 @@ impl Middleware for RevmMiddleware {
             }
             FilterKind::Logs(filter) => ("eth_newFilter", filter),
         };
+        println!("args: {:?}", args);
         let filter = args.clone();
         let mut hasher = Sha256::new();
         hasher.update(serde_json::to_string(&args).unwrap());
         let hash = hasher.finalize();
         let id = ethers::types::U256::from(ethers::types::H256::from_slice(&hash).as_bytes());
-        // let event_receiver = self.provider.as_ref().event_sender.subscribe();
         let filter_receiver = FilterReceiver {
             filter,
             receiver: self.provider.as_ref().event_sender.subscribe(),

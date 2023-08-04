@@ -155,10 +155,17 @@ async fn filter_watcher() -> Result<()> {
     environment.run();
     let client = environment.agents[0].client.clone();
     let arbiter_token = deploy().await.unwrap();
+    println!("arbiter token address: {:?}", arbiter_token.address());
     let filter = arbiter_token.approval_filter().filter;
+    println!("filter address: {:#?}", filter.address);
     println!("filter in test: {:?}", filter);
-    let mut filter_watcher = client.watch(&filter).await?;
-    let event = filter_watcher.next().await;
+    let mut filter_watcher = client.watch(&Filter::default()).await?;
+    let event = filter_watcher.next();
+    let approval = arbiter_token.approve(client.default_sender().unwrap(), ethers::types::U256::from(100));
+    let thing = approval.send().await?.await?;
+    println!("approval sent");
+    println!("thing: {:?}", thing);
+    let event = event.await;
     println!("{:?}", event);
     Ok(())
 
