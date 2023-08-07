@@ -4,7 +4,7 @@
 //! Most of the middleware is essentially a placeholder, but it is necessary to have a middleware to work with bindings more efficiently.
 
 use std::collections::HashMap;
-use std::sync::Arc;
+use std::sync::{Arc, Mutex};
 use std::{fmt::Debug, time::Duration};
 
 use ethers::providers::JsonRpcClient;
@@ -22,11 +22,13 @@ use ethers::{
     types::{transaction::eip2718::TypedTransaction, Address, BlockId, Bytes, Filter, Log},
 };
 use rand::{rngs::StdRng, SeedableRng};
-use revm::primitives::{CreateScheme, ExecutionResult, Output, TransactTo, TxEnv, B160, U256, B256};
-use serde::Serialize;
+use revm::primitives::{
+    CreateScheme, ExecutionResult, Output, TransactTo, TxEnv, B160, B256, U256,
+};
 use serde::de::DeserializeOwned;
+use serde::Serialize;
 
-use crate::environment::{ResultReceiver, ResultSender, TxSender, EventBroadcaster};
+use crate::environment::{EventBroadcaster, ResultReceiver, ResultSender, TxSender};
 use crate::{
     agent::{Agent, NotAttached},
     environment::Environment,
@@ -37,14 +39,14 @@ pub struct Connection {
     pub(crate) tx_sender: TxSender,
     pub(crate) result_sender: ResultSender,
     pub(crate) result_receiver: ResultReceiver,
-    event_sender: EventBroadcaster,
+    event_broadcaster: Arc<Mutex<EventBroadcaster>>,
     filter_receivers: Arc<tokio::sync::Mutex<HashMap<ethers::types::U256, FilterReceiver>>>,
 }
 
 #[derive(Debug)]
 pub(crate) struct FilterReceiver {
     pub(crate) filter: Filter,
-    pub(crate) receiver: tokio::sync::broadcast::Receiver<Vec<ethers::types::Log>>,
+    pub(crate) receiver: crossbeam_channel::Receiver<Vec<ethers::types::Log>>,
 }
 
 impl Debug for Connection {
@@ -53,7 +55,10 @@ impl Debug for Connection {
             .field("tx_sender", &"TxSender")
             .field("result_sender", &"ResultSender")
             .field("result_receiver", &"ResultReceiver")
-            .field("filter_receivers", &"HashMap<ethers::types::U256, FilterReceiver>")
+            .field(
+                "filter_receivers",
+                &"HashMap<ethers::types::U256, FilterReceiver>",
+            )
             .finish()
     }
 }
@@ -75,11 +80,14 @@ impl JsonRpcClient for Connection {
                 let str = value.as_array().unwrap()[0].as_str().unwrap();
                 let id = ethers::types::U256::from_str_radix(str, 16).unwrap();
                 println!("id: {:?}", id);
-                let filter_receiver = self.filter_receivers.clone();
-                let mut filter_receiver = filter_receiver.lock().await;
-                let filter_receiver = filter_receiver.get_mut(&id).unwrap();
-                println!("filter_receiver: {:?}", filter_receiver);
-                let logs = filter_receiver.receiver.recv().await.unwrap();
+                let filter_receivers = Arc::clone(&self.filter_receivers);
+                let mut filter_receivers = filter_receivers.lock().await;
+                let filter_receiver = filter_receivers.get_mut(&id).unwrap();
+                println!(
+                    "filter_receiver in eth_getFilterChanges: {:?}",
+                    filter_receiver
+                );
+                let logs = filter_receiver.receiver.recv().unwrap();
                 println!("logs: {:?}", logs);
                 let logs_str = serde_json::to_string(&logs).unwrap();
                 let logs_deserializeowned: R = serde_json::from_str(&logs_str)?;
@@ -92,26 +100,21 @@ impl JsonRpcClient for Connection {
     }
 }
 
-// TODO: Refactor the connection and channels slightly to be more intuitive. For instance, the middleware may not really need to own a connection, but input one to set up everything else?
-/// The Revm middleware struct.
-/// This struct is modular with ther ethers.rs middleware, and is used to connect the Revm environment in memory rather than over the network.
 #[derive(Debug)]
 pub struct RevmMiddleware {
     provider: Provider<Connection>,
     wallet: Wallet<SigningKey>,
-    // filter_receivers: Mutex<HashMap<ethers::types::U256, FilterReceiver>>,
-    // connection: Connection,
 }
 
 impl RevmMiddleware {
     pub fn new(agent: &Agent<NotAttached>, environment: &Environment) -> Self {
         let tx_sender = environment.socket.tx_sender.clone();
-        let (result_sender, result_receiver) = crossbeam_channel::bounded(1);
+        let (result_sender, result_receiver) = crossbeam_channel::unbounded();
         let connection = Connection {
             tx_sender,
             result_sender,
             result_receiver,
-            event_sender: environment.socket.event_sender.clone(),
+            event_broadcaster: Arc::clone(&environment.socket.event_broadcaster),
             filter_receivers: Arc::new(tokio::sync::Mutex::new(HashMap::new())),
         };
         let provider = Provider::new(connection);
@@ -120,10 +123,7 @@ impl RevmMiddleware {
         let seed = hasher.finalize();
         let mut rng = StdRng::from_seed(seed.into());
         let wallet = Wallet::new(&mut rng);
-        Self {
-            provider,
-            wallet,
-        }
+        Self { provider, wallet }
     }
 }
 
@@ -175,9 +175,15 @@ impl Middleware for RevmMiddleware {
             nonce: None,
             access_list: Vec::new(),
         };
-        self.provider().as_ref()
+        self.provider()
+            .as_ref()
             .tx_sender
-            .send((true, tx_env.clone(), self.provider().as_ref().result_sender.clone())).unwrap();
+            .send((
+                true,
+                tx_env.clone(),
+                self.provider().as_ref().result_sender.clone(),
+            ))
+            .unwrap();
 
         let revm_result = self.provider().as_ref().result_receiver.recv().unwrap();
 
@@ -235,9 +241,15 @@ impl Middleware for RevmMiddleware {
             access_list: Vec::new(),
         };
         // TODO: Modify this to work for calls/deploys
-        self.provider().as_ref()
+        self.provider()
+            .as_ref()
             .tx_sender
-            .send((false, tx_env.clone(), self.provider().as_ref().result_sender.clone())).unwrap();
+            .send((
+                false,
+                tx_env.clone(),
+                self.provider().as_ref().result_sender.clone(),
+            ))
+            .unwrap();
 
         let revm_result = self.provider().as_ref().result_receiver.recv().unwrap();
         let output = match revm_result.result.clone() {
@@ -279,11 +291,23 @@ impl Middleware for RevmMiddleware {
         hasher.update(serde_json::to_string(&args).unwrap());
         let hash = hasher.finalize();
         let id = ethers::types::U256::from(ethers::types::H256::from_slice(&hash).as_bytes());
+        let (event_sender, event_receiver) = crossbeam_channel::unbounded();
         let filter_receiver = FilterReceiver {
             filter,
-            receiver: self.provider.as_ref().event_sender.subscribe(),
+            receiver: event_receiver,
         };
-        self.provider().as_ref().filter_receivers.lock().await.insert(id, filter_receiver);
+        self.provider()
+            .as_ref()
+            .event_broadcaster
+            .lock()
+            .unwrap()
+            .add_sender(event_sender);
+        self.provider()
+            .as_ref()
+            .filter_receivers
+            .lock()
+            .await
+            .insert(id, filter_receiver);
         Ok(id)
     }
 

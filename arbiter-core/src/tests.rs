@@ -1,14 +1,10 @@
 #![allow(missing_docs)]
-use std::sync::Arc;
-use std::{
-    str::FromStr,
-    sync::atomic::{AtomicUsize, Ordering},
-};
+use std::str::FromStr;
 
 use anyhow::{Ok, Result};
 use ethers::{
-    prelude::{FilterWatcher, Middleware, StreamExt},
-    types::{Address, Filter, U64},
+    prelude::{Middleware, StreamExt},
+    types::{Address, Filter, ValueOrArray, U64},
 };
 
 use crate::{
@@ -74,26 +70,30 @@ fn agent_name_collision() {
     todo!();
 }
 
-async fn deploy() -> Result<ArbiterToken<RevmMiddleware>> {
-    let environment = &mut Environment::new(TEST_ENV_LABEL, 1.0, 1);
+async fn deploy_and_start() -> Result<(ArbiterToken<RevmMiddleware>, Environment)> {
+    let mut environment = Environment::new(TEST_ENV_LABEL, 1.0, 1);
     let agent = Agent::new(TEST_AGENT_NAME);
-    agent.attach_to_environment(environment);
+    agent.attach_to_environment(&mut environment);
     environment.run();
-    Ok(ArbiterToken::deploy(
-        environment.agents[0].client.clone(),
-        (
-            TEST_ARG_NAME.to_string(),
-            TEST_ARG_SYMBOL.to_string(),
-            TEST_ARG_DECIMALS,
-        ),
-    )?
-    .send()
-    .await?)
+    Ok((
+        ArbiterToken::deploy(
+            environment.agents[0].client.clone(),
+            (
+                TEST_ARG_NAME.to_string(),
+                TEST_ARG_SYMBOL.to_string(),
+                TEST_ARG_DECIMALS,
+            ),
+        )?
+        .send()
+        .await
+        .unwrap(),
+        environment,
+    ))
 }
 
 #[tokio::test]
 async fn test_deploy() -> Result<()> {
-    let arbiter_token = deploy().await?;
+    let (arbiter_token, environment) = deploy_and_start().await?;
     println!("{:?}", arbiter_token);
     assert_eq!(
         arbiter_token.address(),
@@ -104,7 +104,7 @@ async fn test_deploy() -> Result<()> {
 
 #[tokio::test]
 async fn call() -> Result<()> {
-    let arbiter_token = deploy().await?;
+    let (arbiter_token, _) = deploy_and_start().await?;
     let admin = arbiter_token.admin();
     let output = admin.call().await?;
     assert_eq!(
@@ -116,7 +116,7 @@ async fn call() -> Result<()> {
 
 #[tokio::test]
 async fn transact() -> Result<()> {
-    let arbiter_token = deploy().await?;
+    let (arbiter_token, _) = deploy_and_start().await?;
     let mint = arbiter_token.mint(
         Address::from_str(TEST_MINT_TO).unwrap(),
         ethers::types::U256::from(TEST_MINT_AMOUNT),
@@ -149,27 +149,56 @@ async fn transact() -> Result<()> {
 
 #[tokio::test]
 async fn filter_watcher() -> Result<()> {
-    let environment = &mut Environment::new(TEST_ENV_LABEL, 1.0, 1);
-    let agent = Agent::new(TEST_AGENT_NAME);
-    agent.attach_to_environment(environment);
-    environment.run();
+    let (arbiter_token, environment) = deploy_and_start().await.unwrap();
     let client = environment.agents[0].client.clone();
-    let arbiter_token = deploy().await.unwrap();
-    println!("arbiter token address: {:?}", arbiter_token.address());
-    let filter = arbiter_token.approval_filter().filter;
-    println!("filter address: {:#?}", filter.address);
-    println!("filter in test: {:?}", filter);
     let mut filter_watcher = client.watch(&Filter::default()).await?;
-    let event = filter_watcher.next();
-    let approval = arbiter_token.approve(client.default_sender().unwrap(), ethers::types::U256::from(100));
-    let thing = approval.send().await?.await?;
+    let approval = arbiter_token.approve(
+        client.default_sender().unwrap(),
+        ethers::types::U256::from(100),
+    );
+    approval.send().await?.await?;
     println!("approval sent");
-    println!("thing: {:?}", thing);
-    let event = event.await;
-    println!("{:?}", event);
+    let event = filter_watcher.next().await.unwrap();
+    println!("Event: {:?}", event);
+    assert_eq!(event.address, arbiter_token.address());
+    println!(
+        "approval_filter topics: {:?}",
+        arbiter_token.approval_filter().filter.topics
+    );
+    // Check that the only populated topic from the approval_filter is correct
+    let filter_topic = match arbiter_token.approval_filter().filter.topics[0]
+        .clone()
+        .unwrap()
+    {
+        ValueOrArray::Value(filter) => filter.unwrap(),
+        _ => panic!("Expected ValueOrArray::Value"),
+    };
+    assert_eq!(event.topics[0], filter_topic);
+    assert_eq!(
+        event.data,
+        ethers::types::Bytes::from_str(
+            "0x0000000000000000000000000000000000000000000000000000000000000064"
+        )
+        .unwrap()
+    );
     Ok(())
 
     // TODO: Test that we can filter out approvals and NOT transfers (or something like this)
+}
+
+#[tokio::test]
+async fn filter_address() -> Result<()> {
+    todo!()
+}
+
+#[tokio::test]
+async fn filter_topics() -> Result<()> {
+    todo!();
+    let (arbiter_token, environment) = deploy_and_start().await.unwrap();
+    let client = environment.agents[0].client.clone();
+    println!("arbiter token address: {:?}", arbiter_token.address());
+    let filter = arbiter_token.approval_filter().filter;
+    println!("filter is: {:?}", filter);
 }
 
 // This test has two parts
@@ -188,7 +217,7 @@ async fn transaction_loop() -> Result<()> {
     env.add_agent(agent);
     let agent = &env.agents[0];
     // tx_0 is the transaction that creates the token contract
-    let arbiter_token = deploy().await?;
+    let (arbiter_token, _) = deploy_and_start().await?;
 
     for index in 1..expected_tx_per_block {
         println!("index: {}", index);

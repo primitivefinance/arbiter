@@ -1,14 +1,19 @@
 #![warn(missing_docs)]
 #![warn(unsafe_code)]
 
-// use crossbeam_channel::{unbounded, Receiver, Sender};
-use ethers::core::types::U64;
+use crossbeam_channel::{unbounded, Receiver, Sender};
+use ethers::{core::types::U64, types::Log};
 use revm::{
     db::{CacheDB, EmptyDB},
     primitives::{ExecutionResult, TxEnv, U256},
     EVM,
 };
-use std::fmt::Debug;
+use std::{
+    fmt::Debug,
+    sync::{Arc, Mutex},
+    thread,
+};
+use tokio::runtime::Runtime;
 
 use crate::{
     agent::{Agent, IsAttached, NotAttached},
@@ -16,7 +21,7 @@ use crate::{
     middleware::RevmMiddleware,
     utils::convert_uint_to_u64,
 };
-use tokio::sync::broadcast;
+// use tokio::sync::broadcast;
 
 /// Result struct for the [`Environment`]. that wraps the [`ExecutionResult`] and the block number.
 #[derive(Debug, Clone)]
@@ -26,11 +31,11 @@ pub(crate) struct RevmResult {
 }
 
 pub(crate) type ToTransact = bool;
-pub(crate) type ResultSender = crossbeam_channel::Sender<RevmResult>;
-pub(crate) type ResultReceiver = crossbeam_channel::Receiver<RevmResult>;
-pub(crate) type TxSender = crossbeam_channel::Sender<(ToTransact, TxEnv, ResultSender)>;
-pub(crate) type TxReceiver = crossbeam_channel::Receiver<(ToTransact, TxEnv, ResultSender)>;
-pub(crate) type EventBroadcaster = broadcast::Sender<Vec<ethers::types::Log>>;
+pub(crate) type ResultSender = Sender<RevmResult>;
+pub(crate) type ResultReceiver = Receiver<RevmResult>;
+pub(crate) type TxSender = Sender<(ToTransact, TxEnv, ResultSender)>;
+pub(crate) type TxReceiver = Receiver<(ToTransact, TxEnv, ResultSender)>;
+// pub(crate) type EventBroadcaster = broadcast::Sender<Vec<ethers::types::Log>>;
 
 /// State enum for the [`Environment`].
 #[derive(Debug, Eq, PartialEq, Clone, Copy)]
@@ -46,7 +51,7 @@ pub enum State {
 pub(crate) struct Socket {
     pub(crate) tx_sender: TxSender,
     tx_receiver: TxReceiver,
-    pub(crate) event_sender: EventBroadcaster,
+    pub(crate) event_broadcaster: Arc<Mutex<EventBroadcaster>>,
 }
 
 /// The environment struct.
@@ -76,12 +81,12 @@ impl Environment {
         evm.env.cfg.limit_contract_code_size = Some(0x100000); // This is a large contract size limit, beware!
         evm.env.block.gas_limit = U256::MAX;
 
-        let (tx_sender, tx_receiver) = crossbeam_channel::bounded(16);
-        let (event_sender, _) = tokio::sync::broadcast::channel(16);
+        let (tx_sender, tx_receiver) = unbounded();
+
         let socket = Socket {
             tx_sender,
             tx_receiver,
-            event_sender,
+            event_broadcaster: Arc::new(Mutex::new(EventBroadcaster::new())),
         };
 
         Self {
@@ -103,24 +108,21 @@ impl Environment {
     pub(crate) fn run(&mut self) {
         let mut evm = self.evm.clone();
         let tx_receiver = self.socket.tx_receiver.clone();
-        let event_broadcaster = self.socket.event_sender.clone();
+        let event_broadcaster = self.socket.event_broadcaster.clone();
 
         let mut seeded_poisson = self.seeded_poisson.clone();
 
         let mut counter: usize = 0;
+
         self.state = State::Running;
 
-        std::thread::spawn(move || {
+        thread::spawn(move || {
             let mut expected_events_per_block = seeded_poisson.sample();
 
             while let Ok((to_transact, tx, sender)) = tx_receiver.recv() {
-                // Execute the transaction, echo the logs to all agents, and report the execution result to the agent who made the transaction.
                 if counter == expected_events_per_block {
                     counter = 0;
-                    println!("EVM expected number of transactions reached. Moving to next block.");
-                    println!("old block number: {:?}", evm.env.block.number);
                     evm.env.block.number += U256::from(1);
-                    println!("new block number: {:?}", evm.env.block.number);
                     expected_events_per_block = seeded_poisson.sample();
                 }
 
@@ -131,8 +133,8 @@ impl Environment {
                         // URGENT: change this to a custom error
                         Err(_) => panic!("failed"),
                     };
-
-                    event_broadcaster.send(crate::utils::revm_logs_to_ethers_logs(
+                    let event_broadcaster = event_broadcaster.lock().unwrap();
+                    event_broadcaster.broadcast(crate::utils::revm_logs_to_ethers_logs(
                         execution_result.logs(),
                     ));
                     let revm_result = RevmResult {
@@ -155,6 +157,25 @@ impl Environment {
                 }
             }
         });
+    }
+}
+
+#[derive(Clone, Debug)]
+pub struct EventBroadcaster(Vec<crossbeam_channel::Sender<Vec<Log>>>);
+
+impl EventBroadcaster {
+    pub(crate) fn new() -> Self {
+        Self(vec![])
+    }
+
+    pub(crate) fn add_sender(&mut self, sender: crossbeam_channel::Sender<Vec<Log>>) {
+        self.0.push(sender);
+    }
+
+    pub(crate) fn broadcast(&self, logs: Vec<Log>) {
+        for sender in &self.0 {
+            sender.send(logs.clone()).unwrap();
+        }
     }
 }
 

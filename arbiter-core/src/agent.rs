@@ -5,7 +5,7 @@ use std::sync::Arc;
 
 use ethers::providers::Middleware;
 
-use crate::{middleware::RevmMiddleware, environment::Environment};
+use crate::{environment::Environment, middleware::RevmMiddleware};
 
 pub trait Attached {
     type Client;
