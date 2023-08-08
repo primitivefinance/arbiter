@@ -10,10 +10,9 @@ use revm::{
 };
 use std::{
     fmt::Debug,
-    sync::{Arc, Mutex},
+    sync::{Arc, Condvar, Mutex},
     thread,
 };
-use tokio::runtime::Runtime;
 
 use crate::{
     agent::{Agent, IsAttached, NotAttached},
@@ -35,33 +34,34 @@ pub(crate) type ResultSender = Sender<RevmResult>;
 pub(crate) type ResultReceiver = Receiver<RevmResult>;
 pub(crate) type TxSender = Sender<(ToTransact, TxEnv, ResultSender)>;
 pub(crate) type TxReceiver = Receiver<(ToTransact, TxEnv, ResultSender)>;
-// pub(crate) type EventBroadcaster = broadcast::Sender<Vec<ethers::types::Log>>;
 
-/// State enum for the [`Environment`].
-#[derive(Debug, Eq, PartialEq, Clone, Copy)]
+#[atomic_enum::atomic_enum]
+#[derive(Eq, PartialEq)]
 pub enum State {
-    /// The [`Environment`] is currently running.
-    /// [`Agent`]s cannot be added if the environment is [`State::Running`].
-    Running,
     /// The [`Environment`] is currently stopped.
     /// [`Agent`]s can only be added if the environment is [`State::Initialization`].
     Initialization,
+    /// The [`Environment`] is currently running.
+    /// [`Agent`]s cannot be added if the environment is [`State::Running`].
+    Running,
+    Paused,
+    Stopped,
 }
 
 pub(crate) struct Socket {
     pub(crate) tx_sender: TxSender,
-    tx_receiver: TxReceiver,
+    pub(crate) tx_receiver: TxReceiver,
     pub(crate) event_broadcaster: Arc<Mutex<EventBroadcaster>>,
 }
 
-/// The environment struct.
 pub struct Environment {
     pub label: String,
-    pub(crate) state: State,
+    pub(crate) state: Arc<AtomicState>,
     pub(crate) evm: EVM<CacheDB<EmptyDB>>,
     pub(crate) socket: Socket,
     pub agents: Vec<Agent<IsAttached<RevmMiddleware>>>,
     pub seeded_poisson: SeededPoisson,
+    pub(crate) pausevar: Arc<(Mutex<()>, Condvar)>,
 }
 
 // TODO: This could be improved.
@@ -91,11 +91,12 @@ impl Environment {
 
         Self {
             label: label.into(),
-            state: State::Initialization,
+            state: Arc::new(AtomicState::new(State::Initialization)),
             evm,
             socket,
             agents: vec![],
             seeded_poisson,
+            pausevar: Arc::new((Mutex::new(()), Condvar::new())),
         }
     }
 
@@ -105,7 +106,7 @@ impl Environment {
     }
 
     // TODO: Run should now run the agents as well as the evm.
-    pub(crate) fn run(&mut self) {
+    pub(crate) fn run(&mut self) -> std::thread::JoinHandle<()> {
         let mut evm = self.evm.clone();
         let tx_receiver = self.socket.tx_receiver.clone();
         let event_broadcaster = self.socket.event_broadcaster.clone();
@@ -113,50 +114,77 @@ impl Environment {
         let mut seeded_poisson = self.seeded_poisson.clone();
 
         let mut counter: usize = 0;
-
-        self.state = State::Running;
+        self.state
+            .store(State::Running, std::sync::atomic::Ordering::Relaxed);
+        let state = Arc::clone(&self.state);
+        let pausevar = Arc::clone(&self.pausevar);
 
         thread::spawn(move || {
             let mut expected_events_per_block = seeded_poisson.sample();
+            loop {
+                // println!("Looping.");
+                match state.load(std::sync::atomic::Ordering::Relaxed) {
+                    State::Stopped => {
+                        println!("Entered stopped state.");
+                        break
+                    },
+                    State::Paused => {
+                        println!("Entered paused state.");
+                        let (lock, cvar) = &*pausevar;
+                        let mut guard = lock.lock().unwrap();
+                        while state.load(std::sync::atomic::Ordering::Relaxed) == State::Paused {
+                            guard = cvar.wait(guard).unwrap();
+                        }
+                        println!("Exiting paused state.");
+                    }
+                    State::Running => {
+                        // println!("Running evm.");
+                        if let Ok((to_transact, tx, sender)) = tx_receiver.recv() {
+                            if counter == expected_events_per_block {
+                                counter = 0;
+                                evm.env.block.number += U256::from(1);
+                                expected_events_per_block = seeded_poisson.sample();
+                            }
 
-            while let Ok((to_transact, tx, sender)) = tx_receiver.recv() {
-                if counter == expected_events_per_block {
-                    counter = 0;
-                    evm.env.block.number += U256::from(1);
-                    expected_events_per_block = seeded_poisson.sample();
-                }
-
-                evm.env.tx = tx;
-                if to_transact {
-                    let execution_result = match evm.transact_commit() {
-                        Ok(val) => val,
-                        // URGENT: change this to a custom error
-                        Err(_) => panic!("failed"),
-                    };
-                    let event_broadcaster = event_broadcaster.lock().unwrap();
-                    event_broadcaster.broadcast(crate::utils::revm_logs_to_ethers_logs(
-                        execution_result.logs(),
-                    ));
-                    let revm_result = RevmResult {
-                        result: execution_result,
-                        block_number: convert_uint_to_u64(evm.env.block.number).unwrap(),
-                    };
-                    sender.send(revm_result).unwrap();
-                    counter += 1;
-                } else {
-                    let execution_result = match evm.transact() {
-                        Ok(val) => val,
-                        // URGENT: change this to a custom error
-                        Err(_) => panic!("failed"),
-                    };
-                    let result_and_block = RevmResult {
-                        result: execution_result.result,
-                        block_number: convert_uint_to_u64(evm.env.block.number).unwrap(),
-                    };
-                    sender.send(result_and_block).unwrap();
+                            evm.env.tx = tx;
+                            if to_transact {
+                                let execution_result = match evm.transact_commit() {
+                                    Ok(val) => val,
+                                    // URGENT: change this to a custom error
+                                    Err(_) => panic!("failed"),
+                                };
+                                let event_broadcaster = event_broadcaster.lock().unwrap();
+                                event_broadcaster.broadcast(
+                                    crate::utils::revm_logs_to_ethers_logs(execution_result.logs()),
+                                );
+                                let revm_result = RevmResult {
+                                    result: execution_result,
+                                    block_number: convert_uint_to_u64(evm.env.block.number)
+                                        .unwrap(),
+                                };
+                                sender.send(revm_result).unwrap();
+                                counter += 1;
+                            } else {
+                                let execution_result = match evm.transact() {
+                                    Ok(val) => val,
+                                    // URGENT: change this to a custom error
+                                    Err(_) => panic!("failed"),
+                                };
+                                let result_and_block = RevmResult {
+                                    result: execution_result.result,
+                                    block_number: convert_uint_to_u64(evm.env.block.number)
+                                        .unwrap(),
+                                };
+                                sender.send(result_and_block).unwrap();
+                            }
+                        }
+                    }
+                    State::Initialization => {
+                        panic!("Environment is in an invalid state: Initialization. This should not be possible.");
+                    }
                 }
             }
-        });
+        })
     }
 }
 
@@ -188,15 +216,17 @@ pub(crate) mod tests {
 
     #[test]
     fn new() {
-        let env = Environment::new(TEST_ENV_LABEL.to_string(), 1.0, 1);
-        assert_eq!(env.label, TEST_ENV_LABEL);
-        assert_eq!(env.state, State::Initialization);
+        let environment = Environment::new(TEST_ENV_LABEL.to_string(), 1.0, 1);
+        assert_eq!(environment.label, TEST_ENV_LABEL);
+        let state = environment.state.load(std::sync::atomic::Ordering::Relaxed);
+        assert_eq!(state, State::Initialization);
     }
 
     #[test]
     fn run() {
         let mut environment = Environment::new(TEST_ENV_LABEL.to_string(), 1.0, 1);
         environment.run();
-        assert_eq!(environment.state, State::Running);
+        let state = environment.state.load(std::sync::atomic::Ordering::Relaxed);
+        assert_eq!(state, State::Running);
     }
 }

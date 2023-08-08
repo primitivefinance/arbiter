@@ -1,9 +1,9 @@
 #![allow(missing_docs)]
-use std::{str::FromStr, time::Duration};
+use std::{str::FromStr, os::unix::thread};
 
 use anyhow::{Ok, Result};
 use ethers::{
-    prelude::{Middleware, StreamExt, EthLogDecode},
+    prelude::{EthLogDecode, Middleware, StreamExt},
     types::{Address, Filter, ValueOrArray, U64},
 };
 
@@ -11,6 +11,7 @@ use crate::{
     agent::{tests::TEST_AGENT_NAME, *},
     bindings::arbiter_token::*,
     environment::{tests::TEST_ENV_LABEL, *},
+    manager::*,
     math::*,
     middleware::*,
 };
@@ -22,17 +23,99 @@ pub const TEST_MINT_AMOUNT: u128 = 69;
 pub const TEST_MINT_TO: &str = "0xf7e93cc543d97af6632c9b8864417379dba4bf15";
 pub const TEST_APPROVAL_AMOUNT: u128 = 420;
 
+//TODO: Send a tx before and after pausing the environment.
+
+#[test]
+fn add_environment() {
+    let mut manager = SimulationManager::new();
+    manager.add_environment(TEST_ENV_LABEL, 1.0, 1).unwrap();
+    assert!(manager
+        .environments
+        .contains_key(&TEST_ENV_LABEL.to_string()));
+    assert_eq!(
+        manager
+            .environments
+            .get(&TEST_ENV_LABEL.to_string())
+            .unwrap()
+            .state
+            .load(std::sync::atomic::Ordering::Relaxed),
+        State::Initialization
+    );
+}
+
+#[test]
+fn run_environment() {
+    let mut manager = SimulationManager::new();
+    manager.add_environment(TEST_ENV_LABEL, 1.0, 1).unwrap();
+    manager.start_environment(TEST_ENV_LABEL).unwrap();
+    assert_eq!(
+        manager
+            .environments
+            .get(&TEST_ENV_LABEL.to_string())
+            .unwrap()
+            .state
+            .load(std::sync::atomic::Ordering::Relaxed),
+        State::Running
+    );
+}
+
+#[test]
+fn pause_environment() {
+    let mut manager = SimulationManager::new();
+    manager.add_environment(TEST_ENV_LABEL, 1.0, 1).unwrap();
+    manager.start_environment(TEST_ENV_LABEL).unwrap();
+    manager.pause_environment(TEST_ENV_LABEL).unwrap();
+    std::thread::sleep(std::time::Duration::from_millis(100));
+    assert_eq!(
+        manager
+            .environments
+            .get(&TEST_ENV_LABEL.to_string())
+            .unwrap()
+            .state
+            .load(std::sync::atomic::Ordering::Relaxed),
+        State::Paused
+    );
+    manager.start_environment(TEST_ENV_LABEL).unwrap();
+    std::thread::sleep(std::time::Duration::from_millis(100));
+    assert_eq!(
+        manager
+            .environments
+            .get(&TEST_ENV_LABEL.to_string())
+            .unwrap()
+            .state
+            .load(std::sync::atomic::Ordering::Relaxed),
+        State::Running
+    );
+}
+
+#[test]
+fn stop_environment() {
+    let mut manager = SimulationManager::new();
+    manager.add_environment(TEST_ENV_LABEL, 1.0, 1).unwrap();
+    manager.start_environment(TEST_ENV_LABEL).unwrap();
+    manager.stop_environment(TEST_ENV_LABEL).unwrap();
+    assert_eq!(
+        manager
+            .environments
+            .get(&TEST_ENV_LABEL.to_string())
+            .unwrap()
+            .state
+            .load(std::sync::atomic::Ordering::Relaxed),
+        State::Stopped
+    );
+}
+
+// TODO: Hit all the contract bindings.
 #[test]
 fn token_mint() -> Result<()> {
-    Ok(())
+    todo!()
 }
 
 #[test]
 fn arbiter_math() -> Result<()> {
-    Ok(())
+    todo!()
 }
 
-// TODO: Finish off a test like this.
 #[test]
 fn attach_agent() {
     let environment = &mut Environment::new(TEST_ENV_LABEL, 1.0, 1);
@@ -186,7 +269,10 @@ async fn filter_watcher() -> Result<()> {
         approval_filter_output.spender,
         client.default_sender().unwrap()
     );
-    assert_eq!(approval_filter_output.amount, ethers::types::U256::from(TEST_APPROVAL_AMOUNT));
+    assert_eq!(
+        approval_filter_output.amount,
+        ethers::types::U256::from(TEST_APPROVAL_AMOUNT)
+    );
     Ok(())
 }
 
@@ -213,12 +299,20 @@ async fn filter_address() -> Result<()> {
 
     // Create a new token contract to check that the address watcher only gets events from the correct contract
     // Check that only the default watcher gets this event
-    let arbiter_token2 = ArbiterToken::deploy(client.clone(), (
-        format!("new_{}", TEST_ARG_NAME),
-        format!("new_{}", TEST_ARG_SYMBOL),
-        TEST_ARG_DECIMALS,
-    ))?.send().await?;
-    let mint2 = arbiter_token2.mint(ethers::types::H160::from_str(TEST_MINT_TO)?, ethers::types::U256::from(TEST_MINT_AMOUNT));
+    let arbiter_token2 = ArbiterToken::deploy(
+        client.clone(),
+        (
+            format!("new_{}", TEST_ARG_NAME),
+            format!("new_{}", TEST_ARG_SYMBOL),
+            TEST_ARG_DECIMALS,
+        ),
+    )?
+    .send()
+    .await?;
+    let mint2 = arbiter_token2.mint(
+        ethers::types::H160::from_str(TEST_MINT_TO)?,
+        ethers::types::U256::from(TEST_MINT_AMOUNT),
+    );
     mint2.send().await?.await?;
     let default_watcher_event = default_watcher.next().await.unwrap();
     assert!(!default_watcher_event.data.is_empty());
@@ -267,7 +361,10 @@ async fn filter_topics() -> Result<()> {
     assert_eq!(default_watcher_event, approval_watcher_event);
 
     // Check that only the default watcher gets this event
-    let mint = arbiter_token.mint(ethers::types::H160::from_str(TEST_MINT_TO)?, ethers::types::U256::from(TEST_MINT_AMOUNT));
+    let mint = arbiter_token.mint(
+        ethers::types::H160::from_str(TEST_MINT_TO)?,
+        ethers::types::U256::from(TEST_MINT_AMOUNT),
+    );
     mint.send().await?.await?;
     let default_watcher_event = default_watcher.next().await.unwrap();
     assert!(!default_watcher_event.data.is_empty());

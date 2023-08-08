@@ -23,9 +23,7 @@ use ethers::{
     types::{transaction::eip2718::TypedTransaction, Address, BlockId, Bytes, Filter, Log},
 };
 use rand::{rngs::StdRng, SeedableRng};
-use revm::primitives::{
-    CreateScheme, ExecutionResult, Output, TransactTo, TxEnv, B160, B256, U256,
-};
+use revm::primitives::{CreateScheme, ExecutionResult, Output, TransactTo, TxEnv, B160, U256};
 use serde::de::DeserializeOwned;
 use serde::Serialize;
 
@@ -79,28 +77,20 @@ impl JsonRpcClient for Connection {
                 let value = serde_json::to_value(&params).unwrap();
                 let str = value.as_array().unwrap()[0].as_str().unwrap();
                 let id = ethers::types::U256::from_str_radix(str, 16).unwrap();
-                println!("id: {:?}", id);
                 let mut filter_receivers = self.filter_receivers.lock().await;
                 let filter_receiver = filter_receivers.get_mut(&id).unwrap();
-                println!(
-                    "filter_receiver in eth_getFilterChanges: {:?}",
-                    filter_receiver
-                );
                 let mut logs = vec![];
                 let filtered_params = FilteredParams::new(Some(filter_receiver.filter.clone()));
                 while let Ok(received_logs) = filter_receiver.receiver.recv() {
-                    println!("received_logs: {:?}", received_logs);
                     for log in received_logs {
-                        println!("conditionals:\n address: {:?}\n topics: {:?}\n", filtered_params.filter_address(&log), filtered_params.filter_topics(&log));
-                        if filtered_params.filter_address(&log) && filtered_params.filter_topics(&log)
+                        if filtered_params.filter_address(&log)
+                            && filtered_params.filter_topics(&log)
                         {
                             logs.push(log);
                         }
                     }
-                    break
+                    break;
                 }
-                // let logs = filter_receiver.receiver.recv().unwrap();
-                println!("logs: {:?}", logs);
                 let logs_str = serde_json::to_string(&logs).unwrap();
                 let logs_deserializeowned: R = serde_json::from_str(&logs_str)?;
                 return Ok(logs_deserializeowned);

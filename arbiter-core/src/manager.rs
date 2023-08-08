@@ -3,13 +3,13 @@
 //! Simulation managers are used to manage the environments for a simulation.
 //! Managers are responsible for adding agents, running agents, deploying contracts, calling contracts, and reading logs.
 
-use std::collections::HashMap;
+use std::{collections::HashMap, sync::Arc};
 
 use anyhow::{anyhow, Result};
 
 use crate::{
     agent::{Agent, NotAttached},
-    environment::{Environment, State},
+    environment::{AtomicState, Environment, State},
 };
 
 /// Manages simulations.
@@ -17,6 +17,7 @@ use crate::{
 pub struct SimulationManager {
     /// The list of [`SimulationEnvironment`] that the simulation manager controls.
     pub environments: HashMap<String, Environment>,
+    handles_and_states: HashMap<String, (std::thread::JoinHandle<()>, Arc<AtomicState>)>,
 }
 
 impl SimulationManager {
@@ -24,28 +25,29 @@ impl SimulationManager {
     pub fn new() -> Self {
         Self {
             environments: HashMap::new(),
+            handles_and_states: HashMap::new(),
         }
     }
 
     /// Adds an environment to the [`SimulationManager`]'s list.
-    pub fn add_environment(
+    pub fn add_environment<S: Into<String> + Clone>(
         &mut self,
-        environment_label: String,
+        environment_label: S,
         block_rate: f64,
         seed: u64,
     ) -> Result<()> {
-        if self.environments.get(&environment_label).is_some() {
+        if self
+            .environments
+            .get(&environment_label.clone().into())
+            .is_some()
+        {
             return Err(anyhow!("Environment already exists."));
         }
         self.environments.insert(
-            environment_label.clone(),
+            environment_label.clone().into(),
             Environment::new(environment_label, block_rate, seed),
         );
         Ok(())
-    }
-
-    pub fn _stop_environemt(self, _environment_label: String) -> Result<()> {
-        todo!()
     }
 
     /// adds an agent to an environment
@@ -64,14 +66,87 @@ impl SimulationManager {
     }
 
     /// Runs an environment that is in the [`SimulationManager`]'s list.
-    pub fn run_environment(&mut self, environment_label: String) -> Result<()> {
-        match self.environments.get_mut(&environment_label) {
-            Some(environment) => match environment.state {
-                State::Running => Err(anyhow!("Environment is already running.")),
+    pub fn start_environment<S: Into<String> + Clone>(
+        &mut self,
+        environment_label: S,
+    ) -> Result<()> {
+        match self.environments.get_mut(&environment_label.clone().into()) {
+            Some(environment) => match environment.state.load(std::sync::atomic::Ordering::Relaxed)
+            {
                 State::Initialization => {
-                    environment.run();
+                    let handle = environment.run();
+                    self.handles_and_states.insert(
+                        environment_label.into(),
+                        (handle, environment.state.clone()),
+                    );
                     Ok(())
                 }
+                State::Paused => {
+                    environment
+                        .state
+                        .store(State::Running, std::sync::atomic::Ordering::Relaxed);
+                    let (lock, pausevar) = &*environment.pausevar;
+                    let _guard = lock.lock().unwrap();
+                    pausevar.notify_all();
+                    Ok(())
+                }
+                State::Running => Err(anyhow!("Environment is already running.")),
+                State::Stopped => Err(anyhow!("Environment is stopped and cannot be restarted.")),
+            },
+            None => Err(anyhow!("Environment does not exist.")),
+        }
+    }
+
+    pub fn pause_environment<S: Into<String> + Clone>(
+        &mut self,
+        environment_label: S,
+    ) -> Result<()> {
+        match self.environments.get_mut(&environment_label.clone().into()) {
+            Some(environment) => match environment.state.load(std::sync::atomic::Ordering::Relaxed)
+            {
+                State::Initialization => Err(anyhow!("Environment is not running.")),
+                State::Running => {
+                    environment
+                        .state
+                        .store(State::Paused, std::sync::atomic::Ordering::Relaxed);
+                    println!("Changed state to paused.");
+                    Ok(())
+                }
+                State::Paused => Err(anyhow!("Environment is already paused.")),
+                State::Stopped => Err(anyhow!("Environment is stopped and cannot be paused.")),
+            },
+            None => Err(anyhow!("Environment does not exist.")),
+        }
+    }
+
+    pub fn stop_environment<S: Into<String> + Clone>(
+        &mut self,
+        environment_label: S,
+    ) -> Result<()> {
+        match self.environments.get_mut(&environment_label.clone().into()) {
+            Some(environment) => match environment.state.load(std::sync::atomic::Ordering::Relaxed)
+            {
+                State::Initialization => Err(anyhow!("Environment is not running.")),
+                State::Running => {
+                    let (handle, state) = self
+                        .handles_and_states
+                        .remove(&environment_label.into())
+                        .unwrap();
+                    state.store(State::Stopped, std::sync::atomic::Ordering::Relaxed);
+                    handle.join().unwrap();
+                    Ok(())
+                }
+                State::Paused => {
+                    // TODO: GIVE THE RESTART LOGIC HERE TOO
+                    let (handle, state) = self
+                        .handles_and_states
+                        .remove(&environment_label.into())
+                        .unwrap();
+                    state.store(State::Stopped, std::sync::atomic::Ordering::Relaxed);
+                    handle.join().unwrap();
+                    Ok(())
+                }
+                State::Stopped => Err(anyhow!("Environment is already stopped.")),
             },
             None => Err(anyhow!("Environment does not exist.")),
         }
@@ -87,25 +162,5 @@ pub(crate) mod tests {
     fn new_manager() {
         let manager = SimulationManager::new();
         assert!(manager.environments.is_empty());
-    }
-
-    #[test]
-    fn add_environment() {
-        let mut manager = SimulationManager::new();
-        let label = "test".to_string();
-        manager.add_environment(label.clone(), 1.0, 1).unwrap();
-        assert!(manager.environments.contains_key(&label));
-    }
-
-    #[test]
-    fn run_environment() {
-        let mut manager = SimulationManager::new();
-        let label = "test".to_string();
-        manager.add_environment(label.clone(), 1.0, 1).unwrap();
-        manager.run_environment(label.clone()).unwrap();
-        assert_eq!(
-            manager.environments.get(&label).unwrap().state,
-            State::Running
-        );
     }
 }

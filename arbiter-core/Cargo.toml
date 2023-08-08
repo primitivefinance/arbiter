@@ -6,11 +6,12 @@ edition = "2021"
 
 # Dependency configuration
 [dependencies]
-# For execution
+async-trait = "0.1.68"
 bytes = "1.4.0"
 revm = "3.3.0"
 statrs = "0.16.0"
 crossbeam-channel = "0.5.8"
+atomic_enum = "0.2.0"
 
 # For price simulation
 rand = "0.8.5"
@@ -18,16 +19,9 @@ rand_chacha = "0.3.1"
 rand_distr = "0.4.3"
 RustQuant = "*"
 
-# For void middleware
-async-trait = "0.1.68"
-
-# For tests
-hex = { version = "0.4.3", default-features = false }
-
 # For Errors
 anyhow = "1.0.71"
 thiserror = "1.0.30"
-# url = "2.2.2"
 
 # Workspace dependencies
 ethers = { git = "https://github.com/primitivefinance/ethers-rs.git"}
@@ -35,3 +29,6 @@ ethers = { git = "https://github.com/primitivefinance/ethers-rs.git"}
 serde = { version = "1.0.163", features= ["derive"]}
 serde_json = { version = "1.0.96" }
 tokio = { version = "1.28.1", features = ["macros", "full"] }
+
+[dev-dependencies]
+hex = { version = "0.4.3", default-features = false }
