@@ -2,7 +2,7 @@ use super::*;
 
 #[test]
 fn add_environment() {
-    let mut manager = SimulationManager::new();
+    let mut manager = Manager::new();
     manager.add_environment(TEST_ENV_LABEL, 1.0, 1).unwrap();
     assert!(manager
         .environments
@@ -20,7 +20,7 @@ fn add_environment() {
 
 #[test]
 fn run_environment() {
-    let mut manager = SimulationManager::new();
+    let mut manager = Manager::new();
     manager.add_environment(TEST_ENV_LABEL, 1.0, 1).unwrap();
     manager.start_environment(TEST_ENV_LABEL).unwrap();
     assert_eq!(
@@ -36,7 +36,7 @@ fn run_environment() {
 
 #[test]
 fn pause_environment() {
-    let mut manager = SimulationManager::new();
+    let mut manager = Manager::new();
     manager.add_environment(TEST_ENV_LABEL, 1.0, 1).unwrap();
     manager.start_environment(TEST_ENV_LABEL).unwrap();
     manager.pause_environment(TEST_ENV_LABEL).unwrap();
@@ -65,7 +65,7 @@ fn pause_environment() {
 
 #[test]
 fn stop_environment() {
-    let mut manager = SimulationManager::new();
+    let mut manager = Manager::new();
     manager.add_environment(TEST_ENV_LABEL, 1.0, 1).unwrap();
     manager.start_environment(TEST_ENV_LABEL).unwrap();
     manager.stop_environment(TEST_ENV_LABEL).unwrap();

@@ -1,9 +1,8 @@
 #![warn(missing_docs)]
 #![warn(unsafe_code)]
-//! Lib crate for describing simulations.
 
 pub mod agent;
-pub mod bindings;
+pub mod bindings; // TODO: Add better documentation here and some kind of overwrite protection.
 pub mod environment;
 pub mod manager;
 pub mod math;

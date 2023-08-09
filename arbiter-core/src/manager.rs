@@ -14,13 +14,13 @@ use crate::{
 
 /// Manages simulations.
 #[derive(Default)]
-pub struct SimulationManager {
+pub struct Manager {
     /// The list of [`SimulationEnvironment`] that the simulation manager controls.
     pub environments: HashMap<String, Environment>,
     handles_and_states: HashMap<String, (std::thread::JoinHandle<()>, Arc<AtomicState>)>,
 }
 
-impl SimulationManager {
+impl Manager {
     /// Constructor function to instantiate a [`SimulationManager`].
     pub fn new() -> Self {
         Self {
@@ -160,7 +160,7 @@ pub(crate) mod tests {
 
     #[test]
     fn new_manager() {
-        let manager = SimulationManager::new();
+        let manager = Manager::new();
         assert!(manager.environments.is_empty());
     }
 }
