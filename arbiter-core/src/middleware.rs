@@ -327,6 +327,7 @@ impl Middleware for RevmMiddleware {
 /// * `revm_logs` - Logs from Revm. (Vec<revm::primitives::Log>)
 /// # Returns
 /// * `Vec<ethers::core::types::Log>` - Logs recasted into ethers.rs Log type.
+#[inline]
 pub fn revm_logs_to_ethers_logs(
     revm_logs: Vec<revm::primitives::Log>,
 ) -> Vec<ethers::core::types::Log> {
@@ -357,6 +358,7 @@ pub fn revm_logs_to_ethers_logs(
 /// * `address` - B160 to recast. (B160)
 /// # Returns
 /// * `Address` - Recasted Address.
+#[inline]
 pub fn recast_address(address: B160) -> Address {
     let temp: [u8; 20] = address.as_bytes().try_into().unwrap();
     Address::from(temp)
@@ -367,6 +369,7 @@ pub fn recast_address(address: B160) -> Address {
 /// * `input` - B256 to recast. (B256)  
 /// # Returns
 /// * `H256` - Recasted H256.
+#[inline]
 pub fn recast_b256(input: revm::primitives::B256) -> ethers::types::H256 {
     let temp: [u8; 32] = input.as_bytes().try_into().unwrap();
     ethers::types::H256::from(temp)

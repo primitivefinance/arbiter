@@ -206,6 +206,7 @@ impl EventBroadcaster {
 /// # Returns
 /// * `Ok(U64)` - The converted U64.
 /// Used for block number which is a U64.
+#[inline]
 pub fn convert_uint_to_u64(input: U256) -> Result<U64, &'static str> {
     let as_str = input.to_string();
     match as_str.parse::<u64>() {
