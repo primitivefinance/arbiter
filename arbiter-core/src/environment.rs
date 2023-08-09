@@ -38,11 +38,7 @@ pub(crate) type TxReceiver = Receiver<(ToTransact, TxEnv, ResultSender)>;
 #[atomic_enum::atomic_enum]
 #[derive(Eq, PartialEq)]
 pub enum State {
-    /// The [`Environment`] is currently stopped.
-    /// [`Agent`]s can only be added if the environment is [`State::Initialization`].
     Initialization,
-    /// The [`Environment`] is currently running.
-    /// [`Agent`]s cannot be added if the environment is [`State::Running`].
     Running,
     Paused,
     Stopped,
@@ -105,7 +101,6 @@ impl Environment {
         agent.attach_to_environment(self);
     }
 
-    // TODO: Run should now run the agents as well as the evm.
     pub(crate) fn run(&mut self) -> std::thread::JoinHandle<()> {
         let mut evm = self.evm.clone();
         let tx_receiver = self.socket.tx_receiver.clone();
