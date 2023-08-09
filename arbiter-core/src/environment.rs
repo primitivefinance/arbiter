@@ -1,6 +1,14 @@
 #![warn(missing_docs)]
 #![warn(unsafe_code)]
 
+// TODO: Add logging especially inside of the run function. This will be necessary for pausing and debugging.
+// TODO: Add custom errors.
+
+use crate::{
+    agent::{Agent, IsAttached, NotAttached},
+    math::stochastic_process::SeededPoisson,
+    middleware::RevmMiddleware,
+};
 use crossbeam_channel::{unbounded, Receiver, Sender};
 use ethers::{core::types::U64, types::Log};
 use revm::{
@@ -14,13 +22,6 @@ use std::{
     thread,
 };
 
-use crate::{
-    agent::{Agent, IsAttached, NotAttached},
-    math::stochastic_process::SeededPoisson,
-    middleware::RevmMiddleware,
-};
-
-/// Result struct for the [`Environment`]. that wraps the [`ExecutionResult`] and the block number.
 #[derive(Debug, Clone)]
 pub(crate) struct RevmResult {
     pub(crate) result: ExecutionResult,
@@ -42,6 +43,7 @@ pub enum State {
     Stopped,
 }
 
+#[derive(Debug, Clone)]
 pub(crate) struct Socket {
     pub(crate) tx_sender: TxSender,
     pub(crate) tx_receiver: TxReceiver,
@@ -58,15 +60,7 @@ pub struct Environment {
     pub(crate) pausevar: Arc<(Mutex<()>, Condvar)>,
 }
 
-// TODO: This could be improved.
-impl Debug for Socket {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("Socket").finish()
-    }
-}
-
 impl Environment {
-    /// Creates a new [`Environment`] with the given label.
     pub(crate) fn new<S: Into<String>>(label: S, block_rate: f64, seed: u64) -> Self {
         let mut evm = EVM::new();
         let db = CacheDB::new(EmptyDB {});
@@ -94,7 +88,6 @@ impl Environment {
         }
     }
 
-    /// Creates a new [`Agent<RevmMiddleware`] with the given label.
     pub fn add_agent(&mut self, agent: Agent<NotAttached>) {
         agent.attach_to_environment(self);
     }
@@ -115,23 +108,16 @@ impl Environment {
         thread::spawn(move || {
             let mut expected_events_per_block = seeded_poisson.sample();
             loop {
-                // println!("Looping.");
                 match state.load(std::sync::atomic::Ordering::Relaxed) {
-                    State::Stopped => {
-                        println!("Entered stopped state.");
-                        break
-                    },
+                    State::Stopped => break,
                     State::Paused => {
-                        println!("Entered paused state.");
                         let (lock, cvar) = &*pausevar;
                         let mut guard = lock.lock().unwrap();
                         while state.load(std::sync::atomic::Ordering::Relaxed) == State::Paused {
                             guard = cvar.wait(guard).unwrap();
                         }
-                        println!("Exiting paused state.");
                     }
                     State::Running => {
-                        // println!("Running evm.");
                         if let Ok((to_transact, tx, sender)) = tx_receiver.recv() {
                             if counter == expected_events_per_block {
                                 counter = 0;
@@ -148,7 +134,9 @@ impl Environment {
                                 };
                                 let event_broadcaster = event_broadcaster.lock().unwrap();
                                 event_broadcaster.broadcast(
-                                    crate::middleware::revm_logs_to_ethers_logs(execution_result.logs()),
+                                    crate::middleware::revm_logs_to_ethers_logs(
+                                        execution_result.logs(),
+                                    ),
                                 );
                                 let revm_result = RevmResult {
                                     result: execution_result,

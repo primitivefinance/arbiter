@@ -1,4 +1,4 @@
-//! Math module.
+#![warn(missing_docs)]
 
 use ethers::types::U256;
 pub mod stochastic_process;

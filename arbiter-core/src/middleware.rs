@@ -1,14 +1,15 @@
 #![warn(missing_docs)]
-#![allow(clippy::all)]
-//! This module contains the middleware for the Revm simulation environment.
-//! Most of the middleware is essentially a placeholder, but it is necessary to have a middleware to work with bindings more efficiently.
 
-use std::collections::HashMap;
-use std::sync::{Arc, Mutex};
-use std::{fmt::Debug, time::Duration};
-
-use ethers::providers::JsonRpcClient;
-use ethers::types::FilteredParams;
+use crate::{
+    agent::{Agent, NotAttached},
+    environment::{Environment, EventBroadcaster, ResultReceiver, ResultSender, TxSender},
+};
+use std::{
+    collections::HashMap,
+    fmt::Debug,
+    sync::{Arc, Mutex},
+    time::Duration,
+};
 use ethers::{
     prelude::{
         k256::{
@@ -18,21 +19,21 @@ use ethers::{
         pending_transaction::PendingTxState,
         ProviderError,
     },
-    providers::{FilterKind, FilterWatcher, Middleware, PendingTransaction, Provider},
+    providers::{
+        FilterKind, FilterWatcher, JsonRpcClient, Middleware, PendingTransaction, Provider,
+    },
     signers::{Signer, Wallet},
-    types::{transaction::eip2718::TypedTransaction, Address, BlockId, Bytes, Filter, Log},
+    types::{
+        transaction::eip2718::TypedTransaction, Address, BlockId, Bytes, Filter, FilteredParams,
+        Log,
+    },
 };
-use rand::{rngs::StdRng, SeedableRng};
 use revm::primitives::{CreateScheme, ExecutionResult, Output, TransactTo, TxEnv, B160, U256};
-use serde::de::DeserializeOwned;
-use serde::Serialize;
+use serde::{de::DeserializeOwned, Serialize};
+use rand::{rngs::StdRng, SeedableRng};
 
-use crate::environment::{EventBroadcaster, ResultReceiver, ResultSender, TxSender};
-use crate::{
-    agent::{Agent, NotAttached},
-    environment::Environment,
-};
 
+#[derive(Debug)]
 pub struct Connection {
     pub(crate) tx_sender: TxSender,
     pub(crate) result_sender: ResultSender,
@@ -47,21 +48,6 @@ pub(crate) struct FilterReceiver {
     pub(crate) receiver: crossbeam_channel::Receiver<Vec<ethers::types::Log>>,
 }
 
-impl Debug for Connection {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("Connection")
-            .field("tx_sender", &"TxSender")
-            .field("result_sender", &"ResultSender")
-            .field("result_receiver", &"ResultReceiver")
-            .field(
-                "filter_receivers",
-                &"HashMap<ethers::types::U256, FilterReceiver>",
-            )
-            .finish()
-    }
-}
-
-// TODO: This below seems needlessly clunky. There is a lot of serialize/deserialize and I bet we can avoid it and avoid a match all together.
 #[async_trait::async_trait]
 impl JsonRpcClient for Connection {
     type Error = ProviderError;
@@ -130,11 +116,8 @@ impl RevmMiddleware {
 
 #[async_trait::async_trait]
 impl Middleware for RevmMiddleware {
-    /// The JSON-RPC client type at the bottom of the stack
     type Provider = Connection;
-    /// Error type returned by most operations
-    type Error = ProviderError; //RevmMiddlewareError;
-    /// The next-lower middleware in the middleware stack
+    type Error = ProviderError;
     type Inner = Self;
 
     fn inner(&self) -> &Self::Inner {
@@ -149,7 +132,6 @@ impl Middleware for RevmMiddleware {
         Some(self.wallet.address())
     }
 
-    /// sending a transaction to revm is the same as committing a transaction and it won't return the output of the call but will cause logs to echo. Deploys are ran through here as well.
     async fn send_transaction<T: Into<TypedTransaction> + Send + Sync>(
         &self,
         tx: T,
@@ -214,7 +196,6 @@ impl Middleware for RevmMiddleware {
         }
     }
 
-    /// Makes a call to revm that will not commit a state change to the DB. Can be used for a mock transaction
     async fn call(
         &self,
         tx: &TypedTransaction,
@@ -241,7 +222,6 @@ impl Middleware for RevmMiddleware {
             nonce: None,
             access_list: Vec::new(),
         };
-        // TODO: Modify this to work for calls/deploys
         self.provider()
             .as_ref()
             .tx_sender
@@ -251,7 +231,6 @@ impl Middleware for RevmMiddleware {
                 self.provider().as_ref().result_sender.clone(),
             ))
             .unwrap();
-
         let revm_result = self.provider().as_ref().result_receiver.recv().unwrap();
         let output = match revm_result.result.clone() {
             ExecutionResult::Success { output, .. } => output,
@@ -272,9 +251,6 @@ impl Middleware for RevmMiddleware {
         todo!("we should be able to get logs.")
     }
 
-    // NOTES: It might be good to have individual channels for the EVM to send events to so that an agent can install a filter and the logs can be filtered by the EVM itself.
-    // This could be handled similarly to how broadcasts are done now and maybe nothing there needs to change except for attaching a filter to the event channels.
-    // It would be good to also pass to a separate thread to do broadcasting if we aren't already doing that so that the EVM can process while events are being sent out.
     async fn new_filter(
         &self,
         filter: FilterKind<'_>,
@@ -320,7 +296,6 @@ impl Middleware for RevmMiddleware {
         Ok(FilterWatcher::new(id, self.provider()).interval(Duration::ZERO))
     }
 }
-
 
 /// Recast a logs from Revm into the ethers.rs Log type.
 /// # Arguments

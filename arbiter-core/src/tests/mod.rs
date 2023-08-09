@@ -1,7 +1,7 @@
 #![allow(missing_docs)]
 
-mod management;
 mod interaction;
+mod management;
 
 use std::str::FromStr;
 
@@ -49,5 +49,3 @@ async fn deploy_and_start() -> Result<(ArbiterToken<RevmMiddleware>, Environment
         environment,
     ))
 }
-
-

@@ -1,27 +1,23 @@
 #![warn(missing_docs)]
 #![warn(unsafe_code)]
-//! Simulation managers are used to manage the environments for a simulation.
-//! Managers are responsible for adding agents, running agents, deploying contracts, calling contracts, and reading logs.
 
-use std::{collections::HashMap, sync::Arc};
-
-use anyhow::{anyhow, Result};
+// TODO: Add any necessary logging.
+// TODO: Add any necessary custom errors.
 
 use crate::{
     agent::{Agent, NotAttached},
     environment::{AtomicState, Environment, State},
 };
+use anyhow::{anyhow, Result};
+use std::{collections::HashMap, sync::Arc};
 
-/// Manages simulations.
 #[derive(Default)]
 pub struct Manager {
-    /// The list of [`SimulationEnvironment`] that the simulation manager controls.
     pub environments: HashMap<String, Environment>,
     handles_and_states: HashMap<String, (std::thread::JoinHandle<()>, Arc<AtomicState>)>,
 }
 
 impl Manager {
-    /// Constructor function to instantiate a [`SimulationManager`].
     pub fn new() -> Self {
         Self {
             environments: HashMap::new(),
@@ -29,7 +25,6 @@ impl Manager {
         }
     }
 
-    /// Adds an environment to the [`SimulationManager`]'s list.
     pub fn add_environment<S: Into<String> + Clone>(
         &mut self,
         environment_label: S,
@@ -50,7 +45,6 @@ impl Manager {
         Ok(())
     }
 
-    /// adds an agent to an environment
     pub fn add_agent(
         &mut self,
         agent: Agent<NotAttached>,
@@ -65,7 +59,6 @@ impl Manager {
         }
     }
 
-    /// Runs an environment that is in the [`SimulationManager`]'s list.
     pub fn start_environment<S: Into<String> + Clone>(
         &mut self,
         environment_label: S,
