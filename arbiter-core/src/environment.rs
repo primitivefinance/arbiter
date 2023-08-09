@@ -18,9 +18,7 @@ use crate::{
     agent::{Agent, IsAttached, NotAttached},
     math::stochastic_process::SeededPoisson,
     middleware::RevmMiddleware,
-    utils::convert_uint_to_u64,
 };
-// use tokio::sync::broadcast;
 
 /// Result struct for the [`Environment`]. that wraps the [`ExecutionResult`] and the block number.
 #[derive(Debug, Clone)]
@@ -150,7 +148,7 @@ impl Environment {
                                 };
                                 let event_broadcaster = event_broadcaster.lock().unwrap();
                                 event_broadcaster.broadcast(
-                                    crate::utils::revm_logs_to_ethers_logs(execution_result.logs()),
+                                    crate::middleware::revm_logs_to_ethers_logs(execution_result.logs()),
                                 );
                                 let revm_result = RevmResult {
                                     result: execution_result,
@@ -202,6 +200,20 @@ impl EventBroadcaster {
     }
 }
 
+/// Convert a U256 to a U64, discarding the higher bits if the number is larger than 2^64
+/// # Arguments
+/// * `input` - The U256 to convert.
+/// # Returns
+/// * `Ok(U64)` - The converted U64.
+/// Used for block number which is a U64.
+pub fn convert_uint_to_u64(input: U256) -> Result<U64, &'static str> {
+    let as_str = input.to_string();
+    match as_str.parse::<u64>() {
+        Ok(val) => Ok(val.into()),
+        Err(_) => Err("U256 value is too large to fit into u64"),
+    }
+}
+
 #[cfg(test)]
 pub(crate) mod tests {
 
@@ -223,5 +235,20 @@ pub(crate) mod tests {
         environment.run();
         let state = environment.state.load(std::sync::atomic::Ordering::Relaxed);
         assert_eq!(state, State::Running);
+    }
+
+    #[test]
+    fn test_conversion() {
+        // Test with a value that fits in u64.
+        let input = U256::from(10000);
+        assert_eq!(convert_uint_to_u64(input).unwrap(), U64::from(10000));
+
+        // Test with a value that is exactly at the limit of u64.
+        let input = U256::from(u64::MAX);
+        assert_eq!(convert_uint_to_u64(input).unwrap(), U64::from(u64::MAX));
+
+        // Test with a value that exceeds the limit of u64.
+        let input = U256::from(u64::MAX) + U256::from(1);
+        assert!(convert_uint_to_u64(input).is_err());
     }
 }

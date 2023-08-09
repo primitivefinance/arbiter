@@ -8,6 +8,5 @@ pub mod environment;
 pub mod manager;
 pub mod math;
 pub mod middleware;
-#[cfg(test)] //TODO: UNCOMMENT THIS LATER
+#[cfg(test)]
 pub mod tests;
-pub mod utils;
