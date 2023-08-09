@@ -1,5 +1,7 @@
-use std::{fs, io::Write, path::Path};
+#![warn(missing_docs)]
+#![warn(unsafe_code)]
 
+use std::{fs, io::Write, path::Path};
 use quote::quote;
 
 pub(crate) fn create_simulation(simulation_name: &str) -> std::io::Result<()> {

@@ -1,9 +1,9 @@
 #![warn(missing_docs)]
 #![warn(unsafe_code)]
-//! Main lives in the `cli` crate so that we can do our input parsing.
+
+// TODO: Replace prints with better logging?
 
 use std::error::Error;
-
 use clap::{command, CommandFactory, Parser, Subcommand};
 use eyre::Result;
 use thiserror::Error;
@@ -44,12 +44,6 @@ pub trait Configurable: Sized {
     fn configure(command_path: &str) -> Result<Self, ConfigurationError>;
 }
 
-/// Subcommands for the Arbiter CLI.
-/// * `Simulate` - Simulate a price path using a GBM or OU process
-/// * `Visualize` - Visualize results of a GBM or OU forward simulation.
-/// * `Live` - Monitor live events from a Uniswap V3 pool contract
-/// * `ExportSwapRange` - Export swap data for a given block range
-/// * `ImportBacktest` - Import swap data from a csv file
 #[derive(Subcommand)]
 enum Commands {
     Bind,

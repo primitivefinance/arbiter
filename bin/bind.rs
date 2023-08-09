@@ -1,3 +1,6 @@
+#![warn(missing_docs)]
+#![warn(unsafe_code)]
+
 use std::process::Command;
 
 pub(crate) fn bind_forge() -> std::io::Result<()> {
