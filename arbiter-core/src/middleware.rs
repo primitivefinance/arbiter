@@ -27,12 +27,12 @@ use ethers::{
         Log,
     },
 };
-use rand::{rngs::StdRng, SeedableRng};
+use rand::{rngs::{StdRng, OsRng}, SeedableRng};
 use revm::primitives::{CreateScheme, ExecutionResult, Output, TransactTo, TxEnv, B160, U256};
 use serde::{de::DeserializeOwned, Serialize};
 
 use crate::{
-    agent::{Agent, NotAttached},
+    // agent::{Agent, NotAttached},
     environment::{Environment, EventBroadcaster, ResultReceiver, ResultSender, TxSender},
 };
 
@@ -51,6 +51,7 @@ pub(crate) struct FilterReceiver {
     pub(crate) receiver: crossbeam_channel::Receiver<Vec<ethers::types::Log>>,
 }
 
+#[allow(clippy::never_loop)]
 #[async_trait::async_trait]
 impl JsonRpcClient for Connection {
     type Error = ProviderError;
@@ -97,7 +98,7 @@ pub struct RevmMiddleware {
 }
 
 impl RevmMiddleware {
-    pub fn new(agent: &Agent<NotAttached>, environment: &Environment) -> Self {
+    pub fn new(environment: &Environment) -> Self {
         let tx_sender = environment.socket.tx_sender.clone();
         let (result_sender, result_receiver) = crossbeam_channel::unbounded();
         let connection = Connection {
@@ -109,9 +110,9 @@ impl RevmMiddleware {
         };
         let provider = Provider::new(connection);
         let mut hasher = Sha256::new();
-        hasher.update(agent.name.as_bytes());
-        let seed = hasher.finalize();
-        let mut rng = StdRng::from_seed(seed.into());
+        // hasher.update(agent.name.as_bytes());
+        // let seed = hasher.finalize();
+        let mut rng = OsRng::default();
         let wallet = Wallet::new(&mut rng);
         Self { provider, wallet }
     }

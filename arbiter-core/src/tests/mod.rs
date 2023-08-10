@@ -1,6 +1,6 @@
 #![allow(missing_docs)]
 
-mod interaction;
+// mod interaction;
 mod management;
 
 use std::str::FromStr;
@@ -12,7 +12,7 @@ use ethers::{
 };
 
 use crate::{
-    agent::{tests::TEST_AGENT_NAME, *},
+    // agent::{tests::TEST_AGENT_NAME, *},
     bindings::arbiter_token::*,
     environment::{tests::TEST_ENV_LABEL, *},
     manager::*,
@@ -29,23 +29,23 @@ pub const TEST_APPROVAL_AMOUNT: u128 = 420;
 
 //TODO: Send a tx before and after pausing the environment.
 
-async fn deploy_and_start() -> Result<(ArbiterToken<RevmMiddleware>, Environment)> {
-    let mut environment = Environment::new(TEST_ENV_LABEL, 1.0, 1);
-    let agent = Agent::new(TEST_AGENT_NAME);
-    agent.attach_to_environment(&mut environment);
-    environment.run();
-    Ok((
-        ArbiterToken::deploy(
-            environment.agents[0].client.clone(),
-            (
-                TEST_ARG_NAME.to_string(),
-                TEST_ARG_SYMBOL.to_string(),
-                TEST_ARG_DECIMALS,
-            ),
-        )?
-        .send()
-        .await
-        .unwrap(),
-        environment,
-    ))
-}
+// async fn deploy_and_start() -> Result<(ArbiterToken<RevmMiddleware>, Environment)> {
+//     let mut environment = Environment::new(TEST_ENV_LABEL, 1.0, 1);
+//     let agent = Agent::new(TEST_AGENT_NAME);
+//     agent.attach_to_environment(&mut environment);
+//     environment.run();
+//     Ok((
+//         ArbiterToken::deploy(
+//             environment.agents[0].client.clone(),
+//             (
+//                 TEST_ARG_NAME.to_string(),
+//                 TEST_ARG_SYMBOL.to_string(),
+//                 TEST_ARG_DECIMALS,
+//             ),
+//         )?
+//         .send()
+//         .await
+//         .unwrap(),
+//         environment,
+//     ))
+// }

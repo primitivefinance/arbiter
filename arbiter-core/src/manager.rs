@@ -8,7 +8,7 @@ use log::{info, warn};
 use thiserror::Error;
 
 use crate::{
-    agent::{Agent, NotAttached},
+    // agent::{Agent, NotAttached},
     environment::{Environment, State},
 };
 
@@ -144,15 +144,25 @@ impl Manager {
                     label: environment_label.into(),
                 }),
                 State::Running => {
-                    environment.state.store(State::Stopped, std::sync::atomic::Ordering::Relaxed);
+                    environment
+                        .state
+                        .store(State::Stopped, std::sync::atomic::Ordering::Relaxed);
                     environment.handle.take().unwrap().join().unwrap(); // these unwraps should never fail
-                    warn!("Stopped running environment labeled {}", environment_label.into());
+                    warn!(
+                        "Stopped running environment labeled {}",
+                        environment_label.into()
+                    );
                     Ok(())
                 }
                 State::Paused => {
-                    environment.state.store(State::Stopped, std::sync::atomic::Ordering::Relaxed);
+                    environment
+                        .state
+                        .store(State::Stopped, std::sync::atomic::Ordering::Relaxed);
                     environment.handle.take().unwrap().join().unwrap(); // these unwraps should never fail
-                    warn!("Stopped paused environment labeled {}", environment_label.into());
+                    warn!(
+                        "Stopped paused environment labeled {}",
+                        environment_label.into()
+                    );
                     Ok(())
                 }
                 State::Stopped => Err(ManagerError::EnvironmentStopped {
@@ -165,21 +175,21 @@ impl Manager {
         }
     }
 
-    pub fn add_agent(
-        &mut self,
-        agent: Agent<NotAttached>,
-        environment_label: String,
-    ) -> Result<(), ManagerError> {
-        match self.environments.get_mut(&environment_label) {
-            Some(environment) => {
-                environment.add_agent(agent);
-                Ok(())
-            }
-            None => Err(ManagerError::EnvironmentDoesNotExist {
-                label: environment_label,
-            }),
-        }
-    }
+    // pub fn add_agent(
+    //     &mut self,
+    //     agent: Agent<NotAttached>,
+    //     environment_label: String,
+    // ) -> Result<(), ManagerError> {
+    //     match self.environments.get_mut(&environment_label) {
+    //         Some(environment) => {
+    //             environment.add_agent(agent);
+    //             Ok(())
+    //         }
+    //         None => Err(ManagerError::EnvironmentDoesNotExist {
+    //             label: environment_label,
+    //         }),
+    //     }
+    // }
 }
 
 #[cfg(test)]

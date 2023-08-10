@@ -8,6 +8,9 @@
 [![](https://dcbadge.vercel.app/api/server/primitive?style=flat)](https://discord.gg/primitive)
 [![Twitter Badge](https://badgen.net/badge/icon/twitter?icon=twitter&label)](https://twitter.com/primitivefi)
 
+
+This library enables user to communicate with a sandboxed revm instance via the implementation of the [ethers-rs](ethers.rs) middleware.
+
 The Ethereum blockchain's execution environment, the Ethereum Virtual machine (EVM), contains a rich collection of decentralized applications. The EVM is stack machine that sequentially executes opcodes sent to it by users and smart contracts. Arbiter is a highly configurable rust interface over [revm](https://github.com/bluealloy/revm) which is a Rust implementation of the EVM stack machine logic. The purpose of Arbiter is to interface with arbitrary agents and contracts and run this all directly on a blazing-fast simulated EVM.
 
 Financial engineers need to study a wide array of complex portfolio management strategies against thousands of market conditions, contract parameters, and agents. To configure such a rich simulation environment on a test network could be possible, but a more efficient choice for getting the most robust, yet quick, simulations would bypass any local networking and use a low level language's implementation of the EVM.
@@ -20,32 +23,6 @@ Arbiter can be used for:
 - investigating risk, capital efficiency, rebalancing strategies, and portfolio replication (or performance). (LPs, funds, quants, traders)
 - Engineering and testing new financial products built on top of more primitive financial products (DeFi firms and academics)
 
-## Features:
-
-For our next beta release, we will be focusing on the following features:
-
-
-## Build From Source
-
-First, clone the repository to your local environment so
-
-```bash
-git clone https://github.com/primitivefinance/arbiter.git
-cd arbiter
-```
-
-Install arbiter on your system:
-
-```bash
-cargo install --path . --force
-```
-
-With the `arbiter` binary generated, you can run commands such as:
-
-```bash
-arbiter simulate uniswap
-```
-
 ## Generating Docs
 
 To see the documentation for Arbiter, after cloning the repo, you can run:
@@ -55,17 +32,6 @@ cargo doc --workspace --no-deps --open
 ```
 
 This will generate and open the docs in your browser. From there, you can look at the documentation for each crate in the Arbiter workspace.
-
-## Including More Contracts
-
-In the `contracts/` directory you can add additional smart contracts or regenerate Rust bindings. Once that is done, you will want to make sure the bindings are generated in the script:
-
-```bash
-./bind.sh
-```
-You will need to add the relevant directory for your new contracts to the script above and make sure they are also handled by `forge install`. We look forward to improving upon this UX in the future.
-
-At the moment, this only builds the bindings for the contracts in the `lib/arbmod/contracts/` and `lib/portfolio/contracts`. You can of course add an additional directory of contracts in `lib/`. Just be sure to include it when you generate bindings!
 
 ## Contributing
 
