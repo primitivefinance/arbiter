@@ -1,5 +1,4 @@
-#![warn(missing_docs)]
-#![warn(unsafe_code)]
+#![warn(missing_docs, unsafe_code)]
 
 use quote::quote;
 use std::{fs, io::Write, path::Path};

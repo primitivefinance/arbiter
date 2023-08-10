@@ -1,7 +1,8 @@
-#![warn(missing_docs)]
-#![warn(unsafe_code)]
+#![warn(missing_docs, unsafe_code)]
 
 // TODO: Replace prints with better logging?
+// TODO: Reduce any clutter here.
+// TODO: Change some of the output messages to be more descriptive.
 
 use clap::{command, CommandFactory, Parser, Subcommand};
 use std::error::Error;

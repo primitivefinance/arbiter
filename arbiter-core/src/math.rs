@@ -1,5 +1,7 @@
 #![warn(missing_docs, unsafe_code)]
 
+// TODO: Check the publicness of all structs and functions.
+
 /// Re-export [`RustQuant`](https://crates.io/crates/RustQuant)
 pub use RustQuant::stochastics::*;
 

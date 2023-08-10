@@ -1,5 +1,7 @@
 #![warn(missing_docs, unsafe_code)]
 
+// TODO: Check the publicness of all structs and functions.
+
 use crate::{
     agent::{Agent, NotAttached},
     environment::{Environment, EventBroadcaster, ResultReceiver, ResultSender, TxSender},
