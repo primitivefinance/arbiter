@@ -1,5 +1,4 @@
-#![warn(missing_docs)]
-#![warn(unsafe_code)]
+#![warn(missing_docs, unsafe_code)]
 
 // TODO: Add any necessary logging.
 // TODO: Add any necessary custom errors.

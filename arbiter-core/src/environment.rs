@@ -1,12 +1,11 @@
-#![warn(missing_docs)]
-#![warn(unsafe_code)]
+#![warn(missing_docs, unsafe_code)]
 
 // TODO: Add logging especially inside of the run function. This will be necessary for pausing and debugging.
 // TODO: Add custom errors.
 
 use crate::{
     agent::{Agent, IsAttached, NotAttached},
-    math::stochastic_process::SeededPoisson,
+    math::*,
     middleware::RevmMiddleware,
 };
 use crossbeam_channel::{unbounded, Receiver, Sender};

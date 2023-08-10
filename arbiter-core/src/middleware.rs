@@ -1,4 +1,4 @@
-#![warn(missing_docs)]
+#![warn(missing_docs, unsafe_code)]
 
 use crate::{
     agent::{Agent, NotAttached},
