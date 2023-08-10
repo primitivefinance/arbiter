@@ -4,16 +4,15 @@
 
 use crate::{
     agent::{Agent, NotAttached},
-    environment::{AtomicState, Environment, State},
+    environment::{Environment, State},
 };
 use log::{info, warn};
-use std::{collections::HashMap, sync::Arc};
+use std::collections::HashMap;
 use thiserror::Error;
 
 #[derive(Default)]
 pub struct Manager {
     pub environments: HashMap<String, Environment>,
-    handles_and_states: HashMap<String, (std::thread::JoinHandle<()>, Arc<AtomicState>)>,
 }
 
 #[derive(Error, Debug)]
@@ -41,7 +40,6 @@ impl Manager {
     pub fn new() -> Self {
         Self {
             environments: HashMap::new(),
-            handles_and_states: HashMap::new(),
         }
     }
 
@@ -76,11 +74,7 @@ impl Manager {
             Some(environment) => match environment.state.load(std::sync::atomic::Ordering::Relaxed)
             {
                 State::Initialization => {
-                    let handle = environment.run();
-                    self.handles_and_states.insert(
-                        environment_label.clone().into(),
-                        (handle, environment.state.clone()),
-                    );
+                    environment.run();
                     info!("Started environment labeled {}", environment_label.into());
                     Ok(())
                 }
@@ -148,22 +142,14 @@ impl Manager {
                     label: environment_label.into(),
                 }),
                 State::Running => {
-                    let (handle, state) = self
-                        .handles_and_states
-                        .remove(&environment_label.clone().into())
-                        .unwrap();
-                    state.store(State::Stopped, std::sync::atomic::Ordering::Relaxed);
-                    handle.join().unwrap();
+                    environment.state.store(State::Stopped, std::sync::atomic::Ordering::Relaxed);
+                    environment.handle.take().unwrap().join().unwrap(); // these unwraps should never fail
                     warn!("Stopped running environment labeled {}", environment_label.into());
                     Ok(())
                 }
                 State::Paused => {
-                    let (handle, state) = self
-                        .handles_and_states
-                        .remove(&environment_label.clone().into())
-                        .unwrap();
-                    state.store(State::Stopped, std::sync::atomic::Ordering::Relaxed);
-                    handle.join().unwrap();
+                    environment.state.store(State::Stopped, std::sync::atomic::Ordering::Relaxed);
+                    environment.handle.take().unwrap().join().unwrap(); // these unwraps should never fail
                     warn!("Stopped paused environment labeled {}", environment_label.into());
                     Ok(())
                 }

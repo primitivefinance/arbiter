@@ -19,7 +19,7 @@ use revm::{
 use std::{
     fmt::Debug,
     sync::{Arc, Condvar, Mutex},
-    thread,
+    thread::{self, JoinHandle},
 };
 
 #[derive(Debug, Clone)]
@@ -57,6 +57,7 @@ pub struct Environment {
     pub(crate) socket: Socket,
     pub agents: Vec<Agent<IsAttached<RevmMiddleware>>>,
     pub seeded_poisson: SeededPoisson,
+    pub(crate) handle: Option<JoinHandle<()>>,
     pub(crate) pausevar: Arc<(Mutex<()>, Condvar)>,
 }
 
@@ -84,6 +85,7 @@ impl Environment {
             socket,
             agents: vec![],
             seeded_poisson,
+            handle: None,
             pausevar: Arc::new((Mutex::new(()), Condvar::new())),
         }
     }
@@ -92,7 +94,7 @@ impl Environment {
         agent.attach_to_environment(self);
     }
 
-    pub(crate) fn run(&mut self) -> std::thread::JoinHandle<()> {
+    pub(crate) fn run(&mut self) {
         let mut evm = self.evm.clone();
         let tx_receiver = self.socket.tx_receiver.clone();
         let event_broadcaster = self.socket.event_broadcaster.clone();
@@ -105,7 +107,7 @@ impl Environment {
         let state = Arc::clone(&self.state);
         let pausevar = Arc::clone(&self.pausevar);
 
-        thread::spawn(move || {
+        let handle = thread::spawn(move || {
             let mut expected_events_per_block = seeded_poisson.sample();
             loop {
                 match state.load(std::sync::atomic::Ordering::Relaxed) {
@@ -165,7 +167,8 @@ impl Environment {
                     }
                 }
             }
-        })
+        });
+        self.handle = Some(handle);
     }
 }
 
