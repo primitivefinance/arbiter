@@ -2,12 +2,11 @@
 
 // TODO: Check the publicness of all structs and functions.
 
-/// Re-export [`RustQuant`](https://crates.io/crates/RustQuant)
-pub use RustQuant::stochastics::*;
-
 use ethers::types::U256;
 use rand::{distributions::Distribution, rngs::StdRng, SeedableRng};
 use statrs::distribution::Poisson;
+/// Re-export [`RustQuant`](https://crates.io/crates/RustQuant)
+pub use RustQuant::stochastics::*;
 
 #[derive(Debug, Clone)]
 pub struct SeededPoisson {

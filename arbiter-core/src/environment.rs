@@ -4,11 +4,12 @@
 // TODO: Add custom errors.
 // TODO: Check the publicness of all structs and functions.
 
-use crate::{
-    agent::{Agent, IsAttached, NotAttached},
-    math::*,
-    middleware::RevmMiddleware,
+use std::{
+    fmt::Debug,
+    sync::{Arc, Condvar, Mutex},
+    thread::{self, JoinHandle},
 };
+
 use crossbeam_channel::{unbounded, Receiver, Sender};
 use ethers::{core::types::U64, types::Log};
 use revm::{
@@ -16,16 +17,22 @@ use revm::{
     primitives::{ExecutionResult, TxEnv, U256},
     EVM,
 };
-use std::{
-    fmt::Debug,
-    sync::{Arc, Condvar, Mutex},
-    thread::{self, JoinHandle},
+
+use crate::{
+    agent::{Agent, IsAttached, NotAttached},
+    math::*,
+    middleware::RevmMiddleware,
 };
 
-#[derive(Debug, Clone)]
-pub(crate) struct RevmResult {
-    pub(crate) result: ExecutionResult,
-    pub(crate) block_number: U64,
+pub struct Environment {
+    pub label: String,
+    pub(crate) state: Arc<AtomicState>,
+    pub(crate) evm: EVM<CacheDB<EmptyDB>>,
+    pub(crate) socket: Socket,
+    pub agents: Vec<Agent<IsAttached<RevmMiddleware>>>,
+    pub seeded_poisson: SeededPoisson,
+    pub(crate) handle: Option<JoinHandle<()>>,
+    pub(crate) pausevar: Arc<(Mutex<()>, Condvar)>,
 }
 
 pub(crate) type ToTransact = bool;
@@ -50,15 +57,10 @@ pub(crate) struct Socket {
     pub(crate) event_broadcaster: Arc<Mutex<EventBroadcaster>>,
 }
 
-pub struct Environment {
-    pub label: String,
-    pub(crate) state: Arc<AtomicState>,
-    pub(crate) evm: EVM<CacheDB<EmptyDB>>,
-    pub(crate) socket: Socket,
-    pub agents: Vec<Agent<IsAttached<RevmMiddleware>>>,
-    pub seeded_poisson: SeededPoisson,
-    pub(crate) handle: Option<JoinHandle<()>>,
-    pub(crate) pausevar: Arc<(Mutex<()>, Condvar)>,
+#[derive(Debug, Clone)]
+pub(crate) struct RevmResult {
+    pub(crate) result: ExecutionResult,
+    pub(crate) block_number: U64,
 }
 
 impl Environment {

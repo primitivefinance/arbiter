@@ -2,10 +2,13 @@
 
 // TODO: Check the publicness of all structs and functions.
 
-use crate::{
-    agent::{Agent, NotAttached},
-    environment::{Environment, EventBroadcaster, ResultReceiver, ResultSender, TxSender},
+use std::{
+    collections::HashMap,
+    fmt::Debug,
+    sync::{Arc, Mutex},
+    time::Duration,
 };
+
 use ethers::{
     prelude::{
         k256::{
@@ -27,11 +30,10 @@ use ethers::{
 use rand::{rngs::StdRng, SeedableRng};
 use revm::primitives::{CreateScheme, ExecutionResult, Output, TransactTo, TxEnv, B160, U256};
 use serde::{de::DeserializeOwned, Serialize};
-use std::{
-    collections::HashMap,
-    fmt::Debug,
-    sync::{Arc, Mutex},
-    time::Duration,
+
+use crate::{
+    agent::{Agent, NotAttached},
+    environment::{Environment, EventBroadcaster, ResultReceiver, ResultSender, TxSender},
 };
 
 #[derive(Debug)]
@@ -235,8 +237,8 @@ impl Middleware for RevmMiddleware {
         let revm_result = self.provider().as_ref().result_receiver.recv().unwrap();
         let output = match revm_result.result.clone() {
             ExecutionResult::Success { output, .. } => output,
-            ExecutionResult::Revert { output, .. } => panic!("Failed due to revert: {:?}", output), // TODO: We can throw an error here instead and pause the environment if need be.
-            ExecutionResult::Halt { reason, .. } => panic!("Failed due to halt: {:?}", reason), // TODO: We can throw an error here instead and pause the environment if need be.
+            ExecutionResult::Revert { output, .. } => panic!("Failed due to revert: {:?}", output), /* TODO: We can throw an error here instead and pause the environment if need be. */
+            ExecutionResult::Halt { reason, .. } => panic!("Failed due to halt: {:?}", reason), /* TODO: We can throw an error here instead and pause the environment if need be. */
         };
         match output {
             Output::Create(bytes, ..) => {

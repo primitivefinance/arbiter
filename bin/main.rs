@@ -4,8 +4,9 @@
 // TODO: Reduce any clutter here.
 // TODO: Change some of the output messages to be more descriptive.
 
-use clap::{command, CommandFactory, Parser, Subcommand};
 use std::error::Error;
+
+use clap::{command, CommandFactory, Parser, Subcommand};
 use thiserror::Error;
 
 mod bind;

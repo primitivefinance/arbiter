@@ -2,13 +2,15 @@
 
 // TODO: Check the publicness of all structs and functions.
 
+use std::collections::HashMap;
+
+use log::{info, warn};
+use thiserror::Error;
+
 use crate::{
     agent::{Agent, NotAttached},
     environment::{Environment, State},
 };
-use log::{info, warn};
-use std::collections::HashMap;
-use thiserror::Error;
 
 #[derive(Default)]
 pub struct Manager {
