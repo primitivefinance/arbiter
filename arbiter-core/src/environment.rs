@@ -2,6 +2,7 @@
 
 // TODO: Add logging especially inside of the run function. This will be necessary for pausing and debugging.
 // TODO: Add custom errors.
+// TODO: Check the publicness of all structs and functions.
 
 use crate::{
     agent::{Agent, IsAttached, NotAttached},

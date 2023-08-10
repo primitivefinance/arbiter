@@ -1,20 +1,40 @@
 #![warn(missing_docs, unsafe_code)]
 
-// TODO: Add any necessary logging.
-// TODO: Add any necessary custom errors.
 // TODO: Check the publicness of all structs and functions.
 
 use crate::{
     agent::{Agent, NotAttached},
     environment::{AtomicState, Environment, State},
 };
-use anyhow::{anyhow, Result};
+use log::{info, warn};
 use std::{collections::HashMap, sync::Arc};
+use thiserror::Error;
 
 #[derive(Default)]
 pub struct Manager {
     pub environments: HashMap<String, Environment>,
     handles_and_states: HashMap<String, (std::thread::JoinHandle<()>, Arc<AtomicState>)>,
+}
+
+#[derive(Error, Debug)]
+pub enum ManagerError {
+    #[error("environment labeled {label} already exists!")]
+    EnvironmentAlreadyExists { label: String },
+
+    #[error("environment labeled {label} does not exist!")]
+    EnvironmentDoesNotExist { label: String },
+
+    #[error("environment labeled {label} is already running!")]
+    EnvironmentAlreadyRunning { label: String },
+
+    #[error("environment labeled {label} is already stopped!")]
+    EnvironmentNotRunning { label: String },
+
+    #[error("environment labeled {label} has been stopped and cannot be restarted or paused!")]
+    EnvironmentStopped { label: String },
+
+    #[error("environment labeled {label} is already paused!")]
+    EnvironmentAlreadyPaused { label: String },
 }
 
 impl Manager {
@@ -30,48 +50,38 @@ impl Manager {
         environment_label: S,
         block_rate: f64,
         seed: u64,
-    ) -> Result<()> {
+    ) -> Result<(), ManagerError> {
         if self
             .environments
             .get(&environment_label.clone().into())
             .is_some()
         {
-            return Err(anyhow!("Environment already exists."));
+            return Err(ManagerError::EnvironmentAlreadyExists {
+                label: environment_label.into(),
+            });
         }
         self.environments.insert(
             environment_label.clone().into(),
-            Environment::new(environment_label, block_rate, seed),
+            Environment::new(environment_label.clone(), block_rate, seed),
         );
+        info!("Added environment labeled {}", environment_label.into());
         Ok(())
-    }
-
-    pub fn add_agent(
-        &mut self,
-        agent: Agent<NotAttached>,
-        environment_label: String,
-    ) -> Result<()> {
-        match self.environments.get_mut(&environment_label) {
-            Some(environment) => {
-                environment.add_agent(agent);
-                Ok(())
-            }
-            None => Err(anyhow!("Environment does not exist.")),
-        }
     }
 
     pub fn start_environment<S: Into<String> + Clone>(
         &mut self,
         environment_label: S,
-    ) -> Result<()> {
+    ) -> Result<(), ManagerError> {
         match self.environments.get_mut(&environment_label.clone().into()) {
             Some(environment) => match environment.state.load(std::sync::atomic::Ordering::Relaxed)
             {
                 State::Initialization => {
                     let handle = environment.run();
                     self.handles_and_states.insert(
-                        environment_label.into(),
+                        environment_label.clone().into(),
                         (handle, environment.state.clone()),
                     );
+                    info!("Started environment labeled {}", environment_label.into());
                     Ok(())
                 }
                 State::Paused => {
@@ -81,67 +91,105 @@ impl Manager {
                     let (lock, pausevar) = &*environment.pausevar;
                     let _guard = lock.lock().unwrap();
                     pausevar.notify_all();
+                    info!("Restarted environment labeled {}", environment_label.into());
                     Ok(())
                 }
-                State::Running => Err(anyhow!("Environment is already running.")),
-                State::Stopped => Err(anyhow!("Environment is stopped and cannot be restarted.")),
+                State::Running => Err(ManagerError::EnvironmentAlreadyRunning {
+                    label: environment_label.into(),
+                }),
+                State::Stopped => Err(ManagerError::EnvironmentStopped {
+                    label: environment_label.into(),
+                }),
             },
-            None => Err(anyhow!("Environment does not exist.")),
+            None => Err(ManagerError::EnvironmentDoesNotExist {
+                label: environment_label.into(),
+            }),
         }
     }
 
     pub fn pause_environment<S: Into<String> + Clone>(
         &mut self,
         environment_label: S,
-    ) -> Result<()> {
+    ) -> Result<(), ManagerError> {
         match self.environments.get_mut(&environment_label.clone().into()) {
             Some(environment) => match environment.state.load(std::sync::atomic::Ordering::Relaxed)
             {
-                State::Initialization => Err(anyhow!("Environment is not running.")),
+                State::Initialization => Err(ManagerError::EnvironmentNotRunning {
+                    label: environment_label.into(),
+                }),
                 State::Running => {
                     environment
                         .state
                         .store(State::Paused, std::sync::atomic::Ordering::Relaxed);
-                    println!("Changed state to paused.");
+                    info!("Paused environment labeled {}", environment_label.into());
                     Ok(())
                 }
-                State::Paused => Err(anyhow!("Environment is already paused.")),
-                State::Stopped => Err(anyhow!("Environment is stopped and cannot be paused.")),
+                State::Paused => Err(ManagerError::EnvironmentAlreadyPaused {
+                    label: environment_label.into(),
+                }),
+                State::Stopped => Err(ManagerError::EnvironmentStopped {
+                    label: environment_label.into(),
+                }),
             },
-            None => Err(anyhow!("Environment does not exist.")),
+            None => Err(ManagerError::EnvironmentDoesNotExist {
+                label: environment_label.into(),
+            }),
         }
     }
 
     pub fn stop_environment<S: Into<String> + Clone>(
         &mut self,
         environment_label: S,
-    ) -> Result<()> {
+    ) -> Result<(), ManagerError> {
         match self.environments.get_mut(&environment_label.clone().into()) {
             Some(environment) => match environment.state.load(std::sync::atomic::Ordering::Relaxed)
             {
-                State::Initialization => Err(anyhow!("Environment is not running.")),
+                State::Initialization => Err(ManagerError::EnvironmentNotRunning {
+                    label: environment_label.into(),
+                }),
                 State::Running => {
                     let (handle, state) = self
                         .handles_and_states
-                        .remove(&environment_label.into())
+                        .remove(&environment_label.clone().into())
                         .unwrap();
                     state.store(State::Stopped, std::sync::atomic::Ordering::Relaxed);
                     handle.join().unwrap();
+                    warn!("Stopped running environment labeled {}", environment_label.into());
                     Ok(())
                 }
                 State::Paused => {
-                    // TODO: GIVE THE RESTART LOGIC HERE TOO
                     let (handle, state) = self
                         .handles_and_states
-                        .remove(&environment_label.into())
+                        .remove(&environment_label.clone().into())
                         .unwrap();
                     state.store(State::Stopped, std::sync::atomic::Ordering::Relaxed);
                     handle.join().unwrap();
+                    warn!("Stopped paused environment labeled {}", environment_label.into());
                     Ok(())
                 }
-                State::Stopped => Err(anyhow!("Environment is already stopped.")),
+                State::Stopped => Err(ManagerError::EnvironmentStopped {
+                    label: environment_label.into(),
+                }),
             },
-            None => Err(anyhow!("Environment does not exist.")),
+            None => Err(ManagerError::EnvironmentDoesNotExist {
+                label: environment_label.into(),
+            }),
+        }
+    }
+
+    pub fn add_agent(
+        &mut self,
+        agent: Agent<NotAttached>,
+        environment_label: String,
+    ) -> Result<(), ManagerError> {
+        match self.environments.get_mut(&environment_label) {
+            Some(environment) => {
+                environment.add_agent(agent);
+                Ok(())
+            }
+            None => Err(ManagerError::EnvironmentDoesNotExist {
+                label: environment_label,
+            }),
         }
     }
 }

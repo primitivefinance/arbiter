@@ -28,7 +28,6 @@ statrs = "0.16.0"
 RustQuant = "*"
 
 # Errors
-anyhow = "1.0.71"
 thiserror = "1.0.30"
 
 # Logging
@@ -37,3 +36,4 @@ log = "0.4.19"
 # Dependencies for the test build and development
 [dev-dependencies]
 hex = { version = "0.4.3", default-features = false }
+anyhow = "1.0.71"
