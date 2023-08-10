@@ -1,12 +1,11 @@
 #![warn(missing_docs, unsafe_code)]
 
-/// Re-export [`RustQuant`](https://crates.io/crates/RustQuant) 
+/// Re-export [`RustQuant`](https://crates.io/crates/RustQuant)
 pub use RustQuant::stochastics::*;
 
-use rand::{rngs::StdRng, SeedableRng, distributions::Distribution};
-use statrs::distribution::Poisson;
 use ethers::types::U256;
-
+use rand::{distributions::Distribution, rngs::StdRng, SeedableRng};
+use statrs::distribution::Poisson;
 
 #[derive(Debug, Clone)]
 pub struct SeededPoisson {
@@ -28,7 +27,6 @@ impl SeededPoisson {
         self.distribution.sample(&mut self.rng) as usize
     }
 }
-
 
 #[cfg(test)]
 mod tests {
@@ -57,7 +55,6 @@ mod tests {
     }
 }
 
-
 /// Converts a float to a WAD fixed point prepared U256 number.
 /// # Arguments
 /// * `x` - Float to convert. (f64)
@@ -75,4 +72,3 @@ pub fn float_to_wad(x: f64) -> U256 {
 pub fn wad_to_float(x: U256) -> f64 {
     x.as_u128() as f64 / 1e18
 }
-

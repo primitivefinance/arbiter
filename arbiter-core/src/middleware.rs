@@ -4,12 +4,6 @@ use crate::{
     agent::{Agent, NotAttached},
     environment::{Environment, EventBroadcaster, ResultReceiver, ResultSender, TxSender},
 };
-use std::{
-    collections::HashMap,
-    fmt::Debug,
-    sync::{Arc, Mutex},
-    time::Duration,
-};
 use ethers::{
     prelude::{
         k256::{
@@ -28,10 +22,15 @@ use ethers::{
         Log,
     },
 };
+use rand::{rngs::StdRng, SeedableRng};
 use revm::primitives::{CreateScheme, ExecutionResult, Output, TransactTo, TxEnv, B160, U256};
 use serde::{de::DeserializeOwned, Serialize};
-use rand::{rngs::StdRng, SeedableRng};
-
+use std::{
+    collections::HashMap,
+    fmt::Debug,
+    sync::{Arc, Mutex},
+    time::Duration,
+};
 
 #[derive(Debug)]
 pub struct Connection {
