@@ -5,7 +5,6 @@
 
 use std::error::Error;
 use clap::{command, CommandFactory, Parser, Subcommand};
-use eyre::Result;
 use thiserror::Error;
 
 mod bind;
@@ -54,8 +53,7 @@ enum Commands {
     },
 }
 
-#[tokio::main]
-async fn main() -> Result<(), Box<dyn Error>> {
+fn main() -> Result<(), Box<dyn Error>> {
     let args = Args::parse();
 
     if args.command.is_some() {

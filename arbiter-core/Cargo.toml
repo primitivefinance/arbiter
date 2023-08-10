@@ -1,35 +1,39 @@
-# Package configuration
 [package]
 name = "arbiter-core"
 version = "0.3.0"
 edition = "2021"
 
-# Dependency configuration
+# Dependencies for the release build
 [dependencies]
-async-trait = "0.1.68"
-bytes = "1.4.0"
+
+# Ethereum and EVM
+ethers = { git = "https://github.com/primitivefinance/ethers-rs.git"} # Custom fork for middleware integration
 revm = "3.3.0"
-statrs = "0.16.0"
+
+# Serialization
+bytes = "1.4.0"
+serde = { version = "1.0.163", features= ["derive"]}
+serde_json = { version = "1.0.96" }
+
+# Concurrency/async
+tokio = { version = "1.28.1", features = ["macros", "full"] }
+async-trait = "0.1.68"
 crossbeam-channel = "0.5.8"
 atomic_enum = "0.2.0"
 
-# For price simulation
-rand = "0.8.5"
-rand_chacha = "0.3.1"
+# Randomness
+rand = "0.8.5"  
 rand_distr = "0.4.3"
+statrs = "0.16.0"
 RustQuant = "*"
 
-# For Errors
+# Errors
 anyhow = "1.0.71"
 thiserror = "1.0.30"
 
-# Workspace dependencies
-ethers = { git = "https://github.com/primitivefinance/ethers-rs.git"}
-# ethers-middleware = { version = "2.0.4" }
-serde = { version = "1.0.163", features= ["derive"]}
-serde_json = { version = "1.0.96" }
-tokio = { version = "1.28.1", features = ["macros", "full"] }
+# Logging
+log = "0.4.19"
 
+# Dependencies for the test build and development
 [dev-dependencies]
 hex = { version = "0.4.3", default-features = false }
-

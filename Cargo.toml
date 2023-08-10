@@ -1,5 +1,5 @@
-# Workspace configuration
 [workspace]
+
 # List of crates included in this workspace
 members = [
     "arbiter-core",
@@ -18,28 +18,24 @@ name = "arbiter"
 path = "bin/main.rs"
 
 
-# Dependency configuration
+# Dependencies for the release build
 [dependencies]
+
 # Local dependencies
 arbiter-core = { path = "arbiter-core" }
 
-# External dependencies
+# Command line and config
 clap = { version = "4.3.0", features = ["derive"] }
-eyre = "0.6.8"
 serde = { version = "1.0.163", features =["derive"] }
-thiserror = "1.0.40"
-tokio = { version = "1.28.1", features = ["macros", "full"] }
 toml = "0.7.4"
 
-# Revm and related dependencies
-bytes = "1.4.0"
-
-# Simulation dependencies
+# Building files
 quote = "1.0.28"
-statrs = "0.16.0"
-RustQuant = "0.0.23"
 
-# Development dependencies
+# Errors
+thiserror = "1.0.40"
+
+# Dependencies for the test build and development
 [dev-dependencies]
 assert_cmd = "2.0.11"
 
