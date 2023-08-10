@@ -17,13 +17,12 @@ pub struct SeededPoisson {
 }
 
 impl SeededPoisson {
-    /// Create new Poisson process with seed.
     pub fn new(lambda: f64, seed: u64) -> Self {
         let distribution = Poisson::new(lambda).unwrap();
         let rng = StdRng::seed_from_u64(seed);
         Self { distribution, rng }
     }
-    /// Sample Poisson process.
+
     pub fn sample(&mut self) -> usize {
         self.distribution.sample(&mut self.rng) as usize
     }

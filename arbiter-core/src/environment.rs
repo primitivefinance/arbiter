@@ -5,6 +5,7 @@
 // TODO: Check the publicness of all structs and functions.
 
 use std::{
+    convert::Infallible,
     fmt::Debug,
     sync::{Arc, Condvar, Mutex},
     thread::{self, JoinHandle},
@@ -12,17 +13,26 @@ use std::{
 
 use crossbeam_channel::{unbounded, Receiver, Sender};
 use ethers::{core::types::U64, types::Log};
+use log::error;
 use revm::{
     db::{CacheDB, EmptyDB},
-    primitives::{ExecutionResult, TxEnv, U256},
+    primitives::{EVMError, ExecutionResult, TxEnv, U256},
     EVM,
 };
+use thiserror::Error;
 
 use crate::{
     agent::{Agent, IsAttached, NotAttached},
     math::*,
     middleware::RevmMiddleware,
 };
+
+pub(crate) type ToTransact = bool;
+pub(crate) type ResultSender = Sender<RevmResult>;
+pub(crate) type ResultReceiver = Receiver<RevmResult>;
+pub(crate) type TxSender = Sender<(ToTransact, TxEnv, ResultSender)>;
+pub(crate) type TxReceiver = Receiver<(ToTransact, TxEnv, ResultSender)>;
+pub(crate) type EventSender = Sender<Vec<Log>>;
 
 pub struct Environment {
     pub label: String,
@@ -31,36 +41,23 @@ pub struct Environment {
     pub(crate) socket: Socket,
     pub agents: Vec<Agent<IsAttached<RevmMiddleware>>>,
     pub seeded_poisson: SeededPoisson,
-    pub(crate) handle: Option<JoinHandle<()>>,
+    pub(crate) handle: Option<JoinHandle<Result<(), EnvironmentError>>>,
     pub(crate) pausevar: Arc<(Mutex<()>, Condvar)>,
 }
 
-pub(crate) type ToTransact = bool;
-pub(crate) type ResultSender = Sender<RevmResult>;
-pub(crate) type ResultReceiver = Receiver<RevmResult>;
-pub(crate) type TxSender = Sender<(ToTransact, TxEnv, ResultSender)>;
-pub(crate) type TxReceiver = Receiver<(ToTransact, TxEnv, ResultSender)>;
+#[derive(Error, Debug)]
+pub enum EnvironmentError {
+    #[error("execution error! the source error is: {cause:?}")]
+    ExecutionError { cause: EVMError<Infallible> },
 
-#[atomic_enum::atomic_enum]
-#[derive(Eq, PartialEq)]
-pub enum State {
-    Initialization,
-    Running,
-    Paused,
-    Stopped,
-}
+    #[error("error pausing! the source error is: {cause:?}")]
+    PauseError { cause: String },
 
-#[derive(Debug, Clone)]
-pub(crate) struct Socket {
-    pub(crate) tx_sender: TxSender,
-    pub(crate) tx_receiver: TxReceiver,
-    pub(crate) event_broadcaster: Arc<Mutex<EventBroadcaster>>,
-}
+    #[error("error communicating! the source error is: {cause:?}")]
+    CommunicationError { cause: String },
 
-#[derive(Debug, Clone)]
-pub(crate) struct RevmResult {
-    pub(crate) result: ExecutionResult,
-    pub(crate) block_number: U64,
+    #[error("conversion error! the source error is: {cause:?}")]
+    ConversionError { cause: String },
 }
 
 impl Environment {
@@ -108,6 +105,7 @@ impl Environment {
             .store(State::Running, std::sync::atomic::Ordering::Relaxed);
         let state = Arc::clone(&self.state);
         let pausevar = Arc::clone(&self.pausevar);
+        let label = self.label.clone();
 
         let handle = thread::spawn(move || {
             let mut expected_events_per_block = seeded_poisson.sample();
@@ -116,9 +114,13 @@ impl Environment {
                     State::Stopped => break,
                     State::Paused => {
                         let (lock, cvar) = &*pausevar;
-                        let mut guard = lock.lock().unwrap();
+                        let mut guard = lock.lock().map_err(|e| EnvironmentError::PauseError {
+                            cause: format!("{:?}", e),
+                        })?;
                         while state.load(std::sync::atomic::Ordering::Relaxed) == State::Paused {
-                            guard = cvar.wait(guard).unwrap();
+                            guard = cvar.wait(guard).map_err(|e| EnvironmentError::PauseError {
+                                cause: format!("{:?}", e),
+                            })?;
                         }
                     }
                     State::Running => {
@@ -133,34 +135,46 @@ impl Environment {
                             if to_transact {
                                 let execution_result = match evm.transact_commit() {
                                     Ok(val) => val,
-                                    // URGENT: change this to a custom error
-                                    Err(_) => panic!("failed"),
+                                    Err(e) => {
+                                        state.store(
+                                            State::Paused,
+                                            std::sync::atomic::Ordering::Relaxed,
+                                        );
+                                        error!("Pausing the environment labeled {} due to an execution error: {:#?}", label, e);
+                                        return Err(EnvironmentError::ExecutionError { cause: e });
+                                    }
                                 };
-                                let event_broadcaster = event_broadcaster.lock().unwrap();
+                                let event_broadcaster = event_broadcaster.lock().map_err(|e| EnvironmentError::CommunicationError { cause: format!("{:?}", e) })?;
                                 event_broadcaster.broadcast(
                                     crate::middleware::revm_logs_to_ethers_logs(
                                         execution_result.logs(),
                                     ),
-                                );
+                                )?;
                                 let revm_result = RevmResult {
                                     result: execution_result,
                                     block_number: convert_uint_to_u64(evm.env.block.number)
-                                        .unwrap(),
+                                        .map_err(|e| EnvironmentError::ConversionError { cause: format!("{:?}", e) })?,
                                 };
-                                sender.send(revm_result).unwrap();
+                                sender.send(revm_result).map_err(|e| EnvironmentError::CommunicationError { cause: format!("{:?}", e) })?;
                                 counter += 1;
                             } else {
-                                let execution_result = match evm.transact() {
-                                    Ok(val) => val,
-                                    // URGENT: change this to a custom error
-                                    Err(_) => panic!("failed"),
+                                let result = match evm.transact() {
+                                    Ok(result_and_state) => result_and_state.result,
+                                    Err(e) => {
+                                        state.store(
+                                            State::Paused,
+                                            std::sync::atomic::Ordering::Relaxed,
+                                        );
+                                        error!("Pausing the environment labeled {} due to an execution error: {:#?}", label, e);
+                                        return Err(EnvironmentError::ExecutionError { cause: e });
+                                    }
                                 };
                                 let result_and_block = RevmResult {
-                                    result: execution_result.result,
+                                    result,
                                     block_number: convert_uint_to_u64(evm.env.block.number)
-                                        .unwrap(),
+                                        .map_err(|e| EnvironmentError::ConversionError { cause: format!("{:?}", e) })?,
                                 };
-                                sender.send(result_and_block).unwrap();
+                                sender.send(result_and_block).map_err(|e| EnvironmentError::CommunicationError { cause: format!("{:?}", e) })?;
                             }
                         }
                     }
@@ -169,27 +183,51 @@ impl Environment {
                     }
                 }
             }
+            Ok(())
         });
         self.handle = Some(handle);
     }
 }
 
+#[atomic_enum::atomic_enum]
+#[derive(Eq, PartialEq)]
+pub enum State {
+    Initialization,
+    Running,
+    Paused,
+    Stopped,
+}
+
+#[derive(Debug, Clone)]
+pub(crate) struct Socket {
+    pub(crate) tx_sender: TxSender,
+    pub(crate) tx_receiver: TxReceiver,
+    pub(crate) event_broadcaster: Arc<Mutex<EventBroadcaster>>,
+}
+
+#[derive(Debug, Clone)]
+pub(crate) struct RevmResult {
+    pub(crate) result: ExecutionResult,
+    pub(crate) block_number: U64,
+}
+
 #[derive(Clone, Debug)]
-pub struct EventBroadcaster(Vec<crossbeam_channel::Sender<Vec<Log>>>);
+pub struct EventBroadcaster(Vec<EventSender>);
 
 impl EventBroadcaster {
     pub(crate) fn new() -> Self {
         Self(vec![])
     }
 
-    pub(crate) fn add_sender(&mut self, sender: crossbeam_channel::Sender<Vec<Log>>) {
+    pub(crate) fn add_sender(&mut self, sender: EventSender) {
         self.0.push(sender);
     }
 
-    pub(crate) fn broadcast(&self, logs: Vec<Log>) {
+    pub(crate) fn broadcast(&self, logs: Vec<Log>) -> Result<(), EnvironmentError> {
         for sender in &self.0 {
-            sender.send(logs.clone()).unwrap();
+            sender.send(logs.clone()).map_err(|e| EnvironmentError::CommunicationError { cause: format!("{:?}", e) })?;
         }
+        Ok(())
     }
 }
 

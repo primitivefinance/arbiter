@@ -1,6 +1,6 @@
 use super::*;
 
-#[test]
+#[test_log::test]
 fn add_environment() {
     let mut manager = Manager::new();
     manager.add_environment(TEST_ENV_LABEL, 1.0, 1).unwrap();
@@ -18,7 +18,7 @@ fn add_environment() {
     );
 }
 
-#[test]
+#[test_log::test]
 fn run_environment() {
     let mut manager = Manager::new();
     manager.add_environment(TEST_ENV_LABEL, 1.0, 1).unwrap();
@@ -34,7 +34,7 @@ fn run_environment() {
     );
 }
 
-#[test]
+#[test_log::test]
 fn pause_environment() {
     let mut manager = Manager::new();
     manager.add_environment(TEST_ENV_LABEL, 1.0, 1).unwrap();
@@ -63,7 +63,7 @@ fn pause_environment() {
     );
 }
 
-#[test]
+#[test_log::test]
 fn stop_environment() {
     let mut manager = Manager::new();
     manager.add_environment(TEST_ENV_LABEL, 1.0, 1).unwrap();
