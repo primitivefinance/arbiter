@@ -1,4 +1,4 @@
-#![warn(missing_docs, unsafe_code)]
+#![warn(missing_docs)]
 
 pub mod agent;
 pub mod bindings; // TODO: Add better documentation here and some kind of overwrite protection.

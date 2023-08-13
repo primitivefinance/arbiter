@@ -1,21 +1,22 @@
-#![warn(missing_docs, unsafe_code)]
+#![warn(missing_docs)]
 
 // TODO: Check the publicness of all structs and functions.
-
 use std::{
     collections::HashMap,
     fmt::Debug,
+    future::Future,
+    pin::Pin,
     sync::{Arc, Mutex},
     time::Duration,
 };
 
 use ethers::{
     prelude::{
+        interval,
         k256::{
             ecdsa::SigningKey,
             sha2::{Digest, Sha256},
         },
-        pending_transaction::PendingTxState,
         ProviderError,
     },
     providers::{
@@ -24,9 +25,11 @@ use ethers::{
     signers::{Signer, Wallet},
     types::{
         transaction::eip2718::TypedTransaction, Address, BlockId, Bytes, Filter, FilteredParams,
-        Log,
+        Log, Transaction, TransactionReceipt, TxHash,  U64,
     },
 };
+use futures_timer::Delay;
+use futures_util::{ Stream};
 use rand::{rngs::StdRng, SeedableRng};
 use revm::primitives::{CreateScheme, ExecutionResult, Output, TransactTo, TxEnv, B160, U256};
 use serde::{de::DeserializeOwned, Serialize};
@@ -180,21 +183,43 @@ impl Middleware for RevmMiddleware {
             ExecutionResult::Revert { output, .. } => panic!("Failed due to revert: {:?}", output),
             ExecutionResult::Halt { reason, .. } => panic!("Failed due to halt: {:?}", reason),
         };
+
         match output {
             Output::Create(_, address) => {
-                let mut pending_tx =
-                    PendingTransaction::new(ethers::types::H256::zero(), self.provider());
-                pending_tx.state =
-                    PendingTxState::RevmDeployOutput(recast_address(address.unwrap()));
-                return Ok(pending_tx);
+                let tx_receipts = TransactionReceipt {
+                    block_hash: None,
+                    block_number: Some(block),
+                    contract_address: Some(recast_address(address.unwrap())),
+                    ..Default::default()
+                };
+
+                let faked_transaction = PendingTransactionMock::new(
+                    ethers::types::H256::zero(),
+                    self.provider(),
+                    block,
+                    tx_receipts,
+                );
+
+                unsafe { Ok(std::mem::transmute(faked_transaction)) }
             }
             Output::Call(_) => {
-                let mut pending_tx =
-                    PendingTransaction::new(ethers::types::H256::zero(), self.provider());
                 let logs = revm_logs_to_ethers_logs(revm_logs);
 
-                pending_tx.state = PendingTxState::RevmTransactOutput(logs, block);
-                return Ok(pending_tx);
+                let tx_receipts = TransactionReceipt {
+                    block_hash: None,
+                    block_number: Some(block),
+                    logs,
+                    ..Default::default()
+                };
+
+                let faked_transaction = PendingTransactionMock::new(
+                    ethers::types::H256::zero(),
+                    self.provider(),
+                    block,
+                    tx_receipts,
+                );
+
+                unsafe { Ok(std::mem::transmute(faked_transaction)) }
             }
         }
     }
@@ -352,3 +377,81 @@ pub fn recast_b256(input: revm::primitives::B256) -> ethers::types::H256 {
     let temp: [u8; 32] = input.as_bytes().try_into().unwrap();
     ethers::types::H256::from(temp)
 }
+
+#[cfg(target_arch = "wasm32")]
+pub(crate) type PinBoxFut<'a, T> = Pin<Box<dyn Future<Output = Result<T, ProviderError>> + 'a>>;
+#[cfg(not(target_arch = "wasm32"))]
+pub(crate) type PinBoxFut<'a, T> =
+    Pin<Box<dyn Future<Output = Result<T, ProviderError>> + Send + 'a>>;
+
+// Because this is the exact same struct it will have the exact same memory aliment
+// allowing us to bypass the fact that ethers-rs doesn't export this enum normally
+// We box the TransactionReceipts to keep the enum small.
+#[allow(unused)]
+pub enum PendingTxState<'a> {
+    /// Initial delay to ensure the GettingTx loop doesn't immediately fail
+    InitialDelay(Pin<Box<Delay>>),
+
+    /// Waiting for interval to elapse before calling API again
+    PausedGettingTx,
+
+    /// Polling The blockchain to see if the Tx has confirmed or dropped
+    GettingTx(PinBoxFut<'a, Option<Transaction>>),
+
+    /// Waiting for interval to elapse before calling API again
+    PausedGettingReceipt,
+
+    /// Polling the blockchain for the receipt
+    GettingReceipt(PinBoxFut<'a, Option<TransactionReceipt>>),
+
+    /// If the pending tx required only 1 conf, it will return early. Otherwise it will
+    /// proceed to the next state which will poll the block number until there have been
+    /// enough confirmations
+    CheckingReceipt(Option<TransactionReceipt>),
+
+    /// Waiting for interval to elapse before calling API again
+    PausedGettingBlockNumber(Option<TransactionReceipt>),
+
+    /// Polling the blockchain for the current block number
+    GettingBlockNumber(PinBoxFut<'a, U64>, Option<TransactionReceipt>),
+
+    /// Future has completed and should panic if polled again
+    Completed,
+}
+
+
+const DEFAULT_RETRIES: usize = 3;
+
+#[allow(unused, missing_docs)]
+pub struct PendingTransactionMock<'a, P> {
+    tx_hash: TxHash,
+    confirmations: usize,
+    provider: &'a Provider<P>,
+    state: PendingTxState<'a>,
+    interval: Box<dyn Stream<Item = ()> + Send + Unpin>,
+    retries_remaining: usize,
+}
+impl<'a, P: JsonRpcClient> PendingTransactionMock<'a, P> {
+    /// Creates a new pending transaction poller from a hash and a provider
+    pub fn new(
+        tx_hash: TxHash,
+        provider: &'a Provider<P>,
+        block_number: U64,
+        receipts: TransactionReceipt,
+    ) -> Self {
+        let state = PendingTxState::GettingBlockNumber(
+            Box::pin(async move { Ok(block_number) }),
+            Some(receipts),
+        );
+
+        Self {
+            tx_hash,
+            confirmations: 0,
+            provider,
+            state,
+            interval: Box::new(interval(provider.get_interval())),
+            retries_remaining: DEFAULT_RETRIES,
+        }
+    }
+}
+
