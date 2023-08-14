@@ -109,9 +109,6 @@ impl RevmMiddleware {
             filter_receivers: Arc::new(tokio::sync::Mutex::new(HashMap::new())),
         };
         let provider = Provider::new(connection);
-        let mut hasher = Sha256::new();
-        // hasher.update(agent.name.as_bytes());
-        // let seed = hasher.finalize();
         let mut rng = OsRng::default();
         let wallet = Wallet::new(&mut rng);
         Self { provider, wallet }
