@@ -128,6 +128,9 @@ impl Environment {
                             evm.env.tx = tx;
                             if to_transact {
                                 let execution_result = match evm.transact_commit() {
+                                    // Check for an error in execution ([`EVMError<Infallible>`]),
+                                    // but pass to the middleware to determine if the result is
+                                    // [`ExecutionResult::Success`], [`ExecutionResult::Revert`], or [`ExecutionResult::Halt`].
                                     Ok(val) => val,
                                     Err(e) => {
                                         state.store(
@@ -138,7 +141,11 @@ impl Environment {
                                         return Err(EnvironmentError::ExecutionError { cause: e });
                                     }
                                 };
-                                let event_broadcaster = event_broadcaster.lock().map_err(|e| EnvironmentError::CommunicationError { cause: format!("{:?}", e) })?;
+                                let event_broadcaster = event_broadcaster.lock().map_err(|e| {
+                                    EnvironmentError::CommunicationError {
+                                        cause: format!("{:?}", e),
+                                    }
+                                })?;
                                 event_broadcaster.broadcast(
                                     crate::middleware::revm_logs_to_ethers_logs(
                                         execution_result.logs(),
@@ -147,12 +154,21 @@ impl Environment {
                                 let revm_result = RevmResult {
                                     result: execution_result,
                                     block_number: convert_uint_to_u64(evm.env.block.number)
-                                        .map_err(|e| EnvironmentError::ConversionError { cause: format!("{:?}", e) })?,
+                                        .map_err(|e| EnvironmentError::ConversionError {
+                                            cause: format!("{:?}", e),
+                                        })?,
                                 };
-                                sender.send(revm_result).map_err(|e| EnvironmentError::CommunicationError { cause: format!("{:?}", e) })?;
+                                sender.send(revm_result).map_err(|e| {
+                                    EnvironmentError::CommunicationError {
+                                        cause: format!("{:?}", e),
+                                    }
+                                })?;
                                 counter += 1;
                             } else {
                                 let result = match evm.transact() {
+                                    // Check for an error in execution ([`EVMError<Infallible>`]),
+                                    // but pass to the middleware to determine if the result is
+                                    // [`ExecutionResult::Success`], [`ExecutionResult::Revert`], or [`ExecutionResult::Halt`].
                                     Ok(result_and_state) => result_and_state.result,
                                     Err(e) => {
                                         state.store(
@@ -166,9 +182,15 @@ impl Environment {
                                 let result_and_block = RevmResult {
                                     result,
                                     block_number: convert_uint_to_u64(evm.env.block.number)
-                                        .map_err(|e| EnvironmentError::ConversionError { cause: format!("{:?}", e) })?,
+                                        .map_err(|e| EnvironmentError::ConversionError {
+                                            cause: format!("{:?}", e),
+                                        })?,
                                 };
-                                sender.send(result_and_block).map_err(|e| EnvironmentError::CommunicationError { cause: format!("{:?}", e) })?;
+                                sender.send(result_and_block).map_err(|e| {
+                                    EnvironmentError::CommunicationError {
+                                        cause: format!("{:?}", e),
+                                    }
+                                })?;
                             }
                         }
                     }
@@ -219,7 +241,11 @@ impl EventBroadcaster {
 
     pub(crate) fn broadcast(&self, logs: Vec<Log>) -> Result<(), EnvironmentError> {
         for sender in &self.0 {
-            sender.send(logs.clone()).map_err(|e| EnvironmentError::CommunicationError { cause: format!("{:?}", e) })?;
+            sender
+                .send(logs.clone())
+                .map_err(|e| EnvironmentError::CommunicationError {
+                    cause: format!("{:?}", e),
+                })?;
         }
         Ok(())
     }
