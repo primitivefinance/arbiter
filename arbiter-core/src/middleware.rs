@@ -10,7 +10,6 @@ use std::{
 };
 
 use ethers::{
-    core::rand::{rngs::StdRng, thread_rng, SeedableRng},
     prelude::{
         k256::{
             ecdsa::SigningKey,
@@ -29,12 +28,16 @@ use ethers::{
         Log,
     },
 };
-use rand::rngs;
+use rand::{rngs::{StdRng, OsRng}, SeedableRng};
 use revm::primitives::{CreateScheme, ExecutionResult, Output, TransactTo, TxEnv, B160, U256};
 use serde::{de::DeserializeOwned, Serialize};
 use thiserror::Error;
 
-use crate::environment::{Environment, EventBroadcaster, ResultReceiver, ResultSender, TxSender};
+use crate::{
+    // agent::{Agent, NotAttached},
+    environment::{Environment, EventBroadcaster, ResultReceiver, ResultSender, TxSender},
+};
+
 
 #[derive(Debug)]
 pub struct RevmMiddleware {
@@ -82,7 +85,7 @@ impl MiddlewareError for RevmMiddlewareError {
 }
 
 impl RevmMiddleware {
-    pub fn new(environment: &Environment, seed: Option<String>) -> Self {
+    pub fn new(environment: &Environment) -> Self {
         let tx_sender = environment.socket.tx_sender.clone();
         let (result_sender, result_receiver) = crossbeam_channel::unbounded();
         let connection = Connection {
@@ -93,22 +96,9 @@ impl RevmMiddleware {
             filter_receivers: Arc::new(tokio::sync::Mutex::new(HashMap::new())),
         };
         let provider = Provider::new(connection);
-
-        // let mut rng = thread_rng();
-        // let wallet = Wallet::new(&mut rng);
-        // Self { provider, wallet }
-        if let Some(seed) = seed {
-            let mut hasher = Sha256::new();
-            hasher.update(seed.clone());
-            let hashed = hasher.finalize();
-            let mut rng: rngs::StdRng = SeedableRng::from_seed(hashed.into());
-            let wallet = Wallet::new(&mut rng);
-            Self { provider, wallet }
-        } else {
-            let mut rng = thread_rng();
-            let wallet = Wallet::new(&mut rng);
-            Self { provider, wallet }
-        }
+        let mut rng = OsRng::default();
+        let wallet = Wallet::new(&mut rng);
+        Self { provider, wallet }
     }
 }
 

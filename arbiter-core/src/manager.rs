@@ -7,7 +7,10 @@ use std::collections::HashMap;
 use log::{info, warn};
 use thiserror::Error;
 
-use crate::environment::{Environment, State};
+use crate::{
+    // agent::{Agent, NotAttached},
+    environment::{Environment, State},
+};
 
 #[derive(Default)]
 pub struct Manager {
@@ -171,6 +174,22 @@ impl Manager {
             }),
         }
     }
+
+    // pub fn add_agent(
+    //     &mut self,
+    //     agent: Agent<NotAttached>,
+    //     environment_label: String,
+    // ) -> Result<(), ManagerError> {
+    //     match self.environments.get_mut(&environment_label) {
+    //         Some(environment) => {
+    //             environment.add_agent(agent);
+    //             Ok(())
+    //         }
+    //         None => Err(ManagerError::EnvironmentDoesNotExist {
+    //             label: environment_label,
+    //         }),
+    //     }
+    // }
 }
 
 #[cfg(test)]

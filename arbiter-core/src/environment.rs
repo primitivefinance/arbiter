@@ -21,7 +21,10 @@ use revm::{
 };
 use thiserror::Error;
 
-use crate::{math::*, middleware::RevmMiddleware};
+use crate::{
+    math::*,
+    middleware::RevmMiddleware,
+};
 
 pub(crate) type ToTransact = bool;
 pub(crate) type ResultSender = Sender<RevmResult>;
@@ -82,6 +85,7 @@ impl Environment {
             pausevar: Arc::new((Mutex::new(()), Condvar::new())),
         }
     }
+
 
     pub(crate) fn run(&mut self) {
         let mut evm = self.evm.clone();

@@ -1,10 +1,8 @@
-use ethers::prelude::Client;
-
 use super::*;
 
 #[tokio::test]
 async fn test_deploy() -> Result<()> {
-    let (arbiter_token, _environment, _) = deploy_and_start().await?;
+    let (arbiter_token, _environment) = deploy_and_start().await?;
     println!("{:?}", arbiter_token);
     assert_eq!(
         arbiter_token.address(),
@@ -15,7 +13,7 @@ async fn test_deploy() -> Result<()> {
 
 #[tokio::test]
 async fn call() -> Result<()> {
-    let (arbiter_token, _, _) = deploy_and_start().await?;
+    let (arbiter_token, _) = deploy_and_start().await?;
     let admin = arbiter_token.admin();
     let output = admin.call().await?;
     assert_eq!(
@@ -27,7 +25,7 @@ async fn call() -> Result<()> {
 
 #[tokio::test]
 async fn transact() -> Result<()> {
-    let (arbiter_token, _, _) = deploy_and_start().await?;
+    let (arbiter_token, _) = deploy_and_start().await?;
     let mint = arbiter_token.mint(
         Address::from_str(TEST_MINT_TO).unwrap(),
         ethers::types::U256::from(TEST_MINT_AMOUNT),
@@ -60,8 +58,8 @@ async fn transact() -> Result<()> {
 
 #[tokio::test]
 async fn filter_watcher() -> Result<()> {
-    let (arbiter_token, environment, client) = deploy_and_start().await.unwrap();
-    // let client = environment.agents[0].client.clone();
+    let (arbiter_token, environment) = deploy_and_start().await.unwrap();
+    let client = environment.agents[0].client.clone();
     let mut filter_watcher = client.watch(&Filter::default()).await?;
     let approval = arbiter_token.approve(
         client.default_sender().unwrap(),
@@ -105,7 +103,8 @@ async fn filter_watcher() -> Result<()> {
 
 #[tokio::test]
 async fn filter_address() -> Result<()> {
-    let (arbiter_token, environment, client) = deploy_and_start().await.unwrap();
+    let (arbiter_token, environment) = deploy_and_start().await.unwrap();
+    let client = environment.agents[0].client.clone();
     let mut default_watcher = client.watch(&Filter::default()).await?;
     let mut address_watcher = client
         .watch(&Filter::new().address(arbiter_token.address()))
@@ -167,7 +166,8 @@ async fn filter_address() -> Result<()> {
 
 #[tokio::test]
 async fn filter_topics() -> Result<()> {
-    let (arbiter_token, environment, client) = deploy_and_start().await.unwrap();
+    let (arbiter_token, environment) = deploy_and_start().await.unwrap();
+    let client = environment.agents[0].client.clone();
     let mut default_watcher = client.watch(&Filter::default()).await?;
     let mut approval_watcher = client
         .watch(&arbiter_token.approval_filter().filter)
@@ -227,13 +227,17 @@ async fn transaction_loop() -> Result<()> {
     let expected_tx_per_block = dist.sample();
 
     println!("expected_tx_per_block: {}", expected_tx_per_block);
+
+    let agent = Agent::new(TEST_AGENT_NAME);
+    env.add_agent(agent);
+    let agent = &env.agents[0];
     // tx_0 is the transaction that creates the token contract
-    let (arbiter_token, env, client) = deploy_and_start().await?;
+    let (arbiter_token, _) = deploy_and_start().await?;
 
     for index in 1..expected_tx_per_block {
         println!("index: {}", index);
         let tx = arbiter_token
-            .mint(client.default_sender().unwrap(), 1000u64.into())
+            .mint(agent.client.default_sender().unwrap(), 1000u64.into())
             .send()
             .await
             .unwrap()
