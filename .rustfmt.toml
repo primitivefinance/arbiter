@@ -6,3 +6,7 @@ group_imports = "StdExternalCrate"
 format_code_in_doc_comments = true
 
 use_field_init_shorthand = true
+
+wrap_comments = true
+normalize_comments = true
+comment_width = 80

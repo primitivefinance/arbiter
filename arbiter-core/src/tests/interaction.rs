@@ -122,8 +122,9 @@ async fn filter_address() -> Result<()> {
     assert!(!address_watcher_event.data.is_empty());
     assert_eq!(default_watcher_event, address_watcher_event);
 
-    // Create a new token contract to check that the address watcher only gets events from the correct contract
-    // Check that only the default watcher gets this event
+    // Create a new token contract to check that the address watcher only gets
+    // events from the correct contract Check that only the default watcher gets
+    // this event
     let arbiter_token2 = ArbiterToken::deploy(
         client.clone(),
         (
@@ -143,8 +144,9 @@ async fn filter_address() -> Result<()> {
     assert!(!default_watcher_event.data.is_empty());
     println!("default_watcher_event: {:#?}", default_watcher_event);
 
-    // Use tokio::time::timeout to await the approval_watcher for a specific duration
-    // The timeout is needed because the approval_watcher is a stream that will never end when the test is passing
+    // Use tokio::time::timeout to await the approval_watcher for a specific
+    // duration The timeout is needed because the approval_watcher is a stream
+    // that will never end when the test is passing
     let timeout_duration = tokio::time::Duration::from_secs(1); // Adjust the duration as needed
     let timeout = tokio::time::timeout(timeout_duration, address_watcher.next());
     match timeout.await {
@@ -195,8 +197,9 @@ async fn filter_topics() -> Result<()> {
     assert!(!default_watcher_event.data.is_empty());
     println!("default_watcher_event: {:#?}", default_watcher_event);
 
-    // Use tokio::time::timeout to await the approval_watcher for a specific duration
-    // The timeout is needed because the approval_watcher is a stream that will never end when the test is passing
+    // Use tokio::time::timeout to await the approval_watcher for a specific
+    // duration The timeout is needed because the approval_watcher is a stream
+    // that will never end when the test is passing
     let timeout_duration = tokio::time::Duration::from_secs(5); // Adjust the duration as needed
     let timeout = tokio::time::timeout(timeout_duration, approval_watcher.next());
     match timeout.await {
@@ -217,8 +220,9 @@ async fn filter_topics() -> Result<()> {
 }
 
 // This test has two parts
-// 1 check that the expected number of transactions per block is the actual number of transactions per block.
-// 2 check the block number is incremented after the expected number of transactions is reached.
+// 1 check that the expected number of transactions per block is the actual
+// number of transactions per block. 2 check the block number is incremented
+// after the expected number of transactions is reached.
 #[tokio::test]
 async fn transaction_loop() -> Result<()> {
     let mut env = Environment::new(TEST_ENV_LABEL, 2.0, 1);

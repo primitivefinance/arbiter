@@ -23,7 +23,8 @@ struct Args {
     command: Option<Commands>,
 }
 
-/// `ConfigurationError` enumeration type for errors parsing a `.toml` configuration file.
+/// `ConfigurationError` enumeration type for errors parsing a `.toml`
+/// configuration file.
 #[derive(Error, Debug)]
 pub enum ConfigurationError {
     /// Error occured when attempting to read file from designated path.

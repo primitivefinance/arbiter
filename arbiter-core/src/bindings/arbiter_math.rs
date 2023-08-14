@@ -344,7 +344,7 @@ pub mod arbiter_math {
             fallback: false,
         }
     }
-    ///The parsed JSON ABI of the contract.
+    /// The parsed JSON ABI of the contract.
     pub static ARBITERMATH_ABI: ::ethers::contract::Lazy<::ethers::core::abi::Abi> =
         ::ethers::contract::Lazy::new(__abi);
     #[rustfmt::skip]
@@ -382,8 +382,9 @@ pub mod arbiter_math {
         }
     }
     impl<M: ::ethers::providers::Middleware> ArbiterMath<M> {
-        /// Creates a new contract instance with the specified `ethers` client at
-        /// `address`. The contract derefs to a `ethers::Contract` object.
+        /// Creates a new contract instance with the specified `ethers` client
+        /// at `address`. The contract derefs to a `ethers::Contract`
+        /// object.
         pub fn new<T: Into<::ethers::core::types::Address>>(
             address: T,
             client: ::std::sync::Arc<M>,
@@ -394,20 +395,25 @@ pub mod arbiter_math {
                 client,
             ))
         }
-        /// Constructs the general purpose `Deployer` instance based on the provided constructor arguments and sends it.
-        /// Returns a new instance of a deployer that returns an instance of this contract after sending the transaction
+        /// Constructs the general purpose `Deployer` instance based on the
+        /// provided constructor arguments and sends it. Returns a new
+        /// instance of a deployer that returns an instance of this contract
+        /// after sending the transaction
         ///
         /// Notes:
-        /// - If there are no constructor arguments, you should pass `()` as the argument.
+        /// - If there are no constructor arguments, you should pass `()` as the
+        ///   argument.
         /// - The default poll duration is 7 seconds.
         /// - The default number of confirmations is 1 block.
         ///
         ///
         /// # Example
         ///
-        /// Generate contract bindings with `abigen!` and deploy a new contract instance.
+        /// Generate contract bindings with `abigen!` and deploy a new contract
+        /// instance.
         ///
-        /// *Note*: this requires a `bytecode` and `abi` object in the `greeter.json` artifact.
+        /// *Note*: this requires a `bytecode` and `abi` object in the
+        /// `greeter.json` artifact.
         ///
         /// ```ignore
         /// # async fn deploy<M: ethers::providers::Middleware>(client: ::std::sync::Arc<M>) {
@@ -433,7 +439,7 @@ pub mod arbiter_math {
             let deployer = ::ethers::contract::ContractDeployer::new(deployer);
             Ok(deployer)
         }
-        ///Calls the contract's `cdf` (0xd0b71b1e) function
+        /// Calls the contract's `cdf` (0xd0b71b1e) function
         pub fn cdf(
             &self,
             input: ::ethers::core::types::I256,
@@ -442,7 +448,7 @@ pub mod arbiter_math {
                 .method_hash([208, 183, 27, 30], input)
                 .expect("method not found (this should never happen)")
         }
-        ///Calls the contract's `divWadDown` (0x37c6a44a) function
+        /// Calls the contract's `divWadDown` (0x37c6a44a) function
         pub fn div_wad_down(
             &self,
             x: ::ethers::core::types::U256,
@@ -452,7 +458,7 @@ pub mod arbiter_math {
                 .method_hash([55, 198, 164, 74], (x, y))
                 .expect("method not found (this should never happen)")
         }
-        ///Calls the contract's `divWadUp` (0xbd252d06) function
+        /// Calls the contract's `divWadUp` (0xbd252d06) function
         pub fn div_wad_up(
             &self,
             x: ::ethers::core::types::U256,
@@ -462,7 +468,7 @@ pub mod arbiter_math {
                 .method_hash([189, 37, 45, 6], (x, y))
                 .expect("method not found (this should never happen)")
         }
-        ///Calls the contract's `invariant` (0x2f59773a) function
+        /// Calls the contract's `invariant` (0x2f59773a) function
         pub fn invariant(
             &self,
             r_y: ::ethers::core::types::U256,
@@ -475,7 +481,7 @@ pub mod arbiter_math {
                 .method_hash([47, 89, 119, 58], (r_y, r_x, stk, vol, tau))
                 .expect("method not found (this should never happen)")
         }
-        ///Calls the contract's `log` (0x2d5b6cb9) function
+        /// Calls the contract's `log` (0x2d5b6cb9) function
         pub fn log(
             &self,
             x: ::ethers::core::types::I256,
@@ -484,7 +490,7 @@ pub mod arbiter_math {
                 .method_hash([45, 91, 108, 185], x)
                 .expect("method not found (this should never happen)")
         }
-        ///Calls the contract's `mulWadDown` (0xe524f849) function
+        /// Calls the contract's `mulWadDown` (0xe524f849) function
         pub fn mul_wad_down(
             &self,
             x: ::ethers::core::types::U256,
@@ -494,7 +500,7 @@ pub mod arbiter_math {
                 .method_hash([229, 36, 248, 73], (x, y))
                 .expect("method not found (this should never happen)")
         }
-        ///Calls the contract's `mulWadUp` (0xae9768a8) function
+        /// Calls the contract's `mulWadUp` (0xae9768a8) function
         pub fn mul_wad_up(
             &self,
             x: ::ethers::core::types::U256,
@@ -504,7 +510,7 @@ pub mod arbiter_math {
                 .method_hash([174, 151, 104, 168], (x, y))
                 .expect("method not found (this should never happen)")
         }
-        ///Calls the contract's `pdf` (0xd24ce6e5) function
+        /// Calls the contract's `pdf` (0xd24ce6e5) function
         pub fn pdf(
             &self,
             input: ::ethers::core::types::I256,
@@ -513,7 +519,7 @@ pub mod arbiter_math {
                 .method_hash([210, 76, 230, 229], input)
                 .expect("method not found (this should never happen)")
         }
-        ///Calls the contract's `ppf` (0x3679723a) function
+        /// Calls the contract's `ppf` (0x3679723a) function
         pub fn ppf(
             &self,
             input: ::ethers::core::types::I256,
@@ -522,7 +528,7 @@ pub mod arbiter_math {
                 .method_hash([54, 121, 114, 58], input)
                 .expect("method not found (this should never happen)")
         }
-        ///Calls the contract's `sqrt` (0x677342ce) function
+        /// Calls the contract's `sqrt` (0x677342ce) function
         pub fn sqrt(
             &self,
             x: ::ethers::core::types::U256,
@@ -537,7 +543,8 @@ pub mod arbiter_math {
             Self::new(contract.address(), contract.client())
         }
     }
-    ///Custom Error type `Infinity` with signature `Infinity()` and selector `0x07a02127`
+    /// Custom Error type `Infinity` with signature `Infinity()` and selector
+    /// `0x07a02127`
     #[derive(
         Clone,
         ::ethers::contract::EthError,
@@ -550,7 +557,7 @@ pub mod arbiter_math {
     )]
     #[etherror(name = "Infinity", abi = "Infinity()")]
     pub struct Infinity;
-    ///Custom Error type `Min` with signature `Min()` and selector `0x4d2d75b1`
+    /// Custom Error type `Min` with signature `Min()` and selector `0x4d2d75b1`
     #[derive(
         Clone,
         ::ethers::contract::EthError,
@@ -563,7 +570,8 @@ pub mod arbiter_math {
     )]
     #[etherror(name = "Min", abi = "Min()")]
     pub struct Min;
-    ///Custom Error type `NegativeInfinity` with signature `NegativeInfinity()` and selector `0x8bb56614`
+    /// Custom Error type `NegativeInfinity` with signature `NegativeInfinity()`
+    /// and selector `0x8bb56614`
     #[derive(
         Clone,
         ::ethers::contract::EthError,
@@ -576,7 +584,7 @@ pub mod arbiter_math {
     )]
     #[etherror(name = "NegativeInfinity", abi = "NegativeInfinity()")]
     pub struct NegativeInfinity;
-    ///Custom Error type `OOB` with signature `OOB()` and selector `0xaaf3956f`
+    /// Custom Error type `OOB` with signature `OOB()` and selector `0xaaf3956f`
     #[derive(
         Clone,
         ::ethers::contract::EthError,
@@ -589,7 +597,8 @@ pub mod arbiter_math {
     )]
     #[etherror(name = "OOB", abi = "OOB()")]
     pub struct OOB;
-    ///Custom Error type `OutOfBounds` with signature `OutOfBounds()` and selector `0xb4120f14`
+    /// Custom Error type `OutOfBounds` with signature `OutOfBounds()` and
+    /// selector `0xb4120f14`
     #[derive(
         Clone,
         ::ethers::contract::EthError,
@@ -602,7 +611,7 @@ pub mod arbiter_math {
     )]
     #[etherror(name = "OutOfBounds", abi = "OutOfBounds()")]
     pub struct OutOfBounds;
-    ///Container type for all of the contract's custom errors
+    /// Container type for all of the contract's custom errors
     #[derive(Clone, ::ethers::contract::EthAbiType, Debug, PartialEq, Eq, Hash)]
     pub enum ArbiterMathErrors {
         Infinity(Infinity),
@@ -712,7 +721,8 @@ pub mod arbiter_math {
             Self::OutOfBounds(value)
         }
     }
-    ///Container type for all input parameters for the `cdf` function with signature `cdf(int256)` and selector `0xd0b71b1e`
+    /// Container type for all input parameters for the `cdf` function with
+    /// signature `cdf(int256)` and selector `0xd0b71b1e`
     #[derive(
         Clone,
         ::ethers::contract::EthCall,
@@ -727,7 +737,8 @@ pub mod arbiter_math {
     pub struct CdfCall {
         pub input: ::ethers::core::types::I256,
     }
-    ///Container type for all input parameters for the `divWadDown` function with signature `divWadDown(uint256,uint256)` and selector `0x37c6a44a`
+    /// Container type for all input parameters for the `divWadDown` function
+    /// with signature `divWadDown(uint256,uint256)` and selector `0x37c6a44a`
     #[derive(
         Clone,
         ::ethers::contract::EthCall,
@@ -743,7 +754,8 @@ pub mod arbiter_math {
         pub x: ::ethers::core::types::U256,
         pub y: ::ethers::core::types::U256,
     }
-    ///Container type for all input parameters for the `divWadUp` function with signature `divWadUp(uint256,uint256)` and selector `0xbd252d06`
+    /// Container type for all input parameters for the `divWadUp` function with
+    /// signature `divWadUp(uint256,uint256)` and selector `0xbd252d06`
     #[derive(
         Clone,
         ::ethers::contract::EthCall,
@@ -759,7 +771,9 @@ pub mod arbiter_math {
         pub x: ::ethers::core::types::U256,
         pub y: ::ethers::core::types::U256,
     }
-    ///Container type for all input parameters for the `invariant` function with signature `invariant(uint256,uint256,uint256,uint256,uint256)` and selector `0x2f59773a`
+    /// Container type for all input parameters for the `invariant` function
+    /// with signature `invariant(uint256,uint256,uint256,uint256,uint256)` and
+    /// selector `0x2f59773a`
     #[derive(
         Clone,
         ::ethers::contract::EthCall,
@@ -781,7 +795,8 @@ pub mod arbiter_math {
         pub vol: ::ethers::core::types::U256,
         pub tau: ::ethers::core::types::U256,
     }
-    ///Container type for all input parameters for the `log` function with signature `log(int256)` and selector `0x2d5b6cb9`
+    /// Container type for all input parameters for the `log` function with
+    /// signature `log(int256)` and selector `0x2d5b6cb9`
     #[derive(
         Clone,
         ::ethers::contract::EthCall,
@@ -796,7 +811,8 @@ pub mod arbiter_math {
     pub struct LogCall {
         pub x: ::ethers::core::types::I256,
     }
-    ///Container type for all input parameters for the `mulWadDown` function with signature `mulWadDown(uint256,uint256)` and selector `0xe524f849`
+    /// Container type for all input parameters for the `mulWadDown` function
+    /// with signature `mulWadDown(uint256,uint256)` and selector `0xe524f849`
     #[derive(
         Clone,
         ::ethers::contract::EthCall,
@@ -812,7 +828,8 @@ pub mod arbiter_math {
         pub x: ::ethers::core::types::U256,
         pub y: ::ethers::core::types::U256,
     }
-    ///Container type for all input parameters for the `mulWadUp` function with signature `mulWadUp(uint256,uint256)` and selector `0xae9768a8`
+    /// Container type for all input parameters for the `mulWadUp` function with
+    /// signature `mulWadUp(uint256,uint256)` and selector `0xae9768a8`
     #[derive(
         Clone,
         ::ethers::contract::EthCall,
@@ -828,7 +845,8 @@ pub mod arbiter_math {
         pub x: ::ethers::core::types::U256,
         pub y: ::ethers::core::types::U256,
     }
-    ///Container type for all input parameters for the `pdf` function with signature `pdf(int256)` and selector `0xd24ce6e5`
+    /// Container type for all input parameters for the `pdf` function with
+    /// signature `pdf(int256)` and selector `0xd24ce6e5`
     #[derive(
         Clone,
         ::ethers::contract::EthCall,
@@ -843,7 +861,8 @@ pub mod arbiter_math {
     pub struct PdfCall {
         pub input: ::ethers::core::types::I256,
     }
-    ///Container type for all input parameters for the `ppf` function with signature `ppf(int256)` and selector `0x3679723a`
+    /// Container type for all input parameters for the `ppf` function with
+    /// signature `ppf(int256)` and selector `0x3679723a`
     #[derive(
         Clone,
         ::ethers::contract::EthCall,
@@ -858,7 +877,8 @@ pub mod arbiter_math {
     pub struct PpfCall {
         pub input: ::ethers::core::types::I256,
     }
-    ///Container type for all input parameters for the `sqrt` function with signature `sqrt(uint256)` and selector `0x677342ce`
+    /// Container type for all input parameters for the `sqrt` function with
+    /// signature `sqrt(uint256)` and selector `0x677342ce`
     #[derive(
         Clone,
         ::ethers::contract::EthCall,
@@ -873,7 +893,7 @@ pub mod arbiter_math {
     pub struct SqrtCall {
         pub x: ::ethers::core::types::U256,
     }
-    ///Container type for all of the contract's call
+    /// Container type for all of the contract's call
     #[derive(Clone, ::ethers::contract::EthAbiType, Debug, PartialEq, Eq, Hash)]
     pub enum ArbiterMathCalls {
         Cdf(CdfCall),
@@ -1007,7 +1027,8 @@ pub mod arbiter_math {
             Self::Sqrt(value)
         }
     }
-    ///Container type for all return fields from the `cdf` function with signature `cdf(int256)` and selector `0xd0b71b1e`
+    /// Container type for all return fields from the `cdf` function with
+    /// signature `cdf(int256)` and selector `0xd0b71b1e`
     #[derive(
         Clone,
         ::ethers::contract::EthAbiType,
@@ -1021,7 +1042,8 @@ pub mod arbiter_math {
     pub struct CdfReturn {
         pub output: ::ethers::core::types::I256,
     }
-    ///Container type for all return fields from the `divWadDown` function with signature `divWadDown(uint256,uint256)` and selector `0x37c6a44a`
+    /// Container type for all return fields from the `divWadDown` function with
+    /// signature `divWadDown(uint256,uint256)` and selector `0x37c6a44a`
     #[derive(
         Clone,
         ::ethers::contract::EthAbiType,
@@ -1035,7 +1057,8 @@ pub mod arbiter_math {
     pub struct DivWadDownReturn {
         pub z: ::ethers::core::types::U256,
     }
-    ///Container type for all return fields from the `divWadUp` function with signature `divWadUp(uint256,uint256)` and selector `0xbd252d06`
+    /// Container type for all return fields from the `divWadUp` function with
+    /// signature `divWadUp(uint256,uint256)` and selector `0xbd252d06`
     #[derive(
         Clone,
         ::ethers::contract::EthAbiType,
@@ -1049,7 +1072,9 @@ pub mod arbiter_math {
     pub struct DivWadUpReturn {
         pub z: ::ethers::core::types::U256,
     }
-    ///Container type for all return fields from the `invariant` function with signature `invariant(uint256,uint256,uint256,uint256,uint256)` and selector `0x2f59773a`
+    /// Container type for all return fields from the `invariant` function with
+    /// signature `invariant(uint256,uint256,uint256,uint256,uint256)` and
+    /// selector `0x2f59773a`
     #[derive(
         Clone,
         ::ethers::contract::EthAbiType,
@@ -1063,7 +1088,8 @@ pub mod arbiter_math {
     pub struct InvariantReturn {
         pub k: ::ethers::core::types::I256,
     }
-    ///Container type for all return fields from the `log` function with signature `log(int256)` and selector `0x2d5b6cb9`
+    /// Container type for all return fields from the `log` function with
+    /// signature `log(int256)` and selector `0x2d5b6cb9`
     #[derive(
         Clone,
         ::ethers::contract::EthAbiType,
@@ -1077,7 +1103,8 @@ pub mod arbiter_math {
     pub struct LogReturn {
         pub z: ::ethers::core::types::I256,
     }
-    ///Container type for all return fields from the `mulWadDown` function with signature `mulWadDown(uint256,uint256)` and selector `0xe524f849`
+    /// Container type for all return fields from the `mulWadDown` function with
+    /// signature `mulWadDown(uint256,uint256)` and selector `0xe524f849`
     #[derive(
         Clone,
         ::ethers::contract::EthAbiType,
@@ -1091,7 +1118,8 @@ pub mod arbiter_math {
     pub struct MulWadDownReturn {
         pub z: ::ethers::core::types::U256,
     }
-    ///Container type for all return fields from the `mulWadUp` function with signature `mulWadUp(uint256,uint256)` and selector `0xae9768a8`
+    /// Container type for all return fields from the `mulWadUp` function with
+    /// signature `mulWadUp(uint256,uint256)` and selector `0xae9768a8`
     #[derive(
         Clone,
         ::ethers::contract::EthAbiType,
@@ -1105,7 +1133,8 @@ pub mod arbiter_math {
     pub struct MulWadUpReturn {
         pub z: ::ethers::core::types::U256,
     }
-    ///Container type for all return fields from the `pdf` function with signature `pdf(int256)` and selector `0xd24ce6e5`
+    /// Container type for all return fields from the `pdf` function with
+    /// signature `pdf(int256)` and selector `0xd24ce6e5`
     #[derive(
         Clone,
         ::ethers::contract::EthAbiType,
@@ -1119,7 +1148,8 @@ pub mod arbiter_math {
     pub struct PdfReturn {
         pub output: ::ethers::core::types::I256,
     }
-    ///Container type for all return fields from the `ppf` function with signature `ppf(int256)` and selector `0x3679723a`
+    /// Container type for all return fields from the `ppf` function with
+    /// signature `ppf(int256)` and selector `0x3679723a`
     #[derive(
         Clone,
         ::ethers::contract::EthAbiType,
@@ -1133,7 +1163,8 @@ pub mod arbiter_math {
     pub struct PpfReturn {
         pub output: ::ethers::core::types::I256,
     }
-    ///Container type for all return fields from the `sqrt` function with signature `sqrt(uint256)` and selector `0x677342ce`
+    /// Container type for all return fields from the `sqrt` function with
+    /// signature `sqrt(uint256)` and selector `0x677342ce`
     #[derive(
         Clone,
         ::ethers::contract::EthAbiType,

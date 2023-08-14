@@ -58,8 +58,8 @@ impl Agent<NotAttached> {
     }
 }
 
-// TODO: Note -- Artemis uses a `process_event` function that returns an `Option<Action>` for something to happen.
-// https://github.com/paradigmxyz/artemis/blob/c8ab223a363a875f685ab177839eacfffc9d8de0/crates/artemis-core/src/types.rs#L25
+// TODO: Note -- Artemis uses a `process_event` function that returns an
+// `Option<Action>` for something to happen. https://github.com/paradigmxyz/artemis/blob/c8ab223a363a875f685ab177839eacfffc9d8de0/crates/artemis-core/src/types.rs#L25
 #[async_trait::async_trait]
 pub trait Behavior: Send + Sync {
     async fn process_event(&mut self) -> bool;

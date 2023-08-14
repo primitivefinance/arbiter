@@ -38,7 +38,6 @@ use crate::{
     environment::{Environment, EventBroadcaster, ResultReceiver, ResultSender, TxSender},
 };
 
-
 #[derive(Debug)]
 pub struct RevmMiddleware {
     provider: Provider<Connection>,
@@ -130,8 +129,9 @@ impl Middleware for RevmMiddleware {
     ) -> Result<PendingTransaction<'_, Self::Provider>, Self::Error> {
         let tx: TypedTransaction = tx.into();
 
-        // Check the `to` field of the transaction to determine if it is a call or a deploy.
-        // If there is no `to` field, then it is a `Deploy` else it is a `Call`.
+        // Check the `to` field of the transaction to determine if it is a call or a
+        // deploy. If there is no `to` field, then it is a `Deploy` else it is a
+        // `Call`.
         let transact_to = match tx.to_addr() {
             Some(to) => TransactTo::Call(B160::from(*to)),
             None => TransactTo::Create(CreateScheme::Create),
@@ -211,8 +211,9 @@ impl Middleware for RevmMiddleware {
     ) -> Result<Bytes, Self::Error> {
         let tx = tx.clone();
 
-        // Check the `to` field of the transaction to determine if it is a call or a deploy.
-        // If there is no `to` field, then it is a `Deploy` else it is a `Call`.
+        // Check the `to` field of the transaction to determine if it is a call or a
+        // deploy. If there is no `to` field, then it is a `Deploy` else it is a
+        // `Call`.
         let transact_to = match tx.to_addr() {
             Some(to) => TransactTo::Call(B160::from(*to)),
             None => TransactTo::Create(CreateScheme::Create),
@@ -443,8 +444,9 @@ fn unpack_execution_result(
     }
 }
 
-// TODO: These below could possibly be replaced by the relevant From<> or Into<> trait impls but we run into the orphan rule.
-// This may not be worthwhile given the release of Alloy
+// TODO: These below could possibly be replaced by the relevant From<> or Into<>
+// trait impls but we run into the orphan rule. This may not be worthwhile given
+// the release of Alloy
 
 // Certainly will go away with alloy-types
 /// Recast a B160 into an Address type
@@ -460,7 +462,7 @@ fn recast_address(address: B160) -> Address {
 
 /// Recast a B256 into an H256 type
 /// # Arguments
-/// * `input` - B256 to recast. (B256)  
+/// * `input` - B256 to recast. (B256)
 /// # Returns
 /// * `H256` - Recasted H256.
 #[inline]

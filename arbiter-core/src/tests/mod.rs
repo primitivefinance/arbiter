@@ -27,7 +27,7 @@ pub const TEST_MINT_AMOUNT: u128 = 69;
 pub const TEST_MINT_TO: &str = "0xf7e93cc543d97af6632c9b8864417379dba4bf15";
 pub const TEST_APPROVAL_AMOUNT: u128 = 420;
 
-//TODO: Send a tx before and after pausing the environment.
+// TODO: Send a tx before and after pausing the environment.
 
 async fn deploy_and_start() -> Result<(ArbiterToken<RevmMiddleware>, Environment)> {
     let mut environment = Environment::new(TEST_ENV_LABEL, 1.0, 1);
