@@ -1,20 +1,18 @@
+use std::sync::Arc;
+
 use super::*;
 
-#[test]
-fn attach_agent() {
-    let environment = &mut Environment::new(TEST_ENV_LABEL, 1.0, 1);
-    let agent = Agent::new(TEST_AGENT_NAME);
-    agent.attach_to_environment(environment);
-    assert_eq!(environment.agents[0].name, TEST_AGENT_NAME);
-}
+const TEST_AGENT_NAME: &str = "test_agent";
 
 #[test]
 fn simulation_agent_wallet() {
     let environment = &mut Environment::new(TEST_ENV_LABEL, 1.0, 1);
-    let agent = Agent::new(TEST_AGENT_NAME);
-    agent.attach_to_environment(environment);
+    let client_with_signer = Arc::new(RevmMiddleware::new(
+        environment,
+        Some(TEST_AGENT_NAME.to_string()),
+    ));
     assert_eq!(
-        environment.agents[0].client.default_sender().unwrap(),
+        client_with_signer.default_sender().unwrap(),
         Address::from_str("0x09e12ce98726acd515b68f87f49dc2e5558f6a72").unwrap()
     );
 }
@@ -22,13 +20,11 @@ fn simulation_agent_wallet() {
 #[test]
 fn multiple_agent_addresses() {
     let environment = &mut Environment::new(TEST_ENV_LABEL, 1.0, 1);
-    let agent = Agent::new(TEST_AGENT_NAME);
-    agent.attach_to_environment(environment);
-    let agent2 = Agent::new(format!("new_{}", TEST_AGENT_NAME));
-    agent2.attach_to_environment(environment);
+    let client_1_with_signer = Arc::new(RevmMiddleware::new(environment, Some("0".to_string())));
+    let client_2_with_signer = Arc::new(RevmMiddleware::new(environment, Some("1".to_string())));
     assert_ne!(
-        environment.agents[0].client.default_sender(),
-        environment.agents[1].client.default_sender()
+        client_1_with_signer.default_sender(),
+        client_2_with_signer.default_sender()
     );
 }
 

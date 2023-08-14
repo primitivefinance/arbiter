@@ -1,9 +1,11 @@
 #![allow(missing_docs)]
 
 // mod interaction;
+mod interaction;
 mod management;
+mod strategies;
 
-use std::str::FromStr;
+use std::{str::FromStr, sync::Arc};
 
 use anyhow::{Ok, Result};
 use ethers::{
@@ -29,23 +31,29 @@ pub const TEST_APPROVAL_AMOUNT: u128 = 420;
 
 //TODO: Send a tx before and after pausing the environment.
 
-// async fn deploy_and_start() -> Result<(ArbiterToken<RevmMiddleware>, Environment)> {
-//     let mut environment = Environment::new(TEST_ENV_LABEL, 1.0, 1);
-//     let agent = Agent::new(TEST_AGENT_NAME);
-//     agent.attach_to_environment(&mut environment);
-//     environment.run();
-//     Ok((
-//         ArbiterToken::deploy(
-//             environment.agents[0].client.clone(),
-//             (
-//                 TEST_ARG_NAME.to_string(),
-//                 TEST_ARG_SYMBOL.to_string(),
-//                 TEST_ARG_DECIMALS,
-//             ),
-//         )?
-//         .send()
-//         .await
-//         .unwrap(),
-//         environment,
-//     ))
-// }
+async fn deploy_and_start() -> Result<(
+    ArbiterToken<RevmMiddleware>,
+    Environment,
+    Arc<RevmMiddleware>,
+)> {
+    let mut environment = Environment::new(TEST_ENV_LABEL, 1.0, 1);
+
+    let signer = Arc::new(RevmMiddleware::new(&environment, Some("0".to_string())));
+
+    environment.run();
+    Ok((
+        ArbiterToken::deploy(
+            signer.clone(),
+            (
+                TEST_ARG_NAME.to_string(),
+                TEST_ARG_SYMBOL.to_string(),
+                TEST_ARG_DECIMALS,
+            ),
+        )?
+        .send()
+        .await
+        .unwrap(),
+        environment,
+        signer,
+    ))
+}
