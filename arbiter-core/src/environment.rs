@@ -99,10 +99,11 @@ use crate::manager::Manager;
 /// ## Controlling Block Rate
 /// The blocks for the [`Environment`] are chosen using a Poisson distribution
 /// via the [`SeededPoisson`] field. The idea is that we can choose a rate
-/// paramater, typically denoted by $\lambda$, and set this to be the expected
-/// number of transactions per block while allowing blocks to be built with
-/// random size. This is useful in stepping forward the [`EVM`] and being able
-/// to move time forward for contracts that depend explicitly on time.
+/// paramater, typically denoted by the Greek letter lambda, and set this to be
+/// the expected number of transactions per block while allowing blocks to be
+/// built with random size. This is useful in stepping forward the [`EVM`] and
+/// being able to move time forward for contracts that depend explicitly on
+/// time.
 pub struct Environment {
     /// A label for the [`Environment`].
     /// Used to allow the [`Manager`] to locate the [`Environment`] in order to
