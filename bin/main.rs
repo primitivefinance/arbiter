@@ -34,7 +34,8 @@ struct Args {
     command: Option<Commands>,
 }
 
-/// Errors that can occur while reading or parsing a configuration file.
+/// `ConfigurationError` enumeration type for errors parsing a `.toml`
+/// configuration file.
 #[derive(Error, Debug)]
 pub enum ConfigurationError {
     /// Indicates that the configuration file could not be read from the given path.

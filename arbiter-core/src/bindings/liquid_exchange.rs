@@ -198,7 +198,7 @@ pub mod liquid_exchange {
             fallback: false,
         }
     }
-    ///The parsed JSON ABI of the contract.
+    /// The parsed JSON ABI of the contract.
     pub static LIQUIDEXCHANGE_ABI: ::ethers::contract::Lazy<::ethers::core::abi::Abi> =
         ::ethers::contract::Lazy::new(__abi);
     #[rustfmt::skip]
@@ -236,8 +236,9 @@ pub mod liquid_exchange {
         }
     }
     impl<M: ::ethers::providers::Middleware> LiquidExchange<M> {
-        /// Creates a new contract instance with the specified `ethers` client at
-        /// `address`. The contract derefs to a `ethers::Contract` object.
+        /// Creates a new contract instance with the specified `ethers` client
+        /// at `address`. The contract derefs to a `ethers::Contract`
+        /// object.
         pub fn new<T: Into<::ethers::core::types::Address>>(
             address: T,
             client: ::std::sync::Arc<M>,
@@ -248,20 +249,25 @@ pub mod liquid_exchange {
                 client,
             ))
         }
-        /// Constructs the general purpose `Deployer` instance based on the provided constructor arguments and sends it.
-        /// Returns a new instance of a deployer that returns an instance of this contract after sending the transaction
+        /// Constructs the general purpose `Deployer` instance based on the
+        /// provided constructor arguments and sends it. Returns a new
+        /// instance of a deployer that returns an instance of this contract
+        /// after sending the transaction
         ///
         /// Notes:
-        /// - If there are no constructor arguments, you should pass `()` as the argument.
+        /// - If there are no constructor arguments, you should pass `()` as the
+        ///   argument.
         /// - The default poll duration is 7 seconds.
         /// - The default number of confirmations is 1 block.
         ///
         ///
         /// # Example
         ///
-        /// Generate contract bindings with `abigen!` and deploy a new contract instance.
+        /// Generate contract bindings with `abigen!` and deploy a new contract
+        /// instance.
         ///
-        /// *Note*: this requires a `bytecode` and `abi` object in the `greeter.json` artifact.
+        /// *Note*: this requires a `bytecode` and `abi` object in the
+        /// `greeter.json` artifact.
         ///
         /// ```ignore
         /// # async fn deploy<M: ethers::providers::Middleware>(client: ::std::sync::Arc<M>) {
@@ -287,7 +293,7 @@ pub mod liquid_exchange {
             let deployer = ::ethers::contract::ContractDeployer::new(deployer);
             Ok(deployer)
         }
-        ///Calls the contract's `admin` (0xf851a440) function
+        /// Calls the contract's `admin` (0xf851a440) function
         pub fn admin(
             &self,
         ) -> ::ethers::contract::builders::ContractCall<M, ::ethers::core::types::Address> {
@@ -295,7 +301,7 @@ pub mod liquid_exchange {
                 .method_hash([248, 81, 164, 64], ())
                 .expect("method not found (this should never happen)")
         }
-        ///Calls the contract's `arbiterTokenX` (0x3b204948) function
+        /// Calls the contract's `arbiterTokenX` (0x3b204948) function
         pub fn arbiter_token_x(
             &self,
         ) -> ::ethers::contract::builders::ContractCall<M, ::ethers::core::types::Address> {
@@ -303,7 +309,7 @@ pub mod liquid_exchange {
                 .method_hash([59, 32, 73, 72], ())
                 .expect("method not found (this should never happen)")
         }
-        ///Calls the contract's `arbiterTokenY` (0xd0c472ec) function
+        /// Calls the contract's `arbiterTokenY` (0xd0c472ec) function
         pub fn arbiter_token_y(
             &self,
         ) -> ::ethers::contract::builders::ContractCall<M, ::ethers::core::types::Address> {
@@ -311,7 +317,7 @@ pub mod liquid_exchange {
                 .method_hash([208, 196, 114, 236], ())
                 .expect("method not found (this should never happen)")
         }
-        ///Calls the contract's `price` (0xa035b1fe) function
+        /// Calls the contract's `price` (0xa035b1fe) function
         pub fn price(
             &self,
         ) -> ::ethers::contract::builders::ContractCall<M, ::ethers::core::types::U256> {
@@ -319,7 +325,7 @@ pub mod liquid_exchange {
                 .method_hash([160, 53, 177, 254], ())
                 .expect("method not found (this should never happen)")
         }
-        ///Calls the contract's `setPrice` (0x91b7f5ed) function
+        /// Calls the contract's `setPrice` (0x91b7f5ed) function
         pub fn set_price(
             &self,
             price: ::ethers::core::types::U256,
@@ -328,7 +334,7 @@ pub mod liquid_exchange {
                 .method_hash([145, 183, 245, 237], price)
                 .expect("method not found (this should never happen)")
         }
-        ///Calls the contract's `swap` (0xd004f0f7) function
+        /// Calls the contract's `swap` (0xd004f0f7) function
         pub fn swap(
             &self,
             token_in: ::ethers::core::types::Address,
@@ -338,14 +344,14 @@ pub mod liquid_exchange {
                 .method_hash([208, 4, 240, 247], (token_in, amount_in))
                 .expect("method not found (this should never happen)")
         }
-        ///Gets the contract's `PriceChange` event
+        /// Gets the contract's `PriceChange` event
         pub fn price_change_filter(
             &self,
         ) -> ::ethers::contract::builders::Event<::std::sync::Arc<M>, M, PriceChangeFilter>
         {
             self.0.event()
         }
-        ///Gets the contract's `Swap` event
+        /// Gets the contract's `Swap` event
         pub fn swap_filter(
             &self,
         ) -> ::ethers::contract::builders::Event<::std::sync::Arc<M>, M, SwapFilter> {
@@ -399,7 +405,7 @@ pub mod liquid_exchange {
         pub amount_out: ::ethers::core::types::U256,
         pub to: ::ethers::core::types::Address,
     }
-    ///Container type for all of the contract's events
+    /// Container type for all of the contract's events
     #[derive(Clone, ::ethers::contract::EthAbiType, Debug, PartialEq, Eq, Hash)]
     pub enum LiquidExchangeEvents {
         PriceChangeFilter(PriceChangeFilter),
@@ -436,7 +442,8 @@ pub mod liquid_exchange {
             Self::SwapFilter(value)
         }
     }
-    ///Container type for all input parameters for the `admin` function with signature `admin()` and selector `0xf851a440`
+    /// Container type for all input parameters for the `admin` function with
+    /// signature `admin()` and selector `0xf851a440`
     #[derive(
         Clone,
         ::ethers::contract::EthCall,
@@ -449,7 +456,8 @@ pub mod liquid_exchange {
     )]
     #[ethcall(name = "admin", abi = "admin()")]
     pub struct AdminCall;
-    ///Container type for all input parameters for the `arbiterTokenX` function with signature `arbiterTokenX()` and selector `0x3b204948`
+    /// Container type for all input parameters for the `arbiterTokenX` function
+    /// with signature `arbiterTokenX()` and selector `0x3b204948`
     #[derive(
         Clone,
         ::ethers::contract::EthCall,
@@ -462,7 +470,8 @@ pub mod liquid_exchange {
     )]
     #[ethcall(name = "arbiterTokenX", abi = "arbiterTokenX()")]
     pub struct ArbiterTokenXCall;
-    ///Container type for all input parameters for the `arbiterTokenY` function with signature `arbiterTokenY()` and selector `0xd0c472ec`
+    /// Container type for all input parameters for the `arbiterTokenY` function
+    /// with signature `arbiterTokenY()` and selector `0xd0c472ec`
     #[derive(
         Clone,
         ::ethers::contract::EthCall,
@@ -475,7 +484,8 @@ pub mod liquid_exchange {
     )]
     #[ethcall(name = "arbiterTokenY", abi = "arbiterTokenY()")]
     pub struct ArbiterTokenYCall;
-    ///Container type for all input parameters for the `price` function with signature `price()` and selector `0xa035b1fe`
+    /// Container type for all input parameters for the `price` function with
+    /// signature `price()` and selector `0xa035b1fe`
     #[derive(
         Clone,
         ::ethers::contract::EthCall,
@@ -488,7 +498,8 @@ pub mod liquid_exchange {
     )]
     #[ethcall(name = "price", abi = "price()")]
     pub struct PriceCall;
-    ///Container type for all input parameters for the `setPrice` function with signature `setPrice(uint256)` and selector `0x91b7f5ed`
+    /// Container type for all input parameters for the `setPrice` function with
+    /// signature `setPrice(uint256)` and selector `0x91b7f5ed`
     #[derive(
         Clone,
         ::ethers::contract::EthCall,
@@ -503,7 +514,8 @@ pub mod liquid_exchange {
     pub struct SetPriceCall {
         pub price: ::ethers::core::types::U256,
     }
-    ///Container type for all input parameters for the `swap` function with signature `swap(address,uint256)` and selector `0xd004f0f7`
+    /// Container type for all input parameters for the `swap` function with
+    /// signature `swap(address,uint256)` and selector `0xd004f0f7`
     #[derive(
         Clone,
         ::ethers::contract::EthCall,
@@ -519,7 +531,7 @@ pub mod liquid_exchange {
         pub token_in: ::ethers::core::types::Address,
         pub amount_in: ::ethers::core::types::U256,
     }
-    ///Container type for all of the contract's call
+    /// Container type for all of the contract's call
     #[derive(Clone, ::ethers::contract::EthAbiType, Debug, PartialEq, Eq, Hash)]
     pub enum LiquidExchangeCalls {
         Admin(AdminCall),
@@ -611,7 +623,8 @@ pub mod liquid_exchange {
             Self::Swap(value)
         }
     }
-    ///Container type for all return fields from the `admin` function with signature `admin()` and selector `0xf851a440`
+    /// Container type for all return fields from the `admin` function with
+    /// signature `admin()` and selector `0xf851a440`
     #[derive(
         Clone,
         ::ethers::contract::EthAbiType,
@@ -623,7 +636,8 @@ pub mod liquid_exchange {
         Hash,
     )]
     pub struct AdminReturn(pub ::ethers::core::types::Address);
-    ///Container type for all return fields from the `arbiterTokenX` function with signature `arbiterTokenX()` and selector `0x3b204948`
+    /// Container type for all return fields from the `arbiterTokenX` function
+    /// with signature `arbiterTokenX()` and selector `0x3b204948`
     #[derive(
         Clone,
         ::ethers::contract::EthAbiType,
@@ -635,7 +649,8 @@ pub mod liquid_exchange {
         Hash,
     )]
     pub struct ArbiterTokenXReturn(pub ::ethers::core::types::Address);
-    ///Container type for all return fields from the `arbiterTokenY` function with signature `arbiterTokenY()` and selector `0xd0c472ec`
+    /// Container type for all return fields from the `arbiterTokenY` function
+    /// with signature `arbiterTokenY()` and selector `0xd0c472ec`
     #[derive(
         Clone,
         ::ethers::contract::EthAbiType,
@@ -647,7 +662,8 @@ pub mod liquid_exchange {
         Hash,
     )]
     pub struct ArbiterTokenYReturn(pub ::ethers::core::types::Address);
-    ///Container type for all return fields from the `price` function with signature `price()` and selector `0xa035b1fe`
+    /// Container type for all return fields from the `price` function with
+    /// signature `price()` and selector `0xa035b1fe`
     #[derive(
         Clone,
         ::ethers::contract::EthAbiType,
