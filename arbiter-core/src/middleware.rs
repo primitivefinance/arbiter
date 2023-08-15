@@ -425,7 +425,7 @@ impl Middleware for RevmMiddleware {
         );
         let hash = hasher.finalize();
         let id = ethers::types::U256::from(ethers::types::H256::from_slice(&hash).as_bytes());
-        let (event_sender, event_receiver) = crossbeam_channel::unbounded();
+        let (event_sender, event_receiver) = crossbeam_channel::unbounded::<Vec<revm::primitives::Log>>();
         let filter_receiver = FilterReceiver {
             filter,
             receiver: event_receiver,
@@ -534,7 +534,8 @@ impl JsonRpcClient for Connection {
                 let mut logs = vec![];
                 let filtered_params = FilteredParams::new(Some(filter_receiver.filter.clone()));
                 while let Ok(received_logs) = filter_receiver.receiver.recv() {
-                    for log in received_logs {
+                    let ethers_logs = revm_logs_to_ethers_logs(received_logs);
+                    for log in ethers_logs {
                         if filtered_params.filter_address(&log)
                             && filtered_params.filter_topics(&log)
                         {
@@ -568,7 +569,7 @@ pub(crate) struct FilterReceiver {
 
     /// The receiver for the channel that receives logs from the broadcaster.
     /// These are filtered upon reception.
-    pub(crate) receiver: crossbeam_channel::Receiver<Vec<ethers::types::Log>>,
+    pub(crate) receiver: crossbeam_channel::Receiver<Vec<revm::primitives::Log>>,
 }
 
 /// Contains the result of a successful transaction execution.
@@ -651,7 +652,7 @@ fn recast_b256(input: revm::primitives::B256) -> ethers::types::H256 {
 /// converts each log entry to the corresponding format used by the `ethers-rs`
 /// library.
 #[inline]
-pub(crate) fn revm_logs_to_ethers_logs(
+fn revm_logs_to_ethers_logs(
     revm_logs: Vec<revm::primitives::Log>,
 ) -> Vec<ethers::core::types::Log> {
     let mut logs: Vec<ethers::core::types::Log> = vec![];

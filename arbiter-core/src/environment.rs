@@ -27,11 +27,11 @@ use std::{
 };
 
 use crossbeam_channel::{unbounded, Receiver, Sender};
-use ethers::{core::types::U64, types::Log};
+use ethers::core::types::U64;
 use log::error;
 use revm::{
     db::{CacheDB, EmptyDB},
-    primitives::{EVMError, ExecutionResult, TxEnv, U256},
+    primitives::{EVMError, ExecutionResult, TxEnv, U256, Log},
     EVM,
 };
 use thiserror::Error;
@@ -345,9 +345,7 @@ impl Environment {
                                     }
                                 })?;
                                 event_broadcaster.broadcast(
-                                    crate::middleware::revm_logs_to_ethers_logs(
-                                        execution_result.logs(),
-                                    ),
+                                        execution_result.logs()
                                 )?;
                                 let revm_result = RevmResult {
                                     result: execution_result,
