@@ -21,11 +21,7 @@ use revm::{
 };
 use thiserror::Error;
 
-use crate::{
-    agent::{Agent, IsAttached, NotAttached},
-    math::*,
-    middleware::RevmMiddleware,
-};
+use crate::{math::*, middleware::RevmMiddleware};
 
 pub(crate) type ToTransact = bool;
 pub(crate) type ResultSender = Sender<RevmResult>;
@@ -39,7 +35,6 @@ pub struct Environment {
     pub(crate) state: Arc<AtomicState>,
     pub(crate) evm: EVM<CacheDB<EmptyDB>>,
     pub(crate) socket: Socket,
-    pub agents: Vec<Agent<IsAttached<RevmMiddleware>>>,
     pub seeded_poisson: SeededPoisson,
     pub(crate) handle: Option<JoinHandle<Result<(), EnvironmentError>>>,
     pub(crate) pausevar: Arc<(Mutex<()>, Condvar)>,
@@ -82,15 +77,10 @@ impl Environment {
             state: Arc::new(AtomicState::new(State::Initialization)),
             evm,
             socket,
-            agents: vec![],
             seeded_poisson,
             handle: None,
             pausevar: Arc::new((Mutex::new(()), Condvar::new())),
         }
-    }
-
-    pub fn add_agent(&mut self, agent: Agent<NotAttached>) {
-        agent.attach_to_environment(self);
     }
 
     pub(crate) fn run(&mut self) {
