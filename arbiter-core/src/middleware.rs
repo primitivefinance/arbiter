@@ -39,7 +39,6 @@ use crate::{
     environment::{Environment, EventBroadcaster, ResultReceiver, ResultSender, TxSender},
 };
 
-
 #[derive(Debug)]
 pub struct RevmMiddleware {
     provider: Provider<Connection>,
@@ -155,13 +154,13 @@ impl Middleware for RevmMiddleware {
                     .ok_or(RevmMiddlewareError::MissingDataError {
                         cause: "Data missing in transaction!".to_string(),
                     })?
-                    .clone()
                     .to_vec(),
             ),
             chain_id: None,
             nonce: None,
             access_list: Vec::new(),
         };
+        println!("gotten past creating txenv");
         self.provider()
             .as_ref()
             .tx_sender
@@ -173,7 +172,7 @@ impl Middleware for RevmMiddleware {
             .map_err(|e| RevmMiddlewareError::SendError {
                 cause: e.to_string(),
             })?;
-
+        println!("sent to provider");
         let revm_result = self
             .provider()
             .as_ref()
@@ -236,7 +235,6 @@ impl Middleware for RevmMiddleware {
                     .ok_or(RevmMiddlewareError::MissingDataError {
                         cause: "Data missing in transaction!".to_string(),
                     })?
-                    .clone()
                     .to_vec(),
             ),
             chain_id: None,
