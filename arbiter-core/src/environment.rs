@@ -60,9 +60,7 @@ impl Environment {
         let mut evm = EVM::new();
         let db = CacheDB::new(EmptyDB {});
         evm.database(db);
-
         let seeded_poisson = SeededPoisson::new(block_rate, seed);
-
         evm.env.cfg.limit_contract_code_size = Some(0x100000); // This is a large contract size limit, beware!
         evm.env.block.gas_limit = U256::MAX;
 
@@ -92,7 +90,7 @@ impl Environment {
 
         let mut seeded_poisson = self.seeded_poisson.clone();
 
-        let mut counter: u64 = 0;
+        let mut counter: usize = 0;
         self.state
             .store(State::Running, std::sync::atomic::Ordering::Relaxed);
         let state = Arc::clone(&self.state);

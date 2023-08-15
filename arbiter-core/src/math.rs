@@ -23,8 +23,8 @@ impl SeededPoisson {
         Self { distribution, rng }
     }
 
-    pub fn sample(&mut self) -> u64 {
-        self.distribution.sample(&mut self.rng) as u64
+    pub fn sample(&mut self) -> usize {
+        self.distribution.sample(&mut self.rng) as usize
     }
 }
 
