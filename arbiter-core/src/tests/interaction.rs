@@ -1,7 +1,7 @@
 use super::*;
 
 #[tokio::test]
-async fn test_deploy() -> Result<()> {
+async fn deploy() -> Result<()> {
     let (arbiter_token, _environment, _) = deploy_and_start().await?;
     println!("{:?}", arbiter_token);
     assert_eq!(

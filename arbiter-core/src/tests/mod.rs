@@ -14,7 +14,6 @@ use ethers::{
 };
 
 use crate::{
-    // agent::{tests::TEST_AGENT_NAME, *},
     bindings::arbiter_token::*,
     environment::{tests::TEST_ENV_LABEL, *},
     manager::*,
