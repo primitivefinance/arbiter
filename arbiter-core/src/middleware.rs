@@ -34,10 +34,7 @@ use revm::primitives::{CreateScheme, ExecutionResult, Output, TransactTo, TxEnv,
 use serde::{de::DeserializeOwned, Serialize};
 use thiserror::Error;
 
-use crate::{
-    // agent::{Agent, NotAttached},
-    environment::{Environment, EventBroadcaster, ResultReceiver, ResultSender, TxSender},
-};
+use crate::environment::{Environment, EventBroadcaster, ResultReceiver, ResultSender, TxSender};
 
 #[derive(Debug)]
 pub struct RevmMiddleware {

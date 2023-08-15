@@ -218,8 +218,6 @@ async fn filter_topics() -> Result<()> {
 // 2 check the block number is incremented after the expected number of transactions is reached.
 #[tokio::test]
 async fn transaction_loop() -> Result<()> {
-
-
     // tx_0 is the transaction that creates the token contract
     let (arbiter_token, env, client) = deploy_and_start().await?;
 
@@ -227,9 +225,7 @@ async fn transaction_loop() -> Result<()> {
     let expected_tx_per_block = dist.sample();
     println!("expected_tx_per_block: {}", expected_tx_per_block);
 
-
-
-    for index in 1..expected_tx_per_block + 1{
+    for index in 1..expected_tx_per_block + 1 {
         println!("index: {}", index);
         let tx = arbiter_token
             .mint(client.default_sender().unwrap(), 1000u64.into())
@@ -240,7 +236,7 @@ async fn transaction_loop() -> Result<()> {
             .unwrap()
             .unwrap();
 
-        if index < expected_tx_per_block   {
+        if index < expected_tx_per_block {
             let block_number = tx.block_number.unwrap();
             println!("block_number: {}", block_number);
             assert_eq!(block_number, U64::from(0));

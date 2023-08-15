@@ -7,10 +7,7 @@ use std::collections::HashMap;
 use log::{info, warn};
 use thiserror::Error;
 
-use crate::{
-    // agent::{Agent, NotAttached},
-    environment::{Environment, State},
-};
+use crate::environment::{Environment, State};
 
 #[derive(Default)]
 pub struct Manager {

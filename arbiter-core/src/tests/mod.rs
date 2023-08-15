@@ -1,9 +1,9 @@
 #![allow(missing_docs)]
 
 // mod interaction;
+mod interaction;
 mod management;
 mod signer;
-mod interaction;
 
 use std::{str::FromStr, sync::Arc};
 
@@ -31,9 +31,16 @@ pub const TEST_APPROVAL_AMOUNT: u128 = 420;
 
 //TODO: Send a tx before and after pausing the environment.
 
-async fn deploy_and_start() -> Result<(ArbiterToken<RevmMiddleware>, Environment, Arc<RevmMiddleware>)> {
+async fn deploy_and_start() -> Result<(
+    ArbiterToken<RevmMiddleware>,
+    Environment,
+    Arc<RevmMiddleware>,
+)> {
     let mut environment = Environment::new(TEST_ENV_LABEL, 2.0, 1);
-    let client = Arc::new(RevmMiddleware::new(&environment, Some("test_agent".to_string())));
+    let client = Arc::new(RevmMiddleware::new(
+        &environment,
+        Some("test_agent".to_string()),
+    ));
     environment.run();
     Ok((
         ArbiterToken::deploy(
@@ -47,6 +54,7 @@ async fn deploy_and_start() -> Result<(ArbiterToken<RevmMiddleware>, Environment
         .send()
         .await
         .unwrap(),
-        environment, client
+        environment,
+        client,
     ))
 }
