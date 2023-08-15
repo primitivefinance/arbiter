@@ -36,8 +36,10 @@ pub struct Manager {
 /// Errors that can occur while operating on or with the [`Manager`].
 /// These errors are likely more common to see as they are mostly the result of
 /// simple mistakes in managing environments.
-/// No one of these errors is serious, and can be dealt with on the fly if need
-/// be.
+/// Most of these these errors are not serious, and can be dealt with on the fly
+/// if need be.
+/// The [`ManagerError::NoHandleAvailable`] and [`ManagerError::ThreadPanic`]
+/// are more serious and should likely be reported.
 #[derive(Error, Debug)]
 pub enum ManagerError {
     /// Indicates that an [`Environment`] with the given label already exists.
