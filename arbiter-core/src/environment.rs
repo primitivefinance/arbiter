@@ -38,13 +38,16 @@ use crate::{
     middleware::RevmMiddleware,
 };
 
-/// Alias to represent that a transaction sent to the [`EVM`] updates the worldstate (`true`) or is read only (`false`)
+/// Alias to represent that a transaction sent to the [`EVM`] updates the
+/// worldstate (`true`) or is read only (`false`)
 pub(crate) type ToTransact = bool;
 
-/// Alias for the sender of the channel for transmitting [`RevmResult`] emitted from transactions.
+/// Alias for the sender of the channel for transmitting [`RevmResult`] emitted
+/// from transactions.
 pub(crate) type ResultSender = Sender<RevmResult>;
 
-/// Alias for the receiver of the channel for transmitting [`RevmResult`] emitted from transactions.
+/// Alias for the receiver of the channel for transmitting [`RevmResult`]
+/// emitted from transactions.
 pub(crate) type ResultReceiver = Receiver<RevmResult>;
 
 /// Alias for the sender of the channel for transmitting transactions.
@@ -53,7 +56,8 @@ pub(crate) type TxSender = Sender<(ToTransact, TxEnv, ResultSender)>;
 /// Alias for the receiver of the channel for transmitting transactions.
 pub(crate) type TxReceiver = Receiver<(ToTransact, TxEnv, ResultSender)>;
 
-/// Alias for the sender used in the [`EventBroadcaster`] that transmits contract events via [`Log`].
+/// Alias for the sender used in the [`EventBroadcaster`] that transmits
+/// contract events via [`Log`].
 pub(crate) type EventSender = Sender<Vec<Log>>;
 
 #[cfg_attr(doc, doc(hidden))]
@@ -137,6 +141,22 @@ pub struct Environment {
     /// Used for assuring that the environment is stopped properly or for
     /// performing any blocking action the end user needs.
     pub(crate) handle: Option<JoinHandle<Result<(), EnvironmentError>>>,
+}
+
+/// Allow the end user to be able to access a debug printout for the
+/// [`Environment`]. Note that the [`EVM`] does not implement debug display,
+/// hence the implementation by hand here.
+impl Debug for Environment {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("Environment")
+            .field("label", &self.label)
+            .field("seeded_poisson", &self.seeded_poisson)
+            .field("state", &self.state)
+            .field("socket", &self.socket)
+            .field("pausevar", &self.pausevar)
+            .field("handle", &self.handle)
+            .finish()
+    }
 }
 
 /// Errors that can occur when managing or interfacing with the Ethereum
