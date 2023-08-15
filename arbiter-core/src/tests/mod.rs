@@ -1,7 +1,7 @@
 #![allow(missing_docs)]
 
 // mod interaction;
-mod bindings;
+mod contracts;
 mod interaction;
 mod management;
 mod signer;

@@ -1,3 +1,5 @@
+// TODO: Hit all the contract bindings.
+
 use super::*;
 use crate::bindings::liquid_exchange::LiquidExchange;
 
@@ -21,53 +23,11 @@ fn startup() -> Result<(Manager, Arc<RevmMiddleware>)> {
     Ok((manager, client))
 }
 
-async fn deploy_arbx(client: Arc<RevmMiddleware>) -> Result<ArbiterToken<RevmMiddleware>> {
-    Ok(ArbiterToken::deploy(
-        client,
-        (
-            ARBITER_TOKEN_X_NAME.to_string(),
-            ARBITER_TOKEN_X_SYMBOL.to_string(),
-            ARBITER_TOKEN_X_DECIMALS,
-        ),
-    )?
-    .send()
-    .await?)
-}
-
-async fn deploy_arby(client: Arc<RevmMiddleware>) -> Result<ArbiterToken<RevmMiddleware>> {
-    Ok(ArbiterToken::deploy(
-        client,
-        (
-            ARBITER_TOKEN_Y_NAME.to_string(),
-            ARBITER_TOKEN_Y_SYMBOL.to_string(),
-            ARBITER_TOKEN_Y_DECIMALS,
-        ),
-    )?
-    .send()
-    .await?)
-}
-
-async fn deploy_liquid_exchange(
-    client: Arc<RevmMiddleware>,
-) -> Result<LiquidExchange<RevmMiddleware>> {
-    let arbx = deploy_arbx(client.clone()).await?;
-    let arby = deploy_arby(client.clone()).await?;
-    let price = float_to_wad(420.69);
-    let liquid_exchange = LiquidExchange::deploy(client, (arbx.address(), arby.address(), price))?
-        .send()
-        .await?;
-    Ok(liquid_exchange)
-}
-
 async fn deploy_arbiter_math(client: Arc<RevmMiddleware>) -> Result<ArbiterMath<RevmMiddleware>> {
     Ok(ArbiterMath::deploy(client, ())?.send().await?)
 }
 
-// TODO: Hit all the contract bindings.
-#[test]
-fn token_mint_and_balance() -> Result<()> {
-    todo!()
-}
+
 
 #[tokio::test]
 async fn arbiter_math() -> Result<()> {
@@ -128,6 +88,61 @@ async fn arbiter_math() -> Result<()> {
     println!("sqrt(1) = {}", sqrt_output);
     assert_eq!(sqrt_output, ethers::types::U256::from(1_000_000_000));
     Ok(())
+}
+
+async fn deploy_arbx(client: Arc<RevmMiddleware>) -> Result<ArbiterToken<RevmMiddleware>> {
+    Ok(ArbiterToken::deploy(
+        client,
+        (
+            ARBITER_TOKEN_X_NAME.to_string(),
+            ARBITER_TOKEN_X_SYMBOL.to_string(),
+            ARBITER_TOKEN_X_DECIMALS,
+        ),
+    )?
+    .send()
+    .await?)
+}
+
+async fn deploy_arby(client: Arc<RevmMiddleware>) -> Result<ArbiterToken<RevmMiddleware>> {
+    Ok(ArbiterToken::deploy(
+        client,
+        (
+            ARBITER_TOKEN_Y_NAME.to_string(),
+            ARBITER_TOKEN_Y_SYMBOL.to_string(),
+            ARBITER_TOKEN_Y_DECIMALS,
+        ),
+    )?
+    .send()
+    .await?)
+}
+
+#[tokio::test]
+async fn token_mint_and_balance() -> Result<()> {
+    let (_manager, client) = startup()?;
+    let arbx = deploy_arbx(client.clone()).await?;
+
+    // Mint some tokens to the client.
+    arbx.mint(client.default_sender().unwrap(), ethers::types::U256::from(TEST_MINT_AMOUNT)).send().await?.await?;
+
+    // Fetch the balance of the client.
+    let balance = arbx.balance_of(client.default_sender().unwrap()).call().await?;
+
+    // Check that the balance is correct.
+    assert_eq!(balance, ethers::types::U256::from(TEST_MINT_AMOUNT));
+
+    Ok(())
+}
+
+async fn deploy_liquid_exchange(
+    client: Arc<RevmMiddleware>,
+) -> Result<LiquidExchange<RevmMiddleware>> {
+    let arbx = deploy_arbx(client.clone()).await?;
+    let arby = deploy_arby(client.clone()).await?;
+    let price = float_to_wad(420.69);
+    let liquid_exchange = LiquidExchange::deploy(client, (arbx.address(), arby.address(), price))?
+        .send()
+        .await?;
+    Ok(liquid_exchange)
 }
 
 // OLD TESTS DOWN HERE
