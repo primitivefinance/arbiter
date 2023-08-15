@@ -21,6 +21,7 @@ use std::{
 };
 
 use ethers::{
+    core::rand::SeedableRng,
     prelude::{
         k256::{
             ecdsa::SigningKey,
@@ -39,15 +40,12 @@ use ethers::{
         Log,
     },
 };
-use rand::{rngs::StdRng, SeedableRng};
+use rand::rngs;
 use revm::primitives::{CreateScheme, ExecutionResult, Output, TransactTo, TxEnv, B160, U256};
 use serde::{de::DeserializeOwned, Serialize};
 use thiserror::Error;
 
-use crate::{
-    agent::{Agent, NotAttached},
-    environment::{Environment, EventBroadcaster, ResultReceiver, ResultSender, TxSender},
-};
+use crate::environment::{Environment, EventBroadcaster, ResultReceiver, ResultSender, TxSender};
 
 /// A middleware structure that integrates with `revm`.
 ///
@@ -172,7 +170,7 @@ impl RevmMiddleware {
     /// let environment = Environment::new(...); // use appropriate constructor
     /// let middleware = RevmMiddleware::new(&agent, &environment);
     /// ```
-    pub fn new(agent: &Agent<NotAttached>, environment: &Environment) -> Self {
+    pub fn new(environment: &Environment, seed_and_label: Option<String>) -> Self {
         let tx_sender = environment.socket.tx_sender.clone();
         let (result_sender, result_receiver) = crossbeam_channel::unbounded();
         let connection = Connection {
@@ -183,12 +181,18 @@ impl RevmMiddleware {
             filter_receivers: Arc::new(tokio::sync::Mutex::new(HashMap::new())),
         };
         let provider = Provider::new(connection);
-        let mut hasher = Sha256::new();
-        hasher.update(agent.name.as_bytes());
-        let seed = hasher.finalize();
-        let mut rng = StdRng::from_seed(seed.into());
-        let wallet = Wallet::new(&mut rng);
-        Self { provider, wallet }
+        if let Some(seed) = seed_and_label {
+            let mut hasher = Sha256::new();
+            hasher.update(seed.clone());
+            let hashed = hasher.finalize();
+            let mut rng: rngs::StdRng = SeedableRng::from_seed(hashed.into());
+            let wallet = Wallet::new(&mut rng);
+            Self { provider, wallet }
+        } else {
+            let mut rng = rand::thread_rng();
+            let wallet = Wallet::new(&mut rng);
+            Self { provider, wallet }
+        }
     }
 }
 

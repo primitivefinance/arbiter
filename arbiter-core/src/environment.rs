@@ -36,11 +36,7 @@ use thiserror::Error;
 #[cfg_attr(doc, allow(unused_imports))]
 #[cfg(doc)]
 use crate::manager::Manager;
-use crate::{
-    agent::{Agent, IsAttached, NotAttached},
-    math::*,
-    middleware::RevmMiddleware,
-};
+use crate::{math::*, middleware::RevmMiddleware};
 
 /// Alias to represent that a transaction sent to the [`EVM`] updates the
 /// worldstate (`true`) or is read only (`false`)
@@ -109,9 +105,6 @@ pub struct Environment {
     /// control it. Also used to be able to organize, track progress, and
     /// post-process results.
     pub label: String,
-
-    /// WILL BE REMOVED.
-    pub agents: Vec<Agent<IsAttached<RevmMiddleware>>>,
 
     /// A seeded Poisson distribution that is sampled from in order to determine
     /// the average block size. [`SeededPoisson`] is created with a seed in
@@ -245,15 +238,10 @@ impl Environment {
             state: Arc::new(AtomicState::new(State::Initialization)),
             evm,
             socket,
-            agents: vec![],
             seeded_poisson,
             handle: None,
             pausevar: Arc::new((Mutex::new(()), Condvar::new())),
         }
-    }
-
-    pub fn add_agent(&mut self, agent: Agent<NotAttached>) {
-        agent.attach_to_environment(self);
     }
 
     /// Privately accessible function to take an [`Environment`] that is in

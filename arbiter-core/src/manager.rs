@@ -17,10 +17,7 @@ use thiserror::Error;
 #[cfg_attr(doc, allow(unused_imports))]
 #[cfg(doc)]
 use crate::math::SeededPoisson;
-use crate::{
-    agent::{Agent, NotAttached},
-    environment::{Environment, State},
-};
+use crate::environment::{Environment, State};
 
 /// The primary manager structure for maintaining a collection of environments.
 ///
@@ -376,22 +373,6 @@ impl Manager {
             },
             None => Err(ManagerError::EnvironmentDoesNotExist {
                 label: environment_label.into(),
-            }),
-        }
-    }
-
-    pub fn add_agent(
-        &mut self,
-        agent: Agent<NotAttached>,
-        environment_label: String,
-    ) -> Result<(), ManagerError> {
-        match self.environments.get_mut(&environment_label) {
-            Some(environment) => {
-                environment.add_agent(agent);
-                Ok(())
-            }
-            None => Err(ManagerError::EnvironmentDoesNotExist {
-                label: environment_label,
             }),
         }
     }
