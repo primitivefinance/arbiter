@@ -117,8 +117,8 @@ impl Manager {
     ///
     /// # Returns
     ///
-    /// - [`Ok(())`]: The environment was successfully added.
-    /// - [`Err(ManagerError::EnvironmentAlreadyExists)`]: An environment with
+    /// - `Ok(())`: The environment was successfully added.
+    /// - `Err(ManagerError::EnvironmentAlreadyExists)`: An environment with
     ///   the specified label already exists.
     ///
     /// # Examples
@@ -165,18 +165,18 @@ impl Manager {
     ///
     /// # Returns
     ///
-    /// - [`Ok(())`]: The environment was successfully started.
-    /// - [`Err(ManagerError::EnvironmentDoesNotExist)`]: No environment with
+    /// - `Ok(())`: The environment was successfully started.
+    /// - `Err(ManagerError::EnvironmentDoesNotExist)`: No environment with
     ///   the specified label exists.
-    /// - [`Err(ManagerError::EnvironmentAlreadyRunning)`]: The environment is
+    /// - `Err(ManagerError::EnvironmentAlreadyRunning)`: The environment is
     ///   already running.
-    /// - [`Err(ManagerError::EnvironmentStopped)`]: The environment has already
+    /// - `Err(ManagerError::EnvironmentStopped)`: The environment has already
     ///   been stopped and cannot be restarted.
     ///
     /// # Examples
     ///
     /// ```rust
-    /// use your_crate::manager::Manager;
+    /// use arbiter_core::manager::Manager;
     ///
     /// let mut manager = Manager::new();
     /// manager.add_environment("example_env", 1.0, 42).unwrap();
@@ -233,14 +233,14 @@ impl Manager {
     ///
     /// # Returns
     ///
-    /// - [`Ok(())`]: The environment was successfully paused.
-    /// - [`Err(ManagerError::EnvironmentDoesNotExist)`]: No environment with
+    /// - `Ok(())`: The environment was successfully paused.
+    /// - `Err(ManagerError::EnvironmentDoesNotExist)`: No environment with
     ///   the specified label exists.
-    /// - [`Err(ManagerError::EnvironmentNotRunning)`]: The environment is in an
+    /// - `Err(ManagerError::EnvironmentNotRunning)`: The environment is in an
     ///   initialization state and cannot be paused.
-    /// - [`Err(ManagerError::EnvironmentAlreadyPaused)`]: The environment is
+    /// - `Err(ManagerError::EnvironmentAlreadyPaused)`: The environment is
     ///   already in a paused state.
-    /// - [`Err(ManagerError::EnvironmentStopped)`]: The environment has been
+    /// - `Err(ManagerError::EnvironmentStopped)`: The environment has been
     ///   stopped and cannot be paused.
     ///
     /// # Examples
@@ -297,22 +297,22 @@ impl Manager {
     ///
     /// # Returns
     ///
-    /// - [`Ok(())`]: The [`Environment`] was successfully stopped.
-    /// - [`Err(ManagerError::EnvironmentDoesNotExist)`]: No [`Environment`]
+    /// - `Ok(())`: The [`Environment`] was successfully stopped.
+    /// - `Err(ManagerError::EnvironmentDoesNotExist)`: No [`Environment`]
     ///   with the specified label exists.
-    /// - [`Err(ManagerError::EnvironmentNotRunning)`]: The [`Environment`] is
+    /// - `Err(ManagerError::EnvironmentNotRunning)`: The [`Environment`] is
     ///   not running and cannot be stopped.
-    /// - [`Err(ManagerError::EnvironmentStopped)`]: The [`Environment`]'s is
+    /// - `Err(ManagerError::EnvironmentStopped)`: The [`Environment`]'s is
     ///   already in a stopped state.
-    /// - [`Err(ManagerError::NoHandleAvailable)`]: The [`Environment`]'s handle
+    /// - `Err(ManagerError::NoHandleAvailable)`: The [`Environment`]'s handle
     ///   could not be found.
-    /// - [`Err(ManagerError::ThreadPanic)`]: The [`Environment`]'s thead has
+    /// - `Err(ManagerError::ThreadPanic)`: The [`Environment`]'s thead has
     ///   panicked!
     ///
     /// # Examples
     ///
     /// ```rust
-    /// use your_crate::manager::Manager;
+    /// use arbiter_core::manager::Manager;
     ///
     /// let mut manager = Manager::new();
     /// manager.add_environment("example_env", 1.0, 42).unwrap();

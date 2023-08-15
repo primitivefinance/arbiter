@@ -8,15 +8,14 @@
 //! the [`RustQuant::stochastics`] module so that the end user may retrieve
 //! stochastic processes of their choosing in a simulation they build.
 //!
-//! //! # Examples
+//! # Examples
 //!
 //! ```
 //! # use arbiter_core::math::{SeededPoisson, float_to_wad, wad_to_float};
-//!
 //! // Using SeededPoisson
 //! let mut poisson = SeededPoisson::new(10.0, 12345);
 //! let random_value = poisson.sample();
-//! //! // Converting floating-point numbers to WAD representation and back
+//! // Converting floating-point numbers to WAD representation and back
 //! let wad_val = float_to_wad(10.5);
 //! let float_val = wad_to_float(wad_val);
 //! assert_eq!(float_val, 10.5);

@@ -2,6 +2,10 @@
 //! handling the Ethereum execution environment. This includes managing its
 //! state, interfacing with the EVM, and broadcasting events to subscribers.
 //!
+//! The key integration for the environment is the Rust EVM [`revm`](https://github.com/bluealloy/revm).
+//! This is an implementation of the EVM in Rust that we utilize for processing
+//! raw smart contract bytecode.
+//!
 //! Core structures:
 //! - `Environment`: Represents the Ethereum execution environment, allowing for
 //!   its management (e.g., starting, stopping) and interfacing with agents.
@@ -35,10 +39,11 @@ use thiserror::Error;
 #[cfg_attr(doc, doc(hidden))]
 #[cfg_attr(doc, allow(unused_imports))]
 #[cfg(doc)]
-use crate::manager::Manager;
+use crate::{manager::Manager, middleware::RevmMiddleware};
 use crate::math::SeededPoisson;
 
-/// Alias to represent that a transaction sent to the [`EVM`] updates the
+/// Alias to represent that a transaction sent to the
+/// [`EVM`](https://docs.rs/revm/3.3.0/revm/struct.EVM.html) updates the
 /// worldstate (`true`) or is read only (`false`)
 pub(crate) type ToTransact = bool;
 
@@ -64,19 +69,23 @@ pub(crate) type EventSender = Sender<Vec<Log>>;
 /// environment.
 ///
 /// ## Communication
-/// The dominant feature is the [`EVM`] and its connections to the "outside
-/// world". The Ethereum Virtual Machine ([`EVM`]) which is a stack machine that
-/// processes raw smart contract bytecode and updates a local database of the
-/// worldstate of an Ethereum simulation. Note, the worldstate of the simulation
-/// Ethereum environment should not be confused with the [`State`] of the
-/// environment here! The [`Environment`] will route transactions sent over
-/// channels to the stack machine [`EVM`] to process smart contract
-/// interactions.
+/// The dominant feature is the
+/// [`EVM`](https://github.com/bluealloy/revm/blob/main/crates/revm/src/evm.rs)
+///  and its connections to the "outside world".
+/// The Ethereum Virtual Machine
+/// ([`EVM`](https://github.com/bluealloy/revm/blob/main/crates/revm/src/evm.rs))
+/// which is a stack machine that processes raw smart contract bytecode and 
+/// updates a local database of the worldstate of an Ethereum simulation. 
+/// Note, the worldstate of the simulation Ethereum environment should not be 
+/// confused with the [`State`] of the environment here! The [`Environment`] 
+/// will route transactions sent over channels to the stack machine
+/// [`EVM`](https://github.com/bluealloy/revm/blob/main/crates/revm/src/evm.rs)
+/// to process smart contract interactions.
 ///
 /// Allows for the initialization, starting, stopping, and pausing of the EVM
 /// execution. It provides channels for sending transactions to the EVM and for
 /// receiving results or broadcasting events to any subscribers via the
-/// [`Socket`] field exposed only as `pub(crate)`.
+/// `Socket` field exposed only as `pub(crate)`.
 ///
 /// ## Status
 /// The environment also maintains its current
@@ -96,8 +105,9 @@ pub(crate) type EventSender = Sender<Vec<Log>>;
 /// via the [`SeededPoisson`] field. The idea is that we can choose a rate
 /// paramater, typically denoted by the Greek letter lambda, and set this to be
 /// the expected number of transactions per block while allowing blocks to be
-/// built with random size. This is useful in stepping forward the [`EVM`] and
-/// being able to move time forward for contracts that depend explicitly on
+/// built with random size. This is useful in stepping forward the 
+/// [`EVM`](https://github.com/bluealloy/revm/blob/main/crates/revm/src/evm.rs) 
+/// and being able to move time forward for contracts that depend explicitly on
 /// time.
 pub struct Environment {
     /// A label for the [`Environment`].
@@ -199,7 +209,8 @@ pub enum EnvironmentError {
 
     /// [`EnvironmentError::Conversion`] is thrown when a type fails to
     /// convert into another (typically a type used in `revm` versus a type used
-    /// in `ethers`). This error should be rare (if not impossible).
+    /// in [`ethers-rs`](https://github.com/gakonst/ethers-rs)). 
+    /// This error should be rare (if not impossible).
     /// Furthermore, after a switch to [`alloy`](https://github.com/alloy-rs)
     /// this will be (hopefully) unnecessary!
     #[error("conversion error! the source error is: {cause:?}")]
@@ -247,7 +258,7 @@ impl Environment {
     /// Privately accessible function to take an [`Environment`] that is in
     /// [`State::Initialization`] and start it running. The [`EVM`] will be
     /// offloaded onto a separate thread for processing.
-    /// Calls, transactions, and events will enter/exit through the [`Socket`].
+    /// Calls, transactions, and events will enter/exit through the `Socket`.
     /// Upon calling this function, the [`Environment`] will be placed in
     /// [`State::Running`]. Errors here may trigger the [`Environment`] to
     /// be placed in [`State::Paused`].
@@ -397,9 +408,10 @@ impl Environment {
 ///
 /// The socket contains senders and receivers for transactions, as well as an
 /// event broadcaster to broadcast logs from the EVM to subscribers.
-/// [`State`] is made atomic via the `#[atomic_enum::atomic_enum]` proc macro so
-/// that [`State`] can be loaded or stored from elsewhere (e.g., the
-/// [`Manager`]).
+/// [`State`] is made atomic via the 
+/// `#[atomic_enum::atomic_enum](https://docs.rs/atomic_enum/latest/atomic_enum/)` 
+/// proc macro so that [`State`] can be loaded or stored from elsewhere (e.g., 
+/// the [`Manager`]). 
 #[atomic_enum::atomic_enum]
 #[derive(Eq, PartialEq)]
 pub enum State {
@@ -410,7 +422,7 @@ pub enum State {
 
     /// Upon calling [`Environment::run()`] the [`Environment`]'s state will be
     /// set to [`State::Running`]. This means that the [`Environment`] is
-    /// able to receive Ethereum calls/transactions via the [`Socket`] and
+    /// able to receive Ethereum calls/transactions via the `Socket` and
     /// should be echoing events via the [`EventBroadcaster`].
     Running,
 
@@ -421,7 +433,7 @@ pub enum State {
     Paused,
 
     /// If [`Environment`] is moved to [`State::Stopped`] it will shut down
-    /// communication across the [`Socket`] and not be able to start again.
+    /// communication across the `Socket` and not be able to start again.
     /// This is either a sign that a simulation or process has successfully
     /// completed or that there was an error that was not recoverable or that
     /// the [`Manager`] called a stop manually.
