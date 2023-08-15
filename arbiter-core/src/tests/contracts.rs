@@ -27,8 +27,6 @@ async fn deploy_arbiter_math(client: Arc<RevmMiddleware>) -> Result<ArbiterMath<
     Ok(ArbiterMath::deploy(client, ())?.send().await?)
 }
 
-
-
 #[tokio::test]
 async fn arbiter_math() -> Result<()> {
     let (_manager, client) = startup()?;
@@ -43,27 +41,54 @@ async fn arbiter_math() -> Result<()> {
     assert_eq!(cdf_output, ethers::types::I256::from(500000000000000000u64));
 
     // Test the pdf function
-    let pdf_output = arbiter_math.pdf(ethers::types::I256::from(1)).call().await?;
+    let pdf_output = arbiter_math
+        .pdf(ethers::types::I256::from(1))
+        .call()
+        .await?;
     println!("pdf(1) = {}", pdf_output);
     assert_eq!(pdf_output, ethers::types::I256::from(398942280401432678u64));
 
     // Test the ppf function.
-    let ppf_output = arbiter_math.ppf(ethers::types::I256::from(1)).call().await?;
+    let ppf_output = arbiter_math
+        .ppf(ethers::types::I256::from(1))
+        .call()
+        .await?;
     println!("ppf(1) = {}", ppf_output);
-    assert_eq!(ppf_output, ethers::types::I256::from(-8710427241990476442_i128));
+    assert_eq!(
+        ppf_output,
+        ethers::types::I256::from(-8710427241990476442_i128)
+    );
 
     // Test the mulWadDown function.
-    let mulwaddown_output = arbiter_math.mul_wad_down(ethers::types::U256::from(1_000_000_000_000_000_000_u128), ethers::types::U256::from(2)).call().await?;
+    let mulwaddown_output = arbiter_math
+        .mul_wad_down(
+            ethers::types::U256::from(1_000_000_000_000_000_000_u128),
+            ethers::types::U256::from(2),
+        )
+        .call()
+        .await?;
     println!("mulWadDown(1, 2) = {}", mulwaddown_output);
     assert_eq!(mulwaddown_output, ethers::types::U256::from(2));
 
     // Test the mulWadUp function.
-    let mulwadup_output = arbiter_math.mul_wad_up(ethers::types::U256::from(1_000_000_000_000_000_000_u128), ethers::types::U256::from(2)).call().await?;
+    let mulwadup_output = arbiter_math
+        .mul_wad_up(
+            ethers::types::U256::from(1_000_000_000_000_000_000_u128),
+            ethers::types::U256::from(2),
+        )
+        .call()
+        .await?;
     println!("mulWadUp(1, 2) = {}", mulwadup_output);
     assert_eq!(mulwadup_output, ethers::types::U256::from(2));
 
     // Test the divWadDown function.
-    let divwaddown_output = arbiter_math.div_wad_down(ethers::types::U256::from(1_000_000_000_000_000_000_u128), ethers::types::U256::from(2)).call().await?;
+    let divwaddown_output = arbiter_math
+        .div_wad_down(
+            ethers::types::U256::from(1_000_000_000_000_000_000_u128),
+            ethers::types::U256::from(2),
+        )
+        .call()
+        .await?;
     println!("divWadDown(1, 2) = {}", divwaddown_output);
     assert_eq!(
         divwaddown_output,
@@ -71,7 +96,13 @@ async fn arbiter_math() -> Result<()> {
     );
 
     // Test the divWadUp function.
-    let divwadup_output = arbiter_math.div_wad_up(ethers::types::U256::from(1_000_000_000_000_000_000_u128), ethers::types::U256::from(2)).call().await?;
+    let divwadup_output = arbiter_math
+        .div_wad_up(
+            ethers::types::U256::from(1_000_000_000_000_000_000_u128),
+            ethers::types::U256::from(2),
+        )
+        .call()
+        .await?;
     println!("divWadUp(1, 2) = {}", divwadup_output);
     assert_eq!(
         divwadup_output,
@@ -79,12 +110,18 @@ async fn arbiter_math() -> Result<()> {
     );
 
     // Test the lnWad function.
-    let lnwad_output = arbiter_math.log(ethers::types::I256::from(1_000_000_000_000_000_000_u128)).call().await?;
+    let lnwad_output = arbiter_math
+        .log(ethers::types::I256::from(1_000_000_000_000_000_000_u128))
+        .call()
+        .await?;
     println!("ln(1) = {}", lnwad_output);
     assert_eq!(lnwad_output, ethers::types::I256::from(0));
-    
+
     // Test the sqrt function
-    let sqrt_output = arbiter_math.sqrt(ethers::types::U256::from(1_000_000_000_000_000_000_u128)).call().await?;
+    let sqrt_output = arbiter_math
+        .sqrt(ethers::types::U256::from(1_000_000_000_000_000_000_u128))
+        .call()
+        .await?;
     println!("sqrt(1) = {}", sqrt_output);
     assert_eq!(sqrt_output, ethers::types::U256::from(1_000_000_000));
     Ok(())
@@ -116,16 +153,27 @@ async fn deploy_arby(client: Arc<RevmMiddleware>) -> Result<ArbiterToken<RevmMid
     .await?)
 }
 
+// TODO: It would be good to change this to `token_functions` and test all
+// relevant ERC20 functions (e.g., transfer, approve, etc.).
 #[tokio::test]
 async fn token_mint_and_balance() -> Result<()> {
     let (_manager, client) = startup()?;
     let arbx = deploy_arbx(client.clone()).await?;
 
     // Mint some tokens to the client.
-    arbx.mint(client.default_sender().unwrap(), ethers::types::U256::from(TEST_MINT_AMOUNT)).send().await?.await?;
+    arbx.mint(
+        client.default_sender().unwrap(),
+        ethers::types::U256::from(TEST_MINT_AMOUNT),
+    )
+    .send()
+    .await?
+    .await?;
 
     // Fetch the balance of the client.
-    let balance = arbx.balance_of(client.default_sender().unwrap()).call().await?;
+    let balance = arbx
+        .balance_of(client.default_sender().unwrap())
+        .call()
+        .await?;
 
     // Check that the balance is correct.
     assert_eq!(balance, ethers::types::U256::from(TEST_MINT_AMOUNT));
@@ -135,135 +183,103 @@ async fn token_mint_and_balance() -> Result<()> {
 
 async fn deploy_liquid_exchange(
     client: Arc<RevmMiddleware>,
-) -> Result<LiquidExchange<RevmMiddleware>> {
+) -> Result<(
+    ArbiterToken<RevmMiddleware>,
+    ArbiterToken<RevmMiddleware>,
+    LiquidExchange<RevmMiddleware>,
+)> {
     let arbx = deploy_arbx(client.clone()).await?;
     let arby = deploy_arby(client.clone()).await?;
     let price = float_to_wad(420.69);
     let liquid_exchange = LiquidExchange::deploy(client, (arbx.address(), arby.address(), price))?
         .send()
         .await?;
-    Ok(liquid_exchange)
+    Ok((arbx, arby, liquid_exchange))
 }
 
-// OLD TESTS DOWN HERE
-// #[cfg(test)]
-// mod tests {
-//     use std::error::Error;
+#[tokio::test]
+async fn liquid_exchange_swap() -> Result<()> {
+    let (_manager, client) = startup()?;
+    let (arbx, arby, liquid_exchange) = deploy_liquid_exchange(client.clone()).await?;
 
-//     use bindings::{arbiter_token, liquid_exchange};
-//     use ethers::prelude::U256;
-//     use revm::primitives::{ruint::Uint, B160};
+    // Mint tokens to the client.
+    arbx.mint(
+        client.default_sender().unwrap(),
+        ethers::types::U256::from(TEST_MINT_AMOUNT),
+    )
+    .send()
+    .await?
+    .await?;
+    arby.mint(
+        client.default_sender().unwrap(),
+        ethers::types::U256::from(TEST_MINT_AMOUNT),
+    )
+    .send()
+    .await?
+    .await?;
 
-//     use crate::{
-//         agent::{user::User, Agent, AgentType},
-//         environment::contract::SimulationContract,
-//         manager::SimulationManager,
-//         stochastic::price_process::{PriceProcess, PriceProcessType, GBM},
-//         utils::{recast_address, unpack_execution},
-//     };
+    // Mint tokens to the liquid exchange.
+    let exchange_mint_amount = ethers::types::U256::MAX / 2;
+    arbx.mint(liquid_exchange.address(), exchange_mint_amount)
+        .send()
+        .await?
+        .await?;
+    arby.mint(liquid_exchange.address(), exchange_mint_amount)
+        .send()
+        .await?
+        .await?;
 
-//     #[test]
-//     fn swap_x_for_y_liquid_exchange() -> Result<(), Box<dyn Error>> {
-//         // define the wad constant
-//         let decimals = 18_u8;
-//         let wad: U256 = U256::from(10_i64.pow(decimals as u32));
+    // Swap some X for Y on the liquid exchange.
+    let swap_amount = ethers::types::U256::from(TEST_MINT_AMOUNT) / 2;
+    println!("calling swap");
+    let swap_x_receipt = liquid_exchange
+        .swap(arbx.address(), swap_amount)
+        .send()
+        .await?
+        .await?
+        .unwrap();
+    let logs = swap_x_receipt.logs;
+    println!("swap_x_output = {:?}", logs);
 
-//         // Set up the execution manager and a user address.
-//         let mut manager = SimulationManager::default();
+    //         // Have alice's approval for token_x to be spent by the
+    // liquid_exchange.         let args =
+    // (recast_address(liquid_exchange_xy.address), U256::MAX);         let
+    // call_data = token_x.encode_function("approve", args)?;         alice.
+    // call_contract(&mut manager.environment, &token_x, call_data, Uint::from(0));
 
-//         // Set up a user named alice
-//         let user_name = "alice";
-//         let user_address = B160::from_low_u64_be(2);
-//         let alice = User::new(user_name, None);
-//         manager.activate_agent(AgentType::User(alice), user_address)?;
-//         let admin = manager.agents.get("admin").unwrap();
-//         let alice = manager.agents.get("alice").unwrap();
+    //         // Have alice call the swap function to trade token_x for token_y.
+    //         let swap_amount = mint_amount / 2;
+    //         let call_data = liquid_exchange_xy
+    //             .encode_function("swap", (recast_address(token_x.address),
+    // swap_amount))?;         alice.call_contract(
+    //             &mut manager.environment,
+    //             &liquid_exchange_xy,
+    //             call_data,
+    //             Uint::from(0),
+    //         );
 
-//         // Create arbiter token general contract.
-//         let arbiter_token = SimulationContract::new(
-//             arbiter_token::ARBITERTOKEN_ABI.clone(),
-//             arbiter_token::ARBITERTOKEN_BYTECODE.clone(),
-//         );
+    //         // Let alice check they spent the right amount of token_x
+    //         let call_data = token_x.encode_function("balanceOf",
+    // recast_address(user_address))?;         let execution_result =
+    //             alice.call_contract(&mut manager.environment, &token_x,
+    // call_data, Uint::from(0)); // Call the 'balanceOf' function.         let
+    // value = unpack_execution(execution_result)?;         let response: U256 =
+    // token_x.decode_output("balanceOf", value)?;         println!("alice has {}
+    // token_x after swap", response);         assert_eq!(response, mint_amount -
+    // swap_amount);
 
-//         // Deploy token_x.
-//         let name = "Token X";
-//         let symbol = "TKNX";
-//         let args = (name.to_string(), symbol.to_string(), decimals);
-//         let token_x = arbiter_token.deploy(&mut manager.environment, admin,
-// args);
+    //         // Let alice check they received the right amount of token_y
+    //         let call_data = token_y.encode_function("balanceOf",
+    // recast_address(user_address))?;         let execution_result =
+    //             alice.call_contract(&mut manager.environment, &token_y,
+    // call_data, Uint::from(0)); // Call the 'balanceOf' function.         let
+    // value = unpack_execution(execution_result)?;         let response: U256 =
+    // token_y.decode_output("balanceOf", value)?;         println!("alice has {}
+    // token_y after swap", response);         assert_eq!(response, swap_amount *
+    // U256::from(price_to_check));
 
-//         // Deploy token_y.
-//         let name = "Token Y";
-//         let symbol = "TKNY";
-//         let args = (name.to_string(), symbol.to_string(), decimals);
-//         let token_y = arbiter_token.deploy(&mut manager.environment, admin,
-// args);
-
-//         // Deploy LiquidExchange
-//         let price_to_check = 1000;
-//         let initial_price =
-// wad.checked_mul(U256::from(price_to_check)).unwrap();         let
-// liquid_exchange = SimulationContract::new(
-// liquid_exchange::LIQUIDEXCHANGE_ABI.clone(),
-// bindings::liquid_exchange::LIQUIDEXCHANGE_BYTECODE.clone(),         );
-//         let args = (
-//             recast_address(token_x.address),
-//             recast_address(token_y.address),
-//             initial_price,
-//         );
-//         let liquid_exchange_xy = liquid_exchange.deploy(&mut
-// manager.environment, admin, args);
-
-//         // Mint token_x to alice.
-//         let mint_amount = wad.checked_mul(U256::from(20)).unwrap(); // in wei
-// units         let args = (recast_address(alice.address()), mint_amount);
-//         let call_data = token_x.encode_function("mint", args)?;
-//         admin.call_contract(&mut manager.environment, &token_x, call_data,
-// Uint::from(0));
-
-//         // Mint max token_y to the liquid_exchange contract.
-//         let args = (recast_address(liquid_exchange_xy.address), U256::MAX);
-//         let call_data = token_y.encode_function("mint", args)?;
-//         admin.call_contract(&mut manager.environment, &token_y, call_data,
-// Uint::from(0));
-
-//         // Have alice's approval for token_x to be spent by the
-// liquid_exchange.         let args =
-// (recast_address(liquid_exchange_xy.address), U256::MAX);         let
-// call_data = token_x.encode_function("approve", args)?;         alice.
-// call_contract(&mut manager.environment, &token_x, call_data, Uint::from(0));
-
-//         // Have alice call the swap function to trade token_x for token_y.
-//         let swap_amount = mint_amount / 2;
-//         let call_data = liquid_exchange_xy
-//             .encode_function("swap", (recast_address(token_x.address),
-// swap_amount))?;         alice.call_contract(
-//             &mut manager.environment,
-//             &liquid_exchange_xy,
-//             call_data,
-//             Uint::from(0),
-//         );
-
-//         // Let alice check they spent the right amount of token_x
-//         let call_data = token_x.encode_function("balanceOf",
-// recast_address(user_address))?;         let execution_result =
-//             alice.call_contract(&mut manager.environment, &token_x,
-// call_data, Uint::from(0)); // Call the 'balanceOf' function.         let
-// value = unpack_execution(execution_result)?;         let response: U256 =
-// token_x.decode_output("balanceOf", value)?;         println!("alice has {}
-// token_x after swap", response);         assert_eq!(response, mint_amount -
-// swap_amount);
-
-//         // Let alice check they received the right amount of token_y
-//         let call_data = token_y.encode_function("balanceOf",
-// recast_address(user_address))?;         let execution_result =
-//             alice.call_contract(&mut manager.environment, &token_y,
-// call_data, Uint::from(0)); // Call the 'balanceOf' function.         let
-// value = unpack_execution(execution_result)?;         let response: U256 =
-// token_y.decode_output("balanceOf", value)?;         println!("alice has {}
-// token_y after swap", response);         assert_eq!(response, swap_amount *
-// U256::from(price_to_check));         Ok(())
-//     }
+    Ok(())
+}
 
 //     #[test]
 //     fn swap_y_for_x_liquid_exchange() -> Result<(), Box<dyn Error>> {

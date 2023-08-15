@@ -291,6 +291,7 @@ impl Middleware for RevmMiddleware {
             .map_err(|e| RevmMiddlewareError::Send {
                 cause: e.to_string(),
             })?;
+
         let revm_result = self
             .provider()
             .as_ref()
@@ -299,7 +300,9 @@ impl Middleware for RevmMiddleware {
             .map_err(|e| RevmMiddlewareError::Receive {
                 cause: e.to_string(),
             })?;
-        
+
+        println!("prior to unpackaing execution result");
+        println!("unpacking output: {:?}", unpack_execution_result(revm_result.clone().result));
         let Success {
             _reason: _,
             _gas_used: _,
@@ -307,7 +310,8 @@ impl Middleware for RevmMiddleware {
             logs,
             output,
         } = unpack_execution_result(revm_result.result)?;
-        
+        println!("after unpacking execution result");
+
         match output {
             Output::Create(_, address) => {
                 let address = address.ok_or(RevmMiddlewareError::MissingData {
@@ -388,6 +392,7 @@ impl Middleware for RevmMiddleware {
             .map_err(|e| RevmMiddlewareError::Receive {
                 cause: e.to_string(),
             })?;
+            
         let output = unpack_execution_result(revm_result.result)?.output;
         match output {
             Output::Create(bytes, ..) => {
@@ -416,7 +421,6 @@ impl Middleware for RevmMiddleware {
             }
             FilterKind::Logs(filter) => ("eth_newFilter", filter),
         };
-        println!("args: {:?}", args);
         let filter = args.clone();
         let mut hasher = Sha256::new();
         hasher.update(
@@ -573,6 +577,7 @@ pub(crate) struct FilterReceiver {
 }
 
 /// Contains the result of a successful transaction execution.
+#[derive(Debug)]
 struct Success {
     _reason: revm::primitives::Eval,
     _gas_used: u64,
@@ -589,6 +594,7 @@ struct Success {
 fn unpack_execution_result(
     execution_result: ExecutionResult,
 ) -> Result<Success, RevmMiddlewareError> {
+    println!("unpacking execution result");
     match execution_result {
         ExecutionResult::Success {
             reason,
@@ -606,12 +612,17 @@ fn unpack_execution_result(
                 output,
             })
         }
-        ExecutionResult::Revert { gas_used, output } => Err(RevmMiddlewareError::ExecutionRevert {
-            cause: format!(
-                "Transaction reverted and used {} gas and output {:?}",
-                gas_used, output
-            ),
-        }),
+        ExecutionResult::Revert { gas_used, output } => {
+            println!("revert");
+            let error = Err(RevmMiddlewareError::ExecutionRevert {
+                cause: format!(
+                    "Transaction reverted and used {} gas and output {:?}",
+                    gas_used, output
+                ),
+            });
+            println!("error made");
+            error
+        }
         ExecutionResult::Halt { reason, gas_used } => Err(RevmMiddlewareError::ExecutionHalt {
             cause: format!(
                 "Transaction halted for reasond {:?} gas and output {:?}",
