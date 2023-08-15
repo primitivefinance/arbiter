@@ -50,7 +50,7 @@ ethers = { version = "2.0.4", default-features = false, features = ["abigen"] }
 
 # Simulation dependencies
 crossbeam-channel = "0.5.8"
-polars = "0.29.0"
+polars = "0.32.1"
 quote = "1.0.29"
 
 # workspace dependencies
