@@ -6,7 +6,7 @@ async fn deploy() -> Result<()> {
     println!("{:?}", arbiter_token);
     assert_eq!(
         arbiter_token.address(),
-        Address::from_str("0x1a9bb958b1ea4d24475aaa545b25fc2e7eb0871c").unwrap()
+        Address::from_str("0x067ea9e44c76a2620f10b39a1b51d5124a299192").unwrap()
     );
     Ok(())
 }
@@ -18,7 +18,7 @@ async fn call() -> Result<()> {
     let output = admin.call().await?;
     assert_eq!(
         output,
-        Address::from_str("0x09e12ce98726acd515b68f87f49dc2e5558f6a72")?
+        Address::from_str("0x2efdc9eecfee3a776209fcb8e9a83a6b221d74f5")?
     );
     Ok(())
 }

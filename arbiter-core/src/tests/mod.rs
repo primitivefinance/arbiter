@@ -27,6 +27,7 @@ pub const TEST_ARG_DECIMALS: u8 = 18;
 pub const TEST_MINT_AMOUNT: u128 = 69;
 pub const TEST_MINT_TO: &str = "0xf7e93cc543d97af6632c9b8864417379dba4bf15";
 pub const TEST_APPROVAL_AMOUNT: u128 = 420;
+pub const TEST_SIGNER_SEED_AND_LABEL: &str = "test_seed_and_label";
 
 //TODO: Send a tx before and after pausing the environment.
 
@@ -38,7 +39,7 @@ async fn deploy_and_start() -> Result<(
     let mut environment = Environment::new(TEST_ENV_LABEL, 2.0, 1);
     let client = Arc::new(RevmMiddleware::new(
         &environment,
-        Some("test_agent".to_string()),
+        Some(TEST_SIGNER_SEED_AND_LABEL.to_string()),
     ));
     environment.run();
     Ok((

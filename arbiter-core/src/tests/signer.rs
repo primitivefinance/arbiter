@@ -1,17 +1,17 @@
 use std::sync::Arc;
 
 use super::*;
-const TEST_AGENT_NAME: &str = "test_agent";
+
 #[test]
 fn simulation_signer() {
     let environment = &mut Environment::new(TEST_ENV_LABEL, 1.0, 1);
     let client = Arc::new(RevmMiddleware::new(
         environment,
-        Some(TEST_AGENT_NAME.to_string()),
+        Some(TEST_SIGNER_SEED_AND_LABEL.to_string()),
     ));
     assert_eq!(
         client.default_sender().unwrap(),
-        Address::from_str("0x09e12ce98726acd515b68f87f49dc2e5558f6a72").unwrap()
+        Address::from_str("0x2efdc9eecfee3a776209fcb8e9a83a6b221d74f5").unwrap()
     );
 }
 
