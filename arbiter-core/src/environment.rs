@@ -98,9 +98,7 @@ impl Environment {
         let label = self.label.clone();
 
         let handle = thread::spawn(move || {
-
             let mut expected_events_per_block = seeded_poisson.sample();
-
             loop {
                 match state.load(std::sync::atomic::Ordering::Relaxed) {
                     State::Stopped => break,
