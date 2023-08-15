@@ -1,7 +1,5 @@
 use std::{env, io, process::Command};
 
-use log::error;
-
 /// Initializes a new Arbiter project from a template.
 ///
 /// This function does the following:
@@ -32,7 +30,7 @@ pub(crate) fn init_project(name: &str) -> io::Result<()> {
         .status()?;
 
     if !status.success() {
-        error!("Failed to clone the repository.");
+        println!("Failed to clone the repository.");
         return Err(io::Error::new(
             io::ErrorKind::Other,
             "Failed to clone the repository.",

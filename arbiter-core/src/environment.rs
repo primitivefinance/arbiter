@@ -35,7 +35,7 @@ pub struct Environment {
     pub(crate) state: Arc<AtomicState>,
     pub(crate) evm: EVM<CacheDB<EmptyDB>>,
     pub(crate) socket: Socket,
-    pub seeded_poisson: Option<SeededPoisson>,
+    pub seeded_poisson: SeededPoisson,
     pub(crate) handle: Option<JoinHandle<Result<(), EnvironmentError>>>,
     pub(crate) pausevar: Arc<(Mutex<()>, Condvar)>,
 }
@@ -56,16 +56,13 @@ pub enum EnvironmentError {
 }
 
 impl Environment {
-    pub(crate) fn new<S: Into<String>>(label: S, block_rate: Option<f64>, seed: u64) -> Self {
+    pub(crate) fn new<S: Into<String>>(label: S, block_rate: f64, seed: u64) -> Self {
         let mut evm = EVM::new();
         let db = CacheDB::new(EmptyDB {});
         evm.database(db);
-        let mut seeded_poisson;
-        if let Some(block_rate) = block_rate {
-            seeded_poisson = Some(SeededPoisson::new(block_rate, seed));
-        } else {
-            seeded_poisson = None;
-        }
+
+        let seeded_poisson = SeededPoisson::new(block_rate, seed);
+
         evm.env.cfg.limit_contract_code_size = Some(0x100000); // This is a large contract size limit, beware!
         evm.env.block.gas_limit = U256::MAX;
 
@@ -93,7 +90,7 @@ impl Environment {
         let tx_receiver = self.socket.tx_receiver.clone();
         let event_broadcaster = self.socket.event_broadcaster.clone();
 
-        let mut seeded_poisson_option = self.seeded_poisson.clone();
+        let mut seeded_poisson = self.seeded_poisson.clone();
 
         let mut counter: u64 = 0;
         self.state
@@ -103,12 +100,9 @@ impl Environment {
         let label = self.label.clone();
 
         let handle = thread::spawn(move || {
-            let mut expected_events_per_block;
-            if let Some(ref mut seeded_poisson) = seeded_poisson_option {
-                expected_events_per_block = seeded_poisson.sample();
-            } else {
-                expected_events_per_block = u64::MAX;
-            }
+
+            let mut expected_events_per_block = seeded_poisson.sample();
+
             loop {
                 match state.load(std::sync::atomic::Ordering::Relaxed) {
                     State::Stopped => break,
@@ -128,9 +122,7 @@ impl Environment {
                             if counter == expected_events_per_block {
                                 counter = 0;
                                 evm.env.block.number += U256::from(1);
-                                if let Some(ref mut seeded_poisson) = seeded_poisson_option {
-                                    expected_events_per_block = seeded_poisson.sample();
-                                }
+                                expected_events_per_block = seeded_poisson.sample();
                             }
 
                             evm.env.tx = tx;
@@ -283,7 +275,7 @@ pub(crate) mod tests {
 
     #[test]
     fn new() {
-        let environment = Environment::new(TEST_ENV_LABEL.to_string(), Some(1.0), 1);
+        let environment = Environment::new(TEST_ENV_LABEL.to_string(), 1.0, 1);
         assert_eq!(environment.label, TEST_ENV_LABEL);
         let state = environment.state.load(std::sync::atomic::Ordering::Relaxed);
         assert_eq!(state, State::Initialization);
@@ -291,7 +283,7 @@ pub(crate) mod tests {
 
     #[test]
     fn run() {
-        let mut environment = Environment::new(TEST_ENV_LABEL.to_string(), Some(1.0), 1);
+        let mut environment = Environment::new(TEST_ENV_LABEL.to_string(), 1.0, 1);
         environment.run();
         let state = environment.state.load(std::sync::atomic::Ordering::Relaxed);
         assert_eq!(state, State::Running);
