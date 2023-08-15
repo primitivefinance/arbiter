@@ -60,14 +60,26 @@ use crate::environment::{Environment, EventBroadcaster, ResultReceiver, ResultSe
 /// # Examples
 ///
 /// Basic usage:
-///
 /// ```
-/// // Assuming you have the necessary dependencies and the complete module implementation
-/// let agent = Agent::<NotAttached>::new("agent_name".into());
-/// let environment = Environment::default();
+/// // Get the necessary dependencies
+/// // Import `Arc` if you need to create a client instance
+/// use std::sync::Arc;
 ///
-/// let middleware = RevmMiddleware::new(&agent, &environment);
+/// use arbiter_core::{manager::Manager, middleware::RevmMiddleware};
+///
+/// // Create a manager and add an environment
+/// let mut manager = Manager::new();
+/// manager.add_environment("example_env", 1.0, 42).unwrap();
+///
+/// // Retrieve the environment to create a new middleware instance
+/// let environment = manager.environments.get("example.env").unwrap();
+/// let middleware = RevmMiddleware::new(&environment, Some("test_label".to_string()));
+/// let client = Arc::new(&middleware);
 /// ```
+/// The client can now be used for transactions with the environment.
+/// Use a seed like `Some("test_label".to_string())` for maintaining a
+/// consistant address across simulations and client labeling. Seeding is be
+/// useful for debugging and post-processing.
 #[derive(Debug)]
 pub struct RevmMiddleware {
     provider: Provider<Connection>,
@@ -160,16 +172,24 @@ impl MiddlewareError for RevmMiddlewareError {
 }
 
 impl RevmMiddleware {
-    /// Creates a new instance of `RevmMiddleware` by using the given agent and
-    /// environment.
+    /// Creates a new instance of `RevmMiddleware` with procedurally generated
+    /// signer/address if provided a seed/label and otherwise a random
+    /// signer if not.
     ///
     /// # Examples
     /// ```
-    /// // ... imports ...
-    /// let agent = Agent::new(...); // use appropriate constructor
-    /// let environment = Environment::new(...); // use appropriate constructor
-    /// let middleware = RevmMiddleware::new(&agent, &environment);
+    /// use arbiter_core::{manager::Manager, middleware::RevmMiddleware};
+    ///
+    /// let mut manager = Manager::new();
+    /// manager.add_environment("example_env", 1.0, 42).unwrap();
+    /// let environment = manager.environments.get("example.env").unwrap();
+    /// let middleware = RevmMiddleware::new(&environment, Some("test_label".to_string()));
+    ///
+    /// // We can create a middleware instance without a seed by doing the following
+    /// let no_seed_middleware = RevmMiddleware::new(&environment, None);
     /// ```
+    /// Use a seed if you want to have a constant address across simulations as
+    /// well as a label for a client. This can be useful for debugging.
     pub fn new(environment: &Environment, seed_and_label: Option<String>) -> Self {
         let tx_sender = environment.socket.tx_sender.clone();
         let (result_sender, result_receiver) = crossbeam_channel::unbounded();
@@ -475,7 +495,8 @@ impl JsonRpcClient for Connection {
     type Error = ProviderError;
 
     /// Processes a JSON-RPC request and returns the response.
-    /// Currently only handles the `eth_getFilterChanges` call since this is used for polling events emitted from the [`Environment`].
+    /// Currently only handles the `eth_getFilterChanges` call since this is
+    /// used for polling events emitted from the [`Environment`].
     async fn request<T: Serialize + Send + Sync, R: DeserializeOwned>(
         &self,
         method: &str,
@@ -536,8 +557,9 @@ impl JsonRpcClient for Connection {
     }
 }
 
-/// Packages together a [`crossbeam_channel::Receiver<Vec<Log>>`] along with a [`Filter`] for events.
-/// Allows the client to have a stream of filtered events.
+/// Packages together a [`crossbeam_channel::Receiver<Vec<Log>>`] along with a
+/// [`Filter`] for events. Allows the client to have a stream of filtered
+/// events.
 #[derive(Debug)]
 pub(crate) struct FilterReceiver {
     /// The filter definition used for this receiver.
@@ -559,9 +581,10 @@ struct Success {
 }
 
 /// Unpacks the result of the EVM execution.
-/// 
-/// This function converts the raw execution result from the EVM into a more structured [`Success`] type 
-/// or an error indicating the failure of the execution.
+///
+/// This function converts the raw execution result from the EVM into a more
+/// structured [`Success`] type or an error indicating the failure of the
+/// execution.
 fn unpack_execution_result(
     execution_result: ExecutionResult,
 ) -> Result<Success, RevmMiddlewareError> {
@@ -598,33 +621,35 @@ fn unpack_execution_result(
 }
 
 /// Converts the address type used by `revm` to the one used by `ethers-rs`.
-/// 
-/// This inline function performs a straightforward transformation of the address types. 
-/// The provided address type from Revm is transformed into the corresponding type 
-/// used in the Ethers library.
+///
+/// This inline function performs a straightforward transformation of the
+/// address types. The provided address type from Revm is transformed into the
+/// corresponding type used in the Ethers library.
 #[inline]
 fn recast_address(address: B160) -> Address {
     // This unwrap should never fail as the `B160` will always cast into `[u8; 20]`.
-    let temp: [u8; 20] = address.as_bytes().try_into().unwrap(); 
+    let temp: [u8; 20] = address.as_bytes().try_into().unwrap();
     Address::from(temp)
 }
 
-/// Converts the 256-bit byte array type used by `revm` to the one used by `ethers-rs`.
-/// 
-/// This inline function performs a simple transformation of the 256-bit byte arrays. 
-/// The provided byte array from Revm is transformed into the corresponding type used 
-/// in the Ethers library.
+/// Converts the 256-bit byte array type used by `revm` to the one used by
+/// `ethers-rs`.
+///
+/// This inline function performs a simple transformation of the 256-bit byte
+/// arrays. The provided byte array from Revm is transformed into the
+/// corresponding type used in the Ethers library.
 #[inline]
 fn recast_b256(input: revm::primitives::B256) -> ethers::types::H256 {
     // This unwrap should never fail as the `B256` will always cast into `[u8; 32]`.
-    let temp: [u8; 32] = input.as_bytes().try_into().unwrap(); 
+    let temp: [u8; 32] = input.as_bytes().try_into().unwrap();
     ethers::types::H256::from(temp)
 }
 
 /// Converts logs from the Revm format to the Ethers format.
-/// 
-/// This function iterates over a list of logs as they appear in the `revm` and converts each 
-/// log entry to the corresponding format used by the `ethers-rs` library.
+///
+/// This function iterates over a list of logs as they appear in the `revm` and
+/// converts each log entry to the corresponding format used by the `ethers-rs`
+/// library.
 #[inline]
 pub fn revm_logs_to_ethers_logs(
     revm_logs: Vec<revm::primitives::Log>,

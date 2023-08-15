@@ -13,11 +13,11 @@ use std::collections::HashMap;
 use log::{info, warn};
 use thiserror::Error;
 
+use crate::environment::{Environment, State};
 #[cfg_attr(doc, doc(hidden))]
 #[cfg_attr(doc, allow(unused_imports))]
 #[cfg(doc)]
 use crate::math::SeededPoisson;
-use crate::environment::{Environment, State};
 
 /// The primary manager structure for maintaining a collection of environments.
 ///

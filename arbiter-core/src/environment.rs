@@ -36,7 +36,7 @@ use thiserror::Error;
 #[cfg_attr(doc, allow(unused_imports))]
 #[cfg(doc)]
 use crate::manager::Manager;
-use crate::{math::*, middleware::RevmMiddleware};
+use crate::math::SeededPoisson;
 
 /// Alias to represent that a transaction sent to the [`EVM`] updates the
 /// worldstate (`true`) or is read only (`false`)
