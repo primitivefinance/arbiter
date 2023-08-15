@@ -280,7 +280,6 @@ impl Middleware for RevmMiddleware {
             nonce: None,
             access_list: Vec::new(),
         };
-        println!("gotten past creating txenv");
         self.provider()
             .as_ref()
             .tx_sender
@@ -292,7 +291,6 @@ impl Middleware for RevmMiddleware {
             .map_err(|e| RevmMiddlewareError::Send {
                 cause: e.to_string(),
             })?;
-        println!("sent to provider");
         let revm_result = self
             .provider()
             .as_ref()
@@ -301,7 +299,7 @@ impl Middleware for RevmMiddleware {
             .map_err(|e| RevmMiddlewareError::Receive {
                 cause: e.to_string(),
             })?;
-
+        
         let Success {
             _reason: _,
             _gas_used: _,
@@ -309,6 +307,7 @@ impl Middleware for RevmMiddleware {
             logs,
             output,
         } = unpack_execution_result(revm_result.result)?;
+        
         match output {
             Output::Create(_, address) => {
                 let address = address.ok_or(RevmMiddlewareError::MissingData {
