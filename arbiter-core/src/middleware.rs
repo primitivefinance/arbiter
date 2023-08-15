@@ -38,7 +38,6 @@ use crate::{
     environment::{Environment, EventBroadcaster, ResultReceiver, ResultSender, TxSender},
 };
 
-
 #[derive(Debug)]
 pub struct RevmMiddleware {
     provider: Provider<Connection>,
@@ -145,16 +144,16 @@ impl Middleware for RevmMiddleware {
             value: U256::ZERO,
             data: bytes::Bytes::from(
                 tx.data()
-                    .ok_or(Err(RevmMiddlewareError::MissingDataError {
+                    .ok_or(RevmMiddlewareError::MissingDataError {
                         cause: "Data missing in transaction!".to_string(),
-                    })?)?
-                    .clone()
+                    })?
                     .to_vec(),
             ),
             chain_id: None,
             nonce: None,
             access_list: Vec::new(),
         };
+        println!("gotten past creating txenv");
         self.provider()
             .as_ref()
             .tx_sender
@@ -166,7 +165,7 @@ impl Middleware for RevmMiddleware {
             .map_err(|e| RevmMiddlewareError::SendError {
                 cause: e.to_string(),
             })?;
-
+        println!("sent to provider");
         let revm_result = self
             .provider()
             .as_ref()
@@ -185,9 +184,9 @@ impl Middleware for RevmMiddleware {
         } = unpack_execution_result(revm_result.result)?;
         match output {
             Output::Create(_, address) => {
-                let address = address.ok_or(Err(RevmMiddlewareError::MissingDataError {
+                let address = address.ok_or(RevmMiddlewareError::MissingDataError {
                     cause: "Address missing in transaction!".to_string(),
-                })?)?;
+                })?;
                 let mut pending_tx =
                     PendingTransaction::new(ethers::types::H256::zero(), self.provider());
                 pending_tx.state = PendingTxState::RevmDeployOutput(recast_address(address));
@@ -226,10 +225,9 @@ impl Middleware for RevmMiddleware {
             value: U256::ZERO,
             data: bytes::Bytes::from(
                 tx.data()
-                    .ok_or(Err(RevmMiddlewareError::MissingDataError {
+                    .ok_or(RevmMiddlewareError::MissingDataError {
                         cause: "Data missing in transaction!".to_string(),
-                    })?)?
-                    .clone()
+                    })?
                     .to_vec(),
             ),
             chain_id: None,
