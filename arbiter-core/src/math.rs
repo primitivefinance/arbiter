@@ -166,7 +166,7 @@ pub fn float_to_wad(x: f64) -> U256 {
 /// # Examples
 ///
 /// ```
-/// # use [YOUR_CRATE]::math::{float_to_wad, wad_to_float};
+/// # use arbiter_core::math::{float_to_wad, wad_to_float};
 /// let wad_val = float_to_wad(1.23);
 /// let float_val = wad_to_float(wad_val);
 /// assert_eq!(float_val, 1.23);

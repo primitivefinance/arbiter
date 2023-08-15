@@ -31,16 +31,16 @@ use ethers::core::types::U64;
 use log::error;
 use revm::{
     db::{CacheDB, EmptyDB},
-    primitives::{EVMError, ExecutionResult, TxEnv, U256, Log},
+    primitives::{EVMError, ExecutionResult, Log, TxEnv, U256},
     EVM,
 };
 use thiserror::Error;
 
+use crate::math::SeededPoisson;
 #[cfg_attr(doc, doc(hidden))]
 #[cfg_attr(doc, allow(unused_imports))]
 #[cfg(doc)]
 use crate::{manager::Manager, middleware::RevmMiddleware};
-use crate::math::SeededPoisson;
 
 /// Alias to represent that a transaction sent to the
 /// [`EVM`](https://docs.rs/revm/3.3.0/revm/struct.EVM.html) updates the
@@ -74,10 +74,10 @@ pub(crate) type EventSender = Sender<Vec<Log>>;
 ///  and its connections to the "outside world".
 /// The Ethereum Virtual Machine
 /// ([`EVM`](https://github.com/bluealloy/revm/blob/main/crates/revm/src/evm.rs))
-/// which is a stack machine that processes raw smart contract bytecode and 
-/// updates a local database of the worldstate of an Ethereum simulation. 
-/// Note, the worldstate of the simulation Ethereum environment should not be 
-/// confused with the [`State`] of the environment here! The [`Environment`] 
+/// which is a stack machine that processes raw smart contract bytecode and
+/// updates a local database of the worldstate of an Ethereum simulation.
+/// Note, the worldstate of the simulation Ethereum environment should not be
+/// confused with the [`State`] of the environment here! The [`Environment`]
 /// will route transactions sent over channels to the stack machine
 /// [`EVM`](https://github.com/bluealloy/revm/blob/main/crates/revm/src/evm.rs)
 /// to process smart contract interactions.
@@ -105,8 +105,8 @@ pub(crate) type EventSender = Sender<Vec<Log>>;
 /// via the [`SeededPoisson`] field. The idea is that we can choose a rate
 /// paramater, typically denoted by the Greek letter lambda, and set this to be
 /// the expected number of transactions per block while allowing blocks to be
-/// built with random size. This is useful in stepping forward the 
-/// [`EVM`](https://github.com/bluealloy/revm/blob/main/crates/revm/src/evm.rs) 
+/// built with random size. This is useful in stepping forward the
+/// [`EVM`](https://github.com/bluealloy/revm/blob/main/crates/revm/src/evm.rs)
 /// and being able to move time forward for contracts that depend explicitly on
 /// time.
 pub struct Environment {
@@ -209,7 +209,7 @@ pub enum EnvironmentError {
 
     /// [`EnvironmentError::Conversion`] is thrown when a type fails to
     /// convert into another (typically a type used in `revm` versus a type used
-    /// in [`ethers-rs`](https://github.com/gakonst/ethers-rs)). 
+    /// in [`ethers-rs`](https://github.com/gakonst/ethers-rs)).
     /// This error should be rare (if not impossible).
     /// Furthermore, after a switch to [`alloy`](https://github.com/alloy-rs)
     /// this will be (hopefully) unnecessary!
@@ -344,9 +344,7 @@ impl Environment {
                                         cause: format!("{:?}", e),
                                     }
                                 })?;
-                                event_broadcaster.broadcast(
-                                        execution_result.logs()
-                                )?;
+                                event_broadcaster.broadcast(execution_result.logs())?;
                                 let revm_result = RevmResult {
                                     result: execution_result,
                                     block_number: convert_uint_to_u64(evm.env.block.number)
@@ -406,10 +404,10 @@ impl Environment {
 ///
 /// The socket contains senders and receivers for transactions, as well as an
 /// event broadcaster to broadcast logs from the EVM to subscribers.
-/// [`State`] is made atomic via the 
-/// `#[atomic_enum::atomic_enum](https://docs.rs/atomic_enum/latest/atomic_enum/)` 
-/// proc macro so that [`State`] can be loaded or stored from elsewhere (e.g., 
-/// the [`Manager`]). 
+/// [`State`] is made atomic via the
+/// `#[atomic_enum::atomic_enum](https://docs.rs/atomic_enum/latest/atomic_enum/)`
+/// proc macro so that [`State`] can be loaded or stored from elsewhere (e.g.,
+/// the [`Manager`]).
 #[atomic_enum::atomic_enum]
 #[derive(Eq, PartialEq)]
 pub enum State {

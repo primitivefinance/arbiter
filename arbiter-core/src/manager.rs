@@ -6,8 +6,6 @@
 
 #![warn(missing_docs, unsafe_code)]
 
-// TODO: Check the publicness of all structs and functions.
-
 use std::collections::HashMap;
 
 use log::{info, warn};
@@ -113,13 +111,14 @@ impl Manager {
     /// - `block_rate`: The mean of the rate at which the environment will
     ///   process blocks (e.g., the rate parameter in the Poisson distribution
     ///   used in the [`SeededPoisson`] field of an [`Environment`]).
-    /// - `seed`: A seed value for the environment, often used for randomness.
+    /// - /// - `seed`: A value chosen to generate randomly chosen block sizes
+    ///  for the environment.
     ///
     /// # Returns
     ///
     /// - `Ok(())`: The environment was successfully added.
-    /// - `Err(ManagerError::EnvironmentAlreadyExists)`: An environment with
-    ///   the specified label already exists.
+    /// - `Err(ManagerError::EnvironmentAlreadyExists)`: An environment with the
+    ///   specified label already exists.
     ///
     /// # Examples
     ///
@@ -166,8 +165,8 @@ impl Manager {
     /// # Returns
     ///
     /// - `Ok(())`: The environment was successfully started.
-    /// - `Err(ManagerError::EnvironmentDoesNotExist)`: No environment with
-    ///   the specified label exists.
+    /// - `Err(ManagerError::EnvironmentDoesNotExist)`: No environment with the
+    ///   specified label exists.
     /// - `Err(ManagerError::EnvironmentAlreadyRunning)`: The environment is
     ///   already running.
     /// - `Err(ManagerError::EnvironmentStopped)`: The environment has already
@@ -234,8 +233,8 @@ impl Manager {
     /// # Returns
     ///
     /// - `Ok(())`: The environment was successfully paused.
-    /// - `Err(ManagerError::EnvironmentDoesNotExist)`: No environment with
-    ///   the specified label exists.
+    /// - `Err(ManagerError::EnvironmentDoesNotExist)`: No environment with the
+    ///   specified label exists.
     /// - `Err(ManagerError::EnvironmentNotRunning)`: The environment is in an
     ///   initialization state and cannot be paused.
     /// - `Err(ManagerError::EnvironmentAlreadyPaused)`: The environment is
@@ -298,10 +297,10 @@ impl Manager {
     /// # Returns
     ///
     /// - `Ok(())`: The [`Environment`] was successfully stopped.
-    /// - `Err(ManagerError::EnvironmentDoesNotExist)`: No [`Environment`]
-    ///   with the specified label exists.
-    /// - `Err(ManagerError::EnvironmentNotRunning)`: The [`Environment`] is
-    ///   not running and cannot be stopped.
+    /// - `Err(ManagerError::EnvironmentDoesNotExist)`: No [`Environment`] with
+    ///   the specified label exists.
+    /// - `Err(ManagerError::EnvironmentNotRunning)`: The [`Environment`] is not
+    ///   running and cannot be stopped.
     /// - `Err(ManagerError::EnvironmentStopped)`: The [`Environment`]'s is
     ///   already in a stopped state.
     /// - `Err(ManagerError::NoHandleAvailable)`: The [`Environment`]'s handle

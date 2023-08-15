@@ -425,7 +425,8 @@ impl Middleware for RevmMiddleware {
         );
         let hash = hasher.finalize();
         let id = ethers::types::U256::from(ethers::types::H256::from_slice(&hash).as_bytes());
-        let (event_sender, event_receiver) = crossbeam_channel::unbounded::<Vec<revm::primitives::Log>>();
+        let (event_sender, event_receiver) =
+            crossbeam_channel::unbounded::<Vec<revm::primitives::Log>>();
         let filter_receiver = FilterReceiver {
             filter,
             receiver: event_receiver,
