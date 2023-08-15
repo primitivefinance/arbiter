@@ -32,6 +32,10 @@ use revm::{
 };
 use thiserror::Error;
 
+#[cfg_attr(doc, doc(hidden))]
+#[cfg_attr(doc, allow(unused_imports))]
+#[cfg(doc)]
+use crate::manager::Manager;
 use crate::{
     agent::{Agent, IsAttached, NotAttached},
     math::*,
@@ -59,11 +63,6 @@ pub(crate) type TxReceiver = Receiver<(ToTransact, TxEnv, ResultSender)>;
 /// Alias for the sender used in the [`EventBroadcaster`] that transmits
 /// contract events via [`Log`].
 pub(crate) type EventSender = Sender<Vec<Log>>;
-
-#[cfg_attr(doc, doc(hidden))]
-#[cfg_attr(doc, allow(unused_imports))]
-#[cfg(doc)]
-use crate::manager::Manager;
 
 /// Represents a [`Manager`]-controllable version of the Ethereum execution
 /// environment.
