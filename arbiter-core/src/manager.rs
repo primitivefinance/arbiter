@@ -59,7 +59,7 @@ impl Manager {
         }
         self.environments.insert(
             environment_label.clone().into(),
-            Environment::new(environment_label.clone(), block_rate, seed),
+            Environment::new(environment_label.clone(), Some(block_rate), seed),
         );
         info!("Added environment labeled {}", environment_label.into());
         Ok(())

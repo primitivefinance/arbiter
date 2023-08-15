@@ -1,7 +1,5 @@
-#![warn(missing_docs, unsafe_code)]
-// TODO: Replace prints with better logging?
-// TODO: Reduce any clutter here.
-// TODO: Change some of the output messages to be more descriptive.
+#![warn(missing_docs)]
+
 //! `Arbiter` CLI Tool
 //!
 //! The Arbiter command-line interface provides minimum utilities for the
@@ -89,11 +87,11 @@ enum Commands {
 ///
 /// * A `Result` which is either an empty tuple for successful execution or a dynamic error.
 fn main() -> Result<(), Box<dyn Error>> {
-    env_logger::init();
     let args = Args::parse();
 
     match &args.command {
         Some(Commands::Init { simulation_name }) => {
+            println!("Initializing Arbiter project...");
             init::init_project(simulation_name)?;
         }
         Some(Commands::Bind) => {

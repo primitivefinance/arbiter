@@ -23,6 +23,26 @@ Arbiter can be used for:
 - investigating risk, capital efficiency, rebalancing strategies, and portfolio replication (or performance). (LPs, funds, quants, traders)
 - Engineering and testing new financial products built on top of more primitive financial products (DeFi firms and academics)
 
+## Installation
+
+### Build from source
+
+```bash
+git clone https://github.com/primitivefinance/arbiter.git
+cd arbiter
+cargo install --path .
+```
+
+## CLI 
+
+```bash
+arbiter init your-project-name
+cd your-project-name
+arbiter bind
+cargo run
+```
+
+
 ## Generating Docs
 
 To see the documentation for Arbiter, after cloning the repo, you can run:

@@ -36,7 +36,7 @@ async fn deploy_and_start() -> Result<(
     Environment,
     Arc<RevmMiddleware>,
 )> {
-    let mut environment = Environment::new(TEST_ENV_LABEL, 2.0, 1);
+    let mut environment = Environment::new(TEST_ENV_LABEL, Some(2.0), 1);
     let client = Arc::new(RevmMiddleware::new(
         &environment,
         Some(TEST_SIGNER_SEED_AND_LABEL.to_string()),

@@ -1,8 +1,5 @@
-#![warn(missing_docs, unsafe_code)]
-
+#![warn(missing_docs)]
 use std::process::Command;
-
-use log::{error, info};
 
 /// Runs the `forge` command-line tool to generate bindings.
 ///
@@ -30,11 +27,11 @@ pub(crate) fn forge_bind() -> std::io::Result<()> {
 
     if output.status.success() {
         let output_str = String::from_utf8_lossy(&output.stdout);
-        info!("Command output: {}", output_str);
+        println!("Command output: {}", output_str);
         Ok(())
     } else {
         let err_str = String::from_utf8_lossy(&output.stderr);
-        info!("Command failed, error: {}, is forge installed?", err_str);
+        println!("Command failed, error: {}, is forge installed?", err_str);
         Err(std::io::Error::new(
             std::io::ErrorKind::Other,
             "Command failed",

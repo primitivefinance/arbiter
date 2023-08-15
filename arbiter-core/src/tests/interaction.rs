@@ -221,7 +221,7 @@ async fn transaction_loop() -> Result<()> {
     // tx_0 is the transaction that creates the token contract
     let (arbiter_token, env, client) = deploy_and_start().await?;
 
-    let mut dist = env.seeded_poisson.clone();
+    let mut dist = env.seeded_poisson.clone().unwrap();
     let expected_tx_per_block = dist.sample();
     println!("expected_tx_per_block: {}", expected_tx_per_block);
 
