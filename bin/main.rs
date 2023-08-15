@@ -1,20 +1,19 @@
 #![warn(missing_docs, unsafe_code)]
-
 // TODO: Replace prints with better logging?
 // TODO: Reduce any clutter here.
 // TODO: Change some of the output messages to be more descriptive.
 //! `Arbiter` CLI Tool
 //!
-//! The Arbiter command-line interface provides minimum utilities for the 
+//! The Arbiter command-line interface provides minimum utilities for the
 //! utilization of the arbiter-core crate. It is designed to be a simple and versitile.
-//! 
+//!
 //!
 //! Key Features:
 //! - Simulation Initialization: Allow users to kickstart new data analysis simulations.
 //! - Contract Bindings: Generate necessary bindings for interfacing with different contracts.
-//! 
 //!
-//! This CLI leverages the power of Rust's type system to 
+//!
+//! This CLI leverages the power of Rust's type system to
 //! offer fast and reliable operations, ensuring data integrity and ease of use.
 
 use std::error::Error;
@@ -93,13 +92,8 @@ fn main() -> Result<(), Box<dyn Error>> {
     env_logger::init();
     let args = Args::parse();
 
-    if args.command.is_some() {
-        println!("Starting Arbiter...");
-    }
-
     match &args.command {
         Some(Commands::Init { simulation_name }) => {
-            println!("Initializing simulation...");
             init::init_project(simulation_name)?;
         }
         Some(Commands::Bind) => {
