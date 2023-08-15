@@ -10,6 +10,7 @@ use std::{
 };
 
 use ethers::{
+    core::rand::{thread_rng, SeedableRng},
     prelude::{
         k256::{
             ecdsa::SigningKey,
@@ -28,7 +29,7 @@ use ethers::{
         Log,
     },
 };
-use rand::{rngs::{StdRng, OsRng}, SeedableRng};
+use rand::rngs;
 use revm::primitives::{CreateScheme, ExecutionResult, Output, TransactTo, TxEnv, B160, U256};
 use serde::{de::DeserializeOwned, Serialize};
 use thiserror::Error;
@@ -85,7 +86,7 @@ impl MiddlewareError for RevmMiddlewareError {
 }
 
 impl RevmMiddleware {
-    pub fn new(environment: &Environment) -> Self {
+    pub fn new(environment: &Environment, seed_and_label: Option<String>) -> Self {
         let tx_sender = environment.socket.tx_sender.clone();
         let (result_sender, result_receiver) = crossbeam_channel::unbounded();
         let connection = Connection {
@@ -96,9 +97,18 @@ impl RevmMiddleware {
             filter_receivers: Arc::new(tokio::sync::Mutex::new(HashMap::new())),
         };
         let provider = Provider::new(connection);
-        let mut rng = OsRng::default();
-        let wallet = Wallet::new(&mut rng);
-        Self { provider, wallet }
+        if let Some(seed) = seed_and_label {
+            let mut hasher = Sha256::new();
+            hasher.update(seed.clone());
+            let hashed = hasher.finalize();
+            let mut rng: rngs::StdRng = SeedableRng::from_seed(hashed.into());
+            let wallet = Wallet::new(&mut rng);
+            Self { provider, wallet }
+        } else {
+            let mut rng = thread_rng();
+            let wallet = Wallet::new(&mut rng);
+            Self { provider, wallet }
+        }
     }
 }
 
@@ -142,9 +152,9 @@ impl Middleware for RevmMiddleware {
             value: U256::ZERO,
             data: bytes::Bytes::from(
                 tx.data()
-                    .ok_or(Err(RevmMiddlewareError::MissingDataError {
+                    .ok_or(RevmMiddlewareError::MissingDataError {
                         cause: "Data missing in transaction!".to_string(),
-                    })?)?
+                    })?
                     .clone()
                     .to_vec(),
             ),
@@ -182,9 +192,9 @@ impl Middleware for RevmMiddleware {
         } = unpack_execution_result(revm_result.result)?;
         match output {
             Output::Create(_, address) => {
-                let address = address.ok_or(Err(RevmMiddlewareError::MissingDataError {
+                let address = address.ok_or(RevmMiddlewareError::MissingDataError {
                     cause: "Address missing in transaction!".to_string(),
-                })?)?;
+                })?;
                 let mut pending_tx =
                     PendingTransaction::new(ethers::types::H256::zero(), self.provider());
                 pending_tx.state = PendingTxState::RevmDeployOutput(recast_address(address));
@@ -223,9 +233,9 @@ impl Middleware for RevmMiddleware {
             value: U256::ZERO,
             data: bytes::Bytes::from(
                 tx.data()
-                    .ok_or(Err(RevmMiddlewareError::MissingDataError {
+                    .ok_or(RevmMiddlewareError::MissingDataError {
                         cause: "Data missing in transaction!".to_string(),
-                    })?)?
+                    })?
                     .clone()
                     .to_vec(),
             ),

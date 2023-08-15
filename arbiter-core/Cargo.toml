@@ -1,6 +1,6 @@
 [package]
 name = "arbiter-core"
-version = "1.0.0"
+version = "0.3.0"
 edition = "2021"
 
 # Dependencies for the release build
