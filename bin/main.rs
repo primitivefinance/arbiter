@@ -3,6 +3,19 @@
 // TODO: Replace prints with better logging?
 // TODO: Reduce any clutter here.
 // TODO: Change some of the output messages to be more descriptive.
+//! `Arbiter` CLI Tool
+//!
+//! The Arbiter command-line interface provides minimum utilities for the 
+//! utilization of the arbiter-core crate. It is designed to be a simple and versitile.
+//! 
+//!
+//! Key Features:
+//! - Simulation Initialization: Allow users to kickstart new data analysis simulations.
+//! - Contract Bindings: Generate necessary bindings for interfacing with different contracts.
+//! 
+//!
+//! This CLI leverages the power of Rust's type system to 
+//! offer fast and reliable operations, ensuring data integrity and ease of use.
 
 use std::error::Error;
 
@@ -12,50 +25,72 @@ use thiserror::Error;
 mod bind;
 mod init;
 
+/// Represents command-line arguments passed to the `Arbiter` tool.
 #[derive(Parser)]
 #[command(name = "Arbiter")]
 #[command(version = env!("CARGO_PKG_VERSION"))]
-#[command(about = "Data analysis tool for decentralized exchanges.", long_about = None)]
+#[command(about = "Ethereum Virtual Machine Logic Simulator", long_about = None)]
 #[command(author)]
 struct Args {
-    /// Pass a subcommand in.
+    /// Defines the subcommand to execute.
     #[command(subcommand)]
     command: Option<Commands>,
 }
 
-/// `ConfigurationError` enumeration type for errors parsing a `.toml` configuration file.
+/// Errors that can occur while reading or parsing a configuration file.
 #[derive(Error, Debug)]
 pub enum ConfigurationError {
-    /// Error occured when attempting to read file from designated path.
-    #[error("config file path does not exist")]
+    /// Indicates that the configuration file could not be read from the given path.
+    #[error("configuration file path does not exist")]
     FilepathError(#[from] std::io::Error),
 
-    /// Error occured when attempting to deserialize toml file.
+    /// Indicates an error occurred during the deserialization of the `.toml` file.
     #[error("toml deserialization failed")]
     DeserializationError(#[from] toml::de::Error),
 
-    /// Error occured with missing fields in the toml file.
+    /// Indicates that certain expected fields were missing from the `.toml` file.
     #[error("missing fields in toml file")]
     MissingFieldsError(String),
 }
 
-/// `Configurable` trait for parsing a `.toml` configuration file.
+/// Provides functionality for classes that need to be configured using a `.toml` file.
 pub trait Configurable: Sized {
-    /// Used to parse a `.toml` configuration file.
+    /// Parses the given `.toml` file to configure the object.
+    ///
+    /// # Arguments
+    ///
+    /// * `command_path` - A string slice that holds the path to the `.toml` configuration file.
+    ///
+    /// # Returns
+    ///
+    /// * A `Result` which is either a configured object of type `Self` or a `ConfigurationError`.
     fn configure(command_path: &str) -> Result<Self, ConfigurationError>;
 }
 
+/// Defines available subcommands for the `Arbiter` tool.
 #[derive(Subcommand)]
 enum Commands {
+    /// Represents the `Bind` subcommand.
     Bind,
+
+    /// Represents the `Init` subcommand to initialize a simulation.
     Init {
-        /// Name of the simulation to initialize
+        /// The name of the simulation to be initialized.
         #[clap(index = 1)]
         simulation_name: String,
     },
 }
 
+/// The main entry point for the `Arbiter` tool.
+///
+/// This function parses command line arguments, and based on the provided subcommand,
+/// either initializes a new simulation or generates bindings.
+///
+/// # Returns
+///
+/// * A `Result` which is either an empty tuple for successful execution or a dynamic error.
 fn main() -> Result<(), Box<dyn Error>> {
+    env_logger::init();
     let args = Args::parse();
 
     if args.command.is_some() {
@@ -65,11 +100,11 @@ fn main() -> Result<(), Box<dyn Error>> {
     match &args.command {
         Some(Commands::Init { simulation_name }) => {
             println!("Initializing simulation...");
-            init::create_simulation(simulation_name)?;
+            init::init_project(simulation_name)?;
         }
         Some(Commands::Bind) => {
             println!("Generating bindings...");
-            bind::bind_forge()?;
+            bind::forge_bind()?;
         }
         None => {
             Args::command()

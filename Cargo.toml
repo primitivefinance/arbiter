@@ -31,6 +31,10 @@ quote = "1.0.28"
 # Errors
 thiserror = "1.0.40"
 
+#logs 
+log = "0.4.20"
+env_logger = "0.10.0"
+
 # Dependencies for the test build and development
 [dev-dependencies]
 assert_cmd = "2.0.11"
