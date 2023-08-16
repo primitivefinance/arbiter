@@ -90,6 +90,11 @@ pub enum ManagerError {
     #[error("joining on the environment thread resulted in a panic")]
     ThreadPanic,
 }
+impl Default for Manager {
+    fn default() -> Self {
+        Self::new()
+    }
+}
 
 impl Manager {
     /// Creates a new [`Manager`] with an empty set of environments.
