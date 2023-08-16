@@ -1,4 +1,5 @@
 use super::*;
+use crate::bindings::arbiter_math::ArbiterMath;
 
 #[tokio::test]
 async fn deploy() -> Result<()> {
@@ -252,4 +253,43 @@ async fn transaction_loop() -> Result<()> {
         }
     }
     Ok(())
+}
+
+#[tokio::test]
+async fn test_pause_prevents_processing_transactions() {
+    let mut manager = Manager::new();
+    manager.add_environment(TEST_ENV_LABEL, 1.0, 1).unwrap();
+    let client = Arc::new(RevmMiddleware::new(
+        manager.environments.get(TEST_ENV_LABEL).unwrap(),
+        Some(TEST_SIGNER_SEED_AND_LABEL.to_string()),
+    ));
+
+    // Start environment
+    manager.start_environment(TEST_ENV_LABEL).unwrap();
+
+    // Send a tx and check it works (it should)
+    let arbiter_math_1 = ArbiterMath::deploy(client.clone(), ())
+        .unwrap()
+        .send()
+        .await;
+    assert!(arbiter_math_1.is_ok());
+
+    // Pause the environment.
+    manager.pause_environment(TEST_ENV_LABEL).unwrap();
+
+    // Send a tx while the environment is paused (it should not process) will return
+    // an environment error
+    let arbiter_math_2 = ArbiterMath::deploy(client.clone(), ())
+        .unwrap()
+        .send()
+        .await;
+    assert!(arbiter_math_2.is_err());
+
+    // Unpause the environment
+    manager.start_environment(TEST_ENV_LABEL).unwrap();
+    let arbiter_math_2 = ArbiterMath::deploy(client.clone(), ())
+        .unwrap()
+        .send()
+        .await;
+    assert!(arbiter_math_2.is_ok());
 }
