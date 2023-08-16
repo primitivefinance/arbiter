@@ -457,7 +457,7 @@ pub mod arbiter_token {
             fallback: false,
         }
     }
-    ///The parsed JSON ABI of the contract.
+    /// The parsed JSON ABI of the contract.
     pub static ARBITERTOKEN_ABI: ::ethers::contract::Lazy<::ethers::core::abi::Abi> =
         ::ethers::contract::Lazy::new(__abi);
     #[rustfmt::skip]
@@ -495,8 +495,9 @@ pub mod arbiter_token {
         }
     }
     impl<M: ::ethers::providers::Middleware> ArbiterToken<M> {
-        /// Creates a new contract instance with the specified `ethers` client at
-        /// `address`. The contract derefs to a `ethers::Contract` object.
+        /// Creates a new contract instance with the specified `ethers` client
+        /// at `address`. The contract derefs to a `ethers::Contract`
+        /// object.
         pub fn new<T: Into<::ethers::core::types::Address>>(
             address: T,
             client: ::std::sync::Arc<M>,
@@ -507,20 +508,25 @@ pub mod arbiter_token {
                 client,
             ))
         }
-        /// Constructs the general purpose `Deployer` instance based on the provided constructor arguments and sends it.
-        /// Returns a new instance of a deployer that returns an instance of this contract after sending the transaction
+        /// Constructs the general purpose `Deployer` instance based on the
+        /// provided constructor arguments and sends it. Returns a new
+        /// instance of a deployer that returns an instance of this contract
+        /// after sending the transaction
         ///
         /// Notes:
-        /// - If there are no constructor arguments, you should pass `()` as the argument.
+        /// - If there are no constructor arguments, you should pass `()` as the
+        ///   argument.
         /// - The default poll duration is 7 seconds.
         /// - The default number of confirmations is 1 block.
         ///
         ///
         /// # Example
         ///
-        /// Generate contract bindings with `abigen!` and deploy a new contract instance.
+        /// Generate contract bindings with `abigen!` and deploy a new contract
+        /// instance.
         ///
-        /// *Note*: this requires a `bytecode` and `abi` object in the `greeter.json` artifact.
+        /// *Note*: this requires a `bytecode` and `abi` object in the
+        /// `greeter.json` artifact.
         ///
         /// ```ignore
         /// # async fn deploy<M: ethers::providers::Middleware>(client: ::std::sync::Arc<M>) {
@@ -546,13 +552,13 @@ pub mod arbiter_token {
             let deployer = ::ethers::contract::ContractDeployer::new(deployer);
             Ok(deployer)
         }
-        ///Calls the contract's `DOMAIN_SEPARATOR` (0x3644e515) function
+        /// Calls the contract's `DOMAIN_SEPARATOR` (0x3644e515) function
         pub fn domain_separator(&self) -> ::ethers::contract::builders::ContractCall<M, [u8; 32]> {
             self.0
                 .method_hash([54, 68, 229, 21], ())
                 .expect("method not found (this should never happen)")
         }
-        ///Calls the contract's `admin` (0xf851a440) function
+        /// Calls the contract's `admin` (0xf851a440) function
         pub fn admin(
             &self,
         ) -> ::ethers::contract::builders::ContractCall<M, ::ethers::core::types::Address> {
@@ -560,7 +566,7 @@ pub mod arbiter_token {
                 .method_hash([248, 81, 164, 64], ())
                 .expect("method not found (this should never happen)")
         }
-        ///Calls the contract's `allowance` (0xdd62ed3e) function
+        /// Calls the contract's `allowance` (0xdd62ed3e) function
         pub fn allowance(
             &self,
             p0: ::ethers::core::types::Address,
@@ -570,7 +576,7 @@ pub mod arbiter_token {
                 .method_hash([221, 98, 237, 62], (p0, p1))
                 .expect("method not found (this should never happen)")
         }
-        ///Calls the contract's `approve` (0x095ea7b3) function
+        /// Calls the contract's `approve` (0x095ea7b3) function
         pub fn approve(
             &self,
             spender: ::ethers::core::types::Address,
@@ -580,7 +586,7 @@ pub mod arbiter_token {
                 .method_hash([9, 94, 167, 179], (spender, amount))
                 .expect("method not found (this should never happen)")
         }
-        ///Calls the contract's `balanceOf` (0x70a08231) function
+        /// Calls the contract's `balanceOf` (0x70a08231) function
         pub fn balance_of(
             &self,
             p0: ::ethers::core::types::Address,
@@ -589,13 +595,13 @@ pub mod arbiter_token {
                 .method_hash([112, 160, 130, 49], p0)
                 .expect("method not found (this should never happen)")
         }
-        ///Calls the contract's `decimals` (0x313ce567) function
+        /// Calls the contract's `decimals` (0x313ce567) function
         pub fn decimals(&self) -> ::ethers::contract::builders::ContractCall<M, u8> {
             self.0
                 .method_hash([49, 60, 229, 103], ())
                 .expect("method not found (this should never happen)")
         }
-        ///Calls the contract's `mint` (0x40c10f19) function
+        /// Calls the contract's `mint` (0x40c10f19) function
         pub fn mint(
             &self,
             receiver: ::ethers::core::types::Address,
@@ -605,13 +611,13 @@ pub mod arbiter_token {
                 .method_hash([64, 193, 15, 25], (receiver, amount))
                 .expect("method not found (this should never happen)")
         }
-        ///Calls the contract's `name` (0x06fdde03) function
+        /// Calls the contract's `name` (0x06fdde03) function
         pub fn name(&self) -> ::ethers::contract::builders::ContractCall<M, ::std::string::String> {
             self.0
                 .method_hash([6, 253, 222, 3], ())
                 .expect("method not found (this should never happen)")
         }
-        ///Calls the contract's `nonces` (0x7ecebe00) function
+        /// Calls the contract's `nonces` (0x7ecebe00) function
         pub fn nonces(
             &self,
             p0: ::ethers::core::types::Address,
@@ -620,7 +626,7 @@ pub mod arbiter_token {
                 .method_hash([126, 206, 190, 0], p0)
                 .expect("method not found (this should never happen)")
         }
-        ///Calls the contract's `permit` (0xd505accf) function
+        /// Calls the contract's `permit` (0xd505accf) function
         pub fn permit(
             &self,
             owner: ::ethers::core::types::Address,
@@ -638,7 +644,7 @@ pub mod arbiter_token {
                 )
                 .expect("method not found (this should never happen)")
         }
-        ///Calls the contract's `symbol` (0x95d89b41) function
+        /// Calls the contract's `symbol` (0x95d89b41) function
         pub fn symbol(
             &self,
         ) -> ::ethers::contract::builders::ContractCall<M, ::std::string::String> {
@@ -646,7 +652,7 @@ pub mod arbiter_token {
                 .method_hash([149, 216, 155, 65], ())
                 .expect("method not found (this should never happen)")
         }
-        ///Calls the contract's `totalSupply` (0x18160ddd) function
+        /// Calls the contract's `totalSupply` (0x18160ddd) function
         pub fn total_supply(
             &self,
         ) -> ::ethers::contract::builders::ContractCall<M, ::ethers::core::types::U256> {
@@ -654,7 +660,7 @@ pub mod arbiter_token {
                 .method_hash([24, 22, 13, 221], ())
                 .expect("method not found (this should never happen)")
         }
-        ///Calls the contract's `transfer` (0xa9059cbb) function
+        /// Calls the contract's `transfer` (0xa9059cbb) function
         pub fn transfer(
             &self,
             to: ::ethers::core::types::Address,
@@ -664,7 +670,7 @@ pub mod arbiter_token {
                 .method_hash([169, 5, 156, 187], (to, amount))
                 .expect("method not found (this should never happen)")
         }
-        ///Calls the contract's `transferFrom` (0x23b872dd) function
+        /// Calls the contract's `transferFrom` (0x23b872dd) function
         pub fn transfer_from(
             &self,
             from: ::ethers::core::types::Address,
@@ -675,13 +681,13 @@ pub mod arbiter_token {
                 .method_hash([35, 184, 114, 221], (from, to, amount))
                 .expect("method not found (this should never happen)")
         }
-        ///Gets the contract's `Approval` event
+        /// Gets the contract's `Approval` event
         pub fn approval_filter(
             &self,
         ) -> ::ethers::contract::builders::Event<::std::sync::Arc<M>, M, ApprovalFilter> {
             self.0.event()
         }
-        ///Gets the contract's `Transfer` event
+        /// Gets the contract's `Transfer` event
         pub fn transfer_filter(
             &self,
         ) -> ::ethers::contract::builders::Event<::std::sync::Arc<M>, M, TransferFilter> {
@@ -737,7 +743,7 @@ pub mod arbiter_token {
         pub to: ::ethers::core::types::Address,
         pub amount: ::ethers::core::types::U256,
     }
-    ///Container type for all of the contract's events
+    /// Container type for all of the contract's events
     #[derive(Clone, ::ethers::contract::EthAbiType, Debug, PartialEq, Eq, Hash)]
     pub enum ArbiterTokenEvents {
         ApprovalFilter(ApprovalFilter),
@@ -774,7 +780,8 @@ pub mod arbiter_token {
             Self::TransferFilter(value)
         }
     }
-    ///Container type for all input parameters for the `DOMAIN_SEPARATOR` function with signature `DOMAIN_SEPARATOR()` and selector `0x3644e515`
+    /// Container type for all input parameters for the `DOMAIN_SEPARATOR`
+    /// function with signature `DOMAIN_SEPARATOR()` and selector `0x3644e515`
     #[derive(
         Clone,
         ::ethers::contract::EthCall,
@@ -787,7 +794,8 @@ pub mod arbiter_token {
     )]
     #[ethcall(name = "DOMAIN_SEPARATOR", abi = "DOMAIN_SEPARATOR()")]
     pub struct DomainSeparatorCall;
-    ///Container type for all input parameters for the `admin` function with signature `admin()` and selector `0xf851a440`
+    /// Container type for all input parameters for the `admin` function with
+    /// signature `admin()` and selector `0xf851a440`
     #[derive(
         Clone,
         ::ethers::contract::EthCall,
@@ -800,7 +808,8 @@ pub mod arbiter_token {
     )]
     #[ethcall(name = "admin", abi = "admin()")]
     pub struct AdminCall;
-    ///Container type for all input parameters for the `allowance` function with signature `allowance(address,address)` and selector `0xdd62ed3e`
+    /// Container type for all input parameters for the `allowance` function
+    /// with signature `allowance(address,address)` and selector `0xdd62ed3e`
     #[derive(
         Clone,
         ::ethers::contract::EthCall,
@@ -816,7 +825,8 @@ pub mod arbiter_token {
         pub ::ethers::core::types::Address,
         pub ::ethers::core::types::Address,
     );
-    ///Container type for all input parameters for the `approve` function with signature `approve(address,uint256)` and selector `0x095ea7b3`
+    /// Container type for all input parameters for the `approve` function with
+    /// signature `approve(address,uint256)` and selector `0x095ea7b3`
     #[derive(
         Clone,
         ::ethers::contract::EthCall,
@@ -832,7 +842,8 @@ pub mod arbiter_token {
         pub spender: ::ethers::core::types::Address,
         pub amount: ::ethers::core::types::U256,
     }
-    ///Container type for all input parameters for the `balanceOf` function with signature `balanceOf(address)` and selector `0x70a08231`
+    /// Container type for all input parameters for the `balanceOf` function
+    /// with signature `balanceOf(address)` and selector `0x70a08231`
     #[derive(
         Clone,
         ::ethers::contract::EthCall,
@@ -845,7 +856,8 @@ pub mod arbiter_token {
     )]
     #[ethcall(name = "balanceOf", abi = "balanceOf(address)")]
     pub struct BalanceOfCall(pub ::ethers::core::types::Address);
-    ///Container type for all input parameters for the `decimals` function with signature `decimals()` and selector `0x313ce567`
+    /// Container type for all input parameters for the `decimals` function with
+    /// signature `decimals()` and selector `0x313ce567`
     #[derive(
         Clone,
         ::ethers::contract::EthCall,
@@ -858,7 +870,8 @@ pub mod arbiter_token {
     )]
     #[ethcall(name = "decimals", abi = "decimals()")]
     pub struct DecimalsCall;
-    ///Container type for all input parameters for the `mint` function with signature `mint(address,uint256)` and selector `0x40c10f19`
+    /// Container type for all input parameters for the `mint` function with
+    /// signature `mint(address,uint256)` and selector `0x40c10f19`
     #[derive(
         Clone,
         ::ethers::contract::EthCall,
@@ -874,7 +887,8 @@ pub mod arbiter_token {
         pub receiver: ::ethers::core::types::Address,
         pub amount: ::ethers::core::types::U256,
     }
-    ///Container type for all input parameters for the `name` function with signature `name()` and selector `0x06fdde03`
+    /// Container type for all input parameters for the `name` function with
+    /// signature `name()` and selector `0x06fdde03`
     #[derive(
         Clone,
         ::ethers::contract::EthCall,
@@ -887,7 +901,8 @@ pub mod arbiter_token {
     )]
     #[ethcall(name = "name", abi = "name()")]
     pub struct NameCall;
-    ///Container type for all input parameters for the `nonces` function with signature `nonces(address)` and selector `0x7ecebe00`
+    /// Container type for all input parameters for the `nonces` function with
+    /// signature `nonces(address)` and selector `0x7ecebe00`
     #[derive(
         Clone,
         ::ethers::contract::EthCall,
@@ -900,7 +915,9 @@ pub mod arbiter_token {
     )]
     #[ethcall(name = "nonces", abi = "nonces(address)")]
     pub struct NoncesCall(pub ::ethers::core::types::Address);
-    ///Container type for all input parameters for the `permit` function with signature `permit(address,address,uint256,uint256,uint8,bytes32,bytes32)` and selector `0xd505accf`
+    /// Container type for all input parameters for the `permit` function with
+    /// signature `permit(address,address,uint256,uint256,uint8,bytes32,
+    /// bytes32)` and selector `0xd505accf`
     #[derive(
         Clone,
         ::ethers::contract::EthCall,
@@ -924,7 +941,8 @@ pub mod arbiter_token {
         pub r: [u8; 32],
         pub s: [u8; 32],
     }
-    ///Container type for all input parameters for the `symbol` function with signature `symbol()` and selector `0x95d89b41`
+    /// Container type for all input parameters for the `symbol` function with
+    /// signature `symbol()` and selector `0x95d89b41`
     #[derive(
         Clone,
         ::ethers::contract::EthCall,
@@ -937,7 +955,8 @@ pub mod arbiter_token {
     )]
     #[ethcall(name = "symbol", abi = "symbol()")]
     pub struct SymbolCall;
-    ///Container type for all input parameters for the `totalSupply` function with signature `totalSupply()` and selector `0x18160ddd`
+    /// Container type for all input parameters for the `totalSupply` function
+    /// with signature `totalSupply()` and selector `0x18160ddd`
     #[derive(
         Clone,
         ::ethers::contract::EthCall,
@@ -950,7 +969,8 @@ pub mod arbiter_token {
     )]
     #[ethcall(name = "totalSupply", abi = "totalSupply()")]
     pub struct TotalSupplyCall;
-    ///Container type for all input parameters for the `transfer` function with signature `transfer(address,uint256)` and selector `0xa9059cbb`
+    /// Container type for all input parameters for the `transfer` function with
+    /// signature `transfer(address,uint256)` and selector `0xa9059cbb`
     #[derive(
         Clone,
         ::ethers::contract::EthCall,
@@ -966,7 +986,9 @@ pub mod arbiter_token {
         pub to: ::ethers::core::types::Address,
         pub amount: ::ethers::core::types::U256,
     }
-    ///Container type for all input parameters for the `transferFrom` function with signature `transferFrom(address,address,uint256)` and selector `0x23b872dd`
+    /// Container type for all input parameters for the `transferFrom` function
+    /// with signature `transferFrom(address,address,uint256)` and selector
+    /// `0x23b872dd`
     #[derive(
         Clone,
         ::ethers::contract::EthCall,
@@ -983,7 +1005,7 @@ pub mod arbiter_token {
         pub to: ::ethers::core::types::Address,
         pub amount: ::ethers::core::types::U256,
     }
-    ///Container type for all of the contract's call
+    /// Container type for all of the contract's call
     #[derive(Clone, ::ethers::contract::EthAbiType, Debug, PartialEq, Eq, Hash)]
     pub enum ArbiterTokenCalls {
         DomainSeparator(DomainSeparatorCall),
@@ -1164,7 +1186,8 @@ pub mod arbiter_token {
             Self::TransferFrom(value)
         }
     }
-    ///Container type for all return fields from the `DOMAIN_SEPARATOR` function with signature `DOMAIN_SEPARATOR()` and selector `0x3644e515`
+    /// Container type for all return fields from the `DOMAIN_SEPARATOR`
+    /// function with signature `DOMAIN_SEPARATOR()` and selector `0x3644e515`
     #[derive(
         Clone,
         ::ethers::contract::EthAbiType,
@@ -1176,7 +1199,8 @@ pub mod arbiter_token {
         Hash,
     )]
     pub struct DomainSeparatorReturn(pub [u8; 32]);
-    ///Container type for all return fields from the `admin` function with signature `admin()` and selector `0xf851a440`
+    /// Container type for all return fields from the `admin` function with
+    /// signature `admin()` and selector `0xf851a440`
     #[derive(
         Clone,
         ::ethers::contract::EthAbiType,
@@ -1188,7 +1212,8 @@ pub mod arbiter_token {
         Hash,
     )]
     pub struct AdminReturn(pub ::ethers::core::types::Address);
-    ///Container type for all return fields from the `allowance` function with signature `allowance(address,address)` and selector `0xdd62ed3e`
+    /// Container type for all return fields from the `allowance` function with
+    /// signature `allowance(address,address)` and selector `0xdd62ed3e`
     #[derive(
         Clone,
         ::ethers::contract::EthAbiType,
@@ -1200,7 +1225,8 @@ pub mod arbiter_token {
         Hash,
     )]
     pub struct AllowanceReturn(pub ::ethers::core::types::U256);
-    ///Container type for all return fields from the `approve` function with signature `approve(address,uint256)` and selector `0x095ea7b3`
+    /// Container type for all return fields from the `approve` function with
+    /// signature `approve(address,uint256)` and selector `0x095ea7b3`
     #[derive(
         Clone,
         ::ethers::contract::EthAbiType,
@@ -1212,7 +1238,8 @@ pub mod arbiter_token {
         Hash,
     )]
     pub struct ApproveReturn(pub bool);
-    ///Container type for all return fields from the `balanceOf` function with signature `balanceOf(address)` and selector `0x70a08231`
+    /// Container type for all return fields from the `balanceOf` function with
+    /// signature `balanceOf(address)` and selector `0x70a08231`
     #[derive(
         Clone,
         ::ethers::contract::EthAbiType,
@@ -1224,7 +1251,8 @@ pub mod arbiter_token {
         Hash,
     )]
     pub struct BalanceOfReturn(pub ::ethers::core::types::U256);
-    ///Container type for all return fields from the `decimals` function with signature `decimals()` and selector `0x313ce567`
+    /// Container type for all return fields from the `decimals` function with
+    /// signature `decimals()` and selector `0x313ce567`
     #[derive(
         Clone,
         ::ethers::contract::EthAbiType,
@@ -1236,7 +1264,8 @@ pub mod arbiter_token {
         Hash,
     )]
     pub struct DecimalsReturn(pub u8);
-    ///Container type for all return fields from the `mint` function with signature `mint(address,uint256)` and selector `0x40c10f19`
+    /// Container type for all return fields from the `mint` function with
+    /// signature `mint(address,uint256)` and selector `0x40c10f19`
     #[derive(
         Clone,
         ::ethers::contract::EthAbiType,
@@ -1248,7 +1277,8 @@ pub mod arbiter_token {
         Hash,
     )]
     pub struct MintReturn(pub bool);
-    ///Container type for all return fields from the `name` function with signature `name()` and selector `0x06fdde03`
+    /// Container type for all return fields from the `name` function with
+    /// signature `name()` and selector `0x06fdde03`
     #[derive(
         Clone,
         ::ethers::contract::EthAbiType,
@@ -1260,7 +1290,8 @@ pub mod arbiter_token {
         Hash,
     )]
     pub struct NameReturn(pub ::std::string::String);
-    ///Container type for all return fields from the `nonces` function with signature `nonces(address)` and selector `0x7ecebe00`
+    /// Container type for all return fields from the `nonces` function with
+    /// signature `nonces(address)` and selector `0x7ecebe00`
     #[derive(
         Clone,
         ::ethers::contract::EthAbiType,
@@ -1272,7 +1303,8 @@ pub mod arbiter_token {
         Hash,
     )]
     pub struct NoncesReturn(pub ::ethers::core::types::U256);
-    ///Container type for all return fields from the `symbol` function with signature `symbol()` and selector `0x95d89b41`
+    /// Container type for all return fields from the `symbol` function with
+    /// signature `symbol()` and selector `0x95d89b41`
     #[derive(
         Clone,
         ::ethers::contract::EthAbiType,
@@ -1284,7 +1316,8 @@ pub mod arbiter_token {
         Hash,
     )]
     pub struct SymbolReturn(pub ::std::string::String);
-    ///Container type for all return fields from the `totalSupply` function with signature `totalSupply()` and selector `0x18160ddd`
+    /// Container type for all return fields from the `totalSupply` function
+    /// with signature `totalSupply()` and selector `0x18160ddd`
     #[derive(
         Clone,
         ::ethers::contract::EthAbiType,
@@ -1296,7 +1329,8 @@ pub mod arbiter_token {
         Hash,
     )]
     pub struct TotalSupplyReturn(pub ::ethers::core::types::U256);
-    ///Container type for all return fields from the `transfer` function with signature `transfer(address,uint256)` and selector `0xa9059cbb`
+    /// Container type for all return fields from the `transfer` function with
+    /// signature `transfer(address,uint256)` and selector `0xa9059cbb`
     #[derive(
         Clone,
         ::ethers::contract::EthAbiType,
@@ -1308,7 +1342,9 @@ pub mod arbiter_token {
         Hash,
     )]
     pub struct TransferReturn(pub bool);
-    ///Container type for all return fields from the `transferFrom` function with signature `transferFrom(address,address,uint256)` and selector `0x23b872dd`
+    /// Container type for all return fields from the `transferFrom` function
+    /// with signature `transferFrom(address,address,uint256)` and selector
+    /// `0x23b872dd`
     #[derive(
         Clone,
         ::ethers::contract::EthAbiType,

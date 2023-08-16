@@ -20,10 +20,6 @@ path = "bin/main.rs"
 
 # Dependencies for the release build
 [dependencies]
-
-# Local dependencies
-arbiter-core = { path = "arbiter-core" }
-
 # Command line and config
 clap = { version = "4.3.0", features = ["derive"] }
 serde = { version = "1.0.163", features =["derive"] }

@@ -3,50 +3,77 @@
 > Expanding the EVM tooling ecosystem.
 
 ![Github Actions](https://github.com/primitivefinance/arbiter/workflows/test/badge.svg)
-[![codecov](https://codecov.io/gh/funkycadet/arbiter/branch/main/graph/badge.svg?token=UQ1SE0D9IN)](https://codecov.io/gh/funkycadet/arbiter)
-![](https://visitor-badge.laobi.icu/badge?page_id=arbiter)
-[![](https://dcbadge.vercel.app/api/server/primitive?style=flat)](https://discord.gg/primitive)
+[![Codecov badge](https://codecov.io/gh/primitivefinance/arbiter/branch/main/graph/badge.svg?token=UQ1SE0D9IN)](https://codecov.io/gh/primitivefinance/arbiter)
+![Visitors badge](https://visitor-badge.laobi.icu/badge?page_id=arbiter)
+![Telegram badge](https://img.shields.io/endpoint?color=neon&logo=telegram&label=chat&style=flat-square&url=https%3A%2F%2Ftg.sumanjay.workers.dev%2Farbiter_rs)
+[![Discord badge](https://dcbadge.vercel.app/api/server/primitive?style=flat)](https://discord.gg/primitive)
 [![Twitter Badge](https://badgen.net/badge/icon/twitter?icon=twitter&label)](https://twitter.com/primitivefi)
 
-The Ethereum blockchain's execution environment, the Ethereum Virtual machine (EVM), contains a rich collection of decentralized applications. The EVM is stack machine that sequentially executes opcodes sent to it by users and smart contracts. Arbiter is a highly configurable rust interface over [revm](https://github.com/bluealloy/revm) which is a Rust implementation of the EVM stack machine logic. The purpose of Arbiter is to interface with arbitrary agents and contracts and run this all directly on a blazing-fast simulated EVM.
+**Arbiter** is a framework for stateful Ethereum smart-contract simulation. 
+The framework features an [`ethers-rs`](https://github.com/gakonst/ethers-rs) middleware built on top of [revm](https://github.com/bluealloy/revm) which allows the end user to interact with a sandboxed `revm` instance as if it were an Ethereum node. This provides a familiar interface for interacting with the Ethereum Virtual Machine (EVM), but with unrivaled speed. Furthermore, Arbiter provides containment and management for simulations.
 
-Financial engineers need to study a wide array of complex portfolio management strategies against thousands of market conditions, contract parameters, and agents. To configure such a rich simulation environment on a test network could be possible, but a more efficient choice for getting the most robust, yet quick, simulations would bypass any local networking and use a low level language's implementation of the EVM.
+## Overview
 
-Arbiter is being primarily developed to be a tool in evaluating economic and game theoretic security of DeFi applications.
+The Arbiter workspace has two crates:
+- `arbiter-core`: The lib crate that contains the core logic for the Arbiter framework including the `RevmMiddleware` discussed before, the `Environment` which envelopes simulations, and the `Manager` who controls a collection of environments.
+- `arbiter`: The binary crate that exposes a command line interface for initializing simulations via a templated repository and generating contract bindings needed for the simulation.
 
-Arbiter can be used for:
+The purpose of Arbiter is to provide a toolset to construct arbitrary agents (defined in Rust, by smart contracts, or even other FFI) and have these agents interact with an Ethereum-like environment of your design. 
+All contract bytecode is run directly using a blazing-fast EVM instance `revm` (which is used in live RPC nodes such as [`reth`](https://github.com/paradigmxyz/reth)) so that your contracts are tested in the exact same type of environment that they are deployed in.
 
-- Evaluating the game theoretic and composable security of smart contracts in production environments (security firms and academics)
-- investigating risk, capital efficiency, rebalancing strategies, and portfolio replication (or performance). (LPs, funds, quants, traders)
-- Engineering and testing new financial products built on top of more primitive financial products (DeFi firms and academics)
+## Motivation 
 
-## Features:
+Smart contract engineers need to test their contracts against a wide array of potentially adversarial environments and contract parameters. 
+The static stateless testing of contracts can only take you so far. To truly test the security of a contract, you need to test it against a wide array of dynamic environments that encompass the externalities of Ethereum mainnet. We wanted to do just that with Arbiter. 
 
-For our next beta release, we will be focusing on the following features:
+Both smart contract and financial engineers come together in Decentralized Finance (DeFi) to build and deploy a wide array of complex decentralized applications as well as fincancial strategies respectively. 
+For the latter, a financial engineer may want to test their strategies against thousands of market conditions, contract settings, shocks, and autonomous or random or even AI agents all while making sure their strategy isn't vulnerable to bytecode-level exploits.
 
+To configure such a rich simulation environment on a test or local network is also possible with Arbiter by a change in choice of middleware. 
+The most efficient choice for getting robust, yet quick, simulations would bypass any networking and use a low level language's implementation of the EVM. 
+Furthermore, we can gain control over the EVM worldstate by working directly on `revm`.
+We would like the user to have a choice in how they want to simulate their contracts and Arbiter provides that choice.
 
-## Build From Source
+### Sim Driven Development and Strategization 
 
-First, clone the repository to your local environment so
+Test driven development is a popular engineering practice to write tests first, which fail, and implement logic to get the test to eventually pass. With simulation driven development, it's possible to build "tests" that can only pass if the *incentives* actually work. For example, a sim driven test might be `is_loan_liquidated`, and a simulation must be made for a liquidator agent to do the liquidation. This approach significantly improves the testing of economic systems and other mechanism designs, which is important in the world of networks that are mostly incentive driven.
+
+The same goes with developing strategies that one would like to deploy on a live Ethereum network. One can use Arbiter to simulate their strategy with an intended goal and see if it actually works. This is especially important in the world of DeFi where strategies are often a mix of on and offchain and are susceptible to exploits.
+
+## Installation
+
+To install Arbiter, you will need to have Rust installed on your machine. You can install Rust by following the instructions [here](https://www.rust-lang.org/tools/install). Once you have Rust installed, you can install Arbiter by running the following commands:
 
 ```bash
 git clone https://github.com/primitivefinance/arbiter.git
-cd arbiter
+cargo install --path ./arbiter
 ```
+This will install the Arbiter binary on your machine. You can then run `arbiter --help` to see that Arbiter was installed properly as well as see the help menu.
 
-Install arbiter on your system:
+## Command Line Interface 
+
+The Arbiter binary provides a CLI for creating new projects much like [Foundry](https://github.com/foundry-rs/foundry), which Arbiter aims to work alongside with. To create a new project, you can run:
 
 ```bash
-cargo install --path . --force
+arbiter init your-project-name
+cd your-project-name
 ```
 
-With the `arbiter` binary generated, you can run commands such as:
+This initializes a new Arbiter project with a template. The next step require you to have foundry installed. If you do not have foundry installed you can install it [here](https://getfoundry.sh/). Then you can generate the template bindings by running:
 
 ```bash
-arbiter simulate uniswap
+arbiter bind
 ```
 
-## Generating Docs
+The template is executable at this point and you can run it by running:
+```bash
+cargo run
+```
+
+You can load or write your own smart contracts in the templates `contracts/` directory and begin writing your own simulations. Arbiter treats Rust smart-contract bindings as first-class citizens. The contract bindings are generated via Foundry's `forge` command. 
+`arbiter bind` wraps `forge` with some convenience features that will generate all your bindings to src/biindings as a rust module. [Foundry](https://github.com/foundry-rs/foundry) power-users are welcome to use `forge` directly.
+
+## Documentation
 
 To see the documentation for Arbiter, after cloning the repo, you can run:
 
@@ -54,18 +81,8 @@ To see the documentation for Arbiter, after cloning the repo, you can run:
 cargo doc --workspace --no-deps --open
 ```
 
-This will generate and open the docs in your browser. From there, you can look at the documentation for each crate in the Arbiter workspace.
-
-## Including More Contracts
-
-In the `contracts/` directory you can add additional smart contracts or regenerate Rust bindings. Once that is done, you will want to make sure the bindings are generated in the script:
-
-```bash
-./bind.sh
-```
-You will need to add the relevant directory for your new contracts to the script above and make sure they are also handled by `forge install`. We look forward to improving upon this UX in the future.
-
-At the moment, this only builds the bindings for the contracts in the `lib/arbmod/contracts/` and `lib/portfolio/contracts`. You can of course add an additional directory of contracts in `lib/`. Just be sure to include it when you generate bindings!
+This will generate and open the docs in your browser. From there, you can look at the documentation for each crate in the Arbiter workspace. 
+We will post both crates to crates.io once we have removed any and all Github linked crates.
 
 ## Contributing
 
