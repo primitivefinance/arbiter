@@ -59,18 +59,19 @@ arbiter init your-project-name
 cd your-project-name
 ```
 
-This initializes a new Arbiter project with a template. The template is executable at this point and you can run it by running:
-```bash
-cargo run
-```
-You can then load your own smart contracts into and begin writing your own simulations. Arbiter treats Rust smart-contract bindings as first-class citizens and provides a means to generate bindings of your own contracts (via Foundry's `forge` command). To generate bindings for your own contracts, you can run:
+This initializes a new Arbiter project with a template. The next step require you to have foundry installed. If you do not have foundry installed you can install it [here](https://getfoundry.sh/). Then you can generate the template bindings by running:
 
 ```bash
 arbiter bind
 ```
 
-This will generate bindings for all of the contracts in your `contracts` directory. You can then use these bindings in your simulations. 
+The template is executable at this point and you can run it by running:
+```bash
+cargo run
+```
 
+You can load or write your own smart contracts in the templates `contracts/` directory and begin writing your own simulations. Arbiter treats Rust smart-contract bindings as first-class citizens. The contract bindings are generated via Foundry's `forge` command. 
+`arbiter bind` wraps `forge` with some convenience features that will generate all your bindings to src/biindings as a rust module. [Foundry](https://github.com/foundry-rs/foundry) power-users are welcome to use `forge` directly.
 
 ## Documentation
 
