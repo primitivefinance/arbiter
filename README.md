@@ -34,6 +34,28 @@ Arbiter can be used for:
 
 ## Documentation
 
+## Installation
+
+### Build from source
+
+```bash
+git clone https://github.com/primitivefinance/arbiter.git
+cd arbiter
+cargo install --path .
+```
+
+## CLI 
+
+```bash
+arbiter init your-project-name
+cd your-project-name
+arbiter bind
+cargo run
+```
+
+
+## Generating Docs
+
 To see the documentation for Arbiter, after cloning the repo, you can run:
 
 ```bash
