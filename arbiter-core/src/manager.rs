@@ -188,7 +188,7 @@ impl Manager {
         environment_label: S,
     ) -> Result<(), ManagerError> {
         match self.environments.get_mut(&environment_label.clone().into()) {
-            Some(environment) => match environment.state.load(std::sync::atomic::Ordering::Relaxed)
+            Some(environment) => match environment.state.load(std::sync::atomic::Ordering::SeqCst)
             {
                 State::Initialization => {
                     environment.run();
@@ -198,7 +198,7 @@ impl Manager {
                 State::Paused => {
                     environment
                         .state
-                        .store(State::Running, std::sync::atomic::Ordering::Relaxed);
+                        .store(State::Running, std::sync::atomic::Ordering::SeqCst);
                     let (lock, pausevar) = &*environment.pausevar;
                     let _guard = lock.lock().unwrap();
                     pausevar.notify_all();
@@ -259,7 +259,7 @@ impl Manager {
         environment_label: S,
     ) -> Result<(), ManagerError> {
         match self.environments.get_mut(&environment_label.clone().into()) {
-            Some(environment) => match environment.state.load(std::sync::atomic::Ordering::Relaxed)
+            Some(environment) => match environment.state.load(std::sync::atomic::Ordering::SeqCst)
             {
                 State::Initialization => Err(ManagerError::EnvironmentNotRunning {
                     label: environment_label.into(),
@@ -325,7 +325,7 @@ impl Manager {
         environment_label: S,
     ) -> Result<(), ManagerError> {
         match self.environments.get_mut(&environment_label.clone().into()) {
-            Some(environment) => match environment.state.load(std::sync::atomic::Ordering::Relaxed)
+            Some(environment) => match environment.state.load(std::sync::atomic::Ordering::SeqCst)
             {
                 State::Initialization => Err(ManagerError::EnvironmentNotRunning {
                     label: environment_label.into(),
@@ -333,7 +333,7 @@ impl Manager {
                 State::Running => {
                     environment
                         .state
-                        .store(State::Stopped, std::sync::atomic::Ordering::Relaxed);
+                        .store(State::Stopped, std::sync::atomic::Ordering::SeqCst);
                     match environment.handle.take() {
                         Some(handle) => {
                             if let Err(_) = handle.join() {
@@ -351,7 +351,7 @@ impl Manager {
                 State::Paused => {
                     environment
                         .state
-                        .store(State::Stopped, std::sync::atomic::Ordering::Relaxed);
+                        .store(State::Stopped, std::sync::atomic::Ordering::SeqCst);
                     match environment.handle.take() {
                         Some(handle) => {
                             if let Err(_) = handle.join() {

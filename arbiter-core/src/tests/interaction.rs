@@ -1,7 +1,7 @@
 use std::time::Duration;
 
 use crate::bindings::arbiter_math::ArbiterMath;
-use tokio::{time::timeout, select};
+use tokio::{time::{timeout, Instant}, select};
 
 use super::*;
 
@@ -259,6 +259,81 @@ async fn transaction_loop() -> Result<()> {
     Ok(())
 }
 
+#[test]
+fn test_select() {
+    tokio::runtime::Builder::new_multi_thread()
+        .enable_all()
+        .thread_stack_size(8 * 1024 * 1024)
+        .build()
+        .unwrap()
+        .block_on( async {
+
+            select! {
+                _ = tokio::time::sleep(Duration::from_secs(1)) => {
+                    println!("slept for 1 second");
+                }
+                _ = tokio::time::sleep(Duration::from_secs(2)) => {
+                    println!("slept for 2 seconds");
+                }
+            }
+        })
+}
+
+
+#[test]
+fn test_boilerplate() {
+    tokio::runtime::Builder::new_multi_thread()
+        .enable_all()
+        .thread_stack_size(8 * 1024 * 1024)
+        .build()
+        .unwrap()
+        .block_on(async {
+            let mut manager = Manager::new();
+            manager.add_environment(TEST_ENV_LABEL, 1.0, 1).unwrap();
+            let client = Arc::new(RevmMiddleware::new(manager.environments.get(TEST_ENV_LABEL).unwrap(), Some(TEST_SIGNER_SEED_AND_LABEL.to_string())));
+            
+            // Start environment
+            manager.start_environment(TEST_ENV_LABEL).unwrap();
+
+            // Send a tx and check it works (it should)
+            let arbiter_math_1 = ArbiterMath::deploy(client.clone(), ()).unwrap().send().await;
+            assert!(arbiter_math_1.is_ok());
+
+            // Pause the environment.
+            manager.pause_environment(TEST_ENV_LABEL).unwrap();
+
+            // Send a tx while the environment is paused (it should not process) TODO: it does process due to the atomic ordering rules
+            let arbiter_math_2 = ArbiterMath::deploy(client.clone(), ()).unwrap().send().await;
+            println!("{:?}", arbiter_math_2);
+            assert!(arbiter_math_2.is_ok());
+
+            // Send a second transaction while the environment is paused (it should not process), this one does hang if we await it
+            let arbiter_math_3 = ArbiterMath::deploy(client.clone(), ()).unwrap();
+
+
+            tokio::time::sleep(Duration::from_secs(5)).await;
+            println!("Before select!");
+
+            println!("Before sleep alone!");
+            tokio::time::sleep(Duration::from_secs(3)).await;
+            println!("After sleep alone!");
+            let start_time = Instant::now();
+
+            //... your select! goes here ...
+            
+            select! {
+                result = arbiter_math_3.send() => {
+                    println!("Transaction completed with: {:?}", result);
+                }
+                _ = tokio::time::sleep(Duration::from_secs(3)) => {
+                    println!("Transaction did not complete within timeout");
+                }
+            }
+            let elapsed = start_time.elapsed();
+            println!("Time elapsed during select!: {:?}", elapsed);
+
+        })
+}
 
 #[tokio::test]
 async fn test_pause_prevents_processing_transactions(){
