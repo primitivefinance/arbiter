@@ -25,7 +25,7 @@ fn multiple_signer_addresses() {
 
 // TODO: Test to see that we prvent agents with the same name from being added.
 
-#[test]
-fn signer_collision() {
-    todo!();
-}
+// #[test]
+// fn signer_collision() {
+//     todo!();
+// }

@@ -74,7 +74,7 @@ use crate::environment::{
 /// manager.add_environment("example_env", 1.0, 42).unwrap();
 ///
 /// // Retrieve the environment to create a new middleware instance
-/// let environment = manager.environments.get("example.env").unwrap();
+/// let environment = manager.environments.get("example_env").unwrap();
 /// let middleware = RevmMiddleware::new(&environment, Some("test_label".to_string()));
 /// let client = Arc::new(&middleware);
 /// ```
@@ -190,7 +190,7 @@ impl RevmMiddleware {
     ///
     /// let mut manager = Manager::new();
     /// manager.add_environment("example_env", 1.0, 42).unwrap();
-    /// let environment = manager.environments.get("example.env").unwrap();
+    /// let environment = manager.environments.get("example_env").unwrap();
     /// let middleware = RevmMiddleware::new(&environment, Some("test_label".to_string()));
     ///
     /// // We can create a middleware instance without a seed by doing the following
