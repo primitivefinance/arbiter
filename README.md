@@ -38,6 +38,8 @@ We would like the user to have a choice in how they want to simulate their contr
 
 Test driven development is a popular engineering practice to write tests first, which fail, and implement logic to get the test to eventually pass. With simulation driven development, it's possible to build "tests" that can only pass if the *incentives* actually work. For example, a sim driven test might be `is_loan_liquidated`, and a simulation must be made for a liquidator agent to do the liquidation. This approach significantly improves the testing of economic systems and other mechanism designs, which is important in the world of networks that are mostly incentive driven.
 
+The same goes with developing strategies that one would like to deploy on a live Ethereum network. One can use Arbiter to simulate their strategy with an intended goal and see if it actually works. This is especially important in the world of DeFi where strategies are often a mix of on and offchain and are susceptible to exploits.
+
 ## Installation
 
 To install Arbiter, you will need to have Rust installed on your machine. You can install Rust by following the instructions [here](https://www.rust-lang.org/tools/install). Once you have Rust installed, you can install Arbiter by running the following commands:
