@@ -145,17 +145,23 @@ pub enum RevmMiddlewareError {
 
     /// The execution of a transaction was reverted, indicating that the
     /// transaction was not successful.
-    #[error("execution failed to succeed due to revert! output is: {cause}")]
+    #[error("execution failed to succeed due to revert!\n gas used is: {gas_used}\n output is {output:?}")]
     ExecutionRevert {
+        /// Provides the amount of gas used by the transaction.
+        gas_used: u64,
+
         /// Provides the output or reason why the transaction was reverted.
-        cause: String,
+        output: revm::primitives::Bytes,
     },
 
     /// The execution of a transaction halted unexpectedly.
-    #[error("execution failed to succeed due to halt! output is: {cause}")]
+    #[error("execution failed to succeed due to halt!\n reason is: {reason:?}\n gas used is: {gas_used}")]
     ExecutionHalt {
-        /// Provides the output or reason for the halt.
-        cause: String,
+        /// Provides the reason for the halt.
+        reason: revm::primitives::Halt,
+
+        /// Provides the amount of gas used by the transaction.
+        gas_used: u64,
     },
 }
 
@@ -167,7 +173,7 @@ impl MiddlewareError for RevmMiddlewareError {
     }
 
     fn as_inner(&self) -> Option<&Self::Inner> {
-        Some(self)
+        None
     }
 }
 
@@ -301,16 +307,18 @@ impl Middleware for RevmMiddleware {
                 cause: e.to_string(),
             })?;
 
-        println!("prior to unpackaing execution result");
-        println!("unpacking output: {:?}", unpack_execution_result(revm_result.clone().result));
         let Success {
             _reason: _,
             _gas_used: _,
             _gas_refunded: _,
             logs,
             output,
-        } = unpack_execution_result(revm_result.result)?;
-        println!("after unpacking execution result");
+        } = match unpack_execution_result(revm_result.result) {
+            Ok(success) => success,
+            Err(e) => {
+                return Err(e);
+            }
+        };
 
         match output {
             Output::Create(_, address) => {
@@ -392,7 +400,7 @@ impl Middleware for RevmMiddleware {
             .map_err(|e| RevmMiddlewareError::Receive {
                 cause: e.to_string(),
             })?;
-            
+
         let output = unpack_execution_result(revm_result.result)?.output;
         match output {
             Output::Create(bytes, ..) => {
@@ -594,7 +602,6 @@ struct Success {
 fn unpack_execution_result(
     execution_result: ExecutionResult,
 ) -> Result<Success, RevmMiddlewareError> {
-    println!("unpacking execution result");
     match execution_result {
         ExecutionResult::Success {
             reason,
@@ -613,22 +620,11 @@ fn unpack_execution_result(
             })
         }
         ExecutionResult::Revert { gas_used, output } => {
-            println!("revert");
-            let error = Err(RevmMiddlewareError::ExecutionRevert {
-                cause: format!(
-                    "Transaction reverted and used {} gas and output {:?}",
-                    gas_used, output
-                ),
-            });
-            println!("error made");
-            error
+            Err(RevmMiddlewareError::ExecutionRevert { gas_used, output })
         }
-        ExecutionResult::Halt { reason, gas_used } => Err(RevmMiddlewareError::ExecutionHalt {
-            cause: format!(
-                "Transaction halted for reasond {:?} gas and output {:?}",
-                reason, gas_used
-            ),
-        }),
+        ExecutionResult::Halt { reason, gas_used } => {
+            Err(RevmMiddlewareError::ExecutionHalt { reason, gas_used })
+        }
     }
 }
 

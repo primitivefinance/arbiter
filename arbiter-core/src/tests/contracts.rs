@@ -11,6 +11,8 @@ pub const ARBITER_TOKEN_Y_NAME: &str = "Arbiter Token Y";
 pub const ARBITER_TOKEN_Y_SYMBOL: &str = "ARBY";
 pub const ARBITER_TOKEN_Y_DECIMALS: u8 = 18;
 
+pub const LIQUID_EXCHANGE_PRICE: f64 = 420.69;
+
 fn startup() -> Result<(Manager, Arc<RevmMiddleware>)> {
     let mut manager = Manager::new();
     manager.add_environment(TEST_ENV_LABEL, TEST_BLOCK_RATE, TEST_ENV_SEED)?;
@@ -190,7 +192,7 @@ async fn deploy_liquid_exchange(
 )> {
     let arbx = deploy_arbx(client.clone()).await?;
     let arby = deploy_arby(client.clone()).await?;
-    let price = float_to_wad(420.69);
+    let price = float_to_wad(LIQUID_EXCHANGE_PRICE);
     let liquid_exchange = LiquidExchange::deploy(client, (arbx.address(), arby.address(), price))?
         .send()
         .await?;
@@ -202,7 +204,7 @@ async fn liquid_exchange_swap() -> Result<()> {
     let (_manager, client) = startup()?;
     let (arbx, arby, liquid_exchange) = deploy_liquid_exchange(client.clone()).await?;
 
-    // Mint tokens to the client.
+    // Mint tokens to the client then check balances.
     arbx.mint(
         client.default_sender().unwrap(),
         ethers::types::U256::from(TEST_MINT_AMOUNT),
@@ -217,6 +219,22 @@ async fn liquid_exchange_swap() -> Result<()> {
     .send()
     .await?
     .await?;
+    let arbx_balance = arbx
+        .balance_of(client.default_sender().unwrap())
+        .call()
+        .await?;
+    let arby_balance = arby
+        .balance_of(client.default_sender().unwrap())
+        .call()
+        .await?;
+    println!("arbx_balance prior to swap = {}", arbx_balance);
+    println!("arby_balance prior to swap = {}", arby_balance);
+    assert_eq!(arbx_balance, ethers::types::U256::from(TEST_MINT_AMOUNT));
+    assert_eq!(arby_balance, ethers::types::U256::from(TEST_MINT_AMOUNT));
+
+    // Get the price at the liquid exchange
+    let price = liquid_exchange.price().call().await?;
+    println!("price in 18 decimal WAD: {}", price);
 
     // Mint tokens to the liquid exchange.
     let exchange_mint_amount = ethers::types::U256::MAX / 2;
@@ -229,250 +247,99 @@ async fn liquid_exchange_swap() -> Result<()> {
         .await?
         .await?;
 
+    // Approve the liquid exchange to spend the client's tokens.
+    arbx.approve(liquid_exchange.address(), ethers::types::U256::MAX)
+        .send()
+        .await?
+        .await?;
+    arby.approve(liquid_exchange.address(), ethers::types::U256::MAX)
+        .send()
+        .await?
+        .await?;
+
     // Swap some X for Y on the liquid exchange.
-    let swap_amount = ethers::types::U256::from(TEST_MINT_AMOUNT) / 2;
-    println!("calling swap");
-    let swap_x_receipt = liquid_exchange
-        .swap(arbx.address(), swap_amount)
+    let swap_amount_x = ethers::types::U256::from(TEST_MINT_AMOUNT) / 2;
+    liquid_exchange
+        .swap(arbx.address(), swap_amount_x)
         .send()
         .await?
         .await?
         .unwrap();
-    let logs = swap_x_receipt.logs;
-    println!("swap_x_output = {:?}", logs);
 
-    //         // Have alice's approval for token_x to be spent by the
-    // liquid_exchange.         let args =
-    // (recast_address(liquid_exchange_xy.address), U256::MAX);         let
-    // call_data = token_x.encode_function("approve", args)?;         alice.
-    // call_contract(&mut manager.environment, &token_x, call_data, Uint::from(0));
+    // Check the client's balances are correct.
+    let arbx_balance_after_swap_x = arbx
+        .balance_of(client.default_sender().unwrap())
+        .call()
+        .await?;
+    let arby_balance_after_swap_x = arby
+        .balance_of(client.default_sender().unwrap())
+        .call()
+        .await?;
+    println!("arbx_balance after swap = {}", arbx_balance_after_swap_x);
+    println!("arby_balance after swap = {}", arby_balance_after_swap_x);
+    assert_eq!(
+        arbx_balance_after_swap_x,
+        ethers::types::U256::from(TEST_MINT_AMOUNT) - swap_amount_x
+    );
+    let additional_y = swap_amount_x * price / ethers::types::U256::from(10_u64.pow(18));
+    assert_eq!(
+        arby_balance_after_swap_x,
+        ethers::types::U256::from(TEST_MINT_AMOUNT) + additional_y
+    );
 
-    //         // Have alice call the swap function to trade token_x for token_y.
-    //         let swap_amount = mint_amount / 2;
-    //         let call_data = liquid_exchange_xy
-    //             .encode_function("swap", (recast_address(token_x.address),
-    // swap_amount))?;         alice.call_contract(
-    //             &mut manager.environment,
-    //             &liquid_exchange_xy,
-    //             call_data,
-    //             Uint::from(0),
-    //         );
+    // Swap some Y for X on the liquid exchange.
+    let swap_amount_y = additional_y;
+    liquid_exchange
+        .swap(arby.address(), swap_amount_y)
+        .send()
+        .await?
+        .await?;
 
-    //         // Let alice check they spent the right amount of token_x
-    //         let call_data = token_x.encode_function("balanceOf",
-    // recast_address(user_address))?;         let execution_result =
-    //             alice.call_contract(&mut manager.environment, &token_x,
-    // call_data, Uint::from(0)); // Call the 'balanceOf' function.         let
-    // value = unpack_execution(execution_result)?;         let response: U256 =
-    // token_x.decode_output("balanceOf", value)?;         println!("alice has {}
-    // token_x after swap", response);         assert_eq!(response, mint_amount -
-    // swap_amount);
+    // Check the client's balances are correct.
+    let arbx_balance_after_swap_y = arbx
+        .balance_of(client.default_sender().unwrap())
+        .call()
+        .await?;
+    let arby_balance_after_swap_y = arby
+        .balance_of(client.default_sender().unwrap())
+        .call()
+        .await?;
+    println!("arbx_balance after swap = {}", arbx_balance_after_swap_y);
+    println!("arby_balance after swap = {}", arby_balance_after_swap_y);
 
-    //         // Let alice check they received the right amount of token_y
-    //         let call_data = token_y.encode_function("balanceOf",
-    // recast_address(user_address))?;         let execution_result =
-    //             alice.call_contract(&mut manager.environment, &token_y,
-    // call_data, Uint::from(0)); // Call the 'balanceOf' function.         let
-    // value = unpack_execution(execution_result)?;         let response: U256 =
-    // token_y.decode_output("balanceOf", value)?;         println!("alice has {}
-    // token_y after swap", response);         assert_eq!(response, swap_amount *
-    // U256::from(price_to_check));
+    // The balance here is off by one due to rounding and the extremely small
+    // balances we are using.
+    assert_eq!(
+        arbx_balance_after_swap_y,
+        ethers::types::U256::from(TEST_MINT_AMOUNT) - 1
+    );
+    assert_eq!(
+        arby_balance_after_swap_y,
+        ethers::types::U256::from(TEST_MINT_AMOUNT)
+    );
 
     Ok(())
 }
 
-//     #[test]
-//     fn swap_y_for_x_liquid_exchange() -> Result<(), Box<dyn Error>> {
-//         // define the wad constant
-//         let decimals = 18_u8;
-//         let wad: U256 = U256::from(10_i64.pow(decimals as u32));
+#[tokio::test]
+async fn price_simulation_oracle() -> Result<()> {
+    let (_manager, client) = startup()?;
+    let (.., liquid_exchange) = deploy_liquid_exchange(client.clone()).await?;
 
-//         // Set up the execution manager and a user address.
-//         let mut manager = SimulationManager::default();
+    let price_path = vec![
+        1000.0, 2000.0, 3000.0, 4000.0, 5000.0, 6000.0, 7000.0, 8000.0,
+    ];
 
-//         // Set up a user named alice
-//         let user_name = "alice";
-//         let user_address = B160::from_low_u64_be(2);
-//         let alice = User::new(user_name, None);
-//         manager.activate_agent(AgentType::User(alice), user_address)?;
-//         let admin = manager.agents.get("admin").unwrap();
-//         let alice = manager.agents.get("alice").unwrap();
+    // Get the initial price of the liquid exchange.
+    let initial_price = liquid_exchange.price().call().await?;
+    assert_eq!(initial_price, float_to_wad(LIQUID_EXCHANGE_PRICE));
 
-//         // Create arbiter token general contract.
-//         let arbiter_token = SimulationContract::new(
-//             arbiter_token::ARBITERTOKEN_ABI.clone(),
-//             arbiter_token::ARBITERTOKEN_BYTECODE.clone(),
-//         );
+    for price in price_path {
+        let wad_price = float_to_wad(price);
+        liquid_exchange.set_price(wad_price).send().await?.await?;
+        let new_price = liquid_exchange.price().call().await?;
+        assert_eq!(new_price, wad_price);
+    }
 
-//         // Deploy token_x.
-//         let name = "Token X";
-//         let symbol = "TKNX";
-//         let args = (name.to_string(), symbol.to_string(), decimals);
-//         let token_x = arbiter_token.deploy(&mut manager.environment, admin,
-// args);
-
-//         // Deploy token_y.
-//         let name = "Token Y";
-//         let symbol = "TKNY";
-//         let args = (name.to_string(), symbol.to_string(), decimals);
-//         let token_y = arbiter_token.deploy(&mut manager.environment, admin,
-// args);
-
-//         // Deploy LiquidExchange
-//         let price_to_check = 1000;
-//         let initial_price =
-// wad.checked_mul(U256::from(price_to_check)).unwrap();         let
-// liquid_exchange = SimulationContract::new(
-// liquid_exchange::LIQUIDEXCHANGE_ABI.clone(),
-// liquid_exchange::LIQUIDEXCHANGE_BYTECODE.clone(),         );
-//         let args = (
-//             recast_address(token_x.address),
-//             recast_address(token_y.address),
-//             initial_price,
-//         );
-//         let liquid_exchange_xy = liquid_exchange.deploy(&mut
-// manager.environment, admin, args);
-
-//         // Mint token_y to alice.
-//         let mint_amount = wad.checked_mul(U256::from(20)).unwrap(); // in wei
-// units         let args = (recast_address(alice.address()), mint_amount);
-//         let call_data = token_y.encode_function("mint", args)?;
-//         admin.call_contract(&mut manager.environment, &token_y, call_data,
-// Uint::from(0));
-
-//         // Mint max token_x to the liquid_exchange contract.
-//         let args = (recast_address(liquid_exchange_xy.address), U256::MAX);
-//         let call_data = token_x.encode_function("mint", args)?;
-//         admin.call_contract(&mut manager.environment, &token_x, call_data,
-// Uint::from(0));
-
-//         // Have alice's approval for token_y to be spent by the
-// liquid_exchange.         let args =
-// (recast_address(liquid_exchange_xy.address), U256::MAX);         let
-// call_data = token_y.encode_function("approve", args)?;         alice.
-// call_contract(&mut manager.environment, &token_y, call_data, Uint::from(0));
-
-//         // Have alice call the swap function to trade token_y for token_x.
-//         let swap_amount = mint_amount / 2;
-//         let call_data = liquid_exchange_xy
-//             .encode_function("swap", (recast_address(token_y.address),
-// swap_amount))?;         alice.call_contract(
-//             &mut manager.environment,
-//             &liquid_exchange_xy,
-//             call_data,
-//             Uint::from(0),
-//         );
-
-//         // Let alice check they spent the right amount of token_y
-//         let call_data = token_y.encode_function("balanceOf",
-// recast_address(user_address))?;         let execution_result =
-//             alice.call_contract(&mut manager.environment, &token_y,
-// call_data, Uint::from(0)); // Call the 'balanceOf' function.         let
-// value = unpack_execution(execution_result)?;         let response: U256 =
-// token_y.decode_output("balanceOf", value)?;         println!("alice has {}
-// token_y after swap", response);         assert_eq!(response, mint_amount -
-// swap_amount);
-
-//         // Let alice check they received the right amount of token_x
-//         let call_data = token_x.encode_function("balanceOf",
-// recast_address(user_address))?;         let execution_result =
-//             alice.call_contract(&mut manager.environment, &token_x,
-// call_data, Uint::from(0)); // Call the 'balanceOf' function.         let
-// value = unpack_execution(execution_result)?;         let response: U256 =
-// token_x.decode_output("balanceOf", value)?;         println!("alice has {}
-// token_x after swap", response);         assert_eq!(response,
-// U256::from(10_i64.pow(16)));         Ok(())
-//     }
-
-//     #[test]
-//     fn price_simulation_oracle() -> Result<(), Box<dyn Error>> {
-//         // Get a price path from the oracle.
-//         let timestep = 1.0;
-//         let timescale = String::from("day");
-//         let num_steps = 7;
-//         let initial_price = 100.0;
-//         let drift = 0.5;
-//         let volatility = 0.1;
-//         let seed = 123;
-//         let price = PriceProcess::new(
-//             PriceProcessType::GBM(GBM::new(drift, volatility)),
-//             timestep,
-//             timescale,
-//             num_steps,
-//             initial_price,
-//             seed,
-//         );
-//         let price_path = price.generate_price_path();
-
-//         // Set up the liquid exchange
-//         // define the wad constant
-//         let decimals = 18_u8;
-//         let wad: U256 = U256::from(10_i64.pow(decimals as u32));
-
-//         // Set up the execution manager and a user address.
-//         let mut manager = SimulationManager::default();
-//         let admin = manager.agents.get("admin").unwrap();
-
-//         // Create arbiter token general contract.
-//         let arbiter_token = SimulationContract::new(
-//             arbiter_token::ARBITERTOKEN_ABI.clone(),
-//             bindings::arbiter_token::ARBITERTOKEN_BYTECODE.clone(),
-//         );
-
-//         // Deploy token_x.
-//         let name = "Token X";
-//         let symbol = "TKNX";
-//         let args = (name.to_string(), symbol.to_string(), decimals);
-//         let token_x = arbiter_token.deploy(&mut manager.environment, admin,
-// args);
-
-//         // Deploy token_y.
-//         let name = "Token Y";
-//         let symbol = "TKNY";
-//         let args = (name.to_string(), symbol.to_string(), decimals);
-//         let token_y = arbiter_token.deploy(&mut manager.environment, admin,
-// args);
-
-//         // Deploy LiquidExchange
-//         let price_to_check = 1000; // Initial price is this for sake of ease.
-//         let initial_price =
-// wad.checked_mul(U256::from(price_to_check)).unwrap();         let
-// liquid_exchange = SimulationContract::new(
-// liquid_exchange::LIQUIDEXCHANGE_ABI.clone(),
-// bindings::liquid_exchange::LIQUIDEXCHANGE_BYTECODE.clone(),         );
-//         let args = (
-//             recast_address(token_x.address),
-//             recast_address(token_y.address),
-//             initial_price,
-//         );
-//         let liquid_exchange_xy = liquid_exchange.deploy(&mut
-// manager.environment, admin, args);
-
-//         // Loop over and set prices on the liquid exchange from the oracle.
-//         for price in price_path.1 {
-//             println!("Price from price path: {}", price);
-//             let wad_price = crate::utils::float_to_wad(price);
-//             println!("WAD price: {}", wad_price);
-//             let call_data = liquid_exchange_xy.encode_function("setPrice",
-// wad_price)?;             admin.call_contract(
-//                 &mut manager.environment,
-//                 &liquid_exchange_xy,
-//                 call_data,
-//                 Uint::from(0),
-//             );
-//             // Check that the price is set correctly
-//             let call_data = liquid_exchange_xy.encode_function("price", ())?;
-//             let execution_result = admin.call_contract(
-//                 &mut manager.environment,
-//                 &liquid_exchange_xy,
-//                 call_data,
-//                 Uint::from(0),
-//             );
-//             let value = unpack_execution(execution_result)?;
-//             let response: U256 = liquid_exchange_xy.decode_output("price",
-// value)?;             println!("Price from the exchange: {}", response);
-//             assert_eq!(response, wad_price);
-//         }
-//         Ok(())
-//     }
-// }
+    Ok(())
+}
