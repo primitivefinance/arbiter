@@ -313,12 +313,7 @@ impl Middleware for RevmMiddleware {
             _gas_refunded: _,
             logs,
             output,
-        } = match unpack_execution_result(revm_result.result) {
-            Ok(success) => success,
-            Err(e) => {
-                return Err(e);
-            }
-        };
+        } = unpack_execution_result(revm_result.result)?;
 
         match output {
             Output::Create(_, address) => {
