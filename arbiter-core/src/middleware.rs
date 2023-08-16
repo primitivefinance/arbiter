@@ -45,7 +45,9 @@ use revm::primitives::{CreateScheme, ExecutionResult, Output, TransactTo, TxEnv,
 use serde::{de::DeserializeOwned, Serialize};
 use thiserror::Error;
 
-use crate::environment::{Environment, EventBroadcaster, ResultReceiver, ResultSender, TxSender};
+use crate::environment::{
+    Environment, EventBroadcaster, ResultReceiver, ResultSender, TransactionOutcome, TxSender,
+};
 
 /// A middleware structure that integrates with `revm`.
 ///
@@ -205,6 +207,7 @@ impl RevmMiddleware {
             result_receiver,
             event_broadcaster: Arc::clone(&environment.socket.event_broadcaster),
             filter_receivers: Arc::new(tokio::sync::Mutex::new(HashMap::new())),
+            environment_state: Arc::clone(&environment.state),
         };
         let provider = Provider::new(connection);
         if let Some(seed) = seed_and_label {
@@ -231,7 +234,7 @@ impl Middleware for RevmMiddleware {
     /// Returns a reference to the inner middleware of which there is none when
     /// using [`RevmMiddleware`] so we relink to `Self`
     fn inner(&self) -> &Self::Inner {
-        &self
+        self
     }
 
     /// Provides access to the associated Ethereum provider which is given by
@@ -259,6 +262,18 @@ impl Middleware for RevmMiddleware {
         tx: T,
         _block: Option<BlockId>,
     ) -> Result<PendingTransaction<'_, Self::Provider>, Self::Error> {
+        if self
+            .provider()
+            .as_ref()
+            .environment_state
+            .load(std::sync::atomic::Ordering::SeqCst)
+            == crate::environment::State::Paused
+        {
+            return Err(RevmMiddlewareError::Send {
+                cause: "Environment Paused".to_string(),
+            });
+        }
+
         let tx: TypedTransaction = tx.into();
 
         // Check the `to` field of the transaction to determine if it is a call or a
@@ -307,31 +322,45 @@ impl Middleware for RevmMiddleware {
                 cause: e.to_string(),
             })?;
 
-        let Success {
-            _reason: _,
-            _gas_used: _,
-            _gas_refunded: _,
-            logs,
-            output,
-        } = unpack_execution_result(revm_result.result)?;
+        match revm_result.outcome {
+            TransactionOutcome::Success(execution_result) => {
+                let Success {
+                    _reason: _,
+                    _gas_used: _,
+                    _gas_refunded: _,
+                    logs,
+                    output,
+                } = unpack_execution_result(execution_result)?;
 
-        match output {
-            Output::Create(_, address) => {
-                let address = address.ok_or(RevmMiddlewareError::MissingData {
-                    cause: "Address missing in transaction!".to_string(),
-                })?;
-                let mut pending_tx =
-                    PendingTransaction::new(ethers::types::H256::zero(), self.provider());
-                pending_tx.state = PendingTxState::RevmDeployOutput(recast_address(address));
-                return Ok(pending_tx);
+                match output {
+                    Output::Create(_, address) => {
+                        let address = address.ok_or(RevmMiddlewareError::MissingData {
+                            cause: "Address missing in transaction!".to_string(),
+                        })?;
+                        let mut pending_tx =
+                            PendingTransaction::new(ethers::types::H256::zero(), self.provider());
+                        pending_tx.state =
+                            PendingTxState::RevmDeployOutput(recast_address(address));
+                        return Ok(pending_tx);
+                    }
+                    Output::Call(_) => {
+                        let mut pending_tx =
+                            PendingTransaction::new(ethers::types::H256::zero(), self.provider());
+
+                        pending_tx.state =
+                            PendingTxState::RevmTransactOutput(logs, revm_result.block_number);
+                        return Ok(pending_tx);
+                    }
+                }
             }
-            Output::Call(_) => {
-                let mut pending_tx =
-                    PendingTransaction::new(ethers::types::H256::zero(), self.provider());
-
-                pending_tx.state =
-                    PendingTxState::RevmTransactOutput(logs, revm_result.block_number);
-                return Ok(pending_tx);
+            TransactionOutcome::Error(err) => {
+                return Err(RevmMiddlewareError::Receive {
+                    cause: format!(
+                        "Error recieving response from the environement with environment error: {}",
+                        err
+                    )
+                    .to_string(),
+                });
             }
         }
     }
@@ -349,6 +378,17 @@ impl Middleware for RevmMiddleware {
         tx: &TypedTransaction,
         _block: Option<BlockId>,
     ) -> Result<Bytes, Self::Error> {
+        if self
+            .provider()
+            .as_ref()
+            .environment_state
+            .load(std::sync::atomic::Ordering::SeqCst)
+            == crate::environment::State::Paused
+        {
+            return Err(RevmMiddlewareError::Send {
+                cause: "Environment Paused".to_string(),
+            });
+        }
         let tx = tx.clone();
 
         // Check the `to` field of the transaction to determine if it is a call or a
@@ -396,13 +436,26 @@ impl Middleware for RevmMiddleware {
                 cause: e.to_string(),
             })?;
 
-        let output = unpack_execution_result(revm_result.result)?.output;
-        match output {
-            Output::Create(bytes, ..) => {
-                return Ok(Bytes::from(bytes.to_vec()));
+        match revm_result.outcome {
+            TransactionOutcome::Success(execution_result) => {
+                let output = unpack_execution_result(execution_result)?.output;
+                match output {
+                    Output::Create(bytes, ..) => {
+                        return Ok(Bytes::from(bytes.to_vec()));
+                    }
+                    Output::Call(bytes) => {
+                        return Ok(Bytes::from(bytes.to_vec()));
+                    }
+                }
             }
-            Output::Call(bytes) => {
-                return Ok(Bytes::from(bytes.to_vec()));
+            TransactionOutcome::Error(err) => {
+                return Err(RevmMiddlewareError::Receive {
+                    cause: format!(
+                        "Error recieving response from the environement with environment error: {}",
+                        err
+                    )
+                    .to_string(),
+                });
             }
         }
     }
@@ -495,6 +548,8 @@ pub struct Connection {
     /// A collection of `FilterReceiver`s that will receive outgoing logs
     /// generated by `revm` and output by the [`Environment`].
     filter_receivers: Arc<tokio::sync::Mutex<HashMap<ethers::types::U256, FilterReceiver>>>,
+
+    environment_state: Arc<crate::environment::AtomicState>,
 }
 
 #[async_trait::async_trait]
@@ -540,7 +595,7 @@ impl JsonRpcClient for Connection {
                         )))?;
                 let mut logs = vec![];
                 let filtered_params = FilteredParams::new(Some(filter_receiver.filter.clone()));
-                while let Ok(received_logs) = filter_receiver.receiver.recv() {
+                if let Ok(received_logs) = filter_receiver.receiver.recv() {
                     let ethers_logs = revm_logs_to_ethers_logs(received_logs);
                     for log in ethers_logs {
                         if filtered_params.filter_address(&log)
@@ -549,10 +604,7 @@ impl JsonRpcClient for Connection {
                             logs.push(log);
                         }
                     }
-                    break;
                 }
-
-                // TODO: This can probably be avoided somehow
                 // Take the logs and Stringify then JSONify to cast into `R`.
                 let logs_str = serde_json::to_string(&logs)?;
                 let logs_deserializeowned: R = serde_json::from_str(&logs_str)?;
@@ -561,6 +613,7 @@ impl JsonRpcClient for Connection {
             _ => {
                 unimplemented!("We don't cover this case yet.")
             }
+            // TODO: This can probably be avoided somehow
         }
     }
 }

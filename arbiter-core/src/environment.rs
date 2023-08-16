@@ -172,7 +172,7 @@ impl Debug for Environment {
 /// [`RevmMiddleware`]. Please bring up if you catch errors here by sending a
 /// message in the [Telegram group](https://t.me/arbiter_rs) or on
 /// [GitHub](https://github.com/primitivefinance/arbiter/).
-#[derive(Error, Debug)]
+#[derive(Error, Debug, Clone)]
 pub enum EnvironmentError {
     /// [`EnvironmentError::Execution`] is thrown when the [`EVM`] itself
     /// throws an error in execution. To be clear, this is not a contract
@@ -272,7 +272,7 @@ impl Environment {
 
         // Set up the state and tx counter
         self.state
-            .store(State::Running, std::sync::atomic::Ordering::Relaxed);
+            .store(State::Running, std::sync::atomic::Ordering::SeqCst);
         let state = Arc::clone(&self.state);
         let pausevar = Arc::clone(&self.pausevar);
         let mut counter: usize = 0;
@@ -285,7 +285,7 @@ impl Environment {
             // Loop over the reception of calls/transactions sent through the socket
             loop {
                 // The outermost check is to find what the `Environment`'s state is in
-                match state.load(std::sync::atomic::Ordering::Relaxed) {
+                match state.load(std::sync::atomic::Ordering::SeqCst) {
                     // Leave the loop upon seeing `State::Stopped`
                     State::Stopped => break,
 
@@ -295,7 +295,31 @@ impl Environment {
                         let mut guard = lock.lock().map_err(|e| EnvironmentError::Pause {
                             cause: format!("{:?}", e),
                         })?;
-                        while state.load(std::sync::atomic::Ordering::Relaxed) == State::Paused {
+
+                        // this logic here ensures we catch any edge case last transactions and send
+                        // the appropriate error so that we dont hang in
+                        // limbo forever
+                        while let Ok((_, _, sender)) = tx_receiver.try_recv() {
+                            let error_outcome =
+                                TransactionOutcome::Error(EnvironmentError::Pause {
+                                    cause: "Environment is paused".into(),
+                                });
+                            let revm_result = RevmResult {
+                                outcome: error_outcome,
+                                block_number: convert_uint_to_u64(evm.env.block.number).map_err(
+                                    |e| EnvironmentError::Conversion {
+                                        cause: format!("{:?}", e),
+                                    },
+                                )?,
+                            };
+                            sender.send(revm_result).map_err(|e| {
+                                EnvironmentError::Communication {
+                                    cause: format!("{:?}", e),
+                                }
+                            })?;
+                        }
+
+                        while state.load(std::sync::atomic::Ordering::SeqCst) == State::Paused {
                             guard = cvar.wait(guard).map_err(|e| EnvironmentError::Pause {
                                 cause: format!("{:?}", e),
                             })?;
@@ -333,7 +357,7 @@ impl Environment {
                                     Err(e) => {
                                         state.store(
                                             State::Paused,
-                                            std::sync::atomic::Ordering::Relaxed,
+                                            std::sync::atomic::Ordering::SeqCst,
                                         );
                                         error!("Pausing the environment labeled {} due to an execution error: {:#?}", label, e);
                                         return Err(EnvironmentError::Execution { cause: e });
@@ -346,7 +370,7 @@ impl Environment {
                                 })?;
                                 event_broadcaster.broadcast(execution_result.logs())?;
                                 let revm_result = RevmResult {
-                                    result: execution_result,
+                                    outcome: TransactionOutcome::Success(execution_result),
                                     block_number: convert_uint_to_u64(evm.env.block.number)
                                         .map_err(|e| EnvironmentError::Conversion {
                                             cause: format!("{:?}", e),
@@ -368,14 +392,14 @@ impl Environment {
                                     Err(e) => {
                                         state.store(
                                             State::Paused,
-                                            std::sync::atomic::Ordering::Relaxed,
+                                            std::sync::atomic::Ordering::SeqCst,
                                         );
                                         error!("Pausing the environment labeled {} due to an execution error: {:#?}", label, e);
                                         return Err(EnvironmentError::Execution { cause: e });
                                     }
                                 };
                                 let result_and_block = RevmResult {
-                                    result,
+                                    outcome: TransactionOutcome::Success(result),
                                     block_number: convert_uint_to_u64(evm.env.block.number)
                                         .map_err(|e| EnvironmentError::Conversion {
                                             cause: format!("{:?}", e),
@@ -447,13 +471,38 @@ pub(crate) struct Socket {
     pub(crate) event_broadcaster: Arc<Mutex<EventBroadcaster>>,
 }
 
+/// Represents the possible outcomes of an EVM transaction.
+///
+/// This enum is used to encapsulate both successful transaction results and
+/// potential errors.
+/// - `Success`: Indicates that the transaction was executed successfully and
+///   contains the result of the execution. The wrapped `ExecutionResult`
+///   provides detailed information about the transaction's execution, such as
+///   returned values or changes made to the state.
+/// - `Error`: Indicates that the transaction failed due to some error
+///   condition. The wrapped `EnvironmentError` provides specifics about the
+///   error, allowing callers to take appropriate action or relay more
+///   informative error messages.
+#[derive(Debug, Clone)]
+pub(crate) enum TransactionOutcome {
+    /// Represents a successfully executed transaction.
+    ///
+    /// Contains the result of the transaction's execution.
+    Success(ExecutionResult),
+
+    /// Represents a failed transaction due to some error.
+    ///
+    /// Contains information about the error that caused the transaction
+    /// failure.
+    Error(EnvironmentError),
+}
 /// Represents the result of an EVM transaction.
 ///
 /// Contains the outcome of a transaction (e.g., success, revert, halt) and the
 /// block number at which the transaction was executed.
 #[derive(Debug, Clone)]
 pub(crate) struct RevmResult {
-    pub(crate) result: ExecutionResult,
+    pub(crate) outcome: TransactionOutcome,
     pub(crate) block_number: U64,
 }
 
@@ -516,7 +565,7 @@ pub(crate) mod tests {
     fn new() {
         let environment = Environment::new(TEST_ENV_LABEL.to_string(), 1.0, 1);
         assert_eq!(environment.label, TEST_ENV_LABEL);
-        let state = environment.state.load(std::sync::atomic::Ordering::Relaxed);
+        let state = environment.state.load(std::sync::atomic::Ordering::SeqCst);
         assert_eq!(state, State::Initialization);
     }
 
@@ -524,7 +573,7 @@ pub(crate) mod tests {
     fn run() {
         let mut environment = Environment::new(TEST_ENV_LABEL.to_string(), 1.0, 1);
         environment.run();
-        let state = environment.state.load(std::sync::atomic::Ordering::Relaxed);
+        let state = environment.state.load(std::sync::atomic::Ordering::SeqCst);
         assert_eq!(state, State::Running);
     }
 

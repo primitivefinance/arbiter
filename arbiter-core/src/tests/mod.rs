@@ -8,14 +8,14 @@ mod signer;
 
 use std::{str::FromStr, sync::Arc};
 
-use anyhow::{Ok, Result};
+use anyhow::Result;
 use ethers::{
     prelude::{EthLogDecode, Middleware, StreamExt},
     types::{Address, Filter, ValueOrArray, U64},
 };
 
 use crate::{
-    bindings::{arbiter_math::*, arbiter_token::*, liquid_exchange::*},
+    bindings::{arbiter_math::*, arbiter_token::*},
     environment::{tests::TEST_ENV_LABEL, *},
     manager::*,
     math::*,
