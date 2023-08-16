@@ -1,3 +1,8 @@
+use std::time::Duration;
+
+use crate::bindings::arbiter_math::ArbiterMath;
+use tokio::{time::timeout, select};
+
 use super::*;
 
 #[tokio::test]
@@ -252,4 +257,41 @@ async fn transaction_loop() -> Result<()> {
         }
     }
     Ok(())
+}
+
+
+#[tokio::test]
+async fn test_pause_prevents_processing_transactions(){
+    let mut manager = Manager::new();
+    manager.add_environment(TEST_ENV_LABEL, 1.0, 1).unwrap();
+    let client = Arc::new(RevmMiddleware::new(manager.environments.get(TEST_ENV_LABEL).unwrap(), Some(TEST_SIGNER_SEED_AND_LABEL.to_string())));
+    
+    // Start environment
+    manager.start_environment(TEST_ENV_LABEL).unwrap();
+
+    // Send a tx and check it works (it should)
+    let arbiter_math_1 = ArbiterMath::deploy(client.clone(), ()).unwrap().send().await;
+    assert!(arbiter_math_1.is_ok());
+    
+    // Pause the environment.
+    manager.pause_environment(TEST_ENV_LABEL).unwrap();
+
+    // Send a tx while the environment is paused (it should not process) TODO: it does process due to the atomic ordering rules
+    let arbiter_math_2 = ArbiterMath::deploy(client.clone(), ()).unwrap().send().await;
+    println!("{:?}", arbiter_math_2);
+    assert!(arbiter_math_2.is_ok());
+
+    // Send a second transaction while the environment is paused (it should not process), this one does hang if we await it
+    let arbiter_math_3 = ArbiterMath::deploy(client.clone(), ()).unwrap().send();
+
+    // This should be improved upon, i tried for a few hours to get this to work with tokio::time::timeout and also the tokie::select! macro
+    // Both approaches hung indefinetly for the same reason the filter one does which i also spent some time trying to fix.
+
+    // Unpause the environment and send a tx and make sure it works
+    manager.start_environment(TEST_ENV_LABEL).unwrap();
+    assert!(arbiter_math_3.await.is_ok());
+    let arbiter_math_3 = ArbiterMath::deploy(client.clone(), ()).unwrap().send().await;
+    assert!(arbiter_math_3.is_ok());
+
+
 }

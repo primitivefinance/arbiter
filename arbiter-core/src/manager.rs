@@ -267,7 +267,7 @@ impl Manager {
                 State::Running => {
                     environment
                         .state
-                        .store(State::Paused, std::sync::atomic::Ordering::Relaxed);
+                        .store(State::Paused, std::sync::atomic::Ordering::SeqCst);
                     info!("Paused environment labeled {}", environment_label.into());
                     Ok(())
                 }
