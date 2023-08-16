@@ -10,7 +10,10 @@
 //! `arbiter-core` is designed to facilitate agent-based simulations of Ethereum
 //! smart contracts in a local environment.
 //!
-//! With a primary emphasis on ease of use and performance, it employs the [`revm`](https://crates.io/crates/revm) (Rust EVM) to provide a local execution environment that closely simulates the Ethereum blockchain but without associated overheads like networking latency.
+//! With a primary emphasis on ease of use and performance, it employs the
+//! [`revm`](https://crates.io/crates/revm) (Rust EVM) to provide a local
+//! execution environment that closely simulates the Ethereum blockchain but
+//! without associated overheads like networking latency.
 //!
 //! Key Features:
 //! - **Manager Interface**: The main user entry-point that offers management of
@@ -20,8 +23,8 @@
 //! - **Middleware Implementation**: Customized middleware to reduce overhead
 //!   and provide optimal performance.
 //!
-//! For a detailed guide on getting started and best practices, check out [link
-//! to your guide or further documentation]. // TODO: Add in a link.
+//! For a detailed guide on getting started, check out the
+//! [Arbiter Github page](https://github.com/primitivefinance/arbiter/).
 //!
 //! For specific module-level information and examples, navigate to the
 //! respective module documentation below.
