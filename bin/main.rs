@@ -3,12 +3,15 @@
 //! `Arbiter` CLI Tool
 //!
 //! The Arbiter command-line interface provides minimum utilities for the
-//! utilization of the arbiter-core crate. It is designed to be a simple and versitile.
+//! utilization of the arbiter-core crate. It is designed to be a simple and
+//! versitile.
 //!
 //!
 //! Key Features:
-//! - Simulation Initialization: Allow users to kickstart new data analysis simulations.
-//! - Contract Bindings: Generate necessary bindings for interfacing with different contracts.
+//! - Simulation Initialization: Allow users to kickstart new data analysis
+//!   simulations.
+//! - Contract Bindings: Generate necessary bindings for interfacing with
+//!   different contracts.
 //!
 //!
 //! This CLI leverages the power of Rust's type system to
@@ -38,30 +41,36 @@ struct Args {
 /// configuration file.
 #[derive(Error, Debug)]
 pub enum ConfigurationError {
-    /// Indicates that the configuration file could not be read from the given path.
+    /// Indicates that the configuration file could not be read from the given
+    /// path.
     #[error("configuration file path does not exist")]
     FilepathError(#[from] std::io::Error),
 
-    /// Indicates an error occurred during the deserialization of the `.toml` file.
+    /// Indicates an error occurred during the deserialization of the `.toml`
+    /// file.
     #[error("toml deserialization failed")]
     DeserializationError(#[from] toml::de::Error),
 
-    /// Indicates that certain expected fields were missing from the `.toml` file.
+    /// Indicates that certain expected fields were missing from the `.toml`
+    /// file.
     #[error("missing fields in toml file")]
     MissingFieldsError(String),
 }
 
-/// Provides functionality for classes that need to be configured using a `.toml` file.
+/// Provides functionality for classes that need to be configured using a
+/// `.toml` file.
 pub trait Configurable: Sized {
     /// Parses the given `.toml` file to configure the object.
     ///
     /// # Arguments
     ///
-    /// * `command_path` - A string slice that holds the path to the `.toml` configuration file.
+    /// * `command_path` - A string slice that holds the path to the `.toml`
+    ///   configuration file.
     ///
     /// # Returns
     ///
-    /// * A `Result` which is either a configured object of type `Self` or a `ConfigurationError`.
+    /// * A `Result` which is either a configured object of type `Self` or a
+    ///   `ConfigurationError`.
     fn configure(command_path: &str) -> Result<Self, ConfigurationError>;
 }
 
@@ -81,12 +90,13 @@ enum Commands {
 
 /// The main entry point for the `Arbiter` tool.
 ///
-/// This function parses command line arguments, and based on the provided subcommand,
-/// either initializes a new simulation or generates bindings.
+/// This function parses command line arguments, and based on the provided
+/// subcommand, either initializes a new simulation or generates bindings.
 ///
 /// # Returns
 ///
-/// * A `Result` which is either an empty tuple for successful execution or a dynamic error.
+/// * A `Result` which is either an empty tuple for successful execution or a
+///   dynamic error.
 fn main() -> Result<(), Box<dyn Error>> {
     let args = Args::parse();
 

@@ -8,7 +8,7 @@ mod signer;
 
 use std::{str::FromStr, sync::Arc};
 
-use anyhow::{Result};
+use anyhow::Result;
 use ethers::{
     prelude::{EthLogDecode, Middleware, StreamExt},
     types::{Address, Filter, ValueOrArray, U64},

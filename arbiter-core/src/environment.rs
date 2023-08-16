@@ -291,16 +291,21 @@ impl Environment {
 
                     // Await for the condvar alert to change the state
                     State::Paused => {
-                        // this logic here ensures we catch the last transaction and send the appropriate error so that we dont hang in limbo forever
-                        if let Ok((_, _, sender)) = tx_receiver.recv(){
-                            let error_outcome = TransactionOutcome::Error(EnvironmentError::Pause {
-                                cause: "Environment is paused".into(),
-                            });
+                        // this logic here ensures we catch the last transaction and send the
+                        // appropriate error so that we dont hang in limbo forever
+                        // loop till tx_receiver is empty
+                        if let Ok((_, _, sender)) = tx_receiver.recv() {
+                            let error_outcome =
+                                TransactionOutcome::Error(EnvironmentError::Pause {
+                                    cause: "Environment is paused".into(),
+                                });
                             let revm_result = RevmResult {
                                 outcome: error_outcome,
-                                block_number: convert_uint_to_u64(evm.env.block.number).map_err(|e| EnvironmentError::Conversion {
-                                    cause: format!("{:?}", e),
-                                })?,
+                                block_number: convert_uint_to_u64(evm.env.block.number).map_err(
+                                    |e| EnvironmentError::Conversion {
+                                        cause: format!("{:?}", e),
+                                    },
+                                )?,
                             };
                             sender.send(revm_result).unwrap();
                         }
@@ -460,26 +465,29 @@ pub(crate) struct Socket {
     pub(crate) event_broadcaster: Arc<Mutex<EventBroadcaster>>,
 }
 
-
 /// Represents the possible outcomes of an EVM transaction.
 ///
-/// This enum is used to encapsulate both successful transaction results and potential errors.
-/// - `Success`: Indicates that the transaction was executed successfully and contains the 
-///   result of the execution. The wrapped `ExecutionResult` provides detailed information about 
-///   the transaction's execution, such as returned values or changes made to the state.
-/// - `Error`: Indicates that the transaction failed due to some error condition. The wrapped
-///   `EnvironmentError` provides specifics about the error, allowing callers to take appropriate
-///   action or relay more informative error messages.
+/// This enum is used to encapsulate both successful transaction results and
+/// potential errors.
+/// - `Success`: Indicates that the transaction was executed successfully and
+///   contains the result of the execution. The wrapped `ExecutionResult`
+///   provides detailed information about the transaction's execution, such as
+///   returned values or changes made to the state.
+/// - `Error`: Indicates that the transaction failed due to some error
+///   condition. The wrapped `EnvironmentError` provides specifics about the
+///   error, allowing callers to take appropriate action or relay more
+///   informative error messages.
 #[derive(Debug, Clone)]
 pub(crate) enum TransactionOutcome {
     /// Represents a successfully executed transaction.
     ///
     /// Contains the result of the transaction's execution.
     Success(ExecutionResult),
-    
+
     /// Represents a failed transaction due to some error.
     ///
-    /// Contains information about the error that caused the transaction failure.
+    /// Contains information about the error that caused the transaction
+    /// failure.
     Error(EnvironmentError),
 }
 /// Represents the result of an EVM transaction.

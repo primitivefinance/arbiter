@@ -188,30 +188,31 @@ impl Manager {
         environment_label: S,
     ) -> Result<(), ManagerError> {
         match self.environments.get_mut(&environment_label.clone().into()) {
-            Some(environment) => match environment.state.load(std::sync::atomic::Ordering::SeqCst)
-            {
-                State::Initialization => {
-                    environment.run();
-                    info!("Started environment labeled {}", environment_label.into());
-                    Ok(())
+            Some(environment) => {
+                match environment.state.load(std::sync::atomic::Ordering::SeqCst) {
+                    State::Initialization => {
+                        environment.run();
+                        info!("Started environment labeled {}", environment_label.into());
+                        Ok(())
+                    }
+                    State::Paused => {
+                        environment
+                            .state
+                            .store(State::Running, std::sync::atomic::Ordering::SeqCst);
+                        let (lock, pausevar) = &*environment.pausevar;
+                        let _guard = lock.lock().unwrap();
+                        pausevar.notify_all();
+                        info!("Restarted environment labeled {}", environment_label.into());
+                        Ok(())
+                    }
+                    State::Running => Err(ManagerError::EnvironmentAlreadyRunning {
+                        label: environment_label.into(),
+                    }),
+                    State::Stopped => Err(ManagerError::EnvironmentStopped {
+                        label: environment_label.into(),
+                    }),
                 }
-                State::Paused => {
-                    environment
-                        .state
-                        .store(State::Running, std::sync::atomic::Ordering::SeqCst);
-                    let (lock, pausevar) = &*environment.pausevar;
-                    let _guard = lock.lock().unwrap();
-                    pausevar.notify_all();
-                    info!("Restarted environment labeled {}", environment_label.into());
-                    Ok(())
-                }
-                State::Running => Err(ManagerError::EnvironmentAlreadyRunning {
-                    label: environment_label.into(),
-                }),
-                State::Stopped => Err(ManagerError::EnvironmentStopped {
-                    label: environment_label.into(),
-                }),
-            },
+            }
             None => Err(ManagerError::EnvironmentDoesNotExist {
                 label: environment_label.into(),
             }),
@@ -259,25 +260,26 @@ impl Manager {
         environment_label: S,
     ) -> Result<(), ManagerError> {
         match self.environments.get_mut(&environment_label.clone().into()) {
-            Some(environment) => match environment.state.load(std::sync::atomic::Ordering::SeqCst)
-            {
-                State::Initialization => Err(ManagerError::EnvironmentNotRunning {
-                    label: environment_label.into(),
-                }),
-                State::Running => {
-                    environment
-                        .state
-                        .store(State::Paused, std::sync::atomic::Ordering::SeqCst);
-                    info!("Paused environment labeled {}", environment_label.into());
-                    Ok(())
+            Some(environment) => {
+                match environment.state.load(std::sync::atomic::Ordering::SeqCst) {
+                    State::Initialization => Err(ManagerError::EnvironmentNotRunning {
+                        label: environment_label.into(),
+                    }),
+                    State::Running => {
+                        environment
+                            .state
+                            .store(State::Paused, std::sync::atomic::Ordering::SeqCst);
+                        info!("Paused environment labeled {}", environment_label.into());
+                        Ok(())
+                    }
+                    State::Paused => Err(ManagerError::EnvironmentAlreadyPaused {
+                        label: environment_label.into(),
+                    }),
+                    State::Stopped => Err(ManagerError::EnvironmentStopped {
+                        label: environment_label.into(),
+                    }),
                 }
-                State::Paused => Err(ManagerError::EnvironmentAlreadyPaused {
-                    label: environment_label.into(),
-                }),
-                State::Stopped => Err(ManagerError::EnvironmentStopped {
-                    label: environment_label.into(),
-                }),
-            },
+            }
             None => Err(ManagerError::EnvironmentDoesNotExist {
                 label: environment_label.into(),
             }),
@@ -325,51 +327,52 @@ impl Manager {
         environment_label: S,
     ) -> Result<(), ManagerError> {
         match self.environments.get_mut(&environment_label.clone().into()) {
-            Some(environment) => match environment.state.load(std::sync::atomic::Ordering::SeqCst)
-            {
-                State::Initialization => Err(ManagerError::EnvironmentNotRunning {
-                    label: environment_label.into(),
-                }),
-                State::Running => {
-                    environment
-                        .state
-                        .store(State::Stopped, std::sync::atomic::Ordering::SeqCst);
-                    match environment.handle.take() {
-                        Some(handle) => {
-                            if let Err(_) = handle.join() {
-                                return Err(ManagerError::ThreadPanic);
+            Some(environment) => {
+                match environment.state.load(std::sync::atomic::Ordering::SeqCst) {
+                    State::Initialization => Err(ManagerError::EnvironmentNotRunning {
+                        label: environment_label.into(),
+                    }),
+                    State::Running => {
+                        environment
+                            .state
+                            .store(State::Stopped, std::sync::atomic::Ordering::SeqCst);
+                        match environment.handle.take() {
+                            Some(handle) => {
+                                if handle.join().is_err() {
+                                    return Err(ManagerError::ThreadPanic);
+                                }
                             }
+                            None => return Err(ManagerError::NoHandleAvailable),
                         }
-                        None => return Err(ManagerError::NoHandleAvailable),
+                        warn!(
+                            "Stopped running environment labeled {}",
+                            environment_label.into()
+                        );
+                        Ok(())
                     }
-                    warn!(
-                        "Stopped running environment labeled {}",
-                        environment_label.into()
-                    );
-                    Ok(())
-                }
-                State::Paused => {
-                    environment
-                        .state
-                        .store(State::Stopped, std::sync::atomic::Ordering::SeqCst);
-                    match environment.handle.take() {
-                        Some(handle) => {
-                            if let Err(_) = handle.join() {
-                                return Err(ManagerError::ThreadPanic);
+                    State::Paused => {
+                        environment
+                            .state
+                            .store(State::Stopped, std::sync::atomic::Ordering::SeqCst);
+                        match environment.handle.take() {
+                            Some(handle) => {
+                                if handle.join().is_err() {
+                                    return Err(ManagerError::ThreadPanic);
+                                }
                             }
+                            None => return Err(ManagerError::NoHandleAvailable),
                         }
-                        None => return Err(ManagerError::NoHandleAvailable),
+                        warn!(
+                            "Stopped paused environment labeled {}",
+                            environment_label.into()
+                        );
+                        Ok(())
                     }
-                    warn!(
-                        "Stopped paused environment labeled {}",
-                        environment_label.into()
-                    );
-                    Ok(())
+                    State::Stopped => Err(ManagerError::EnvironmentStopped {
+                        label: environment_label.into(),
+                    }),
                 }
-                State::Stopped => Err(ManagerError::EnvironmentStopped {
-                    label: environment_label.into(),
-                }),
-            },
+            }
             None => Err(ManagerError::EnvironmentDoesNotExist {
                 label: environment_label.into(),
             }),
