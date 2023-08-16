@@ -90,6 +90,11 @@ pub enum ManagerError {
     #[error("joining on the environment thread resulted in a panic")]
     ThreadPanic,
 }
+impl Default for Manager {
+    fn default() -> Self {
+        Self::new()
+    }
+}
 
 impl Manager {
     /// Creates a new [`Manager`] with an empty set of environments.
@@ -336,7 +341,7 @@ impl Manager {
                         .store(State::Stopped, std::sync::atomic::Ordering::Relaxed);
                     match environment.handle.take() {
                         Some(handle) => {
-                            if let Err(_) = handle.join() {
+                            if handle.join().is_err() {
                                 return Err(ManagerError::ThreadPanic);
                             }
                         }
@@ -354,7 +359,7 @@ impl Manager {
                         .store(State::Stopped, std::sync::atomic::Ordering::Relaxed);
                     match environment.handle.take() {
                         Some(handle) => {
-                            if let Err(_) = handle.join() {
+                            if handle.join().is_err() {
                                 return Err(ManagerError::ThreadPanic);
                             }
                         }

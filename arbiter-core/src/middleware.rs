@@ -231,7 +231,7 @@ impl Middleware for RevmMiddleware {
     /// Returns a reference to the inner middleware of which there is none when
     /// using [`RevmMiddleware`] so we relink to `Self`
     fn inner(&self) -> &Self::Inner {
-        &self
+        self
     }
 
     /// Provides access to the associated Ethereum provider which is given by
@@ -540,7 +540,7 @@ impl JsonRpcClient for Connection {
                         )))?;
                 let mut logs = vec![];
                 let filtered_params = FilteredParams::new(Some(filter_receiver.filter.clone()));
-                while let Ok(received_logs) = filter_receiver.receiver.recv() {
+                if let Ok(received_logs) = filter_receiver.receiver.recv() {
                     let ethers_logs = revm_logs_to_ethers_logs(received_logs);
                     for log in ethers_logs {
                         if filtered_params.filter_address(&log)
@@ -549,10 +549,7 @@ impl JsonRpcClient for Connection {
                             logs.push(log);
                         }
                     }
-                    break;
                 }
-
-                // TODO: This can probably be avoided somehow
                 // Take the logs and Stringify then JSONify to cast into `R`.
                 let logs_str = serde_json::to_string(&logs)?;
                 let logs_deserializeowned: R = serde_json::from_str(&logs_str)?;

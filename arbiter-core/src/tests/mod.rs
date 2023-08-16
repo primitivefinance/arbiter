@@ -15,7 +15,7 @@ use ethers::{
 };
 
 use crate::{
-    bindings::{arbiter_math::*, arbiter_token::*, liquid_exchange::*},
+    bindings::{arbiter_math::*, arbiter_token::*},
     environment::{tests::TEST_ENV_LABEL, *},
     manager::*,
     math::*,

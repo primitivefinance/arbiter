@@ -13,7 +13,7 @@ async fn deploy() -> Result<()> {
 
 #[tokio::test]
 async fn call() -> Result<()> {
-    let (arbiter_token, _, client) = deploy_and_start().await?;
+    let (arbiter_token, _, _client) = deploy_and_start().await?;
     let admin = arbiter_token.admin();
     let output = admin.call().await?;
     assert_eq!(
@@ -58,7 +58,7 @@ async fn transact() -> Result<()> {
 
 #[tokio::test]
 async fn filter_watcher() -> Result<()> {
-    let (arbiter_token, environment, client) = deploy_and_start().await.unwrap();
+    let (arbiter_token, _environment, client) = deploy_and_start().await.unwrap();
     let mut filter_watcher = client.watch(&Filter::default()).await?;
     let approval = arbiter_token.approve(
         client.default_sender().unwrap(),
@@ -166,7 +166,7 @@ async fn filter_address() -> Result<()> {
 
 #[tokio::test]
 async fn filter_topics() -> Result<()> {
-    let (arbiter_token, environment, client) = deploy_and_start().await.unwrap();
+    let (arbiter_token, _environment, client) = deploy_and_start().await.unwrap();
     let mut default_watcher = client.watch(&Filter::default()).await?;
     let mut approval_watcher = client
         .watch(&arbiter_token.approval_filter().filter)
