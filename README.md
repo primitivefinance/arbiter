@@ -3,13 +3,22 @@
 > Expanding the EVM tooling ecosystem.
 
 ![Github Actions](https://github.com/primitivefinance/arbiter/workflows/test/badge.svg)
-[![codecov](https://codecov.io/gh/funkycadet/arbiter/branch/main/graph/badge.svg?token=UQ1SE0D9IN)](https://codecov.io/gh/funkycadet/arbiter)
-![](https://visitor-badge.laobi.icu/badge?page_id=arbiter)
-[![](https://dcbadge.vercel.app/api/server/primitive?style=flat)](https://discord.gg/primitive)
+[![Codecov badge](https://codecov.io/gh/funkycadet/arbiter/branch/main/graph/badge.svg?token=UQ1SE0D9IN)](https://codecov.io/gh/funkycadet/arbiter)
+![Visitors badge](https://visitor-badge.laobi.icu/badge?page_id=arbiter)
+![Telegram badge](https://img.shields.io/endpoint?color=neon&logo=telegram&label=chat&style=flat-square&url=https%3A%2F%2Ftg.sumanjay.workers.dev%2Farbiter_rs)
+[![Discord badge](https://dcbadge.vercel.app/api/server/primitive?style=flat)](https://discord.gg/primitive)
 [![Twitter Badge](https://badgen.net/badge/icon/twitter?icon=twitter&label)](https://twitter.com/primitivefi)
 
+**Arbiter** is a framework for stateful Ethereum smart-contract simulation. 
+The framework features an [`ethers-rs`](https://github.com/gakonst/ethers-rs) middleware built on top of [revm](https://github.com/bluealloy/revm) which allows the end user to interact with a sandboxed `revm` instance as if it were an Ethereum node. This provides a familiar interface for interacting with the Ethereum Virtual Machine (EVM), but with unrivaled speed. Furthermore, Arbiter provides containment and management for simulations.
 
-This library enables user to communicate with a sandboxed revm instance via the implementation of the [ethers-rs](ethers.rs) middleware.
+## Overview
+
+The Arbiter workspace has two crates:
+- `arbiter-core`: The lib crate that contains the core logic for the Arbiter framework including the `RevmMiddleware` discussed before, the `Environment` which envelopes simulations, and the `Manager` who controls a collection of environments.
+- `arbiter`: The binary crate that exposes a command line interface for initializing simulations via a templated repository and generating contract bindings needed for the simulation.
+
+
 
 The Ethereum blockchain's execution environment, the Ethereum Virtual machine (EVM), contains a rich collection of decentralized applications. The EVM is stack machine that sequentially executes opcodes sent to it by users and smart contracts. Arbiter is a highly configurable rust interface over [revm](https://github.com/bluealloy/revm) which is a Rust implementation of the EVM stack machine logic. The purpose of Arbiter is to interface with arbitrary agents and contracts and run this all directly on a blazing-fast simulated EVM.
 
@@ -23,7 +32,7 @@ Arbiter can be used for:
 - investigating risk, capital efficiency, rebalancing strategies, and portfolio replication (or performance). (LPs, funds, quants, traders)
 - Engineering and testing new financial products built on top of more primitive financial products (DeFi firms and academics)
 
-## Generating Docs
+## Documentation
 
 To see the documentation for Arbiter, after cloning the repo, you can run:
 
@@ -31,7 +40,8 @@ To see the documentation for Arbiter, after cloning the repo, you can run:
 cargo doc --workspace --no-deps --open
 ```
 
-This will generate and open the docs in your browser. From there, you can look at the documentation for each crate in the Arbiter workspace.
+This will generate and open the docs in your browser. From there, you can look at the documentation for each crate in the Arbiter workspace. 
+We will post both crates to crates.io once we have removed any and all Github linked crates.
 
 ## Contributing
 
