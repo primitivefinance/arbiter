@@ -102,7 +102,7 @@ async fn filter_watcher() -> Result<()> {
 
 #[tokio::test]
 async fn filter_address() -> Result<()> {
-    let (arbiter_token, environment, client) = deploy_and_start().await.unwrap();
+    let (arbiter_token, _environment, client) = deploy_and_start().await.unwrap();
     let mut default_watcher = client.watch(&Filter::default()).await?;
     let mut address_watcher = client
         .watch(&Filter::new().address(arbiter_token.address()))

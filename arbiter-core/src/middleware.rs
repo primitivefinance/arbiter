@@ -145,17 +145,23 @@ pub enum RevmMiddlewareError {
 
     /// The execution of a transaction was reverted, indicating that the
     /// transaction was not successful.
-    #[error("execution failed to succeed due to revert! output is: {cause}")]
+    #[error("execution failed to succeed due to revert!\n gas used is: {gas_used}\n output is {output:?}")]
     ExecutionRevert {
+        /// Provides the amount of gas used by the transaction.
+        gas_used: u64,
+
         /// Provides the output or reason why the transaction was reverted.
-        cause: String,
+        output: revm::primitives::Bytes,
     },
 
     /// The execution of a transaction halted unexpectedly.
-    #[error("execution failed to succeed due to halt! output is: {cause}")]
+    #[error("execution failed to succeed due to halt!\n reason is: {reason:?}\n gas used is: {gas_used}")]
     ExecutionHalt {
-        /// Provides the output or reason for the halt.
-        cause: String,
+        /// Provides the reason for the halt.
+        reason: revm::primitives::Halt,
+
+        /// Provides the amount of gas used by the transaction.
+        gas_used: u64,
     },
 }
 
@@ -167,7 +173,7 @@ impl MiddlewareError for RevmMiddlewareError {
     }
 
     fn as_inner(&self) -> Option<&Self::Inner> {
-        Some(self)
+        None
     }
 }
 
@@ -280,7 +286,6 @@ impl Middleware for RevmMiddleware {
             nonce: None,
             access_list: Vec::new(),
         };
-        println!("gotten past creating txenv");
         self.provider()
             .as_ref()
             .tx_sender
@@ -292,7 +297,7 @@ impl Middleware for RevmMiddleware {
             .map_err(|e| RevmMiddlewareError::Send {
                 cause: e.to_string(),
             })?;
-        println!("sent to provider");
+
         let revm_result = self
             .provider()
             .as_ref()
@@ -308,7 +313,13 @@ impl Middleware for RevmMiddleware {
             _gas_refunded: _,
             logs,
             output,
-        } = unpack_execution_result(revm_result.result)?;
+        } = match unpack_execution_result(revm_result.result) {
+            Ok(success) => success,
+            Err(e) => {
+                return Err(e);
+            }
+        };
+
         match output {
             Output::Create(_, address) => {
                 let address = address.ok_or(RevmMiddlewareError::MissingData {
@@ -389,6 +400,7 @@ impl Middleware for RevmMiddleware {
             .map_err(|e| RevmMiddlewareError::Receive {
                 cause: e.to_string(),
             })?;
+
         let output = unpack_execution_result(revm_result.result)?.output;
         match output {
             Output::Create(bytes, ..) => {
@@ -417,7 +429,6 @@ impl Middleware for RevmMiddleware {
             }
             FilterKind::Logs(filter) => ("eth_newFilter", filter),
         };
-        println!("args: {:?}", args);
         let filter = args.clone();
         let mut hasher = Sha256::new();
         hasher.update(
@@ -574,6 +585,7 @@ pub(crate) struct FilterReceiver {
 }
 
 /// Contains the result of a successful transaction execution.
+#[derive(Debug)]
 struct Success {
     _reason: revm::primitives::Eval,
     _gas_used: u64,
@@ -607,18 +619,12 @@ fn unpack_execution_result(
                 output,
             })
         }
-        ExecutionResult::Revert { gas_used, output } => Err(RevmMiddlewareError::ExecutionRevert {
-            cause: format!(
-                "Transaction reverted and used {} gas and output {:?}",
-                gas_used, output
-            ),
-        }),
-        ExecutionResult::Halt { reason, gas_used } => Err(RevmMiddlewareError::ExecutionHalt {
-            cause: format!(
-                "Transaction halted for reasond {:?} gas and output {:?}",
-                reason, gas_used
-            ),
-        }),
+        ExecutionResult::Revert { gas_used, output } => {
+            Err(RevmMiddlewareError::ExecutionRevert { gas_used, output })
+        }
+        ExecutionResult::Halt { reason, gas_used } => {
+            Err(RevmMiddlewareError::ExecutionHalt { reason, gas_used })
+        }
     }
 }
 
