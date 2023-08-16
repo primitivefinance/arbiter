@@ -129,7 +129,7 @@ pub struct Environment {
 
     /// The [`EVM`] that is used as an execution environment and database for
     /// calls and transactions.
-    pub(crate) evm: EVM<CacheDB<EmptyDB>>,
+    evm: EVM<CacheDB<EmptyDB>>,
 
     /// This gives a means of letting the "outside world" connect to the
     /// [`Environment`] so that users (or agents) may send and receive data from
