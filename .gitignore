@@ -17,3 +17,5 @@ Cargo.lock
 .DS_Store
 # /contracts/*
 arbiter/
+
+.vscode

@@ -1,16 +1,14 @@
-# Workspace configuration
 [workspace]
+
 # List of crates included in this workspace
 members = [
-    "crates/bindings",
-    "crates/simulate",
-    "crates/onchain",
+    "arbiter-core",
 ]
 
 # Package configuration
 [package]
 name = "arbiter"
-version = "0.2.0"
+version = "0.3.0"
 edition = "2021"
 authors = ["Colin Roberts", "Waylon Jepsen"]
 
@@ -19,51 +17,21 @@ authors = ["Colin Roberts", "Waylon Jepsen"]
 name = "arbiter"
 path = "bin/main.rs"
 
-# Dependency configuration
+
+# Dependencies for the release build
 [dependencies]
-# Local dependencies
-simulate = {path = "crates/simulate"}
-bindings = {path = "crates/bindings"}
-onchain = {path = "crates/onchain"}
-
-# Primitive dependencies
-visualize = { git = "https://github.com/primitivefinance/visualization-rs.git"}
-
-# External dependencies
+# Command line and config
 clap = { version = "4.3.0", features = ["derive"] }
-csv = "1.2.1"
-eyre = "0.6.8"
-itertools-num = "0.1.3"
 serde = { version = "1.0.163", features =["derive"] }
-thiserror = "1.0.40"
-tokio = { version = "1.28.1", features = ["macros", "full"] }
 toml = "0.7.4"
-chrono = "0.4"
-log = "0.4.19"
 
-# Revm and related dependencies
-bytes = "1.4.0"
-hex = { version = "0.4.3", default-features = false }
-revm = "3.3.0"
-ruint = "1.8.0"
-ethers = { version = "2.0.4", default-features = false, features = ["abigen"] }
+# Building files
+quote = "1.0.28"
 
-# Simulation dependencies
-crossbeam-channel = "0.5.8"
-polars = "0.29.0"
-quote = "1.0.29"
+# Errors
+thiserror = "1.0.40"
 
-# workspace dependencies
-[workspace.dependencies]
-futures = { version = "0.3.28" }
-csv = { version = "1.2.1" }
-ethers = { version = "2.0.4", default-features = false, features = ["abigen"] }
-serde = { version = "1.0.163", features= ["derive"]}
-serde_json = { version = "1.0.96" }
-bindings = {path = "crates/bindings"}
-tokio = { version = "1.28.1", features = ["macros", "full"] }
-
-# Development dependencies
+# Dependencies for the test build and development
 [dev-dependencies]
 assert_cmd = "2.0.11"
 
