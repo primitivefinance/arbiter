@@ -291,10 +291,15 @@ impl Environment {
 
                     // Await for the condvar alert to change the state
                     State::Paused => {
-                        // this logic here ensures we catch the last transaction and send the
-                        // appropriate error so that we dont hang in limbo forever
-                        // loop till tx_receiver is empty
-                        if let Ok((_, _, sender)) = tx_receiver.recv() {
+                        let (lock, cvar) = &*pausevar;
+                        let mut guard = lock.lock().map_err(|e| EnvironmentError::Pause {
+                            cause: format!("{:?}", e),
+                        })?;
+
+                        // this logic here ensures we catch any edge case last transactions and send
+                        // the appropriate error so that we dont hang in
+                        // limbo forever
+                        while let Ok((_, _, sender)) = tx_receiver.try_recv() {
                             let error_outcome =
                                 TransactionOutcome::Error(EnvironmentError::Pause {
                                     cause: "Environment is paused".into(),
@@ -307,12 +312,13 @@ impl Environment {
                                     },
                                 )?,
                             };
-                            sender.send(revm_result).unwrap();
+                            sender.send(revm_result).map_err(|e| {
+                                EnvironmentError::Communication {
+                                    cause: format!("{:?}", e),
+                                }
+                            })?;
                         }
-                        let (lock, cvar) = &*pausevar;
-                        let mut guard = lock.lock().map_err(|e| EnvironmentError::Pause {
-                            cause: format!("{:?}", e),
-                        })?;
+
                         while state.load(std::sync::atomic::Ordering::SeqCst) == State::Paused {
                             guard = cvar.wait(guard).map_err(|e| EnvironmentError::Pause {
                                 cause: format!("{:?}", e),
