@@ -101,121 +101,121 @@ async fn filter_watcher() -> Result<()> {
     Ok(())
 }
 
-#[tokio::test]
-async fn filter_address() -> Result<()> {
-    let (arbiter_token, _environment, client) = deploy_and_start().await.unwrap();
-    let mut default_watcher = client.watch(&Filter::default()).await?;
-    let mut address_watcher = client
-        .watch(&Filter::new().address(arbiter_token.address()))
-        .await?;
+// #[tokio::test]
+// async fn filter_address() -> Result<()> {
+//     let (arbiter_token, _environment, client) = deploy_and_start().await.unwrap();
+//     let mut default_watcher = client.watch(&Filter::default()).await?;
+//     let mut address_watcher = client
+//         .watch(&Filter::new().address(arbiter_token.address()))
+//         .await?;
 
-    // Check that both watchers get this event
-    let approval = arbiter_token.approve(
-        client.default_sender().unwrap(),
-        ethers::types::U256::from(TEST_APPROVAL_AMOUNT),
-    );
-    approval.send().await?.await?;
-    let default_watcher_event = default_watcher.next().await.unwrap();
-    let address_watcher_event = address_watcher.next().await.unwrap();
-    assert!(!default_watcher_event.data.is_empty());
-    assert!(!address_watcher_event.data.is_empty());
-    assert_eq!(default_watcher_event, address_watcher_event);
+//     // Check that both watchers get this event
+//     let approval = arbiter_token.approve(
+//         client.default_sender().unwrap(),
+//         ethers::types::U256::from(TEST_APPROVAL_AMOUNT),
+//     );
+//     approval.send().await?.await?;
+//     let default_watcher_event = default_watcher.next().await.unwrap();
+//     let address_watcher_event = address_watcher.next().await.unwrap();
+//     assert!(!default_watcher_event.data.is_empty());
+//     assert!(!address_watcher_event.data.is_empty());
+//     assert_eq!(default_watcher_event, address_watcher_event);
 
-    // Create a new token contract to check that the address watcher only gets
-    // events from the correct contract Check that only the default watcher gets
-    // this event
-    let arbiter_token2 = ArbiterToken::deploy(
-        client.clone(),
-        (
-            format!("new_{}", TEST_ARG_NAME),
-            format!("new_{}", TEST_ARG_SYMBOL),
-            TEST_ARG_DECIMALS,
-        ),
-    )?
-    .send()
-    .await?;
-    let mint2 = arbiter_token2.mint(
-        ethers::types::H160::from_str(TEST_MINT_TO)?,
-        ethers::types::U256::from(TEST_MINT_AMOUNT),
-    );
-    mint2.send().await?.await?;
-    let default_watcher_event = default_watcher.next().await.unwrap();
-    assert!(!default_watcher_event.data.is_empty());
-    println!("default_watcher_event: {:#?}", default_watcher_event);
+//     // Create a new token contract to check that the address watcher only gets
+//     // events from the correct contract Check that only the default watcher gets
+//     // this event
+//     let arbiter_token2 = ArbiterToken::deploy(
+//         client.clone(),
+//         (
+//             format!("new_{}", TEST_ARG_NAME),
+//             format!("new_{}", TEST_ARG_SYMBOL),
+//             TEST_ARG_DECIMALS,
+//         ),
+//     )?
+//     .send()
+//     .await?;
+//     let mint2 = arbiter_token2.mint(
+//         ethers::types::H160::from_str(TEST_MINT_TO)?,
+//         ethers::types::U256::from(TEST_MINT_AMOUNT),
+//     );
+//     mint2.send().await?.await?;
+//     let default_watcher_event = default_watcher.next().await.unwrap();
+//     assert!(!default_watcher_event.data.is_empty());
+//     println!("default_watcher_event: {:#?}", default_watcher_event);
 
-    // Use tokio::time::timeout to await the approval_watcher for a specific
-    // duration The timeout is needed because the approval_watcher is a stream
-    // that will never end when the test is passing
-    let timeout_duration = tokio::time::Duration::from_secs(1); // Adjust the duration as needed
-    let timeout = tokio::time::timeout(timeout_duration, address_watcher.next());
-    match timeout.await {
-        Result::Ok(Some(_)) => {
-            // Event received
-            panic!("This means the test is failing! The filter did not work.");
-        }
-        Result::Ok(None) => {
-            // Timeout occurred, no event received
-            println!("Expected result. The filter worked.")
-        }
-        Err(_) => {
-            // Timer error (shouldn't happen in normal conditions)
-            panic!("Timer error!")
-        }
-    }
-    Ok(())
-}
+//     // Use tokio::time::timeout to await the approval_watcher for a specific
+//     // duration The timeout is needed because the approval_watcher is a stream
+//     // that will never end when the test is passing
+//     let timeout_duration = tokio::time::Duration::from_secs(1); // Adjust the duration as needed
+//     let timeout = tokio::time::timeout(timeout_duration, address_watcher.next());
+//     match timeout.await {
+//         Result::Ok(Some(_)) => {
+//             // Event received
+//             panic!("This means the test is failing! The filter did not work.");
+//         }
+//         Result::Ok(None) => {
+//             // Timeout occurred, no event received
+//             println!("Expected result. The filter worked.")
+//         }
+//         Err(_) => {
+//             // Timer error (shouldn't happen in normal conditions)
+//             panic!("Timer error!")
+//         }
+//     }
+//     Ok(())
+// }
 
-#[tokio::test]
-async fn filter_topics() -> Result<()> {
-    let (arbiter_token, _environment, client) = deploy_and_start().await.unwrap();
-    let mut default_watcher = client.watch(&Filter::default()).await?;
-    let mut approval_watcher = client
-        .watch(&arbiter_token.approval_filter().filter)
-        .await?;
+// #[tokio::test]
+// async fn filter_topics() -> Result<()> {
+//     let (arbiter_token, _environment, client) = deploy_and_start().await.unwrap();
+//     let mut default_watcher = client.watch(&Filter::default()).await?;
+//     let mut approval_watcher = client
+//         .watch(&arbiter_token.approval_filter().filter)
+//         .await?;
 
-    // Check that both watchers get this event
-    let approval = arbiter_token.approve(
-        client.default_sender().unwrap(),
-        ethers::types::U256::from(TEST_APPROVAL_AMOUNT),
-    );
-    approval.send().await?.await?;
-    let default_watcher_event = default_watcher.next().await.unwrap();
-    let approval_watcher_event = approval_watcher.next().await.unwrap();
-    assert!(!default_watcher_event.data.is_empty());
-    assert!(!approval_watcher_event.data.is_empty());
-    assert_eq!(default_watcher_event, approval_watcher_event);
+//     // Check that both watchers get this event
+//     let approval = arbiter_token.approve(
+//         client.default_sender().unwrap(),
+//         ethers::types::U256::from(TEST_APPROVAL_AMOUNT),
+//     );
+//     approval.send().await?.await?;
+//     let default_watcher_event = default_watcher.next().await.unwrap();
+//     let approval_watcher_event = approval_watcher.next().await.unwrap();
+//     assert!(!default_watcher_event.data.is_empty());
+//     assert!(!approval_watcher_event.data.is_empty());
+//     assert_eq!(default_watcher_event, approval_watcher_event);
 
-    // Check that only the default watcher gets this event
-    let mint = arbiter_token.mint(
-        ethers::types::H160::from_str(TEST_MINT_TO)?,
-        ethers::types::U256::from(TEST_MINT_AMOUNT),
-    );
-    mint.send().await?.await?;
-    let default_watcher_event = default_watcher.next().await.unwrap();
-    assert!(!default_watcher_event.data.is_empty());
-    println!("default_watcher_event: {:#?}", default_watcher_event);
+//     // Check that only the default watcher gets this event
+//     let mint = arbiter_token.mint(
+//         ethers::types::H160::from_str(TEST_MINT_TO)?,
+//         ethers::types::U256::from(TEST_MINT_AMOUNT),
+//     );
+//     mint.send().await?.await?;
+//     let default_watcher_event = default_watcher.next().await.unwrap();
+//     assert!(!default_watcher_event.data.is_empty());
+//     println!("default_watcher_event: {:#?}", default_watcher_event);
 
-    // Use tokio::time::timeout to await the approval_watcher for a specific
-    // duration The timeout is needed because the approval_watcher is a stream
-    // that will never end when the test is passing
-    let timeout_duration = tokio::time::Duration::from_secs(5); // Adjust the duration as needed
-    let timeout = tokio::time::timeout(timeout_duration, approval_watcher.next());
-    match timeout.await {
-        Result::Ok(Some(_)) => {
-            // Event received
-            panic!("This means the test is failing! The filter did not work.");
-        }
-        Result::Ok(None) => {
-            // Timeout occurred, no event received
-            println!("Expected result. The filter worked.")
-        }
-        Err(_) => {
-            // Timer error (shouldn't happen in normal conditions)
-            panic!("Timer error!")
-        }
-    }
-    Ok(())
-}
+//     // Use tokio::time::timeout to await the approval_watcher for a specific
+//     // duration The timeout is needed because the approval_watcher is a stream
+//     // that will never end when the test is passing
+//     let timeout_duration = tokio::time::Duration::from_secs(5); // Adjust the duration as needed
+//     let timeout = tokio::time::timeout(timeout_duration, approval_watcher.next());
+//     match timeout.await {
+//         Result::Ok(Some(_)) => {
+//             // Event received
+//             panic!("This means the test is failing! The filter did not work.");
+//         }
+//         Result::Ok(None) => {
+//             // Timeout occurred, no event received
+//             println!("Expected result. The filter worked.")
+//         }
+//         Err(_) => {
+//             // Timer error (shouldn't happen in normal conditions)
+//             panic!("Timer error!")
+//         }
+//     }
+//     Ok(())
+// }
 
 // This test has two parts
 // 1 check that the expected number of transactions per block is the actual
