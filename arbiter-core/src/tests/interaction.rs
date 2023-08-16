@@ -103,9 +103,9 @@ async fn filter_watcher() -> Result<()> {
 
 // #[tokio::test]
 // async fn filter_address() -> Result<()> {
-//     let (arbiter_token, _environment, client) = deploy_and_start().await.unwrap();
-//     let mut default_watcher = client.watch(&Filter::default()).await?;
-//     let mut address_watcher = client
+//     let (arbiter_token, _environment, client) =
+// deploy_and_start().await.unwrap();     let mut default_watcher =
+// client.watch(&Filter::default()).await?;     let mut address_watcher = client
 //         .watch(&Filter::new().address(arbiter_token.address()))
 //         .await?;
 
@@ -121,9 +121,9 @@ async fn filter_watcher() -> Result<()> {
 //     assert!(!address_watcher_event.data.is_empty());
 //     assert_eq!(default_watcher_event, address_watcher_event);
 
-//     // Create a new token contract to check that the address watcher only gets
-//     // events from the correct contract Check that only the default watcher gets
-//     // this event
+//     // Create a new token contract to check that the address watcher only
+// gets     // events from the correct contract Check that only the default
+// watcher gets     // this event
 //     let arbiter_token2 = ArbiterToken::deploy(
 //         client.clone(),
 //         (
@@ -144,15 +144,15 @@ async fn filter_watcher() -> Result<()> {
 //     println!("default_watcher_event: {:#?}", default_watcher_event);
 
 //     // Use tokio::time::timeout to await the approval_watcher for a specific
-//     // duration The timeout is needed because the approval_watcher is a stream
-//     // that will never end when the test is passing
-//     let timeout_duration = tokio::time::Duration::from_secs(1); // Adjust the duration as needed
-//     let timeout = tokio::time::timeout(timeout_duration, address_watcher.next());
-//     match timeout.await {
+//     // duration The timeout is needed because the approval_watcher is a
+// stream     // that will never end when the test is passing
+//     let timeout_duration = tokio::time::Duration::from_secs(1); // Adjust the
+// duration as needed     let timeout = tokio::time::timeout(timeout_duration,
+// address_watcher.next());     match timeout.await {
 //         Result::Ok(Some(_)) => {
 //             // Event received
-//             panic!("This means the test is failing! The filter did not work.");
-//         }
+//             panic!("This means the test is failing! The filter did not
+// work.");         }
 //         Result::Ok(None) => {
 //             // Timeout occurred, no event received
 //             println!("Expected result. The filter worked.")
@@ -167,10 +167,10 @@ async fn filter_watcher() -> Result<()> {
 
 // #[tokio::test]
 // async fn filter_topics() -> Result<()> {
-//     let (arbiter_token, _environment, client) = deploy_and_start().await.unwrap();
-//     let mut default_watcher = client.watch(&Filter::default()).await?;
-//     let mut approval_watcher = client
-//         .watch(&arbiter_token.approval_filter().filter)
+//     let (arbiter_token, _environment, client) =
+// deploy_and_start().await.unwrap();     let mut default_watcher =
+// client.watch(&Filter::default()).await?;     let mut approval_watcher =
+// client         .watch(&arbiter_token.approval_filter().filter)
 //         .await?;
 
 //     // Check that both watchers get this event
@@ -196,15 +196,15 @@ async fn filter_watcher() -> Result<()> {
 //     println!("default_watcher_event: {:#?}", default_watcher_event);
 
 //     // Use tokio::time::timeout to await the approval_watcher for a specific
-//     // duration The timeout is needed because the approval_watcher is a stream
-//     // that will never end when the test is passing
-//     let timeout_duration = tokio::time::Duration::from_secs(5); // Adjust the duration as needed
-//     let timeout = tokio::time::timeout(timeout_duration, approval_watcher.next());
-//     match timeout.await {
+//     // duration The timeout is needed because the approval_watcher is a
+// stream     // that will never end when the test is passing
+//     let timeout_duration = tokio::time::Duration::from_secs(5); // Adjust the
+// duration as needed     let timeout = tokio::time::timeout(timeout_duration,
+// approval_watcher.next());     match timeout.await {
 //         Result::Ok(Some(_)) => {
 //             // Event received
-//             panic!("This means the test is failing! The filter did not work.");
-//         }
+//             panic!("This means the test is failing! The filter did not
+// work.");         }
 //         Result::Ok(None) => {
 //             // Timeout occurred, no event received
 //             println!("Expected result. The filter worked.")
