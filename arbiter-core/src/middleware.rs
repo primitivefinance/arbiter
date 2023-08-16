@@ -613,6 +613,7 @@ impl JsonRpcClient for Connection {
             _ => {
                 unimplemented!("We don't cover this case yet.")
             }
+            // TODO: This can probably be avoided somehow
         }
     }
 }
