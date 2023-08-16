@@ -30,6 +30,7 @@ pub(crate) fn forge_bind() -> std::io::Result<()> {
     if output.status.success() {
         let output_str = String::from_utf8_lossy(&output.stdout);
         println!("Command output: {}", output_str);
+        println!("Note: revert strings are on");
         Ok(())
     } else {
         let err_str = String::from_utf8_lossy(&output.stderr);
