@@ -11,16 +11,6 @@ updates:
       interval: "daily"
 
   - package-ecosystem: "cargo"
-    directory: "crates/bindings/"
-    schedule:
-      interval: "daily"
-
-  - package-ecosystem: "cargo"
-    directory: "lib/chain/"
-    schedule:
-      interval: "daily"
-
-  - package-ecosystem: "cargo"
-    directory: "lib/simulations/"
+    directory: "arbiter-core"
     schedule:
       interval: "daily"
