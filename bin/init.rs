@@ -3,23 +3,27 @@ use std::{env, io, process::Command};
 /// Initializes a new Arbiter project from a template.
 ///
 /// This function does the following:
-/// 1. Clones the `arbiter-template` from GitHub into a new directory named after the provided project name.
+/// 1. Clones the `arbiter-template` from GitHub into a new directory named
+///    after the provided project name.
 /// Template link is here https://github.com/primitivefinance/arbiter-template
 /// 2. Changes the current directory to the cloned project.
 /// 3. Executes the `forge install` command.
 ///
-/// If any of the steps fail, an error is logged and an `io::Error` is returned to the caller.
+/// If any of the steps fail, an error is logged and an `io::Error` is returned
+/// to the caller.
 ///
 /// # Arguments
 ///
-/// * `name` - The name of the new project. This will also be the name of the directory
+/// * `name` - The name of the new project. This will also be the name of the
+///   directory
 /// where the project is initialized.
 ///
 /// # Returns
 ///
-/// Returns an `io::Result<()>` indicating the success or failure of the initialization.
-/// Failure can be due to reasons like:
-/// - Network issues or repository being unavailable leading to git clone failure.
+/// Returns an `io::Result<()>` indicating the success or failure of the
+/// initialization. Failure can be due to reasons like:
+/// - Network issues or repository being unavailable leading to git clone
+///   failure.
 /// - The `forge install` command failing.
 
 pub(crate) fn init_project(name: &str) -> io::Result<()> {
