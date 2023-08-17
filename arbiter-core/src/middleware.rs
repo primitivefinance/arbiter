@@ -23,7 +23,6 @@ use std::{
 
 use ethers::{
     prelude::{
-        interval,
         k256::{
             ecdsa::SigningKey,
             sha2::{Digest, Sha256},
@@ -37,11 +36,10 @@ use ethers::{
     signers::{Signer, Wallet},
     types::{
         transaction::eip2718::TypedTransaction, Address, BlockId, Bytes, Filter, FilteredParams,
-        Log, Transaction, TransactionReceipt, TxHash, U64,
+        Log, Transaction, TransactionReceipt, U64,
     },
 };
 use futures_timer::Delay;
-use futures_util::Stream;
 use rand::{rngs::StdRng, SeedableRng};
 use revm::primitives::{CreateScheme, ExecutionResult, Output, TransactTo, TxEnv, B160, U256};
 use serde::{de::DeserializeOwned, Serialize};
@@ -302,42 +300,59 @@ impl Middleware for RevmMiddleware {
         match revm_result.outcome {
             TransactionOutcome::Success(execution_result) => {
                 let Success { logs, output, .. } = unpack_execution_result(execution_result)?;
-                let block = U64::from(1);
+                let block_number = revm_result.block_number;
 
                 match output {
                     Output::Create(_, address) => {
-                        let tx_receipts = TransactionReceipt {
+                        let tx_receipt = TransactionReceipt {
                             block_hash: None,
-                            block_number: Some(block),
+                            block_number: Some(block_number),
                             contract_address: Some(recast_address(address.unwrap())),
                             ..Default::default()
                         };
 
-                        let faked_transaction = PendingTransactionMock::new(
-                            ethers::types::H256::zero(),
-                            self.provider(),
-                            block,
-                            tx_receipts,
-                        );
+                        // TODO: Create the actual tx_hash
+                        // TODO: I'm not sure we need to set the confirmations.
+                        let mut pending_tx =
+                            PendingTransaction::new(ethers::types::H256::zero(), self.provider())
+                                .interval(Duration::ZERO)
+                                .confirmations(0);
 
-                        unsafe { Ok(std::mem::transmute(faked_transaction)) }
+                        let state_ptr: *mut PendingTxState =
+                            &mut pending_tx as *mut _ as *mut PendingTxState;
+
+                        // Modify the value (this assumes you have access to the enum variants)
+                        unsafe {
+                            *state_ptr = PendingTxState::CheckingReceipt(Some(tx_receipt));
+                        }
+
+                        Ok(pending_tx)
                     }
                     Output::Call(_) => {
-                        let tx_receipts = TransactionReceipt {
+                        let block_number = revm_result.block_number;
+                        let tx_receipt = TransactionReceipt {
                             block_hash: None,
-                            block_number: Some(block),
+                            block_number: Some(block_number),
                             logs,
                             ..Default::default()
                         };
 
-                        let faked_transaction = PendingTransactionMock::new(
-                            ethers::types::H256::zero(),
-                            self.provider(),
-                            block,
-                            tx_receipts,
-                        );
+                        // TODO: Create the actual tx_hash
+                        // TODO: I'm not sure we need to set the confirmations.
+                        let mut pending_tx =
+                            PendingTransaction::new(ethers::types::H256::zero(), self.provider())
+                                .interval(Duration::ZERO)
+                                .confirmations(0);
 
-                        unsafe { Ok(std::mem::transmute(faked_transaction)) }
+                        let state_ptr: *mut PendingTxState =
+                            &mut pending_tx as *mut _ as *mut PendingTxState;
+
+                        // Modify the value (this assumes you have access to the enum variants)
+                        unsafe {
+                            *state_ptr = PendingTxState::CheckingReceipt(Some(tx_receipt));
+                        }
+
+                        Ok(pending_tx)
                     }
                 }
             }
@@ -546,6 +561,9 @@ impl JsonRpcClient for Connection {
     ) -> Result<R, ProviderError> {
         match method {
             "eth_getFilterChanges" => {
+                // TODO: The extra json serialization/deserialization can probably be avoided
+                // somehow
+
                 // Get the `Filter` ID from the params `T`
                 // First convert it into a JSON `Value`
                 let value = serde_json::to_value(&params)?;
@@ -590,9 +608,9 @@ impl JsonRpcClient for Connection {
                 let logs_deserializeowned: R = serde_json::from_str(&logs_str)?;
                 return Ok(logs_deserializeowned);
             }
-            _ => {
-                unimplemented!("We don't cover this case yet.")
-            } // TODO: This can probably be avoided somehow
+            var @ _ => {
+                unimplemented!("We don't cover this case yet: {}", var);
+            }
         }
     }
 }
@@ -747,39 +765,4 @@ pub enum PendingTxState<'a> {
 
     /// Future has completed and should panic if polled again
     Completed,
-}
-
-const DEFAULT_RETRIES: usize = 3;
-
-#[allow(unused, missing_docs)]
-pub struct PendingTransactionMock<'a, P> {
-    tx_hash: TxHash,
-    confirmations: usize,
-    provider: &'a Provider<P>,
-    state: PendingTxState<'a>,
-    interval: Box<dyn Stream<Item = ()> + Send + Unpin>,
-    retries_remaining: usize,
-}
-impl<'a, P: JsonRpcClient> PendingTransactionMock<'a, P> {
-    /// Creates a new pending transaction poller from a hash and a provider
-    pub fn new(
-        tx_hash: TxHash,
-        provider: &'a Provider<P>,
-        block_number: U64,
-        receipts: TransactionReceipt,
-    ) -> Self {
-        let state = PendingTxState::GettingBlockNumber(
-            Box::pin(async move { Ok(block_number) }),
-            Some(receipts),
-        );
-
-        Self {
-            tx_hash,
-            confirmations: 0,
-            provider,
-            state,
-            interval: Box::new(interval(provider.get_interval())),
-            retries_remaining: DEFAULT_RETRIES,
-        }
-    }
 }
