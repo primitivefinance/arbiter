@@ -178,34 +178,22 @@ pub enum EnvironmentError {
     /// throws an error in execution. To be clear, this is not a contract
     /// revert or halt, this is likely an error in `revm`. Please report
     /// this type of error.
-    #[error("execution error! the source error is: {cause:?}")]
-    Execution {
-        /// The internal cause for the [`EnvironmentError::Execution`]
-        /// arising from the [`EVM`].
-        cause: EVMError<Infallible>,
-    },
+    #[error("execution error! the source error is: {0:?}")]
+    Execution(EVMError<Infallible>),
 
     /// [`EnvironmentError::Pause`] is thrown when the [`Environment`]
     /// fails to pause. This should likely never occur, but if it does,
     /// please report this error!
-    #[error("error pausing! the source error is: {cause:?}")]
-    Pause {
-        /// Internal cause for [`EnvironmentError::Pause`] parsed as a
-        /// string.
-        cause: String,
-    },
+    #[error("error pausing! the source error is: {0}")]
+    Pause(String),
 
     /// [`EnvironmentError::Communication`] is thrown when a channel for
     /// receiving or broadcasting fails in some way. This error could happen
     /// due to a channel being closed accidentally. If this is thrown, a
     /// restart of the simulation and an investigation into what caused a
     /// dropped channel is necessary.
-    #[error("error communicating! the source error is: {cause:?}")]
-    Communication {
-        /// Internal cause for [`EnvironmentError::Communication`] parsed
-        /// as a string.
-        cause: String,
-    },
+    #[error("error communicating! the source error is: {0}")]
+    Communication(String),
 
     /// [`EnvironmentError::Conversion`] is thrown when a type fails to
     /// convert into another (typically a type used in `revm` versus a type used
@@ -213,12 +201,8 @@ pub enum EnvironmentError {
     /// This error should be rare (if not impossible).
     /// Furthermore, after a switch to [`alloy`](https://github.com/alloy-rs)
     /// this will be (hopefully) unnecessary!
-    #[error("conversion error! the source error is: {cause:?}")]
-    Conversion {
-        /// Internal cause for [`EnvironmentError::Conversion`] parsed as a
-        /// string.
-        cause: String,
-    },
+    #[error("conversion error! the source error is: {0}")]
+    Conversion(String),
 }
 
 impl Environment {
@@ -292,37 +276,32 @@ impl Environment {
                     // Await for the condvar alert to change the state
                     State::Paused => {
                         let (lock, cvar) = &*pausevar;
-                        let mut guard = lock.lock().map_err(|e| EnvironmentError::Pause {
-                            cause: format!("{:?}", e),
-                        })?;
+                        let mut guard = lock
+                            .lock()
+                            .map_err(|e| EnvironmentError::Pause(format!("{:?}", e)))?;
 
                         // this logic here ensures we catch any edge case last transactions and send
                         // the appropriate error so that we dont hang in
                         // limbo forever
                         while let Ok((_, _, sender)) = tx_receiver.try_recv() {
-                            let error_outcome =
-                                TransactionOutcome::Error(EnvironmentError::Pause {
-                                    cause: "Environment is paused".into(),
-                                });
+                            let error_outcome = TransactionOutcome::Error(EnvironmentError::Pause(
+                                "Environment is paused".into(),
+                            ));
                             let revm_result = RevmResult {
                                 outcome: error_outcome,
                                 block_number: convert_uint_to_u64(evm.env.block.number).map_err(
-                                    |e| EnvironmentError::Conversion {
-                                        cause: format!("{:?}", e),
-                                    },
+                                    |e| EnvironmentError::Conversion(format!("{:?}", e)),
                                 )?,
                             };
-                            sender.send(revm_result).map_err(|e| {
-                                EnvironmentError::Communication {
-                                    cause: format!("{:?}", e),
-                                }
-                            })?;
+                            sender
+                                .send(revm_result)
+                                .map_err(|e| EnvironmentError::Communication(format!("{:?}", e)))?;
                         }
 
                         while state.load(std::sync::atomic::Ordering::SeqCst) == State::Paused {
-                            guard = cvar.wait(guard).map_err(|e| EnvironmentError::Pause {
-                                cause: format!("{:?}", e),
-                            })?;
+                            guard = cvar
+                                .wait(guard)
+                                .map_err(|e| EnvironmentError::Pause(format!("{:?}", e)))?;
                         }
                     }
 
@@ -360,26 +339,22 @@ impl Environment {
                                             std::sync::atomic::Ordering::SeqCst,
                                         );
                                         error!("Pausing the environment labeled {} due to an execution error: {:#?}", label, e);
-                                        return Err(EnvironmentError::Execution { cause: e });
+                                        return Err(EnvironmentError::Execution(e));
                                     }
                                 };
                                 let event_broadcaster = event_broadcaster.lock().map_err(|e| {
-                                    EnvironmentError::Communication {
-                                        cause: format!("{:?}", e),
-                                    }
+                                    EnvironmentError::Communication(format!("{:?}", e))
                                 })?;
                                 event_broadcaster.broadcast(execution_result.logs())?;
                                 let revm_result = RevmResult {
                                     outcome: TransactionOutcome::Success(execution_result),
                                     block_number: convert_uint_to_u64(evm.env.block.number)
-                                        .map_err(|e| EnvironmentError::Conversion {
-                                            cause: format!("{:?}", e),
+                                        .map_err(|e| {
+                                            EnvironmentError::Conversion(format!("{:?}", e))
                                         })?,
                                 };
                                 sender.send(revm_result).map_err(|e| {
-                                    EnvironmentError::Communication {
-                                        cause: format!("{:?}", e),
-                                    }
+                                    EnvironmentError::Communication(format!("{:?}", e))
                                 })?;
                                 counter += 1;
                             } else {
@@ -395,20 +370,18 @@ impl Environment {
                                             std::sync::atomic::Ordering::SeqCst,
                                         );
                                         error!("Pausing the environment labeled {} due to an execution error: {:#?}", label, e);
-                                        return Err(EnvironmentError::Execution { cause: e });
+                                        return Err(EnvironmentError::Execution(e));
                                     }
                                 };
                                 let result_and_block = RevmResult {
                                     outcome: TransactionOutcome::Success(result),
                                     block_number: convert_uint_to_u64(evm.env.block.number)
-                                        .map_err(|e| EnvironmentError::Conversion {
-                                            cause: format!("{:?}", e),
+                                        .map_err(|e| {
+                                            EnvironmentError::Conversion(format!("{:?}", e))
                                         })?,
                                 };
                                 sender.send(result_and_block).map_err(|e| {
-                                    EnvironmentError::Communication {
-                                        cause: format!("{:?}", e),
-                                    }
+                                    EnvironmentError::Communication(format!("{:?}", e))
                                 })?;
                             }
                         }
@@ -531,9 +504,7 @@ impl EventBroadcaster {
         for sender in &self.0 {
             sender
                 .send(logs.clone())
-                .map_err(|e| EnvironmentError::Communication {
-                    cause: format!("{:?}", e),
-                })?;
+                .map_err(|e| EnvironmentError::Communication(format!("{:?}", e)))?;
         }
         Ok(())
     }
