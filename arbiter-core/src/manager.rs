@@ -38,49 +38,31 @@ pub struct Manager {
 #[derive(Error, Debug)]
 pub enum ManagerError {
     /// Indicates that an [`Environment`] with the given label already exists.
-    #[error("environment labeled {label} already exists!")]
-    EnvironmentAlreadyExists {
-        /// The `label` that was attempted to be used again.
-        label: String,
-    },
+    #[error("environment labeled {0} already exists!")]
+    EnvironmentAlreadyExists(String),
 
     /// Indicates that no [`Environment`] exists with the provided label.
-    #[error("environment labeled {label} does not exist!")]
-    EnvironmentDoesNotExist {
-        /// The `label` that could not be found in the [`Manager`]'s collection.
-        label: String,
-    },
+    #[error("environment labeled {0} does not exist!")]
+    EnvironmentDoesNotExist(String),
 
     /// Indicates that the [`Environment`] with the given label is currently
     /// running.
-    #[error("environment labeled {label} is already running!")]
-    EnvironmentAlreadyRunning {
-        /// The `label` of the [`Environment`] that is already running.
-        label: String,
-    },
+    #[error("environment labeled {0} is already running!")]
+    EnvironmentAlreadyRunning(String),
 
     /// Indicates that the [`Environment`] with the given label is not running.
-    #[error("environment labeled {label} is already stopped!")]
-    EnvironmentNotRunning {
-        /// The `label` of the [`Environment`] that is not currently running.
-        label: String,
-    },
+    #[error("environment labeled {0} is already stopped!")]
+    EnvironmentNotRunning(String),
 
     /// Indicates that the [`Environment`] with the given label has been stopped
     /// and cannot be restarted or paused.
-    #[error("environment labeled {label} has been stopped and cannot be restarted or paused!")]
-    EnvironmentStopped {
-        /// The `label` of the [`Environment`] that is already stopped.
-        label: String,
-    },
+    #[error("environment labeled {0} has been stopped and cannot be restarted or paused!")]
+    EnvironmentStopped(String),
 
     /// Indicates that the [`Environment`] with the given label is currently
     /// paused.
-    #[error("environment labeled {label} is already paused!")]
-    EnvironmentAlreadyPaused {
-        /// The `label` of the [`Environment`] that is already paused.
-        label: String,
-    },
+    #[error("environment labeled {0} is already paused!")]
+    EnvironmentAlreadyPaused(String),
 
     /// Indicates that the [`Environment`]'s thread handle could not be found.
     #[error("no handle available to join the environment")]
@@ -90,6 +72,7 @@ pub enum ManagerError {
     #[error("joining on the environment thread resulted in a panic")]
     ThreadPanic,
 }
+
 impl Default for Manager {
     fn default() -> Self {
         Self::new()
@@ -144,9 +127,9 @@ impl Manager {
             .get(&environment_label.clone().into())
             .is_some()
         {
-            return Err(ManagerError::EnvironmentAlreadyExists {
-                label: environment_label.into(),
-            });
+            return Err(ManagerError::EnvironmentAlreadyExists(
+                environment_label.into(),
+            ));
         }
         self.environments.insert(
             environment_label.clone().into(),
@@ -210,17 +193,17 @@ impl Manager {
                         info!("Restarted environment labeled {}", environment_label.into());
                         Ok(())
                     }
-                    State::Running => Err(ManagerError::EnvironmentAlreadyRunning {
-                        label: environment_label.into(),
-                    }),
-                    State::Stopped => Err(ManagerError::EnvironmentStopped {
-                        label: environment_label.into(),
-                    }),
+                    State::Running => Err(ManagerError::EnvironmentAlreadyRunning(
+                        environment_label.into(),
+                    )),
+                    State::Stopped => {
+                        Err(ManagerError::EnvironmentStopped(environment_label.into()))
+                    }
                 }
             }
-            None => Err(ManagerError::EnvironmentDoesNotExist {
-                label: environment_label.into(),
-            }),
+            None => Err(ManagerError::EnvironmentDoesNotExist(
+                environment_label.into(),
+            )),
         }
     }
 
@@ -267,9 +250,9 @@ impl Manager {
         match self.environments.get_mut(&environment_label.clone().into()) {
             Some(environment) => {
                 match environment.state.load(std::sync::atomic::Ordering::SeqCst) {
-                    State::Initialization => Err(ManagerError::EnvironmentNotRunning {
-                        label: environment_label.into(),
-                    }),
+                    State::Initialization => Err(ManagerError::EnvironmentNotRunning(
+                        environment_label.into(),
+                    )),
                     State::Running => {
                         environment
                             .state
@@ -277,17 +260,17 @@ impl Manager {
                         info!("Paused environment labeled {}", environment_label.into());
                         Ok(())
                     }
-                    State::Paused => Err(ManagerError::EnvironmentAlreadyPaused {
-                        label: environment_label.into(),
-                    }),
-                    State::Stopped => Err(ManagerError::EnvironmentStopped {
-                        label: environment_label.into(),
-                    }),
+                    State::Paused => Err(ManagerError::EnvironmentAlreadyPaused(
+                        environment_label.into(),
+                    )),
+                    State::Stopped => {
+                        Err(ManagerError::EnvironmentStopped(environment_label.into()))
+                    }
                 }
             }
-            None => Err(ManagerError::EnvironmentDoesNotExist {
-                label: environment_label.into(),
-            }),
+            None => Err(ManagerError::EnvironmentDoesNotExist(
+                environment_label.into(),
+            )),
         }
     }
 
@@ -334,9 +317,9 @@ impl Manager {
         match self.environments.get_mut(&environment_label.clone().into()) {
             Some(environment) => {
                 match environment.state.load(std::sync::atomic::Ordering::SeqCst) {
-                    State::Initialization => Err(ManagerError::EnvironmentNotRunning {
-                        label: environment_label.into(),
-                    }),
+                    State::Initialization => Err(ManagerError::EnvironmentNotRunning(
+                        environment_label.into(),
+                    )),
                     State::Running => {
                         environment
                             .state
@@ -373,14 +356,14 @@ impl Manager {
                         );
                         Ok(())
                     }
-                    State::Stopped => Err(ManagerError::EnvironmentStopped {
-                        label: environment_label.into(),
-                    }),
+                    State::Stopped => {
+                        Err(ManagerError::EnvironmentStopped(environment_label.into()))
+                    }
                 }
             }
-            None => Err(ManagerError::EnvironmentDoesNotExist {
-                label: environment_label.into(),
-            }),
+            None => Err(ManagerError::EnvironmentDoesNotExist(
+                environment_label.into(),
+            )),
         }
     }
 }
