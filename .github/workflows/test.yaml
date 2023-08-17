@@ -44,4 +44,5 @@ jobs:
         uses: codecov/codecov-action@v3
         with:
           files: lcov.info
+          yml: .github/codecov.yml
           fail_ci_if_error: true
