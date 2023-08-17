@@ -1,6 +1,6 @@
 [package]
 name = "arbiter-core"
-version = "0.3.1"
+version = "0.3.2"
 edition = "2021"
 
 # Dependencies for the release build
@@ -39,3 +39,5 @@ hex = { version = "0.4.3", default-features = false }
 anyhow = "1.0.71"
 env_logger = "0.10.0"
 test-log = "0.2.12"
+futures = "0.3.28"
+assert_matches = "1.5"
