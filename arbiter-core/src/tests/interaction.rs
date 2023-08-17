@@ -209,30 +209,16 @@ async fn filter_topics() -> Result<()> {
     mint.send().await?.await?;
     let default_watcher_event = default_watcher.next().await.unwrap();
     assert!(!default_watcher_event.data.is_empty());
-    println!("default_watcher_event: {:#?}", default_watcher_event);
 
-    // Use tokio::time::timeout to await the approval_watcher for a specific
-    // duration The timeout is needed because the approval_watcher is a stream
-    // that will never end when the test is passing
-    let timeout_duration = tokio::time::Duration::from_secs(5); // Adjust theduration as needed
-    let timeout = tokio::time::timeout(timeout_duration, approval_watcher.next());
-    match timeout.await {
-        Result::Ok(Some(_)) => {
-            // Event received
-            panic!(
-                "This means the test is failing! The filter did not
-work."
-            );
-        }
-        Result::Ok(None) => {
-            // Timeout occurred, no event received
-            println!("Expected result. The filter worked.")
-        }
-        Err(_) => {
-            // Timer error (shouldn't happen in normal conditions)
-            panic!("Timer error!")
-        }
+    // check that the address_watcher has not received any events
+    let mut ctx = Context::from_waker(futures::task::noop_waker_ref());
+    let poll_result = Pin::new(&mut approval_watcher).poll_next(&mut ctx);
+    match poll_result {
+        Poll::Ready(Some(_event)) => panic!("Event received unexpectedly!"),
+        Poll::Ready(None) => println!("Stream completed!"),
+        Poll::Pending => println!("No event ready yet, as expected."),
     }
+    assert_matches!(poll_result, Poll::Pending);
     Ok(())
 }
 
