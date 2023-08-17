@@ -70,12 +70,11 @@ use crate::environment::{
 /// use arbiter_core::{manager::Manager, middleware::RevmMiddleware};
 ///
 /// // Create a manager and add an environment
-/// let mut manager = Manager::new();
+/// let manager = Manager::new();
 /// manager.add_environment("example_env", 1.0, 42).unwrap();
 ///
 /// // Retrieve the environment to create a new middleware instance
-/// let environment = manager.environments.get("example_env").unwrap();
-/// let middleware = RevmMiddleware::new(&environment, Some("test_label".to_string()));
+/// let middleware = RevmMiddleware::new(manager.environments.borrow().get("example_env").unwrap(), Some("test_label".to_string()));
 /// let client = Arc::new(&middleware);
 /// ```
 /// The client can now be used for transactions with the environment.
@@ -169,13 +168,14 @@ impl RevmMiddleware {
     /// ```
     /// use arbiter_core::{manager::Manager, middleware::RevmMiddleware};
     ///
-    /// let mut manager = Manager::new();
+    /// let manager = Manager::new();
     /// manager.add_environment("example_env", 1.0, 42).unwrap();
-    /// let environment = manager.environments.get("example_env").unwrap();
-    /// let middleware = RevmMiddleware::new(&environment, Some("test_label".to_string()));
+    /// let middleware =
+    /// RevmMiddleware::new(manager.environments.borrow().get("example_env").unwrap(), Some("test_label".to_string()));
     ///
     /// // We can create a middleware instance without a seed by doing the following
-    /// let no_seed_middleware = RevmMiddleware::new(&environment, None);
+    /// let no_seed_middleware =
+    /// RevmMiddleware::new(manager.environments.borrow().get("example_env").unwrap(), None);
     /// ```
     /// Use a seed if you want to have a constant address across simulations as
     /// well as a label for a client. This can be useful for debugging.

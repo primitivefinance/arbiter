@@ -257,10 +257,10 @@ async fn transaction_loop() -> Result<()> {
 
 #[tokio::test]
 async fn pause_prevents_processing_transactions() {
-    let mut manager = Manager::new();
+    let manager = Manager::new();
     manager.add_environment(TEST_ENV_LABEL, 1.0, 1).unwrap();
     let client = Arc::new(RevmMiddleware::new(
-        manager.environments.get(TEST_ENV_LABEL).unwrap(),
+        manager.environments.borrow().get(TEST_ENV_LABEL).unwrap(),
         Some(TEST_SIGNER_SEED_AND_LABEL.to_string()),
     ));
 

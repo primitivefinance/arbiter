@@ -14,11 +14,10 @@ pub const ARBITER_TOKEN_Y_DECIMALS: u8 = 18;
 pub const LIQUID_EXCHANGE_PRICE: f64 = 420.69;
 
 fn startup() -> Result<(Manager, Arc<RevmMiddleware>)> {
-    let mut manager = Manager::new();
+    let manager = Manager::new();
     manager.add_environment(TEST_ENV_LABEL, TEST_BLOCK_RATE, TEST_ENV_SEED)?;
-    let environment = manager.environments.get(TEST_ENV_LABEL).unwrap();
     let client = Arc::new(RevmMiddleware::new(
-        environment,
+        manager.environments.borrow().get(TEST_ENV_LABEL).unwrap(),
         Some(TEST_SIGNER_SEED_AND_LABEL.to_string()),
     ));
     manager.start_environment(TEST_ENV_LABEL)?;

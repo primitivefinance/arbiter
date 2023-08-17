@@ -113,7 +113,7 @@ impl Manager {
     /// ```rust
     /// use arbiter_core::manager::Manager;
     ///
-    /// let mut manager = Manager::new();
+    /// let manager = Manager::new();
     /// manager.add_environment("example_env", 1.0, 42).unwrap();
     /// ```
     pub fn add_environment<S: Into<String> + Clone>(
@@ -166,7 +166,7 @@ impl Manager {
     /// ```rust
     /// use arbiter_core::manager::Manager;
     ///
-    /// let mut manager = Manager::new();
+    /// let manager = Manager::new();
     /// manager.add_environment("example_env", 1.0, 42).unwrap();
     ///
     /// // Now, let's start the environment
@@ -241,7 +241,7 @@ impl Manager {
     /// ```rust
     /// use arbiter_core::manager::Manager;
     ///
-    /// let mut manager = Manager::new();
+    /// let manager = Manager::new();
     /// manager.add_environment("example_env", 1.0, 42).unwrap();
     /// manager.start_environment("example_env").unwrap();
     ///
@@ -312,7 +312,7 @@ impl Manager {
     /// ```rust
     /// use arbiter_core::manager::Manager;
     ///
-    /// let mut manager = Manager::new();
+    /// let manager = Manager::new();
     /// manager.add_environment("example_env", 1.0, 42).unwrap();
     /// manager.start_environment("example_env").unwrap();
     ///
