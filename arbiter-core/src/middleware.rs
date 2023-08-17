@@ -448,7 +448,7 @@ impl Middleware for RevmMiddleware {
         };
         let filter = args.clone();
         let mut hasher = Sha256::new();
-        hasher.update(serde_json::to_string(&args).map_err(|e| RevmMiddlewareError::Json(e))?);
+        hasher.update(serde_json::to_string(&args).map_err(RevmMiddlewareError::Json)?);
         let hash = hasher.finalize();
         let id = ethers::types::U256::from(ethers::types::H256::from_slice(&hash).as_bytes());
         let (event_sender, event_receiver) =
