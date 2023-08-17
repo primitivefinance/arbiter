@@ -26,13 +26,5 @@ Add any other context about the problem here.
 ---
 
 **Provide an adequate title with tags and a brief description**
-The tags should be in the format of "tag:" Description. The tags are as follows:
-- "feat:" A new feature.
-- "fix:" A bug fix.
-- "docs:" Documentation only changes.
-- "style:" Changes that do not affect the meaning of the code (white-space, formatting, missing semi-colons, etc).
-- "refactor:" A code change that neither fixes a bug nor adds a feature.
-- "perf:" A code change that improves performance.
-- "test:" Adding missing or correcting existing tests.
-- "chore:" Changes to the build process or auxiliary tools and libraries such as documentation generation.
-- "repo:" Changes to the repository itself.
+The tags should be in the format of "tag:" Description. Since this is a bug report, please use:
+- "bug:" A bug fix.
