@@ -100,50 +100,31 @@ pub struct RevmMiddleware {
 #[derive(Error, Debug)]
 pub enum RevmMiddlewareError {
     /// An error occurred while attempting to send a transaction.
-    #[error("failed to send transaction! due to: {cause}")]
-    Send {
-        /// A string providing a detailed reason for the send failure.
-        cause: String,
-    },
+    #[error("failed to send transaction! due to: {0}")]
+    Send(String),
 
     /// There was an issue receiving an [`ExecutionResult`], possibly from
     /// another service or module.
-    #[error("failed to receive `ExecutionResult`! due to: {cause}")]
-    Receive {
-        /// A string providing details about the receive failure.
-        cause: String,
-    },
+    #[error("failed to receive `ExecutionResult`! due to: {0}")]
+    Receive(String),
 
     /// There was a failure trying to obtain a lock on the [`EventBroadcaster`],
     /// possibly due to concurrency issues.
-    #[error("failed to gain event broadcaster lock! due to: {cause}")]
-    EventBroadcaster {
-        /// A string explaining why acquiring the lock failed.
-        cause: String,
-    },
+    #[error("failed to gain event broadcaster lock! due to: {0}")]
+    EventBroadcaster(String),
 
     /// The required data for a transaction was missing or incomplete.
-    #[error("missing data! due to: {cause}")]
-    MissingData {
-        /// A string describing the specific missing data.
-        cause: String,
-    },
+    #[error("missing data! due to: {0}")]
+    MissingData(String),
 
     /// An error occurred during type conversion, possibly when translating
     /// between domain-specific types.
-    #[error("failed to convert types! due to: {cause}")]
-    Conversion {
-        /// A string explaining the specific conversion issue.
-        cause: String,
-    },
+    #[error("failed to convert types! due to: {0}")]
+    Conversion(String),
 
     /// An error occurred while trying to serialize or deserialize JSON data.
-    #[error("failed to handle with JSON data! due to: {cause}")]
-    Json {
-        /// Contains the [`serde_json`] error providing details about the
-        /// specific JSON issue.
-        cause: serde_json::Error,
-    },
+    #[error("failed to handle with JSON data! due to: {0:?}")]
+    Json(serde_json::Error),
 
     /// The execution of a transaction was reverted, indicating that the
     /// transaction was not successful.
@@ -269,9 +250,7 @@ impl Middleware for RevmMiddleware {
             .load(std::sync::atomic::Ordering::SeqCst)
             == crate::environment::State::Paused
         {
-            return Err(RevmMiddlewareError::Send {
-                cause: "Environment Paused".to_string(),
-            });
+            return Err(RevmMiddlewareError::Send("Environment Paused".to_string()));
         }
 
         let tx: TypedTransaction = tx.into();
@@ -292,9 +271,9 @@ impl Middleware for RevmMiddleware {
             value: U256::ZERO,
             data: bytes::Bytes::from(
                 tx.data()
-                    .ok_or(RevmMiddlewareError::MissingData {
-                        cause: "Data missing in transaction!".to_string(),
-                    })?
+                    .ok_or(RevmMiddlewareError::MissingData(
+                        "Data missing in transaction!".to_string(),
+                    ))?
                     .to_vec(),
             ),
             chain_id: None,
@@ -309,18 +288,14 @@ impl Middleware for RevmMiddleware {
                 tx_env.clone(),
                 self.provider().as_ref().result_sender.clone(),
             ))
-            .map_err(|e| RevmMiddlewareError::Send {
-                cause: e.to_string(),
-            })?;
+            .map_err(|e| RevmMiddlewareError::Send(e.to_string()))?;
 
         let revm_result = self
             .provider()
             .as_ref()
             .result_receiver
             .recv()
-            .map_err(|e| RevmMiddlewareError::Receive {
-                cause: e.to_string(),
-            })?;
+            .map_err(|e| RevmMiddlewareError::Receive(e.to_string()))?;
 
         match revm_result.outcome {
             TransactionOutcome::Success(execution_result) => {
@@ -334,9 +309,9 @@ impl Middleware for RevmMiddleware {
 
                 match output {
                     Output::Create(_, address) => {
-                        let address = address.ok_or(RevmMiddlewareError::MissingData {
-                            cause: "Address missing in transaction!".to_string(),
-                        })?;
+                        let address = address.ok_or(RevmMiddlewareError::MissingData(
+                            "Address missing in transaction!".to_string(),
+                        ))?;
                         let mut pending_tx =
                             PendingTransaction::new(ethers::types::H256::zero(), self.provider());
                         pending_tx.state =
@@ -354,13 +329,13 @@ impl Middleware for RevmMiddleware {
                 }
             }
             TransactionOutcome::Error(err) => {
-                return Err(RevmMiddlewareError::Receive {
-                    cause: format!(
+                return Err(RevmMiddlewareError::Receive(
+                    format!(
                         "Error recieving response from the environement with environment error: {}",
                         err
                     )
                     .to_string(),
-                });
+                ));
             }
         }
     }
@@ -385,9 +360,7 @@ impl Middleware for RevmMiddleware {
             .load(std::sync::atomic::Ordering::SeqCst)
             == crate::environment::State::Paused
         {
-            return Err(RevmMiddlewareError::Send {
-                cause: "Environment Paused".to_string(),
-            });
+            return Err(RevmMiddlewareError::Send("Environment Paused".to_string()));
         }
         let tx = tx.clone();
 
@@ -407,9 +380,9 @@ impl Middleware for RevmMiddleware {
             value: U256::ZERO,
             data: bytes::Bytes::from(
                 tx.data()
-                    .ok_or(RevmMiddlewareError::MissingData {
-                        cause: "Data missing in transaction!".to_string(),
-                    })?
+                    .ok_or(RevmMiddlewareError::MissingData(
+                        "Data missing in transaction!".to_string(),
+                    ))?
                     .to_vec(),
             ),
             chain_id: None,
@@ -424,17 +397,13 @@ impl Middleware for RevmMiddleware {
                 tx_env.clone(),
                 self.provider().as_ref().result_sender.clone(),
             ))
-            .map_err(|e| RevmMiddlewareError::Send {
-                cause: e.to_string(),
-            })?;
+            .map_err(|e| RevmMiddlewareError::Send(e.to_string()))?;
         let revm_result = self
             .provider()
             .as_ref()
             .result_receiver
             .recv()
-            .map_err(|e| RevmMiddlewareError::Receive {
-                cause: e.to_string(),
-            })?;
+            .map_err(|e| RevmMiddlewareError::Receive(e.to_string()))?;
 
         match revm_result.outcome {
             TransactionOutcome::Success(execution_result) => {
@@ -449,13 +418,13 @@ impl Middleware for RevmMiddleware {
                 }
             }
             TransactionOutcome::Error(err) => {
-                return Err(RevmMiddlewareError::Receive {
-                    cause: format!(
+                return Err(RevmMiddlewareError::Receive(
+                    format!(
                         "Error recieving response from the environement with environment error: {}",
                         err
                     )
                     .to_string(),
-                });
+                ));
             }
         }
     }
@@ -479,9 +448,7 @@ impl Middleware for RevmMiddleware {
         };
         let filter = args.clone();
         let mut hasher = Sha256::new();
-        hasher.update(
-            serde_json::to_string(&args).map_err(|e| RevmMiddlewareError::Json { cause: e })?,
-        );
+        hasher.update(serde_json::to_string(&args).map_err(|e| RevmMiddlewareError::Json(e))?);
         let hash = hasher.finalize();
         let id = ethers::types::U256::from(ethers::types::H256::from_slice(&hash).as_bytes());
         let (event_sender, event_receiver) =
@@ -494,11 +461,11 @@ impl Middleware for RevmMiddleware {
             .as_ref()
             .event_broadcaster
             .lock()
-            .map_err(|e| RevmMiddlewareError::EventBroadcaster {
-                cause: format!(
+            .map_err(|e| {
+                RevmMiddlewareError::EventBroadcaster(format!(
                     "Failed to gain lock on the `Connection`'s `event_broadcaster` due to {:?} ",
                     e
-                ),
+                ))
             })?
             .add_sender(event_sender);
         self.provider()
