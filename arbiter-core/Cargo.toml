@@ -7,7 +7,7 @@ edition = "2021"
 [dependencies]
 
 # Ethereum and EVM
-ethers = { git = "https://github.com/gakonst/ethers-rs.git" }
+ethers = "2.0.8"
 revm = "3.3.0"
 
 # Serialization
