@@ -6,7 +6,7 @@
 
 #![warn(missing_docs, unsafe_code)]
 
-use std::collections::HashMap;
+use std::{cell::RefCell, collections::HashMap};
 
 use log::{info, warn};
 use thiserror::Error;
@@ -25,7 +25,7 @@ use crate::math::SeededPoisson;
 pub struct Manager {
     /// A map of environment labels to their corresponding environment
     /// structures.
-    pub environments: HashMap<String, Environment>,
+    pub environments: RefCell<HashMap<String, Environment>>,
 }
 
 /// Errors that can occur while operating on or with the [`Manager`].
@@ -83,7 +83,7 @@ impl Manager {
     /// Creates a new [`Manager`] with an empty set of environments.
     pub fn new() -> Self {
         Self {
-            environments: HashMap::new(),
+            environments: RefCell::new(HashMap::new()),
         }
     }
 
@@ -117,13 +117,14 @@ impl Manager {
     /// manager.add_environment("example_env", 1.0, 42).unwrap();
     /// ```
     pub fn add_environment<S: Into<String> + Clone>(
-        &mut self,
+        &self,
         environment_label: S,
         block_rate: f64,
         seed: u64,
     ) -> Result<(), ManagerError> {
         if self
             .environments
+            .borrow()
             .get(&environment_label.clone().into())
             .is_some()
         {
@@ -131,7 +132,7 @@ impl Manager {
                 environment_label.into(),
             ));
         }
-        self.environments.insert(
+        self.environments.borrow_mut().insert(
             environment_label.clone().into(),
             Environment::new(environment_label.clone(), block_rate, seed),
         );
@@ -172,10 +173,14 @@ impl Manager {
     /// manager.start_environment("example_env").unwrap();
     /// ```
     pub fn start_environment<S: Into<String> + Clone>(
-        &mut self,
+        &self,
         environment_label: S,
     ) -> Result<(), ManagerError> {
-        match self.environments.get_mut(&environment_label.clone().into()) {
+        match self
+            .environments
+            .borrow_mut()
+            .get_mut(&environment_label.clone().into())
+        {
             Some(environment) => {
                 match environment.state.load(std::sync::atomic::Ordering::SeqCst) {
                     State::Initialization => {
@@ -244,10 +249,14 @@ impl Manager {
     /// manager.pause_environment("example_env").unwrap();
     /// ```
     pub fn pause_environment<S: Into<String> + Clone>(
-        &mut self,
+        &self,
         environment_label: S,
     ) -> Result<(), ManagerError> {
-        match self.environments.get_mut(&environment_label.clone().into()) {
+        match self
+            .environments
+            .borrow_mut()
+            .get_mut(&environment_label.clone().into())
+        {
             Some(environment) => {
                 match environment.state.load(std::sync::atomic::Ordering::SeqCst) {
                     State::Initialization => Err(ManagerError::EnvironmentNotRunning(
@@ -311,10 +320,14 @@ impl Manager {
     /// manager.stop_environment("example_env").unwrap();
     /// ```
     pub fn stop_environment<S: Into<String> + Clone>(
-        &mut self,
+        &self,
         environment_label: S,
     ) -> Result<(), ManagerError> {
-        match self.environments.get_mut(&environment_label.clone().into()) {
+        match self
+            .environments
+            .borrow_mut()
+            .get_mut(&environment_label.clone().into())
+        {
             Some(environment) => {
                 match environment.state.load(std::sync::atomic::Ordering::SeqCst) {
                     State::Initialization => Err(ManagerError::EnvironmentNotRunning(
@@ -376,6 +389,6 @@ pub(crate) mod tests {
     #[test]
     fn new_manager() {
         let manager = Manager::new();
-        assert!(manager.environments.is_empty());
+        assert!(manager.environments.borrow().is_empty());
     }
 }
