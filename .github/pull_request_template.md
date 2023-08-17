@@ -1,12 +1,3 @@
----
-name: Pull request
-about: Create a pull request to have your own changes added to the project
-title: ADD YOUR TITLE HERE WITH TAGS AND BRIEF DESCRIPTION
-labels: ''
-assignees: ''
-
----
-
 **Give an overview of the tasks completed**
 Give a clear and high level level overview of the tasks completed in this pull request. 
 
