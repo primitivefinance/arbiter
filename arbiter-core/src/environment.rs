@@ -157,7 +157,7 @@ pub struct EnvironmentParameters {
     pub block_rate: f64,
 
     /// A value chosen to generate randomly chosen block sizes
-    /// for the environment..
+    /// for the environment.
     pub seed: u64,
 }
 
