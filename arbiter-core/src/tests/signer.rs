@@ -23,9 +23,10 @@ fn multiple_signer_addresses() {
     assert_ne!(client_1.default_sender(), client_2.default_sender());
 }
 
-// TODO: Test to see that we prvent agents with the same name from being added.
-
-// #[test]
-// fn signer_collision() {
-//     todo!();
-// }
+#[test]
+fn signer_collision() {
+    let environment = &mut Environment::new(TEST_ENV_LABEL, 1.0, 1);
+    let client_1 = Arc::new(RevmMiddleware::new(environment, Some("0".to_string())));
+    let client_2 = Arc::new(RevmMiddleware::new(environment, Some("0".to_string())));
+    assert_eq!(client_1.default_sender(), client_2.default_sender());
+}
