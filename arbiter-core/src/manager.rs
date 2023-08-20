@@ -91,7 +91,8 @@ impl Manager {
 
     /// Adds a new environment to the manager with the specified label.
     ///
-    /// This method creates a new environment with given parameters.
+    /// This method creates a new environment with given parameters and
+    /// associates it with a label.
     ///
     /// # Parameters
     ///
