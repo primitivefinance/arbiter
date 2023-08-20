@@ -151,10 +151,13 @@ pub struct Environment {
 /// This structure holds configuration details or other parameters that might
 /// be required when instantiating or updating an `Environment`.
 pub struct EnvironmentParameters {
-    /// The rate at which blocks are produced or some meaningful description.
+    /// The mean of the rate at which the environment will
+    /// process blocks (e.g., the rate parameter in the Poisson distribution
+    /// used in the [`SeededPoisson`] field of an [`Environment`]).
     pub block_rate: f64,
 
-    /// A seed value used for ... (provide a meaningful description here).
+    /// A value chosen to generate randomly chosen block sizes
+    /// for the environment..
     pub seed: u64,
 }
 
