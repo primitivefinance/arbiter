@@ -11,8 +11,8 @@ use std::collections::HashMap;
 use log::{info, warn};
 use thiserror::Error;
 
-use crate::environment::{Environment, State};
 use crate::environment::EnvironmentParameters;
+use crate::environment::{Environment, State};
 
 #[cfg_attr(doc, doc(hidden))]
 #[cfg_attr(doc, allow(unused_imports))]
@@ -125,16 +125,16 @@ impl Manager {
         params: EnvironmentParameters,
     ) -> Result<(), ManagerError> {
         let label_str = environment_label.clone().into();
-    
+
         if self.environments.contains_key(&label_str) {
             return Err(ManagerError::EnvironmentAlreadyExists(label_str));
         }
-    
+
         self.environments.insert(
             label_str.clone(),
             Environment::new(environment_label, params),
         );
-    
+
         info!("Added environment labeled {}", label_str);
         Ok(())
     }
