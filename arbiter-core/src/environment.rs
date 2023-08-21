@@ -146,6 +146,21 @@ pub struct Environment {
     pub(crate) handle: Option<JoinHandle<Result<(), EnvironmentError>>>,
 }
 
+/// Parameters necessary for creating or modifying an `Environment`.
+///
+/// This structure holds configuration details or other parameters that might
+/// be required when instantiating or updating an `Environment`.
+pub struct EnvironmentParameters {
+    /// The mean of the rate at which the environment will
+    /// process blocks (e.g., the rate parameter in the Poisson distribution
+    /// used in the [`SeededPoisson`] field of an [`Environment`]).
+    pub block_rate: f64,
+
+    /// A value chosen to generate randomly chosen block sizes
+    /// for the environment.
+    pub seed: u64,
+}
+
 /// Allow the end user to be able to access a debug printout for the
 /// [`Environment`]. Note that the [`EVM`] does not implement debug display,
 /// hence the implementation by hand here.
@@ -209,7 +224,7 @@ impl Environment {
     /// Privately accessible constructor function for creating an
     /// [`Environment`]. This function should be accessed by the
     /// [`Manager`].
-    pub(crate) fn new<S: Into<String>>(label: S, block_rate: f64, seed: u64) -> Self {
+    pub(crate) fn new<S: Into<String>>(label: S, params: EnvironmentParameters) -> Self {
         // Initialize the EVM used
         let mut evm = EVM::new();
         let db = CacheDB::new(EmptyDB {});
@@ -219,7 +234,7 @@ impl Environment {
         evm.env.cfg.limit_contract_code_size = Some(0x100000);
         evm.env.block.gas_limit = U256::MAX;
 
-        let seeded_poisson = SeededPoisson::new(block_rate, seed);
+        let seeded_poisson = SeededPoisson::new(params.block_rate, params.seed);
 
         let (tx_sender, tx_receiver) = unbounded();
         let socket = Socket {
@@ -534,7 +549,11 @@ pub(crate) mod tests {
 
     #[test]
     fn new() {
-        let environment = Environment::new(TEST_ENV_LABEL.to_string(), 1.0, 1);
+        let params = EnvironmentParameters {
+            block_rate: 1.0,
+            seed: 1,
+        };
+        let environment = Environment::new(TEST_ENV_LABEL.to_string(), params);
         assert_eq!(environment.label, TEST_ENV_LABEL);
         let state = environment.state.load(std::sync::atomic::Ordering::SeqCst);
         assert_eq!(state, State::Initialization);
@@ -542,7 +561,11 @@ pub(crate) mod tests {
 
     #[test]
     fn run() {
-        let mut environment = Environment::new(TEST_ENV_LABEL.to_string(), 1.0, 1);
+        let params = EnvironmentParameters {
+            block_rate: 1.0,
+            seed: 1,
+        };
+        let mut environment = Environment::new(TEST_ENV_LABEL.to_string(), params);
         environment.run();
         let state = environment.state.load(std::sync::atomic::Ordering::SeqCst);
         assert_eq!(state, State::Running);
