@@ -52,14 +52,14 @@ This will install the Arbiter binary on your machine. You can then run `arbiter 
 
 ## Command Line Interface 
 
-The Arbiter binary provides a CLI for creating new projects much like [Foundry](https://github.com/foundry-rs/foundry), which Arbiter aims to work alongside with. To create a new project, you can run:
+The Arbiter binary provides a CLI for creating new projects much like [Foundry](https://github.com/foundry-rs/foundry), which Arbiter aims to work alongside with. This requires you to have foundry installed. If you do not have foundry installed you can install it [here](https://getfoundry.sh/). To create a new project, you can run:
 
 ```bash
 arbiter init your-project-name
 cd your-project-name
 ```
 
-This initializes a new Arbiter project with a template. The next step require you to have foundry installed. If you do not have foundry installed you can install it [here](https://getfoundry.sh/). Then you can generate the template bindings by running:
+This initializes a new Arbiter project with a template. You can generate the bindings again by running:
 
 ```bash
 arbiter bind
