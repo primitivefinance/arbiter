@@ -67,11 +67,15 @@ use crate::environment::{
 /// // Import `Arc` if you need to create a client instance
 /// use std::sync::Arc;
 ///
-/// use arbiter_core::{manager::Manager, middleware::RevmMiddleware};
+/// use arbiter_core::{manager::Manager, middleware::RevmMiddleware, environment::EnvironmentParameters};
 ///
 /// // Create a manager and add an environment
 /// let mut manager = Manager::new();
-/// manager.add_environment("example_env", 1.0, 42).unwrap();
+/// let params = EnvironmentParameters {
+///     block_rate: 1.0,
+///     seed: 1,
+/// };
+/// manager.add_environment("example_env", params).unwrap();
 ///
 /// // Retrieve the environment to create a new middleware instance
 /// let environment = manager.environments.get("example_env").unwrap();
@@ -167,10 +171,14 @@ impl RevmMiddleware {
     ///
     /// # Examples
     /// ```
-    /// use arbiter_core::{manager::Manager, middleware::RevmMiddleware};
+    /// use arbiter_core::{manager::Manager, middleware::RevmMiddleware, environment::EnvironmentParameters};
     ///
     /// let mut manager = Manager::new();
-    /// manager.add_environment("example_env", 1.0, 42).unwrap();
+    /// let params = EnvironmentParameters {
+    ///     block_rate: 1.0,
+    ///     seed: 1,
+    /// };
+    /// manager.add_environment("example_env", params).unwrap();
     /// let environment = manager.environments.get("example_env").unwrap();
     /// let middleware = RevmMiddleware::new(&environment, Some("test_label".to_string()));
     ///
