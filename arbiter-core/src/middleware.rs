@@ -67,7 +67,9 @@ use crate::environment::{
 /// // Import `Arc` if you need to create a client instance
 /// use std::sync::Arc;
 ///
-/// use arbiter_core::{manager::Manager, middleware::RevmMiddleware, environment::EnvironmentParameters};
+/// use arbiter_core::{
+///     environment::EnvironmentParameters, manager::Manager, middleware::RevmMiddleware,
+/// };
 ///
 /// // Create a manager and add an environment
 /// let mut manager = Manager::new();
@@ -171,7 +173,9 @@ impl RevmMiddleware {
     ///
     /// # Examples
     /// ```
-    /// use arbiter_core::{manager::Manager, middleware::RevmMiddleware, environment::EnvironmentParameters};
+    /// use arbiter_core::{
+    ///     environment::EnvironmentParameters, manager::Manager, middleware::RevmMiddleware,
+    /// };
     ///
     /// let mut manager = Manager::new();
     /// let params = EnvironmentParameters {
