@@ -84,6 +84,33 @@ cargo doc --workspace --no-deps --open
 This will generate and open the docs in your browser. From there, you can look at the documentation for each crate in the Arbiter workspace. 
 We will post both crates to crates.io once we have removed any and all Github linked crates.
 
+## Benchmarks
+
+The closest benchmark we have to Arbiter is running [Anvil](https://github.com/foundry-rs/foundry/tree/master/crates/anvil) and streaming transactions there. The biggest reasons why we chose to build Arbiter was to gain more control over the EVM environment and to have a more robust simulation framework, but we also wanted to gain in speed. Preliminary benchmarks against Anvil are given in the following table.
+
+| Operation       |  Arbiter  |    Anvil    | Relative Difference |
+|-----------------|-----------|-------------|---------------------|
+| Deploy          | 282.38µs  | 8.82159ms   | ~31x                |
+| Stateless Call  | 3.0696ms  | 15.17205ms  | ~5x                 |
+| Stateful Call   | 1.63895ms | 161.18949ms | ~98x                |
+
+The above can be described by:
+- Deploy: Deploying a contract to the EVM. We deployed `ArbiterToken` and `ArbiterMath` in this call.
+- Stateless Call: Calling a contract that does not mutate state. We called `ArbiterMath`'s `cdf` function 100 times in this call.
+- Stateful Call: Calling a contract that mutates state. We called `ArbiterToken`'s `mint` function 100 times in this call.
+
+All the times were achieved with the release profile and averaged over 100 runs. Anvil was set to mine blocks for each transaction as opposed to setting an enforced block time. 
+
+The benchmarking code can be found in the `benches/` directory. The above was achieved running `cargo install --path ./benches` to install the release profile binary, then running:
+- `benches arbiter`
+- `benches anvil`
+Improvements could be made with a `cfg(bench)`, but bugs were found in compilation there with nightly rust at time of testing. 
+
+Times were achieved on an Apple Macbook Pro M1 Max with 8 performance and 2 efficiency cores, and with 32GB of RAM.
+
+Please let us know if you find any issues with these benchmarks or if you have any suggestions on how to improve them!
+
+
 ## Contributing
 
 See our [Contributing Guidelines](https://github.com/primitivefinance/arbiter/blob/main/.github/CONTRIBUTING.md)

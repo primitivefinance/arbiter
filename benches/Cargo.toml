@@ -10,3 +10,5 @@ tokio = "1.32.0"
 arbiter-core = { path = "../arbiter-core" }
 ethers = { git = "https://github.com/primitivefinance/ethers-rs.git"} # Custom fork for middleware integration
 anyhow = "1.0.75"
+log = "0.4.20"
+env_logger = "0.10.0"
