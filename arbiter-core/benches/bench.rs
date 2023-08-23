@@ -1,7 +1,3 @@
-// use ethers_providers::{Middleware, Provider, Http};
-// use ethers_signers::LocalWallet;
-// use ethers_middleware::SignerMiddleware;
-// use ethers_core::types::{Address, TransactionRequest};
 use std::{
     convert::TryFrom,
     sync::Arc,
@@ -30,7 +26,7 @@ use log::info;
 
 const ENV_LABEL: &str = "env";
 
-const NUM_BENCH_ITERATIONS: usize = 100;
+const NUM_BENCH_ITERATIONS: usize = 1000;
 const NUM_LOOP_STEPS: usize = 100;
 
 #[derive(Debug)]
@@ -42,62 +38,58 @@ struct BenchDurations {
 
 #[tokio::main]
 async fn main() -> Result<()> {
-    // Set up logging.
-    if std::env::var("RUST_LOG").is_err() {
-        std::env::set_var("RUST_LOG", "error");
-    }
-    env_logger::init();
+    // Choose the benchmark group items by label.
+    let group = ["anvil", "arbiter"];
 
-    // Get input argument.
-    let args: Vec<String> = std::env::args().collect();
-    let args = args.get(1).unwrap().as_str();
-    let mut durations = vec![];
-
+    // Set up for showing percentage done.
     let ten_percent = NUM_BENCH_ITERATIONS / 10;
 
-    for index in 0..NUM_BENCH_ITERATIONS {
-        durations.push(match args {
-            label @ "anvil" => {
-                // Start up Anvil with a client.
-                let (client, _anvil_instance) = anvil_startup().await?;
-                let duration = bencher(client, label).await?;
-                drop(_anvil_instance);
-                duration
+    for item in group {
+        // Count up total durations for each part of the benchmark.
+        let mut durations = Vec::with_capacity(NUM_BENCH_ITERATIONS);
+        println!("Running {item} benchmark");
+
+        for index in 0..NUM_BENCH_ITERATIONS {
+            durations.push(match item {
+                label @ "anvil" => {
+                    let (client, _anvil_instance) = anvil_startup().await?;
+                    let duration = bencher(client, label).await?;
+                    drop(_anvil_instance);
+                    duration
+                }
+                label @ "arbiter" => {
+                    let (client, mut manager) = arbiter_startup().await?;
+                    let duration = bencher(client, label).await?;
+                    manager.stop_environment(ENV_LABEL)?;
+                    duration
+                }
+                _ => panic!("Invalid argument"),
+            });
+            if index % ten_percent == 0 {
+                println!("{index} out of {NUM_BENCH_ITERATIONS} complete");
             }
-            label @ "arbiter" => {
-                let (client, mut manager) = arbiter_startup().await?;
-                let duration = bencher(client, label).await?;
-                manager.stop_environment(ENV_LABEL)?;
-                duration
-            }
-            _ => panic!("Invalid argument"),
-        });
-        if index % ten_percent == 0 {
-            println!("{index}% complete");
         }
+        let sum_durations = durations.iter().fold(
+            BenchDurations {
+                deploy: Duration::default(),
+                stateless_call: Duration::default(),
+                stateful_call: Duration::default(),
+            },
+            |acc, duration| BenchDurations {
+                deploy: acc.deploy + duration.deploy,
+                stateless_call: acc.stateless_call + duration.stateless_call,
+                stateful_call: acc.stateful_call + duration.stateful_call,
+            },
+        );
+
+        let average_durations = BenchDurations {
+            deploy: sum_durations.deploy / NUM_BENCH_ITERATIONS as u32,
+            stateless_call: sum_durations.stateless_call / NUM_BENCH_ITERATIONS as u32,
+            stateful_call: sum_durations.stateful_call / NUM_BENCH_ITERATIONS as u32,
+        };
+
+        println!("Average durations for {item}: {:?}", average_durations);
     }
-
-    let sum_durations = durations.iter().fold(
-        BenchDurations {
-            deploy: Duration::default(),
-            stateless_call: Duration::default(),
-            stateful_call: Duration::default(),
-        },
-        |acc, duration| BenchDurations {
-            deploy: acc.deploy + duration.deploy,
-            stateless_call: acc.stateless_call + duration.stateless_call,
-            stateful_call: acc.stateful_call + duration.stateful_call,
-        },
-    );
-
-    // let len = durations.len() as u32;
-    let average_durations = BenchDurations {
-        deploy: sum_durations.deploy / NUM_LOOP_STEPS as u32,
-        stateless_call: sum_durations.stateless_call / NUM_LOOP_STEPS as u32,
-        stateful_call: sum_durations.stateful_call / NUM_LOOP_STEPS as u32,
-    };
-
-    println!("Average durations: {:?}", average_durations);
 
     Ok(())
 }
@@ -135,8 +127,8 @@ async fn anvil_startup() -> Result<(
     Arc<SignerMiddleware<Provider<Http>, Wallet<SigningKey>>>,
     AnvilInstance,
 )> {
-    // Create an anvil instance
-    // No blocktime mines a new block for each tx.
+    // Create an Anvil instance
+    // No blocktime mines a new block for each tx, which is fastest.
     let anvil = Anvil::new().spawn();
 
     // Create a client
@@ -218,49 +210,4 @@ async fn stateful_call_loop<M: Middleware + 'static>(
     info!("Time elapsed in {} mint loop is: {:?}", label, duration);
 
     Ok(duration)
-}
-
-async fn _mixture_loop<M>(
-    _arbiter_math: ArbiterMath<M>,
-    _arbiter_token: arbiter_token::ArbiterToken<M>,
-) -> Result<()> {
-    todo!("Have a loop here that takes a few different types of calls at once.")
-}
-
-#[cfg(bench)]
-use std::process::Termination;
-
-#[cfg(bench)]
-use test::Bencher;
-
-#[cfg(bench)]
-fn anvil(b: &mut Bencher) -> impl Termination {
-    let runtime = tokio::runtime::Runtime::new().unwrap();
-    b.iter(|| {
-        runtime.block_on(async {
-            let label = "anvil";
-            let (client, _anvil) = anvil_startup().await.unwrap();
-            let (arbiter_math, arbiter_token) = deployments(client.clone(), label).await.unwrap();
-            stateless_call_loop(arbiter_math, label).await.unwrap();
-            stateful_call_loop(arbiter_token, client.default_sender().unwrap(), label)
-                .await
-                .unwrap();
-        })
-    });
-}
-
-#[cfg(bench)]
-fn arbiter(b: &mut Bencher) -> impl Termination {
-    let runtime = tokio::runtime::Runtime::new().unwrap();
-    b.iter(|| {
-        runtime.block_on(async {
-            let label = "arbiter";
-            let client = arbiter_startup().await.unwrap();
-            let (arbiter_math, arbiter_token) = deployments(client.clone(), label).await.unwrap();
-            stateless_call_loop(arbiter_math, label).await.unwrap();
-            stateful_call_loop(arbiter_token, client.default_sender().unwrap(), label)
-                .await
-                .unwrap();
-        })
-    });
 }
