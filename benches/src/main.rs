@@ -19,8 +19,9 @@ use arbiter_core::{
     middleware::RevmMiddleware,
 };
 use ethers::types::Address;
+use ethers::utils::AnvilInstance;
 use ethers::{
-    core::{utils::Anvil, k256::{Secp256k1, ecdsa::SigningKey}},
+    core::{utils::Anvil, k256::ecdsa::SigningKey},
     middleware::SignerMiddleware,
     providers::{Http, Middleware, Provider},
     signers::{LocalWallet, Signer, Wallet},
@@ -35,7 +36,7 @@ async fn main() -> Result<()> {
     let args = args.get(1).unwrap().as_str();
     match args {
         label @ "anvil" => {
-            let client = anvil_startup().await?;
+            let (client, _anvil_instance) = anvil_startup().await?;
             let (arbiter_math, arbiter_token) = deployments(client.clone(), label).await?;
             stateless_call_loop(arbiter_math, label).await?;
             stateful_call_loop(arbiter_token, client.default_sender().unwrap(), label).await?;
@@ -53,10 +54,11 @@ async fn main() -> Result<()> {
 }
 
 async fn anvil_startup(
-) -> Result<Arc<SignerMiddleware<Provider<Http>, Wallet<SigningKey>>>> {
+) -> Result<(Arc<SignerMiddleware<Provider<Http>, Wallet<SigningKey>>>, AnvilInstance)> {
     // Create an anvil instance
     // No blocktime mines a new block for each tx.
     let anvil = Anvil::new().spawn();
+    println!("Anvil endpoint: {}", anvil.endpoint());
 
     // Create a client
     let provider = Provider::<Http>::try_from(anvil.endpoint())
@@ -69,7 +71,7 @@ async fn anvil_startup(
         wallet.with_chain_id(anvil.chain_id()),
     ));
 
-    Ok(client)
+    Ok((client, anvil))
 }
 
 async fn arbiter_startup() -> Result<Arc<RevmMiddleware>> {
@@ -134,9 +136,9 @@ async fn stateful_call_loop<M: Middleware + 'static>(arbiter_token: arbiter_toke
     Ok(())
 }
 
-async fn mixture_loop<M>(
-    arbiter_math: ArbiterMath<M>,
-    arbiter_token: arbiter_token::ArbiterToken<M>,
+async fn _mixture_loop<M>(
+    _arbiter_math: ArbiterMath<M>,
+    _arbiter_token: arbiter_token::ArbiterToken<M>,
 ) -> Result<()> {
     Ok(())
 }
