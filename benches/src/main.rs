@@ -2,8 +2,8 @@
 // use ethers_signers::LocalWallet;
 // use ethers_middleware::SignerMiddleware;
 // use ethers_core::types::{Address, TransactionRequest};
-use std::convert::TryFrom;
 use std::{
+    convert::TryFrom,
     sync::Arc,
     time::{Duration, Instant},
 };
@@ -18,14 +18,13 @@ use arbiter_core::{
     manager::Manager,
     middleware::RevmMiddleware,
 };
-use ethers::types::Address;
-use ethers::utils::AnvilInstance;
 use ethers::{
-    core::{utils::Anvil, k256::ecdsa::SigningKey},
+    core::{k256::ecdsa::SigningKey, utils::Anvil},
     middleware::SignerMiddleware,
     providers::{Http, Middleware, Provider},
     signers::{LocalWallet, Signer, Wallet},
-    types::{I256, U256},
+    types::{Address, I256, U256},
+    utils::AnvilInstance,
 };
 
 const NUM_STEPS: usize = 1000;
@@ -46,15 +45,54 @@ async fn main() -> Result<()> {
             let (arbiter_math, arbiter_token) = deployments(client.clone(), label).await?;
             stateless_call_loop(arbiter_math, label).await?;
             stateful_call_loop(arbiter_token, client.default_sender().unwrap(), label).await?;
-        },
+        }
         _ => panic!("Invalid argument"),
     };
 
     Ok(())
 }
 
-async fn anvil_startup(
-) -> Result<(Arc<SignerMiddleware<Provider<Http>, Wallet<SigningKey>>>, AnvilInstance)> {
+#[cfg(bench)]
+use test::Bencher;
+#[cfg(bench)]
+use std::process::Termination;
+
+#[cfg(bench)]
+fn anvil(b: &mut Bencher) -> impl Termination {
+    let runtime = tokio::runtime::Runtime::new().unwrap();
+    b.iter(|| {
+        runtime.block_on(async {
+            let label = "anvil";
+            let (client, _anvil) = anvil_startup().await.unwrap();
+            let (arbiter_math, arbiter_token) = deployments(client.clone(), label).await.unwrap();
+            stateless_call_loop(arbiter_math, label).await.unwrap();
+            stateful_call_loop(arbiter_token, client.default_sender().unwrap(), label)
+                .await
+                .unwrap();
+        })
+    });
+}
+
+#[cfg(bench)]
+fn arbiter(b: &mut Bencher) -> impl Termination {
+    let runtime = tokio::runtime::Runtime::new().unwrap();
+    b.iter(|| {
+        runtime.block_on(async {
+            let label = "arbiter";
+            let client = arbiter_startup().await.unwrap();
+            let (arbiter_math, arbiter_token) = deployments(client.clone(), label).await.unwrap();
+            stateless_call_loop(arbiter_math, label).await.unwrap();
+            stateful_call_loop(arbiter_token, client.default_sender().unwrap(), label)
+                .await
+                .unwrap();
+        })
+    });
+}
+
+async fn anvil_startup() -> Result<(
+    Arc<SignerMiddleware<Provider<Http>, Wallet<SigningKey>>>,
+    AnvilInstance,
+)> {
     // Create an anvil instance
     // No blocktime mines a new block for each tx.
     let anvil = Anvil::new().spawn();
@@ -109,7 +147,10 @@ async fn deployments<M: Middleware + 'static>(
     Ok((arbiter_math, arbiter_token))
 }
 
-async fn stateless_call_loop<M: Middleware + 'static>(arbiter_math: ArbiterMath<M>, label: &str) -> Result<()> {
+async fn stateless_call_loop<M: Middleware + 'static>(
+    arbiter_math: ArbiterMath<M>,
+    label: &str,
+) -> Result<()> {
     let iwad = I256::from(10_u128.pow(18));
     let start = Instant::now();
     for _ in 0..NUM_STEPS {
@@ -121,15 +162,15 @@ async fn stateless_call_loop<M: Middleware + 'static>(arbiter_math: ArbiterMath<
     Ok(())
 }
 
-async fn stateful_call_loop<M: Middleware + 'static>(arbiter_token: arbiter_token::ArbiterToken<M>, mint_address: Address, label: &str) -> Result<()> {
+async fn stateful_call_loop<M: Middleware + 'static>(
+    arbiter_token: arbiter_token::ArbiterToken<M>,
+    mint_address: Address,
+    label: &str,
+) -> Result<()> {
     let wad = U256::from(10_u128.pow(18));
     let start = Instant::now();
     for _ in 0..NUM_STEPS {
-        arbiter_token
-            .mint(mint_address, wad)
-            .send()
-            .await?
-            .await?;
+        arbiter_token.mint(mint_address, wad).send().await?.await?;
     }
     let duration = start.elapsed();
     println!("Time elapsed in {} mint loop is: {:?}", label, duration);
