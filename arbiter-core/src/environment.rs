@@ -322,7 +322,7 @@ impl Environment {
 
                     // Receive new transactions
                     State::Running => {
-                        if let Ok((to_transact, tx, sender)) = tx_receiver.recv() {
+                        if let Ok((to_transact, tx, sender)) = tx_receiver.try_recv() {
                             // Check whether we need to increment the block number given the amount
                             // of transactions that have occured on the current block and increment
                             // if need be and draw a new sample from the `SeededPoisson`
