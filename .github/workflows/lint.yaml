@@ -17,11 +17,11 @@ jobs:
       - name: install rust toolchain
         uses: actions-rs/toolchain@v1
         with:
-          toolchain: stable
+          toolchain: nightly
           components: rustfmt
 
       - name: cargo fmt
-        run: cargo fmt --all -- --check
+        run: cargo +nightly fmt --all -- --check
 
   clippy:
     name: clippy
@@ -37,4 +37,4 @@ jobs:
           components: clippy
       
       - name: cargo clippy
-        run: cargo clippy --all-targets --all-features -- -D warnings
+        run: cargo clippy --all --all-features -- -D warnings

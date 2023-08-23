@@ -550,13 +550,13 @@ impl JsonRpcClient for Connection {
                 let value = serde_json::to_value(&params)?;
 
                 // Take this value as an array then cast it to a string
-                let str = value.as_array().ok_or(ProviderError::CustomError(format!(
+                let str = value.as_array().ok_or(ProviderError::CustomError(
                     "The params value passed to the `Connection` via a `request` was empty. 
-                    This is likely due to not specifying a specific `Filter` ID!"
-                )))?[0]
-                    .as_str().ok_or(ProviderError::CustomError(format!(
-                        "The params value passed to the `Connection` via a `request` could not be later cast to `str`!"
-                    )))?;
+                    This is likely due to not specifying a specific `Filter` ID!".to_string()
+                ))?[0]
+                    .as_str().ok_or(ProviderError::CustomError(
+                        "The params value passed to the `Connection` via a `request` could not be later cast to `str`!".to_string()
+                    ))?;
 
                 // Now get the `U256` ID via the string decoded from hex radix.
                 let id = ethers::types::U256::from_str_radix(str, 16)
@@ -569,9 +569,10 @@ impl JsonRpcClient for Connection {
                 let filter_receiver =
                     filter_receivers
                         .get_mut(&id)
-                        .ok_or(ProviderError::CustomError(format!(
+                        .ok_or(ProviderError::CustomError(
                             "The filter ID does not seem to match any that this client owns!"
-                        )))?;
+                                .to_string(),
+                        ))?;
                 let mut logs = vec![];
                 let filtered_params = FilteredParams::new(Some(filter_receiver.filter.clone()));
                 if let Ok(received_logs) = filter_receiver.receiver.recv() {
