@@ -32,6 +32,7 @@ const NUM_LOOP_STEPS: usize = 100;
 #[derive(Debug)]
 struct BenchDurations {
     deploy: Duration,
+    lookup: Duration,
     stateless_call: Duration,
     stateful_call: Duration,
 }
@@ -72,11 +73,13 @@ async fn main() -> Result<()> {
         let sum_durations = durations.iter().fold(
             BenchDurations {
                 deploy: Duration::default(),
+                lookup: Duration::default(),
                 stateless_call: Duration::default(),
                 stateful_call: Duration::default(),
             },
             |acc, duration| BenchDurations {
                 deploy: acc.deploy + duration.deploy,
+                lookup: acc.lookup + duration.lookup,
                 stateless_call: acc.stateless_call + duration.stateless_call,
                 stateful_call: acc.stateful_call + duration.stateful_call,
             },
@@ -84,6 +87,7 @@ async fn main() -> Result<()> {
 
         let average_durations = BenchDurations {
             deploy: sum_durations.deploy / NUM_BENCH_ITERATIONS as u32,
+            lookup: sum_durations.lookup / NUM_BENCH_ITERATIONS as u32,
             stateless_call: sum_durations.stateless_call / NUM_BENCH_ITERATIONS as u32,
             stateful_call: sum_durations.stateful_call / NUM_BENCH_ITERATIONS as u32,
         };
@@ -97,6 +101,7 @@ async fn main() -> Result<()> {
 async fn bencher<M: Middleware + 'static>(client: Arc<M>, label: &str) -> Result<BenchDurations> {
     // Track the duration for each part of the benchmark.
     let mut total_deploy_duration = 0;
+    let mut total_lookup_duration = 0;
     let mut total_stateless_call_duration = 0;
     let mut total_stateful_call_duration = 0;
 
@@ -104,6 +109,11 @@ async fn bencher<M: Middleware + 'static>(client: Arc<M>, label: &str) -> Result
     // takes.
     let (arbiter_math, arbiter_token, deploy_duration) = deployments(client.clone(), label).await?;
     total_deploy_duration += deploy_duration.as_micros();
+
+    // Call `balance_of` `NUM_LOOP_STEPS` times on `ArbiterToken` and tally up how
+    // long basic lookups take.
+    let lookup_duration = lookup(arbiter_token.clone(), label).await?;
+    total_lookup_duration += lookup_duration.as_micros();
 
     // Call `cdf` `NUM_LOOP_STEPS` times on `ArbiterMath` and tally up how long this
     // takes.
@@ -118,6 +128,7 @@ async fn bencher<M: Middleware + 'static>(client: Arc<M>, label: &str) -> Result
 
     Ok(BenchDurations {
         deploy: Duration::from_micros(total_deploy_duration as u64),
+        lookup: Duration::from_micros(total_lookup_duration as u64),
         stateless_call: Duration::from_micros(total_stateless_call_duration as u64),
         stateful_call: Duration::from_micros(total_stateful_call_duration as u64),
     })
@@ -179,6 +190,21 @@ async fn deployments<M: Middleware + 'static>(
     info!("Time elapsed in {} deployment is: {:?}", label, duration);
 
     Ok((arbiter_math, arbiter_token, duration))
+}
+
+async fn lookup<M: Middleware + 'static>(
+    arbiter_token: ArbiterToken<M>,
+    label: &str,
+) -> Result<Duration> {
+    let address = arbiter_token.client().default_sender().unwrap();
+    let start = Instant::now();
+    for _ in 0..NUM_LOOP_STEPS {
+        arbiter_token.balance_of(address).call().await?;
+    }
+    let duration = start.elapsed();
+    info!("Time elapsed in {} cdf loop is: {:?}", label, duration);
+
+    Ok(duration)
 }
 
 async fn stateless_call_loop<M: Middleware + 'static>(

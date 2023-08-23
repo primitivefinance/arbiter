@@ -90,12 +90,14 @@ The closest benchmark we have to Arbiter is running [Anvil](https://github.com/f
 
 | Operation       |  Arbiter   |    Anvil     | Relative Difference |
 |-----------------|------------|--------------|---------------------|
-| Deploy          | 254.873µs  | 8.525ms      | ~33.44x             |
-| Stateless Call  | 4.657507ms | 14.605913ms  | ~3.14x              |
-| Stateful Call   | 921.762µs  | 160.975985ms | ~174.64x            |
+| Deploy          | 241.819µs  | 8.215446ms   | ~33.97x             |
+| Lookup          | 480.319µs  | 13.052063ms  | ~27.17x             |
+| Stateless Call  | 4.03235ms  | 10.238771ms  | ~2.53x              |
+| Stateful Call   | 843.296µs  | 153.102478ms | ~181.55x            |
 
 The above can be described by:
 - Deploy: Deploying a contract to the EVM. We deployed `ArbiterToken` and `ArbiterMath` in this call.
+- Lookup: Looking up a the `balanceOf` for a client's address for `ArbiterToken`.
 - Stateless Call: Calling a contract that does not mutate state. We called `ArbiterMath`'s `cdf` function 100 times in this call.
 - Stateful Call: Calling a contract that mutates state. We called `ArbiterToken`'s `mint` function 100 times in this call.
 
