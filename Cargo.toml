@@ -1,9 +1,9 @@
 [workspace]
-
 # List of crates included in this workspace
-members = [
-    "arbiter-core",
-]
+members = ["arbiter-core"]
+
+# List of crates excluded from this workspace
+exclude = ["benches"]
 
 # Package configuration
 [package]
