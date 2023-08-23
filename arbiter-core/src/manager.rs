@@ -11,9 +11,7 @@ use std::collections::HashMap;
 use log::{info, warn};
 use thiserror::Error;
 
-use crate::environment::EnvironmentParameters;
-use crate::environment::{Environment, State};
-
+use crate::environment::{Environment, EnvironmentParameters, State};
 #[cfg_attr(doc, doc(hidden))]
 #[cfg_attr(doc, allow(unused_imports))]
 #[cfg(doc)]
@@ -109,8 +107,7 @@ impl Manager {
     /// # Examples
     ///
     /// ```rust
-    /// use arbiter_core::manager::Manager;
-    /// use arbiter_core::environment::EnvironmentParameters;
+    /// use arbiter_core::{environment::EnvironmentParameters, manager::Manager};
     ///
     /// let mut manager = Manager::new();
     /// let params = EnvironmentParameters {
@@ -163,8 +160,7 @@ impl Manager {
     /// # Examples
     ///
     /// ```rust
-    /// use arbiter_core::manager::Manager;
-    /// use arbiter_core::environment::EnvironmentParameters;
+    /// use arbiter_core::{environment::EnvironmentParameters, manager::Manager};
     ///
     /// let mut manager = Manager::new();
     /// let params = EnvironmentParameters {
@@ -239,8 +235,7 @@ impl Manager {
     /// # Examples
     ///
     /// ```rust
-    /// use arbiter_core::manager::Manager;
-    /// use arbiter_core::environment::EnvironmentParameters;
+    /// use arbiter_core::{environment::EnvironmentParameters, manager::Manager};
     ///
     /// let mut manager = Manager::new();
     /// let params = EnvironmentParameters {
@@ -311,8 +306,7 @@ impl Manager {
     /// # Examples
     ///
     /// ```rust
-    /// use arbiter_core::manager::Manager;
-    /// use arbiter_core::environment::EnvironmentParameters;
+    /// use arbiter_core::{environment::EnvironmentParameters, manager::Manager};
     ///
     /// let mut manager = Manager::new();
     /// let params = EnvironmentParameters {

@@ -95,3 +95,30 @@ fn stop_environment() {
         State::Stopped
     );
 }
+
+#[tokio::test]
+async fn stop_environment_after_transactions() -> Result<()> {
+    let mut manager = Manager::new();
+    let params = EnvironmentParameters {
+        block_rate: 1.0,
+        seed: 1,
+    };
+    manager.add_environment(TEST_ENV_LABEL, params).unwrap();
+    manager.start_environment(TEST_ENV_LABEL).unwrap();
+
+    // Send some transactions (e.g., deploy `ArbiterMath` which is easy and has no args)
+    let client = Arc::new(RevmMiddleware::new(manager.environments.get(TEST_ENV_LABEL).unwrap(), Some(TEST_SIGNER_SEED_AND_LABEL.to_string())));
+    ArbiterMath::deploy(client, ())?.send().await?;
+
+    manager.stop_environment(TEST_ENV_LABEL).unwrap();
+    assert_eq!(
+        manager
+            .environments
+            .get(&TEST_ENV_LABEL.to_string())
+            .unwrap()
+            .state
+            .load(std::sync::atomic::Ordering::Relaxed),
+        State::Stopped
+    );
+    Ok(())
+}
