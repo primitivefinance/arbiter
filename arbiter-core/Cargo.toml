@@ -41,3 +41,8 @@ env_logger = "0.10.0"
 test-log = "0.2.12"
 futures = "0.3.28"
 assert_matches = "1.5"
+
+[[bench]]
+name = "bench"
+path = "benches/bench.rs"
+harness = false

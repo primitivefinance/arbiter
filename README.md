@@ -84,6 +84,32 @@ cargo doc --workspace --no-deps --open
 This will generate and open the docs in your browser. From there, you can look at the documentation for each crate in the Arbiter workspace. 
 We will post both crates to crates.io once we have removed any and all Github linked crates.
 
+## Benchmarks
+
+The closest benchmark we have to Arbiter is running [Anvil](https://github.com/foundry-rs/foundry/tree/master/crates/anvil) and streaming transactions there. The biggest reasons why we chose to build Arbiter was to gain more control over the EVM environment and to have a more robust simulation framework, but we also wanted to gain in speed. Preliminary benchmarks against Anvil are given in the following table.
+
+| Operation       |  Arbiter   |    Anvil     | Relative Difference |
+|-----------------|------------|--------------|---------------------|
+| Deploy          | 241.819µs  | 8.215446ms   | ~33.97x             |
+| Lookup          | 480.319µs  | 13.052063ms  | ~27.17x             |
+| Stateless Call  | 4.03235ms  | 10.238771ms  | ~2.53x              |
+| Stateful Call   | 843.296µs  | 153.102478ms | ~181.55x            |
+
+The above can be described by:
+- Deploy: Deploying a contract to the EVM. We deployed `ArbiterToken` and `ArbiterMath` in this call.
+- Lookup: Looking up a the `balanceOf` for a client's address for `ArbiterToken`.
+- Stateless Call: Calling a contract that does not mutate state. We called `ArbiterMath`'s `cdf` function 100 times in this call.
+- Stateful Call: Calling a contract that mutates state. We called `ArbiterToken`'s `mint` function 100 times in this call.
+
+All the times were achieved with the release profile and averaged over 1000 runs. Anvil was set to mine blocks for each transaction as opposed to setting an enforced block time. 
+
+The benchmarking code can be found in the `arbiter-core/benches/` directory. The above was achieved running `cargo bench --package arbiter-core` which will automatically run with the release profile.
+
+Times were achieved on an Apple Macbook Pro M1 Max with 8 performance and 2 efficiency cores, and with 32GB of RAM.
+
+Please let us know if you find any issues with these benchmarks or if you have any suggestions on how to improve them!
+
+
 ## Contributing
 
 See our [Contributing Guidelines](https://github.com/primitivefinance/arbiter/blob/main/.github/CONTRIBUTING.md)

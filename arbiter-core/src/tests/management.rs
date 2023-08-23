@@ -106,8 +106,12 @@ async fn stop_environment_after_transactions() -> Result<()> {
     manager.add_environment(TEST_ENV_LABEL, params).unwrap();
     manager.start_environment(TEST_ENV_LABEL).unwrap();
 
-    // Send some transactions (e.g., deploy `ArbiterMath` which is easy and has no args)
-    let client = Arc::new(RevmMiddleware::new(manager.environments.get(TEST_ENV_LABEL).unwrap(), Some(TEST_SIGNER_SEED_AND_LABEL.to_string())));
+    // Send some transactions (e.g., deploy `ArbiterMath` which is easy and has no
+    // args)
+    let client = Arc::new(RevmMiddleware::new(
+        manager.environments.get(TEST_ENV_LABEL).unwrap(),
+        Some(TEST_SIGNER_SEED_AND_LABEL.to_string()),
+    ));
     ArbiterMath::deploy(client, ())?.send().await?;
 
     manager.stop_environment(TEST_ENV_LABEL).unwrap();
