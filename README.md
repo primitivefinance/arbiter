@@ -100,7 +100,7 @@ We will post both crates to crates.io once we have removed any and all Github li
 
 In `arbiter-core`, we have a a small benchmarking suite that compares the `RevmMiddleware` implementation over the `Environment` to the [Anvil](https://github.com/foundry-rs/foundry/tree/master/crates/anvil) local testnet chain implementation.
 The biggest reasons why we chose to build Arbiter was to gain more control over the EVM environment and to have a more robust simulation framework, but we also wanted to gain in speed which is why we chose to build our own interface over `revm` as opposed to using Anvil (which does use `revm` under the hood). 
-For the following, Anvil was set to mine blocks for each transaction as opposed to setting an enforced block time. 
+For the following, Anvil was set to mine blocks for each transaction as opposed to setting an enforced block time and the `Environment` was set with a block rate of 10.0 (this was chosen somewhat arbitrarily as we will add in more block control in the future).
 Preliminary benchmarks of the `RevmMiddleware` interface over `revm` against Anvil are given in the following table.
 
 | Operation       |  RevmMiddlwware |    Anvil     | Relative Difference |
@@ -132,6 +132,7 @@ Times were achieved on an Apple Macbook Pro M1 Max with 8 performance and 2 effi
 
 Of course, the use cases of Anvil and the `RevmMiddleware` can be different. 
 Anvil represents a more realistic environment with networking and mining, while the `RevmMiddleware` is simpler environment with the bare essentials to running stateful simulations.
+Anvil also mines blocks for each transaction, while the `RevmMiddleware` does not.
 We hope to improve our API to allow the end user to be able to interface with their own choice of EVM environment to suit what ever their needs may be!
 
 Please let us know if you find any issues with these benchmarks or if you have any suggestions on how to improve them!
