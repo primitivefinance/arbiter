@@ -34,6 +34,7 @@ use revm::{
     primitives::{EVMError, ExecutionResult, Log, TxEnv, U256},
     EVM,
 };
+use serde::{Deserialize, Serialize};
 use thiserror::Error;
 
 use crate::math::SeededPoisson;
@@ -150,6 +151,7 @@ pub struct Environment {
 ///
 /// This structure holds configuration details or other parameters that might
 /// be required when instantiating or updating an `Environment`.
+#[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct EnvironmentParameters {
     /// The mean of the rate at which the environment will
     /// process blocks (e.g., the rate parameter in the Poisson distribution
