@@ -4,10 +4,11 @@ use super::*;
 fn add_environment() {
     let mut manager = Manager::new();
     let params = EnvironmentParameters {
+        label: TEST_ENV_LABEL.to_string(),
         block_rate: 1.0,
         seed: 1,
     };
-    manager.add_environment(TEST_ENV_LABEL, params).unwrap();
+    manager.add_environment(params).unwrap();
     assert!(manager
         .environments
         .contains_key(&TEST_ENV_LABEL.to_string()));
@@ -26,10 +27,11 @@ fn add_environment() {
 fn run_environment() {
     let mut manager = Manager::new();
     let params = EnvironmentParameters {
+        label: TEST_ENV_LABEL.to_string(),
         block_rate: 1.0,
         seed: 1,
     };
-    manager.add_environment(TEST_ENV_LABEL, params).unwrap();
+    manager.add_environment(params).unwrap();
     manager.start_environment(TEST_ENV_LABEL).unwrap();
     assert_eq!(
         manager
@@ -46,10 +48,11 @@ fn run_environment() {
 fn pause_environment() {
     let mut manager = Manager::new();
     let params = EnvironmentParameters {
+        label: TEST_ENV_LABEL.to_string(),
         block_rate: 1.0,
         seed: 1,
     };
-    manager.add_environment(TEST_ENV_LABEL, params).unwrap();
+    manager.add_environment(params).unwrap();
     manager.start_environment(TEST_ENV_LABEL).unwrap();
     manager.pause_environment(TEST_ENV_LABEL).unwrap();
     std::thread::sleep(std::time::Duration::from_millis(100));
@@ -79,10 +82,11 @@ fn pause_environment() {
 fn stop_environment() {
     let mut manager = Manager::new();
     let params = EnvironmentParameters {
+        label: TEST_ENV_LABEL.to_string(),
         block_rate: 1.0,
         seed: 1,
     };
-    manager.add_environment(TEST_ENV_LABEL, params).unwrap();
+    manager.add_environment(params).unwrap();
     manager.start_environment(TEST_ENV_LABEL).unwrap();
     manager.stop_environment(TEST_ENV_LABEL).unwrap();
     assert_eq!(
@@ -100,10 +104,11 @@ fn stop_environment() {
 async fn stop_environment_after_transactions() -> Result<()> {
     let mut manager = Manager::new();
     let params = EnvironmentParameters {
+        label: TEST_ENV_LABEL.to_string(),
         block_rate: 1.0,
         seed: 1,
     };
-    manager.add_environment(TEST_ENV_LABEL, params).unwrap();
+    manager.add_environment(params).unwrap();
     manager.start_environment(TEST_ENV_LABEL).unwrap();
 
     // Send some transactions (e.g., deploy `ArbiterMath` which is easy and has no

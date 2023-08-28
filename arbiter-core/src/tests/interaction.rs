@@ -264,10 +264,11 @@ async fn transaction_loop() -> Result<()> {
 async fn pause_prevents_processing_transactions() {
     let mut manager = Manager::new();
     let params = EnvironmentParameters {
+        label: TEST_ENV_LABEL.to_string(),
         block_rate: 1.0,
         seed: 1,
     };
-    manager.add_environment(TEST_ENV_LABEL, params).unwrap();
+    manager.add_environment(params).unwrap();
     let client = Arc::new(RevmMiddleware::new(
         manager.environments.get(TEST_ENV_LABEL).unwrap(),
         Some(TEST_SIGNER_SEED_AND_LABEL.to_string()),

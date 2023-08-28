@@ -44,10 +44,11 @@ async fn deploy_and_start() -> Result<(
     Arc<RevmMiddleware>,
 )> {
     let params = EnvironmentParameters {
+        label: TEST_ENV_LABEL.to_string(),
         block_rate: TEST_BLOCK_RATE,
         seed: TEST_ENV_SEED,
     };
-    let mut environment = Environment::new(TEST_ENV_LABEL, params);
+    let mut environment = Environment::new(params);
     let client = Arc::new(RevmMiddleware::new(
         &environment,
         Some(TEST_SIGNER_SEED_AND_LABEL.to_string()),

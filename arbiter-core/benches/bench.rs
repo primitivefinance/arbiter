@@ -159,10 +159,11 @@ async fn anvil_startup() -> Result<(
 async fn arbiter_startup() -> Result<(Arc<RevmMiddleware>, Manager)> {
     let mut manager = Manager::new();
     let params = EnvironmentParameters {
+        label: ENV_LABEL.to_string(),
         block_rate: 10.0,
         seed: 0,
     };
-    manager.add_environment(ENV_LABEL, params)?;
+    manager.add_environment(params)?;
 
     let client = Arc::new(RevmMiddleware::new(
         manager.environments.get(ENV_LABEL).unwrap(),
