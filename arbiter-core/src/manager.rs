@@ -117,20 +117,15 @@ impl Manager {
     /// };
     /// manager.add_environment(params).unwrap();
     /// ```
-    pub fn add_environment(
-        &mut self,
-        params: EnvironmentParameters,
-    ) -> Result<(), ManagerError> {
+    pub fn add_environment(&mut self, params: EnvironmentParameters) -> Result<(), ManagerError> {
         let environment_label = params.label.clone();
 
         if self.environments.contains_key(&environment_label) {
             return Err(ManagerError::EnvironmentAlreadyExists(environment_label));
         }
 
-        self.environments.insert(
-            environment_label.clone(),
-            Environment::new(params),
-        );
+        self.environments
+            .insert(environment_label.clone(), Environment::new(params));
 
         info!("Added environment labeled {}", environment_label);
         Ok(())
