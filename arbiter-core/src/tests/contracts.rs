@@ -16,10 +16,11 @@ pub const LIQUID_EXCHANGE_PRICE: f64 = 420.69;
 fn startup() -> Result<(Manager, Arc<RevmMiddleware>)> {
     let mut manager = Manager::new();
     let params = EnvironmentParameters {
+        label: TEST_ENV_LABEL.to_string(),
         block_rate: 1.0,
         seed: 1,
     };
-    manager.add_environment(TEST_ENV_LABEL, params).unwrap();
+    manager.add_environment(params).unwrap();
     let environment = manager.environments.get(TEST_ENV_LABEL).unwrap();
     let client = Arc::new(RevmMiddleware::new(
         environment,

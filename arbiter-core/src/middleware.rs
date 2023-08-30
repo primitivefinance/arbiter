@@ -74,10 +74,11 @@ use crate::environment::{
 /// // Create a manager and add an environment
 /// let mut manager = Manager::new();
 /// let params = EnvironmentParameters {
+///     label: "example_env".to_string(),
 ///     block_rate: 1.0,
 ///     seed: 1,
 /// };
-/// manager.add_environment("example_env", params).unwrap();
+/// manager.add_environment(params).unwrap();
 ///
 /// // Retrieve the environment to create a new middleware instance
 /// let environment = manager.environments.get("example_env").unwrap();
@@ -179,10 +180,11 @@ impl RevmMiddleware {
     ///
     /// let mut manager = Manager::new();
     /// let params = EnvironmentParameters {
+    ///     label: "example_env".to_string(),
     ///     block_rate: 1.0,
     ///     seed: 1,
     /// };
-    /// manager.add_environment("example_env", params).unwrap();
+    /// manager.add_environment(params).unwrap();
     /// let environment = manager.environments.get("example_env").unwrap();
     /// let middleware = RevmMiddleware::new(&environment, Some("test_label".to_string()));
     ///

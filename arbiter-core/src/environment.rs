@@ -34,6 +34,7 @@ use revm::{
     primitives::{EVMError, ExecutionResult, Log, TxEnv, U256},
     EVM,
 };
+use serde::{Deserialize, Serialize};
 use thiserror::Error;
 
 use crate::math::SeededPoisson;
@@ -150,7 +151,13 @@ pub struct Environment {
 ///
 /// This structure holds configuration details or other parameters that might
 /// be required when instantiating or updating an `Environment`.
+#[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct EnvironmentParameters {
+    /// A label for the [`Environment`].
+    /// Used to allow the [`Manager`] to locate the [`Environment`] in order to
+    /// control it. Also used to be able to organize, track progress, and
+    /// post-process results.
+    pub label: String,
     /// The mean of the rate at which the environment will
     /// process blocks (e.g., the rate parameter in the Poisson distribution
     /// used in the [`SeededPoisson`] field of an [`Environment`]).
@@ -224,7 +231,7 @@ impl Environment {
     /// Privately accessible constructor function for creating an
     /// [`Environment`]. This function should be accessed by the
     /// [`Manager`].
-    pub(crate) fn new<S: Into<String>>(label: S, params: EnvironmentParameters) -> Self {
+    pub(crate) fn new(params: EnvironmentParameters) -> Self {
         // Initialize the EVM used
         let mut evm = EVM::new();
         let db = CacheDB::new(EmptyDB {});
@@ -244,7 +251,7 @@ impl Environment {
         };
 
         Self {
-            label: label.into(),
+            label: params.label,
             state: Arc::new(AtomicState::new(State::Initialization)),
             evm,
             socket,
@@ -550,10 +557,11 @@ pub(crate) mod tests {
     #[test]
     fn new() {
         let params = EnvironmentParameters {
+            label: TEST_ENV_LABEL.to_string(),
             block_rate: 1.0,
             seed: 1,
         };
-        let environment = Environment::new(TEST_ENV_LABEL.to_string(), params);
+        let environment = Environment::new(params);
         assert_eq!(environment.label, TEST_ENV_LABEL);
         let state = environment.state.load(std::sync::atomic::Ordering::SeqCst);
         assert_eq!(state, State::Initialization);
@@ -562,10 +570,11 @@ pub(crate) mod tests {
     #[test]
     fn run() {
         let params = EnvironmentParameters {
+            label: TEST_ENV_LABEL.to_string(),
             block_rate: 1.0,
             seed: 1,
         };
-        let mut environment = Environment::new(TEST_ENV_LABEL.to_string(), params);
+        let mut environment = Environment::new(params);
         environment.run();
         let state = environment.state.load(std::sync::atomic::Ordering::SeqCst);
         assert_eq!(state, State::Running);

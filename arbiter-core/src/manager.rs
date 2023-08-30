@@ -111,28 +111,23 @@ impl Manager {
     ///
     /// let mut manager = Manager::new();
     /// let params = EnvironmentParameters {
+    ///     label: "example_env".to_string(),
     ///     block_rate: 1.0,
     ///     seed: 1,
     /// };
-    /// manager.add_environment("example_env", params).unwrap();
+    /// manager.add_environment(params).unwrap();
     /// ```
-    pub fn add_environment<S: Into<String> + Clone>(
-        &mut self,
-        environment_label: S,
-        params: EnvironmentParameters,
-    ) -> Result<(), ManagerError> {
-        let label_str = environment_label.clone().into();
+    pub fn add_environment(&mut self, params: EnvironmentParameters) -> Result<(), ManagerError> {
+        let environment_label = params.label.clone();
 
-        if self.environments.contains_key(&label_str) {
-            return Err(ManagerError::EnvironmentAlreadyExists(label_str));
+        if self.environments.contains_key(&environment_label) {
+            return Err(ManagerError::EnvironmentAlreadyExists(environment_label));
         }
 
-        self.environments.insert(
-            label_str.clone(),
-            Environment::new(environment_label, params),
-        );
+        self.environments
+            .insert(environment_label.clone(), Environment::new(params));
 
-        info!("Added environment labeled {}", label_str);
+        info!("Added environment labeled {}", environment_label);
         Ok(())
     }
 
@@ -164,10 +159,11 @@ impl Manager {
     ///
     /// let mut manager = Manager::new();
     /// let params = EnvironmentParameters {
+    ///     label: "example_env".to_string(),
     ///     block_rate: 1.0,
     ///     seed: 1,
     /// };
-    /// manager.add_environment("example_env", params).unwrap();
+    /// manager.add_environment(params).unwrap();
     ///
     /// // Now, let's start the environment
     /// manager.start_environment("example_env").unwrap();
@@ -239,10 +235,11 @@ impl Manager {
     ///
     /// let mut manager = Manager::new();
     /// let params = EnvironmentParameters {
+    ///     label: "example_env".to_string(),
     ///     block_rate: 1.0,
     ///     seed: 1,
     /// };
-    /// manager.add_environment("example_env", params).unwrap();
+    /// manager.add_environment(params).unwrap();
     /// manager.start_environment("example_env").unwrap();
     ///
     /// // Now, let's pause the environment
@@ -310,10 +307,11 @@ impl Manager {
     ///
     /// let mut manager = Manager::new();
     /// let params = EnvironmentParameters {
+    ///     label: "example_env".to_string(),
     ///     block_rate: 1.0,
     ///     seed: 1,
     /// };
-    /// manager.add_environment("example_env", params).unwrap();
+    /// manager.add_environment(params).unwrap();
     /// manager.start_environment("example_env").unwrap();
     ///
     /// // Now, let's stop the environment
