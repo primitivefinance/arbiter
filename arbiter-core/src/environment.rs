@@ -206,7 +206,7 @@ pub enum EnvironmentError {
     /// [`EnvironmentError::Pause`] is thrown when the [`Environment`]
     /// fails to pause. This should likely never occur, but if it does,
     /// please report this error!
-    #[error("error pausing! the source error is: {0:?}")]
+    #[error("error pausing! due to: {0:?}")]
     Pause(String),
 
     /// [`EnvironmentError::Communication`] is thrown when a channel for
@@ -214,9 +214,12 @@ pub enum EnvironmentError {
     /// due to a channel being closed accidentally. If this is thrown, a
     /// restart of the simulation and an investigation into what caused a
     /// dropped channel is necessary.
-    #[error("error communicating! the source error is: {0}")]
+    #[error("error communicating! due to: {0}")]
     Communication(String),
 
+    /// [`EnvironmentError::Broadcast`] is thrown when the
+    /// [`EventBroadcaster`] fails to broadcast events. This should be
+    /// rare (if not impossible). If this is thrown, please report this error!
     #[error("error broadcasting! the source error is: {0}")]
     Broadcast(#[from] crossbeam_channel::SendError<Vec<Log>>),
 
@@ -229,6 +232,10 @@ pub enum EnvironmentError {
     #[error("conversion error! the source error is: {0}")]
     Conversion(String),
 
+    /// [`EnvironmentError::TransactionReceivedWhilePaused`] is thrown when
+    /// a transaction is received while the [`Environment`] is paused.
+    /// This can be quite common due to concurrency issues, but should be
+    /// handled gracefully.
     #[error("transaction was received while the environment was paused. this transaction was not processed.")]
     TransactionReceivedWhilePaused,
 }
@@ -276,7 +283,6 @@ impl Environment {
     /// be placed in [`State::Paused`].
     pub(crate) fn run(&mut self) {
         // Pull clones of the relevant data prepare to send into a new thread
-        let label = self.label.clone();
         let mut evm = self.evm.clone();
         let tx_receiver = self.socket.tx_receiver.clone();
         let event_broadcaster = self.socket.event_broadcaster.clone();
