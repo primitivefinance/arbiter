@@ -45,9 +45,7 @@ use revm::primitives::{CreateScheme, ExecutionResult, Output, TransactTo, TxEnv,
 use serde::{de::DeserializeOwned, Serialize};
 use thiserror::Error;
 
-use crate::environment::{
-    Environment, EventBroadcaster, ResultReceiver, ResultSender, TransactionOutcome, TxSender,
-};
+use crate::environment::{Environment, EventBroadcaster, ResultReceiver, ResultSender, TxSender};
 
 /// A middleware structure that integrates with `revm`.
 ///
