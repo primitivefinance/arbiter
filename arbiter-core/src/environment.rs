@@ -115,12 +115,7 @@ pub struct Environment {
     /// Used to allow the [`Manager`] to locate the [`Environment`] in order to
     /// control it. Also used to be able to organize, track progress, and
     /// post-process results.
-    pub label: String,
-
-    /// A seeded Poisson distribution that is sampled from in order to determine
-    /// the average block size. [`SeededPoisson`] is created with a seed in
-    /// order to have repeatable simulations.
-    pub seeded_poisson: SeededPoisson,
+    pub parameters: EnvironmentParameters,
 
     // Private fields
     /// The [`State`] of the [`Environment`] which is shared across threads,
@@ -158,14 +153,15 @@ pub struct EnvironmentParameters {
     /// control it. Also used to be able to organize, track progress, and
     /// post-process results.
     pub label: String,
-    /// The mean of the rate at which the environment will
-    /// process blocks (e.g., the rate parameter in the Poisson distribution
-    /// used in the [`SeededPoisson`] field of an [`Environment`]).
-    pub block_rate: f64,
 
-    /// A value chosen to generate randomly chosen block sizes
-    /// for the environment.
-    pub seed: u64,
+    /// The type of block that will be used to step forward the [`EVM`].
+    /// This can either be a [`BlockType::UserControlled`] or a
+    /// [`BlockType::RandomlySampled`].
+    /// The former will allow the end user to control the block number from
+    /// their own external API and the latter will allow the end user to set
+    /// a rate parameter and seed for a Poisson distribution that will be
+    /// used to sample the amount of transactions per block.
+    pub block_type: BlockType,
 }
 
 /// Allow the end user to be able to access a debug printout for the
@@ -174,8 +170,7 @@ pub struct EnvironmentParameters {
 impl Debug for Environment {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("Environment")
-            .field("label", &self.label)
-            .field("seeded_poisson", &self.seeded_poisson)
+            .field("parameters", &self.parameters)
             .field("state", &self.state)
             .field("socket", &self.socket)
             .field("pausevar", &self.pausevar)
@@ -244,7 +239,7 @@ impl Environment {
     /// Privately accessible constructor function for creating an
     /// [`Environment`]. This function should be accessed by the
     /// [`Manager`].
-    pub(crate) fn new(params: EnvironmentParameters) -> Self {
+    pub(crate) fn new(environment_parameters: EnvironmentParameters) -> Self {
         // Initialize the EVM used
         let mut evm = EVM::new();
         let db = CacheDB::new(EmptyDB {});
@@ -254,8 +249,6 @@ impl Environment {
         evm.env.cfg.limit_contract_code_size = Some(0x100000);
         evm.env.block.gas_limit = U256::MAX;
 
-        let seeded_poisson = SeededPoisson::new(params.block_rate, params.seed);
-
         let (tx_sender, tx_receiver) = unbounded();
         let socket = Socket {
             tx_sender,
@@ -264,11 +257,10 @@ impl Environment {
         };
 
         Self {
-            label: params.label,
+            parameters: environment_parameters,
             state: Arc::new(AtomicState::new(State::Initialization)),
             evm,
             socket,
-            seeded_poisson,
             handle: None,
             pausevar: Arc::new((Mutex::new(()), Condvar::new())),
         }
@@ -286,19 +278,30 @@ impl Environment {
         let mut evm = self.evm.clone();
         let tx_receiver = self.socket.tx_receiver.clone();
         let event_broadcaster = self.socket.event_broadcaster.clone();
-        let mut seeded_poisson = self.seeded_poisson.clone();
+        let seeded_poisson = match self.parameters.block_type {
+            BlockType::RandomlySampled {
+                block_rate,
+                block_time,
+                seed,
+            } => Some(SeededPoisson::new(block_rate, block_time, seed)),
+            BlockType::UserControlled => None,
+        };
 
         // Set up the state and tx counter
         self.state
             .store(State::Running, std::sync::atomic::Ordering::SeqCst);
         let state = Arc::clone(&self.state);
         let pausevar = Arc::clone(&self.pausevar);
-        let mut counter: usize = 0;
 
         // Move the EVM and its socket to a new thread and retrieve this handle
         let handle = thread::spawn(move || {
-            // Get the first amount of transactions per block from the distribution
-            let mut transactions_per_block = seeded_poisson.sample();
+            // Get the first amount of transactions per block from the distribution and set
+            // the initial counter.
+            let mut transactions_per_block = seeded_poisson
+                .clone()
+                .map(|mut distribution| distribution.sample());
+
+            let mut counter: usize = 0;
 
             // Loop over the reception of calls/transactions sent through the socket
             loop {
@@ -335,11 +338,15 @@ impl Environment {
                             // Check whether we need to increment the block number given the amount
                             // of transactions that have occured on the current block and increment
                             // if need be and draw a new sample from the `SeededPoisson`
-                            // distribution
-                            if counter == transactions_per_block {
+                            // distribution. Only do so if there is a distribution in the first
+                            // place.
+                            if transactions_per_block.is_some_and(|x| x == counter) {
                                 counter = 0;
                                 evm.env.block.number += U256::from(1);
-                                transactions_per_block = seeded_poisson.sample();
+
+                                // This unwrap cannot fail.
+                                transactions_per_block =
+                                    Some(seeded_poisson.clone().unwrap().sample());
                             }
 
                             // Set the tx_env and prepare to process it
@@ -426,6 +433,39 @@ pub(crate) struct Socket {
     pub(crate) event_broadcaster: Arc<Mutex<EventBroadcaster>>,
 }
 
+/// Provides a means of deciding how the block number of the [`EVM`] will be
+/// chosen.
+/// This can either be a [`BlockType::UserControlled`] or a
+/// [`BlockType::RandomlySampled`].
+/// The former will allow the end user to control the block number from
+/// their own external API and the latter will allow the end user to set
+/// a rate parameter and seed for a Poisson distribution that will be
+/// used to sample the amount of transactions per block.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub enum BlockType {
+    /// The block number will be controlled by the end user.
+    UserControlled,
+
+    /// The block number will be sampled from a Poisson distribution.
+    /// A seeded Poisson distribution that is sampled from in order to determine
+    /// the average block size. [`SeededPoisson`] is created with a seed in
+    /// order to have repeatable simulations.
+    RandomlySampled {
+        /// The mean of the rate at which the environment will
+        /// process blocks (e.g., the rate parameter in the Poisson distribution
+        /// used in the [`SeededPoisson`] field of an [`Environment`]).
+        block_rate: f64,
+
+        /// The amount of time the block timestamp will increase for each new
+        /// block.
+        block_time: u32,
+
+        /// A value chosen to generate randomly chosen block sizes
+        /// for the environment.
+        seed: u64,
+    },
+}
+
 /// Responsible for broadcasting Ethereum logs to subscribers.
 ///
 /// Maintains a list of senders to which logs are sent whenever they are
@@ -480,14 +520,30 @@ pub(crate) mod tests {
     pub(crate) const TEST_ENV_LABEL: &str = "test";
 
     #[test]
-    fn new() {
+    fn new_user_controlled() {
         let params = EnvironmentParameters {
             label: TEST_ENV_LABEL.to_string(),
-            block_rate: 1.0,
-            seed: 1,
+            block_type: BlockType::UserControlled,
         };
         let environment = Environment::new(params);
-        assert_eq!(environment.label, TEST_ENV_LABEL);
+        assert_eq!(environment.parameters.label, TEST_ENV_LABEL);
+        let state = environment.state.load(std::sync::atomic::Ordering::SeqCst);
+        assert_eq!(state, State::Initialization);
+    }
+
+    #[test]
+    fn new_randomly_sampled() {
+        let block_type = BlockType::RandomlySampled {
+            block_rate: 1.0,
+            block_time: 12,
+            seed: 1,
+        };
+        let params = EnvironmentParameters {
+            label: TEST_ENV_LABEL.to_string(),
+            block_type,
+        };
+        let environment = Environment::new(params);
+        assert_eq!(environment.parameters.label, TEST_ENV_LABEL);
         let state = environment.state.load(std::sync::atomic::Ordering::SeqCst);
         assert_eq!(state, State::Initialization);
     }
@@ -496,8 +552,7 @@ pub(crate) mod tests {
     fn run() {
         let params = EnvironmentParameters {
             label: TEST_ENV_LABEL.to_string(),
-            block_rate: 1.0,
-            seed: 1,
+            block_type: BlockType::UserControlled,
         };
         let mut environment = Environment::new(params);
         environment.run();
@@ -506,7 +561,7 @@ pub(crate) mod tests {
     }
 
     #[test]
-    fn test_conversion() {
+    fn conversion() {
         // Test with a value that fits in u64.
         let input = U256::from(10000);
         assert_eq!(convert_uint_to_u64(input).unwrap(), U64::from(10000));
