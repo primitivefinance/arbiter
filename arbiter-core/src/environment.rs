@@ -357,9 +357,11 @@ impl Environment {
                                     // Update the block number and timestamp
                                     evm.env.block.number = block_number;
                                     evm.env.block.timestamp = block_timestamp;
-                                    outcome_sender.send(Ok(Outcome::BlockUpdated)).map_err(
-                                        |e| EnvironmentError::Communication(e.to_string()),
-                                    )?;
+                                    outcome_sender
+                                        .send(Ok(Outcome::BlockUpdateCompleted))
+                                        .map_err(|e| {
+                                            EnvironmentError::Communication(e.to_string())
+                                        })?;
                                 }
                                 // A `Call` is not state changing and will not create events.
                                 Instruction::Call {
@@ -440,6 +442,19 @@ impl Environment {
 /// [`Socket`].
 /// These instructions can be `Call`s, `Transaction`s, or `BlockUpdate`s.
 pub enum Instruction {
+    /// A `BlockUpdate` is used to update the block number and timestamp of the
+    /// [`EVM`].
+    BlockUpdate {
+        /// The block number to update the [`EVM`] to.
+        block_number: U256,
+
+        /// The block timestamp to update the [`EVM`] to.
+        block_timestamp: U256,
+
+        /// The sender used to to send the outcome of the block update back to.
+        outcome_sender: OutcomeSender,
+    },
+
     /// A `Call` is processed by the [`EVM`] but will not be state changing and
     /// will not create events.
     Call {
@@ -459,19 +474,6 @@ pub enum Instruction {
         /// The sender used to to send the outcome of the transaction back to.
         outcome_sender: OutcomeSender,
     },
-
-    /// A `BlockUpdate` is used to update the block number and timestamp of the
-    /// [`EVM`].
-    BlockUpdate {
-        /// The block number to update the [`EVM`] to.
-        block_number: U256,
-
-        /// The block timestamp to update the [`EVM`] to.
-        block_timestamp: U256,
-
-        /// The sender used to to send the outcome of the block update back to.
-        outcome_sender: OutcomeSender,
-    },
 }
 
 /// [`Outcome`]s that can be sent back to the the client via the
@@ -479,21 +481,21 @@ pub enum Instruction {
 /// These outcomes can be from `Call`, `Transaction`, or `BlockUpdate`
 /// instructions sent to the [`Environment`]
 pub enum Outcome {
+    /// The outcome of a `BlockUpdate` instruction that is used to provide a
+    /// non-error output of updating the block number and timestamp of the
+    /// [`EVM`] to the client.
+    BlockUpdateCompleted,
+
+    /// The outcome of a `Call` instruction that is used to provide the output
+    /// of some [`EVM`] computation to the client.
+    CallCompleted(ExecutionResult),
+
     // TODO: This top one should probably be a tuple variant that has any extra necessary stuff to
     // form a receipt so long as the transaction was successful
     /// The outcome of a `Transaction` instruction that is first unpacked to see
     /// if the result is successful, then it can be used to build a
     /// `TransactionReceipt` in the `Middleware`.
     TransactionCompleted(ExecutionResult, U64),
-
-    /// The outcome of a `Call` instruction that is used to provide the output
-    /// of some [`EVM`] computation to the client.
-    CallCompleted(ExecutionResult),
-
-    /// The outcome of a `BlockUpdate` instruction that is used to provide a
-    /// non-error output of updating the block number and timestamp of the
-    /// [`EVM`] to the client.
-    BlockUpdated,
 }
 /// Provides channels for communication between the EVM and external entities.
 ///
