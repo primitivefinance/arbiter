@@ -11,7 +11,7 @@ use std::collections::HashMap;
 use log::{info, warn};
 use thiserror::Error;
 
-use crate::environment::{Environment, State};
+use crate::environment::{Environment, EnvironmentParameters, State};
 #[cfg_attr(doc, doc(hidden))]
 #[cfg_attr(doc, allow(unused_imports))]
 #[cfg(doc)]
@@ -96,11 +96,7 @@ impl Manager {
     ///
     /// - `environment_label`: The label (identifier) to be used for the
     ///   environment.
-    /// - `block_rate`: The mean of the rate at which the environment will
-    ///   process blocks (e.g., the rate parameter in the Poisson distribution
-    ///   used in the [`SeededPoisson`] field of an [`Environment`]).
-    /// - /// - `seed`: A value chosen to generate randomly chosen block sizes
-    ///  for the environment.
+    /// - `params`: Parameters required to initialize the environment.
     ///
     /// # Returns
     ///
@@ -111,31 +107,33 @@ impl Manager {
     /// # Examples
     ///
     /// ```rust
-    /// use arbiter_core::manager::Manager;
+    /// use arbiter_core::{
+    ///     environment::{BlockType, EnvironmentParameters},
+    ///     manager::Manager,
+    /// };
     ///
     /// let mut manager = Manager::new();
-    /// manager.add_environment("example_env", 1.0, 42).unwrap();
+    /// let params = EnvironmentParameters {
+    ///     label: "example_env".to_string(),
+    ///     block_type: BlockType::RandomlySampled {
+    ///         block_rate: 1.0,
+    ///         block_time: 12,
+    ///         seed: 1,
+    ///     },
+    /// };
+    /// manager.add_environment(params).unwrap();
     /// ```
-    pub fn add_environment<S: Into<String> + Clone>(
-        &mut self,
-        environment_label: S,
-        block_rate: f64,
-        seed: u64,
-    ) -> Result<(), ManagerError> {
-        if self
-            .environments
-            .get(&environment_label.clone().into())
-            .is_some()
-        {
-            return Err(ManagerError::EnvironmentAlreadyExists(
-                environment_label.into(),
-            ));
+    pub fn add_environment(&mut self, params: EnvironmentParameters) -> Result<(), ManagerError> {
+        let environment_label = params.label.clone();
+
+        if self.environments.contains_key(&environment_label) {
+            return Err(ManagerError::EnvironmentAlreadyExists(environment_label));
         }
-        self.environments.insert(
-            environment_label.clone().into(),
-            Environment::new(environment_label.clone(), block_rate, seed),
-        );
-        info!("Added environment labeled {}", environment_label.into());
+
+        self.environments
+            .insert(environment_label.clone(), Environment::new(params));
+
+        info!("Added environment labeled {}", environment_label);
         Ok(())
     }
 
@@ -163,10 +161,21 @@ impl Manager {
     /// # Examples
     ///
     /// ```rust
-    /// use arbiter_core::manager::Manager;
+    /// use arbiter_core::{
+    ///     environment::{BlockType, EnvironmentParameters},
+    ///     manager::Manager,
+    /// };
     ///
     /// let mut manager = Manager::new();
-    /// manager.add_environment("example_env", 1.0, 42).unwrap();
+    /// let params = EnvironmentParameters {
+    ///     label: "example_env".to_string(),
+    ///     block_type: BlockType::RandomlySampled {
+    ///         block_rate: 1.0,
+    ///         block_time: 12,
+    ///         seed: 1,
+    ///     },
+    /// };
+    /// manager.add_environment(params).unwrap();
     ///
     /// // Now, let's start the environment
     /// manager.start_environment("example_env").unwrap();
@@ -234,10 +243,21 @@ impl Manager {
     /// # Examples
     ///
     /// ```rust
-    /// use arbiter_core::manager::Manager;
+    /// use arbiter_core::{
+    ///     environment::{BlockType, EnvironmentParameters},
+    ///     manager::Manager,
+    /// };
     ///
     /// let mut manager = Manager::new();
-    /// manager.add_environment("example_env", 1.0, 42).unwrap();
+    /// let params = EnvironmentParameters {
+    ///     label: "example_env".to_string(),
+    ///     block_type: BlockType::RandomlySampled {
+    ///         block_rate: 1.0,
+    ///         block_time: 12,
+    ///         seed: 1,
+    ///     },
+    /// };
+    /// manager.add_environment(params).unwrap();
     /// manager.start_environment("example_env").unwrap();
     ///
     /// // Now, let's pause the environment
@@ -301,10 +321,21 @@ impl Manager {
     /// # Examples
     ///
     /// ```rust
-    /// use arbiter_core::manager::Manager;
+    /// use arbiter_core::{
+    ///     environment::{BlockType, EnvironmentParameters},
+    ///     manager::Manager,
+    /// };
     ///
     /// let mut manager = Manager::new();
-    /// manager.add_environment("example_env", 1.0, 42).unwrap();
+    /// let params = EnvironmentParameters {
+    ///     label: "example_env".to_string(),
+    ///     block_type: BlockType::RandomlySampled {
+    ///         block_rate: 1.0,
+    ///         block_time: 12,
+    ///         seed: 1,
+    ///     },
+    /// };
+    /// manager.add_environment(params).unwrap();
     /// manager.start_environment("example_env").unwrap();
     ///
     /// // Now, let's stop the environment

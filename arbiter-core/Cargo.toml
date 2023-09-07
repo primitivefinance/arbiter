@@ -1,6 +1,6 @@
 [package]
 name = "arbiter-core"
-version = "0.3.1"
+version = "0.4.2"
 edition = "2021"
 
 # Dependencies for the release build
@@ -26,7 +26,7 @@ futures-timer = "3.0.2"
 rand = "0.8.5"
 rand_distr = "0.4.3"
 statrs = "0.16.0"
-RustQuant = "*"
+RustQuant = { version = "0.0.26", features = ["seedable"]}
 
 # Errors
 thiserror = "1.0.30"
@@ -42,3 +42,10 @@ anyhow = "1.0.71"
 env_logger = "0.10.0"
 test-log = "0.2.12"
 
+futures = "0.3.28"
+assert_matches = "1.5"
+
+[[bench]]
+name = "bench"
+path = "benches/bench.rs"
+harness = false

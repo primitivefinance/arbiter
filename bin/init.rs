@@ -56,6 +56,29 @@ pub(crate) fn init_project(name: &str) -> io::Result<()> {
         ));
     }
 
+    let output = Command::new("forge")
+        .arg("bind")
+        .arg("--revert-strings")
+        .arg("debug")
+        .arg("-b")
+        .arg("src/bindings/")
+        .arg("--module")
+        .arg("--overwrite")
+        .output()?;
+
+    if output.status.success() {
+        let output_str = String::from_utf8_lossy(&output.stdout);
+        println!("Command output: {}", output_str);
+        println!("Note: revert strings are on");
+    } else {
+        let err_str = String::from_utf8_lossy(&output.stderr);
+        println!("Command failed, error: {}, is forge installed?", err_str);
+        return Err(std::io::Error::new(
+            std::io::ErrorKind::Other,
+            "Command failed",
+        ));
+    }
+
     println!(
         "Your Arbiter project '{}' has been successfully initialized!",
         name

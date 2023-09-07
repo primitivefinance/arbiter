@@ -11,7 +11,6 @@
 
 #![warn(missing_docs)]
 
-// TODO: Check the publicness of all structs and functions.
 use std::{
     collections::HashMap,
     fmt::Debug,
@@ -46,7 +45,8 @@ use serde::{de::DeserializeOwned, Serialize};
 use thiserror::Error;
 
 use crate::environment::{
-    Environment, EventBroadcaster, ResultReceiver, ResultSender, TransactionOutcome, TxSender,
+    Environment, EventBroadcaster, Instruction, InstructionSender, Outcome, OutcomeReceiver,
+    OutcomeSender,
 };
 
 /// A middleware structure that integrates with `revm`.
@@ -67,11 +67,23 @@ use crate::environment::{
 /// // Import `Arc` if you need to create a client instance
 /// use std::sync::Arc;
 ///
-/// use arbiter_core::{manager::Manager, middleware::RevmMiddleware};
+/// use arbiter_core::{
+///     environment::{BlockType, EnvironmentParameters},
+///     manager::Manager,
+///     middleware::RevmMiddleware,
+/// };
 ///
 /// // Create a manager and add an environment
 /// let mut manager = Manager::new();
-/// manager.add_environment("example_env", 1.0, 42).unwrap();
+/// let params = EnvironmentParameters {
+///     label: "example_env".to_string(),
+///     block_type: BlockType::RandomlySampled {
+///         block_rate: 1.0,
+///         block_time: 12,
+///         seed: 1,
+///     },
+/// };
+/// manager.add_environment(params).unwrap();
 ///
 /// // Retrieve the environment to create a new middleware instance
 /// let environment = manager.environments.get("example_env").unwrap();
@@ -99,6 +111,10 @@ pub struct RevmMiddleware {
 /// [GitHub](https://github.com/primitivefinance/arbiter/).
 #[derive(Error, Debug)]
 pub enum RevmMiddlewareError {
+    /// An error occurred while attempting to interact with the environment.
+    #[error("an error came from the environment! due to: {0}")]
+    Environment(#[from] crate::environment::EnvironmentError),
+
     /// An error occurred while attempting to send a transaction.
     #[error("failed to send transaction! due to: {0}")]
     Send(String),
@@ -106,7 +122,7 @@ pub enum RevmMiddlewareError {
     /// There was an issue receiving an [`ExecutionResult`], possibly from
     /// another service or module.
     #[error("failed to receive `ExecutionResult`! due to: {0}")]
-    Receive(String),
+    Receive(#[from] crossbeam_channel::RecvError),
 
     /// There was a failure trying to obtain a lock on the [`EventBroadcaster`],
     /// possibly due to concurrency issues.
@@ -167,10 +183,22 @@ impl RevmMiddleware {
     ///
     /// # Examples
     /// ```
-    /// use arbiter_core::{manager::Manager, middleware::RevmMiddleware};
+    /// use arbiter_core::{
+    ///     environment::{BlockType, EnvironmentParameters},
+    ///     manager::Manager,
+    ///     middleware::RevmMiddleware,
+    /// };
     ///
     /// let mut manager = Manager::new();
-    /// manager.add_environment("example_env", 1.0, 42).unwrap();
+    /// let params = EnvironmentParameters {
+    ///     label: "example_env".to_string(),
+    ///     block_type: BlockType::RandomlySampled {
+    ///         block_rate: 1.0,
+    ///         block_time: 12,
+    ///         seed: 1,
+    ///     },
+    /// };
+    /// manager.add_environment(params).unwrap();
     /// let environment = manager.environments.get("example_env").unwrap();
     /// let middleware = RevmMiddleware::new(&environment, Some("test_label".to_string()));
     ///
@@ -180,12 +208,12 @@ impl RevmMiddleware {
     /// Use a seed if you want to have a constant address across simulations as
     /// well as a label for a client. This can be useful for debugging.
     pub fn new(environment: &Environment, seed_and_label: Option<String>) -> Self {
-        let tx_sender = environment.socket.tx_sender.clone();
-        let (result_sender, result_receiver) = crossbeam_channel::unbounded();
+        let instruction_sender = environment.socket.instruction_sender.clone();
+        let (outcome_sender, outcome_receiver) = crossbeam_channel::unbounded();
         let connection = Connection {
-            tx_sender,
-            result_sender,
-            result_receiver,
+            instruction_sender,
+            outcome_sender,
+            outcome_receiver,
             event_broadcaster: Arc::clone(&environment.socket.event_broadcaster),
             filter_receivers: Arc::new(tokio::sync::Mutex::new(HashMap::new())),
             environment_state: Arc::clone(&environment.state),
@@ -203,6 +231,31 @@ impl RevmMiddleware {
             let wallet = Wallet::new(&mut rng);
             Self { provider, wallet }
         }
+    }
+
+    /// Allows the user to update the block number and timestamp of the
+    /// [`Environment`] to whatever they may choose at any time.
+    /// This can only be done when the [`Environment`] has
+    /// [`EnvironmentParameters`] `block_type` field set to
+    /// [`BlockType::UserControlled`].
+    pub fn update_block(
+        &self,
+        block_number: impl Into<ethers::types::U256>,
+        block_timestamp: impl Into<ethers::types::U256>,
+    ) -> Result<(), RevmMiddlewareError> {
+        let block_number: ethers::types::U256 = block_number.into();
+        let block_timestamp: ethers::types::U256 = block_timestamp.into();
+        let provider = self.provider.as_ref();
+        provider
+            .instruction_sender
+            .send(Instruction::BlockUpdate {
+                block_number: block_number.into(),
+                block_timestamp: block_timestamp.into(),
+                outcome_sender: provider.outcome_sender.clone(),
+            })
+            .map_err(|e| RevmMiddlewareError::Send(e.to_string()))?;
+        provider.outcome_receiver.recv()??;
+        Ok(())
     }
 }
 
@@ -280,34 +333,92 @@ impl Middleware for RevmMiddleware {
             nonce: None,
             access_list: Vec::new(),
         };
+        let instruction = Instruction::Transaction {
+            tx_env,
+            outcome_sender: self.provider.as_ref().outcome_sender.clone(),
+        };
         self.provider()
             .as_ref()
-            .tx_sender
-            .send((
-                true,
-                tx_env.clone(),
-                self.provider().as_ref().result_sender.clone(),
-            ))
+            .instruction_sender
+            .send(instruction)
             .map_err(|e| RevmMiddlewareError::Send(e.to_string()))?;
 
-        let revm_result = self
-            .provider()
-            .as_ref()
-            .result_receiver
-            .recv()
-            .map_err(|e| RevmMiddlewareError::Receive(e.to_string()))?;
+        let outcome = self.provider().as_ref().outcome_receiver.recv()??;
 
-        match revm_result.outcome {
-            TransactionOutcome::Success(execution_result) => {
-                let Success { logs, output, .. } = unpack_execution_result(execution_result)?;
-                let block_number = revm_result.block_number;
+        // match revm_result.outcome {
+        //     TransactionOutcome::Success(execution_result) => {
+        //         let Success { logs, output, .. } = unpack_execution_result(execution_result)?;
+        //         let block_number = revm_result.block_number;
 
-                match output {
-                    Output::Create(_, address) => {
+        //         match output {
+        //             Output::Create(_, address) => {
+        //                 let tx_receipt = TransactionReceipt {
+        //                     block_hash: None,
+        //                     block_number: Some(block_number),
+        //                     contract_address: Some(recast_address(address.unwrap())),
+        //                     ..Default::default()
+        //                 };
+
+        //                 // TODO: Create the actual tx_hash
+        //                 // TODO: I'm not sure we need to set the confirmations.
+        //                 let mut pending_tx =
+        //                     PendingTransaction::new(ethers::types::H256::zero(), self.provider())
+        //                         .interval(Duration::ZERO)
+        //                         .confirmations(0);
+
+        //                 let state_ptr: *mut PendingTxState =
+        //                     &mut pending_tx as *mut _ as *mut PendingTxState;
+
+        //                 // Modify the value (this assumes you have access to the enum variants)
+        //                 unsafe {
+        //                     *state_ptr = PendingTxState::CheckingReceipt(Some(tx_receipt));
+        //                 }
+
+        //                 Ok(pending_tx)
+        //             }
+        //             Output::Call(_) => {
+        //                 let block_number = revm_result.block_number;
+        //                 let tx_receipt = TransactionReceipt {
+        //                     block_hash: None,
+        //                     block_number: Some(block_number),
+        //                     logs,
+        //                     ..Default::default()
+        //                 };
+
+        //                 // TODO: Create the actual tx_hash
+        //                 // TODO: I'm not sure we need to set the confirmations.
+        //                 let mut pending_tx =
+        //                     PendingTransaction::new(ethers::types::H256::zero(), self.provider())
+        //                         .interval(Duration::ZERO)
+        //                         .confirmations(0);
+
+        //                 let state_ptr: *mut PendingTxState =
+        //                     &mut pending_tx as *mut _ as *mut PendingTxState;
+
+        //                 // Modify the value (this assumes you have access to the enum variants)
+        //                 unsafe {
+        //                     *state_ptr = PendingTxState::CheckingReceipt(Some(tx_receipt));
+        //                 }
+
+        //                 Ok(pending_tx)
+        //             }
+        if let Outcome::TransactionCompleted(execution_result, block_number) = outcome {
+            let Success {
+                _reason: _,
+                _gas_used: _,
+                _gas_refunded: _,
+                logs,
+                output,
+            } = unpack_execution_result(execution_result)?;
+
+            match output {
+                  Output::Create(_, address) => {
+                        // TODO: Add other reciept fields
                         let tx_receipt = TransactionReceipt {
                             block_hash: None,
                             block_number: Some(block_number),
                             contract_address: Some(recast_address(address.unwrap())),
+                            logs,
                             ..Default::default()
                         };
 
@@ -327,9 +438,9 @@ impl Middleware for RevmMiddleware {
                         }
 
                         Ok(pending_tx)
-                    }
-                    Output::Call(_) => {
-                        let block_number = revm_result.block_number;
+                }
+                Output::Call(_) => {
+                        // TODO: Add other reciept fields
                         let tx_receipt = TransactionReceipt {
                             block_hash: None,
                             block_number: Some(block_number),
@@ -353,18 +464,10 @@ impl Middleware for RevmMiddleware {
                         }
 
                         Ok(pending_tx)
-                    }
-                }
+                },
             }
-            TransactionOutcome::Error(err) => {
-                return Err(RevmMiddlewareError::Receive(
-                    format!(
-                        "Error recieving response from the environement with environment error: {}",
-                        err
-                    )
-                    .to_string(),
-                ));
-            }
+        } else {
+            panic!("This should never happen!")
         }
     }
 
@@ -417,43 +520,29 @@ impl Middleware for RevmMiddleware {
             nonce: None,
             access_list: Vec::new(),
         };
+        let instruction = Instruction::Call {
+            tx_env,
+            outcome_sender: self.provider().as_ref().outcome_sender.clone(),
+        };
         self.provider()
             .as_ref()
-            .tx_sender
-            .send((
-                false,
-                tx_env.clone(),
-                self.provider().as_ref().result_sender.clone(),
-            ))
+            .instruction_sender
+            .send(instruction)
             .map_err(|e| RevmMiddlewareError::Send(e.to_string()))?;
-        let revm_result = self
-            .provider()
-            .as_ref()
-            .result_receiver
-            .recv()
-            .map_err(|e| RevmMiddlewareError::Receive(e.to_string()))?;
+        let outcome = self.provider().as_ref().outcome_receiver.recv()??;
 
-        match revm_result.outcome {
-            TransactionOutcome::Success(execution_result) => {
-                let output = unpack_execution_result(execution_result)?.output;
-                match output {
-                    Output::Create(bytes, ..) => {
-                        return Ok(Bytes::from(bytes.to_vec()));
-                    }
-                    Output::Call(bytes) => {
-                        return Ok(Bytes::from(bytes.to_vec()));
-                    }
+        if let Outcome::CallCompleted(execution_result) = outcome {
+            let output = unpack_execution_result(execution_result)?.output;
+            match output {
+                Output::Create(bytes, ..) => {
+                    return Ok(Bytes::from(bytes.to_vec()));
+                }
+                Output::Call(bytes) => {
+                    return Ok(Bytes::from(bytes.to_vec()));
                 }
             }
-            TransactionOutcome::Error(err) => {
-                return Err(RevmMiddlewareError::Receive(
-                    format!(
-                        "Error recieving response from the environement with environment error: {}",
-                        err
-                    )
-                    .to_string(),
-                ));
-            }
+        } else {
+            panic!("This should never happen!")
         }
     }
 
@@ -476,7 +565,7 @@ impl Middleware for RevmMiddleware {
         };
         let filter = args.clone();
         let mut hasher = Sha256::new();
-        hasher.update(serde_json::to_string(&args).map_err(|e| RevmMiddlewareError::Json(e))?);
+        hasher.update(serde_json::to_string(&args).map_err(RevmMiddlewareError::Json)?);
         let hash = hasher.finalize();
         let id = ethers::types::U256::from(ethers::types::H256::from_slice(&hash).as_bytes());
         let (event_sender, event_receiver) =
@@ -524,17 +613,17 @@ impl Middleware for RevmMiddleware {
 pub struct Connection {
     /// Used to send calls and transactions to the [`Environment`] to be
     /// executed by `revm`.
-    tx_sender: TxSender,
+    instruction_sender: InstructionSender,
 
     /// Used to send results back to a client that made a call/transaction with
     /// the [`Environment`]. This [`ResultSender`] is passed along with a
     /// call/transaction so the [`Environment`] can reply back with the
     /// [`ExecutionResult`].
-    result_sender: ResultSender,
+    outcome_sender: OutcomeSender,
 
     /// Used to receive the [`ExecutionResult`] from the [`Environment`] upon
     /// call/transact.
-    result_receiver: ResultReceiver,
+    outcome_receiver: OutcomeReceiver,
 
     /// A reference to the [`EventBroadcaster`] so that more receivers of the
     /// broadcast can be taken from it.
@@ -569,13 +658,13 @@ impl JsonRpcClient for Connection {
                 let value = serde_json::to_value(&params)?;
 
                 // Take this value as an array then cast it to a string
-                let str = value.as_array().ok_or(ProviderError::CustomError(format!(
+                let str = value.as_array().ok_or(ProviderError::CustomError(
                     "The params value passed to the `Connection` via a `request` was empty. 
-                    This is likely due to not specifying a specific `Filter` ID!"
-                )))?[0]
-                    .as_str().ok_or(ProviderError::CustomError(format!(
-                        "The params value passed to the `Connection` via a `request` could not be later cast to `str`!"
-                    )))?;
+                    This is likely due to not specifying a specific `Filter` ID!".to_string()
+                ))?[0]
+                    .as_str().ok_or(ProviderError::CustomError(
+                        "The params value passed to the `Connection` via a `request` could not be later cast to `str`!".to_string()
+                    ))?;
 
                 // Now get the `U256` ID via the string decoded from hex radix.
                 let id = ethers::types::U256::from_str_radix(str, 16)
@@ -588,9 +677,10 @@ impl JsonRpcClient for Connection {
                 let filter_receiver =
                     filter_receivers
                         .get_mut(&id)
-                        .ok_or(ProviderError::CustomError(format!(
+                        .ok_or(ProviderError::CustomError(
                             "The filter ID does not seem to match any that this client owns!"
-                        )))?;
+                                .to_string(),
+                        ))?;
                 let mut logs = vec![];
                 let filtered_params = FilteredParams::new(Some(filter_receiver.filter.clone()));
                 if let Ok(received_logs) = filter_receiver.receiver.recv() {
