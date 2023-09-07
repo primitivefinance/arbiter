@@ -47,7 +47,7 @@ pub const ARBITER_TOKEN_Y_DECIMALS: u8 = 18;
 
 pub const LIQUID_EXCHANGE_PRICE: f64 = 420.69;
 
-fn startup() -> Result<(Manager, Arc<RevmMiddleware>)> {
+fn startup_randomly_sampled() -> Result<(Manager, Arc<RevmMiddleware>)> {
     let mut manager = Manager::new();
     let params = EnvironmentParameters {
         label: TEST_ENV_LABEL.to_string(),
@@ -56,6 +56,22 @@ fn startup() -> Result<(Manager, Arc<RevmMiddleware>)> {
             block_time: TEST_BLOCK_TIME,
             seed: TEST_ENV_SEED,
         },
+    };
+    manager.add_environment(params).unwrap();
+    let environment = manager.environments.get(TEST_ENV_LABEL).unwrap();
+    let client = Arc::new(RevmMiddleware::new(
+        environment,
+        Some(TEST_SIGNER_SEED_AND_LABEL.to_string()),
+    ));
+    manager.start_environment(TEST_ENV_LABEL)?;
+    Ok((manager, client))
+}
+
+fn startup_user_controlled() -> Result<(Manager, Arc<RevmMiddleware>)> {
+    let mut manager = Manager::new();
+    let params = EnvironmentParameters {
+        label: TEST_ENV_LABEL.to_string(),
+        block_type: BlockType::UserControlled,
     };
     manager.add_environment(params).unwrap();
     let environment = manager.environments.get(TEST_ENV_LABEL).unwrap();

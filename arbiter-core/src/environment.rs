@@ -345,9 +345,11 @@ impl Environment {
                                     outcome_sender,
                                 } => {
                                     if block_type != BlockType::UserControlled {
-                                        outcome_sender.send(Err(
-                                            EnvironmentError::NotUserControlledBlockType,
-                                        ));
+                                        outcome_sender
+                                            .send(Err(EnvironmentError::NotUserControlledBlockType))
+                                            .map_err(|e| {
+                                                EnvironmentError::Communication(e.to_string())
+                                            })?;
                                     }
                                     // Update the block number and timestamp
                                     evm.env.block.number = block_number;

@@ -4,7 +4,7 @@ use super::*;
 
 #[tokio::test]
 async fn arbiter_math() {
-    let (_manager, client) = startup().unwrap();
+    let (_manager, client) = startup_randomly_sampled().unwrap();
     let arbiter_math = deploy_arbiter_math(client).await.unwrap();
 
     // Test the cdf function
@@ -114,7 +114,7 @@ async fn arbiter_math() {
 // relevant ERC20 functions (e.g., transfer, approve, etc.).
 #[tokio::test]
 async fn token_mint_and_balance() {
-    let (_manager, client) = startup().unwrap();
+    let (_manager, client) = startup_randomly_sampled().unwrap();
     let arbx = deploy_arbx(client.clone()).await.unwrap();
 
     // Mint some tokens to the client.
@@ -141,7 +141,7 @@ async fn token_mint_and_balance() {
 
 #[tokio::test]
 async fn liquid_exchange_swap() {
-    let (_manager, client) = startup().unwrap();
+    let (_manager, client) = startup_randomly_sampled().unwrap();
     let (arbx, arby, liquid_exchange) = deploy_liquid_exchange(client.clone()).await.unwrap();
 
     // Mint tokens to the client then check balances.
@@ -283,7 +283,7 @@ async fn liquid_exchange_swap() {
 
 #[tokio::test]
 async fn price_simulation_oracle() {
-    let (_manager, client) = startup().unwrap();
+    let (_manager, client) = startup_randomly_sampled().unwrap();
     let (.., liquid_exchange) = deploy_liquid_exchange(client.clone()).await.unwrap();
 
     let price_path = vec![

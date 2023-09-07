@@ -39,7 +39,9 @@ use ethers::{
     },
 };
 use rand::rngs;
-use revm::primitives::{CreateScheme, ExecutionResult, Output, TransactTo, TxEnv, B160, U256};
+use revm::primitives::{
+    ruint::UintTryFrom, CreateScheme, ExecutionResult, Output, TransactTo, TxEnv, B160, U256,
+};
 use serde::{de::DeserializeOwned, Serialize};
 use thiserror::Error;
 
@@ -235,16 +237,18 @@ impl RevmMiddleware {
 
     pub fn update_block(
         &self,
-        block_number: U256,
-        block_timestamp: U256,
+        block_number: impl Into<ethers::types::U256>,
+        block_timestamp: impl Into<ethers::types::U256>,
     ) -> Result<(), RevmMiddlewareError> {
+        let block_number: ethers::types::U256 = block_number.into();
+        let block_timestamp: ethers::types::U256 = block_timestamp.into();
         let provider = self.provider.as_ref();
         provider.instruction_sender.send(Instruction::BlockUpdate {
-            block_number,
-            block_timestamp,
+            block_number: block_number.into(),
+            block_timestamp: block_timestamp.into(),
             outcome_sender: provider.outcome_sender.clone(),
         });
-        provider.outcome_receiver.recv()?;
+        provider.outcome_receiver.recv()??;
         Ok(())
     }
 }

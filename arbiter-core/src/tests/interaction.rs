@@ -11,7 +11,7 @@ use crate::bindings::arbiter_math::ArbiterMath;
 
 #[tokio::test]
 async fn deploy() {
-    let (_manager, client) = startup().unwrap();
+    let (_manager, client) = startup_randomly_sampled().unwrap();
     let arbiter_token = deploy_arbx(client).await.unwrap();
     println!("{:?}", arbiter_token);
     assert_eq!(
@@ -22,7 +22,7 @@ async fn deploy() {
 
 #[tokio::test]
 async fn call() {
-    let (_manager, client) = startup().unwrap();
+    let (_manager, client) = startup_randomly_sampled().unwrap();
     let arbiter_token = deploy_arbx(client).await.unwrap();
     let admin = arbiter_token.admin();
     let output = admin.call().await.unwrap();
@@ -34,7 +34,7 @@ async fn call() {
 
 #[tokio::test]
 async fn transact() {
-    let (_manager, client) = startup().unwrap();
+    let (_manager, client) = startup_randomly_sampled().unwrap();
     let arbiter_token = deploy_arbx(client).await.unwrap();
     let mint = arbiter_token.mint(
         Address::from_str(TEST_MINT_TO).unwrap(),
@@ -68,7 +68,7 @@ async fn transact() {
 
 #[tokio::test]
 async fn filter_id() {
-    let (_manager, client) = startup().unwrap();
+    let (_manager, client) = startup_randomly_sampled().unwrap();
     let arbiter_token = deploy_arbx(client.clone()).await.unwrap();
     let filter_watcher_1 = client.watch(&Filter::default()).await.unwrap();
     let filter_watcher_2 = client
@@ -80,7 +80,7 @@ async fn filter_id() {
 
 #[tokio::test]
 async fn filter_watcher() {
-    let (_manager, client) = startup().unwrap();
+    let (_manager, client) = startup_randomly_sampled().unwrap();
     let arbiter_token = deploy_arbx(client.clone()).await.unwrap();
     let mut filter_watcher = client.watch(&Filter::default()).await.unwrap();
     let approval = arbiter_token.approve(
@@ -124,7 +124,7 @@ async fn filter_watcher() {
 
 #[tokio::test]
 async fn filter_address() {
-    let (_manager, client) = startup().unwrap();
+    let (_manager, client) = startup_randomly_sampled().unwrap();
     let arbiter_token = deploy_arbx(client.clone()).await.unwrap();
 
     let mut default_watcher = client.watch(&Filter::default()).await.unwrap();
@@ -187,7 +187,7 @@ async fn filter_address() {
 
 #[tokio::test]
 async fn filter_topics() {
-    let (_manager, client) = startup().unwrap();
+    let (_manager, client) = startup_randomly_sampled().unwrap();
     let arbiter_token = deploy_arbx(client.clone()).await.unwrap();
 
     let mut default_watcher = client.watch(&Filter::default()).await.unwrap();
@@ -234,7 +234,7 @@ async fn filter_topics() {
 // after the expected number of transactions is reached.
 #[tokio::test]
 async fn transaction_loop() {
-    let (manager, client) = startup().unwrap();
+    let (manager, client) = startup_randomly_sampled().unwrap();
     // tx_0 is the transaction that creates the token contract
     let arbiter_token = deploy_arbx(client.clone()).await.unwrap();
 
@@ -278,7 +278,7 @@ async fn transaction_loop() {
 
 #[tokio::test]
 async fn pause_prevents_processing_transactions() {
-    let (mut manager, client) = startup().unwrap();
+    let (mut manager, client) = startup_randomly_sampled().unwrap();
 
     // Send a tx and check it works (it should)
     let arbiter_math_1 = ArbiterMath::deploy(client.clone(), ())
@@ -305,4 +305,32 @@ async fn pause_prevents_processing_transactions() {
         .send()
         .await;
     assert!(arbiter_math_2.is_ok());
+}
+
+// TODO: We can probably just implement RPC requests for these instead.
+#[tokio::test]
+async fn update_block() {
+    let (_manager, client) = startup_user_controlled().unwrap();
+    let block_info = crate::bindings::block_info::BlockInfo::deploy(client.clone(), ())
+        .unwrap()
+        .send()
+        .await
+        .unwrap();
+
+    let block_number = block_info.get_block_number().call().await.unwrap();
+    assert_eq!(block_number, ethers::types::U256::from(0));
+    let block_timestamp = block_info.get_block_timestamp().call().await.unwrap();
+    assert_eq!(block_timestamp, ethers::types::U256::from(1));
+
+    let new_block_number = 69;
+    let new_block_timestamp = 420;
+
+    assert!(client
+        .update_block(new_block_number, new_block_timestamp,)
+        .is_ok());
+
+    let block_number = block_info.get_block_number().call().await.unwrap();
+    assert_eq!(block_number, new_block_number.into());
+    let block_timestamp = block_info.get_block_timestamp().call().await.unwrap();
+    assert_eq!(block_timestamp, new_block_timestamp.into());
 }

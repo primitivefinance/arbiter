@@ -28,7 +28,7 @@ fn add_environment() {
 
 #[test_log::test]
 fn run_environment() {
-    let (manager, _client) = startup().unwrap();
+    let (manager, _client) = startup_randomly_sampled().unwrap();
     assert_eq!(
         manager
             .environments
@@ -42,7 +42,7 @@ fn run_environment() {
 
 #[test_log::test]
 fn pause_environment() {
-    let (mut manager, _client) = startup().unwrap();
+    let (mut manager, _client) = startup_randomly_sampled().unwrap();
 
     manager.pause_environment(TEST_ENV_LABEL).unwrap();
     std::thread::sleep(std::time::Duration::from_millis(100));
@@ -70,7 +70,7 @@ fn pause_environment() {
 
 #[test_log::test]
 fn stop_environment() {
-    let (mut manager, _client) = startup().unwrap();
+    let (mut manager, _client) = startup_randomly_sampled().unwrap();
 
     manager.stop_environment(TEST_ENV_LABEL).unwrap();
     assert_eq!(
@@ -86,7 +86,7 @@ fn stop_environment() {
 
 #[tokio::test]
 async fn stop_environment_after_transactions() {
-    let (mut manager, client) = startup().unwrap();
+    let (mut manager, client) = startup_randomly_sampled().unwrap();
     ArbiterMath::deploy(client, ())
         .unwrap()
         .send()

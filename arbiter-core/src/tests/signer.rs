@@ -4,7 +4,7 @@ use super::*;
 
 #[test]
 fn simulation_signer() -> Result<()> {
-    let (_manager, client) = startup()?;
+    let (_manager, client) = startup_randomly_sampled()?;
     assert_eq!(
         client.default_sender().unwrap(),
         Address::from_str("0x2efdc9eecfee3a776209fcb8e9a83a6b221d74f5").unwrap()
