@@ -348,7 +348,7 @@ impl Middleware for RevmMiddleware {
         if let Outcome::TransactionCompleted(execution_result, block_number) = outcome {
             let Success {
                 _reason: _,
-                _gas_used: _,
+                _gas_used: gas_used,
                 _gas_refunded: _,
                 logs,
                 output,
@@ -362,6 +362,8 @@ impl Middleware for RevmMiddleware {
                         block_number: Some(block_number),
                         contract_address: Some(recast_address(address.unwrap())),
                         logs,
+                        from: self.provider.default_sender().unwrap(),
+                        gas_used: Some(gas_used.into()),
                         ..Default::default()
                     };
 
@@ -388,6 +390,9 @@ impl Middleware for RevmMiddleware {
                         block_hash: None,
                         block_number: Some(block_number),
                         logs,
+                        from: self.provider.default_sender().unwrap(),
+                        gas_used: Some(gas_used.into()),
+                        // need to add the effective gas price
                         ..Default::default()
                     };
 
@@ -641,7 +646,7 @@ impl JsonRpcClient for Connection {
                 let logs_deserializeowned: R = serde_json::from_str(&logs_str)?;
                 return Ok(logs_deserializeowned);
             }
-            var @ _ => {
+            var => {
                 unimplemented!("We don't cover this case yet: {}", var);
             }
         }
