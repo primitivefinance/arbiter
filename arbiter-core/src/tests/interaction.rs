@@ -3,44 +3,44 @@ use std::{
     task::{Context, Poll},
 };
 
-use anyhow::Ok;
 use assert_matches::assert_matches;
-use futures::stream::Stream;
+use futures::{Stream, StreamExt};
 
 use super::*;
 use crate::bindings::arbiter_math::ArbiterMath;
 
 #[tokio::test]
-async fn deploy() -> Result<()> {
-    let (arbiter_token, _environment, _) = deploy_and_start().await?;
+async fn deploy() {
+    let (_manager, client) = startup_randomly_sampled().unwrap();
+    let arbiter_token = deploy_arbx(client).await.unwrap();
     println!("{:?}", arbiter_token);
     assert_eq!(
         arbiter_token.address(),
         Address::from_str("0x067ea9e44c76a2620f10b39a1b51d5124a299192").unwrap()
     );
-    Ok(())
 }
 
 #[tokio::test]
-async fn call() -> Result<()> {
-    let (arbiter_token, _, _client) = deploy_and_start().await?;
+async fn call() {
+    let (_manager, client) = startup_randomly_sampled().unwrap();
+    let arbiter_token = deploy_arbx(client).await.unwrap();
     let admin = arbiter_token.admin();
-    let output = admin.call().await?;
+    let output = admin.call().await.unwrap();
     assert_eq!(
         output,
-        Address::from_str("0x2efdc9eecfee3a776209fcb8e9a83a6b221d74f5")?
+        Address::from_str("0x2efdc9eecfee3a776209fcb8e9a83a6b221d74f5").unwrap()
     );
-    Ok(())
 }
 
 #[tokio::test]
-async fn transact() -> Result<()> {
-    let (arbiter_token, _, _) = deploy_and_start().await?;
+async fn transact() {
+    let (_manager, client) = startup_randomly_sampled().unwrap();
+    let arbiter_token = deploy_arbx(client).await.unwrap();
     let mint = arbiter_token.mint(
         Address::from_str(TEST_MINT_TO).unwrap(),
         ethers::types::U256::from(TEST_MINT_AMOUNT),
     );
-    let receipt = mint.send().await?.await?.unwrap();
+    let receipt = mint.send().await.unwrap().await.unwrap().unwrap();
     assert_eq!(receipt.logs[0].address, arbiter_token.address());
     let topics = vec![
         ethers::core::types::H256::from_str(
@@ -57,35 +57,37 @@ async fn transact() -> Result<()> {
         .unwrap(),
     ];
     assert_eq!(receipt.logs[0].topics, topics);
-    let bytes = hex::decode("0000000000000000000000000000000000000000000000000000000000000045")?;
+    let bytes =
+        hex::decode("0000000000000000000000000000000000000000000000000000000000000045").unwrap();
     assert_eq!(
         receipt.logs[0].data,
         ethers::core::types::Bytes::from(bytes)
     );
     println!("logs are: {:#?}", receipt.logs);
-    Ok(())
 }
 
 #[tokio::test]
-async fn filter_id() -> Result<()> {
-    let (arbiter_token, _environment, client) = deploy_and_start().await.unwrap();
-    let filter_watcher_1 = client.watch(&Filter::default()).await?;
+async fn filter_id() {
+    let (_manager, client) = startup_randomly_sampled().unwrap();
+    let arbiter_token = deploy_arbx(client.clone()).await.unwrap();
+    let filter_watcher_1 = client.watch(&Filter::default()).await.unwrap();
     let filter_watcher_2 = client
         .watch(&Filter::new().address(arbiter_token.address()))
-        .await?;
+        .await
+        .unwrap();
     assert_ne!(filter_watcher_1.id, filter_watcher_2.id);
-    Ok(())
 }
 
 #[tokio::test]
-async fn filter_watcher() -> Result<()> {
-    let (arbiter_token, _environment, client) = deploy_and_start().await.unwrap();
-    let mut filter_watcher = client.watch(&Filter::default()).await?;
+async fn filter_watcher() {
+    let (_manager, client) = startup_randomly_sampled().unwrap();
+    let arbiter_token = deploy_arbx(client.clone()).await.unwrap();
+    let mut filter_watcher = client.watch(&Filter::default()).await.unwrap();
     let approval = arbiter_token.approve(
         client.default_sender().unwrap(),
         ethers::types::U256::from(TEST_APPROVAL_AMOUNT),
     );
-    approval.send().await?.await?;
+    approval.send().await.unwrap().await.unwrap();
     let event = filter_watcher.next().await.unwrap();
     assert_eq!(event.address, arbiter_token.address());
     // Check that the only populated topic from the approval_filter is correct
@@ -118,24 +120,25 @@ async fn filter_watcher() -> Result<()> {
         approval_filter_output.amount,
         ethers::types::U256::from(TEST_APPROVAL_AMOUNT)
     );
-    Ok(())
 }
 
 #[tokio::test]
-async fn filter_address() -> Result<()> {
-    let (arbiter_token, _environment, client) = deploy_and_start().await.unwrap();
+async fn filter_address() {
+    let (_manager, client) = startup_randomly_sampled().unwrap();
+    let arbiter_token = deploy_arbx(client.clone()).await.unwrap();
 
-    let mut default_watcher = client.watch(&Filter::default()).await?;
+    let mut default_watcher = client.watch(&Filter::default()).await.unwrap();
     let mut address_watcher = client
         .watch(&Filter::new().address(arbiter_token.address()))
-        .await?;
+        .await
+        .unwrap();
 
     // Check that both watchers get this event
     let approval = arbiter_token.approve(
         client.default_sender().unwrap(),
         ethers::types::U256::from(TEST_APPROVAL_AMOUNT),
     );
-    approval.send().await?.await?;
+    approval.send().await.unwrap().await.unwrap();
     let default_watcher_event = default_watcher.next().await.unwrap();
     let address_watcher_event = address_watcher.next().await.unwrap();
     assert!(!default_watcher_event.data.is_empty());
@@ -152,9 +155,11 @@ async fn filter_address() -> Result<()> {
             format!("new_{}", TEST_ARG_SYMBOL),
             TEST_ARG_DECIMALS,
         ),
-    )?
+    )
+    .unwrap()
     .send()
-    .await?;
+    .await
+    .unwrap();
 
     // Sanity check that tokens have different addresses
     assert_ne!(arbiter_token.address(), arbiter_token2.address());
@@ -163,7 +168,7 @@ async fn filter_address() -> Result<()> {
         client.default_sender().unwrap(),
         ethers::types::U256::from(TEST_APPROVAL_AMOUNT),
     );
-    approval.send().await?.await?;
+    approval.send().await.unwrap().await.unwrap();
 
     // get the next event with the default_watcher
     let event_two = default_watcher.next().await.unwrap();
@@ -178,23 +183,25 @@ async fn filter_address() -> Result<()> {
         Poll::Pending => println!("No event ready yet, as expected."),
     }
     assert_matches!(poll_result, Poll::Pending);
-    Ok(())
 }
 
 #[tokio::test]
-async fn filter_topics() -> Result<()> {
-    let (arbiter_token, _environment, client) = deploy_and_start().await.unwrap();
-    let mut default_watcher = client.watch(&Filter::default()).await?;
+async fn filter_topics() {
+    let (_manager, client) = startup_randomly_sampled().unwrap();
+    let arbiter_token = deploy_arbx(client.clone()).await.unwrap();
+
+    let mut default_watcher = client.watch(&Filter::default()).await.unwrap();
     let mut approval_watcher = client
         .watch(&arbiter_token.approval_filter().filter)
-        .await?;
+        .await
+        .unwrap();
 
     // Check that both watchers get this event
     let approval = arbiter_token.approve(
         client.default_sender().unwrap(),
         ethers::types::U256::from(TEST_APPROVAL_AMOUNT),
     );
-    approval.send().await?.await?;
+    approval.send().await.unwrap().await.unwrap();
     let default_watcher_event = default_watcher.next().await.unwrap();
     let approval_watcher_event = approval_watcher.next().await.unwrap();
     assert!(!default_watcher_event.data.is_empty());
@@ -203,10 +210,10 @@ async fn filter_topics() -> Result<()> {
 
     // Check that only the default watcher gets this event
     let mint = arbiter_token.mint(
-        ethers::types::H160::from_str(TEST_MINT_TO)?,
+        ethers::types::H160::from_str(TEST_MINT_TO).unwrap(),
         ethers::types::U256::from(TEST_MINT_AMOUNT),
     );
-    mint.send().await?.await?;
+    mint.send().await.unwrap().await.unwrap();
     let default_watcher_event = default_watcher.next().await.unwrap();
     assert!(!default_watcher_event.data.is_empty());
 
@@ -219,7 +226,6 @@ async fn filter_topics() -> Result<()> {
         Poll::Pending => println!("No event ready yet, as expected."),
     }
     assert_matches!(poll_result, Poll::Pending);
-    Ok(())
 }
 
 // This test has two parts
@@ -227,12 +233,23 @@ async fn filter_topics() -> Result<()> {
 // number of transactions per block. 2 check the block number is incremented
 // after the expected number of transactions is reached.
 #[tokio::test]
-async fn transaction_loop() -> Result<()> {
+async fn transaction_loop() {
+    let (manager, client) = startup_randomly_sampled().unwrap();
     // tx_0 is the transaction that creates the token contract
-    let (arbiter_token, env, client) = deploy_and_start().await?;
+    let arbiter_token = deploy_arbx(client.clone()).await.unwrap();
 
-    let mut dist = env.seeded_poisson.clone();
-    let expected_tx_per_block = dist.sample();
+    // get the environment so we can look at its distribution
+    let environment = manager.environments.get(TEST_ENV_LABEL).unwrap();
+
+    let mut distribution = match environment.parameters.block_type {
+        BlockType::RandomlySampled {
+            block_rate,
+            block_time,
+            seed,
+        } => SeededPoisson::new(block_rate, block_time, seed),
+        _ => panic!("Expected RandomlySampled block type"),
+    };
+    let expected_tx_per_block = distribution.sample();
     println!("expected_tx_per_block: {}", expected_tx_per_block);
 
     for index in 1..expected_tx_per_block + 1 {
@@ -257,25 +274,11 @@ async fn transaction_loop() -> Result<()> {
             assert_eq!(block_number, U64::from(1));
         }
     }
-    Ok(())
 }
 
 #[tokio::test]
 async fn pause_prevents_processing_transactions() {
-    let mut manager = Manager::new();
-    let params = EnvironmentParameters {
-        label: TEST_ENV_LABEL.to_string(),
-        block_rate: 1.0,
-        seed: 1,
-    };
-    manager.add_environment(params).unwrap();
-    let client = Arc::new(RevmMiddleware::new(
-        manager.environments.get(TEST_ENV_LABEL).unwrap(),
-        Some(TEST_SIGNER_SEED_AND_LABEL.to_string()),
-    ));
-
-    // Start environment
-    manager.start_environment(TEST_ENV_LABEL).unwrap();
+    let (mut manager, client) = startup_randomly_sampled().unwrap();
 
     // Send a tx and check it works (it should)
     let arbiter_math_1 = ArbiterMath::deploy(client.clone(), ())
@@ -302,4 +305,32 @@ async fn pause_prevents_processing_transactions() {
         .send()
         .await;
     assert!(arbiter_math_2.is_ok());
+}
+
+// TODO: We can probably just implement RPC requests for these instead.
+#[tokio::test]
+async fn update_block() {
+    let (_manager, client) = startup_user_controlled().unwrap();
+    let block_info = crate::bindings::block_info::BlockInfo::deploy(client.clone(), ())
+        .unwrap()
+        .send()
+        .await
+        .unwrap();
+
+    let block_number = block_info.get_block_number().call().await.unwrap();
+    assert_eq!(block_number, ethers::types::U256::from(0));
+    let block_timestamp = block_info.get_block_timestamp().call().await.unwrap();
+    assert_eq!(block_timestamp, ethers::types::U256::from(1));
+
+    let new_block_number = 69;
+    let new_block_timestamp = 420;
+
+    assert!(client
+        .update_block(new_block_number, new_block_timestamp,)
+        .is_ok());
+
+    let block_number = block_info.get_block_number().call().await.unwrap();
+    assert_eq!(block_number, new_block_number.into());
+    let block_timestamp = block_info.get_block_timestamp().call().await.unwrap();
+    assert_eq!(block_timestamp, new_block_timestamp.into());
 }

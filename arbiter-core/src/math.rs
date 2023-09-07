@@ -13,7 +13,7 @@
 //! ```
 //! # use arbiter_core::math::{SeededPoisson, float_to_wad, wad_to_float};
 //! // Using SeededPoisson
-//! let mut poisson = SeededPoisson::new(10.0, 12345);
+//! let mut poisson = SeededPoisson::new(10.0, 12, 12345);
 //! let random_value = poisson.sample();
 //! // Converting floating-point numbers to WAD representation and back
 //! let wad_val = float_to_wad(10.5);
@@ -50,6 +50,10 @@ pub use RustQuant::stochastics::*;
 pub struct SeededPoisson {
     /// Poisson distribution.
     pub distribution: Poisson,
+
+    /// Time step for the Poisson distribution.
+    pub time_step: u32,
+
     /// Random number generator.
     rng: StdRng,
 }
@@ -72,12 +76,16 @@ impl SeededPoisson {
     ///
     /// ```
     /// # use arbiter_core::math::SeededPoisson;
-    /// let poisson = SeededPoisson::new(10.0, 12345);
+    /// let poisson = SeededPoisson::new(10.0, 12, 12345);
     /// ```
-    pub fn new(rate_parameter: f64, seed: u64) -> Self {
+    pub fn new(rate_parameter: f64, time_step: u32, seed: u64) -> Self {
         let distribution = Poisson::new(rate_parameter).unwrap();
         let rng = StdRng::seed_from_u64(seed);
-        Self { distribution, rng }
+        Self {
+            distribution,
+            time_step,
+            rng,
+        }
     }
 
     /// Samples a single value from the Poisson distribution using the seeded
@@ -91,7 +99,7 @@ impl SeededPoisson {
     ///
     /// ```
     /// # use arbiter_core::math::SeededPoisson;
-    /// let mut poisson = SeededPoisson::new(10.0, 12345);
+    /// let mut poisson = SeededPoisson::new(10.0, 12, 12345);
     /// let random_value = poisson.sample();
     /// ```
     pub fn sample(&mut self) -> usize {
@@ -106,9 +114,9 @@ mod tests {
 
     #[test]
     fn seeded_poisson() {
-        let mut test_dist_1 = SeededPoisson::new(10.0, 321);
-        let mut test_dist_2 = SeededPoisson::new(10000.0, 123);
-        let mut test_dist_3 = SeededPoisson::new(10000.0, 123);
+        let mut test_dist_1 = SeededPoisson::new(10.0, 10, 321);
+        let mut test_dist_2 = SeededPoisson::new(10000.0, 11, 123);
+        let mut test_dist_3 = SeededPoisson::new(10000.0, 12, 123);
 
         let result_1 = test_dist_1.sample();
         let result_2 = test_dist_1.sample();

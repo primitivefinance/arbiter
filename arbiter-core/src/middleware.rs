@@ -11,8 +11,6 @@
 
 #![warn(missing_docs, unsafe_code)]
 
-// TODO: Check the publicness of all structs and functions.
-
 use std::{
     collections::HashMap,
     fmt::Debug,
@@ -45,7 +43,10 @@ use revm::primitives::{CreateScheme, ExecutionResult, Output, TransactTo, TxEnv,
 use serde::{de::DeserializeOwned, Serialize};
 use thiserror::Error;
 
-use crate::environment::{Environment, EventBroadcaster, ResultReceiver, ResultSender, TxSender};
+use crate::environment::{
+    Environment, EventBroadcaster, Instruction, InstructionSender, Outcome, OutcomeReceiver,
+    OutcomeSender,
+};
 
 /// A middleware structure that integrates with `revm`.
 ///
@@ -66,15 +67,20 @@ use crate::environment::{Environment, EventBroadcaster, ResultReceiver, ResultSe
 /// use std::sync::Arc;
 ///
 /// use arbiter_core::{
-///     environment::EnvironmentParameters, manager::Manager, middleware::RevmMiddleware,
+///     environment::{BlockType, EnvironmentParameters},
+///     manager::Manager,
+///     middleware::RevmMiddleware,
 /// };
 ///
 /// // Create a manager and add an environment
 /// let mut manager = Manager::new();
 /// let params = EnvironmentParameters {
 ///     label: "example_env".to_string(),
-///     block_rate: 1.0,
-///     seed: 1,
+///     block_type: BlockType::RandomlySampled {
+///         block_rate: 1.0,
+///         block_time: 12,
+///         seed: 1,
+///     },
 /// };
 /// manager.add_environment(params).unwrap();
 ///
@@ -177,14 +183,19 @@ impl RevmMiddleware {
     /// # Examples
     /// ```
     /// use arbiter_core::{
-    ///     environment::EnvironmentParameters, manager::Manager, middleware::RevmMiddleware,
+    ///     environment::{BlockType, EnvironmentParameters},
+    ///     manager::Manager,
+    ///     middleware::RevmMiddleware,
     /// };
     ///
     /// let mut manager = Manager::new();
     /// let params = EnvironmentParameters {
     ///     label: "example_env".to_string(),
-    ///     block_rate: 1.0,
-    ///     seed: 1,
+    ///     block_type: BlockType::RandomlySampled {
+    ///         block_rate: 1.0,
+    ///         block_time: 12,
+    ///         seed: 1,
+    ///     },
     /// };
     /// manager.add_environment(params).unwrap();
     /// let environment = manager.environments.get("example_env").unwrap();
@@ -196,12 +207,12 @@ impl RevmMiddleware {
     /// Use a seed if you want to have a constant address across simulations as
     /// well as a label for a client. This can be useful for debugging.
     pub fn new(environment: &Environment, seed_and_label: Option<String>) -> Self {
-        let tx_sender = environment.socket.tx_sender.clone();
-        let (result_sender, result_receiver) = crossbeam_channel::unbounded();
+        let instruction_sender = environment.socket.instruction_sender.clone();
+        let (outcome_sender, outcome_receiver) = crossbeam_channel::unbounded();
         let connection = Connection {
-            tx_sender,
-            result_sender,
-            result_receiver,
+            instruction_sender,
+            outcome_sender,
+            outcome_receiver,
             event_broadcaster: Arc::clone(&environment.socket.event_broadcaster),
             filter_receivers: Arc::new(tokio::sync::Mutex::new(HashMap::new())),
             environment_state: Arc::clone(&environment.state),
@@ -219,6 +230,31 @@ impl RevmMiddleware {
             let wallet = Wallet::new(&mut rng);
             Self { provider, wallet }
         }
+    }
+
+    /// Allows the user to update the block number and timestamp of the
+    /// [`Environment`] to whatever they may choose at any time.
+    /// This can only be done when the [`Environment`] has
+    /// [`EnvironmentParameters`] `block_type` field set to
+    /// [`BlockType::UserControlled`].
+    pub fn update_block(
+        &self,
+        block_number: impl Into<ethers::types::U256>,
+        block_timestamp: impl Into<ethers::types::U256>,
+    ) -> Result<(), RevmMiddlewareError> {
+        let block_number: ethers::types::U256 = block_number.into();
+        let block_timestamp: ethers::types::U256 = block_timestamp.into();
+        let provider = self.provider.as_ref();
+        provider
+            .instruction_sender
+            .send(Instruction::BlockUpdate {
+                block_number: block_number.into(),
+                block_timestamp: block_timestamp.into(),
+                outcome_sender: provider.outcome_sender.clone(),
+            })
+            .map_err(|e| RevmMiddlewareError::Send(e.to_string()))?;
+        provider.outcome_receiver.recv()??;
+        Ok(())
     }
 }
 
@@ -296,44 +332,47 @@ impl Middleware for RevmMiddleware {
             nonce: None,
             access_list: Vec::new(),
         };
+        let instruction = Instruction::Transaction {
+            tx_env,
+            outcome_sender: self.provider.as_ref().outcome_sender.clone(),
+        };
         self.provider()
             .as_ref()
-            .tx_sender
-            .send((
-                true,
-                tx_env.clone(),
-                self.provider().as_ref().result_sender.clone(),
-            ))
+            .instruction_sender
+            .send(instruction)
             .map_err(|e| RevmMiddlewareError::Send(e.to_string()))?;
 
-        let (execution_result, block_number) =
-            self.provider().as_ref().result_receiver.recv()??;
+        let outcome = self.provider().as_ref().outcome_receiver.recv()??;
 
-        let Success {
-            _reason: _,
-            _gas_used: _,
-            _gas_refunded: _,
-            logs,
-            output,
-        } = unpack_execution_result(execution_result)?;
+        if let Outcome::TransactionCompleted(execution_result, block_number) = outcome {
+            let Success {
+                _reason: _,
+                _gas_used: _,
+                _gas_refunded: _,
+                logs,
+                output,
+            } = unpack_execution_result(execution_result)?;
 
-        match output {
-            Output::Create(_, address) => {
-                let address = address.ok_or(RevmMiddlewareError::MissingData(
-                    "Address missing in transaction!".to_string(),
-                ))?;
-                let mut pending_tx =
-                    PendingTransaction::new(ethers::types::H256::zero(), self.provider());
-                pending_tx.state = PendingTxState::RevmDeployOutput(recast_address(address));
-                return Ok(pending_tx);
+            match output {
+                Output::Create(_, address) => {
+                    let address = address.ok_or(RevmMiddlewareError::MissingData(
+                        "Address missing in transaction!".to_string(),
+                    ))?;
+                    let mut pending_tx =
+                        PendingTransaction::new(ethers::types::H256::zero(), self.provider());
+                    pending_tx.state = PendingTxState::RevmDeployOutput(recast_address(address));
+                    return Ok(pending_tx);
+                }
+                Output::Call(_) => {
+                    let mut pending_tx =
+                        PendingTransaction::new(ethers::types::H256::zero(), self.provider());
+
+                    pending_tx.state = PendingTxState::RevmTransactOutput(logs, block_number);
+                    return Ok(pending_tx);
+                }
             }
-            Output::Call(_) => {
-                let mut pending_tx =
-                    PendingTransaction::new(ethers::types::H256::zero(), self.provider());
-
-                pending_tx.state = PendingTxState::RevmTransactOutput(logs, block_number);
-                return Ok(pending_tx);
-            }
+        } else {
+            panic!("This should never happen!")
         }
     }
 
@@ -386,26 +425,29 @@ impl Middleware for RevmMiddleware {
             nonce: None,
             access_list: Vec::new(),
         };
+        let instruction = Instruction::Call {
+            tx_env,
+            outcome_sender: self.provider().as_ref().outcome_sender.clone(),
+        };
         self.provider()
             .as_ref()
-            .tx_sender
-            .send((
-                false,
-                tx_env.clone(),
-                self.provider().as_ref().result_sender.clone(),
-            ))
+            .instruction_sender
+            .send(instruction)
             .map_err(|e| RevmMiddlewareError::Send(e.to_string()))?;
-        let (execution_result, _block_number) =
-            self.provider().as_ref().result_receiver.recv()??;
+        let outcome = self.provider().as_ref().outcome_receiver.recv()??;
 
-        let output = unpack_execution_result(execution_result)?.output;
-        match output {
-            Output::Create(bytes, ..) => {
-                return Ok(Bytes::from(bytes.to_vec()));
+        if let Outcome::CallCompleted(execution_result) = outcome {
+            let output = unpack_execution_result(execution_result)?.output;
+            match output {
+                Output::Create(bytes, ..) => {
+                    return Ok(Bytes::from(bytes.to_vec()));
+                }
+                Output::Call(bytes) => {
+                    return Ok(Bytes::from(bytes.to_vec()));
+                }
             }
-            Output::Call(bytes) => {
-                return Ok(Bytes::from(bytes.to_vec()));
-            }
+        } else {
+            panic!("This should never happen!")
         }
     }
 
@@ -476,17 +518,17 @@ impl Middleware for RevmMiddleware {
 pub struct Connection {
     /// Used to send calls and transactions to the [`Environment`] to be
     /// executed by `revm`.
-    tx_sender: TxSender,
+    instruction_sender: InstructionSender,
 
     /// Used to send results back to a client that made a call/transaction with
     /// the [`Environment`]. This [`ResultSender`] is passed along with a
     /// call/transaction so the [`Environment`] can reply back with the
     /// [`ExecutionResult`].
-    result_sender: ResultSender,
+    outcome_sender: OutcomeSender,
 
     /// Used to receive the [`ExecutionResult`] from the [`Environment`] upon
     /// call/transact.
-    result_receiver: ResultReceiver,
+    outcome_receiver: OutcomeReceiver,
 
     /// A reference to the [`EventBroadcaster`] so that more receivers of the
     /// broadcast can be taken from it.
