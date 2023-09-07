@@ -13,7 +13,7 @@
 //! ```
 //! # use arbiter_core::math::{SeededPoisson, float_to_wad, wad_to_float};
 //! // Using SeededPoisson
-//! let mut poisson = SeededPoisson::new(10.0, 12345);
+//! let mut poisson = SeededPoisson::new(10.0, 12, 12345);
 //! let random_value = poisson.sample();
 //! // Converting floating-point numbers to WAD representation and back
 //! let wad_val = float_to_wad(10.5);
@@ -51,6 +51,7 @@ pub struct SeededPoisson {
     /// Poisson distribution.
     pub distribution: Poisson,
 
+    /// Time step for the Poisson distribution.
     pub time_step: u32,
 
     /// Random number generator.

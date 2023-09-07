@@ -5,8 +5,11 @@ fn add_environment() {
     let mut manager = Manager::new();
     let params = EnvironmentParameters {
         label: TEST_ENV_LABEL.to_string(),
-        block_rate: 1.0,
-        seed: 1,
+        block_type: BlockType::RandomlySampled {
+            block_rate: TEST_BLOCK_RATE,
+            block_time: TEST_BLOCK_TIME,
+            seed: TEST_ENV_SEED,
+        },
     };
     manager.add_environment(params).unwrap();
     assert!(manager
@@ -25,14 +28,7 @@ fn add_environment() {
 
 #[test_log::test]
 fn run_environment() {
-    let mut manager = Manager::new();
-    let params = EnvironmentParameters {
-        label: TEST_ENV_LABEL.to_string(),
-        block_rate: 1.0,
-        seed: 1,
-    };
-    manager.add_environment(params).unwrap();
-    manager.start_environment(TEST_ENV_LABEL).unwrap();
+    let (manager, _client) = startup().unwrap();
     assert_eq!(
         manager
             .environments
@@ -46,14 +42,8 @@ fn run_environment() {
 
 #[test_log::test]
 fn pause_environment() {
-    let mut manager = Manager::new();
-    let params = EnvironmentParameters {
-        label: TEST_ENV_LABEL.to_string(),
-        block_rate: 1.0,
-        seed: 1,
-    };
-    manager.add_environment(params).unwrap();
-    manager.start_environment(TEST_ENV_LABEL).unwrap();
+    let (mut manager, _client) = startup().unwrap();
+
     manager.pause_environment(TEST_ENV_LABEL).unwrap();
     std::thread::sleep(std::time::Duration::from_millis(100));
     assert_eq!(
@@ -80,14 +70,8 @@ fn pause_environment() {
 
 #[test_log::test]
 fn stop_environment() {
-    let mut manager = Manager::new();
-    let params = EnvironmentParameters {
-        label: TEST_ENV_LABEL.to_string(),
-        block_rate: 1.0,
-        seed: 1,
-    };
-    manager.add_environment(params).unwrap();
-    manager.start_environment(TEST_ENV_LABEL).unwrap();
+    let (mut manager, _client) = startup().unwrap();
+
     manager.stop_environment(TEST_ENV_LABEL).unwrap();
     assert_eq!(
         manager
@@ -101,23 +85,13 @@ fn stop_environment() {
 }
 
 #[tokio::test]
-async fn stop_environment_after_transactions() -> Result<()> {
-    let mut manager = Manager::new();
-    let params = EnvironmentParameters {
-        label: TEST_ENV_LABEL.to_string(),
-        block_rate: 1.0,
-        seed: 1,
-    };
-    manager.add_environment(params).unwrap();
-    manager.start_environment(TEST_ENV_LABEL).unwrap();
-
-    // Send some transactions (e.g., deploy `ArbiterMath` which is easy and has no
-    // args)
-    let client = Arc::new(RevmMiddleware::new(
-        manager.environments.get(TEST_ENV_LABEL).unwrap(),
-        Some(TEST_SIGNER_SEED_AND_LABEL.to_string()),
-    ));
-    ArbiterMath::deploy(client, ())?.send().await?;
+async fn stop_environment_after_transactions() {
+    let (mut manager, client) = startup().unwrap();
+    ArbiterMath::deploy(client, ())
+        .unwrap()
+        .send()
+        .await
+        .unwrap();
 
     manager.stop_environment(TEST_ENV_LABEL).unwrap();
     assert_eq!(
@@ -129,5 +103,4 @@ async fn stop_environment_after_transactions() -> Result<()> {
             .load(std::sync::atomic::Ordering::Relaxed),
         State::Stopped
     );
-    Ok(())
 }

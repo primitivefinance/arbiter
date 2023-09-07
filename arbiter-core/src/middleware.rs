@@ -11,8 +11,6 @@
 
 #![warn(missing_docs, unsafe_code)]
 
-// TODO: Check the publicness of all structs and functions.
-
 use std::{
     collections::HashMap,
     fmt::Debug,
@@ -66,15 +64,20 @@ use crate::environment::{Environment, EventBroadcaster, ResultReceiver, ResultSe
 /// use std::sync::Arc;
 ///
 /// use arbiter_core::{
-///     environment::EnvironmentParameters, manager::Manager, middleware::RevmMiddleware,
+///     environment::{BlockType, EnvironmentParameters},
+///     manager::Manager,
+///     middleware::RevmMiddleware,
 /// };
 ///
 /// // Create a manager and add an environment
 /// let mut manager = Manager::new();
 /// let params = EnvironmentParameters {
 ///     label: "example_env".to_string(),
-///     block_rate: 1.0,
-///     seed: 1,
+///     block_type: BlockType::RandomlySampled {
+///         block_rate: 1.0,
+///         block_time: 12,
+///         seed: 1,
+///     },
 /// };
 /// manager.add_environment(params).unwrap();
 ///
@@ -177,14 +180,19 @@ impl RevmMiddleware {
     /// # Examples
     /// ```
     /// use arbiter_core::{
-    ///     environment::EnvironmentParameters, manager::Manager, middleware::RevmMiddleware,
+    ///     environment::{BlockType, EnvironmentParameters},
+    ///     manager::Manager,
+    ///     middleware::RevmMiddleware,
     /// };
     ///
     /// let mut manager = Manager::new();
     /// let params = EnvironmentParameters {
     ///     label: "example_env".to_string(),
-    ///     block_rate: 1.0,
-    ///     seed: 1,
+    ///     block_type: BlockType::RandomlySampled {
+    ///         block_rate: 1.0,
+    ///         block_time: 12,
+    ///         seed: 1,
+    ///     },
     /// };
     /// manager.add_environment(params).unwrap();
     /// let environment = manager.environments.get("example_env").unwrap();

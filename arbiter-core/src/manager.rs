@@ -107,13 +107,19 @@ impl Manager {
     /// # Examples
     ///
     /// ```rust
-    /// use arbiter_core::{environment::EnvironmentParameters, manager::Manager};
+    /// use arbiter_core::{
+    ///     environment::{BlockType, EnvironmentParameters},
+    ///     manager::Manager,
+    /// };
     ///
     /// let mut manager = Manager::new();
     /// let params = EnvironmentParameters {
     ///     label: "example_env".to_string(),
-    ///     block_rate: 1.0,
-    ///     seed: 1,
+    ///     block_type: BlockType::RandomlySampled {
+    ///         block_rate: 1.0,
+    ///         block_time: 12,
+    ///         seed: 1,
+    ///     },
     /// };
     /// manager.add_environment(params).unwrap();
     /// ```
@@ -155,13 +161,19 @@ impl Manager {
     /// # Examples
     ///
     /// ```rust
-    /// use arbiter_core::{environment::EnvironmentParameters, manager::Manager};
+    /// use arbiter_core::{
+    ///     environment::{BlockType, EnvironmentParameters},
+    ///     manager::Manager,
+    /// };
     ///
     /// let mut manager = Manager::new();
     /// let params = EnvironmentParameters {
     ///     label: "example_env".to_string(),
-    ///     block_rate: 1.0,
-    ///     seed: 1,
+    ///     block_type: BlockType::RandomlySampled {
+    ///         block_rate: 1.0,
+    ///         block_time: 12,
+    ///         seed: 1,
+    ///     },
     /// };
     /// manager.add_environment(params).unwrap();
     ///
@@ -231,13 +243,19 @@ impl Manager {
     /// # Examples
     ///
     /// ```rust
-    /// use arbiter_core::{environment::EnvironmentParameters, manager::Manager};
+    /// use arbiter_core::{
+    ///     environment::{BlockType, EnvironmentParameters},
+    ///     manager::Manager,
+    /// };
     ///
     /// let mut manager = Manager::new();
     /// let params = EnvironmentParameters {
     ///     label: "example_env".to_string(),
-    ///     block_rate: 1.0,
-    ///     seed: 1,
+    ///     block_type: BlockType::RandomlySampled {
+    ///         block_rate: 1.0,
+    ///         block_time: 12,
+    ///         seed: 1,
+    ///     },
     /// };
     /// manager.add_environment(params).unwrap();
     /// manager.start_environment("example_env").unwrap();
@@ -303,13 +321,19 @@ impl Manager {
     /// # Examples
     ///
     /// ```rust
-    /// use arbiter_core::{environment::EnvironmentParameters, manager::Manager};
+    /// use arbiter_core::{
+    ///     environment::{BlockType, EnvironmentParameters},
+    ///     manager::Manager,
+    /// };
     ///
     /// let mut manager = Manager::new();
     /// let params = EnvironmentParameters {
     ///     label: "example_env".to_string(),
-    ///     block_rate: 1.0,
-    ///     seed: 1,
+    ///     block_type: BlockType::RandomlySampled {
+    ///         block_rate: 1.0,
+    ///         block_time: 12,
+    ///         seed: 1,
+    ///     },
     /// };
     /// manager.add_environment(params).unwrap();
     /// manager.start_environment("example_env").unwrap();

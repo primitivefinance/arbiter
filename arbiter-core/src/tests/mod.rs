@@ -10,12 +10,12 @@ use std::{str::FromStr, sync::Arc};
 
 use anyhow::Result;
 use ethers::{
-    prelude::{EthLogDecode, Middleware, StreamExt},
+    prelude::{EthLogDecode, Middleware},
     types::{Address, Filter, ValueOrArray, U64},
 };
 
 use crate::{
-    bindings::{arbiter_math::*, arbiter_token::*},
+    bindings::{arbiter_math::*, arbiter_token::*, liquid_exchange::LiquidExchange},
     environment::{tests::TEST_ENV_LABEL, *},
     manager::*,
     math::*,
@@ -23,6 +23,7 @@ use crate::{
 };
 
 pub const TEST_BLOCK_RATE: f64 = 2.0;
+pub const TEST_BLOCK_TIME: u32 = 12;
 pub const TEST_ENV_SEED: u64 = 1;
 
 pub const TEST_ARG_NAME: &str = "ArbiterToken";
@@ -36,36 +37,78 @@ pub const TEST_APPROVAL_AMOUNT: u128 = 420;
 
 pub const TEST_SIGNER_SEED_AND_LABEL: &str = "test_seed_and_label";
 
-// TODO: Send a tx before and after pausing the environment.
+pub const ARBITER_TOKEN_X_NAME: &str = "Arbiter Token X";
+pub const ARBITER_TOKEN_X_SYMBOL: &str = "ARBX";
+pub const ARBITER_TOKEN_X_DECIMALS: u8 = 18;
 
-async fn deploy_and_start() -> Result<(
-    ArbiterToken<RevmMiddleware>,
-    Environment,
-    Arc<RevmMiddleware>,
-)> {
+pub const ARBITER_TOKEN_Y_NAME: &str = "Arbiter Token Y";
+pub const ARBITER_TOKEN_Y_SYMBOL: &str = "ARBY";
+pub const ARBITER_TOKEN_Y_DECIMALS: u8 = 18;
+
+pub const LIQUID_EXCHANGE_PRICE: f64 = 420.69;
+
+fn startup() -> Result<(Manager, Arc<RevmMiddleware>)> {
+    let mut manager = Manager::new();
     let params = EnvironmentParameters {
         label: TEST_ENV_LABEL.to_string(),
-        block_rate: TEST_BLOCK_RATE,
-        seed: TEST_ENV_SEED,
+        block_type: BlockType::RandomlySampled {
+            block_rate: TEST_BLOCK_RATE,
+            block_time: TEST_BLOCK_TIME,
+            seed: TEST_ENV_SEED,
+        },
     };
-    let mut environment = Environment::new(params);
+    manager.add_environment(params).unwrap();
+    let environment = manager.environments.get(TEST_ENV_LABEL).unwrap();
     let client = Arc::new(RevmMiddleware::new(
-        &environment,
+        environment,
         Some(TEST_SIGNER_SEED_AND_LABEL.to_string()),
     ));
-    environment.run();
-    Ok((
-        ArbiterToken::deploy(
-            client.clone(),
-            (
-                TEST_ARG_NAME.to_string(),
-                TEST_ARG_SYMBOL.to_string(),
-                TEST_ARG_DECIMALS,
-            ),
-        )?
-        .send()
-        .await?,
-        environment,
+    manager.start_environment(TEST_ENV_LABEL)?;
+    Ok((manager, client))
+}
+
+async fn deploy_arbx(client: Arc<RevmMiddleware>) -> Result<ArbiterToken<RevmMiddleware>> {
+    Ok(ArbiterToken::deploy(
         client,
-    ))
+        (
+            ARBITER_TOKEN_X_NAME.to_string(),
+            ARBITER_TOKEN_X_SYMBOL.to_string(),
+            ARBITER_TOKEN_X_DECIMALS,
+        ),
+    )?
+    .send()
+    .await?)
+}
+
+async fn deploy_arby(client: Arc<RevmMiddleware>) -> Result<ArbiterToken<RevmMiddleware>> {
+    Ok(ArbiterToken::deploy(
+        client,
+        (
+            ARBITER_TOKEN_Y_NAME.to_string(),
+            ARBITER_TOKEN_Y_SYMBOL.to_string(),
+            ARBITER_TOKEN_Y_DECIMALS,
+        ),
+    )?
+    .send()
+    .await?)
+}
+
+async fn deploy_liquid_exchange(
+    client: Arc<RevmMiddleware>,
+) -> Result<(
+    ArbiterToken<RevmMiddleware>,
+    ArbiterToken<RevmMiddleware>,
+    LiquidExchange<RevmMiddleware>,
+)> {
+    let arbx = deploy_arbx(client.clone()).await?;
+    let arby = deploy_arby(client.clone()).await?;
+    let price = float_to_wad(LIQUID_EXCHANGE_PRICE);
+    let liquid_exchange = LiquidExchange::deploy(client, (arbx.address(), arby.address(), price))?
+        .send()
+        .await?;
+    Ok((arbx, arby, liquid_exchange))
+}
+
+async fn deploy_arbiter_math(client: Arc<RevmMiddleware>) -> Result<ArbiterMath<RevmMiddleware>> {
+    Ok(ArbiterMath::deploy(client, ())?.send().await?)
 }
