@@ -300,7 +300,6 @@ impl Environment {
             let mut transactions_per_block = seeded_poisson
                 .clone()
                 .map(|mut distribution| distribution.sample());
-
             let mut counter: usize = 0;
 
             // Loop over the reception of calls/transactions sent through the socket
@@ -345,8 +344,10 @@ impl Environment {
                                 evm.env.block.number += U256::from(1);
 
                                 // This unwrap cannot fail.
-                                transactions_per_block =
-                                    Some(seeded_poisson.clone().unwrap().sample());
+                                let mut seeded_poisson = seeded_poisson.clone().unwrap();
+
+                                evm.env.block.timestamp += U256::from(seeded_poisson.time_step);
+                                transactions_per_block = Some(seeded_poisson.sample());
                             }
 
                             // Set the tx_env and prepare to process it
