@@ -43,24 +43,19 @@ use crate::math::SeededPoisson;
 #[cfg(doc)]
 use crate::{manager::Manager, middleware::RevmMiddleware};
 
-/// Alias to represent that a transaction sent to the
-/// [`EVM`](https://docs.rs/revm/3.3.0/revm/struct.EVM.html) updates the
-/// worldstate (`true`) or is read only (`false`)
-pub(crate) type ToTransact = bool;
+/// Alias for the sender of the channel for transmitting transactions.
+pub(crate) type InstructionSender = Sender<Instruction>;
+
+/// Alias for the receiver of the channel for transmitting transactions.
+pub(crate) type InstructionReceiver = Receiver<Instruction>;
 
 /// Alias for the sender of the channel for transmitting [`RevmResult`] emitted
 /// from transactions.
-pub(crate) type ResultSender = Sender<Result<(ExecutionResult, U64), EnvironmentError>>;
+pub(crate) type OutcomeSender = Sender<Result<Outcome, EnvironmentError>>;
 
 /// Alias for the receiver of the channel for transmitting [`RevmResult`]
 /// emitted from transactions.
-pub(crate) type ResultReceiver = Receiver<Result<(ExecutionResult, U64), EnvironmentError>>;
-
-/// Alias for the sender of the channel for transmitting transactions.
-pub(crate) type TxSender = Sender<(ToTransact, TxEnv, ResultSender)>;
-
-/// Alias for the receiver of the channel for transmitting transactions.
-pub(crate) type TxReceiver = Receiver<(ToTransact, TxEnv, ResultSender)>;
+pub(crate) type OutcomeReceiver = Receiver<Result<Outcome, EnvironmentError>>;
 
 /// Alias for the sender used in the [`EventBroadcaster`] that transmits
 /// contract events via [`Log`].
@@ -233,6 +228,9 @@ pub enum EnvironmentError {
     /// handled gracefully.
     #[error("transaction was received while the environment was paused. this transaction was not processed.")]
     TransactionReceivedWhilePaused,
+
+    #[error("error in the environment! attempted to externally change block number and timestamp when block type is not user controlled.")]
+    NotUserControlledBlockType,
 }
 
 impl Environment {
@@ -249,10 +247,10 @@ impl Environment {
         evm.env.cfg.limit_contract_code_size = Some(0x100000);
         evm.env.block.gas_limit = U256::MAX;
 
-        let (tx_sender, tx_receiver) = unbounded();
+        let (instruction_sender, instruction_receiver) = unbounded();
         let socket = Socket {
-            tx_sender,
-            tx_receiver,
+            instruction_sender,
+            instruction_receiver,
             event_broadcaster: Arc::new(Mutex::new(EventBroadcaster::new())),
         };
 
@@ -276,9 +274,10 @@ impl Environment {
     pub(crate) fn run(&mut self) {
         // Pull clones of the relevant data prepare to send into a new thread
         let mut evm = self.evm.clone();
-        let tx_receiver = self.socket.tx_receiver.clone();
+        let instruction_receiver = self.socket.instruction_receiver.clone();
         let event_broadcaster = self.socket.event_broadcaster.clone();
-        let seeded_poisson = match self.parameters.block_type {
+        let block_type = self.parameters.block_type.clone();
+        let seeded_poisson = match block_type {
             BlockType::RandomlySampled {
                 block_rate,
                 block_time,
@@ -318,7 +317,12 @@ impl Environment {
 
                         // This logic here ensures we catch any last transactions and send
                         // the appropriate error so that we dont hang on the `tx_receiver`
-                        while let Ok((_, _, sender)) = tx_receiver.try_recv() {
+                        while let Ok(request) = instruction_receiver.try_recv() {
+                            let sender = match request {
+                                Instruction::BlockUpdate { outcome_sender, .. } => outcome_sender,
+                                Instruction::Call { outcome_sender, .. } => outcome_sender,
+                                Instruction::Transaction { outcome_sender, .. } => outcome_sender,
+                            };
                             sender
                                 .send(Err(EnvironmentError::TransactionReceivedWhilePaused))
                                 .map_err(|e| EnvironmentError::Communication(e.to_string()))?;
@@ -333,47 +337,86 @@ impl Environment {
 
                     // Receive new transactions
                     State::Running => {
-                        if let Ok((to_transact, tx, sender)) = tx_receiver.try_recv() {
-                            // Check whether we need to increment the block number given the amount
-                            // of transactions that have occured on the current block and increment
-                            // if need be and draw a new sample from the `SeededPoisson`
-                            // distribution. Only do so if there is a distribution in the first
-                            // place.
-                            if transactions_per_block.is_some_and(|x| x == counter) {
-                                counter = 0;
-                                evm.env.block.number += U256::from(1);
+                        if let Ok(request) = instruction_receiver.try_recv() {
+                            match request {
+                                Instruction::BlockUpdate {
+                                    block_number,
+                                    block_timestamp,
+                                    outcome_sender,
+                                } => {
+                                    if block_type != BlockType::UserControlled {
+                                        outcome_sender.send(Err(
+                                            EnvironmentError::NotUserControlledBlockType,
+                                        ));
+                                    }
+                                    // Update the block number and timestamp
+                                    evm.env.block.number = block_number;
+                                    evm.env.block.timestamp = block_timestamp;
+                                    outcome_sender.send(Ok(Outcome::BlockUpdated)).map_err(
+                                        |e| EnvironmentError::Communication(e.to_string()),
+                                    )?;
+                                }
+                                // A `Call` is not state changing and will not create events.
+                                Instruction::Call {
+                                    tx_env,
+                                    outcome_sender,
+                                } => {
+                                    // Set the tx_env and prepare to process it
+                                    evm.env.tx = tx_env;
 
-                                // This unwrap cannot fail.
-                                let mut seeded_poisson = seeded_poisson.clone().unwrap();
+                                    let result =
+                                        evm.transact().map_err(EnvironmentError::Execution)?.result;
+                                    outcome_sender
+                                        .send(Ok(Outcome::CallCompleted(result)))
+                                        .map_err(|e| {
+                                            EnvironmentError::Communication(e.to_string())
+                                        })?;
+                                }
+                                // A `Transaction` is state changing and will create events.
+                                Instruction::Transaction {
+                                    tx_env,
+                                    outcome_sender,
+                                } => {
+                                    // Check whether we need to increment the block number given the amount
+                                    // of transactions that have occured on the current block and increment
+                                    // if need be and draw a new sample from the `SeededPoisson`
+                                    // distribution. Only do so if there is a distribution in the first
+                                    // place.
+                                    if transactions_per_block.is_some_and(|x| x == counter) {
+                                        counter = 0;
+                                        evm.env.block.number += U256::from(1);
 
-                                evm.env.block.timestamp += U256::from(seeded_poisson.time_step);
-                                transactions_per_block = Some(seeded_poisson.sample());
+                                        // This unwrap cannot fail.
+                                        let mut seeded_poisson = seeded_poisson.clone().unwrap();
+
+                                        evm.env.block.timestamp +=
+                                            U256::from(seeded_poisson.time_step);
+                                        transactions_per_block = Some(seeded_poisson.sample());
+                                    }
+
+                                    // Set the tx_env and prepare to process it
+                                    evm.env.tx = tx_env;
+
+                                    let block_number = convert_uint_to_u64(evm.env.block.number)?;
+                                    let execution_result = evm
+                                        .transact_commit()
+                                        .map_err(EnvironmentError::Execution)?;
+                                    let event_broadcaster =
+                                        event_broadcaster.lock().map_err(|e| {
+                                            EnvironmentError::Communication(e.to_string())
+                                        })?;
+                                    event_broadcaster.broadcast(execution_result.logs())?;
+                                    outcome_sender
+                                        .send(Ok(Outcome::TransactionCompleted(
+                                            execution_result,
+                                            block_number,
+                                        )))
+                                        .map_err(|e| {
+                                            EnvironmentError::Communication(e.to_string())
+                                        })?;
+                                    counter += 1;
+                                }
                             }
-
-                            // Set the tx_env and prepare to process it
-                            evm.env.tx = tx;
-
-                            // If the transaction is a state-changing transaction, `to_transact ==
-                            // true` and the state will be written to the database via a
-                            // `transact_commit()` Otherwise it must be
-                            // a read-only call, so we will not update the database.
-                            // Calls will not have events to emit.
-                            let execution_result = if to_transact {
-                                let execution_result =
-                                    evm.transact_commit().map_err(EnvironmentError::Execution)?;
-                                let event_broadcaster = event_broadcaster
-                                    .lock()
-                                    .map_err(|e| EnvironmentError::Communication(e.to_string()))?;
-                                event_broadcaster.broadcast(execution_result.logs())?;
-                                counter += 1;
-                                execution_result
-                            } else {
-                                evm.transact().map_err(EnvironmentError::Execution)?.result
-                            };
-                            let block_number = convert_uint_to_u64(evm.env.block.number)?;
-                            sender
-                                .send(Ok((execution_result, block_number)))
-                                .map_err(|e| EnvironmentError::Communication(e.to_string()))?;
                         }
                     }
                     State::Initialization => {
@@ -387,6 +430,31 @@ impl Environment {
     }
 }
 
+pub enum Instruction {
+    Call {
+        tx_env: TxEnv,
+        outcome_sender: OutcomeSender,
+    },
+
+    Transaction {
+        tx_env: TxEnv,
+        outcome_sender: OutcomeSender,
+    },
+
+    BlockUpdate {
+        block_number: U256,
+        block_timestamp: U256,
+        outcome_sender: OutcomeSender,
+    },
+}
+
+// TODO: the name receipt is probably confusing. Don't want to use result either
+pub enum Outcome {
+    // TODO: This top one should probably be a tuple variant that has any extra necessary stuff to form a receipt so long as the transaction was successful
+    TransactionCompleted(ExecutionResult, U64),
+    CallCompleted(ExecutionResult),
+    BlockUpdated,
+}
 /// Provides channels for communication between the EVM and external entities.
 ///
 /// The socket contains senders and receivers for transactions, as well as an
@@ -429,8 +497,8 @@ pub enum State {
 /// event broadcaster to broadcast logs from the EVM to subscribers.
 #[derive(Debug, Clone)]
 pub(crate) struct Socket {
-    pub(crate) tx_sender: TxSender,
-    pub(crate) tx_receiver: TxReceiver,
+    pub(crate) instruction_sender: InstructionSender,
+    pub(crate) instruction_receiver: InstructionReceiver,
     pub(crate) event_broadcaster: Arc<Mutex<EventBroadcaster>>,
 }
 
@@ -442,7 +510,7 @@ pub(crate) struct Socket {
 /// their own external API and the latter will allow the end user to set
 /// a rate parameter and seed for a Poisson distribution that will be
 /// used to sample the amount of transactions per block.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub enum BlockType {
     /// The block number will be controlled by the end user.
     UserControlled,
