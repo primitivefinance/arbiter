@@ -45,9 +45,7 @@ use revm::primitives::{CreateScheme, ExecutionResult, Output, TransactTo, TxEnv,
 use serde::{de::DeserializeOwned, Serialize};
 use thiserror::Error;
 
-use crate::environment::{
-    Environment, EventBroadcaster, ResultReceiver, ResultSender, TransactionOutcome, TxSender,
-};
+use crate::environment::{Environment, EventBroadcaster, ResultReceiver, ResultSender, TxSender};
 
 /// A middleware structure that integrates with `revm`.
 ///
@@ -106,6 +104,10 @@ pub struct RevmMiddleware {
 /// [GitHub](https://github.com/primitivefinance/arbiter/).
 #[derive(Error, Debug)]
 pub enum RevmMiddlewareError {
+    /// An error occurred while attempting to interact with the environment.
+    #[error("an error came from the environment! due to: {0}")]
+    Environment(#[from] crate::environment::EnvironmentError),
+
     /// An error occurred while attempting to send a transaction.
     #[error("failed to send transaction! due to: {0}")]
     Send(String),
@@ -113,7 +115,7 @@ pub enum RevmMiddlewareError {
     /// There was an issue receiving an [`ExecutionResult`], possibly from
     /// another service or module.
     #[error("failed to receive `ExecutionResult`! due to: {0}")]
-    Receive(String),
+    Receive(#[from] crossbeam_channel::RecvError),
 
     /// There was a failure trying to obtain a lock on the [`EventBroadcaster`],
     /// possibly due to concurrency issues.
@@ -304,52 +306,33 @@ impl Middleware for RevmMiddleware {
             ))
             .map_err(|e| RevmMiddlewareError::Send(e.to_string()))?;
 
-        let revm_result = self
-            .provider()
-            .as_ref()
-            .result_receiver
-            .recv()
-            .map_err(|e| RevmMiddlewareError::Receive(e.to_string()))?;
+        let (execution_result, block_number) =
+            self.provider().as_ref().result_receiver.recv()??;
 
-        match revm_result.outcome {
-            TransactionOutcome::Success(execution_result) => {
-                let Success {
-                    _reason: _,
-                    _gas_used: _,
-                    _gas_refunded: _,
-                    logs,
-                    output,
-                } = unpack_execution_result(execution_result)?;
+        let Success {
+            _reason: _,
+            _gas_used: _,
+            _gas_refunded: _,
+            logs,
+            output,
+        } = unpack_execution_result(execution_result)?;
 
-                match output {
-                    Output::Create(_, address) => {
-                        let address = address.ok_or(RevmMiddlewareError::MissingData(
-                            "Address missing in transaction!".to_string(),
-                        ))?;
-                        let mut pending_tx =
-                            PendingTransaction::new(ethers::types::H256::zero(), self.provider());
-                        pending_tx.state =
-                            PendingTxState::RevmDeployOutput(recast_address(address));
-                        return Ok(pending_tx);
-                    }
-                    Output::Call(_) => {
-                        let mut pending_tx =
-                            PendingTransaction::new(ethers::types::H256::zero(), self.provider());
-
-                        pending_tx.state =
-                            PendingTxState::RevmTransactOutput(logs, revm_result.block_number);
-                        return Ok(pending_tx);
-                    }
-                }
+        match output {
+            Output::Create(_, address) => {
+                let address = address.ok_or(RevmMiddlewareError::MissingData(
+                    "Address missing in transaction!".to_string(),
+                ))?;
+                let mut pending_tx =
+                    PendingTransaction::new(ethers::types::H256::zero(), self.provider());
+                pending_tx.state = PendingTxState::RevmDeployOutput(recast_address(address));
+                return Ok(pending_tx);
             }
-            TransactionOutcome::Error(err) => {
-                return Err(RevmMiddlewareError::Receive(
-                    format!(
-                        "Error recieving response from the environement with environment error: {}",
-                        err
-                    )
-                    .to_string(),
-                ));
+            Output::Call(_) => {
+                let mut pending_tx =
+                    PendingTransaction::new(ethers::types::H256::zero(), self.provider());
+
+                pending_tx.state = PendingTxState::RevmTransactOutput(logs, block_number);
+                return Ok(pending_tx);
             }
         }
     }
@@ -412,33 +395,16 @@ impl Middleware for RevmMiddleware {
                 self.provider().as_ref().result_sender.clone(),
             ))
             .map_err(|e| RevmMiddlewareError::Send(e.to_string()))?;
-        let revm_result = self
-            .provider()
-            .as_ref()
-            .result_receiver
-            .recv()
-            .map_err(|e| RevmMiddlewareError::Receive(e.to_string()))?;
+        let (execution_result, _block_number) =
+            self.provider().as_ref().result_receiver.recv()??;
 
-        match revm_result.outcome {
-            TransactionOutcome::Success(execution_result) => {
-                let output = unpack_execution_result(execution_result)?.output;
-                match output {
-                    Output::Create(bytes, ..) => {
-                        return Ok(Bytes::from(bytes.to_vec()));
-                    }
-                    Output::Call(bytes) => {
-                        return Ok(Bytes::from(bytes.to_vec()));
-                    }
-                }
+        let output = unpack_execution_result(execution_result)?.output;
+        match output {
+            Output::Create(bytes, ..) => {
+                return Ok(Bytes::from(bytes.to_vec()));
             }
-            TransactionOutcome::Error(err) => {
-                return Err(RevmMiddlewareError::Receive(
-                    format!(
-                        "Error recieving response from the environement with environment error: {}",
-                        err
-                    )
-                    .to_string(),
-                ));
+            Output::Call(bytes) => {
+                return Ok(Bytes::from(bytes.to_vec()));
             }
         }
     }

@@ -50,11 +50,11 @@ pub(crate) type ToTransact = bool;
 
 /// Alias for the sender of the channel for transmitting [`RevmResult`] emitted
 /// from transactions.
-pub(crate) type ResultSender = Sender<RevmResult>;
+pub(crate) type ResultSender = Sender<Result<(ExecutionResult, U64), EnvironmentError>>;
 
 /// Alias for the receiver of the channel for transmitting [`RevmResult`]
 /// emitted from transactions.
-pub(crate) type ResultReceiver = Receiver<RevmResult>;
+pub(crate) type ResultReceiver = Receiver<Result<(ExecutionResult, U64), EnvironmentError>>;
 
 /// Alias for the sender of the channel for transmitting transactions.
 pub(crate) type TxSender = Sender<(ToTransact, TxEnv, ResultSender)>;
@@ -206,7 +206,7 @@ pub enum EnvironmentError {
     /// [`EnvironmentError::Pause`] is thrown when the [`Environment`]
     /// fails to pause. This should likely never occur, but if it does,
     /// please report this error!
-    #[error("error pausing! the source error is: {0}")]
+    #[error("error pausing! due to: {0:?}")]
     Pause(String),
 
     /// [`EnvironmentError::Communication`] is thrown when a channel for
@@ -214,8 +214,14 @@ pub enum EnvironmentError {
     /// due to a channel being closed accidentally. If this is thrown, a
     /// restart of the simulation and an investigation into what caused a
     /// dropped channel is necessary.
-    #[error("error communicating! the source error is: {0}")]
+    #[error("error communicating! due to: {0}")]
     Communication(String),
+
+    /// [`EnvironmentError::Broadcast`] is thrown when the
+    /// [`EventBroadcaster`] fails to broadcast events. This should be
+    /// rare (if not impossible). If this is thrown, please report this error!
+    #[error("error broadcasting! the source error is: {0}")]
+    Broadcast(#[from] crossbeam_channel::SendError<Vec<Log>>),
 
     /// [`EnvironmentError::Conversion`] is thrown when a type fails to
     /// convert into another (typically a type used in `revm` versus a type used
@@ -225,6 +231,13 @@ pub enum EnvironmentError {
     /// this will be (hopefully) unnecessary!
     #[error("conversion error! the source error is: {0}")]
     Conversion(String),
+
+    /// [`EnvironmentError::TransactionReceivedWhilePaused`] is thrown when
+    /// a transaction is received while the [`Environment`] is paused.
+    /// This can be quite common due to concurrency issues, but should be
+    /// handled gracefully.
+    #[error("transaction was received while the environment was paused. this transaction was not processed.")]
+    TransactionReceivedWhilePaused,
 }
 
 impl Environment {
@@ -270,7 +283,6 @@ impl Environment {
     /// be placed in [`State::Paused`].
     pub(crate) fn run(&mut self) {
         // Pull clones of the relevant data prepare to send into a new thread
-        let label = self.label.clone();
         let mut evm = self.evm.clone();
         let tx_receiver = self.socket.tx_receiver.clone();
         let event_broadcaster = self.socket.event_broadcaster.clone();
@@ -300,30 +312,20 @@ impl Environment {
                         let (lock, cvar) = &*pausevar;
                         let mut guard = lock
                             .lock()
-                            .map_err(|e| EnvironmentError::Pause(format!("{:?}", e)))?;
+                            .map_err(|e| EnvironmentError::Pause(e.to_string()))?;
 
-                        // this logic here ensures we catch any edge case last transactions and send
-                        // the appropriate error so that we dont hang in
-                        // limbo forever
+                        // This logic here ensures we catch any last transactions and send
+                        // the appropriate error so that we dont hang on the `tx_receiver`
                         while let Ok((_, _, sender)) = tx_receiver.try_recv() {
-                            let error_outcome = TransactionOutcome::Error(EnvironmentError::Pause(
-                                "Environment is paused".into(),
-                            ));
-                            let revm_result = RevmResult {
-                                outcome: error_outcome,
-                                block_number: convert_uint_to_u64(evm.env.block.number).map_err(
-                                    |e| EnvironmentError::Conversion(format!("{:?}", e)),
-                                )?,
-                            };
                             sender
-                                .send(revm_result)
-                                .map_err(|e| EnvironmentError::Communication(format!("{:?}", e)))?;
+                                .send(Err(EnvironmentError::TransactionReceivedWhilePaused))
+                                .map_err(|e| EnvironmentError::Communication(e.to_string()))?;
                         }
 
                         while state.load(std::sync::atomic::Ordering::SeqCst) == State::Paused {
                             guard = cvar
                                 .wait(guard)
-                                .map_err(|e| EnvironmentError::Pause(format!("{:?}", e)))?;
+                                .map_err(|e| EnvironmentError::Pause(e.to_string()))?;
                         }
                     }
 
@@ -346,66 +348,24 @@ impl Environment {
                             // If the transaction is a state-changing transaction, `to_transact ==
                             // true` and the state will be written to the database via a
                             // `transact_commit()` Otherwise it must be
-                            // a read-only call, so we will not update the database
-                            // Calls will not have events to emit
-                            if to_transact {
-                                let execution_result = match evm.transact_commit() {
-                                    // Check for an error in execution ([`EVMError<Infallible>`]),
-                                    // but pass to the middleware to determine if the result is
-                                    // [`ExecutionResult::Success`], [`ExecutionResult::Revert`], or
-                                    // [`ExecutionResult::Halt`].
-                                    Ok(val) => val,
-                                    Err(e) => {
-                                        state.store(
-                                            State::Paused,
-                                            std::sync::atomic::Ordering::SeqCst,
-                                        );
-                                        error!("Pausing the environment labeled {} due to an execution error: {:#?}", label, e);
-                                        return Err(EnvironmentError::Execution(e));
-                                    }
-                                };
-                                let event_broadcaster = event_broadcaster.lock().map_err(|e| {
-                                    EnvironmentError::Communication(format!("{:?}", e))
-                                })?;
+                            // a read-only call, so we will not update the database.
+                            // Calls will not have events to emit.
+                            let execution_result = if to_transact {
+                                let execution_result =
+                                    evm.transact_commit().map_err(EnvironmentError::Execution)?;
+                                let event_broadcaster = event_broadcaster
+                                    .lock()
+                                    .map_err(|e| EnvironmentError::Communication(e.to_string()))?;
                                 event_broadcaster.broadcast(execution_result.logs())?;
-                                let revm_result = RevmResult {
-                                    outcome: TransactionOutcome::Success(execution_result),
-                                    block_number: convert_uint_to_u64(evm.env.block.number)
-                                        .map_err(|e| {
-                                            EnvironmentError::Conversion(format!("{:?}", e))
-                                        })?,
-                                };
-                                sender.send(revm_result).map_err(|e| {
-                                    EnvironmentError::Communication(format!("{:?}", e))
-                                })?;
                                 counter += 1;
+                                execution_result
                             } else {
-                                let result = match evm.transact() {
-                                    // Check for an error in execution ([`EVMError<Infallible>`]),
-                                    // but pass to the middleware to determine if the result is
-                                    // [`ExecutionResult::Success`], [`ExecutionResult::Revert`], or
-                                    // [`ExecutionResult::Halt`].
-                                    Ok(result_and_state) => result_and_state.result,
-                                    Err(e) => {
-                                        state.store(
-                                            State::Paused,
-                                            std::sync::atomic::Ordering::SeqCst,
-                                        );
-                                        error!("Pausing the environment labeled {} due to an execution error: {:#?}", label, e);
-                                        return Err(EnvironmentError::Execution(e));
-                                    }
-                                };
-                                let result_and_block = RevmResult {
-                                    outcome: TransactionOutcome::Success(result),
-                                    block_number: convert_uint_to_u64(evm.env.block.number)
-                                        .map_err(|e| {
-                                            EnvironmentError::Conversion(format!("{:?}", e))
-                                        })?,
-                                };
-                                sender.send(result_and_block).map_err(|e| {
-                                    EnvironmentError::Communication(format!("{:?}", e))
-                                })?;
-                            }
+                                evm.transact().map_err(EnvironmentError::Execution)?.result
+                            };
+                            let block_number = convert_uint_to_u64(evm.env.block.number)?;
+                            sender
+                                .send(Ok((execution_result, block_number)))
+                                .map_err(|e| EnvironmentError::Communication(e.to_string()))?;
                         }
                     }
                     State::Initialization => {
@@ -466,41 +426,6 @@ pub(crate) struct Socket {
     pub(crate) event_broadcaster: Arc<Mutex<EventBroadcaster>>,
 }
 
-/// Represents the possible outcomes of an EVM transaction.
-///
-/// This enum is used to encapsulate both successful transaction results and
-/// potential errors.
-/// - `Success`: Indicates that the transaction was executed successfully and
-///   contains the result of the execution. The wrapped `ExecutionResult`
-///   provides detailed information about the transaction's execution, such as
-///   returned values or changes made to the state.
-/// - `Error`: Indicates that the transaction failed due to some error
-///   condition. The wrapped `EnvironmentError` provides specifics about the
-///   error, allowing callers to take appropriate action or relay more
-///   informative error messages.
-#[derive(Debug, Clone)]
-pub(crate) enum TransactionOutcome {
-    /// Represents a successfully executed transaction.
-    ///
-    /// Contains the result of the transaction's execution.
-    Success(ExecutionResult),
-
-    /// Represents a failed transaction due to some error.
-    ///
-    /// Contains information about the error that caused the transaction
-    /// failure.
-    Error(EnvironmentError),
-}
-/// Represents the result of an EVM transaction.
-///
-/// Contains the outcome of a transaction (e.g., success, revert, halt) and the
-/// block number at which the transaction was executed.
-#[derive(Debug, Clone)]
-pub(crate) struct RevmResult {
-    pub(crate) outcome: TransactionOutcome,
-    pub(crate) block_number: U64,
-}
-
 /// Responsible for broadcasting Ethereum logs to subscribers.
 ///
 /// Maintains a list of senders to which logs are sent whenever they are
@@ -524,9 +449,7 @@ impl EventBroadcaster {
     /// downstream to any and all receivers
     fn broadcast(&self, logs: Vec<Log>) -> Result<(), EnvironmentError> {
         for sender in &self.0 {
-            sender
-                .send(logs.clone())
-                .map_err(|e| EnvironmentError::Communication(format!("{:?}", e)))?;
+            sender.send(logs.clone())?;
         }
         Ok(())
     }
@@ -539,11 +462,13 @@ impl EventBroadcaster {
 /// * `Ok(U64)` - The converted U64.
 /// Used for block number which is a U64.
 #[inline]
-fn convert_uint_to_u64(input: U256) -> Result<U64, &'static str> {
+fn convert_uint_to_u64(input: U256) -> Result<U64, EnvironmentError> {
     let as_str = input.to_string();
     match as_str.parse::<u64>() {
         Ok(val) => Ok(val.into()),
-        Err(_) => Err("U256 value is too large to fit into u64"),
+        Err(_) => Err(EnvironmentError::Conversion(
+            "U256 value is too large to fit into u64".to_string(),
+        )),
     }
 }
 
