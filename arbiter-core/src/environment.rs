@@ -229,6 +229,9 @@ pub enum EnvironmentError {
     #[error("transaction was received while the environment was paused. this transaction was not processed.")]
     TransactionReceivedWhilePaused,
 
+    /// [`EnvironmentError::NotUserControlledBlockType`] is thrown when
+    /// the [`Environment`] is in a [`BlockType::RandomlySampled`] state and
+    /// an attempt is made to externally change the block number and timestamp.
     #[error("error in the environment! attempted to externally change block number and timestamp when block type is not user controlled.")]
     NotUserControlledBlockType,
 }
@@ -379,11 +382,12 @@ impl Environment {
                                     tx_env,
                                     outcome_sender,
                                 } => {
-                                    // Check whether we need to increment the block number given the amount
-                                    // of transactions that have occured on the current block and increment
+                                    // Check whether we need to increment the block number given the
+                                    // amount of transactions
+                                    // that have occured on the current block and increment
                                     // if need be and draw a new sample from the `SeededPoisson`
-                                    // distribution. Only do so if there is a distribution in the first
-                                    // place.
+                                    // distribution. Only do so if there is a distribution in the
+                                    // first place.
                                     if transactions_per_block.is_some_and(|x| x == counter) {
                                         counter = 0;
                                         evm.env.block.number += U256::from(1);
@@ -432,29 +436,63 @@ impl Environment {
     }
 }
 
+/// [`Instruction`]s that can be sent to the [`Environment`] via the
+/// [`Socket`].
+/// These instructions can be `Call`s, `Transaction`s, or `BlockUpdate`s.
 pub enum Instruction {
+    /// A `Call` is processed by the [`EVM`] but will not be state changing and
+    /// will not create events.
     Call {
+        /// The transaction environment for the call.
         tx_env: TxEnv,
+
+        /// The sender used to to send the outcome of the call back to.
         outcome_sender: OutcomeSender,
     },
 
+    /// A `Transaction` is processed by the [`EVM`] and will be state changing
+    /// and will create events.
     Transaction {
+        /// The transaction environment for the transaction.
         tx_env: TxEnv,
+
+        /// The sender used to to send the outcome of the transaction back to.
         outcome_sender: OutcomeSender,
     },
 
+    /// A `BlockUpdate` is used to update the block number and timestamp of the
+    /// [`EVM`].
     BlockUpdate {
+        /// The block number to update the [`EVM`] to.
         block_number: U256,
+
+        /// The block timestamp to update the [`EVM`] to.
         block_timestamp: U256,
+
+        /// The sender used to to send the outcome of the block update back to.
         outcome_sender: OutcomeSender,
     },
 }
 
-// TODO: the name receipt is probably confusing. Don't want to use result either
+/// [`Outcome`]s that can be sent back to the the client via the
+/// [`Socket`].
+/// These outcomes can be from `Call`, `Transaction`, or `BlockUpdate`
+/// instructions sent to the [`Environment`]
 pub enum Outcome {
-    // TODO: This top one should probably be a tuple variant that has any extra necessary stuff to form a receipt so long as the transaction was successful
+    // TODO: This top one should probably be a tuple variant that has any extra necessary stuff to
+    // form a receipt so long as the transaction was successful
+    /// The outcome of a `Transaction` instruction that is first unpacked to see
+    /// if the result is successful, then it can be used to build a
+    /// `TransactionReceipt` in the `Middleware`.
     TransactionCompleted(ExecutionResult, U64),
+
+    /// The outcome of a `Call` instruction that is used to provide the output
+    /// of some [`EVM`] computation to the client.
     CallCompleted(ExecutionResult),
+
+    /// The outcome of a `BlockUpdate` instruction that is used to provide a
+    /// non-error output of updating the block number and timestamp of the
+    /// [`EVM`] to the client.
     BlockUpdated,
 }
 /// Provides channels for communication between the EVM and external entities.

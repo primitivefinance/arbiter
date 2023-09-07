@@ -39,15 +39,13 @@ use ethers::{
     },
 };
 use rand::rngs;
-use revm::primitives::{
-    ruint::UintTryFrom, CreateScheme, ExecutionResult, Output, TransactTo, TxEnv, B160, U256,
-};
+use revm::primitives::{CreateScheme, ExecutionResult, Output, TransactTo, TxEnv, B160, U256};
 use serde::{de::DeserializeOwned, Serialize};
 use thiserror::Error;
 
 use crate::environment::{
-    BlockType, Environment, EnvironmentParameters, EventBroadcaster, Instruction,
-    InstructionSender, Outcome, OutcomeReceiver, OutcomeSender,
+    Environment, EventBroadcaster, Instruction, InstructionSender, Outcome, OutcomeReceiver,
+    OutcomeSender,
 };
 
 /// A middleware structure that integrates with `revm`.
@@ -218,7 +216,6 @@ impl RevmMiddleware {
             event_broadcaster: Arc::clone(&environment.socket.event_broadcaster),
             filter_receivers: Arc::new(tokio::sync::Mutex::new(HashMap::new())),
             environment_state: Arc::clone(&environment.state),
-            environment_parameters: environment.parameters.clone(),
         };
         let provider = Provider::new(connection);
         if let Some(seed) = seed_and_label {
@@ -235,6 +232,11 @@ impl RevmMiddleware {
         }
     }
 
+    /// Allows the user to update the block number and timestamp of the
+    /// [`Environment`] to whatever they may choose at any time.
+    /// This can only be done when the [`Environment`] has
+    /// [`EnvironmentParameters`] `block_type` field set to
+    /// [`BlockType::UserControlled`].
     pub fn update_block(
         &self,
         block_number: impl Into<ethers::types::U256>,
@@ -243,11 +245,14 @@ impl RevmMiddleware {
         let block_number: ethers::types::U256 = block_number.into();
         let block_timestamp: ethers::types::U256 = block_timestamp.into();
         let provider = self.provider.as_ref();
-        provider.instruction_sender.send(Instruction::BlockUpdate {
-            block_number: block_number.into(),
-            block_timestamp: block_timestamp.into(),
-            outcome_sender: provider.outcome_sender.clone(),
-        });
+        provider
+            .instruction_sender
+            .send(Instruction::BlockUpdate {
+                block_number: block_number.into(),
+                block_timestamp: block_timestamp.into(),
+                outcome_sender: provider.outcome_sender.clone(),
+            })
+            .map_err(|e| RevmMiddlewareError::Send(e.to_string()))?;
         provider.outcome_receiver.recv()??;
         Ok(())
     }
@@ -534,8 +539,6 @@ pub struct Connection {
     filter_receivers: Arc<tokio::sync::Mutex<HashMap<ethers::types::U256, FilterReceiver>>>,
 
     environment_state: Arc<crate::environment::AtomicState>,
-
-    environment_parameters: EnvironmentParameters,
 }
 
 #[async_trait::async_trait]
