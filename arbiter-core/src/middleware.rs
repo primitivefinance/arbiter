@@ -345,63 +345,6 @@ impl Middleware for RevmMiddleware {
 
         let outcome = self.provider().as_ref().outcome_receiver.recv()??;
 
-        // match revm_result.outcome {
-        //     TransactionOutcome::Success(execution_result) => {
-        //         let Success { logs, output, .. } = unpack_execution_result(execution_result)?;
-        //         let block_number = revm_result.block_number;
-
-        //         match output {
-        //             Output::Create(_, address) => {
-        //                 let tx_receipt = TransactionReceipt {
-        //                     block_hash: None,
-        //                     block_number: Some(block_number),
-        //                     contract_address: Some(recast_address(address.unwrap())),
-        //                     ..Default::default()
-        //                 };
-
-        //                 // TODO: Create the actual tx_hash
-        //                 // TODO: I'm not sure we need to set the confirmations.
-        //                 let mut pending_tx =
-        //                     PendingTransaction::new(ethers::types::H256::zero(), self.provider())
-        //                         .interval(Duration::ZERO)
-        //                         .confirmations(0);
-
-        //                 let state_ptr: *mut PendingTxState =
-        //                     &mut pending_tx as *mut _ as *mut PendingTxState;
-
-        //                 // Modify the value (this assumes you have access to the enum variants)
-        //                 unsafe {
-        //                     *state_ptr = PendingTxState::CheckingReceipt(Some(tx_receipt));
-        //                 }
-
-        //                 Ok(pending_tx)
-        //             }
-        //             Output::Call(_) => {
-        //                 let block_number = revm_result.block_number;
-        //                 let tx_receipt = TransactionReceipt {
-        //                     block_hash: None,
-        //                     block_number: Some(block_number),
-        //                     logs,
-        //                     ..Default::default()
-        //                 };
-
-        //                 // TODO: Create the actual tx_hash
-        //                 // TODO: I'm not sure we need to set the confirmations.
-        //                 let mut pending_tx =
-        //                     PendingTransaction::new(ethers::types::H256::zero(), self.provider())
-        //                         .interval(Duration::ZERO)
-        //                         .confirmations(0);
-
-        //                 let state_ptr: *mut PendingTxState =
-        //                     &mut pending_tx as *mut _ as *mut PendingTxState;
-
-        //                 // Modify the value (this assumes you have access to the enum variants)
-        //                 unsafe {
-        //                     *state_ptr = PendingTxState::CheckingReceipt(Some(tx_receipt));
-        //                 }
-
-        //                 Ok(pending_tx)
-        //             }
         if let Outcome::TransactionCompleted(execution_result, block_number) = outcome {
             let Success {
                 _reason: _,
@@ -412,59 +355,59 @@ impl Middleware for RevmMiddleware {
             } = unpack_execution_result(execution_result)?;
 
             match output {
-                  Output::Create(_, address) => {
-                        // TODO: Add other reciept fields
-                        let tx_receipt = TransactionReceipt {
-                            block_hash: None,
-                            block_number: Some(block_number),
-                            contract_address: Some(recast_address(address.unwrap())),
-                            logs,
-                            ..Default::default()
-                        };
+                Output::Create(_, address) => {
+                    // TODO: Add other reciept fields
+                    let tx_receipt = TransactionReceipt {
+                        block_hash: None,
+                        block_number: Some(block_number),
+                        contract_address: Some(recast_address(address.unwrap())),
+                        logs,
+                        ..Default::default()
+                    };
 
-                        // TODO: Create the actual tx_hash
-                        // TODO: I'm not sure we need to set the confirmations.
-                        let mut pending_tx =
-                            PendingTransaction::new(ethers::types::H256::zero(), self.provider())
-                                .interval(Duration::ZERO)
-                                .confirmations(0);
+                    // TODO: Create the actual tx_hash
+                    // TODO: I'm not sure we need to set the confirmations.
+                    let mut pending_tx =
+                        PendingTransaction::new(ethers::types::H256::zero(), self.provider())
+                            .interval(Duration::ZERO)
+                            .confirmations(0);
 
-                        let state_ptr: *mut PendingTxState =
-                            &mut pending_tx as *mut _ as *mut PendingTxState;
+                    let state_ptr: *mut PendingTxState =
+                        &mut pending_tx as *mut _ as *mut PendingTxState;
 
-                        // Modify the value (this assumes you have access to the enum variants)
-                        unsafe {
-                            *state_ptr = PendingTxState::CheckingReceipt(Some(tx_receipt));
-                        }
+                    // Modify the value (this assumes you have access to the enum variants)
+                    unsafe {
+                        *state_ptr = PendingTxState::CheckingReceipt(Some(tx_receipt));
+                    }
 
-                        Ok(pending_tx)
+                    Ok(pending_tx)
                 }
                 Output::Call(_) => {
-                        // TODO: Add other reciept fields
-                        let tx_receipt = TransactionReceipt {
-                            block_hash: None,
-                            block_number: Some(block_number),
-                            logs,
-                            ..Default::default()
-                        };
+                    // TODO: Add other reciept fields
+                    let tx_receipt = TransactionReceipt {
+                        block_hash: None,
+                        block_number: Some(block_number),
+                        logs,
+                        ..Default::default()
+                    };
 
-                        // TODO: Create the actual tx_hash
-                        // TODO: I'm not sure we need to set the confirmations.
-                        let mut pending_tx =
-                            PendingTransaction::new(ethers::types::H256::zero(), self.provider())
-                                .interval(Duration::ZERO)
-                                .confirmations(0);
+                    // TODO: Create the actual tx_hash
+                    // TODO: I'm not sure we need to set the confirmations.
+                    let mut pending_tx =
+                        PendingTransaction::new(ethers::types::H256::zero(), self.provider())
+                            .interval(Duration::ZERO)
+                            .confirmations(0);
 
-                        let state_ptr: *mut PendingTxState =
-                            &mut pending_tx as *mut _ as *mut PendingTxState;
+                    let state_ptr: *mut PendingTxState =
+                        &mut pending_tx as *mut _ as *mut PendingTxState;
 
-                        // Modify the value (this assumes you have access to the enum variants)
-                        unsafe {
-                            *state_ptr = PendingTxState::CheckingReceipt(Some(tx_receipt));
-                        }
+                    // Modify the value (this assumes you have access to the enum variants)
+                    unsafe {
+                        *state_ptr = PendingTxState::CheckingReceipt(Some(tx_receipt));
+                    }
 
-                        Ok(pending_tx)
-                },
+                    Ok(pending_tx)
+                }
             }
         } else {
             panic!("This should never happen!")
