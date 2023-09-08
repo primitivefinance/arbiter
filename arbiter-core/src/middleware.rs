@@ -35,15 +35,16 @@ use ethers::{
     signers::{Signer, Wallet},
     types::{
         transaction::eip2718::TypedTransaction, Address, BlockId, Bytes, Filter, FilteredParams,
-        Log, Transaction, TransactionReceipt, U64,
-    },
+        Log, Transaction, TransactionReceipt, U64, Bloom, OtherFields,
+    }, utils::keccak256, abi::ethereum_types::BloomInput,
 };
 use futures_timer::Delay;
 use rand::{rngs::StdRng, SeedableRng};
 use revm::primitives::{CreateScheme, ExecutionResult, Output, TransactTo, TxEnv, B160, U256};
 use serde::{de::DeserializeOwned, Serialize};
 use thiserror::Error;
-
+use reth_rlp::Encodable;
+// use rlp;
 use crate::environment::{
     Environment, EventBroadcaster, Instruction, InstructionSender, Outcome, OutcomeReceiver,
     OutcomeSender,
@@ -315,6 +316,7 @@ impl Middleware for RevmMiddleware {
             Some(to) => TransactTo::Call(B160::from(*to)),
             None => TransactTo::Create(CreateScheme::Create),
         };
+
         let tx_env = TxEnv {
             caller: B160::from(self.wallet.address()),
             gas_limit: u64::MAX,
@@ -334,7 +336,7 @@ impl Middleware for RevmMiddleware {
             access_list: Vec::new(),
         };
         let instruction = Instruction::Transaction {
-            tx_env,
+            tx_env: tx_env.clone(),
             outcome_sender: self.provider.as_ref().outcome_sender.clone(),
         };
         self.provider()
@@ -354,20 +356,59 @@ impl Middleware for RevmMiddleware {
                 output,
             } = unpack_execution_result(execution_result)?;
 
+            let to: Option<ethers::types::H160> = match tx_env.transact_to {
+                    TransactTo::Call(address) => Some(address.into()),
+                    TransactTo::Create(_) => None,
+                };
+            
+            // Note that this is technically not the correct construction on the tx hash
+            // but untill we increment the nonce correctly this will do
+            let sender = self.wallet.address();
+            let data = tx_env.clone().data;
+            let mut hasher = Sha256::new();
+            hasher.update(sender.as_bytes());
+            hasher.update(data.as_ref());
+            let hash = hasher.finalize();
+
+
+            let mut block_hasher = Sha256::new();
+            block_hasher.update(block_number.to_string().as_bytes());
+            let block_hash = block_hasher.finalize();
+            let block_hash = Some(ethers::types::H256::from_slice(&block_hash));
+
             match output {
                 Output::Create(_, address) => {
-                    // TODO: Add other reciept fields
                     let tx_receipt = TransactionReceipt {
-                        block_hash: None,
+                        block_hash,
                         block_number: Some(block_number),
                         contract_address: Some(recast_address(address.unwrap())),
-                        logs,
+                        logs: logs.clone(),
                         from: self.provider.default_sender().unwrap(),
                         gas_used: Some(gas_used.into()),
+                        effective_gas_price: Some(tx_env.clone().gas_price.into()),
+                        transaction_hash: ethers::types::TxHash::from_slice(&hash),
+                        to,
+                        cumulative_gas_used: U256::ZERO.into(), // need to count gas used per block
+                        status: Some(1.into()),
+                        root: None,
+                        logs_bloom: {
+                            let mut bloom = Bloom::default();
+                            for log in &logs {
+                                bloom.accrue(BloomInput::Raw(&log.address.0));
+                                for topic in log.topics.iter() {
+                                    bloom.accrue(BloomInput::Raw(topic.as_bytes()));
+                                }
+                            }
+                            bloom
+                        },
+                        transaction_type: match tx {
+                            TypedTransaction::Eip2930(_) => Some(1.into()),
+                            _ => None,
+                        },
+                        transaction_index: 1.into(),
                         ..Default::default()
                     };
 
-                    // TODO: Create the actual tx_hash
                     // TODO: I'm not sure we need to set the confirmations.
                     let mut pending_tx =
                         PendingTransaction::new(ethers::types::H256::zero(), self.provider())
@@ -385,14 +426,34 @@ impl Middleware for RevmMiddleware {
                     Ok(pending_tx)
                 }
                 Output::Call(_) => {
-                    // TODO: Add other reciept fields
                     let tx_receipt = TransactionReceipt {
-                        block_hash: None,
+                        block_hash,
                         block_number: Some(block_number),
-                        logs,
+                        contract_address: None,
+                        logs: logs.clone(),
                         from: self.provider.default_sender().unwrap(),
                         gas_used: Some(gas_used.into()),
-                        // need to add the effective gas price
+                        effective_gas_price: Some(tx_env.clone().gas_price.into()),
+                        transaction_hash: ethers::types::TxHash::from_slice(&hash),
+                        to,
+                        cumulative_gas_used: U256::ZERO.into(), // need to count gas used per block
+                        status: Some(1.into()),
+                        root: None,
+                        logs_bloom: {
+                            let mut bloom = Bloom::default();
+                            for log in &logs {
+                                bloom.accrue(BloomInput::Raw(&log.address.0));
+                                for topic in log.topics.iter() {
+                                    bloom.accrue(BloomInput::Raw(topic.as_bytes()));
+                                }
+                            }
+                            bloom
+                        },
+                        transaction_type: match tx {
+                            TypedTransaction::Eip2930(_) => Some(1.into()),
+                            _ => None,
+                        },
+                        transaction_index: 1.into(),
                         ..Default::default()
                     };
 

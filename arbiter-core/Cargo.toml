@@ -9,6 +9,8 @@ edition = "2021"
 # Ethereum and EVM
 ethers = "2.0.8"
 revm = "3.3.0"
+reth-rlp = { git = "https://github.com/paradigmxyz/reth.git", package = "reth-rlp" }
+rlp = "0.5.2"
 
 # Serialization
 bytes = "1.4.0"
