@@ -9,23 +9,23 @@
 //! - [`Connection`]: Handles communication with the Ethereum VM.
 //! - `FilterReceiver`: Facilitates event watching based on certain filters.
 
-#![warn(missing_docs, unsafe_code)]
+#![warn(missing_docs)]
 
 use std::{
     collections::HashMap,
     fmt::Debug,
+    future::Future,
+    pin::Pin,
     sync::{Arc, Mutex},
     time::Duration,
 };
 
 use ethers::{
-    core::rand::SeedableRng,
     prelude::{
         k256::{
             ecdsa::SigningKey,
             sha2::{Digest, Sha256},
         },
-        pending_transaction::PendingTxState,
         ProviderError,
     },
     providers::{
@@ -35,10 +35,11 @@ use ethers::{
     signers::{Signer, Wallet},
     types::{
         transaction::eip2718::TypedTransaction, Address, BlockId, Bytes, Filter, FilteredParams,
-        Log,
+        Log, Transaction, TransactionReceipt, U64,
     },
 };
-use rand::rngs;
+use futures_timer::Delay;
+use rand::{rngs::StdRng, SeedableRng};
 use revm::primitives::{CreateScheme, ExecutionResult, Output, TransactTo, TxEnv, B160, U256};
 use serde::{de::DeserializeOwned, Serialize};
 use thiserror::Error;
@@ -222,7 +223,7 @@ impl RevmMiddleware {
             let mut hasher = Sha256::new();
             hasher.update(seed.clone());
             let hashed = hasher.finalize();
-            let mut rng: rngs::StdRng = SeedableRng::from_seed(hashed.into());
+            let mut rng: StdRng = SeedableRng::from_seed(hashed.into());
             let wallet = Wallet::new(&mut rng);
             Self { provider, wallet }
         } else {
@@ -347,7 +348,7 @@ impl Middleware for RevmMiddleware {
         if let Outcome::TransactionCompleted(execution_result, block_number) = outcome {
             let Success {
                 _reason: _,
-                _gas_used: _,
+                _gas_used: gas_used,
                 _gas_refunded: _,
                 logs,
                 output,
@@ -355,20 +356,62 @@ impl Middleware for RevmMiddleware {
 
             match output {
                 Output::Create(_, address) => {
-                    let address = address.ok_or(RevmMiddlewareError::MissingData(
-                        "Address missing in transaction!".to_string(),
-                    ))?;
+                    // TODO: Add other reciept fields
+                    let tx_receipt = TransactionReceipt {
+                        block_hash: None,
+                        block_number: Some(block_number),
+                        contract_address: Some(recast_address(address.unwrap())),
+                        logs,
+                        from: self.provider.default_sender().unwrap(),
+                        gas_used: Some(gas_used.into()),
+                        ..Default::default()
+                    };
+
+                    // TODO: Create the actual tx_hash
+                    // TODO: I'm not sure we need to set the confirmations.
                     let mut pending_tx =
-                        PendingTransaction::new(ethers::types::H256::zero(), self.provider());
-                    pending_tx.state = PendingTxState::RevmDeployOutput(recast_address(address));
-                    return Ok(pending_tx);
+                        PendingTransaction::new(ethers::types::H256::zero(), self.provider())
+                            .interval(Duration::ZERO)
+                            .confirmations(0);
+
+                    let state_ptr: *mut PendingTxState =
+                        &mut pending_tx as *mut _ as *mut PendingTxState;
+
+                    // Modify the value (this assumes you have access to the enum variants)
+                    unsafe {
+                        *state_ptr = PendingTxState::CheckingReceipt(Some(tx_receipt));
+                    }
+
+                    Ok(pending_tx)
                 }
                 Output::Call(_) => {
-                    let mut pending_tx =
-                        PendingTransaction::new(ethers::types::H256::zero(), self.provider());
+                    // TODO: Add other reciept fields
+                    let tx_receipt = TransactionReceipt {
+                        block_hash: None,
+                        block_number: Some(block_number),
+                        logs,
+                        from: self.provider.default_sender().unwrap(),
+                        gas_used: Some(gas_used.into()),
+                        // need to add the effective gas price
+                        ..Default::default()
+                    };
 
-                    pending_tx.state = PendingTxState::RevmTransactOutput(logs, block_number);
-                    return Ok(pending_tx);
+                    // TODO: Create the actual tx_hash
+                    // TODO: I'm not sure we need to set the confirmations.
+                    let mut pending_tx =
+                        PendingTransaction::new(ethers::types::H256::zero(), self.provider())
+                            .interval(Duration::ZERO)
+                            .confirmations(0);
+
+                    let state_ptr: *mut PendingTxState =
+                        &mut pending_tx as *mut _ as *mut PendingTxState;
+
+                    // Modify the value (this assumes you have access to the enum variants)
+                    unsafe {
+                        *state_ptr = PendingTxState::CheckingReceipt(Some(tx_receipt));
+                    }
+
+                    Ok(pending_tx)
                 }
             }
         } else {
@@ -555,6 +598,9 @@ impl JsonRpcClient for Connection {
     ) -> Result<R, ProviderError> {
         match method {
             "eth_getFilterChanges" => {
+                // TODO: The extra json serialization/deserialization can probably be avoided
+                // somehow
+
                 // Get the `Filter` ID from the params `T`
                 // First convert it into a JSON `Value`
                 let value = serde_json::to_value(&params)?;
@@ -600,9 +646,9 @@ impl JsonRpcClient for Connection {
                 let logs_deserializeowned: R = serde_json::from_str(&logs_str)?;
                 return Ok(logs_deserializeowned);
             }
-            _ => {
-                unimplemented!("We don't cover this case yet.")
-            } // TODO: This can probably be avoided somehow
+            var => {
+                unimplemented!("We don't cover this case yet: {}", var);
+            }
         }
     }
 }
@@ -665,31 +711,6 @@ fn unpack_execution_result(
     }
 }
 
-/// Converts the address type used by `revm` to the one used by `ethers-rs`.
-///
-/// This inline function performs a straightforward transformation of the
-/// address types. The provided address type from Revm is transformed into the
-/// corresponding type used in the Ethers library.
-#[inline]
-fn recast_address(address: B160) -> Address {
-    // This unwrap should never fail as the `B160` will always cast into `[u8; 20]`.
-    let temp: [u8; 20] = address.as_bytes().try_into().unwrap();
-    Address::from(temp)
-}
-
-/// Converts the 256-bit byte array type used by `revm` to the one used by
-/// `ethers-rs`.
-///
-/// This inline function performs a simple transformation of the 256-bit byte
-/// arrays. The provided byte array from Revm is transformed into the
-/// corresponding type used in the Ethers library.
-#[inline]
-fn recast_b256(input: revm::primitives::B256) -> ethers::types::H256 {
-    // This unwrap should never fail as the `B256` will always cast into `[u8; 32]`.
-    let temp: [u8; 32] = input.as_bytes().try_into().unwrap();
-    ethers::types::H256::from(temp)
-}
-
 /// Converts logs from the Revm format to the Ethers format.
 ///
 /// This function iterates over a list of logs as they appear in the `revm` and
@@ -718,4 +739,68 @@ fn revm_logs_to_ethers_logs(
         logs.push(log);
     }
     logs
+}
+
+// Certainly will go away with alloy-types
+/// Recast a B160 into an Address type
+/// # Arguments
+/// * `address` - B160 to recast. (B160)
+/// # Returns
+/// * `Address` - Recasted Address.
+#[inline]
+pub fn recast_address(address: B160) -> Address {
+    let temp: [u8; 20] = address.as_bytes().try_into().unwrap();
+    Address::from(temp)
+}
+
+/// Recast a B256 into an H256 type
+/// # Arguments
+/// * `input` - B256 to recast. (B256)
+/// # Returns
+/// * `H256` - Recasted H256.
+#[inline]
+pub fn recast_b256(input: revm::primitives::B256) -> ethers::types::H256 {
+    let temp: [u8; 32] = input.as_bytes().try_into().unwrap();
+    ethers::types::H256::from(temp)
+}
+
+#[cfg(target_arch = "wasm32")]
+pub(crate) type PinBoxFut<'a, T> = Pin<Box<dyn Future<Output = Result<T, ProviderError>> + 'a>>;
+#[cfg(not(target_arch = "wasm32"))]
+pub(crate) type PinBoxFut<'a, T> =
+    Pin<Box<dyn Future<Output = Result<T, ProviderError>> + Send + 'a>>;
+
+// Because this is the exact same struct it will have the exact same memory
+// aliment allowing us to bypass the fact that ethers-rs doesn't export this
+// enum normally We box the TransactionReceipts to keep the enum small.
+#[allow(unused, missing_docs)]
+pub enum PendingTxState<'a> {
+    /// Initial delay to ensure the GettingTx loop doesn't immediately fail
+    InitialDelay(Pin<Box<Delay>>),
+
+    /// Waiting for interval to elapse before calling API again
+    PausedGettingTx,
+
+    /// Polling The blockchain to see if the Tx has confirmed or dropped
+    GettingTx(PinBoxFut<'a, Option<Transaction>>),
+
+    /// Waiting for interval to elapse before calling API again
+    PausedGettingReceipt,
+
+    /// Polling the blockchain for the receipt
+    GettingReceipt(PinBoxFut<'a, Option<TransactionReceipt>>),
+
+    /// If the pending tx required only 1 conf, it will return early. Otherwise
+    /// it will proceed to the next state which will poll the block number
+    /// until there have been enough confirmations
+    CheckingReceipt(Option<TransactionReceipt>),
+
+    /// Waiting for interval to elapse before calling API again
+    PausedGettingBlockNumber(Option<TransactionReceipt>),
+
+    /// Polling the blockchain for the current block number
+    GettingBlockNumber(PinBoxFut<'a, U64>, Option<TransactionReceipt>),
+
+    /// Future has completed and should panic if polled again
+    Completed,
 }

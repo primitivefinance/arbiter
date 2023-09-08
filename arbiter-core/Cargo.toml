@@ -7,22 +7,23 @@ edition = "2021"
 [dependencies]
 
 # Ethereum and EVM
-ethers = { git = "https://github.com/primitivefinance/ethers-rs.git"} # Custom fork for middleware integration
+ethers = "2.0.8"
 revm = "3.3.0"
 
 # Serialization
 bytes = "1.4.0"
-serde = { version = "1.0.163", features= ["derive"]}
-serde_json ="1.0.96"
+serde = { version = "1.0.163", features = ["derive"] }
+serde_json = { version = "1.0.96" }
 
 # Concurrency/async
 tokio = { version = "1.28.1", features = ["macros", "full"] }
 async-trait = "0.1.68"
 crossbeam-channel = "0.5.8"
 atomic_enum = "0.2.0"
+futures-timer = "3.0.2"
 
 # Randomness
-rand = "0.8.5"  
+rand = "0.8.5"
 rand_distr = "0.4.3"
 statrs = "0.16.0"
 RustQuant = { version = "0.0.26", features = ["seedable"]}
@@ -32,6 +33,7 @@ thiserror = "1.0.30"
 
 # Logging
 log = "0.4.19"
+futures-util = "0.3.28"
 
 # Dependencies for the test build and development
 [dev-dependencies]
@@ -39,6 +41,7 @@ hex = { version = "0.4.3", default-features = false }
 anyhow = "1.0.71"
 env_logger = "0.10.0"
 test-log = "0.2.12"
+
 futures = "0.3.28"
 assert_matches = "1.5"
 
