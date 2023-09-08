@@ -21,6 +21,7 @@ use std::{
 };
 
 use ethers::{
+    abi::ethereum_types::BloomInput,
     prelude::{
         k256::{
             ecdsa::SigningKey,
@@ -34,17 +35,16 @@ use ethers::{
     },
     signers::{Signer, Wallet},
     types::{
-        transaction::eip2718::TypedTransaction, Address, BlockId, Bytes, Filter, FilteredParams,
-        Log, Transaction, TransactionReceipt, U64, Bloom, OtherFields,
-    }, utils::keccak256, abi::ethereum_types::BloomInput,
+        transaction::eip2718::TypedTransaction, Address, BlockId, Bloom, Bytes, Filter,
+        FilteredParams, Log, Transaction, TransactionReceipt, U64,
+    },
 };
 use futures_timer::Delay;
 use rand::{rngs::StdRng, SeedableRng};
 use revm::primitives::{CreateScheme, ExecutionResult, Output, TransactTo, TxEnv, B160, U256};
 use serde::{de::DeserializeOwned, Serialize};
 use thiserror::Error;
-use reth_rlp::Encodable;
-// use rlp;
+
 use crate::environment::{
     Environment, EventBroadcaster, Instruction, InstructionSender, Outcome, OutcomeReceiver,
     OutcomeSender,
@@ -357,10 +357,10 @@ impl Middleware for RevmMiddleware {
             } = unpack_execution_result(execution_result)?;
 
             let to: Option<ethers::types::H160> = match tx_env.transact_to {
-                    TransactTo::Call(address) => Some(address.into()),
-                    TransactTo::Create(_) => None,
-                };
-            
+                TransactTo::Call(address) => Some(address.into()),
+                TransactTo::Create(_) => None,
+            };
+
             // Note that this is technically not the correct construction on the tx hash
             // but untill we increment the nonce correctly this will do
             let sender = self.wallet.address();
@@ -369,7 +369,6 @@ impl Middleware for RevmMiddleware {
             hasher.update(sender.as_bytes());
             hasher.update(data.as_ref());
             let hash = hasher.finalize();
-
 
             let mut block_hasher = Sha256::new();
             block_hasher.update(block_number.to_string().as_bytes());
