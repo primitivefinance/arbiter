@@ -302,7 +302,8 @@ impl Environment {
             let mut transactions_per_block = seeded_poisson
                 .clone()
                 .map(|mut distribution| distribution.sample());
-            let mut counter: usize = 0;
+            let mut transaction_index: usize = 0;
+            let mut cumulative_gas_per_block: U256 = U256::ZERO;
 
             // Loop over the reception of calls/transactions sent through the socket
             loop {
@@ -390,8 +391,10 @@ impl Environment {
                                     // if need be and draw a new sample from the `SeededPoisson`
                                     // distribution. Only do so if there is a distribution in the
                                     // first place.
-                                    if transactions_per_block.is_some_and(|x| x == counter) {
-                                        counter = 0;
+                                    if transactions_per_block
+                                        .is_some_and(|x| x == transaction_index)
+                                    {
+                                        transaction_index = 0;
                                         evm.env.block.number += U256::from(1);
 
                                         // This unwrap cannot fail.
@@ -409,20 +412,30 @@ impl Environment {
                                     let execution_result = evm
                                         .transact_commit()
                                         .map_err(EnvironmentError::Execution)?;
+
+                                    // increment culmulative gas per block
+                                    cumulative_gas_per_block +=
+                                        U256::from(execution_result.clone().gas_used());
+
                                     let event_broadcaster =
                                         event_broadcaster.lock().map_err(|e| {
                                             EnvironmentError::Communication(e.to_string())
                                         })?;
+                                    let receipt_data = ReceiptData {
+                                        block_number,
+                                        transaction_index: transaction_index.into(),
+                                        cumulative_gas_per_block,
+                                    };
                                     event_broadcaster.broadcast(execution_result.logs())?;
                                     outcome_sender
                                         .send(Ok(Outcome::TransactionCompleted(
                                             execution_result,
-                                            block_number,
+                                            receipt_data,
                                         )))
                                         .map_err(|e| {
                                             EnvironmentError::Communication(e.to_string())
                                         })?;
-                                    counter += 1;
+                                    transaction_index += 1;
                                 }
                             }
                         }
@@ -476,6 +489,20 @@ pub enum Instruction {
     },
 }
 
+/// [`RecieptData`] is a structure that holds the block number, transaction
+/// index, and cumulative gas used per block for a transaction.
+pub struct ReceiptData {
+    /// `block_number` is the number of the block in which the transaction was
+    /// included.
+    pub(crate) block_number: U64,
+    /// `transaction_index` is the index position of the transaction in the
+    /// block.
+    pub(crate) transaction_index: U64,
+    /// [`cumulative_gas_per_block`] is the total amount of gas used in the
+    /// block up until and including the transaction.
+    pub(crate) cumulative_gas_per_block: U256,
+}
+
 /// [`Outcome`]s that can be sent back to the the client via the
 /// [`Socket`].
 /// These outcomes can be from `Call`, `Transaction`, or `BlockUpdate`
@@ -495,7 +522,7 @@ pub enum Outcome {
     /// The outcome of a `Transaction` instruction that is first unpacked to see
     /// if the result is successful, then it can be used to build a
     /// `TransactionReceipt` in the `Middleware`.
-    TransactionCompleted(ExecutionResult, U64),
+    TransactionCompleted(ExecutionResult, ReceiptData),
 }
 /// Provides channels for communication between the EVM and external entities.
 ///

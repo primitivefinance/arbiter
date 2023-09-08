@@ -347,7 +347,7 @@ impl Middleware for RevmMiddleware {
 
         let outcome = self.provider().as_ref().outcome_receiver.recv()??;
 
-        if let Outcome::TransactionCompleted(execution_result, block_number) = outcome {
+        if let Outcome::TransactionCompleted(execution_result, receipt_data) = outcome {
             let Success {
                 _reason: _,
                 _gas_used: gas_used,
@@ -371,7 +371,7 @@ impl Middleware for RevmMiddleware {
             let hash = hasher.finalize();
 
             let mut block_hasher = Sha256::new();
-            block_hasher.update(block_number.to_string().as_bytes());
+            block_hasher.update(receipt_data.block_number.to_string().as_bytes());
             let block_hash = block_hasher.finalize();
             let block_hash = Some(ethers::types::H256::from_slice(&block_hash));
 
@@ -379,15 +379,15 @@ impl Middleware for RevmMiddleware {
                 Output::Create(_, address) => {
                     let tx_receipt = TransactionReceipt {
                         block_hash,
-                        block_number: Some(block_number),
+                        block_number: Some(receipt_data.block_number),
                         contract_address: Some(recast_address(address.unwrap())),
                         logs: logs.clone(),
-                        from: self.provider.default_sender().unwrap(),
+                        from: sender,
                         gas_used: Some(gas_used.into()),
                         effective_gas_price: Some(tx_env.clone().gas_price.into()),
                         transaction_hash: ethers::types::TxHash::from_slice(&hash),
                         to,
-                        cumulative_gas_used: U256::ZERO.into(), // need to count gas used per block
+                        cumulative_gas_used: receipt_data.cumulative_gas_per_block.into(),
                         status: Some(1.into()),
                         root: None,
                         logs_bloom: {
@@ -404,7 +404,7 @@ impl Middleware for RevmMiddleware {
                             TypedTransaction::Eip2930(_) => Some(1.into()),
                             _ => None,
                         },
-                        transaction_index: 1.into(),
+                        transaction_index: receipt_data.transaction_index,
                         ..Default::default()
                     };
 
@@ -427,15 +427,15 @@ impl Middleware for RevmMiddleware {
                 Output::Call(_) => {
                     let tx_receipt = TransactionReceipt {
                         block_hash,
-                        block_number: Some(block_number),
+                        block_number: Some(receipt_data.block_number),
                         contract_address: None,
                         logs: logs.clone(),
-                        from: self.provider.default_sender().unwrap(),
+                        from: sender,
                         gas_used: Some(gas_used.into()),
                         effective_gas_price: Some(tx_env.clone().gas_price.into()),
                         transaction_hash: ethers::types::TxHash::from_slice(&hash),
                         to,
-                        cumulative_gas_used: U256::ZERO.into(), // need to count gas used per block
+                        cumulative_gas_used: receipt_data.cumulative_gas_per_block.into(),
                         status: Some(1.into()),
                         root: None,
                         logs_bloom: {
@@ -452,7 +452,7 @@ impl Middleware for RevmMiddleware {
                             TypedTransaction::Eip2930(_) => Some(1.into()),
                             _ => None,
                         },
-                        transaction_index: 1.into(),
+                        transaction_index: receipt_data.transaction_index,
                         ..Default::default()
                     };
 
