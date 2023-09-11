@@ -358,6 +358,8 @@ impl Environment {
                                     // Update the block number and timestamp
                                     evm.env.block.number = block_number;
                                     evm.env.block.timestamp = block_timestamp;
+                                    transaction_index = 0;
+                                    cumulative_gas_per_block = U256::ZERO;
                                     outcome_sender
                                         .send(Ok(Outcome::BlockUpdateCompleted))
                                         .map_err(|e| {
