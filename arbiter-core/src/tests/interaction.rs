@@ -9,6 +9,7 @@ use ethers::{
     types::U256,
 };
 use futures::{Stream, StreamExt};
+use revm::primitives::U256 as rU256;
 
 use super::*;
 use crate::bindings::arbiter_math::ArbiterMath;
@@ -337,6 +338,26 @@ async fn update_block() {
     assert_eq!(block_number, new_block_number.into());
     let block_timestamp = block_info.get_block_timestamp().call().await.unwrap();
     assert_eq!(block_timestamp, new_block_timestamp.into());
+}
+
+#[tokio::test]
+async fn block_update_receipt() {
+    let (_manager, client) = startup_user_controlled().unwrap();
+    let arbiter_token = deploy_arbx(client.clone()).await.unwrap();
+    let receipt = arbiter_token
+        .mint(client.default_sender().unwrap(), 1000u64.into())
+        .send()
+        .await
+        .unwrap()
+        .await
+        .unwrap()
+        .unwrap();
+
+    assert_eq!(receipt.block_number.unwrap(), 0u64.into());
+    let receipt = client.update_block(3, 100).unwrap();
+    assert_eq!(receipt.block_number, 3.into());
+    assert_eq!(receipt.cumulative_gas_per_block, rU256::ZERO);
+    assert_eq!(receipt.transaction_index, 0.into());
 }
 
 #[tokio::test]

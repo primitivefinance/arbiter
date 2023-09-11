@@ -360,8 +360,16 @@ impl Environment {
                                     evm.env.block.timestamp = block_timestamp;
                                     transaction_index = 0;
                                     cumulative_gas_per_block = U256::ZERO;
+
+                                    let receipt_data = ReceiptData {
+                                        block_number: convert_uint_to_u64(evm.env.block.number)
+                                            .unwrap(),
+                                        transaction_index: U64::from(0), /* replace with actual
+                                                                          * value */
+                                        cumulative_gas_per_block: U256::from(0),
+                                    };
                                     outcome_sender
-                                        .send(Ok(Outcome::BlockUpdateCompleted))
+                                        .send(Ok(Outcome::BlockUpdateCompleted(receipt_data)))
                                         .map_err(|e| {
                                             EnvironmentError::Communication(e.to_string())
                                         })?;
@@ -513,7 +521,7 @@ pub enum Outcome {
     /// The outcome of a `BlockUpdate` instruction that is used to provide a
     /// non-error output of updating the block number and timestamp of the
     /// [`EVM`] to the client.
-    BlockUpdateCompleted,
+    BlockUpdateCompleted(ReceiptData),
 
     /// The outcome of a `Call` instruction that is used to provide the output
     /// of some [`EVM`] computation to the client.

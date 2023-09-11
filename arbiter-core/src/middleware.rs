@@ -47,7 +47,7 @@ use thiserror::Error;
 
 use crate::environment::{
     Environment, EventBroadcaster, Instruction, InstructionSender, Outcome, OutcomeReceiver,
-    OutcomeSender,
+    OutcomeSender, ReceiptData,
 };
 
 /// A middleware structure that integrates with `revm`.
@@ -243,7 +243,7 @@ impl RevmMiddleware {
         &self,
         block_number: impl Into<ethers::types::U256>,
         block_timestamp: impl Into<ethers::types::U256>,
-    ) -> Result<(), RevmMiddlewareError> {
+    ) -> Result<ReceiptData, RevmMiddlewareError> {
         let block_number: ethers::types::U256 = block_number.into();
         let block_timestamp: ethers::types::U256 = block_timestamp.into();
         let provider = self.provider.as_ref();
@@ -255,8 +255,12 @@ impl RevmMiddleware {
                 outcome_sender: provider.outcome_sender.clone(),
             })
             .map_err(|e| RevmMiddlewareError::Send(e.to_string()))?;
-        provider.outcome_receiver.recv()??;
-        Ok(())
+        match provider.outcome_receiver.recv() {
+            Ok(Ok(Outcome::BlockUpdateCompleted(receipt_data))) => Ok(receipt_data),
+            _ => Err(RevmMiddlewareError::MissingData(
+                "Block did not update Succesfully".to_string(),
+            )),
+        }
     }
 }
 
