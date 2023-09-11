@@ -5,11 +5,8 @@ fn add_environment() {
     let mut manager = Manager::new();
     let params = EnvironmentParameters {
         label: TEST_ENV_LABEL.to_string(),
-        block_type: BlockType::RandomlySampled {
-            block_rate: TEST_BLOCK_RATE,
-            block_time: TEST_BLOCK_TIME,
-            seed: TEST_ENV_SEED,
-        },
+        block_type: BlockType::UserControlled,
+        gas_settings: GasSettings::UserControlled,
     };
     manager.add_environment(params).unwrap();
     assert!(manager

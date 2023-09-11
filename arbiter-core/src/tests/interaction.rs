@@ -395,10 +395,40 @@ async fn get_block_timestamp() {
 }
 
 #[tokio::test]
-async fn get_gas_price() {
+async fn get_gas_price_user_controlled() {
+    // User controlled should have 0 gas price initially
     let (_manager, client) = startup_user_controlled().unwrap();
     let gas_price = client.get_gas_price().await.unwrap();
-    assert_eq!(gas_price, ethers::types::U256::from(0))
+    assert_eq!(gas_price, ethers::types::U256::from(0));
+}
+
+#[tokio::test]
+async fn get_gas_price_randomly_sampled() {
+    // Randomly sampled should have a gas price 2x the number of transactions (which is 3)
+    let (_manager, client) = startup_randomly_sampled().unwrap();
+    let gas_price = client.get_gas_price().await.unwrap();
+    // So the answer is 6
+    assert_eq!(gas_price, ethers::types::U256::from(6));
+
+    // Now let's send 3 transactions and check what the gas price is
+    let arbx = deploy_arbx(client.clone()).await.unwrap();
+
+    for _ in 0..15 {
+        arbx.mint(
+            client.default_sender().unwrap(),
+            ethers::types::U256::from(1),
+        )
+        .send()
+        .await
+        .unwrap()
+        .await
+        .unwrap()
+        .unwrap();
+
+        // The gas price should be different now
+        let gas_price = client.get_gas_price().await.unwrap();
+        println!("gas_price: {}", gas_price);
+    }
 }
 
 #[tokio::test]

@@ -17,6 +17,7 @@ fn multiple_signer_addresses() {
     let params = EnvironmentParameters {
         label: TEST_ENV_LABEL.to_string(),
         block_type: BlockType::UserControlled,
+        gas_settings: GasSettings::UserControlled,
     };
     let environment = &mut Environment::new(params);
     let client_1 = Arc::new(RevmMiddleware::new(environment, Some("0".to_string())));
@@ -29,6 +30,7 @@ fn signer_collision() {
     let params = EnvironmentParameters {
         label: TEST_ENV_LABEL.to_string(),
         block_type: BlockType::UserControlled,
+        gas_settings: GasSettings::UserControlled,
     };
     let environment = &mut Environment::new(params);
     let client_1 = Arc::new(RevmMiddleware::new(environment, Some("0".to_string())));

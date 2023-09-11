@@ -31,6 +31,7 @@ use ethers::core::types::U64;
 use log::error;
 use revm::{
     db::{CacheDB, EmptyDB},
+    interpreter::gas,
     primitives::{EVMError, ExecutionResult, Log, TxEnv, U256},
     EVM,
 };
@@ -157,6 +158,8 @@ pub struct EnvironmentParameters {
     /// a rate parameter and seed for a Poisson distribution that will be
     /// used to sample the amount of transactions per block.
     pub block_type: BlockType,
+
+    pub gas_settings: GasSettings,
 }
 
 /// Allow the end user to be able to access a debug printout for the
@@ -232,8 +235,11 @@ pub enum EnvironmentError {
     /// [`EnvironmentError::NotUserControlledBlockType`] is thrown when
     /// the [`Environment`] is in a [`BlockType::RandomlySampled`] state and
     /// an attempt is made to externally change the block number and timestamp.
-    #[error("error in the environment! attempted to externally change block number and timestamp when block type is not user controlled.")]
+    #[error("error in the environment! attempted to externally change block number and timestamp when `BlockType` is not `BlockType::UserControlled`.")]
     NotUserControlledBlockType,
+
+    #[error("error in the environment! attempted to set a gas price via a multiplier when the `BlockType` is not `BlockType::RandomlySampled`.")]
+    NotRandomlySampledBlockType,
 }
 
 impl Environment {
@@ -285,9 +291,12 @@ impl Environment {
                 block_rate,
                 block_time,
                 seed,
-            } => Some(SeededPoisson::new(block_rate, block_time, seed)),
+            } => Some(Arc::new(Mutex::new(SeededPoisson::new(
+                block_rate, block_time, seed,
+            )))),
             BlockType::UserControlled => None,
         };
+        let gas_settings = self.parameters.gas_settings.clone();
 
         // Set up the state and tx counter
         self.state
@@ -297,11 +306,31 @@ impl Environment {
 
         // Move the EVM and its socket to a new thread and retrieve this handle
         let handle = thread::spawn(move || {
+            if let GasSettings::RandomlySampled { multiplier: _ } = gas_settings {
+                if seeded_poisson.is_none() {
+                    return Err(EnvironmentError::NotRandomlySampledBlockType);
+                }
+            }
             // Get the first amount of transactions per block from the distribution and set
             // the initial counter.
             let mut transactions_per_block = seeded_poisson
                 .clone()
-                .map(|mut distribution| distribution.sample());
+                .map(|mut distribution| distribution.lock().unwrap().sample());
+            match gas_settings {
+                GasSettings::UserControlled => {
+                    evm.env.tx.gas_price = U256::from(0);
+                }
+                GasSettings::RandomlySampled { multiplier } => {
+                    let gas_price = (transactions_per_block
+                        .ok_or(EnvironmentError::NotRandomlySampledBlockType)?
+                        as f64)
+                        * multiplier;
+                    evm.env.tx.gas_price = U256::from(gas_price as u128);
+                }
+                GasSettings::Constant(gas_price) => {
+                    evm.env.tx.gas_price = U256::from(gas_price);
+                }
+            }
             let mut transaction_index: usize = 0;
             let mut cumulative_gas_per_block: U256 = U256::ZERO;
 
@@ -409,11 +438,39 @@ impl Environment {
                                         evm.env.block.number += U256::from(1);
 
                                         // This unwrap cannot fail.
-                                        let mut seeded_poisson = seeded_poisson.clone().unwrap();
+                                        let seeded_poisson_clone = seeded_poisson.clone().unwrap();
+                                        let mut seeded_poisson_lock =
+                                            seeded_poisson_clone.lock().unwrap();
 
                                         evm.env.block.timestamp +=
-                                            U256::from(seeded_poisson.time_step);
-                                        transactions_per_block = Some(seeded_poisson.sample());
+                                            U256::from(seeded_poisson_lock.time_step);
+                                        transactions_per_block = loop {
+                                            let sample = Some(seeded_poisson_lock.sample());
+
+                                            if sample == Some(0) {
+                                                println!(
+                                                    "sampled 0 transactions per block, resampling"
+                                                );
+                                                evm.env.block.number += U256::from(1);
+                                                continue;
+                                            } else {
+                                                break sample;
+                                            }
+                                        };
+                                        println!(
+                                            "transactions per block: {:?}",
+                                            transactions_per_block
+                                        );
+                                        if let GasSettings::RandomlySampled { multiplier } =
+                                            gas_settings
+                                        {
+                                            let gas_price = (transactions_per_block.ok_or(
+                                                EnvironmentError::NotRandomlySampledBlockType,
+                                            )?
+                                                as f64)
+                                                * multiplier;
+                                            evm.env.tx.gas_price = U256::from(gas_price as u128);
+                                        };
                                     }
 
                                     // Set the tx_env and prepare to process it
@@ -675,7 +732,7 @@ pub enum GasSettings {
     },
 
     /// The gas price will be a constant value from the inner value.
-    None(u128),
+    Constant(u128),
 }
 
 /// Responsible for broadcasting Ethereum logs to subscribers.
@@ -736,6 +793,7 @@ pub(crate) mod tests {
         let params = EnvironmentParameters {
             label: TEST_ENV_LABEL.to_string(),
             block_type: BlockType::UserControlled,
+            gas_settings: GasSettings::UserControlled,
         };
         let environment = Environment::new(params);
         assert_eq!(environment.parameters.label, TEST_ENV_LABEL);
@@ -753,6 +811,7 @@ pub(crate) mod tests {
         let params = EnvironmentParameters {
             label: TEST_ENV_LABEL.to_string(),
             block_type,
+            gas_settings: GasSettings::RandomlySampled { multiplier: 1.0 },
         };
         let environment = Environment::new(params);
         assert_eq!(environment.parameters.label, TEST_ENV_LABEL);
@@ -765,6 +824,7 @@ pub(crate) mod tests {
         let params = EnvironmentParameters {
             label: TEST_ENV_LABEL.to_string(),
             block_type: BlockType::UserControlled,
+            gas_settings: GasSettings::UserControlled,
         };
         let mut environment = Environment::new(params);
         environment.run();
