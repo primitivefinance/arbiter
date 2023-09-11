@@ -21,6 +21,7 @@ use std::{
 };
 
 use ethers::{
+    abi::ethereum_types::BloomInput,
     prelude::{
         k256::{
             ecdsa::SigningKey,
@@ -34,8 +35,8 @@ use ethers::{
     },
     signers::{Signer, Wallet},
     types::{
-        transaction::eip2718::TypedTransaction, Address, BlockId, Bytes, Filter, FilteredParams,
-        Log, Transaction, TransactionReceipt, U64,
+        transaction::eip2718::TypedTransaction, Address, BlockId, Bloom, Bytes, Filter,
+        FilteredParams, Log, Transaction, TransactionReceipt, U64,
     },
 };
 use futures_timer::Delay;
@@ -46,7 +47,7 @@ use thiserror::Error;
 
 use crate::environment::{
     Environment, EventBroadcaster, Instruction, InstructionSender, Outcome, OutcomeReceiver,
-    OutcomeSender,
+    OutcomeSender, ReceiptData,
 };
 
 /// A middleware structure that integrates with `revm`.
@@ -242,7 +243,7 @@ impl RevmMiddleware {
         &self,
         block_number: impl Into<ethers::types::U256>,
         block_timestamp: impl Into<ethers::types::U256>,
-    ) -> Result<(), RevmMiddlewareError> {
+    ) -> Result<ReceiptData, RevmMiddlewareError> {
         let block_number: ethers::types::U256 = block_number.into();
         let block_timestamp: ethers::types::U256 = block_timestamp.into();
         let provider = self.provider.as_ref();
@@ -254,8 +255,12 @@ impl RevmMiddleware {
                 outcome_sender: provider.outcome_sender.clone(),
             })
             .map_err(|e| RevmMiddlewareError::Send(e.to_string()))?;
-        provider.outcome_receiver.recv()??;
-        Ok(())
+        match provider.outcome_receiver.recv() {
+            Ok(Ok(Outcome::BlockUpdateCompleted(receipt_data))) => Ok(receipt_data),
+            _ => Err(RevmMiddlewareError::MissingData(
+                "Block did not update Succesfully".to_string(),
+            )),
+        }
     }
 }
 
@@ -315,6 +320,7 @@ impl Middleware for RevmMiddleware {
             Some(to) => TransactTo::Call(B160::from(*to)),
             None => TransactTo::Create(CreateScheme::Create),
         };
+
         let tx_env = TxEnv {
             caller: B160::from(self.wallet.address()),
             gas_limit: u64::MAX,
@@ -334,7 +340,7 @@ impl Middleware for RevmMiddleware {
             access_list: Vec::new(),
         };
         let instruction = Instruction::Transaction {
-            tx_env,
+            tx_env: tx_env.clone(),
             outcome_sender: self.provider.as_ref().outcome_sender.clone(),
         };
         self.provider()
@@ -345,7 +351,7 @@ impl Middleware for RevmMiddleware {
 
         let outcome = self.provider().as_ref().outcome_receiver.recv()??;
 
-        if let Outcome::TransactionCompleted(execution_result, block_number) = outcome {
+        if let Outcome::TransactionCompleted(execution_result, receipt_data) = outcome {
             let Success {
                 _reason: _,
                 _gas_used: gas_used,
@@ -354,20 +360,58 @@ impl Middleware for RevmMiddleware {
                 output,
             } = unpack_execution_result(execution_result)?;
 
+            let to: Option<ethers::types::H160> = match tx_env.transact_to {
+                TransactTo::Call(address) => Some(address.into()),
+                TransactTo::Create(_) => None,
+            };
+
+            // Note that this is technically not the correct construction on the tx hash
+            // but untill we increment the nonce correctly this will do
+            let sender = self.wallet.address();
+            let data = tx_env.clone().data;
+            let mut hasher = Sha256::new();
+            hasher.update(sender.as_bytes());
+            hasher.update(data.as_ref());
+            let hash = hasher.finalize();
+
+            let mut block_hasher = Sha256::new();
+            block_hasher.update(receipt_data.block_number.to_string().as_bytes());
+            let block_hash = block_hasher.finalize();
+            let block_hash = Some(ethers::types::H256::from_slice(&block_hash));
+
             match output {
                 Output::Create(_, address) => {
-                    // TODO: Add other reciept fields
                     let tx_receipt = TransactionReceipt {
-                        block_hash: None,
-                        block_number: Some(block_number),
+                        block_hash,
+                        block_number: Some(receipt_data.block_number),
                         contract_address: Some(recast_address(address.unwrap())),
-                        logs,
-                        from: self.provider.default_sender().unwrap(),
+                        logs: logs.clone(),
+                        from: sender,
                         gas_used: Some(gas_used.into()),
+                        effective_gas_price: Some(tx_env.clone().gas_price.into()),
+                        transaction_hash: ethers::types::TxHash::from_slice(&hash),
+                        to,
+                        cumulative_gas_used: receipt_data.cumulative_gas_per_block.into(),
+                        status: Some(1.into()),
+                        root: None,
+                        logs_bloom: {
+                            let mut bloom = Bloom::default();
+                            for log in &logs {
+                                bloom.accrue(BloomInput::Raw(&log.address.0));
+                                for topic in log.topics.iter() {
+                                    bloom.accrue(BloomInput::Raw(topic.as_bytes()));
+                                }
+                            }
+                            bloom
+                        },
+                        transaction_type: match tx {
+                            TypedTransaction::Eip2930(_) => Some(1.into()),
+                            _ => None,
+                        },
+                        transaction_index: receipt_data.transaction_index,
                         ..Default::default()
                     };
 
-                    // TODO: Create the actual tx_hash
                     // TODO: I'm not sure we need to set the confirmations.
                     let mut pending_tx =
                         PendingTransaction::new(ethers::types::H256::zero(), self.provider())
@@ -385,14 +429,34 @@ impl Middleware for RevmMiddleware {
                     Ok(pending_tx)
                 }
                 Output::Call(_) => {
-                    // TODO: Add other reciept fields
                     let tx_receipt = TransactionReceipt {
-                        block_hash: None,
-                        block_number: Some(block_number),
-                        logs,
-                        from: self.provider.default_sender().unwrap(),
+                        block_hash,
+                        block_number: Some(receipt_data.block_number),
+                        contract_address: None,
+                        logs: logs.clone(),
+                        from: sender,
                         gas_used: Some(gas_used.into()),
-                        // need to add the effective gas price
+                        effective_gas_price: Some(tx_env.clone().gas_price.into()),
+                        transaction_hash: ethers::types::TxHash::from_slice(&hash),
+                        to,
+                        cumulative_gas_used: receipt_data.cumulative_gas_per_block.into(),
+                        status: Some(1.into()),
+                        root: None,
+                        logs_bloom: {
+                            let mut bloom = Bloom::default();
+                            for log in &logs {
+                                bloom.accrue(BloomInput::Raw(&log.address.0));
+                                for topic in log.topics.iter() {
+                                    bloom.accrue(BloomInput::Raw(topic.as_bytes()));
+                                }
+                            }
+                            bloom
+                        },
+                        transaction_type: match tx {
+                            TypedTransaction::Eip2930(_) => Some(1.into()),
+                            _ => None,
+                        },
+                        transaction_index: receipt_data.transaction_index,
                         ..Default::default()
                     };
 

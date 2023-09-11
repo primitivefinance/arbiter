@@ -4,7 +4,12 @@ use std::{
 };
 
 use assert_matches::assert_matches;
+use ethers::{
+    prelude::k256::sha2::{Digest, Sha256},
+    types::U256,
+};
 use futures::{Stream, StreamExt};
+use revm::primitives::U256 as rU256;
 
 use super::*;
 use crate::bindings::arbiter_math::ArbiterMath;
@@ -333,4 +338,71 @@ async fn update_block() {
     assert_eq!(block_number, new_block_number.into());
     let block_timestamp = block_info.get_block_timestamp().call().await.unwrap();
     assert_eq!(block_timestamp, new_block_timestamp.into());
+}
+
+#[tokio::test]
+async fn block_update_receipt() {
+    let (_manager, client) = startup_user_controlled().unwrap();
+    let arbiter_token = deploy_arbx(client.clone()).await.unwrap();
+    let receipt = arbiter_token
+        .mint(client.default_sender().unwrap(), 1000u64.into())
+        .send()
+        .await
+        .unwrap()
+        .await
+        .unwrap()
+        .unwrap();
+
+    assert_eq!(receipt.block_number.unwrap(), 0u64.into());
+    let receipt = client.update_block(3, 100).unwrap();
+    assert_eq!(receipt.block_number, 3.into());
+    assert_eq!(receipt.cumulative_gas_per_block, rU256::ZERO);
+    assert_eq!(receipt.transaction_index, 0.into());
+}
+
+#[tokio::test]
+async fn receipt_data() {
+    let (_manager, client) = startup_user_controlled().unwrap();
+    let arbiter_token = deploy_arbx(client.clone()).await.unwrap();
+    let receipt = arbiter_token
+        .mint(client.default_sender().unwrap(), 1000u64.into())
+        .send()
+        .await
+        .unwrap()
+        .await
+        .unwrap()
+        .unwrap();
+
+    assert!(receipt.block_number.is_some());
+    let mut block_hasher = Sha256::new();
+    block_hasher.update(receipt.block_number.unwrap().to_string().as_bytes());
+    let block_hash = block_hasher.finalize();
+    let block_hash = Some(ethers::types::H256::from_slice(&block_hash));
+    assert_eq!(receipt.block_hash, block_hash);
+    assert_eq!(receipt.status, Some(1.into()));
+
+    assert!(receipt.contract_address.is_none());
+    assert_eq!(receipt.to, Some(arbiter_token.address()));
+
+    assert!(receipt.gas_used.is_some());
+    assert_eq!(receipt.logs.len(), 1);
+    assert_eq!(receipt.logs[0].topics.len(), 3);
+    assert_eq!(receipt.transaction_index, 1.into());
+    assert_eq!(receipt.from, client.default_sender().unwrap());
+
+    let mut cumulative_gas = U256::from(0);
+    assert!(receipt.cumulative_gas_used >= cumulative_gas);
+    cumulative_gas += receipt.cumulative_gas_used;
+
+    let receipt_1 = arbiter_token
+        .mint(client.default_sender().unwrap(), 1000u64.into())
+        .send()
+        .await
+        .unwrap()
+        .await
+        .unwrap()
+        .unwrap();
+
+    // ensure gas in increasing
+    assert!(cumulative_gas <= receipt_1.cumulative_gas_used);
 }
