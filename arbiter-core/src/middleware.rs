@@ -16,6 +16,7 @@ use std::{
     fmt::Debug,
     future::Future,
     pin::Pin,
+    str::FromStr,
     sync::{Arc, Mutex},
     time::Duration,
 };
@@ -46,8 +47,8 @@ use serde::{de::DeserializeOwned, Serialize};
 use thiserror::Error;
 
 use crate::environment::{
-    Environment, EventBroadcaster, Instruction, InstructionSender, Outcome, OutcomeReceiver,
-    OutcomeSender, ReceiptData,
+    Environment, EnvironmentData, EventBroadcaster, Instruction, InstructionSender, Outcome,
+    OutcomeReceiver, OutcomeSender, ReceiptData,
 };
 
 /// A middleware structure that integrates with `revm`.
@@ -259,6 +260,26 @@ impl RevmMiddleware {
             Ok(Ok(Outcome::BlockUpdateCompleted(receipt_data))) => Ok(receipt_data),
             _ => Err(RevmMiddlewareError::MissingData(
                 "Block did not update Succesfully".to_string(),
+            )),
+        }
+    }
+
+    pub async fn get_block_timestamp(&self) -> Result<ethers::types::U256, RevmMiddlewareError> {
+        self.provider()
+            .as_ref()
+            .instruction_sender
+            .send(Instruction::Query {
+                environment_data: EnvironmentData::BlockTimestamp,
+                outcome_sender: self.provider().as_ref().outcome_sender.clone(),
+            })
+            .map_err(|e| RevmMiddlewareError::Send(e.to_string()))?;
+        match self.provider().as_ref().outcome_receiver.recv()?? {
+            Outcome::QueryReturn(outcome) => {
+                ethers::types::U256::from_str_radix(outcome.as_ref(), 10)
+                    .map_err(|e| RevmMiddlewareError::Conversion(e.to_string()))
+            }
+            _ => Err(RevmMiddlewareError::MissingData(
+                "Wrong variant returned via query!".to_string(),
             )),
         }
     }
@@ -616,6 +637,46 @@ impl Middleware for RevmMiddleware {
     ) -> Result<FilterWatcher<'b, Self::Provider, Log>, Self::Error> {
         let id = self.new_filter(FilterKind::Logs(filter)).await?;
         Ok(FilterWatcher::new(id, self.provider()).interval(Duration::ZERO))
+    }
+
+    async fn get_gas_price(&self) -> Result<ethers::types::U256, Self::Error> {
+        self.provider()
+            .as_ref()
+            .instruction_sender
+            .send(Instruction::Query {
+                environment_data: EnvironmentData::GasPrice,
+                outcome_sender: self.provider().as_ref().outcome_sender.clone(),
+            })
+            .map_err(|e| RevmMiddlewareError::Send(e.to_string()))?;
+        match self.provider().as_ref().outcome_receiver.recv()?? {
+            Outcome::QueryReturn(outcome) => {
+                ethers::types::U256::from_str_radix(outcome.as_ref(), 10)
+                    .map_err(|e| RevmMiddlewareError::Conversion(e.to_string()))
+            }
+            _ => Err(RevmMiddlewareError::MissingData(
+                "Wrong variant returned via query!".to_string(),
+            )),
+        }
+    }
+
+    async fn get_block_number(&self) -> Result<U64, Self::Error> {
+        self.provider()
+            .as_ref()
+            .instruction_sender
+            .send(Instruction::Query {
+                environment_data: EnvironmentData::BlockNumber,
+                outcome_sender: self.provider().as_ref().outcome_sender.clone(),
+            })
+            .map_err(|e| RevmMiddlewareError::Send(e.to_string()))?;
+        match self.provider().as_ref().outcome_receiver.recv()?? {
+            Outcome::QueryReturn(outcome) => {
+                ethers::types::U64::from_str_radix(outcome.as_ref(), 10)
+                    .map_err(|e| RevmMiddlewareError::Conversion(e.to_string()))
+            }
+            _ => Err(RevmMiddlewareError::MissingData(
+                "Wrong variant returned via query!".to_string(),
+            )),
+        }
     }
 }
 

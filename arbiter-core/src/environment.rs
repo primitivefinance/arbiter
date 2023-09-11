@@ -326,6 +326,7 @@ impl Environment {
                                 Instruction::BlockUpdate { outcome_sender, .. } => outcome_sender,
                                 Instruction::Call { outcome_sender, .. } => outcome_sender,
                                 Instruction::Transaction { outcome_sender, .. } => outcome_sender,
+                                Instruction::Query { outcome_sender, .. } => outcome_sender,
                             };
                             sender
                                 .send(Err(EnvironmentError::TransactionReceivedWhilePaused))
@@ -447,6 +448,27 @@ impl Environment {
                                         })?;
                                     transaction_index += 1;
                                 }
+                                Instruction::Query {
+                                    environment_data,
+                                    outcome_sender,
+                                } => {
+                                    let outcome = match environment_data {
+                                        EnvironmentData::BlockNumber => {
+                                            evm.env.block.number.to_string()
+                                        }
+                                        EnvironmentData::BlockTimestamp => {
+                                            evm.env.block.timestamp.to_string()
+                                        }
+                                        EnvironmentData::GasPrice => {
+                                            evm.env.tx.gas_price.to_string()
+                                        }
+                                    };
+                                    outcome_sender
+                                        .send(Ok(Outcome::QueryReturn(outcome)))
+                                        .map_err(|e| {
+                                            EnvironmentError::Communication(e.to_string())
+                                        })?;
+                                }
                             }
                         }
                     }
@@ -497,6 +519,18 @@ pub enum Instruction {
         /// The sender used to to send the outcome of the transaction back to.
         outcome_sender: OutcomeSender,
     },
+
+    Query {
+        environment_data: EnvironmentData,
+        outcome_sender: OutcomeSender,
+    },
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+pub enum EnvironmentData {
+    BlockNumber,
+    BlockTimestamp,
+    GasPrice,
 }
 
 /// [`RecieptData`] is a structure that holds the block number, transaction
@@ -527,12 +561,12 @@ pub enum Outcome {
     /// of some [`EVM`] computation to the client.
     CallCompleted(ExecutionResult),
 
-    // TODO: This top one should probably be a tuple variant that has any extra necessary stuff to
-    // form a receipt so long as the transaction was successful
     /// The outcome of a `Transaction` instruction that is first unpacked to see
     /// if the result is successful, then it can be used to build a
     /// `TransactionReceipt` in the `Middleware`.
     TransactionCompleted(ExecutionResult, ReceiptData),
+
+    QueryReturn(String),
 }
 /// Provides channels for communication between the EVM and external entities.
 ///
@@ -612,6 +646,36 @@ pub enum BlockType {
         /// for the environment.
         seed: u64,
     },
+}
+
+/// Provides a means of deciding how the gas price of the
+/// [`EVM`] will be chosen.
+/// This can either be a [`GasSettings::UserControlled`],
+/// [`GasSettings::RandomlySampled`], or [`GasSettings::None`].
+/// The former will allow the end user to control the gas price from
+/// their own external API and the latter will allow the end user to set
+/// a constant gas price.
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+pub enum GasSettings {
+    /// The gas limit will be controlled by the end user.
+    /// Currently this is not properly implemented!
+    /// In the future, Foundry cheatcodes will be used to control gas
+    /// on-the-fly.
+    UserControlled,
+
+    /// The gas price will depend on the number of transactions in the block.
+    /// The user *must* set the [`BlockType`] to [`BlockType::RandomlySampled`].
+    /// We determine the gas price by multiplying the number of transactions in
+    /// the block by the multiplier which represents paying higher fees for a
+    /// more congested network.
+    RandomlySampled {
+        /// Multiplies the number of transactions in the block to determine the
+        /// gas price.
+        multiplier: f64,
+    },
+
+    /// The gas price will be a constant value from the inner value.
+    None(u128),
 }
 
 /// Responsible for broadcasting Ethereum logs to subscribers.

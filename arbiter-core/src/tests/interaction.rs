@@ -312,34 +312,6 @@ async fn pause_prevents_processing_transactions() {
     assert!(arbiter_math_2.is_ok());
 }
 
-// TODO: We can probably just implement RPC requests for these instead.
-#[tokio::test]
-async fn update_block() {
-    let (_manager, client) = startup_user_controlled().unwrap();
-    let block_info = crate::bindings::block_info::BlockInfo::deploy(client.clone(), ())
-        .unwrap()
-        .send()
-        .await
-        .unwrap();
-
-    let block_number = block_info.get_block_number().call().await.unwrap();
-    assert_eq!(block_number, ethers::types::U256::from(0));
-    let block_timestamp = block_info.get_block_timestamp().call().await.unwrap();
-    assert_eq!(block_timestamp, ethers::types::U256::from(1));
-
-    let new_block_number = 69;
-    let new_block_timestamp = 420;
-
-    assert!(client
-        .update_block(new_block_number, new_block_timestamp,)
-        .is_ok());
-
-    let block_number = block_info.get_block_number().call().await.unwrap();
-    assert_eq!(block_number, new_block_number.into());
-    let block_timestamp = block_info.get_block_timestamp().call().await.unwrap();
-    assert_eq!(block_timestamp, new_block_timestamp.into());
-}
-
 #[tokio::test]
 async fn block_update_receipt() {
     let (_manager, client) = startup_user_controlled().unwrap();
@@ -405,4 +377,49 @@ async fn receipt_data() {
 
     // ensure gas in increasing
     assert!(cumulative_gas <= receipt_1.cumulative_gas_used);
+}
+
+// TODO: Tests like the following should just go in something like `tests/middlware.rs`
+#[tokio::test]
+async fn get_block_number() {
+    let (_manager, client) = startup_user_controlled().unwrap();
+    let block_number = client.get_block_number().await.unwrap();
+    assert_eq!(block_number.as_u64(), 0_u64)
+}
+
+#[tokio::test]
+async fn get_block_timestamp() {
+    let (_manager, client) = startup_user_controlled().unwrap();
+    let block_timestamp = client.get_block_timestamp().await.unwrap();
+    assert_eq!(block_timestamp, ethers::types::U256::from(1))
+}
+
+#[tokio::test]
+async fn get_gas_price() {
+    let (_manager, client) = startup_user_controlled().unwrap();
+    let gas_price = client.get_gas_price().await.unwrap();
+    assert_eq!(gas_price, ethers::types::U256::from(0))
+}
+
+#[tokio::test]
+async fn update_block() {
+    let (_manager, client) = startup_user_controlled().unwrap();
+    let block_number = client.get_block_number().await.unwrap();
+    assert_eq!(block_number, ethers::types::U64::from(0));
+
+    let block_timestamp = client.get_block_timestamp().await.unwrap();
+    assert_eq!(block_timestamp, ethers::types::U256::from(1));
+
+    let new_block_number = 69;
+    let new_block_timestamp = 420;
+
+    assert!(client
+        .update_block(new_block_number, new_block_timestamp,)
+        .is_ok());
+
+    let block_number = client.get_block_number().await.unwrap();
+    assert_eq!(block_number, new_block_number.into());
+
+    let block_timestamp = client.get_block_timestamp().await.unwrap();
+    assert_eq!(block_timestamp, new_block_timestamp.into());
 }
