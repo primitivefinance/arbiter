@@ -108,7 +108,7 @@ impl Manager {
     ///
     /// ```rust
     /// use arbiter_core::{
-    ///     environment::{BlockType, EnvironmentParameters},
+    ///     environment::{BlockType, GasSettings, EnvironmentParameters},
     ///     manager::Manager,
     /// };
     ///
@@ -120,6 +120,9 @@ impl Manager {
     ///         block_time: 12,
     ///         seed: 1,
     ///     },
+    ///    gas_settings: GasSettings::RandomlySampled {
+    ///       multiplier: 1.0,
+    ///    },
     /// };
     /// manager.add_environment(params).unwrap();
     /// ```
@@ -162,7 +165,7 @@ impl Manager {
     ///
     /// ```rust
     /// use arbiter_core::{
-    ///     environment::{BlockType, EnvironmentParameters},
+    ///     environment::{BlockType, GasSettings, EnvironmentParameters},
     ///     manager::Manager,
     /// };
     ///
@@ -174,9 +177,12 @@ impl Manager {
     ///         block_time: 12,
     ///         seed: 1,
     ///     },
+    ///    gas_settings: GasSettings::RandomlySampled {
+    ///       multiplier: 1.0,
+    ///    },
     /// };
-    /// manager.add_environment(params).unwrap();
     ///
+    /// manager.add_environment(params).unwrap();
     /// // Now, let's start the environment
     /// manager.start_environment("example_env").unwrap();
     /// ```
@@ -244,7 +250,7 @@ impl Manager {
     ///
     /// ```rust
     /// use arbiter_core::{
-    ///     environment::{BlockType, EnvironmentParameters},
+    ///     environment::{BlockType, GasSettings, EnvironmentParameters},
     ///     manager::Manager,
     /// };
     ///
@@ -256,7 +262,11 @@ impl Manager {
     ///         block_time: 12,
     ///         seed: 1,
     ///     },
+    ///    gas_settings: GasSettings::RandomlySampled {
+    ///       multiplier: 1.0,
+    ///    },
     /// };
+    ///
     /// manager.add_environment(params).unwrap();
     /// manager.start_environment("example_env").unwrap();
     ///
@@ -322,7 +332,7 @@ impl Manager {
     ///
     /// ```rust
     /// use arbiter_core::{
-    ///     environment::{BlockType, EnvironmentParameters},
+    ///     environment::{BlockType, GasSettings, EnvironmentParameters},
     ///     manager::Manager,
     /// };
     ///
@@ -334,6 +344,9 @@ impl Manager {
     ///         block_time: 12,
     ///         seed: 1,
     ///     },
+    ///    gas_settings: GasSettings::RandomlySampled {
+    ///       multiplier: 1.0,
+    ///    },
     /// };
     /// manager.add_environment(params).unwrap();
     /// manager.start_environment("example_env").unwrap();

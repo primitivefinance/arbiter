@@ -69,7 +69,7 @@ use crate::environment::{
 /// use std::sync::Arc;
 ///
 /// use arbiter_core::{
-///     environment::{BlockType, EnvironmentParameters},
+///     environment::{BlockType, GasSettings, EnvironmentParameters},
 ///     manager::Manager,
 ///     middleware::RevmMiddleware,
 /// };
@@ -83,8 +83,12 @@ use crate::environment::{
 ///         block_time: 12,
 ///         seed: 1,
 ///     },
+///    gas_settings: GasSettings::RandomlySampled {
+///       multiplier: 1.0,
+///    },
 /// };
 /// manager.add_environment(params).unwrap();
+/// manager.start_environment("example_env").unwrap();
 ///
 /// // Retrieve the environment to create a new middleware instance
 /// let environment = manager.environments.get("example_env").unwrap();
@@ -185,7 +189,7 @@ impl RevmMiddleware {
     /// # Examples
     /// ```
     /// use arbiter_core::{
-    ///     environment::{BlockType, EnvironmentParameters},
+    ///     environment::{BlockType, GasSettings, EnvironmentParameters},
     ///     manager::Manager,
     ///     middleware::RevmMiddleware,
     /// };
@@ -198,10 +202,15 @@ impl RevmMiddleware {
     ///         block_time: 12,
     ///         seed: 1,
     ///     },
+    ///    gas_settings: GasSettings::RandomlySampled {
+    ///       multiplier: 1.0,
+    ///    },
     /// };
     /// manager.add_environment(params).unwrap();
+    /// manager.start_environment("example_env").unwrap();
+    ///
+    /// // Retrieve the environment to create a new middleware instance
     /// let environment = manager.environments.get("example_env").unwrap();
-    /// let middleware = RevmMiddleware::new(&environment, Some("test_label".to_string()));
     ///
     /// // We can create a middleware instance without a seed by doing the following
     /// let no_seed_middleware = RevmMiddleware::new(&environment, None);
