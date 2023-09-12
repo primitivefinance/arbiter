@@ -36,6 +36,7 @@ use crate::{
 pub const TEST_BLOCK_RATE: f64 = 2.0;
 pub const TEST_BLOCK_TIME: u32 = 12;
 pub const TEST_ENV_SEED: u64 = 1;
+pub const TEST_GAS_PRICE: u128 = 100;
 pub const TEST_GAS_MULTIPLIER: f64 = 2.0;
 
 pub const TEST_ARG_NAME: &str = "ArbiterToken";
@@ -104,7 +105,7 @@ fn startup_constant_gas() -> Result<(Manager, Arc<RevmMiddleware>)> {
     let params = EnvironmentParameters {
         label: TEST_ENV_LABEL.to_string(),
         block_type: BlockType::UserControlled,
-        gas_settings: GasSettings::Constant(100),
+        gas_settings: GasSettings::Constant(TEST_GAS_PRICE),
     };
     manager.add_environment(params).unwrap();
     manager.start_environment(TEST_ENV_LABEL)?;

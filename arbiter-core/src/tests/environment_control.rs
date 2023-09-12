@@ -182,4 +182,23 @@ async fn randomly_sampled_gas_price() {
 }
 
 #[tokio::test]
-async fn constant_gas_price() {}
+async fn constant_gas_price() {
+    let (_manager, client) = startup_constant_gas().unwrap();
+    client.deal(client.address(), U256::MAX).await.unwrap();
+    // tx_0 is the transaction that creates the token contract
+    let arbiter_token = deploy_arbx(client.clone()).await.unwrap();
+
+    for _ in 0..10 {
+        let gas_price = client.get_gas_price().await.unwrap();
+        println!("current gas price: {}", gas_price);
+        arbiter_token
+            .mint(client.default_sender().unwrap(), 1337u64.into())
+            .send()
+            .await
+            .unwrap()
+            .await
+            .unwrap()
+            .unwrap();
+        assert_eq!(gas_price, U256::from(TEST_GAS_PRICE));
+    }
+}
