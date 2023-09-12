@@ -2,9 +2,9 @@
 
 // mod interaction;
 mod contracts;
-mod environment;
+mod environment_control;
 mod management;
-mod middleware;
+mod middleware_instructions;
 mod signer;
 
 use std::{str::FromStr, sync::Arc};

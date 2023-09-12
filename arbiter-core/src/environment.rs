@@ -27,13 +27,13 @@ use std::{
 };
 
 use crossbeam_channel::{unbounded, Receiver, Sender};
-use ethers::core::types::U64;
+use ethers::{core::types::U64, types::Transaction};
 use log::error;
 use revm::{
     db::{CacheDB, EmptyDB},
     interpreter::gas,
-    primitives::{EVMError, ExecutionResult, Log, TxEnv, U256},
-    EVM,
+    primitives::{EVMError, ExecutionResult, InvalidTransaction, Log, TxEnv, U256},
+    Inspector, EVM,
 };
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
@@ -196,6 +196,9 @@ pub enum EnvironmentError {
     #[error("execution error! the source error is: {0:?}")]
     Execution(EVMError<Infallible>),
 
+    #[error("transaction error! the source error is: {0:?}")]
+    Transaction(InvalidTransaction),
+
     /// [`EnvironmentError::Pause`] is thrown when the [`Environment`]
     /// fails to pause. This should likely never occur, but if it does,
     /// please report this error!
@@ -315,7 +318,7 @@ impl Environment {
             // the initial counter.
             let mut transactions_per_block = seeded_poisson
                 .clone()
-                .map(|mut distribution| distribution.lock().unwrap().sample());
+                .map(|distribution| distribution.lock().unwrap().sample());
             match gas_settings {
                 GasSettings::UserControlled => {
                     evm.env.tx.gas_price = U256::from(0);
@@ -469,10 +472,41 @@ impl Environment {
                                     // Set the tx_env and prepare to process it
                                     evm.env.tx = tx_env;
 
+                                    let execution_result = match evm
+                                        .inspect_commit(revm::inspectors::GasInspector::default())
+                                    {
+                                        Ok(result) => result,
+                                        Err(e) => {
+                                            println!("error: {:?}", e);
+                                            if let EVMError::Transaction(invalid_transaction) = e {
+                                                println!(
+                                                    "invalid transaction: {:?}",
+                                                    invalid_transaction
+                                                );
+                                                outcome_sender
+                                                    .send(Err(EnvironmentError::Transaction(
+                                                        invalid_transaction,
+                                                    )))
+                                                    .map_err(|e| {
+                                                        EnvironmentError::Communication(
+                                                            e.to_string(),
+                                                        )
+                                                    })?;
+                                                continue;
+                                            } else {
+                                                println!("error otherwise: {:?}", e);
+                                                outcome_sender
+                                                    .send(Err(EnvironmentError::Execution(e)))
+                                                    .map_err(|e| {
+                                                        EnvironmentError::Communication(
+                                                            e.to_string(),
+                                                        )
+                                                    })?;
+                                                continue;
+                                            }
+                                        }
+                                    };
                                     let block_number = convert_uint_to_u64(evm.env.block.number)?;
-                                    let execution_result = evm
-                                        .transact_commit()
-                                        .map_err(EnvironmentError::Execution)?;
 
                                     // increment culmulative gas per block
                                     cumulative_gas_per_block +=

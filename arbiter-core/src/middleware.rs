@@ -345,7 +345,7 @@ impl Middleware for RevmMiddleware {
         let tx_env = TxEnv {
             caller: B160::from(self.wallet.address()),
             gas_limit: u64::MAX,
-            gas_price: U256::ZERO,
+            gas_price: revm::primitives::U256::from_limbs(self.get_gas_price().await?.0),
             gas_priority_fee: None,
             transact_to,
             value: U256::ZERO,
