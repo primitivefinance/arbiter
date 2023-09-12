@@ -101,3 +101,34 @@ async fn stop_environment_after_transactions() {
         State::Stopped
     );
 }
+
+#[tokio::test]
+async fn pause_prevents_processing_transactions() {
+    let (mut manager, client) = startup_randomly_sampled().unwrap();
+
+    // Send a tx and check it works (it should)
+    let arbiter_math_1 = ArbiterMath::deploy(client.clone(), ())
+        .unwrap()
+        .send()
+        .await;
+    assert!(arbiter_math_1.is_ok());
+
+    // Pause the environment.
+    manager.pause_environment(TEST_ENV_LABEL).unwrap();
+
+    // Send a tx while the environment is paused (it should not process) will return
+    // an environment error
+    let arbiter_math_2 = ArbiterMath::deploy(client.clone(), ())
+        .unwrap()
+        .send()
+        .await;
+    assert!(arbiter_math_2.is_err());
+
+    // Unpause the environment
+    manager.start_environment(TEST_ENV_LABEL).unwrap();
+    let arbiter_math_2 = ArbiterMath::deploy(client.clone(), ())
+        .unwrap()
+        .send()
+        .await;
+    assert!(arbiter_math_2.is_ok());
+}
