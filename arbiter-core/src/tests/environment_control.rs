@@ -1,10 +1,5 @@
 use super::*;
 
-use ethers::{
-    prelude::k256::sha2::{Digest, Sha256},
-    types::U256,
-};
-
 #[tokio::test]
 async fn receipt_data() {
     let (_manager, client) = startup_user_controlled().unwrap();
@@ -52,7 +47,8 @@ async fn receipt_data() {
     assert!(cumulative_gas <= receipt_1.cumulative_gas_used);
 }
 
-// If we are using the `seed == 1`, then we will have 3, 2, 3, 0, 2... transactions per block. We should check these.
+// If we are using the `seed == 1`, then we will have 3, 2, 3, 0, 2...
+// transactions per block. We should check these.
 #[tokio::test]
 async fn randomly_sampled_blocks() {
     let (manager, client) = startup_randomly_sampled().unwrap();

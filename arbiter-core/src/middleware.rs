@@ -36,7 +36,7 @@ use ethers::{
     signers::{Signer, Wallet},
     types::{
         transaction::eip2718::TypedTransaction, Address, BlockId, Bloom, Bytes, Filter,
-        FilteredParams, Log, Transaction, TransactionReceipt, U64,
+        FilteredParams, Log, NameOrAddress, Transaction, TransactionReceipt, U64,
     },
 };
 use futures_timer::Delay;
@@ -707,6 +707,45 @@ impl Middleware for RevmMiddleware {
         match self.provider().as_ref().outcome_receiver.recv()?? {
             Outcome::QueryReturn(outcome) => {
                 ethers::types::U64::from_str_radix(outcome.as_ref(), 10)
+                    .map_err(|e| RevmMiddlewareError::Conversion(e.to_string()))
+            }
+            _ => Err(RevmMiddlewareError::MissingData(
+                "Wrong variant returned via query!".to_string(),
+            )),
+        }
+    }
+
+    async fn get_balance<T: Into<NameOrAddress> + Send + Sync>(
+        &self,
+        from: T,
+        block: Option<BlockId>,
+    ) -> Result<ethers::types::U256, Self::Error> {
+        if block.is_some() {
+            return Err(RevmMiddlewareError::MissingData(
+                "Querying balance at a specific block is not supported!".to_string(),
+            ));
+        }
+        let address: NameOrAddress = from.into();
+        let address = match address {
+            NameOrAddress::Name(_) => {
+                return Err(RevmMiddlewareError::MissingData(
+                    "Querying balance via name is not supported!".to_string(),
+                ))
+            }
+            NameOrAddress::Address(address) => address,
+        };
+
+        self.provider()
+            .as_ref()
+            .instruction_sender
+            .send(Instruction::Query {
+                environment_data: EnvironmentData::Balance(ethers::types::Address::from(address)),
+                outcome_sender: self.provider().as_ref().outcome_sender.clone(),
+            })
+            .map_err(|e| RevmMiddlewareError::Send(e.to_string()))?;
+        match self.provider().as_ref().outcome_receiver.recv()?? {
+            Outcome::QueryReturn(outcome) => {
+                ethers::types::U256::from_str_radix(outcome.as_ref(), 10)
                     .map_err(|e| RevmMiddlewareError::Conversion(e.to_string()))
             }
             _ => Err(RevmMiddlewareError::MissingData(

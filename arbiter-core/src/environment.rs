@@ -356,9 +356,10 @@ impl Environment {
                             .lock()
                             .map_err(|e| EnvironmentError::Pause(e.to_string()))?;
 
-                        // TODO: It may actually be okay to allow DB changes upon a pause. We should consider this.
-                        // This logic here ensures we catch any last transactions and send
-                        // the appropriate error so that we dont hang on the `tx_receiver`
+                        // TODO: It may actually be okay to allow DB changes upon a pause. We should
+                        // consider this. This logic here ensures we catch
+                        // any last transactions and send the appropriate
+                        // error so that we dont hang on the `tx_receiver`
                         while let Ok(request) = instruction_receiver.try_recv() {
                             let sender = match request {
                                 Instruction::AddAccount { outcome_sender, .. } => outcome_sender,
@@ -602,21 +603,35 @@ impl Environment {
                                     outcome_sender,
                                 } => {
                                     let outcome = match environment_data {
-                                        EnvironmentData::BlockNumber => {
-                                            evm.env.block.number.to_string()
-                                        }
+                                        EnvironmentData::BlockNumber => Ok(Outcome::QueryReturn(
+                                            evm.env.block.number.to_string(),
+                                        )),
                                         EnvironmentData::BlockTimestamp => {
-                                            evm.env.block.timestamp.to_string()
+                                            Ok(Outcome::QueryReturn(
+                                                evm.env.block.timestamp.to_string(),
+                                            ))
                                         }
-                                        EnvironmentData::GasPrice => {
-                                            evm.env.tx.gas_price.to_string()
+                                        EnvironmentData::GasPrice => Ok(Outcome::QueryReturn(
+                                            evm.env.tx.gas_price.to_string(),
+                                        )),
+                                        EnvironmentData::Balance(address) => {
+                                            // This unwrap should never fail.
+                                            let db = evm.db().unwrap();
+                                            let recast_address =
+                                                revm::primitives::Address::from(address);
+                                            match db.accounts.get(&recast_address) {
+                                                Some(account) => Ok(Outcome::QueryReturn(
+                                                    account.info.balance.to_string(),
+                                                )),
+                                                None => Err(EnvironmentError::Account(
+                                                    "Account is missing!".to_string(),
+                                                )),
+                                            }
                                         }
                                     };
-                                    outcome_sender
-                                        .send(Ok(Outcome::QueryReturn(outcome)))
-                                        .map_err(|e| {
-                                            EnvironmentError::Communication(e.to_string())
-                                        })?;
+                                    outcome_sender.send(outcome).map_err(|e| {
+                                        EnvironmentError::Communication(e.to_string())
+                                    })?;
                                 }
                             }
                         }
@@ -690,6 +705,7 @@ pub enum EnvironmentData {
     BlockNumber,
     BlockTimestamp,
     GasPrice,
+    Balance(ethers::types::Address),
 }
 
 /// [`RecieptData`] is a structure that holds the block number, transaction

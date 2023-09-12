@@ -7,13 +7,23 @@ mod environment_control;
 mod management;
 mod middleware_instructions;
 
-use std::{str::FromStr, sync::Arc};
+use std::{
+    pin::Pin,
+    str::FromStr,
+    sync::Arc,
+    task::{Context, Poll},
+};
 
 use anyhow::Result;
+use assert_matches::assert_matches;
 use ethers::{
-    prelude::{EthLogDecode, Middleware},
-    types::{Address, Filter, ValueOrArray, U64},
+    prelude::{
+        k256::sha2::{Digest, Sha256},
+        EthLogDecode, Middleware,
+    },
+    types::{Address, Filter, ValueOrArray, U256},
 };
+use futures::{Stream, StreamExt};
 
 use crate::{
     bindings::{arbiter_math::*, arbiter_token::*, liquid_exchange::LiquidExchange},

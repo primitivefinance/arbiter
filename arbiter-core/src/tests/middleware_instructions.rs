@@ -1,12 +1,3 @@
-use std::{
-    pin::Pin,
-    task::{Context, Poll},
-};
-
-use assert_matches::assert_matches;
-use futures::{Stream, StreamExt};
-use revm::primitives::U256 as rU256;
-
 use super::*;
 
 #[tokio::test]
@@ -244,7 +235,10 @@ async fn block_update_receipt() {
     assert_eq!(receipt.block_number.unwrap(), 0u64.into());
     let receipt = client.update_block(3, 100).unwrap();
     assert_eq!(receipt.block_number, 3.into());
-    assert_eq!(receipt.cumulative_gas_per_block, rU256::ZERO);
+    assert_eq!(
+        receipt.cumulative_gas_per_block,
+        revm::primitives::U256::ZERO
+    );
     assert_eq!(receipt.transaction_index, 0.into());
 }
 
@@ -271,35 +265,6 @@ async fn get_gas_price_user_controlled() {
 }
 
 #[tokio::test]
-async fn get_gas_price_randomly_sampled() {
-    // Randomly sampled should have a gas price 2x the number of transactions (which is 3)
-    let (_manager, client) = startup_randomly_sampled().unwrap();
-    let gas_price = client.get_gas_price().await.unwrap();
-    // So the answer is 6
-    assert_eq!(gas_price, ethers::types::U256::from(6));
-
-    // Now let's send 3 transactions and check what the gas price is
-    let arbx = deploy_arbx(client.clone()).await.unwrap();
-
-    for _ in 0..15 {
-        arbx.mint(
-            client.default_sender().unwrap(),
-            ethers::types::U256::from(1),
-        )
-        .send()
-        .await
-        .unwrap()
-        .await
-        .unwrap()
-        .unwrap();
-
-        // The gas price should be different now
-        let gas_price = client.get_gas_price().await.unwrap();
-        println!("gas_price: {}", gas_price);
-    }
-}
-
-#[tokio::test]
 async fn deal() {
     let (_manager, client) = startup_user_controlled().unwrap();
     client
@@ -309,8 +274,76 @@ async fn deal() {
         )
         .await
         .unwrap();
+    let balance = client.get_balance(client.address(), None).await;
+    assert_eq!(balance.unwrap(), 1.into());
 }
 
+#[tokio::test]
 async fn deal_missing_account() {
-    todo!()
+    let (_manager, client) = startup_user_controlled().unwrap();
+    client
+        .deal(
+            client.default_sender().unwrap(),
+            ethers::types::U256::from(1),
+        )
+        .await
+        .unwrap();
+    let mut wrong_address = client.address().0;
+    wrong_address[0] = wrong_address[0].wrapping_add(1);
+    let wrong_address = Address::from(wrong_address);
+    let balance = client.get_balance(wrong_address, None).await;
+    assert!(balance.is_err());
+}
+
+// If we are using the `seed == 1`, then we will have 3, 2, 3, 0, 2...
+// transactions per block. We should check these.
+#[tokio::test]
+async fn randomly_sampled_gas() {
+    let (manager, client) = startup_randomly_sampled().unwrap();
+    // tx_0 is the transaction that creates the token contract
+    let arbiter_token = deploy_arbx(client.clone()).await.unwrap();
+
+    // get the environment so we can look at its distribution
+    let environment = manager.environments.get(TEST_ENV_LABEL).unwrap();
+
+    let mut distribution = match environment.parameters.block_type {
+        BlockType::RandomlySampled {
+            block_rate,
+            block_time,
+            seed,
+        } => SeededPoisson::new(block_rate, block_time, seed),
+        _ => panic!("Expected RandomlySampled block type"),
+    };
+
+    let mut expected_txs_per_block_vec = vec![];
+    for _ in 0..5 {
+        expected_txs_per_block_vec.push(distribution.sample());
+    }
+    println!(
+        "expected_txs_per_block_vec: {:?}",
+        expected_txs_per_block_vec
+    );
+
+    for (index, mut expected_txs_per_block) in expected_txs_per_block_vec.into_iter().enumerate() {
+        println!("index: {}", index);
+        println!("expected_txs_per_block: {}", expected_txs_per_block);
+        if index == 0 {
+            println!("tx_0 is the transaction that creates the token contract, so we will have one less transaction in the first block loop for this test");
+            expected_txs_per_block -= 1;
+        }
+        for tx_num in 0..expected_txs_per_block {
+            println!("tx_num: {}", tx_num);
+            let tx = arbiter_token
+                .mint(client.default_sender().unwrap(), 1337u64.into())
+                .send()
+                .await
+                .unwrap()
+                .await
+                .unwrap()
+                .unwrap();
+            let block_number = tx.block_number.unwrap();
+            println!("current block number: {}", block_number);
+            assert_eq!(index as u64, block_number.as_u64());
+        }
+    }
 }
