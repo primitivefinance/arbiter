@@ -32,7 +32,9 @@ use log::error;
 use revm::{
     db::{CacheDB, EmptyDB},
     interpreter::gas,
-    primitives::{EVMError, ExecutionResult, InvalidTransaction, Log, TxEnv, U256},
+    primitives::{
+        AccountInfo, EVMError, ExecutionResult, HashMap, InvalidTransaction, Log, TxEnv, U256,
+    },
     Inspector, EVM,
 };
 use serde::{Deserialize, Serialize};
@@ -359,6 +361,7 @@ impl Environment {
                         // the appropriate error so that we dont hang on the `tx_receiver`
                         while let Ok(request) = instruction_receiver.try_recv() {
                             let sender = match request {
+                                Instruction::AddAccount { outcome_sender, .. } => outcome_sender,
                                 Instruction::BlockUpdate { outcome_sender, .. } => outcome_sender,
                                 Instruction::Deal { outcome_sender, .. } => outcome_sender,
                                 Instruction::Call { outcome_sender, .. } => outcome_sender,
@@ -381,6 +384,24 @@ impl Environment {
                     State::Running => {
                         if let Ok(request) = instruction_receiver.try_recv() {
                             match request {
+                                Instruction::AddAccount {
+                                    address,
+                                    outcome_sender,
+                                } => {
+                                    let db = evm.db.as_mut().unwrap();
+                                    let recast_address = revm::primitives::Address::from(address);
+                                    let account = revm::db::DbAccount {
+                                        info: AccountInfo::default(),
+                                        account_state: revm::db::AccountState::None,
+                                        storage: HashMap::new(),
+                                    };
+                                    db.accounts.insert(recast_address, account);
+                                    outcome_sender
+                                        .send(Ok(Outcome::AddAccountCompleted))
+                                        .map_err(|e| {
+                                            EnvironmentError::Communication(e.to_string())
+                                        })?;
+                                }
                                 Instruction::BlockUpdate {
                                     block_number,
                                     block_timestamp,
@@ -599,6 +620,10 @@ impl Environment {
 /// [`Socket`].
 /// These instructions can be `Call`s, `Transaction`s, or `BlockUpdate`s.
 pub enum Instruction {
+    AddAccount {
+        address: ethers::types::Address,
+        outcome_sender: OutcomeSender,
+    },
     /// A `BlockUpdate` is used to update the block number and timestamp of the
     /// [`EVM`].
     BlockUpdate {
@@ -670,6 +695,7 @@ pub struct ReceiptData {
 /// These outcomes can be from `Call`, `Transaction`, or `BlockUpdate`
 /// instructions sent to the [`Environment`]
 pub enum Outcome {
+    AddAccountCompleted,
     /// The outcome of a `BlockUpdate` instruction that is used to provide a
     /// non-error output of updating the block number and timestamp of the
     /// [`EVM`] to the client.

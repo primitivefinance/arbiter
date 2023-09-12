@@ -16,7 +16,6 @@ use std::{
     fmt::Debug,
     future::Future,
     pin::Pin,
-    str::FromStr,
     sync::{Arc, Mutex},
     time::Duration,
 };
@@ -209,19 +208,22 @@ impl RevmMiddleware {
     /// ```
     /// Use a seed if you want to have a constant address across simulations as
     /// well as a label for a client. This can be useful for debugging.
-    pub fn new(environment: &Environment, seed_and_label: Option<String>) -> Self {
+    pub fn new(
+        environment: &Environment,
+        seed_and_label: Option<String>,
+    ) -> Result<Self, RevmMiddlewareError> {
         let instruction_sender = environment.socket.instruction_sender.clone();
         let (outcome_sender, outcome_receiver) = crossbeam_channel::unbounded();
         let connection = Connection {
-            instruction_sender,
-            outcome_sender,
-            outcome_receiver,
+            instruction_sender: instruction_sender.clone(),
+            outcome_sender: outcome_sender.clone(),
+            outcome_receiver: outcome_receiver.clone(),
             event_broadcaster: Arc::clone(&environment.socket.event_broadcaster),
             filter_receivers: Arc::new(tokio::sync::Mutex::new(HashMap::new())),
             environment_state: Arc::clone(&environment.state),
         };
         let provider = Provider::new(connection);
-        if let Some(seed) = seed_and_label {
+        let new_middleware = if let Some(seed) = seed_and_label {
             let mut hasher = Sha256::new();
             hasher.update(seed.clone());
             let hashed = hasher.finalize();
@@ -232,7 +234,17 @@ impl RevmMiddleware {
             let mut rng = rand::thread_rng();
             let wallet = Wallet::new(&mut rng);
             Self { provider, wallet }
-        }
+        };
+        instruction_sender
+            .send(Instruction::AddAccount {
+                address: new_middleware.wallet.address(),
+                outcome_sender,
+            })
+            .map_err(|e| RevmMiddlewareError::Send(e.to_string()))?;
+        outcome_receiver
+            .recv()?
+            .map_err(RevmMiddlewareError::Environment)?;
+        Ok(new_middleware)
     }
 
     /// Allows the user to update the block number and timestamp of the

@@ -301,7 +301,14 @@ async fn get_gas_price_randomly_sampled() {
 
 #[tokio::test]
 async fn deal() {
-    todo!()
+    let (_manager, client) = startup_user_controlled().unwrap();
+    client
+        .deal(
+            client.default_sender().unwrap(),
+            ethers::types::U256::from(1),
+        )
+        .await
+        .unwrap();
 }
 
 async fn deal_missing_account() {
