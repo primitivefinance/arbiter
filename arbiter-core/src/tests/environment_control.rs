@@ -52,6 +52,7 @@ async fn receipt_data() {
 #[tokio::test]
 async fn randomly_sampled_blocks() {
     let (manager, client) = startup_randomly_sampled().unwrap();
+    client.deal(client.address(), U256::MAX).await.unwrap();
     // tx_0 is the transaction that creates the token contract
     let arbiter_token = deploy_arbx(client.clone()).await.unwrap();
 
@@ -124,6 +125,61 @@ async fn user_update_block() {
 }
 
 #[tokio::test]
-async fn constant_gas_price() {
-    todo!()
+async fn randomly_sampled_gas_price() {
+    let (manager, client) = startup_randomly_sampled().unwrap();
+    client.deal(client.address(), U256::MAX).await.unwrap();
+    // tx_0 is the transaction that creates the token contract
+    let arbiter_token = deploy_arbx(client.clone()).await.unwrap();
+
+    // get the environment so we can look at its distribution
+    let environment = manager.environments.get(TEST_ENV_LABEL).unwrap();
+
+    let mut distribution = match environment.parameters.block_type {
+        BlockType::RandomlySampled {
+            block_rate,
+            block_time,
+            seed,
+        } => SeededPoisson::new(block_rate, block_time, seed),
+        _ => panic!("Expected RandomlySampled block type"),
+    };
+
+    let mut expected_txs_per_block_vec = vec![];
+    for _ in 0..2 {
+        expected_txs_per_block_vec.push(distribution.sample());
+    }
+    println!(
+        "expected_txs_per_block_vec: {:?}",
+        expected_txs_per_block_vec
+    );
+
+    for (index, mut expected_txs_per_block) in
+        expected_txs_per_block_vec.clone().into_iter().enumerate()
+    {
+        println!("index: {}", index);
+        println!("expected_txs_per_block: {}", expected_txs_per_block);
+        if index == 0 {
+            println!("tx_0 is the transaction that creates the token contract, so we will have one less transaction in the first block loop for this test");
+            expected_txs_per_block -= 1;
+        }
+        for tx_num in 0..expected_txs_per_block {
+            let gas_price = client.get_gas_price().await.unwrap();
+            println!("current gas price: {}", gas_price);
+            println!("tx_num: {}", tx_num);
+            arbiter_token
+                .mint(client.default_sender().unwrap(), 1337u64.into())
+                .send()
+                .await
+                .unwrap()
+                .await
+                .unwrap()
+                .unwrap();
+            let comparison_gas_price =
+                (expected_txs_per_block_vec[index] as f64) * TEST_GAS_MULTIPLIER;
+            let comparison_gas_price = U256::from(comparison_gas_price as u128);
+            assert_eq!(comparison_gas_price, gas_price);
+        }
+    }
 }
+
+#[tokio::test]
+async fn constant_gas_price() {}

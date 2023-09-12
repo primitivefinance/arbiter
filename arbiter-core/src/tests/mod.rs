@@ -36,6 +36,7 @@ use crate::{
 pub const TEST_BLOCK_RATE: f64 = 2.0;
 pub const TEST_BLOCK_TIME: u32 = 12;
 pub const TEST_ENV_SEED: u64 = 1;
+pub const TEST_GAS_MULTIPLIER: f64 = 2.0;
 
 pub const TEST_ARG_NAME: &str = "ArbiterToken";
 pub const TEST_ARG_SYMBOL: &str = "ARBT";
@@ -67,7 +68,9 @@ fn startup_randomly_sampled() -> Result<(Manager, Arc<RevmMiddleware>)> {
             block_time: TEST_BLOCK_TIME,
             seed: TEST_ENV_SEED,
         },
-        gas_settings: GasSettings::RandomlySampled { multiplier: 2.0 },
+        gas_settings: GasSettings::RandomlySampled {
+            multiplier: TEST_GAS_MULTIPLIER,
+        },
     };
     manager.add_environment(params).unwrap();
     manager.start_environment(TEST_ENV_LABEL)?;

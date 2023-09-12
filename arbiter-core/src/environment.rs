@@ -494,47 +494,6 @@ impl Environment {
                                     tx_env,
                                     outcome_sender,
                                 } => {
-                                    // Check whether we need to increment the block number given the
-                                    // amount of transactions
-                                    // that have occured on the current block and increment
-                                    // if need be and draw a new sample from the `SeededPoisson`
-                                    // distribution. Only do so if there is a distribution in the
-                                    // first place.
-                                    if transactions_per_block
-                                        .is_some_and(|x| x == transaction_index)
-                                    {
-                                        transaction_index = 0;
-                                        evm.env.block.number += U256::from(1);
-
-                                        // This unwrap cannot fail.
-                                        let seeded_poisson_clone = seeded_poisson.clone().unwrap();
-                                        let mut seeded_poisson_lock =
-                                            seeded_poisson_clone.lock().unwrap();
-
-                                        evm.env.block.timestamp +=
-                                            U256::from(seeded_poisson_lock.time_step);
-                                        transactions_per_block = loop {
-                                            let sample = Some(seeded_poisson_lock.sample());
-
-                                            if sample == Some(0) {
-                                                evm.env.block.number += U256::from(1);
-                                                continue;
-                                            } else {
-                                                break sample;
-                                            }
-                                        };
-                                        if let GasSettings::RandomlySampled { multiplier } =
-                                            gas_settings
-                                        {
-                                            let gas_price = (transactions_per_block.ok_or(
-                                                EnvironmentError::NotRandomlySampledBlockType,
-                                            )?
-                                                as f64)
-                                                * multiplier;
-                                            evm.env.tx.gas_price = U256::from(gas_price as u128);
-                                        };
-                                    }
-
                                     // Set the tx_env and prepare to process it
                                     evm.env.tx = tx_env;
 
@@ -597,6 +556,51 @@ impl Environment {
                                             EnvironmentError::Communication(e.to_string())
                                         })?;
                                     transaction_index += 1;
+
+                                    // Check whether we need to increment the block number given the
+                                    // amount of transactions
+                                    // that have occured on the current block and increment
+                                    // if need be and draw a new sample from the `SeededPoisson`
+                                    // distribution. Only do so if there is a distribution in the
+                                    // first place.
+                                    if transactions_per_block
+                                        .is_some_and(|x| x == transaction_index)
+                                    {
+                                        transaction_index = 0;
+                                        evm.env.block.number += U256::from(1);
+
+                                        // This unwrap cannot fail.
+                                        let seeded_poisson_clone = seeded_poisson.clone().unwrap();
+                                        let mut seeded_poisson_lock =
+                                            seeded_poisson_clone.lock().unwrap();
+
+                                        evm.env.block.timestamp +=
+                                            U256::from(seeded_poisson_lock.time_step);
+                                        transactions_per_block = loop {
+                                            let sample = Some(seeded_poisson_lock.sample());
+
+                                            if sample == Some(0) {
+                                                evm.env.block.number += U256::from(1);
+                                                continue;
+                                            } else {
+                                                break sample;
+                                            }
+                                        };
+                                        if let GasSettings::RandomlySampled { multiplier } =
+                                            gas_settings
+                                        {
+                                            println!(
+                                                "entered into randomly sampled gas price changing"
+                                            );
+                                            let gas_price = (transactions_per_block.ok_or(
+                                                EnvironmentError::NotRandomlySampledBlockType,
+                                            )?
+                                                as f64)
+                                                * multiplier;
+                                            evm.env.tx.gas_price = U256::from(gas_price as u128);
+                                            println!("gas price: {}", gas_price);
+                                        };
+                                    }
                                 }
                                 Instruction::Query {
                                     environment_data,
