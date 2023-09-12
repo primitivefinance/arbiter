@@ -241,9 +241,7 @@ impl RevmMiddleware {
                 outcome_sender,
             })
             .map_err(|e| RevmMiddlewareError::Send(e.to_string()))?;
-        outcome_receiver
-            .recv()?
-            .map_err(RevmMiddlewareError::Environment)?;
+        outcome_receiver.recv()??;
         Ok(new_middleware)
     }
 
@@ -316,6 +314,10 @@ impl RevmMiddleware {
                 "Wrong variant returned via instruction outcome!".to_string(),
             )),
         }
+    }
+
+    pub fn address(&self) -> Address {
+        self.wallet.address()
     }
 }
 

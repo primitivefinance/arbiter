@@ -1,11 +1,11 @@
 #![allow(missing_docs)]
 
 // mod interaction;
+mod clients;
 mod contracts;
 mod environment_control;
 mod management;
 mod middleware_instructions;
-mod signer;
 
 use std::{str::FromStr, sync::Arc};
 
@@ -60,12 +60,12 @@ fn startup_randomly_sampled() -> Result<(Manager, Arc<RevmMiddleware>)> {
         gas_settings: GasSettings::RandomlySampled { multiplier: 2.0 },
     };
     manager.add_environment(params).unwrap();
+    manager.start_environment(TEST_ENV_LABEL)?;
     let environment = manager.environments.get(TEST_ENV_LABEL).unwrap();
     let client = Arc::new(RevmMiddleware::new(
         environment,
         Some(TEST_SIGNER_SEED_AND_LABEL.to_string()),
-    ));
-    manager.start_environment(TEST_ENV_LABEL)?;
+    )?);
     Ok((manager, client))
 }
 
@@ -77,12 +77,12 @@ fn startup_user_controlled() -> Result<(Manager, Arc<RevmMiddleware>)> {
         gas_settings: GasSettings::UserControlled,
     };
     manager.add_environment(params).unwrap();
+    manager.start_environment(TEST_ENV_LABEL)?;
     let environment = manager.environments.get(TEST_ENV_LABEL).unwrap();
     let client = Arc::new(RevmMiddleware::new(
         environment,
         Some(TEST_SIGNER_SEED_AND_LABEL.to_string()),
-    ));
-    manager.start_environment(TEST_ENV_LABEL)?;
+    )?);
     Ok((manager, client))
 }
 
@@ -94,12 +94,12 @@ fn startup_constant_gas() -> Result<(Manager, Arc<RevmMiddleware>)> {
         gas_settings: GasSettings::Constant(100),
     };
     manager.add_environment(params).unwrap();
+    manager.start_environment(TEST_ENV_LABEL)?;
     let environment = manager.environments.get(TEST_ENV_LABEL).unwrap();
     let client = Arc::new(RevmMiddleware::new(
         environment,
         Some(TEST_SIGNER_SEED_AND_LABEL.to_string()),
-    ));
-    manager.start_environment(TEST_ENV_LABEL)?;
+    )?);
     Ok((manager, client))
 }
 

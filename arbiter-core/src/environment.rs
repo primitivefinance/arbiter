@@ -201,8 +201,8 @@ pub enum EnvironmentError {
     #[error("transaction error! the source error is: {0:?}")]
     Transaction(InvalidTransaction),
 
-    #[error("account error! the account is missing from the DB")]
-    AccountMissing,
+    #[error("account error! due to: {0:?}")]
+    Account(String),
 
     /// [`EnvironmentError::Pause`] is thrown when the [`Environment`]
     /// fails to pause. This should likely never occur, but if it does,
@@ -395,12 +395,24 @@ impl Environment {
                                         account_state: revm::db::AccountState::None,
                                         storage: HashMap::new(),
                                     };
-                                    db.accounts.insert(recast_address, account);
-                                    outcome_sender
-                                        .send(Ok(Outcome::AddAccountCompleted))
-                                        .map_err(|e| {
-                                            EnvironmentError::Communication(e.to_string())
-                                        })?;
+                                    match db.accounts.insert(recast_address, account) {
+                                        None => {
+                                            outcome_sender
+                                                .send(Ok(Outcome::AddAccountCompleted))
+                                                .map_err(|e| {
+                                                EnvironmentError::Communication(e.to_string())
+                                            })?;
+                                        }
+                                        Some(_) => {
+                                            outcome_sender
+                                                .send(Err(EnvironmentError::Account(
+                                                    "Account already exists!".to_string(),
+                                                )))
+                                                .map_err(|e| {
+                                                    EnvironmentError::Communication(e.to_string())
+                                                })?;
+                                        }
+                                    }
                                 }
                                 Instruction::BlockUpdate {
                                     block_number,
@@ -440,21 +452,25 @@ impl Environment {
                                 } => {
                                     let db = evm.db.as_mut().unwrap();
                                     let recast_address = revm::primitives::Address::from(address);
-                                    let account = match db.accounts.get_mut(&recast_address) {
-                                        Some(account) => account,
-                                        None => {
+                                    match db.accounts.get_mut(&recast_address) {
+                                        Some(account) => {
+                                            account.info.balance += U256::from_limbs(amount.0);
                                             outcome_sender
-                                                .send(Err(EnvironmentError::AccountMissing))
+                                                .send(Ok(Outcome::DealCompleted))
                                                 .map_err(|e| {
                                                     EnvironmentError::Communication(e.to_string())
                                                 })?;
-                                            continue;
+                                        }
+                                        None => {
+                                            outcome_sender
+                                                .send(Err(EnvironmentError::Account(
+                                                    "Account is missing!".to_string(),
+                                                )))
+                                                .map_err(|e| {
+                                                    EnvironmentError::Communication(e.to_string())
+                                                })?;
                                         }
                                     };
-                                    account.info.balance += U256::from_limbs(amount.0);
-                                    outcome_sender.send(Ok(Outcome::DealCompleted)).map_err(
-                                        |e| EnvironmentError::Communication(e.to_string()),
-                                    )?;
                                 }
                                 // A `Call` is not state changing and will not create events.
                                 Instruction::Call {

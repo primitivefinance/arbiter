@@ -1,12 +1,10 @@
-use std::sync::Arc;
-
 use super::*;
 
 #[test]
 fn simulation_signer() -> Result<()> {
-    let (_manager, client) = startup_randomly_sampled()?;
+    let (_manager, client) = startup_user_controlled()?;
     assert_eq!(
-        client.default_sender().unwrap(),
+        client.address(),
         Address::from_str("0x2efdc9eecfee3a776209fcb8e9a83a6b221d74f5").unwrap()
     );
     Ok(())
@@ -20,9 +18,10 @@ fn multiple_signer_addresses() {
         gas_settings: GasSettings::UserControlled,
     };
     let environment = &mut Environment::new(params);
-    let client_1 = Arc::new(RevmMiddleware::new(environment, Some("0".to_string())));
-    let client_2 = Arc::new(RevmMiddleware::new(environment, Some("1".to_string())));
-    assert_ne!(client_1.default_sender(), client_2.default_sender());
+    environment.run();
+    let client_1 = RevmMiddleware::new(environment, Some("0".to_string())).unwrap();
+    let client_2 = RevmMiddleware::new(environment, Some("1".to_string())).unwrap();
+    assert_ne!(client_1.address(), client_2.address());
 }
 
 #[test]
@@ -33,7 +32,7 @@ fn signer_collision() {
         gas_settings: GasSettings::UserControlled,
     };
     let environment = &mut Environment::new(params);
-    let client_1 = Arc::new(RevmMiddleware::new(environment, Some("0".to_string())));
-    let client_2 = Arc::new(RevmMiddleware::new(environment, Some("0".to_string())));
-    assert_eq!(client_1.default_sender(), client_2.default_sender());
+    environment.run();
+    RevmMiddleware::new(environment, Some("0".to_string())).unwrap();
+    assert!(RevmMiddleware::new(environment, Some("0".to_string())).is_err());
 }
