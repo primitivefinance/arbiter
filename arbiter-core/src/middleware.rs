@@ -69,7 +69,7 @@ use crate::environment::{
 /// use std::sync::Arc;
 ///
 /// use arbiter_core::{
-///     environment::{BlockType, GasSettings, EnvironmentParameters},
+///     environment::{BlockType, EnvironmentParameters, GasSettings},
 ///     manager::Manager,
 ///     middleware::RevmMiddleware,
 /// };
@@ -83,9 +83,7 @@ use crate::environment::{
 ///         block_time: 12,
 ///         seed: 1,
 ///     },
-///    gas_settings: GasSettings::RandomlySampled {
-///       multiplier: 1.0,
-///    },
+///     gas_settings: GasSettings::RandomlySampled { multiplier: 1.0 },
 /// };
 /// manager.add_environment(params).unwrap();
 /// manager.start_environment("example_env").unwrap();
@@ -189,7 +187,7 @@ impl RevmMiddleware {
     /// # Examples
     /// ```
     /// use arbiter_core::{
-    ///     environment::{BlockType, GasSettings, EnvironmentParameters},
+    ///     environment::{BlockType, EnvironmentParameters, GasSettings},
     ///     manager::Manager,
     ///     middleware::RevmMiddleware,
     /// };
@@ -202,9 +200,7 @@ impl RevmMiddleware {
     ///         block_time: 12,
     ///         seed: 1,
     ///     },
-    ///    gas_settings: GasSettings::RandomlySampled {
-    ///       multiplier: 1.0,
-    ///    },
+    ///     gas_settings: GasSettings::RandomlySampled { multiplier: 1.0 },
     /// };
     /// manager.add_environment(params).unwrap();
     /// manager.start_environment("example_env").unwrap();
@@ -283,6 +279,7 @@ impl RevmMiddleware {
         }
     }
 
+    /// Returns the timestamp of the current block.
     pub async fn get_block_timestamp(&self) -> Result<ethers::types::U256, RevmMiddlewareError> {
         self.provider()
             .as_ref()
@@ -303,6 +300,8 @@ impl RevmMiddleware {
         }
     }
 
+    /// Provides functionality to increase the balance of a given address by a
+    /// given amount.
     pub async fn deal(
         &self,
         address: Address,
@@ -325,6 +324,7 @@ impl RevmMiddleware {
         }
     }
 
+    /// Returns the address of the wallet/signer given to a client.
     pub fn address(&self) -> Address {
         self.wallet.address()
     }

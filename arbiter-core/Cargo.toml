@@ -1,6 +1,6 @@
 [package]
 name = "arbiter-core"
-version = "0.4.2"
+version = "0.5.0"
 edition = "2021"
 
 # Dependencies for the release build
@@ -8,7 +8,7 @@ edition = "2021"
 
 # Ethereum and EVM
 ethers = "2.0.8"
-revm = "3.3.0"
+revm = { version = "3.3.0", features = ["std"] }
 
 # Serialization
 bytes = "1.4.0"

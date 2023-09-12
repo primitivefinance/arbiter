@@ -27,24 +27,23 @@ use std::{
 };
 
 use crossbeam_channel::{unbounded, Receiver, Sender};
-use ethers::{core::types::U64, types::Transaction};
+use ethers::core::types::U64;
 use log::error;
 use revm::{
     db::{CacheDB, EmptyDB},
-    interpreter::gas,
     primitives::{
         AccountInfo, EVMError, ExecutionResult, HashMap, InvalidTransaction, Log, TxEnv, U256,
     },
-    Inspector, EVM,
+    EVM,
 };
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
 
+use crate::math::SeededPoisson;
 #[cfg_attr(doc, doc(hidden))]
 #[cfg_attr(doc, allow(unused_imports))]
 #[cfg(doc)]
 use crate::{manager::Manager, middleware::RevmMiddleware};
-use crate::{math::SeededPoisson, middleware::recast_address};
 
 /// Alias for the sender of the channel for transmitting transactions.
 pub(crate) type InstructionSender = Sender<Instruction>;
@@ -161,6 +160,16 @@ pub struct EnvironmentParameters {
     /// used to sample the amount of transactions per block.
     pub block_type: BlockType,
 
+    /// The gas settings for the [`Environment`].
+    /// This can either be [`GasSettings::UserControlled`],
+    /// [`GasSettings::RandomlySampled`], or [`GasSettings::Constant`].
+    /// The first will allow the end user to control the gas price from
+    /// their own external API (not yet implemented) and the second will allow
+    /// the end user to set a multiplier for the gas price that will be used
+    /// to sample the amount of transactions per block. The last will allow
+    /// the end user to set a constant gas price for all transactions.
+    /// By default, [`GasSettings::UserControlled`] begins with a gas price of
+    /// 0.
     pub gas_settings: GasSettings,
 }
 
@@ -182,7 +191,7 @@ impl Debug for Environment {
 /// Errors that can occur when managing or interfacing with the Ethereum
 /// environment.
 ///
-/// ## What are we trying to catcH?
+/// ## What are we trying to catch?
 /// The errors here are at a fairly low level and should be quite rare (if
 /// possible). Errors that come from smart contracts (e.g., reverts or halts)
 /// will not be caught here and will instead carried out into the
@@ -198,9 +207,16 @@ pub enum EnvironmentError {
     #[error("execution error! the source error is: {0:?}")]
     Execution(EVMError<Infallible>),
 
+    /// [`EnvironmentError::Transaction`] is thrown when a transaction fails
+    /// to be processed by the [`EVM`]. This could be due to a insufficient
+    /// funds to pay for gas, an invalid nonce, or other reasons. This error
+    /// can be quite common and should be handled gracefully.
     #[error("transaction error! the source error is: {0:?}")]
     Transaction(InvalidTransaction),
 
+    /// [`EnvironmentError::Account`] is thrown when there is an issue handling
+    /// accounts in the [`EVM`]. This could be due to an account already
+    /// existing or other reasons.
     #[error("account error! due to: {0:?}")]
     Account(String),
 
@@ -246,6 +262,11 @@ pub enum EnvironmentError {
     #[error("error in the environment! attempted to externally change block number and timestamp when `BlockType` is not `BlockType::UserControlled`.")]
     NotUserControlledBlockType,
 
+    /// [`EnvironmentError::NotRandomlySampledBlockType`] is thrown when
+    /// the [`Environment`] is **not** in a [`BlockType::RandomlySampled`] state
+    /// and an attempt is made to set the gas price via a multiplier.
+    /// That is, the user has chosen [`GasSettings::RandomlySampled`] without
+    /// [`BlockType::RandomlySampled`].
     #[error("error in the environment! attempted to set a gas price via a multiplier when the `BlockType` is not `BlockType::RandomlySampled`.")]
     NotRandomlySampledBlockType,
 }
@@ -653,12 +674,27 @@ impl Environment {
 
 /// [`Instruction`]s that can be sent to the [`Environment`] via the
 /// [`Socket`].
-/// These instructions can be `Call`s, `Transaction`s, or `BlockUpdate`s.
+/// These instructions can be:
+/// - [`Instruction::AddAccount`],
+/// - [`Instruction::BlockUpdate`],
+/// - [`Instruction::Call`],
+/// - [`Instruction::Transaction`],
+/// - [`Instruction::Query`].
+/// The [`Instruction`]s are sent to the [`Environment`] via the
+/// [`Socket::instruction_sender`] and the results are received via the
+/// [`crate::middleware::Connection::outcome_receiver`].
 pub enum Instruction {
+    /// An `AddAccount` is used to add a default/unfunded account to the
+    /// [`EVM`].
     AddAccount {
+        /// The address of the account to add to the [`EVM`].
         address: ethers::types::Address,
+
+        /// The sender used to to send the outcome of the account addition back
+        /// to.
         outcome_sender: OutcomeSender,
     },
+
     /// A `BlockUpdate` is used to update the block number and timestamp of the
     /// [`EVM`].
     BlockUpdate {
@@ -672,9 +708,15 @@ pub enum Instruction {
         outcome_sender: OutcomeSender,
     },
 
+    /// A `Deal` is used to increase the balance of an account in the [`EVM`].
     Deal {
+        /// The address of the account to increase the balance of.
         address: ethers::types::Address,
+
+        /// The amount to increase the balance of the account by.
         amount: ethers::types::U256,
+
+        /// The sender used to to send the outcome of the deal back to.
         outcome_sender: OutcomeSender,
     },
 
@@ -698,17 +740,33 @@ pub enum Instruction {
         outcome_sender: OutcomeSender,
     },
 
+    /// A `Query` is used to query the [`EVM`] for some data, the choice of
+    /// which data is specified by the inner `EnvironmentData` enum.
     Query {
+        /// The data to query the [`EVM`] for.
         environment_data: EnvironmentData,
+
+        /// The sender used to to send the outcome of the query back to.
         outcome_sender: OutcomeSender,
     },
 }
 
+/// [`EnvironmentData`] is an enum used inside of the [`Instruction::Query`] to
+/// specify what data should be returned to the user.
+/// Currently this may be the block number, block timestamp, gas price, or
+/// balance of an account.
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub enum EnvironmentData {
+    /// The query is for the block number of the [`EVM`].
     BlockNumber,
+
+    /// The query is for the block timestamp of the [`EVM`].
     BlockTimestamp,
+
+    /// The query is for the gas price of the [`EVM`].
     GasPrice,
+
+    /// The query is for the balance of an account given by the inner `Address`.
     Balance(ethers::types::Address),
 }
 
@@ -731,12 +789,17 @@ pub struct ReceiptData {
 /// These outcomes can be from `Call`, `Transaction`, or `BlockUpdate`
 /// instructions sent to the [`Environment`]
 pub enum Outcome {
+    /// The outcome of an [`Instruction::AddAccount`] instruction that is used
+    /// to signify that the account was added successfully.
     AddAccountCompleted,
+
     /// The outcome of a `BlockUpdate` instruction that is used to provide a
     /// non-error output of updating the block number and timestamp of the
     /// [`EVM`] to the client.
     BlockUpdateCompleted(ReceiptData),
 
+    /// The outcome of a [`Instruction::Deal`] instruction that is used to
+    /// signify that increasing the balance of an account was successful.
     DealCompleted,
 
     /// The outcome of a `Call` instruction that is used to provide the output
@@ -748,6 +811,9 @@ pub enum Outcome {
     /// `TransactionReceipt` in the `Middleware`.
     TransactionCompleted(ExecutionResult, ReceiptData),
 
+    /// The outcome of a `Query` instruction that carries a `String`
+    /// represenation of the data. Currently this may carry the block
+    /// number, block timestamp, gas price, or balance of an account.
     QueryReturn(String),
 }
 /// Provides channels for communication between the EVM and external entities.
