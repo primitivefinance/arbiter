@@ -283,6 +283,28 @@ impl RevmMiddleware {
             )),
         }
     }
+
+    pub async fn deal(
+        &self,
+        address: Address,
+        amount: ethers::types::U256,
+    ) -> Result<(), RevmMiddlewareError> {
+        self.provider()
+            .as_ref()
+            .instruction_sender
+            .send(Instruction::Deal {
+                address,
+                amount,
+                outcome_sender: self.provider().as_ref().outcome_sender.clone(),
+            })
+            .map_err(|e| RevmMiddlewareError::Send(e.to_string()))?;
+        match self.provider().as_ref().outcome_receiver.recv()?? {
+            Outcome::DealCompleted => Ok(()),
+            _ => Err(RevmMiddlewareError::MissingData(
+                "Wrong variant returned via instruction outcome!".to_string(),
+            )),
+        }
+    }
 }
 
 #[async_trait::async_trait]
@@ -341,7 +363,7 @@ impl Middleware for RevmMiddleware {
             Some(to) => TransactTo::Call(B160::from(*to)),
             None => TransactTo::Create(CreateScheme::Create),
         };
-
+        println!("gas_price: {:?}", self.get_gas_price().await?);
         let tx_env = TxEnv {
             caller: B160::from(self.wallet.address()),
             gas_limit: u64::MAX,

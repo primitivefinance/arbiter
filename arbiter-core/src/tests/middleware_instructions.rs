@@ -11,7 +11,7 @@ use super::*;
 
 #[tokio::test]
 async fn deploy() {
-    let (_manager, client) = startup_randomly_sampled().unwrap();
+    let (_manager, client) = startup_user_controlled().unwrap();
     let arbiter_token = deploy_arbx(client).await.unwrap();
     println!("{:?}", arbiter_token);
     assert_eq!(
@@ -22,7 +22,7 @@ async fn deploy() {
 
 #[tokio::test]
 async fn call() {
-    let (_manager, client) = startup_randomly_sampled().unwrap();
+    let (_manager, client) = startup_user_controlled().unwrap();
     let arbiter_token = deploy_arbx(client).await.unwrap();
     let admin = arbiter_token.admin();
     let output = admin.call().await.unwrap();
@@ -34,7 +34,7 @@ async fn call() {
 
 #[tokio::test]
 async fn transact() {
-    let (_manager, client) = startup_randomly_sampled().unwrap();
+    let (_manager, client) = startup_user_controlled().unwrap();
     let arbiter_token = deploy_arbx(client).await.unwrap();
     let mint = arbiter_token.mint(
         Address::from_str(TEST_MINT_TO).unwrap(),
@@ -68,7 +68,7 @@ async fn transact() {
 
 #[tokio::test]
 async fn filter_id() {
-    let (_manager, client) = startup_randomly_sampled().unwrap();
+    let (_manager, client) = startup_user_controlled().unwrap();
     let arbiter_token = deploy_arbx(client.clone()).await.unwrap();
     let filter_watcher_1 = client.watch(&Filter::default()).await.unwrap();
     let filter_watcher_2 = client
@@ -80,7 +80,7 @@ async fn filter_id() {
 
 #[tokio::test]
 async fn filter_watcher() {
-    let (_manager, client) = startup_randomly_sampled().unwrap();
+    let (_manager, client) = startup_user_controlled().unwrap();
     let arbiter_token = deploy_arbx(client.clone()).await.unwrap();
     let mut filter_watcher = client.watch(&Filter::default()).await.unwrap();
     let approval = arbiter_token.approve(
@@ -124,7 +124,7 @@ async fn filter_watcher() {
 
 #[tokio::test]
 async fn filter_address() {
-    let (_manager, client) = startup_randomly_sampled().unwrap();
+    let (_manager, client) = startup_user_controlled().unwrap();
     let arbiter_token = deploy_arbx(client.clone()).await.unwrap();
 
     let mut default_watcher = client.watch(&Filter::default()).await.unwrap();
@@ -187,7 +187,7 @@ async fn filter_address() {
 
 #[tokio::test]
 async fn filter_topics() {
-    let (_manager, client) = startup_randomly_sampled().unwrap();
+    let (_manager, client) = startup_user_controlled().unwrap();
     let arbiter_token = deploy_arbx(client.clone()).await.unwrap();
 
     let mut default_watcher = client.watch(&Filter::default()).await.unwrap();
@@ -297,4 +297,13 @@ async fn get_gas_price_randomly_sampled() {
         let gas_price = client.get_gas_price().await.unwrap();
         println!("gas_price: {}", gas_price);
     }
+}
+
+#[tokio::test]
+async fn deal() {
+    todo!()
+}
+
+async fn deal_missing_account() {
+    todo!()
 }

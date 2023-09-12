@@ -38,11 +38,11 @@ use revm::{
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
 
-use crate::math::SeededPoisson;
 #[cfg_attr(doc, doc(hidden))]
 #[cfg_attr(doc, allow(unused_imports))]
 #[cfg(doc)]
 use crate::{manager::Manager, middleware::RevmMiddleware};
+use crate::{math::SeededPoisson, middleware::recast_address};
 
 /// Alias for the sender of the channel for transmitting transactions.
 pub(crate) type InstructionSender = Sender<Instruction>;
@@ -199,6 +199,9 @@ pub enum EnvironmentError {
     #[error("transaction error! the source error is: {0:?}")]
     Transaction(InvalidTransaction),
 
+    #[error("account error! the account is missing from the DB")]
+    AccountMissing,
+
     /// [`EnvironmentError::Pause`] is thrown when the [`Environment`]
     /// fails to pause. This should likely never occur, but if it does,
     /// please report this error!
@@ -351,11 +354,13 @@ impl Environment {
                             .lock()
                             .map_err(|e| EnvironmentError::Pause(e.to_string()))?;
 
+                        // TODO: It may actually be okay to allow DB changes upon a pause. We should consider this.
                         // This logic here ensures we catch any last transactions and send
                         // the appropriate error so that we dont hang on the `tx_receiver`
                         while let Ok(request) = instruction_receiver.try_recv() {
                             let sender = match request {
                                 Instruction::BlockUpdate { outcome_sender, .. } => outcome_sender,
+                                Instruction::Deal { outcome_sender, .. } => outcome_sender,
                                 Instruction::Call { outcome_sender, .. } => outcome_sender,
                                 Instruction::Transaction { outcome_sender, .. } => outcome_sender,
                                 Instruction::Query { outcome_sender, .. } => outcome_sender,
@@ -406,6 +411,29 @@ impl Environment {
                                         .map_err(|e| {
                                             EnvironmentError::Communication(e.to_string())
                                         })?;
+                                }
+                                Instruction::Deal {
+                                    address,
+                                    amount,
+                                    outcome_sender,
+                                } => {
+                                    let db = evm.db.as_mut().unwrap();
+                                    let recast_address = revm::primitives::Address::from(address);
+                                    let account = match db.accounts.get_mut(&recast_address) {
+                                        Some(account) => account,
+                                        None => {
+                                            outcome_sender
+                                                .send(Err(EnvironmentError::AccountMissing))
+                                                .map_err(|e| {
+                                                    EnvironmentError::Communication(e.to_string())
+                                                })?;
+                                            continue;
+                                        }
+                                    };
+                                    account.info.balance += U256::from_limbs(amount.0);
+                                    outcome_sender.send(Ok(Outcome::DealCompleted)).map_err(
+                                        |e| EnvironmentError::Communication(e.to_string()),
+                                    )?;
                                 }
                                 // A `Call` is not state changing and will not create events.
                                 Instruction::Call {
@@ -584,6 +612,12 @@ pub enum Instruction {
         outcome_sender: OutcomeSender,
     },
 
+    Deal {
+        address: ethers::types::Address,
+        amount: ethers::types::U256,
+        outcome_sender: OutcomeSender,
+    },
+
     /// A `Call` is processed by the [`EVM`] but will not be state changing and
     /// will not create events.
     Call {
@@ -640,6 +674,8 @@ pub enum Outcome {
     /// non-error output of updating the block number and timestamp of the
     /// [`EVM`] to the client.
     BlockUpdateCompleted(ReceiptData),
+
+    DealCompleted,
 
     /// The outcome of a `Call` instruction that is used to provide the output
     /// of some [`EVM`] computation to the client.

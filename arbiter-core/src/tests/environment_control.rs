@@ -126,3 +126,8 @@ async fn user_update_block() {
     let block_timestamp = client.get_block_timestamp().await.unwrap();
     assert_eq!(block_timestamp, new_block_timestamp.into());
 }
+
+#[tokio::test]
+async fn constant_gas_price() {
+    todo!()
+}
