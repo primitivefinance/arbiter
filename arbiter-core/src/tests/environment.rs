@@ -5,54 +5,6 @@ use ethers::{
     types::U256,
 };
 
-// This test has two parts
-// 1 check that the expected number of transactions per block is the actual
-// number of transactions per block. 2 check the block number is incremented
-// after the expected number of transactions is reached.
-#[tokio::test]
-async fn transaction_loop() {
-    let (manager, client) = startup_randomly_sampled().unwrap();
-    // tx_0 is the transaction that creates the token contract
-    let arbiter_token = deploy_arbx(client.clone()).await.unwrap();
-
-    // get the environment so we can look at its distribution
-    let environment = manager.environments.get(TEST_ENV_LABEL).unwrap();
-
-    let mut distribution = match environment.parameters.block_type {
-        BlockType::RandomlySampled {
-            block_rate,
-            block_time,
-            seed,
-        } => SeededPoisson::new(block_rate, block_time, seed),
-        _ => panic!("Expected RandomlySampled block type"),
-    };
-    let expected_tx_per_block = distribution.sample();
-    println!("expected_tx_per_block: {}", expected_tx_per_block);
-
-    for index in 1..expected_tx_per_block + 1 {
-        println!("index: {}", index);
-        let tx = arbiter_token
-            .mint(client.default_sender().unwrap(), 1000u64.into())
-            .send()
-            .await
-            .unwrap()
-            .await
-            .unwrap()
-            .unwrap();
-
-        if index < expected_tx_per_block {
-            let block_number = tx.block_number.unwrap();
-            println!("block_number: {}", block_number);
-            assert_eq!(block_number, U64::from(0));
-        } else {
-            println!("in else");
-            let block_number = tx.block_number.unwrap();
-            println!("block_number: {}", block_number);
-            assert_eq!(block_number, U64::from(1));
-        }
-    }
-}
-
 #[tokio::test]
 async fn receipt_data() {
     let (_manager, client) = startup_user_controlled().unwrap();
@@ -100,8 +52,60 @@ async fn receipt_data() {
     assert!(cumulative_gas <= receipt_1.cumulative_gas_used);
 }
 
+// If we are using the `seed == 1`, then we will have 3, 2, 3, 0, 2... transactions per block. We should check these.
 #[tokio::test]
-async fn update_block() {
+async fn randomly_sampled_blocks() {
+    let (manager, client) = startup_randomly_sampled().unwrap();
+    // tx_0 is the transaction that creates the token contract
+    let arbiter_token = deploy_arbx(client.clone()).await.unwrap();
+
+    // get the environment so we can look at its distribution
+    let environment = manager.environments.get(TEST_ENV_LABEL).unwrap();
+
+    let mut distribution = match environment.parameters.block_type {
+        BlockType::RandomlySampled {
+            block_rate,
+            block_time,
+            seed,
+        } => SeededPoisson::new(block_rate, block_time, seed),
+        _ => panic!("Expected RandomlySampled block type"),
+    };
+
+    let mut expected_txs_per_block_vec = vec![];
+    for _ in 0..5 {
+        expected_txs_per_block_vec.push(distribution.sample());
+    }
+    println!(
+        "expected_txs_per_block_vec: {:?}",
+        expected_txs_per_block_vec
+    );
+
+    for (index, mut expected_txs_per_block) in expected_txs_per_block_vec.into_iter().enumerate() {
+        println!("index: {}", index);
+        println!("expected_txs_per_block: {}", expected_txs_per_block);
+        if index == 0 {
+            println!("tx_0 is the transaction that creates the token contract, so we will have one less transaction in the first block loop for this test");
+            expected_txs_per_block -= 1;
+        }
+        for tx_num in 0..expected_txs_per_block {
+            println!("tx_num: {}", tx_num);
+            let tx = arbiter_token
+                .mint(client.default_sender().unwrap(), 1337u64.into())
+                .send()
+                .await
+                .unwrap()
+                .await
+                .unwrap()
+                .unwrap();
+            let block_number = tx.block_number.unwrap();
+            println!("current block number: {}", block_number);
+            assert_eq!(index as u64, block_number.as_u64());
+        }
+    }
+}
+
+#[tokio::test]
+async fn user_update_block() {
     let (_manager, client) = startup_user_controlled().unwrap();
     let block_number = client.get_block_number().await.unwrap();
     assert_eq!(block_number, ethers::types::U64::from(0));

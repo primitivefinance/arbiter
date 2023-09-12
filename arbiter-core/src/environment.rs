@@ -448,19 +448,12 @@ impl Environment {
                                             let sample = Some(seeded_poisson_lock.sample());
 
                                             if sample == Some(0) {
-                                                println!(
-                                                    "sampled 0 transactions per block, resampling"
-                                                );
                                                 evm.env.block.number += U256::from(1);
                                                 continue;
                                             } else {
                                                 break sample;
                                             }
                                         };
-                                        println!(
-                                            "transactions per block: {:?}",
-                                            transactions_per_block
-                                        );
                                         if let GasSettings::RandomlySampled { multiplier } =
                                             gas_settings
                                         {
