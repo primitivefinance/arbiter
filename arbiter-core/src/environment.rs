@@ -612,7 +612,7 @@ impl Environment {
 
                                     // Check whether we need to increment the block number given the
                                     // amount of transactions
-                                    // that have occured on the current block and increment
+                                    // that have occurred on the current block and increment
                                     // if need be and draw a new sample from the `SeededPoisson`
                                     // distribution. Only do so if there is a distribution in the
                                     // first place.
