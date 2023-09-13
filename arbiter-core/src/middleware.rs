@@ -328,6 +328,26 @@ impl RevmMiddleware {
     pub fn address(&self) -> Address {
         self.wallet.address()
     }
+
+    pub async fn set_gas_price(
+        &self,
+        gas_price: ethers::types::U256,
+    ) -> Result<(), RevmMiddlewareError> {
+        self.provider()
+            .as_ref()
+            .instruction_sender
+            .send(Instruction::SetGasPrice {
+                gas_price,
+                outcome_sender: self.provider().as_ref().outcome_sender.clone(),
+            })
+            .map_err(|e| RevmMiddlewareError::Send(e.to_string()))?;
+        match self.provider().as_ref().outcome_receiver.recv()?? {
+            Outcome::SetGasPriceCompleted => Ok(()),
+            _ => Err(RevmMiddlewareError::MissingData(
+                "Wrong variant returned via instruction outcome!".to_string(),
+            )),
+        }
+    }
 }
 
 #[async_trait::async_trait]

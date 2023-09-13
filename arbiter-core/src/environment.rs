@@ -240,6 +240,9 @@ pub enum EnvironmentError {
     #[error("transaction was received while the environment was paused. this transaction was not processed.")]
     TransactionReceivedWhilePaused,
 
+    #[error("error in the environmnet! attempted to set a gas price when the `GasSettings` is not `GasSettings::UserControlled`")]
+    NotUserControlledGasSettings,
+
     /// [`EnvironmentError::NotUserControlledBlockType`] is thrown when
     /// the [`Environment`] is in a [`BlockType::RandomlySampled`] state and
     /// an attempt is made to externally change the block number and timestamp.
@@ -366,6 +369,7 @@ impl Environment {
                                 Instruction::BlockUpdate { outcome_sender, .. } => outcome_sender,
                                 Instruction::Deal { outcome_sender, .. } => outcome_sender,
                                 Instruction::Call { outcome_sender, .. } => outcome_sender,
+                                Instruction::SetGasPrice { outcome_sender, .. } => outcome_sender,
                                 Instruction::Transaction { outcome_sender, .. } => outcome_sender,
                                 Instruction::Query { outcome_sender, .. } => outcome_sender,
                             };
@@ -489,6 +493,27 @@ impl Environment {
                                             EnvironmentError::Communication(e.to_string())
                                         })?;
                                 }
+                                Instruction::SetGasPrice {
+                                    gas_price,
+                                    outcome_sender,
+                                } => {
+                                    if GasSettings::UserControlled != gas_settings {
+                                        outcome_sender
+                                            .send(Err(
+                                                EnvironmentError::NotUserControlledGasSettings,
+                                            ))
+                                            .map_err(|e| {
+                                                EnvironmentError::Communication(e.to_string())
+                                            })?;
+                                    }
+                                    evm.env.tx.gas_price = U256::from_limbs(gas_price.0);
+                                    outcome_sender
+                                        .send(Ok(Outcome::SetGasPriceCompleted))
+                                        .map_err(|e| {
+                                            EnvironmentError::Communication(e.to_string())
+                                        })?;
+                                }
+
                                 // A `Transaction` is state changing and will create events.
                                 Instruction::Transaction {
                                     tx_env,
@@ -688,6 +713,11 @@ pub enum Instruction {
         outcome_sender: OutcomeSender,
     },
 
+    SetGasPrice {
+        gas_price: ethers::types::U256,
+        outcome_sender: OutcomeSender,
+    },
+
     /// A `Transaction` is processed by the [`EVM`] and will be state changing
     /// and will create events.
     Transaction {
@@ -742,6 +772,8 @@ pub enum Outcome {
     /// The outcome of a `Call` instruction that is used to provide the output
     /// of some [`EVM`] computation to the client.
     CallCompleted(ExecutionResult),
+
+    SetGasPriceCompleted,
 
     /// The outcome of a `Transaction` instruction that is first unpacked to see
     /// if the result is successful, then it can be used to build a
