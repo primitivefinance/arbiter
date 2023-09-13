@@ -319,7 +319,7 @@ impl Manager {
     ///   already in a stopped state.
     /// - `Err(ManagerError::NoHandleAvailable)`: The [`Environment`]'s handle
     ///   could not be found.
-    /// - `Err(ManagerError::ThreadPanic)`: The [`Environment`]'s thead has
+    /// - `Err(ManagerError::ThreadPanic)`: The [`Environment`]'s thread has
     ///   panicked!
     ///
     /// # Examples

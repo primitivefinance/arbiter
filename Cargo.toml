@@ -22,7 +22,7 @@ path = "bin/main.rs"
 [dependencies]
 # Command line and config
 clap = { version = "4.3.0", features = ["derive"] }
-serde = { version = "1.0.163", features =["derive"] }
+serde = { version = "1.0.163", features = ["derive"] }
 toml = "0.8.0"
 
 # Building files
@@ -37,7 +37,7 @@ assert_cmd = "2.0.11"
 
 # Release profile
 [profile.release]
-# Link-Time Optimization can inprove runtime at cost of build time
+# Link-Time Optimization can improve runtime at cost of build time
 lto = true
 # The Rust compiler splits your crate into multiple codegen units to parallelize (and thus speed up) compilation but at the cost of optimization. 
 # This setting tells the compiler to use only one codegen unit, which will slow down compilation but improve optimization.
