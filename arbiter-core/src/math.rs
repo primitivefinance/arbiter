@@ -44,7 +44,7 @@ pub use RustQuant::stochastics::*;
 /// the amount of transactions that go through a block. For instance, the larger
 /// the `rate_paramater`, the more transactions we expect (on average) to fit
 /// into a block. A large `rate_parameter` would represent a high-volume network
-/// where lots of transactions are occuring. This could be during periods of
+/// where lots of transactions are occurring. This could be during periods of
 /// times of high market (DEX) volatility or during new NFT launches.
 #[derive(Debug, Clone)]
 pub struct SeededPoisson {
