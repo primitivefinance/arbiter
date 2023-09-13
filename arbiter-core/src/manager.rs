@@ -107,32 +107,34 @@ impl Manager {
     /// # Examples
     ///
     /// ```rust
-    /// use arbiter_core::{environment::EnvironmentParameters, manager::Manager};
+    /// use arbiter_core::{
+    ///     environment::{BlockSettings, EnvironmentParameters, GasSettings},
+    ///     manager::Manager,
+    /// };
     ///
     /// let mut manager = Manager::new();
     /// let params = EnvironmentParameters {
-    ///     block_rate: 1.0,
-    ///     seed: 1,
+    ///     label: "example_env".to_string(),
+    ///     block_settings: BlockSettings::RandomlySampled {
+    ///         block_rate: 1.0,
+    ///         block_time: 12,
+    ///         seed: 1,
+    ///     },
+    ///     gas_settings: GasSettings::RandomlySampled { multiplier: 1.0 },
     /// };
-    /// manager.add_environment("example_env", params).unwrap();
+    /// manager.add_environment(params).unwrap();
     /// ```
-    pub fn add_environment<S: Into<String> + Clone>(
-        &mut self,
-        environment_label: S,
-        params: EnvironmentParameters,
-    ) -> Result<(), ManagerError> {
-        let label_str = environment_label.clone().into();
+    pub fn add_environment(&mut self, params: EnvironmentParameters) -> Result<(), ManagerError> {
+        let environment_label = params.label.clone();
 
-        if self.environments.contains_key(&label_str) {
-            return Err(ManagerError::EnvironmentAlreadyExists(label_str));
+        if self.environments.contains_key(&environment_label) {
+            return Err(ManagerError::EnvironmentAlreadyExists(environment_label));
         }
 
-        self.environments.insert(
-            label_str.clone(),
-            Environment::new(environment_label, params),
-        );
+        self.environments
+            .insert(environment_label.clone(), Environment::new(params));
 
-        info!("Added environment labeled {}", label_str);
+        info!("Added environment labeled {}", environment_label);
         Ok(())
     }
 
@@ -160,15 +162,23 @@ impl Manager {
     /// # Examples
     ///
     /// ```rust
-    /// use arbiter_core::{environment::EnvironmentParameters, manager::Manager};
+    /// use arbiter_core::{
+    ///     environment::{BlockSettings, EnvironmentParameters, GasSettings},
+    ///     manager::Manager,
+    /// };
     ///
     /// let mut manager = Manager::new();
     /// let params = EnvironmentParameters {
-    ///     block_rate: 1.0,
-    ///     seed: 1,
+    ///     label: "example_env".to_string(),
+    ///     block_settings: BlockSettings::RandomlySampled {
+    ///         block_rate: 1.0,
+    ///         block_time: 12,
+    ///         seed: 1,
+    ///     },
+    ///     gas_settings: GasSettings::RandomlySampled { multiplier: 1.0 },
     /// };
-    /// manager.add_environment("example_env", params).unwrap();
     ///
+    /// manager.add_environment(params).unwrap();
     /// // Now, let's start the environment
     /// manager.start_environment("example_env").unwrap();
     /// ```
@@ -235,14 +245,23 @@ impl Manager {
     /// # Examples
     ///
     /// ```rust
-    /// use arbiter_core::{environment::EnvironmentParameters, manager::Manager};
+    /// use arbiter_core::{
+    ///     environment::{BlockSettings, EnvironmentParameters, GasSettings},
+    ///     manager::Manager,
+    /// };
     ///
     /// let mut manager = Manager::new();
     /// let params = EnvironmentParameters {
-    ///     block_rate: 1.0,
-    ///     seed: 1,
+    ///     label: "example_env".to_string(),
+    ///     block_settings: BlockSettings::RandomlySampled {
+    ///         block_rate: 1.0,
+    ///         block_time: 12,
+    ///         seed: 1,
+    ///     },
+    ///     gas_settings: GasSettings::RandomlySampled { multiplier: 1.0 },
     /// };
-    /// manager.add_environment("example_env", params).unwrap();
+    ///
+    /// manager.add_environment(params).unwrap();
     /// manager.start_environment("example_env").unwrap();
     ///
     /// // Now, let's pause the environment
@@ -300,20 +319,28 @@ impl Manager {
     ///   already in a stopped state.
     /// - `Err(ManagerError::NoHandleAvailable)`: The [`Environment`]'s handle
     ///   could not be found.
-    /// - `Err(ManagerError::ThreadPanic)`: The [`Environment`]'s thead has
+    /// - `Err(ManagerError::ThreadPanic)`: The [`Environment`]'s thread has
     ///   panicked!
     ///
     /// # Examples
     ///
     /// ```rust
-    /// use arbiter_core::{environment::EnvironmentParameters, manager::Manager};
+    /// use arbiter_core::{
+    ///     environment::{BlockSettings, EnvironmentParameters, GasSettings},
+    ///     manager::Manager,
+    /// };
     ///
     /// let mut manager = Manager::new();
     /// let params = EnvironmentParameters {
-    ///     block_rate: 1.0,
-    ///     seed: 1,
+    ///     label: "example_env".to_string(),
+    ///     block_settings: BlockSettings::RandomlySampled {
+    ///         block_rate: 1.0,
+    ///         block_time: 12,
+    ///         seed: 1,
+    ///     },
+    ///     gas_settings: GasSettings::RandomlySampled { multiplier: 1.0 },
     /// };
-    /// manager.add_environment("example_env", params).unwrap();
+    /// manager.add_environment(params).unwrap();
     /// manager.start_environment("example_env").unwrap();
     ///
     /// // Now, let's stop the environment

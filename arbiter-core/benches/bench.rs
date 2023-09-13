@@ -10,7 +10,7 @@ use arbiter_core::{
         arbiter_math::ArbiterMath,
         arbiter_token::{self, ArbiterToken},
     },
-    environment::EnvironmentParameters,
+    environment::{BlockSettings, EnvironmentParameters, GasSettings},
     manager::Manager,
     middleware::RevmMiddleware,
 };
@@ -159,17 +159,17 @@ async fn anvil_startup() -> Result<(
 async fn arbiter_startup() -> Result<(Arc<RevmMiddleware>, Manager)> {
     let mut manager = Manager::new();
     let params = EnvironmentParameters {
-        block_rate: 10.0,
-        seed: 0,
+        label: ENV_LABEL.to_string(),
+        block_settings: BlockSettings::UserControlled,
+        gas_settings: GasSettings::UserControlled,
     };
-    manager.add_environment(ENV_LABEL, params)?;
+    manager.add_environment(params)?;
+    manager.start_environment(ENV_LABEL)?;
 
     let client = Arc::new(RevmMiddleware::new(
         manager.environments.get(ENV_LABEL).unwrap(),
         Some("name".to_string()),
-    ));
-
-    manager.start_environment(ENV_LABEL)?;
+    )?);
 
     Ok((client, manager))
 }

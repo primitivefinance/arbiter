@@ -9,25 +9,24 @@
 //! - [`Connection`]: Handles communication with the Ethereum VM.
 //! - `FilterReceiver`: Facilitates event watching based on certain filters.
 
-#![warn(missing_docs, unsafe_code)]
-
-// TODO: Check the publicness of all structs and functions.
+#![warn(missing_docs)]
 
 use std::{
     collections::HashMap,
     fmt::Debug,
+    future::Future,
+    pin::Pin,
     sync::{Arc, Mutex},
     time::Duration,
 };
 
 use ethers::{
-    core::rand::SeedableRng,
+    abi::ethereum_types::BloomInput,
     prelude::{
         k256::{
             ecdsa::SigningKey,
             sha2::{Digest, Sha256},
         },
-        pending_transaction::PendingTxState,
         ProviderError,
     },
     providers::{
@@ -36,17 +35,19 @@ use ethers::{
     },
     signers::{Signer, Wallet},
     types::{
-        transaction::eip2718::TypedTransaction, Address, BlockId, Bytes, Filter, FilteredParams,
-        Log,
+        transaction::eip2718::TypedTransaction, Address, BlockId, Bloom, Bytes, Filter,
+        FilteredParams, Log, NameOrAddress, Transaction, TransactionReceipt, U64,
     },
 };
-use rand::rngs;
+use futures_timer::Delay;
+use rand::{rngs::StdRng, SeedableRng};
 use revm::primitives::{CreateScheme, ExecutionResult, Output, TransactTo, TxEnv, B160, U256};
 use serde::{de::DeserializeOwned, Serialize};
 use thiserror::Error;
 
 use crate::environment::{
-    Environment, EventBroadcaster, ResultReceiver, ResultSender, TransactionOutcome, TxSender,
+    Environment, EnvironmentData, EventBroadcaster, Instruction, InstructionSender, Outcome,
+    OutcomeReceiver, OutcomeSender, ReceiptData,
 };
 
 /// A middleware structure that integrates with `revm`.
@@ -68,16 +69,24 @@ use crate::environment::{
 /// use std::sync::Arc;
 ///
 /// use arbiter_core::{
-///     environment::EnvironmentParameters, manager::Manager, middleware::RevmMiddleware,
+///     environment::{BlockSettings, EnvironmentParameters, GasSettings},
+///     manager::Manager,
+///     middleware::RevmMiddleware,
 /// };
 ///
 /// // Create a manager and add an environment
 /// let mut manager = Manager::new();
 /// let params = EnvironmentParameters {
-///     block_rate: 1.0,
-///     seed: 1,
+///     label: "example_env".to_string(),
+///     block_settings: BlockSettings::RandomlySampled {
+///         block_rate: 1.0,
+///         block_time: 12,
+///         seed: 1,
+///     },
+///     gas_settings: GasSettings::RandomlySampled { multiplier: 1.0 },
 /// };
-/// manager.add_environment("example_env", params).unwrap();
+/// manager.add_environment(params).unwrap();
+/// manager.start_environment("example_env").unwrap();
 ///
 /// // Retrieve the environment to create a new middleware instance
 /// let environment = manager.environments.get("example_env").unwrap();
@@ -86,7 +95,7 @@ use crate::environment::{
 /// ```
 /// The client can now be used for transactions with the environment.
 /// Use a seed like `Some("test_label".to_string())` for maintaining a
-/// consistant address across simulations and client labeling. Seeding is be
+/// consistent address across simulations and client labeling. Seeding is be
 /// useful for debugging and post-processing.
 #[derive(Debug)]
 pub struct RevmMiddleware {
@@ -105,6 +114,10 @@ pub struct RevmMiddleware {
 /// [GitHub](https://github.com/primitivefinance/arbiter/).
 #[derive(Error, Debug)]
 pub enum RevmMiddlewareError {
+    /// An error occurred while attempting to interact with the environment.
+    #[error("an error came from the environment! due to: {0}")]
+    Environment(#[from] crate::environment::EnvironmentError),
+
     /// An error occurred while attempting to send a transaction.
     #[error("failed to send transaction! due to: {0}")]
     Send(String),
@@ -112,7 +125,7 @@ pub enum RevmMiddlewareError {
     /// There was an issue receiving an [`ExecutionResult`], possibly from
     /// another service or module.
     #[error("failed to receive `ExecutionResult`! due to: {0}")]
-    Receive(String),
+    Receive(#[from] crossbeam_channel::RecvError),
 
     /// There was a failure trying to obtain a lock on the [`EventBroadcaster`],
     /// possibly due to concurrency issues.
@@ -174,46 +187,169 @@ impl RevmMiddleware {
     /// # Examples
     /// ```
     /// use arbiter_core::{
-    ///     environment::EnvironmentParameters, manager::Manager, middleware::RevmMiddleware,
+    ///     environment::{BlockSettings, EnvironmentParameters, GasSettings},
+    ///     manager::Manager,
+    ///     middleware::RevmMiddleware,
     /// };
     ///
     /// let mut manager = Manager::new();
     /// let params = EnvironmentParameters {
-    ///     block_rate: 1.0,
-    ///     seed: 1,
+    ///     label: "example_env".to_string(),
+    ///     block_settings: BlockSettings::RandomlySampled {
+    ///         block_rate: 1.0,
+    ///         block_time: 12,
+    ///         seed: 1,
+    ///     },
+    ///     gas_settings: GasSettings::RandomlySampled { multiplier: 1.0 },
     /// };
-    /// manager.add_environment("example_env", params).unwrap();
+    /// manager.add_environment(params).unwrap();
+    /// manager.start_environment("example_env").unwrap();
+    ///
+    /// // Retrieve the environment to create a new middleware instance
     /// let environment = manager.environments.get("example_env").unwrap();
-    /// let middleware = RevmMiddleware::new(&environment, Some("test_label".to_string()));
     ///
     /// // We can create a middleware instance without a seed by doing the following
     /// let no_seed_middleware = RevmMiddleware::new(&environment, None);
     /// ```
     /// Use a seed if you want to have a constant address across simulations as
     /// well as a label for a client. This can be useful for debugging.
-    pub fn new(environment: &Environment, seed_and_label: Option<String>) -> Self {
-        let tx_sender = environment.socket.tx_sender.clone();
-        let (result_sender, result_receiver) = crossbeam_channel::unbounded();
+    pub fn new(
+        environment: &Environment,
+        seed_and_label: Option<String>,
+    ) -> Result<Self, RevmMiddlewareError> {
+        let instruction_sender = environment.socket.instruction_sender.clone();
+        let (outcome_sender, outcome_receiver) = crossbeam_channel::unbounded();
         let connection = Connection {
-            tx_sender,
-            result_sender,
-            result_receiver,
+            instruction_sender: instruction_sender.clone(),
+            outcome_sender: outcome_sender.clone(),
+            outcome_receiver: outcome_receiver.clone(),
             event_broadcaster: Arc::clone(&environment.socket.event_broadcaster),
             filter_receivers: Arc::new(tokio::sync::Mutex::new(HashMap::new())),
             environment_state: Arc::clone(&environment.state),
         };
         let provider = Provider::new(connection);
-        if let Some(seed) = seed_and_label {
+        let new_middleware = if let Some(seed) = seed_and_label {
             let mut hasher = Sha256::new();
             hasher.update(seed.clone());
             let hashed = hasher.finalize();
-            let mut rng: rngs::StdRng = SeedableRng::from_seed(hashed.into());
+            let mut rng: StdRng = SeedableRng::from_seed(hashed.into());
             let wallet = Wallet::new(&mut rng);
             Self { provider, wallet }
         } else {
             let mut rng = rand::thread_rng();
             let wallet = Wallet::new(&mut rng);
             Self { provider, wallet }
+        };
+        instruction_sender
+            .send(Instruction::AddAccount {
+                address: new_middleware.wallet.address(),
+                outcome_sender,
+            })
+            .map_err(|e| RevmMiddlewareError::Send(e.to_string()))?;
+        outcome_receiver.recv()??;
+        Ok(new_middleware)
+    }
+
+    /// Allows the user to update the block number and timestamp of the
+    /// [`Environment`] to whatever they may choose at any time.
+    /// This can only be done when the [`Environment`] has
+    /// [`EnvironmentParameters`] `block_settings` field set to
+    /// [`BlockSettings::UserControlled`].
+    pub fn update_block(
+        &self,
+        block_number: impl Into<ethers::types::U256>,
+        block_timestamp: impl Into<ethers::types::U256>,
+    ) -> Result<ReceiptData, RevmMiddlewareError> {
+        let block_number: ethers::types::U256 = block_number.into();
+        let block_timestamp: ethers::types::U256 = block_timestamp.into();
+        let provider = self.provider.as_ref();
+        provider
+            .instruction_sender
+            .send(Instruction::BlockUpdate {
+                block_number: block_number.into(),
+                block_timestamp: block_timestamp.into(),
+                outcome_sender: provider.outcome_sender.clone(),
+            })
+            .map_err(|e| RevmMiddlewareError::Send(e.to_string()))?;
+        match provider.outcome_receiver.recv() {
+            Ok(Ok(Outcome::BlockUpdateCompleted(receipt_data))) => Ok(receipt_data),
+            _ => Err(RevmMiddlewareError::MissingData(
+                "Block did not update Successfully".to_string(),
+            )),
+        }
+    }
+
+    /// Returns the timestamp of the current block.
+    pub async fn get_block_timestamp(&self) -> Result<ethers::types::U256, RevmMiddlewareError> {
+        self.provider()
+            .as_ref()
+            .instruction_sender
+            .send(Instruction::Query {
+                environment_data: EnvironmentData::BlockTimestamp,
+                outcome_sender: self.provider().as_ref().outcome_sender.clone(),
+            })
+            .map_err(|e| RevmMiddlewareError::Send(e.to_string()))?;
+        match self.provider().as_ref().outcome_receiver.recv()?? {
+            Outcome::QueryReturn(outcome) => {
+                ethers::types::U256::from_str_radix(outcome.as_ref(), 10)
+                    .map_err(|e| RevmMiddlewareError::Conversion(e.to_string()))
+            }
+            _ => Err(RevmMiddlewareError::MissingData(
+                "Wrong variant returned via query!".to_string(),
+            )),
+        }
+    }
+
+    /// Provides functionality to increase the balance of a given address by a
+    /// given amount.
+    pub async fn deal(
+        &self,
+        address: Address,
+        amount: ethers::types::U256,
+    ) -> Result<(), RevmMiddlewareError> {
+        self.provider()
+            .as_ref()
+            .instruction_sender
+            .send(Instruction::Deal {
+                address,
+                amount,
+                outcome_sender: self.provider().as_ref().outcome_sender.clone(),
+            })
+            .map_err(|e| RevmMiddlewareError::Send(e.to_string()))?;
+        match self.provider().as_ref().outcome_receiver.recv()?? {
+            Outcome::DealCompleted => Ok(()),
+            _ => Err(RevmMiddlewareError::MissingData(
+                "Wrong variant returned via instruction outcome!".to_string(),
+            )),
+        }
+    }
+
+    /// Returns the address of the wallet/signer given to a client.
+    pub fn address(&self) -> Address {
+        self.wallet.address()
+    }
+
+    /// Allows a client to set a gas price for transactions.
+    /// This can only be done if the [`Environment`] has
+    /// [`EnvironmentParameters`] `gas_settings` field set to
+    /// [`GasSettings::UserControlled`].
+    pub async fn set_gas_price(
+        &self,
+        gas_price: ethers::types::U256,
+    ) -> Result<(), RevmMiddlewareError> {
+        self.provider()
+            .as_ref()
+            .instruction_sender
+            .send(Instruction::SetGasPrice {
+                gas_price,
+                outcome_sender: self.provider().as_ref().outcome_sender.clone(),
+            })
+            .map_err(|e| RevmMiddlewareError::Send(e.to_string()))?;
+        match self.provider().as_ref().outcome_receiver.recv()?? {
+            Outcome::SetGasPriceCompleted => Ok(()),
+            _ => Err(RevmMiddlewareError::MissingData(
+                "Wrong variant returned via instruction outcome!".to_string(),
+            )),
         }
     }
 }
@@ -277,7 +413,7 @@ impl Middleware for RevmMiddleware {
         let tx_env = TxEnv {
             caller: B160::from(self.wallet.address()),
             gas_limit: u64::MAX,
-            gas_price: U256::ZERO,
+            gas_price: revm::primitives::U256::from_limbs(self.get_gas_price().await?.0),
             gas_priority_fee: None,
             transact_to,
             value: U256::ZERO,
@@ -292,63 +428,147 @@ impl Middleware for RevmMiddleware {
             nonce: None,
             access_list: Vec::new(),
         };
+        let instruction = Instruction::Transaction {
+            tx_env: tx_env.clone(),
+            outcome_sender: self.provider.as_ref().outcome_sender.clone(),
+        };
         self.provider()
             .as_ref()
-            .tx_sender
-            .send((
-                true,
-                tx_env.clone(),
-                self.provider().as_ref().result_sender.clone(),
-            ))
+            .instruction_sender
+            .send(instruction)
             .map_err(|e| RevmMiddlewareError::Send(e.to_string()))?;
 
-        let revm_result = self
-            .provider()
-            .as_ref()
-            .result_receiver
-            .recv()
-            .map_err(|e| RevmMiddlewareError::Receive(e.to_string()))?;
+        let outcome = self.provider().as_ref().outcome_receiver.recv()??;
 
-        match revm_result.outcome {
-            TransactionOutcome::Success(execution_result) => {
-                let Success {
-                    _reason: _,
-                    _gas_used: _,
-                    _gas_refunded: _,
-                    logs,
-                    output,
-                } = unpack_execution_result(execution_result)?;
+        if let Outcome::TransactionCompleted(execution_result, receipt_data) = outcome {
+            let Success {
+                _reason: _,
+                _gas_used: gas_used,
+                _gas_refunded: _,
+                logs,
+                output,
+            } = unpack_execution_result(execution_result)?;
 
-                match output {
-                    Output::Create(_, address) => {
-                        let address = address.ok_or(RevmMiddlewareError::MissingData(
-                            "Address missing in transaction!".to_string(),
-                        ))?;
-                        let mut pending_tx =
-                            PendingTransaction::new(ethers::types::H256::zero(), self.provider());
-                        pending_tx.state =
-                            PendingTxState::RevmDeployOutput(recast_address(address));
-                        return Ok(pending_tx);
+            let to: Option<ethers::types::H160> = match tx_env.transact_to {
+                TransactTo::Call(address) => Some(address.into()),
+                TransactTo::Create(_) => None,
+            };
+
+            // Note that this is technically not the correct construction on the tx hash
+            // but until we increment the nonce correctly this will do
+            let sender = self.wallet.address();
+            let data = tx_env.clone().data;
+            let mut hasher = Sha256::new();
+            hasher.update(sender.as_bytes());
+            hasher.update(data.as_ref());
+            let hash = hasher.finalize();
+
+            let mut block_hasher = Sha256::new();
+            block_hasher.update(receipt_data.block_number.to_string().as_bytes());
+            let block_hash = block_hasher.finalize();
+            let block_hash = Some(ethers::types::H256::from_slice(&block_hash));
+
+            match output {
+                Output::Create(_, address) => {
+                    let tx_receipt = TransactionReceipt {
+                        block_hash,
+                        block_number: Some(receipt_data.block_number),
+                        contract_address: Some(recast_address(address.unwrap())),
+                        logs: logs.clone(),
+                        from: sender,
+                        gas_used: Some(gas_used.into()),
+                        effective_gas_price: Some(tx_env.clone().gas_price.into()),
+                        transaction_hash: ethers::types::TxHash::from_slice(&hash),
+                        to,
+                        cumulative_gas_used: receipt_data.cumulative_gas_per_block.into(),
+                        status: Some(1.into()),
+                        root: None,
+                        logs_bloom: {
+                            let mut bloom = Bloom::default();
+                            for log in &logs {
+                                bloom.accrue(BloomInput::Raw(&log.address.0));
+                                for topic in log.topics.iter() {
+                                    bloom.accrue(BloomInput::Raw(topic.as_bytes()));
+                                }
+                            }
+                            bloom
+                        },
+                        transaction_type: match tx {
+                            TypedTransaction::Eip2930(_) => Some(1.into()),
+                            _ => None,
+                        },
+                        transaction_index: receipt_data.transaction_index,
+                        ..Default::default()
+                    };
+
+                    // TODO: I'm not sure we need to set the confirmations.
+                    let mut pending_tx =
+                        PendingTransaction::new(ethers::types::H256::zero(), self.provider())
+                            .interval(Duration::ZERO)
+                            .confirmations(0);
+
+                    let state_ptr: *mut PendingTxState =
+                        &mut pending_tx as *mut _ as *mut PendingTxState;
+
+                    // Modify the value (this assumes you have access to the enum variants)
+                    unsafe {
+                        *state_ptr = PendingTxState::CheckingReceipt(Some(tx_receipt));
                     }
-                    Output::Call(_) => {
-                        let mut pending_tx =
-                            PendingTransaction::new(ethers::types::H256::zero(), self.provider());
 
-                        pending_tx.state =
-                            PendingTxState::RevmTransactOutput(logs, revm_result.block_number);
-                        return Ok(pending_tx);
+                    Ok(pending_tx)
+                }
+                Output::Call(_) => {
+                    let tx_receipt = TransactionReceipt {
+                        block_hash,
+                        block_number: Some(receipt_data.block_number),
+                        contract_address: None,
+                        logs: logs.clone(),
+                        from: sender,
+                        gas_used: Some(gas_used.into()),
+                        effective_gas_price: Some(tx_env.clone().gas_price.into()),
+                        transaction_hash: ethers::types::TxHash::from_slice(&hash),
+                        to,
+                        cumulative_gas_used: receipt_data.cumulative_gas_per_block.into(),
+                        status: Some(1.into()),
+                        root: None,
+                        logs_bloom: {
+                            let mut bloom = Bloom::default();
+                            for log in &logs {
+                                bloom.accrue(BloomInput::Raw(&log.address.0));
+                                for topic in log.topics.iter() {
+                                    bloom.accrue(BloomInput::Raw(topic.as_bytes()));
+                                }
+                            }
+                            bloom
+                        },
+                        transaction_type: match tx {
+                            TypedTransaction::Eip2930(_) => Some(1.into()),
+                            _ => None,
+                        },
+                        transaction_index: receipt_data.transaction_index,
+                        ..Default::default()
+                    };
+
+                    // TODO: Create the actual tx_hash
+                    // TODO: I'm not sure we need to set the confirmations.
+                    let mut pending_tx =
+                        PendingTransaction::new(ethers::types::H256::zero(), self.provider())
+                            .interval(Duration::ZERO)
+                            .confirmations(0);
+
+                    let state_ptr: *mut PendingTxState =
+                        &mut pending_tx as *mut _ as *mut PendingTxState;
+
+                    // Modify the value (this assumes you have access to the enum variants)
+                    unsafe {
+                        *state_ptr = PendingTxState::CheckingReceipt(Some(tx_receipt));
                     }
+
+                    Ok(pending_tx)
                 }
             }
-            TransactionOutcome::Error(err) => {
-                return Err(RevmMiddlewareError::Receive(
-                    format!(
-                        "Error recieving response from the environement with environment error: {}",
-                        err
-                    )
-                    .to_string(),
-                ));
-            }
+        } else {
+            panic!("This should never happen!")
         }
     }
 
@@ -401,43 +621,29 @@ impl Middleware for RevmMiddleware {
             nonce: None,
             access_list: Vec::new(),
         };
+        let instruction = Instruction::Call {
+            tx_env,
+            outcome_sender: self.provider().as_ref().outcome_sender.clone(),
+        };
         self.provider()
             .as_ref()
-            .tx_sender
-            .send((
-                false,
-                tx_env.clone(),
-                self.provider().as_ref().result_sender.clone(),
-            ))
+            .instruction_sender
+            .send(instruction)
             .map_err(|e| RevmMiddlewareError::Send(e.to_string()))?;
-        let revm_result = self
-            .provider()
-            .as_ref()
-            .result_receiver
-            .recv()
-            .map_err(|e| RevmMiddlewareError::Receive(e.to_string()))?;
+        let outcome = self.provider().as_ref().outcome_receiver.recv()??;
 
-        match revm_result.outcome {
-            TransactionOutcome::Success(execution_result) => {
-                let output = unpack_execution_result(execution_result)?.output;
-                match output {
-                    Output::Create(bytes, ..) => {
-                        return Ok(Bytes::from(bytes.to_vec()));
-                    }
-                    Output::Call(bytes) => {
-                        return Ok(Bytes::from(bytes.to_vec()));
-                    }
+        if let Outcome::CallCompleted(execution_result) = outcome {
+            let output = unpack_execution_result(execution_result)?.output;
+            match output {
+                Output::Create(bytes, ..) => {
+                    return Ok(Bytes::from(bytes.to_vec()));
+                }
+                Output::Call(bytes) => {
+                    return Ok(Bytes::from(bytes.to_vec()));
                 }
             }
-            TransactionOutcome::Error(err) => {
-                return Err(RevmMiddlewareError::Receive(
-                    format!(
-                        "Error recieving response from the environement with environment error: {}",
-                        err
-                    )
-                    .to_string(),
-                ));
-            }
+        } else {
+            panic!("This should never happen!")
         }
     }
 
@@ -500,6 +706,85 @@ impl Middleware for RevmMiddleware {
         let id = self.new_filter(FilterKind::Logs(filter)).await?;
         Ok(FilterWatcher::new(id, self.provider()).interval(Duration::ZERO))
     }
+
+    async fn get_gas_price(&self) -> Result<ethers::types::U256, Self::Error> {
+        self.provider()
+            .as_ref()
+            .instruction_sender
+            .send(Instruction::Query {
+                environment_data: EnvironmentData::GasPrice,
+                outcome_sender: self.provider().as_ref().outcome_sender.clone(),
+            })
+            .map_err(|e| RevmMiddlewareError::Send(e.to_string()))?;
+        match self.provider().as_ref().outcome_receiver.recv()?? {
+            Outcome::QueryReturn(outcome) => {
+                ethers::types::U256::from_str_radix(outcome.as_ref(), 10)
+                    .map_err(|e| RevmMiddlewareError::Conversion(e.to_string()))
+            }
+            _ => Err(RevmMiddlewareError::MissingData(
+                "Wrong variant returned via query!".to_string(),
+            )),
+        }
+    }
+
+    async fn get_block_number(&self) -> Result<U64, Self::Error> {
+        self.provider()
+            .as_ref()
+            .instruction_sender
+            .send(Instruction::Query {
+                environment_data: EnvironmentData::BlockNumber,
+                outcome_sender: self.provider().as_ref().outcome_sender.clone(),
+            })
+            .map_err(|e| RevmMiddlewareError::Send(e.to_string()))?;
+        match self.provider().as_ref().outcome_receiver.recv()?? {
+            Outcome::QueryReturn(outcome) => {
+                ethers::types::U64::from_str_radix(outcome.as_ref(), 10)
+                    .map_err(|e| RevmMiddlewareError::Conversion(e.to_string()))
+            }
+            _ => Err(RevmMiddlewareError::MissingData(
+                "Wrong variant returned via query!".to_string(),
+            )),
+        }
+    }
+
+    async fn get_balance<T: Into<NameOrAddress> + Send + Sync>(
+        &self,
+        from: T,
+        block: Option<BlockId>,
+    ) -> Result<ethers::types::U256, Self::Error> {
+        if block.is_some() {
+            return Err(RevmMiddlewareError::MissingData(
+                "Querying balance at a specific block is not supported!".to_string(),
+            ));
+        }
+        let address: NameOrAddress = from.into();
+        let address = match address {
+            NameOrAddress::Name(_) => {
+                return Err(RevmMiddlewareError::MissingData(
+                    "Querying balance via name is not supported!".to_string(),
+                ))
+            }
+            NameOrAddress::Address(address) => address,
+        };
+
+        self.provider()
+            .as_ref()
+            .instruction_sender
+            .send(Instruction::Query {
+                environment_data: EnvironmentData::Balance(ethers::types::Address::from(address)),
+                outcome_sender: self.provider().as_ref().outcome_sender.clone(),
+            })
+            .map_err(|e| RevmMiddlewareError::Send(e.to_string()))?;
+        match self.provider().as_ref().outcome_receiver.recv()?? {
+            Outcome::QueryReturn(outcome) => {
+                ethers::types::U256::from_str_radix(outcome.as_ref(), 10)
+                    .map_err(|e| RevmMiddlewareError::Conversion(e.to_string()))
+            }
+            _ => Err(RevmMiddlewareError::MissingData(
+                "Wrong variant returned via query!".to_string(),
+            )),
+        }
+    }
 }
 
 /// Represents a connection to the EVM contained in the corresponding
@@ -508,17 +793,17 @@ impl Middleware for RevmMiddleware {
 pub struct Connection {
     /// Used to send calls and transactions to the [`Environment`] to be
     /// executed by `revm`.
-    tx_sender: TxSender,
+    instruction_sender: InstructionSender,
 
     /// Used to send results back to a client that made a call/transaction with
     /// the [`Environment`]. This [`ResultSender`] is passed along with a
     /// call/transaction so the [`Environment`] can reply back with the
     /// [`ExecutionResult`].
-    result_sender: ResultSender,
+    outcome_sender: OutcomeSender,
 
     /// Used to receive the [`ExecutionResult`] from the [`Environment`] upon
     /// call/transact.
-    result_receiver: ResultReceiver,
+    outcome_receiver: OutcomeReceiver,
 
     /// A reference to the [`EventBroadcaster`] so that more receivers of the
     /// broadcast can be taken from it.
@@ -545,6 +830,9 @@ impl JsonRpcClient for Connection {
     ) -> Result<R, ProviderError> {
         match method {
             "eth_getFilterChanges" => {
+                // TODO: The extra json serialization/deserialization can probably be avoided
+                // somehow
+
                 // Get the `Filter` ID from the params `T`
                 // First convert it into a JSON `Value`
                 let value = serde_json::to_value(&params)?;
@@ -590,9 +878,9 @@ impl JsonRpcClient for Connection {
                 let logs_deserializeowned: R = serde_json::from_str(&logs_str)?;
                 return Ok(logs_deserializeowned);
             }
-            _ => {
-                unimplemented!("We don't cover this case yet.")
-            } // TODO: This can probably be avoided somehow
+            var => {
+                unimplemented!("We don't cover this case yet: {}", var);
+            }
         }
     }
 }
@@ -655,31 +943,6 @@ fn unpack_execution_result(
     }
 }
 
-/// Converts the address type used by `revm` to the one used by `ethers-rs`.
-///
-/// This inline function performs a straightforward transformation of the
-/// address types. The provided address type from Revm is transformed into the
-/// corresponding type used in the Ethers library.
-#[inline]
-fn recast_address(address: B160) -> Address {
-    // This unwrap should never fail as the `B160` will always cast into `[u8; 20]`.
-    let temp: [u8; 20] = address.as_bytes().try_into().unwrap();
-    Address::from(temp)
-}
-
-/// Converts the 256-bit byte array type used by `revm` to the one used by
-/// `ethers-rs`.
-///
-/// This inline function performs a simple transformation of the 256-bit byte
-/// arrays. The provided byte array from Revm is transformed into the
-/// corresponding type used in the Ethers library.
-#[inline]
-fn recast_b256(input: revm::primitives::B256) -> ethers::types::H256 {
-    // This unwrap should never fail as the `B256` will always cast into `[u8; 32]`.
-    let temp: [u8; 32] = input.as_bytes().try_into().unwrap();
-    ethers::types::H256::from(temp)
-}
-
 /// Converts logs from the Revm format to the Ethers format.
 ///
 /// This function iterates over a list of logs as they appear in the `revm` and
@@ -708,4 +971,68 @@ fn revm_logs_to_ethers_logs(
         logs.push(log);
     }
     logs
+}
+
+// Certainly will go away with alloy-types
+/// Recast a B160 into an Address type
+/// # Arguments
+/// * `address` - B160 to recast. (B160)
+/// # Returns
+/// * `Address` - Recasted Address.
+#[inline]
+pub fn recast_address(address: B160) -> Address {
+    let temp: [u8; 20] = address.as_bytes().try_into().unwrap();
+    Address::from(temp)
+}
+
+/// Recast a B256 into an H256 type
+/// # Arguments
+/// * `input` - B256 to recast. (B256)
+/// # Returns
+/// * `H256` - Recasted H256.
+#[inline]
+pub fn recast_b256(input: revm::primitives::B256) -> ethers::types::H256 {
+    let temp: [u8; 32] = input.as_bytes().try_into().unwrap();
+    ethers::types::H256::from(temp)
+}
+
+#[cfg(target_arch = "wasm32")]
+pub(crate) type PinBoxFut<'a, T> = Pin<Box<dyn Future<Output = Result<T, ProviderError>> + 'a>>;
+#[cfg(not(target_arch = "wasm32"))]
+pub(crate) type PinBoxFut<'a, T> =
+    Pin<Box<dyn Future<Output = Result<T, ProviderError>> + Send + 'a>>;
+
+// Because this is the exact same struct it will have the exact same memory
+// aliment allowing us to bypass the fact that ethers-rs doesn't export this
+// enum normally We box the TransactionReceipts to keep the enum small.
+#[allow(unused, missing_docs)]
+pub enum PendingTxState<'a> {
+    /// Initial delay to ensure the GettingTx loop doesn't immediately fail
+    InitialDelay(Pin<Box<Delay>>),
+
+    /// Waiting for interval to elapse before calling API again
+    PausedGettingTx,
+
+    /// Polling The blockchain to see if the Tx has confirmed or dropped
+    GettingTx(PinBoxFut<'a, Option<Transaction>>),
+
+    /// Waiting for interval to elapse before calling API again
+    PausedGettingReceipt,
+
+    /// Polling the blockchain for the receipt
+    GettingReceipt(PinBoxFut<'a, Option<TransactionReceipt>>),
+
+    /// If the pending tx required only 1 conf, it will return early. Otherwise
+    /// it will proceed to the next state which will poll the block number
+    /// until there have been enough confirmations
+    CheckingReceipt(Option<TransactionReceipt>),
+
+    /// Waiting for interval to elapse before calling API again
+    PausedGettingBlockNumber(Option<TransactionReceipt>),
+
+    /// Polling the blockchain for the current block number
+    GettingBlockNumber(PinBoxFut<'a, U64>, Option<TransactionReceipt>),
+
+    /// Future has completed and should panic if polled again
+    Completed,
 }

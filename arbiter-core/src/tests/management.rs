@@ -4,10 +4,11 @@ use super::*;
 fn add_environment() {
     let mut manager = Manager::new();
     let params = EnvironmentParameters {
-        block_rate: 1.0,
-        seed: 1,
+        label: TEST_ENV_LABEL.to_string(),
+        block_settings: BlockSettings::UserControlled,
+        gas_settings: GasSettings::UserControlled,
     };
-    manager.add_environment(TEST_ENV_LABEL, params).unwrap();
+    manager.add_environment(params).unwrap();
     assert!(manager
         .environments
         .contains_key(&TEST_ENV_LABEL.to_string()));
@@ -24,13 +25,7 @@ fn add_environment() {
 
 #[test_log::test]
 fn run_environment() {
-    let mut manager = Manager::new();
-    let params = EnvironmentParameters {
-        block_rate: 1.0,
-        seed: 1,
-    };
-    manager.add_environment(TEST_ENV_LABEL, params).unwrap();
-    manager.start_environment(TEST_ENV_LABEL).unwrap();
+    let (manager, _client) = startup_user_controlled().unwrap();
     assert_eq!(
         manager
             .environments
@@ -44,13 +39,8 @@ fn run_environment() {
 
 #[test_log::test]
 fn pause_environment() {
-    let mut manager = Manager::new();
-    let params = EnvironmentParameters {
-        block_rate: 1.0,
-        seed: 1,
-    };
-    manager.add_environment(TEST_ENV_LABEL, params).unwrap();
-    manager.start_environment(TEST_ENV_LABEL).unwrap();
+    let (mut manager, _client) = startup_user_controlled().unwrap();
+
     manager.pause_environment(TEST_ENV_LABEL).unwrap();
     std::thread::sleep(std::time::Duration::from_millis(100));
     assert_eq!(
@@ -77,13 +67,8 @@ fn pause_environment() {
 
 #[test_log::test]
 fn stop_environment() {
-    let mut manager = Manager::new();
-    let params = EnvironmentParameters {
-        block_rate: 1.0,
-        seed: 1,
-    };
-    manager.add_environment(TEST_ENV_LABEL, params).unwrap();
-    manager.start_environment(TEST_ENV_LABEL).unwrap();
+    let (mut manager, _client) = startup_user_controlled().unwrap();
+
     manager.stop_environment(TEST_ENV_LABEL).unwrap();
     assert_eq!(
         manager
@@ -97,22 +82,13 @@ fn stop_environment() {
 }
 
 #[tokio::test]
-async fn stop_environment_after_transactions() -> Result<()> {
-    let mut manager = Manager::new();
-    let params = EnvironmentParameters {
-        block_rate: 1.0,
-        seed: 1,
-    };
-    manager.add_environment(TEST_ENV_LABEL, params).unwrap();
-    manager.start_environment(TEST_ENV_LABEL).unwrap();
-
-    // Send some transactions (e.g., deploy `ArbiterMath` which is easy and has no
-    // args)
-    let client = Arc::new(RevmMiddleware::new(
-        manager.environments.get(TEST_ENV_LABEL).unwrap(),
-        Some(TEST_SIGNER_SEED_AND_LABEL.to_string()),
-    ));
-    ArbiterMath::deploy(client, ())?.send().await?;
+async fn stop_environment_after_transactions() {
+    let (mut manager, client) = startup_user_controlled().unwrap();
+    ArbiterMath::deploy(client, ())
+        .unwrap()
+        .send()
+        .await
+        .unwrap();
 
     manager.stop_environment(TEST_ENV_LABEL).unwrap();
     assert_eq!(
@@ -124,5 +100,35 @@ async fn stop_environment_after_transactions() -> Result<()> {
             .load(std::sync::atomic::Ordering::Relaxed),
         State::Stopped
     );
-    Ok(())
+}
+
+#[tokio::test]
+async fn pause_prevents_processing_transactions() {
+    let (mut manager, client) = startup_user_controlled().unwrap();
+
+    // Send a tx and check it works (it should)
+    let arbiter_math_1 = ArbiterMath::deploy(client.clone(), ())
+        .unwrap()
+        .send()
+        .await;
+    assert!(arbiter_math_1.is_ok());
+
+    // Pause the environment.
+    manager.pause_environment(TEST_ENV_LABEL).unwrap();
+
+    // Send a tx while the environment is paused (it should not process) will return
+    // an environment error
+    let arbiter_math_2 = ArbiterMath::deploy(client.clone(), ())
+        .unwrap()
+        .send()
+        .await;
+    assert!(arbiter_math_2.is_err());
+
+    // Unpause the environment
+    manager.start_environment(TEST_ENV_LABEL).unwrap();
+    let arbiter_math_2 = ArbiterMath::deploy(client.clone(), ())
+        .unwrap()
+        .send()
+        .await;
+    assert!(arbiter_math_2.is_ok());
 }

@@ -29,7 +29,7 @@
 //! For specific module-level information and examples, navigate to the
 //! respective module documentation below.
 
-#![warn(missing_docs, unsafe_code)]
+#![warn(missing_docs)]
 
 pub mod bindings; // TODO: Add better documentation here and some kind of overwrite protection.
 pub mod environment;
