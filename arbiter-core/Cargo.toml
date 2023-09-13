@@ -2,7 +2,7 @@
 name = "arbiter-core"
 version = "0.5.0"
 edition = "2021"
-authors = ["Waylon Jepsen", "Colin Roberts"]
+authors = ["Waylon Jepsen <waylonjepsen1@gmail.com>", "Colin Roberts <colin@autoparallel.xyz>"]
 description = "Allowing smart contract developers to do simulation driven development via an EVM emulator"
 license = "Apache-2.0"
 keywords = ["ethereum", "evm", "emulator", "testing", "smart-contracts"]
