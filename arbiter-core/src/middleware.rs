@@ -95,7 +95,7 @@ use crate::environment::{
 /// ```
 /// The client can now be used for transactions with the environment.
 /// Use a seed like `Some("test_label".to_string())` for maintaining a
-/// consistant address across simulations and client labeling. Seeding is be
+/// consistent address across simulations and client labeling. Seeding is be
 /// useful for debugging and post-processing.
 #[derive(Debug)]
 pub struct RevmMiddleware {
@@ -274,7 +274,7 @@ impl RevmMiddleware {
         match provider.outcome_receiver.recv() {
             Ok(Ok(Outcome::BlockUpdateCompleted(receipt_data))) => Ok(receipt_data),
             _ => Err(RevmMiddlewareError::MissingData(
-                "Block did not update Succesfully".to_string(),
+                "Block did not update Successfully".to_string(),
             )),
         }
     }
@@ -456,7 +456,7 @@ impl Middleware for RevmMiddleware {
             };
 
             // Note that this is technically not the correct construction on the tx hash
-            // but untill we increment the nonce correctly this will do
+            // but until we increment the nonce correctly this will do
             let sender = self.wallet.address();
             let data = tx_env.clone().data;
             let mut hasher = Sha256::new();

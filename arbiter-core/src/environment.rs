@@ -111,7 +111,7 @@ pub(crate) type EventSender = Sender<Vec<Log>>;
 /// ## Controlling Block Rate
 /// The blocks for the [`Environment`] are chosen using a Poisson distribution
 /// via the [`SeededPoisson`] field. The idea is that we can choose a rate
-/// paramater, typically denoted by the Greek letter lambda, and set this to be
+/// parameter, typically denoted by the Greek letter lambda, and set this to be
 /// the expected number of transactions per block while allowing blocks to be
 /// built with random size. This is useful in stepping forward the
 /// [`EVM`](https://github.com/bluealloy/revm/blob/main/crates/revm/src/evm.rs)
@@ -269,7 +269,7 @@ pub enum EnvironmentError {
     /// [`EnvironmentError::NotUserControlledGasSettings`] is thrown when the
     /// [`Environment`] is not in a [`GasSettings::UserControlled`] state and
     /// an attempt is made to externally change the gas price.
-    #[error("error in the environmnet! attempted to set a gas price when the `GasSettings` is not `GasSettings::UserControlled`")]
+    #[error("error in the environment! attempted to set a gas price when the `GasSettings` is not `GasSettings::UserControlled`")]
     NotUserControlledGasSettings,
 
     /// [`EnvironmentError::NotUserControlledBlockType`] is thrown when
@@ -297,7 +297,7 @@ impl Environment {
         let db = CacheDB::new(EmptyDB {});
         evm.database(db);
 
-        // Chooose extra large code size and gas limit
+        // Choose extra large code size and gas limit
         evm.env.cfg.limit_contract_code_size = Some(0x100000);
         evm.env.block.gas_limit = U256::MAX;
 
@@ -592,7 +592,7 @@ impl Environment {
                                     };
                                     let block_number = convert_uint_to_u64(evm.env.block.number)?;
 
-                                    // increment culmulative gas per block
+                                    // increment cumulative gas per block
                                     cumulative_gas_per_block +=
                                         U256::from(execution_result.clone().gas_used());
 
@@ -818,7 +818,7 @@ pub enum EnvironmentData {
     Balance(ethers::types::Address),
 }
 
-/// [`RecieptData`] is a structure that holds the block number, transaction
+/// [`ReceiptData`] is a structure that holds the block number, transaction
 /// index, and cumulative gas used per block for a transaction.
 pub struct ReceiptData {
     /// `block_number` is the number of the block in which the transaction was
@@ -864,7 +864,7 @@ pub enum Outcome {
     TransactionCompleted(ExecutionResult, ReceiptData),
 
     /// The outcome of a `Query` instruction that carries a `String`
-    /// represenation of the data. Currently this may carry the block
+    /// representation of the data. Currently this may carry the block
     /// number, block timestamp, gas price, or balance of an account.
     QueryReturn(String),
 }
