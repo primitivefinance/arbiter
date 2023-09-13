@@ -9,11 +9,21 @@
 //! Core structures:
 //! - `Environment`: Represents the Ethereum execution environment, allowing for
 //!   its management (e.g., starting, stopping) and interfacing with agents.
+//! - `EnvironmentParameters`: Parameters necessary for creating or modifying
+//!  an `Environment`.
+//!     - `BlockSettings`: Enum indicating how block numbers and timestamps are
+//!       moved forward.
+//!     - `GasSettings`: Enum indicating the type of gas settings that will be
+//!     used to make clients pay gas.
+//! - `Instruction`: Enum indicating the type of instruction that is being sent
+//!  to the EVM.
+//! - `Outcome`: Enum indicating the type of outcome that is being sent back
+//!  from the EVM.
+//! - `EnvironmentError`: Enum indicating the type of error that can be thrown
+//!  by the EVM.
 //! - `State`: Enum indicating the current state of the environment.
 //! - `Socket`: Provides channels for communication between the EVM and the
 //!   outside world.
-//! - `RevmResult`: Wraps the result of a transaction along with the block
-//!   number.
 //! - `EventBroadcaster`: Responsible for broadcasting Ethereum logs to
 //!   subscribers.
 
@@ -158,7 +168,7 @@ pub struct EnvironmentParameters {
     /// their own external API and the latter will allow the end user to set
     /// a rate parameter and seed for a Poisson distribution that will be
     /// used to sample the amount of transactions per block.
-    pub block_type: BlockType,
+    pub block_settings: BlockSettings,
 
     /// The gas settings for the [`Environment`].
     /// This can either be [`GasSettings::UserControlled`],
@@ -256,6 +266,9 @@ pub enum EnvironmentError {
     #[error("transaction was received while the environment was paused. this transaction was not processed.")]
     TransactionReceivedWhilePaused,
 
+    /// [`EnvironmentError::NotUserControlledGasSettings`] is thrown when the
+    /// [`Environment`] is not in a [`GasSettings::UserControlled`] state and
+    /// an attempt is made to externally change the gas price.
     #[error("error in the environmnet! attempted to set a gas price when the `GasSettings` is not `GasSettings::UserControlled`")]
     NotUserControlledGasSettings,
 
@@ -317,16 +330,16 @@ impl Environment {
         let mut evm = self.evm.clone();
         let instruction_receiver = self.socket.instruction_receiver.clone();
         let event_broadcaster = self.socket.event_broadcaster.clone();
-        let block_type = self.parameters.block_type.clone();
+        let block_type = self.parameters.block_settings.clone();
         let seeded_poisson = match block_type {
-            BlockType::RandomlySampled {
+            BlockSettings::RandomlySampled {
                 block_rate,
                 block_time,
                 seed,
             } => Some(Arc::new(Mutex::new(SeededPoisson::new(
                 block_rate, block_time, seed,
             )))),
-            BlockType::UserControlled => None,
+            BlockSettings::UserControlled => None,
         };
         let gas_settings = self.parameters.gas_settings.clone();
 
@@ -445,7 +458,7 @@ impl Environment {
                                     block_timestamp,
                                     outcome_sender,
                                 } => {
-                                    if block_type != BlockType::UserControlled {
+                                    if block_type != BlockSettings::UserControlled {
                                         outcome_sender
                                             .send(Err(EnvironmentError::NotUserControlledBlockType))
                                             .map_err(|e| {
@@ -755,8 +768,13 @@ pub enum Instruction {
         outcome_sender: OutcomeSender,
     },
 
+    /// A `SetGasPrice` is used to set the gas price of the [`EVM`].
     SetGasPrice {
+        /// The gas price to set the [`EVM`] to.
         gas_price: ethers::types::U256,
+
+        /// The sender used to to send the outcome of the gas price setting back
+        /// to.
         outcome_sender: OutcomeSender,
     },
 
@@ -836,6 +854,8 @@ pub enum Outcome {
     /// of some [`EVM`] computation to the client.
     CallCompleted(ExecutionResult),
 
+    /// The outcome of a [`Instruction::SetGasPrice`] instruction that is used
+    /// to signify that the gas price was set successfully.
     SetGasPriceCompleted,
 
     /// The outcome of a `Transaction` instruction that is first unpacked to see
@@ -904,7 +924,7 @@ pub(crate) struct Socket {
 /// a rate parameter and seed for a Poisson distribution that will be
 /// used to sample the amount of transactions per block.
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
-pub enum BlockType {
+pub enum BlockSettings {
     /// The block number will be controlled by the end user.
     UserControlled,
 
@@ -938,7 +958,6 @@ pub enum BlockType {
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub enum GasSettings {
     /// The gas limit will be controlled by the end user.
-    /// Currently this is not properly implemented!
     /// In the future, Foundry cheatcodes will be used to control gas
     /// on-the-fly.
     UserControlled,
@@ -1015,7 +1034,7 @@ pub(crate) mod tests {
     fn new_user_controlled() {
         let params = EnvironmentParameters {
             label: TEST_ENV_LABEL.to_string(),
-            block_type: BlockType::UserControlled,
+            block_settings: BlockSettings::UserControlled,
             gas_settings: GasSettings::UserControlled,
         };
         let environment = Environment::new(params);
@@ -1026,14 +1045,14 @@ pub(crate) mod tests {
 
     #[test]
     fn new_randomly_sampled() {
-        let block_type = BlockType::RandomlySampled {
+        let block_type = BlockSettings::RandomlySampled {
             block_rate: 1.0,
             block_time: 12,
             seed: 1,
         };
         let params = EnvironmentParameters {
             label: TEST_ENV_LABEL.to_string(),
-            block_type,
+            block_settings: block_type,
             gas_settings: GasSettings::RandomlySampled { multiplier: 1.0 },
         };
         let environment = Environment::new(params);
@@ -1046,7 +1065,7 @@ pub(crate) mod tests {
     fn run() {
         let params = EnvironmentParameters {
             label: TEST_ENV_LABEL.to_string(),
-            block_type: BlockType::UserControlled,
+            block_settings: BlockSettings::UserControlled,
             gas_settings: GasSettings::UserControlled,
         };
         let mut environment = Environment::new(params);

@@ -69,7 +69,7 @@ use crate::environment::{
 /// use std::sync::Arc;
 ///
 /// use arbiter_core::{
-///     environment::{BlockType, EnvironmentParameters, GasSettings},
+///     environment::{BlockSettings, EnvironmentParameters, GasSettings},
 ///     manager::Manager,
 ///     middleware::RevmMiddleware,
 /// };
@@ -78,7 +78,7 @@ use crate::environment::{
 /// let mut manager = Manager::new();
 /// let params = EnvironmentParameters {
 ///     label: "example_env".to_string(),
-///     block_type: BlockType::RandomlySampled {
+///     block_settings: BlockSettings::RandomlySampled {
 ///         block_rate: 1.0,
 ///         block_time: 12,
 ///         seed: 1,
@@ -187,7 +187,7 @@ impl RevmMiddleware {
     /// # Examples
     /// ```
     /// use arbiter_core::{
-    ///     environment::{BlockType, EnvironmentParameters, GasSettings},
+    ///     environment::{BlockSettings, EnvironmentParameters, GasSettings},
     ///     manager::Manager,
     ///     middleware::RevmMiddleware,
     /// };
@@ -195,7 +195,7 @@ impl RevmMiddleware {
     /// let mut manager = Manager::new();
     /// let params = EnvironmentParameters {
     ///     label: "example_env".to_string(),
-    ///     block_type: BlockType::RandomlySampled {
+    ///     block_settings: BlockSettings::RandomlySampled {
     ///         block_rate: 1.0,
     ///         block_time: 12,
     ///         seed: 1,
@@ -253,8 +253,8 @@ impl RevmMiddleware {
     /// Allows the user to update the block number and timestamp of the
     /// [`Environment`] to whatever they may choose at any time.
     /// This can only be done when the [`Environment`] has
-    /// [`EnvironmentParameters`] `block_type` field set to
-    /// [`BlockType::UserControlled`].
+    /// [`EnvironmentParameters`] `block_settings` field set to
+    /// [`BlockSettings::UserControlled`].
     pub fn update_block(
         &self,
         block_number: impl Into<ethers::types::U256>,
@@ -329,6 +329,10 @@ impl RevmMiddleware {
         self.wallet.address()
     }
 
+    /// Allows a client to set a gas price for transactions.
+    /// This can only be done if the [`Environment`] has
+    /// [`EnvironmentParameters`] `gas_settings` field set to
+    /// [`GasSettings::UserControlled`].
     pub async fn set_gas_price(
         &self,
         gas_price: ethers::types::U256,

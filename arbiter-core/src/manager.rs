@@ -108,14 +108,14 @@ impl Manager {
     ///
     /// ```rust
     /// use arbiter_core::{
-    ///     environment::{BlockType, EnvironmentParameters, GasSettings},
+    ///     environment::{BlockSettings, EnvironmentParameters, GasSettings},
     ///     manager::Manager,
     /// };
     ///
     /// let mut manager = Manager::new();
     /// let params = EnvironmentParameters {
     ///     label: "example_env".to_string(),
-    ///     block_type: BlockType::RandomlySampled {
+    ///     block_settings: BlockSettings::RandomlySampled {
     ///         block_rate: 1.0,
     ///         block_time: 12,
     ///         seed: 1,
@@ -163,14 +163,14 @@ impl Manager {
     ///
     /// ```rust
     /// use arbiter_core::{
-    ///     environment::{BlockType, EnvironmentParameters, GasSettings},
+    ///     environment::{BlockSettings, EnvironmentParameters, GasSettings},
     ///     manager::Manager,
     /// };
     ///
     /// let mut manager = Manager::new();
     /// let params = EnvironmentParameters {
     ///     label: "example_env".to_string(),
-    ///     block_type: BlockType::RandomlySampled {
+    ///     block_settings: BlockSettings::RandomlySampled {
     ///         block_rate: 1.0,
     ///         block_time: 12,
     ///         seed: 1,
@@ -246,14 +246,14 @@ impl Manager {
     ///
     /// ```rust
     /// use arbiter_core::{
-    ///     environment::{BlockType, EnvironmentParameters, GasSettings},
+    ///     environment::{BlockSettings, EnvironmentParameters, GasSettings},
     ///     manager::Manager,
     /// };
     ///
     /// let mut manager = Manager::new();
     /// let params = EnvironmentParameters {
     ///     label: "example_env".to_string(),
-    ///     block_type: BlockType::RandomlySampled {
+    ///     block_settings: BlockSettings::RandomlySampled {
     ///         block_rate: 1.0,
     ///         block_time: 12,
     ///         seed: 1,
@@ -326,14 +326,14 @@ impl Manager {
     ///
     /// ```rust
     /// use arbiter_core::{
-    ///     environment::{BlockType, EnvironmentParameters, GasSettings},
+    ///     environment::{BlockSettings, EnvironmentParameters, GasSettings},
     ///     manager::Manager,
     /// };
     ///
     /// let mut manager = Manager::new();
     /// let params = EnvironmentParameters {
     ///     label: "example_env".to_string(),
-    ///     block_type: BlockType::RandomlySampled {
+    ///     block_settings: BlockSettings::RandomlySampled {
     ///         block_rate: 1.0,
     ///         block_time: 12,
     ///         seed: 1,
