@@ -23,7 +23,7 @@ path = "bin/main.rs"
 # Command line and config
 clap = { version = "4.3.0", features = ["derive"] }
 serde = { version = "1.0.163", features =["derive"] }
-toml = "0.7.4"
+toml = "0.8.0"
 
 # Building files
 quote = "1.0.28"
