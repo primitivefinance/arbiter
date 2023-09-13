@@ -1,51 +1,52 @@
 [package]
+edition = "2021"
 name = "arbiter-core"
 version = "0.4.2"
-edition = "2021"
 
 # Dependencies for the release build
 [dependencies]
 
 # Ethereum and EVM
 ethers = "2.0.8"
+foundry-evm = {git = "https://github.com/foundry-rs/foundry.git"}
 revm = "3.3.0"
 
 # Serialization
 bytes = "1.4.0"
-serde = { version = "1.0.163", features = ["derive"] }
-serde_json = { version = "1.0.96" }
+serde = {version = "1.0.163", features = ["derive"]}
+serde_json = {version = "1.0.96"}
 
 # Concurrency/async
-tokio = { version = "1.28.1", features = ["macros", "full"] }
 async-trait = "0.1.68"
-crossbeam-channel = "0.5.8"
 atomic_enum = "0.2.0"
+crossbeam-channel = "0.5.8"
 futures-timer = "3.0.2"
+tokio = {version = "1.28.1", features = ["macros", "full"]}
 
 # Randomness
+RustQuant = {version = "0.0.26", features = ["seedable"]}
 rand = "0.8.5"
 rand_distr = "0.4.3"
 statrs = "0.16.0"
-RustQuant = { version = "0.0.26", features = ["seedable"]}
 
 # Errors
 thiserror = "1.0.30"
 
 # Logging
-log = "0.4.19"
 futures-util = "0.3.28"
+log = "0.4.19"
 
 # Dependencies for the test build and development
 [dev-dependencies]
-hex = { version = "0.4.3", default-features = false }
 anyhow = "1.0.71"
 env_logger = "0.10.0"
+hex = {version = "0.4.3", default-features = false}
 test-log = "0.2.12"
 
-futures = "0.3.28"
 assert_matches = "1.5"
+futures = "0.3.28"
 
 [[bench]]
+harness = false
 name = "bench"
 path = "benches/bench.rs"
-harness = false
