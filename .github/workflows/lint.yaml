@@ -49,5 +49,5 @@ jobs:
         with:
           check_hidden: true
           check_filenames: true
-          skip: Cargo.lock,target
+          skip: .git,Cargo.lock,target
           ignore_words_list: crate,Crate
