@@ -49,4 +49,5 @@ jobs:
         with:
           check_hidden: true
           check_filenames: true
-          skip: Cargo.lock
+          skip: Cargo.lock,target
+          ignore_words_list: crate,Crate
