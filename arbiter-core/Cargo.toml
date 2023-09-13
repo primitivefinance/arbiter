@@ -5,7 +5,7 @@ edition = "2021"
 authors = ["Waylon Jepsen", "Colin Roberts"]
 description = "Allowing smart contract developers to do simulation driven development via an EVM emulator"
 license = "Apache-2.0"
-keywords = ["ethereum", "evm", "emulator", "simulation", "testing", "smart-contracts"]
+keywords = ["ethereum", "evm", "emulator", "testing", "smart-contracts"]
 
 # Dependencies for the release build
 [dependencies]
