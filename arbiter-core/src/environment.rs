@@ -561,12 +561,7 @@ impl Environment {
                                     {
                                         Ok(result) => result,
                                         Err(e) => {
-                                            println!("error: {:?}", e);
                                             if let EVMError::Transaction(invalid_transaction) = e {
-                                                println!(
-                                                    "invalid transaction: {:?}",
-                                                    invalid_transaction
-                                                );
                                                 outcome_sender
                                                     .send(Err(EnvironmentError::Transaction(
                                                         invalid_transaction,
@@ -578,7 +573,6 @@ impl Environment {
                                                     })?;
                                                 continue;
                                             } else {
-                                                println!("error otherwise: {:?}", e);
                                                 outcome_sender
                                                     .send(Err(EnvironmentError::Execution(e)))
                                                     .map_err(|e| {
@@ -648,16 +642,12 @@ impl Environment {
                                         if let GasSettings::RandomlySampled { multiplier } =
                                             gas_settings
                                         {
-                                            println!(
-                                                "entered into randomly sampled gas price changing"
-                                            );
                                             let gas_price = (transactions_per_block.ok_or(
                                                 EnvironmentError::NotRandomlySampledBlockType,
                                             )?
                                                 as f64)
                                                 * multiplier;
                                             evm.env.tx.gas_price = U256::from(gas_price as u128);
-                                            println!("gas price: {}", gas_price);
                                         };
                                     }
                                 }
