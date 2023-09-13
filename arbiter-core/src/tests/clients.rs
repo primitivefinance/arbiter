@@ -14,7 +14,7 @@ fn simulation_signer() -> Result<()> {
 fn multiple_signer_addresses() {
     let params = EnvironmentParameters {
         label: TEST_ENV_LABEL.to_string(),
-        block_type: BlockType::UserControlled,
+        block_settings: BlockSettings::UserControlled,
         gas_settings: GasSettings::UserControlled,
     };
     let environment = &mut Environment::new(params);
@@ -28,7 +28,7 @@ fn multiple_signer_addresses() {
 fn signer_collision() {
     let params = EnvironmentParameters {
         label: TEST_ENV_LABEL.to_string(),
-        block_type: BlockType::UserControlled,
+        block_settings: BlockSettings::UserControlled,
         gas_settings: GasSettings::UserControlled,
     };
     let environment = &mut Environment::new(params);

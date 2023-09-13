@@ -108,21 +108,19 @@ impl Manager {
     ///
     /// ```rust
     /// use arbiter_core::{
-    ///     environment::{BlockType, GasSettings, EnvironmentParameters},
+    ///     environment::{BlockSettings, EnvironmentParameters, GasSettings},
     ///     manager::Manager,
     /// };
     ///
     /// let mut manager = Manager::new();
     /// let params = EnvironmentParameters {
     ///     label: "example_env".to_string(),
-    ///     block_type: BlockType::RandomlySampled {
+    ///     block_settings: BlockSettings::RandomlySampled {
     ///         block_rate: 1.0,
     ///         block_time: 12,
     ///         seed: 1,
     ///     },
-    ///    gas_settings: GasSettings::RandomlySampled {
-    ///       multiplier: 1.0,
-    ///    },
+    ///     gas_settings: GasSettings::RandomlySampled { multiplier: 1.0 },
     /// };
     /// manager.add_environment(params).unwrap();
     /// ```
@@ -165,21 +163,19 @@ impl Manager {
     ///
     /// ```rust
     /// use arbiter_core::{
-    ///     environment::{BlockType, GasSettings, EnvironmentParameters},
+    ///     environment::{BlockSettings, EnvironmentParameters, GasSettings},
     ///     manager::Manager,
     /// };
     ///
     /// let mut manager = Manager::new();
     /// let params = EnvironmentParameters {
     ///     label: "example_env".to_string(),
-    ///     block_type: BlockType::RandomlySampled {
+    ///     block_settings: BlockSettings::RandomlySampled {
     ///         block_rate: 1.0,
     ///         block_time: 12,
     ///         seed: 1,
     ///     },
-    ///    gas_settings: GasSettings::RandomlySampled {
-    ///       multiplier: 1.0,
-    ///    },
+    ///     gas_settings: GasSettings::RandomlySampled { multiplier: 1.0 },
     /// };
     ///
     /// manager.add_environment(params).unwrap();
@@ -250,21 +246,19 @@ impl Manager {
     ///
     /// ```rust
     /// use arbiter_core::{
-    ///     environment::{BlockType, GasSettings, EnvironmentParameters},
+    ///     environment::{BlockSettings, EnvironmentParameters, GasSettings},
     ///     manager::Manager,
     /// };
     ///
     /// let mut manager = Manager::new();
     /// let params = EnvironmentParameters {
     ///     label: "example_env".to_string(),
-    ///     block_type: BlockType::RandomlySampled {
+    ///     block_settings: BlockSettings::RandomlySampled {
     ///         block_rate: 1.0,
     ///         block_time: 12,
     ///         seed: 1,
     ///     },
-    ///    gas_settings: GasSettings::RandomlySampled {
-    ///       multiplier: 1.0,
-    ///    },
+    ///     gas_settings: GasSettings::RandomlySampled { multiplier: 1.0 },
     /// };
     ///
     /// manager.add_environment(params).unwrap();
@@ -325,28 +319,26 @@ impl Manager {
     ///   already in a stopped state.
     /// - `Err(ManagerError::NoHandleAvailable)`: The [`Environment`]'s handle
     ///   could not be found.
-    /// - `Err(ManagerError::ThreadPanic)`: The [`Environment`]'s thead has
+    /// - `Err(ManagerError::ThreadPanic)`: The [`Environment`]'s thread has
     ///   panicked!
     ///
     /// # Examples
     ///
     /// ```rust
     /// use arbiter_core::{
-    ///     environment::{BlockType, GasSettings, EnvironmentParameters},
+    ///     environment::{BlockSettings, EnvironmentParameters, GasSettings},
     ///     manager::Manager,
     /// };
     ///
     /// let mut manager = Manager::new();
     /// let params = EnvironmentParameters {
     ///     label: "example_env".to_string(),
-    ///     block_type: BlockType::RandomlySampled {
+    ///     block_settings: BlockSettings::RandomlySampled {
     ///         block_rate: 1.0,
     ///         block_time: 12,
     ///         seed: 1,
     ///     },
-    ///    gas_settings: GasSettings::RandomlySampled {
-    ///       multiplier: 1.0,
-    ///    },
+    ///     gas_settings: GasSettings::RandomlySampled { multiplier: 1.0 },
     /// };
     /// manager.add_environment(params).unwrap();
     /// manager.start_environment("example_env").unwrap();

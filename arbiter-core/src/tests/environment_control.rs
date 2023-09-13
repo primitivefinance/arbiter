@@ -59,8 +59,8 @@ async fn randomly_sampled_blocks() {
     // get the environment so we can look at its distribution
     let environment = manager.environments.get(TEST_ENV_LABEL).unwrap();
 
-    let mut distribution = match environment.parameters.block_type {
-        BlockType::RandomlySampled {
+    let mut distribution = match environment.parameters.block_settings {
+        BlockSettings::RandomlySampled {
             block_rate,
             block_time,
             seed,
@@ -134,8 +134,8 @@ async fn randomly_sampled_gas_price() {
     // get the environment so we can look at its distribution
     let environment = manager.environments.get(TEST_ENV_LABEL).unwrap();
 
-    let mut distribution = match environment.parameters.block_type {
-        BlockType::RandomlySampled {
+    let mut distribution = match environment.parameters.block_settings {
+        BlockSettings::RandomlySampled {
             block_rate,
             block_time,
             seed,

@@ -5,7 +5,7 @@ fn add_environment() {
     let mut manager = Manager::new();
     let params = EnvironmentParameters {
         label: TEST_ENV_LABEL.to_string(),
-        block_type: BlockType::UserControlled,
+        block_settings: BlockSettings::UserControlled,
         gas_settings: GasSettings::UserControlled,
     };
     manager.add_environment(params).unwrap();

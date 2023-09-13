@@ -64,7 +64,7 @@ fn startup_randomly_sampled() -> Result<(Manager, Arc<RevmMiddleware>)> {
     let mut manager = Manager::new();
     let params = EnvironmentParameters {
         label: TEST_ENV_LABEL.to_string(),
-        block_type: BlockType::RandomlySampled {
+        block_settings: BlockSettings::RandomlySampled {
             block_rate: TEST_BLOCK_RATE,
             block_time: TEST_BLOCK_TIME,
             seed: TEST_ENV_SEED,
@@ -87,7 +87,7 @@ fn startup_user_controlled() -> Result<(Manager, Arc<RevmMiddleware>)> {
     let mut manager = Manager::new();
     let params = EnvironmentParameters {
         label: TEST_ENV_LABEL.to_string(),
-        block_type: BlockType::UserControlled,
+        block_settings: BlockSettings::UserControlled,
         gas_settings: GasSettings::UserControlled,
     };
     manager.add_environment(params).unwrap();
@@ -104,7 +104,7 @@ fn startup_constant_gas() -> Result<(Manager, Arc<RevmMiddleware>)> {
     let mut manager = Manager::new();
     let params = EnvironmentParameters {
         label: TEST_ENV_LABEL.to_string(),
-        block_type: BlockType::UserControlled,
+        block_settings: BlockSettings::UserControlled,
         gas_settings: GasSettings::Constant(TEST_GAS_PRICE),
     };
     manager.add_environment(params).unwrap();

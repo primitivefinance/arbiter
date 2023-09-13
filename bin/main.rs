@@ -4,7 +4,7 @@
 //!
 //! The Arbiter command-line interface provides minimum utilities for the
 //! utilization of the arbiter-core crate. It is designed to be a simple and
-//! versitile.
+//! versatile.
 //!
 //!
 //! Key Features:

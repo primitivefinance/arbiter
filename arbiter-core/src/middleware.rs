@@ -69,7 +69,7 @@ use crate::environment::{
 /// use std::sync::Arc;
 ///
 /// use arbiter_core::{
-///     environment::{BlockType, GasSettings, EnvironmentParameters},
+///     environment::{BlockSettings, EnvironmentParameters, GasSettings},
 ///     manager::Manager,
 ///     middleware::RevmMiddleware,
 /// };
@@ -78,14 +78,12 @@ use crate::environment::{
 /// let mut manager = Manager::new();
 /// let params = EnvironmentParameters {
 ///     label: "example_env".to_string(),
-///     block_type: BlockType::RandomlySampled {
+///     block_settings: BlockSettings::RandomlySampled {
 ///         block_rate: 1.0,
 ///         block_time: 12,
 ///         seed: 1,
 ///     },
-///    gas_settings: GasSettings::RandomlySampled {
-///       multiplier: 1.0,
-///    },
+///     gas_settings: GasSettings::RandomlySampled { multiplier: 1.0 },
 /// };
 /// manager.add_environment(params).unwrap();
 /// manager.start_environment("example_env").unwrap();
@@ -97,7 +95,7 @@ use crate::environment::{
 /// ```
 /// The client can now be used for transactions with the environment.
 /// Use a seed like `Some("test_label".to_string())` for maintaining a
-/// consistant address across simulations and client labeling. Seeding is be
+/// consistent address across simulations and client labeling. Seeding is be
 /// useful for debugging and post-processing.
 #[derive(Debug)]
 pub struct RevmMiddleware {
@@ -189,7 +187,7 @@ impl RevmMiddleware {
     /// # Examples
     /// ```
     /// use arbiter_core::{
-    ///     environment::{BlockType, GasSettings, EnvironmentParameters},
+    ///     environment::{BlockSettings, EnvironmentParameters, GasSettings},
     ///     manager::Manager,
     ///     middleware::RevmMiddleware,
     /// };
@@ -197,14 +195,12 @@ impl RevmMiddleware {
     /// let mut manager = Manager::new();
     /// let params = EnvironmentParameters {
     ///     label: "example_env".to_string(),
-    ///     block_type: BlockType::RandomlySampled {
+    ///     block_settings: BlockSettings::RandomlySampled {
     ///         block_rate: 1.0,
     ///         block_time: 12,
     ///         seed: 1,
     ///     },
-    ///    gas_settings: GasSettings::RandomlySampled {
-    ///       multiplier: 1.0,
-    ///    },
+    ///     gas_settings: GasSettings::RandomlySampled { multiplier: 1.0 },
     /// };
     /// manager.add_environment(params).unwrap();
     /// manager.start_environment("example_env").unwrap();
@@ -257,8 +253,8 @@ impl RevmMiddleware {
     /// Allows the user to update the block number and timestamp of the
     /// [`Environment`] to whatever they may choose at any time.
     /// This can only be done when the [`Environment`] has
-    /// [`EnvironmentParameters`] `block_type` field set to
-    /// [`BlockType::UserControlled`].
+    /// [`EnvironmentParameters`] `block_settings` field set to
+    /// [`BlockSettings::UserControlled`].
     pub fn update_block(
         &self,
         block_number: impl Into<ethers::types::U256>,
@@ -278,11 +274,12 @@ impl RevmMiddleware {
         match provider.outcome_receiver.recv() {
             Ok(Ok(Outcome::BlockUpdateCompleted(receipt_data))) => Ok(receipt_data),
             _ => Err(RevmMiddlewareError::MissingData(
-                "Block did not update Succesfully".to_string(),
+                "Block did not update Successfully".to_string(),
             )),
         }
     }
 
+    /// Returns the timestamp of the current block.
     pub async fn get_block_timestamp(&self) -> Result<ethers::types::U256, RevmMiddlewareError> {
         self.provider()
             .as_ref()
@@ -303,6 +300,8 @@ impl RevmMiddleware {
         }
     }
 
+    /// Provides functionality to increase the balance of a given address by a
+    /// given amount.
     pub async fn deal(
         &self,
         address: Address,
@@ -325,10 +324,15 @@ impl RevmMiddleware {
         }
     }
 
+    /// Returns the address of the wallet/signer given to a client.
     pub fn address(&self) -> Address {
         self.wallet.address()
     }
 
+    /// Allows a client to set a gas price for transactions.
+    /// This can only be done if the [`Environment`] has
+    /// [`EnvironmentParameters`] `gas_settings` field set to
+    /// [`GasSettings::UserControlled`].
     pub async fn set_gas_price(
         &self,
         gas_price: ethers::types::U256,
@@ -406,7 +410,6 @@ impl Middleware for RevmMiddleware {
             Some(to) => TransactTo::Call(B160::from(*to)),
             None => TransactTo::Create(CreateScheme::Create),
         };
-        println!("gas_price: {:?}", self.get_gas_price().await?);
         let tx_env = TxEnv {
             caller: B160::from(self.wallet.address()),
             gas_limit: u64::MAX,
@@ -452,7 +455,7 @@ impl Middleware for RevmMiddleware {
             };
 
             // Note that this is technically not the correct construction on the tx hash
-            // but untill we increment the nonce correctly this will do
+            // but until we increment the nonce correctly this will do
             let sender = self.wallet.address();
             let data = tx_env.clone().data;
             let mut hasher = Sha256::new();
