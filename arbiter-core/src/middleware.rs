@@ -410,7 +410,6 @@ impl Middleware for RevmMiddleware {
             Some(to) => TransactTo::Call(B160::from(*to)),
             None => TransactTo::Create(CreateScheme::Create),
         };
-        println!("gas_price: {:?}", self.get_gas_price().await?);
         let tx_env = TxEnv {
             caller: B160::from(self.wallet.address()),
             gas_limit: u64::MAX,
