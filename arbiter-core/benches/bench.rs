@@ -10,7 +10,7 @@ use arbiter_core::{
         arbiter_math::ArbiterMath,
         arbiter_token::{self, ArbiterToken},
     },
-    environment::{BlockType, EnvironmentParameters},
+    environment::{BlockType, EnvironmentParameters, GasSettings},
     manager::Manager,
     middleware::RevmMiddleware,
 };
@@ -161,15 +161,15 @@ async fn arbiter_startup() -> Result<(Arc<RevmMiddleware>, Manager)> {
     let params = EnvironmentParameters {
         label: ENV_LABEL.to_string(),
         block_type: BlockType::UserControlled,
+        gas_settings: GasSettings::UserControlled,
     };
     manager.add_environment(params)?;
+    manager.start_environment(ENV_LABEL)?;
 
     let client = Arc::new(RevmMiddleware::new(
         manager.environments.get(ENV_LABEL).unwrap(),
         Some("name".to_string()),
-    ));
-
-    manager.start_environment(ENV_LABEL)?;
+    )?);
 
     Ok((client, manager))
 }

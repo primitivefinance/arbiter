@@ -1,22 +1,8 @@
-use std::{
-    pin::Pin,
-    task::{Context, Poll},
-};
-
-use assert_matches::assert_matches;
-use ethers::{
-    prelude::k256::sha2::{Digest, Sha256},
-    types::U256,
-};
-use futures::{Stream, StreamExt};
-use revm::primitives::U256 as rU256;
-
 use super::*;
-use crate::bindings::arbiter_math::ArbiterMath;
 
 #[tokio::test]
 async fn deploy() {
-    let (_manager, client) = startup_randomly_sampled().unwrap();
+    let (_manager, client) = startup_user_controlled().unwrap();
     let arbiter_token = deploy_arbx(client).await.unwrap();
     println!("{:?}", arbiter_token);
     assert_eq!(
@@ -27,7 +13,7 @@ async fn deploy() {
 
 #[tokio::test]
 async fn call() {
-    let (_manager, client) = startup_randomly_sampled().unwrap();
+    let (_manager, client) = startup_user_controlled().unwrap();
     let arbiter_token = deploy_arbx(client).await.unwrap();
     let admin = arbiter_token.admin();
     let output = admin.call().await.unwrap();
@@ -39,7 +25,7 @@ async fn call() {
 
 #[tokio::test]
 async fn transact() {
-    let (_manager, client) = startup_randomly_sampled().unwrap();
+    let (_manager, client) = startup_user_controlled().unwrap();
     let arbiter_token = deploy_arbx(client).await.unwrap();
     let mint = arbiter_token.mint(
         Address::from_str(TEST_MINT_TO).unwrap(),
@@ -73,7 +59,7 @@ async fn transact() {
 
 #[tokio::test]
 async fn filter_id() {
-    let (_manager, client) = startup_randomly_sampled().unwrap();
+    let (_manager, client) = startup_user_controlled().unwrap();
     let arbiter_token = deploy_arbx(client.clone()).await.unwrap();
     let filter_watcher_1 = client.watch(&Filter::default()).await.unwrap();
     let filter_watcher_2 = client
@@ -85,7 +71,7 @@ async fn filter_id() {
 
 #[tokio::test]
 async fn filter_watcher() {
-    let (_manager, client) = startup_randomly_sampled().unwrap();
+    let (_manager, client) = startup_user_controlled().unwrap();
     let arbiter_token = deploy_arbx(client.clone()).await.unwrap();
     let mut filter_watcher = client.watch(&Filter::default()).await.unwrap();
     let approval = arbiter_token.approve(
@@ -129,7 +115,7 @@ async fn filter_watcher() {
 
 #[tokio::test]
 async fn filter_address() {
-    let (_manager, client) = startup_randomly_sampled().unwrap();
+    let (_manager, client) = startup_user_controlled().unwrap();
     let arbiter_token = deploy_arbx(client.clone()).await.unwrap();
 
     let mut default_watcher = client.watch(&Filter::default()).await.unwrap();
@@ -192,7 +178,7 @@ async fn filter_address() {
 
 #[tokio::test]
 async fn filter_topics() {
-    let (_manager, client) = startup_randomly_sampled().unwrap();
+    let (_manager, client) = startup_user_controlled().unwrap();
     let arbiter_token = deploy_arbx(client.clone()).await.unwrap();
 
     let mut default_watcher = client.watch(&Filter::default()).await.unwrap();
@@ -233,113 +219,6 @@ async fn filter_topics() {
     assert_matches!(poll_result, Poll::Pending);
 }
 
-// This test has two parts
-// 1 check that the expected number of transactions per block is the actual
-// number of transactions per block. 2 check the block number is incremented
-// after the expected number of transactions is reached.
-#[tokio::test]
-async fn transaction_loop() {
-    let (manager, client) = startup_randomly_sampled().unwrap();
-    // tx_0 is the transaction that creates the token contract
-    let arbiter_token = deploy_arbx(client.clone()).await.unwrap();
-
-    // get the environment so we can look at its distribution
-    let environment = manager.environments.get(TEST_ENV_LABEL).unwrap();
-
-    let mut distribution = match environment.parameters.block_type {
-        BlockType::RandomlySampled {
-            block_rate,
-            block_time,
-            seed,
-        } => SeededPoisson::new(block_rate, block_time, seed),
-        _ => panic!("Expected RandomlySampled block type"),
-    };
-    let expected_tx_per_block = distribution.sample();
-    println!("expected_tx_per_block: {}", expected_tx_per_block);
-
-    for index in 1..expected_tx_per_block + 1 {
-        println!("index: {}", index);
-        let tx = arbiter_token
-            .mint(client.default_sender().unwrap(), 1000u64.into())
-            .send()
-            .await
-            .unwrap()
-            .await
-            .unwrap()
-            .unwrap();
-
-        if index < expected_tx_per_block {
-            let block_number = tx.block_number.unwrap();
-            println!("block_number: {}", block_number);
-            assert_eq!(block_number, U64::from(0));
-        } else {
-            println!("in else");
-            let block_number = tx.block_number.unwrap();
-            println!("block_number: {}", block_number);
-            assert_eq!(block_number, U64::from(1));
-        }
-    }
-}
-
-#[tokio::test]
-async fn pause_prevents_processing_transactions() {
-    let (mut manager, client) = startup_randomly_sampled().unwrap();
-
-    // Send a tx and check it works (it should)
-    let arbiter_math_1 = ArbiterMath::deploy(client.clone(), ())
-        .unwrap()
-        .send()
-        .await;
-    assert!(arbiter_math_1.is_ok());
-
-    // Pause the environment.
-    manager.pause_environment(TEST_ENV_LABEL).unwrap();
-
-    // Send a tx while the environment is paused (it should not process) will return
-    // an environment error
-    let arbiter_math_2 = ArbiterMath::deploy(client.clone(), ())
-        .unwrap()
-        .send()
-        .await;
-    assert!(arbiter_math_2.is_err());
-
-    // Unpause the environment
-    manager.start_environment(TEST_ENV_LABEL).unwrap();
-    let arbiter_math_2 = ArbiterMath::deploy(client.clone(), ())
-        .unwrap()
-        .send()
-        .await;
-    assert!(arbiter_math_2.is_ok());
-}
-
-// TODO: We can probably just implement RPC requests for these instead.
-#[tokio::test]
-async fn update_block() {
-    let (_manager, client) = startup_user_controlled().unwrap();
-    let block_info = crate::bindings::block_info::BlockInfo::deploy(client.clone(), ())
-        .unwrap()
-        .send()
-        .await
-        .unwrap();
-
-    let block_number = block_info.get_block_number().call().await.unwrap();
-    assert_eq!(block_number, ethers::types::U256::from(0));
-    let block_timestamp = block_info.get_block_timestamp().call().await.unwrap();
-    assert_eq!(block_timestamp, ethers::types::U256::from(1));
-
-    let new_block_number = 69;
-    let new_block_timestamp = 420;
-
-    assert!(client
-        .update_block(new_block_number, new_block_timestamp,)
-        .is_ok());
-
-    let block_number = block_info.get_block_number().call().await.unwrap();
-    assert_eq!(block_number, new_block_number.into());
-    let block_timestamp = block_info.get_block_timestamp().call().await.unwrap();
-    assert_eq!(block_timestamp, new_block_timestamp.into());
-}
-
 #[tokio::test]
 async fn block_update_receipt() {
     let (_manager, client) = startup_user_controlled().unwrap();
@@ -356,53 +235,74 @@ async fn block_update_receipt() {
     assert_eq!(receipt.block_number.unwrap(), 0u64.into());
     let receipt = client.update_block(3, 100).unwrap();
     assert_eq!(receipt.block_number, 3.into());
-    assert_eq!(receipt.cumulative_gas_per_block, rU256::ZERO);
+    assert_eq!(
+        receipt.cumulative_gas_per_block,
+        revm::primitives::U256::ZERO
+    );
     assert_eq!(receipt.transaction_index, 0.into());
 }
 
 #[tokio::test]
-async fn receipt_data() {
+async fn get_block_number() {
     let (_manager, client) = startup_user_controlled().unwrap();
-    let arbiter_token = deploy_arbx(client.clone()).await.unwrap();
-    let receipt = arbiter_token
-        .mint(client.default_sender().unwrap(), 1000u64.into())
-        .send()
+    let block_number = client.get_block_number().await.unwrap();
+    assert_eq!(block_number.as_u64(), 0_u64)
+}
+
+#[tokio::test]
+async fn get_block_timestamp() {
+    let (_manager, client) = startup_user_controlled().unwrap();
+    let block_timestamp = client.get_block_timestamp().await.unwrap();
+    assert_eq!(block_timestamp, ethers::types::U256::from(1))
+}
+
+#[tokio::test]
+async fn get_gas_price_user_controlled() {
+    // User controlled should have 0 gas price initially
+    let (_manager, client) = startup_user_controlled().unwrap();
+    let gas_price = client.get_gas_price().await.unwrap();
+    assert_eq!(gas_price, ethers::types::U256::from(0));
+}
+
+#[tokio::test]
+async fn deal() {
+    let (_manager, client) = startup_user_controlled().unwrap();
+    client
+        .deal(
+            client.default_sender().unwrap(),
+            ethers::types::U256::from(1),
+        )
         .await
-        .unwrap()
-        .await
-        .unwrap()
         .unwrap();
+    let balance = client.get_balance(client.address(), None).await;
+    assert_eq!(balance.unwrap(), 1.into());
+}
 
-    assert!(receipt.block_number.is_some());
-    let mut block_hasher = Sha256::new();
-    block_hasher.update(receipt.block_number.unwrap().to_string().as_bytes());
-    let block_hash = block_hasher.finalize();
-    let block_hash = Some(ethers::types::H256::from_slice(&block_hash));
-    assert_eq!(receipt.block_hash, block_hash);
-    assert_eq!(receipt.status, Some(1.into()));
-
-    assert!(receipt.contract_address.is_none());
-    assert_eq!(receipt.to, Some(arbiter_token.address()));
-
-    assert!(receipt.gas_used.is_some());
-    assert_eq!(receipt.logs.len(), 1);
-    assert_eq!(receipt.logs[0].topics.len(), 3);
-    assert_eq!(receipt.transaction_index, 1.into());
-    assert_eq!(receipt.from, client.default_sender().unwrap());
-
-    let mut cumulative_gas = U256::from(0);
-    assert!(receipt.cumulative_gas_used >= cumulative_gas);
-    cumulative_gas += receipt.cumulative_gas_used;
-
-    let receipt_1 = arbiter_token
-        .mint(client.default_sender().unwrap(), 1000u64.into())
-        .send()
+#[tokio::test]
+async fn deal_missing_account() {
+    let (_manager, client) = startup_user_controlled().unwrap();
+    client
+        .deal(
+            client.default_sender().unwrap(),
+            ethers::types::U256::from(1),
+        )
         .await
-        .unwrap()
-        .await
-        .unwrap()
         .unwrap();
+    let mut wrong_address = client.address().0;
+    wrong_address[0] = wrong_address[0].wrapping_add(1);
+    let wrong_address = Address::from(wrong_address);
+    let balance = client.get_balance(wrong_address, None).await;
+    assert!(balance.is_err());
+}
 
-    // ensure gas in increasing
-    assert!(cumulative_gas <= receipt_1.cumulative_gas_used);
+#[tokio::test]
+async fn set_gas_price() {
+    let (_manager, client) = startup_user_controlled().unwrap();
+    assert_eq!(
+        client.get_gas_price().await.unwrap(),
+        ethers::types::U256::from(0)
+    );
+    let test_gas_price = ethers::types::U256::from(1337);
+    client.set_gas_price(test_gas_price).await.unwrap();
+    assert_eq!(client.get_gas_price().await.unwrap(), test_gas_price);
 }

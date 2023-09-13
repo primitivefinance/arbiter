@@ -27,21 +27,24 @@ use std::{
 };
 
 use crossbeam_channel::{unbounded, Receiver, Sender};
-use ethers::core::types::U64;
+use ethers::{core::types::U64, types::Transaction};
 use log::error;
 use revm::{
     db::{CacheDB, EmptyDB},
-    primitives::{EVMError, ExecutionResult, Log, TxEnv, U256},
-    EVM,
+    interpreter::gas,
+    primitives::{
+        AccountInfo, EVMError, ExecutionResult, HashMap, InvalidTransaction, Log, TxEnv, U256,
+    },
+    Inspector, EVM,
 };
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
 
-use crate::math::SeededPoisson;
 #[cfg_attr(doc, doc(hidden))]
 #[cfg_attr(doc, allow(unused_imports))]
 #[cfg(doc)]
 use crate::{manager::Manager, middleware::RevmMiddleware};
+use crate::{math::SeededPoisson, middleware::recast_address};
 
 /// Alias for the sender of the channel for transmitting transactions.
 pub(crate) type InstructionSender = Sender<Instruction>;
@@ -157,6 +160,8 @@ pub struct EnvironmentParameters {
     /// a rate parameter and seed for a Poisson distribution that will be
     /// used to sample the amount of transactions per block.
     pub block_type: BlockType,
+
+    pub gas_settings: GasSettings,
 }
 
 /// Allow the end user to be able to access a debug printout for the
@@ -192,6 +197,12 @@ pub enum EnvironmentError {
     /// this type of error.
     #[error("execution error! the source error is: {0:?}")]
     Execution(EVMError<Infallible>),
+
+    #[error("transaction error! the source error is: {0:?}")]
+    Transaction(InvalidTransaction),
+
+    #[error("account error! due to: {0:?}")]
+    Account(String),
 
     /// [`EnvironmentError::Pause`] is thrown when the [`Environment`]
     /// fails to pause. This should likely never occur, but if it does,
@@ -229,11 +240,17 @@ pub enum EnvironmentError {
     #[error("transaction was received while the environment was paused. this transaction was not processed.")]
     TransactionReceivedWhilePaused,
 
+    #[error("error in the environmnet! attempted to set a gas price when the `GasSettings` is not `GasSettings::UserControlled`")]
+    NotUserControlledGasSettings,
+
     /// [`EnvironmentError::NotUserControlledBlockType`] is thrown when
     /// the [`Environment`] is in a [`BlockType::RandomlySampled`] state and
     /// an attempt is made to externally change the block number and timestamp.
-    #[error("error in the environment! attempted to externally change block number and timestamp when block type is not user controlled.")]
+    #[error("error in the environment! attempted to externally change block number and timestamp when `BlockType` is not `BlockType::UserControlled`.")]
     NotUserControlledBlockType,
+
+    #[error("error in the environment! attempted to set a gas price via a multiplier when the `BlockType` is not `BlockType::RandomlySampled`.")]
+    NotRandomlySampledBlockType,
 }
 
 impl Environment {
@@ -285,9 +302,12 @@ impl Environment {
                 block_rate,
                 block_time,
                 seed,
-            } => Some(SeededPoisson::new(block_rate, block_time, seed)),
+            } => Some(Arc::new(Mutex::new(SeededPoisson::new(
+                block_rate, block_time, seed,
+            )))),
             BlockType::UserControlled => None,
         };
+        let gas_settings = self.parameters.gas_settings.clone();
 
         // Set up the state and tx counter
         self.state
@@ -297,11 +317,31 @@ impl Environment {
 
         // Move the EVM and its socket to a new thread and retrieve this handle
         let handle = thread::spawn(move || {
+            if let GasSettings::RandomlySampled { multiplier: _ } = gas_settings {
+                if seeded_poisson.is_none() {
+                    return Err(EnvironmentError::NotRandomlySampledBlockType);
+                }
+            }
             // Get the first amount of transactions per block from the distribution and set
             // the initial counter.
             let mut transactions_per_block = seeded_poisson
                 .clone()
-                .map(|mut distribution| distribution.sample());
+                .map(|distribution| distribution.lock().unwrap().sample());
+            match gas_settings {
+                GasSettings::UserControlled => {
+                    evm.env.tx.gas_price = U256::from(0);
+                }
+                GasSettings::RandomlySampled { multiplier } => {
+                    let gas_price = (transactions_per_block
+                        .ok_or(EnvironmentError::NotRandomlySampledBlockType)?
+                        as f64)
+                        * multiplier;
+                    evm.env.tx.gas_price = U256::from(gas_price as u128);
+                }
+                GasSettings::Constant(gas_price) => {
+                    evm.env.tx.gas_price = U256::from(gas_price);
+                }
+            }
             let mut transaction_index: usize = 0;
             let mut cumulative_gas_per_block: U256 = U256::ZERO;
 
@@ -319,13 +359,19 @@ impl Environment {
                             .lock()
                             .map_err(|e| EnvironmentError::Pause(e.to_string()))?;
 
-                        // This logic here ensures we catch any last transactions and send
-                        // the appropriate error so that we dont hang on the `tx_receiver`
+                        // TODO: It may actually be okay to allow DB changes upon a pause. We should
+                        // consider this. This logic here ensures we catch
+                        // any last transactions and send the appropriate
+                        // error so that we dont hang on the `tx_receiver`
                         while let Ok(request) = instruction_receiver.try_recv() {
                             let sender = match request {
+                                Instruction::AddAccount { outcome_sender, .. } => outcome_sender,
                                 Instruction::BlockUpdate { outcome_sender, .. } => outcome_sender,
+                                Instruction::Deal { outcome_sender, .. } => outcome_sender,
                                 Instruction::Call { outcome_sender, .. } => outcome_sender,
+                                Instruction::SetGasPrice { outcome_sender, .. } => outcome_sender,
                                 Instruction::Transaction { outcome_sender, .. } => outcome_sender,
+                                Instruction::Query { outcome_sender, .. } => outcome_sender,
                             };
                             sender
                                 .send(Err(EnvironmentError::TransactionReceivedWhilePaused))
@@ -343,6 +389,36 @@ impl Environment {
                     State::Running => {
                         if let Ok(request) = instruction_receiver.try_recv() {
                             match request {
+                                Instruction::AddAccount {
+                                    address,
+                                    outcome_sender,
+                                } => {
+                                    let db = evm.db.as_mut().unwrap();
+                                    let recast_address = revm::primitives::Address::from(address);
+                                    let account = revm::db::DbAccount {
+                                        info: AccountInfo::default(),
+                                        account_state: revm::db::AccountState::None,
+                                        storage: HashMap::new(),
+                                    };
+                                    match db.accounts.insert(recast_address, account) {
+                                        None => {
+                                            outcome_sender
+                                                .send(Ok(Outcome::AddAccountCompleted))
+                                                .map_err(|e| {
+                                                EnvironmentError::Communication(e.to_string())
+                                            })?;
+                                        }
+                                        Some(_) => {
+                                            outcome_sender
+                                                .send(Err(EnvironmentError::Account(
+                                                    "Account already exists!".to_string(),
+                                                )))
+                                                .map_err(|e| {
+                                                    EnvironmentError::Communication(e.to_string())
+                                                })?;
+                                        }
+                                    }
+                                }
                                 Instruction::BlockUpdate {
                                     block_number,
                                     block_timestamp,
@@ -374,6 +450,33 @@ impl Environment {
                                             EnvironmentError::Communication(e.to_string())
                                         })?;
                                 }
+                                Instruction::Deal {
+                                    address,
+                                    amount,
+                                    outcome_sender,
+                                } => {
+                                    let db = evm.db.as_mut().unwrap();
+                                    let recast_address = revm::primitives::Address::from(address);
+                                    match db.accounts.get_mut(&recast_address) {
+                                        Some(account) => {
+                                            account.info.balance += U256::from_limbs(amount.0);
+                                            outcome_sender
+                                                .send(Ok(Outcome::DealCompleted))
+                                                .map_err(|e| {
+                                                    EnvironmentError::Communication(e.to_string())
+                                                })?;
+                                        }
+                                        None => {
+                                            outcome_sender
+                                                .send(Err(EnvironmentError::Account(
+                                                    "Account is missing!".to_string(),
+                                                )))
+                                                .map_err(|e| {
+                                                    EnvironmentError::Communication(e.to_string())
+                                                })?;
+                                        }
+                                    };
+                                }
                                 // A `Call` is not state changing and will not create events.
                                 Instruction::Call {
                                     tx_env,
@@ -390,38 +493,70 @@ impl Environment {
                                             EnvironmentError::Communication(e.to_string())
                                         })?;
                                 }
+                                Instruction::SetGasPrice {
+                                    gas_price,
+                                    outcome_sender,
+                                } => {
+                                    if GasSettings::UserControlled != gas_settings {
+                                        outcome_sender
+                                            .send(Err(
+                                                EnvironmentError::NotUserControlledGasSettings,
+                                            ))
+                                            .map_err(|e| {
+                                                EnvironmentError::Communication(e.to_string())
+                                            })?;
+                                    }
+                                    evm.env.tx.gas_price = U256::from_limbs(gas_price.0);
+                                    outcome_sender
+                                        .send(Ok(Outcome::SetGasPriceCompleted))
+                                        .map_err(|e| {
+                                            EnvironmentError::Communication(e.to_string())
+                                        })?;
+                                }
+
                                 // A `Transaction` is state changing and will create events.
                                 Instruction::Transaction {
                                     tx_env,
                                     outcome_sender,
                                 } => {
-                                    // Check whether we need to increment the block number given the
-                                    // amount of transactions
-                                    // that have occured on the current block and increment
-                                    // if need be and draw a new sample from the `SeededPoisson`
-                                    // distribution. Only do so if there is a distribution in the
-                                    // first place.
-                                    if transactions_per_block
-                                        .is_some_and(|x| x == transaction_index)
-                                    {
-                                        transaction_index = 0;
-                                        evm.env.block.number += U256::from(1);
-
-                                        // This unwrap cannot fail.
-                                        let mut seeded_poisson = seeded_poisson.clone().unwrap();
-
-                                        evm.env.block.timestamp +=
-                                            U256::from(seeded_poisson.time_step);
-                                        transactions_per_block = Some(seeded_poisson.sample());
-                                    }
-
                                     // Set the tx_env and prepare to process it
                                     evm.env.tx = tx_env;
 
+                                    let execution_result = match evm
+                                        .inspect_commit(revm::inspectors::GasInspector::default())
+                                    {
+                                        Ok(result) => result,
+                                        Err(e) => {
+                                            println!("error: {:?}", e);
+                                            if let EVMError::Transaction(invalid_transaction) = e {
+                                                println!(
+                                                    "invalid transaction: {:?}",
+                                                    invalid_transaction
+                                                );
+                                                outcome_sender
+                                                    .send(Err(EnvironmentError::Transaction(
+                                                        invalid_transaction,
+                                                    )))
+                                                    .map_err(|e| {
+                                                        EnvironmentError::Communication(
+                                                            e.to_string(),
+                                                        )
+                                                    })?;
+                                                continue;
+                                            } else {
+                                                println!("error otherwise: {:?}", e);
+                                                outcome_sender
+                                                    .send(Err(EnvironmentError::Execution(e)))
+                                                    .map_err(|e| {
+                                                        EnvironmentError::Communication(
+                                                            e.to_string(),
+                                                        )
+                                                    })?;
+                                                continue;
+                                            }
+                                        }
+                                    };
                                     let block_number = convert_uint_to_u64(evm.env.block.number)?;
-                                    let execution_result = evm
-                                        .transact_commit()
-                                        .map_err(EnvironmentError::Execution)?;
 
                                     // increment culmulative gas per block
                                     cumulative_gas_per_block +=
@@ -446,6 +581,86 @@ impl Environment {
                                             EnvironmentError::Communication(e.to_string())
                                         })?;
                                     transaction_index += 1;
+
+                                    // Check whether we need to increment the block number given the
+                                    // amount of transactions
+                                    // that have occured on the current block and increment
+                                    // if need be and draw a new sample from the `SeededPoisson`
+                                    // distribution. Only do so if there is a distribution in the
+                                    // first place.
+                                    if transactions_per_block
+                                        .is_some_and(|x| x == transaction_index)
+                                    {
+                                        transaction_index = 0;
+                                        evm.env.block.number += U256::from(1);
+
+                                        // This unwrap cannot fail.
+                                        let seeded_poisson_clone = seeded_poisson.clone().unwrap();
+                                        let mut seeded_poisson_lock =
+                                            seeded_poisson_clone.lock().unwrap();
+
+                                        evm.env.block.timestamp +=
+                                            U256::from(seeded_poisson_lock.time_step);
+                                        transactions_per_block = loop {
+                                            let sample = Some(seeded_poisson_lock.sample());
+
+                                            if sample == Some(0) {
+                                                evm.env.block.number += U256::from(1);
+                                                continue;
+                                            } else {
+                                                break sample;
+                                            }
+                                        };
+                                        if let GasSettings::RandomlySampled { multiplier } =
+                                            gas_settings
+                                        {
+                                            println!(
+                                                "entered into randomly sampled gas price changing"
+                                            );
+                                            let gas_price = (transactions_per_block.ok_or(
+                                                EnvironmentError::NotRandomlySampledBlockType,
+                                            )?
+                                                as f64)
+                                                * multiplier;
+                                            evm.env.tx.gas_price = U256::from(gas_price as u128);
+                                            println!("gas price: {}", gas_price);
+                                        };
+                                    }
+                                }
+                                Instruction::Query {
+                                    environment_data,
+                                    outcome_sender,
+                                } => {
+                                    let outcome = match environment_data {
+                                        EnvironmentData::BlockNumber => Ok(Outcome::QueryReturn(
+                                            evm.env.block.number.to_string(),
+                                        )),
+                                        EnvironmentData::BlockTimestamp => {
+                                            Ok(Outcome::QueryReturn(
+                                                evm.env.block.timestamp.to_string(),
+                                            ))
+                                        }
+                                        EnvironmentData::GasPrice => Ok(Outcome::QueryReturn(
+                                            evm.env.tx.gas_price.to_string(),
+                                        )),
+                                        EnvironmentData::Balance(address) => {
+                                            // This unwrap should never fail.
+                                            let db = evm.db().unwrap();
+                                            let recast_address =
+                                                revm::primitives::Address::from(address);
+                                            match db.accounts.get(&recast_address) {
+                                                Some(account) => Ok(Outcome::QueryReturn(
+                                                    account.info.balance.to_string(),
+                                                )),
+                                                None => Err(EnvironmentError::Account(
+                                                    "Account is missing!".to_string(),
+                                                )),
+                                            }
+                                        }
+                                    };
+                                    outcome_sender.send(outcome).map_err(|e| {
+                                        EnvironmentError::Communication(e.to_string())
+                                    })?;
                                 }
                             }
                         }
@@ -465,6 +680,10 @@ impl Environment {
 /// [`Socket`].
 /// These instructions can be `Call`s, `Transaction`s, or `BlockUpdate`s.
 pub enum Instruction {
+    AddAccount {
+        address: ethers::types::Address,
+        outcome_sender: OutcomeSender,
+    },
     /// A `BlockUpdate` is used to update the block number and timestamp of the
     /// [`EVM`].
     BlockUpdate {
@@ -478,6 +697,12 @@ pub enum Instruction {
         outcome_sender: OutcomeSender,
     },
 
+    Deal {
+        address: ethers::types::Address,
+        amount: ethers::types::U256,
+        outcome_sender: OutcomeSender,
+    },
+
     /// A `Call` is processed by the [`EVM`] but will not be state changing and
     /// will not create events.
     Call {
@@ -485,6 +710,11 @@ pub enum Instruction {
         tx_env: TxEnv,
 
         /// The sender used to to send the outcome of the call back to.
+        outcome_sender: OutcomeSender,
+    },
+
+    SetGasPrice {
+        gas_price: ethers::types::U256,
         outcome_sender: OutcomeSender,
     },
 
@@ -497,6 +727,19 @@ pub enum Instruction {
         /// The sender used to to send the outcome of the transaction back to.
         outcome_sender: OutcomeSender,
     },
+
+    Query {
+        environment_data: EnvironmentData,
+        outcome_sender: OutcomeSender,
+    },
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+pub enum EnvironmentData {
+    BlockNumber,
+    BlockTimestamp,
+    GasPrice,
+    Balance(ethers::types::Address),
 }
 
 /// [`RecieptData`] is a structure that holds the block number, transaction
@@ -518,21 +761,26 @@ pub struct ReceiptData {
 /// These outcomes can be from `Call`, `Transaction`, or `BlockUpdate`
 /// instructions sent to the [`Environment`]
 pub enum Outcome {
+    AddAccountCompleted,
     /// The outcome of a `BlockUpdate` instruction that is used to provide a
     /// non-error output of updating the block number and timestamp of the
     /// [`EVM`] to the client.
     BlockUpdateCompleted(ReceiptData),
 
+    DealCompleted,
+
     /// The outcome of a `Call` instruction that is used to provide the output
     /// of some [`EVM`] computation to the client.
     CallCompleted(ExecutionResult),
 
-    // TODO: This top one should probably be a tuple variant that has any extra necessary stuff to
-    // form a receipt so long as the transaction was successful
+    SetGasPriceCompleted,
+
     /// The outcome of a `Transaction` instruction that is first unpacked to see
     /// if the result is successful, then it can be used to build a
     /// `TransactionReceipt` in the `Middleware`.
     TransactionCompleted(ExecutionResult, ReceiptData),
+
+    QueryReturn(String),
 }
 /// Provides channels for communication between the EVM and external entities.
 ///
@@ -614,6 +862,36 @@ pub enum BlockType {
     },
 }
 
+/// Provides a means of deciding how the gas price of the
+/// [`EVM`] will be chosen.
+/// This can either be a [`GasSettings::UserControlled`],
+/// [`GasSettings::RandomlySampled`], or [`GasSettings::None`].
+/// The former will allow the end user to control the gas price from
+/// their own external API and the latter will allow the end user to set
+/// a constant gas price.
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+pub enum GasSettings {
+    /// The gas limit will be controlled by the end user.
+    /// Currently this is not properly implemented!
+    /// In the future, Foundry cheatcodes will be used to control gas
+    /// on-the-fly.
+    UserControlled,
+
+    /// The gas price will depend on the number of transactions in the block.
+    /// The user *must* set the [`BlockType`] to [`BlockType::RandomlySampled`].
+    /// We determine the gas price by multiplying the number of transactions in
+    /// the block by the multiplier which represents paying higher fees for a
+    /// more congested network.
+    RandomlySampled {
+        /// Multiplies the number of transactions in the block to determine the
+        /// gas price.
+        multiplier: f64,
+    },
+
+    /// The gas price will be a constant value from the inner value.
+    Constant(u128),
+}
+
 /// Responsible for broadcasting Ethereum logs to subscribers.
 ///
 /// Maintains a list of senders to which logs are sent whenever they are
@@ -672,6 +950,7 @@ pub(crate) mod tests {
         let params = EnvironmentParameters {
             label: TEST_ENV_LABEL.to_string(),
             block_type: BlockType::UserControlled,
+            gas_settings: GasSettings::UserControlled,
         };
         let environment = Environment::new(params);
         assert_eq!(environment.parameters.label, TEST_ENV_LABEL);
@@ -689,6 +968,7 @@ pub(crate) mod tests {
         let params = EnvironmentParameters {
             label: TEST_ENV_LABEL.to_string(),
             block_type,
+            gas_settings: GasSettings::RandomlySampled { multiplier: 1.0 },
         };
         let environment = Environment::new(params);
         assert_eq!(environment.parameters.label, TEST_ENV_LABEL);
@@ -701,6 +981,7 @@ pub(crate) mod tests {
         let params = EnvironmentParameters {
             label: TEST_ENV_LABEL.to_string(),
             block_type: BlockType::UserControlled,
+            gas_settings: GasSettings::UserControlled,
         };
         let mut environment = Environment::new(params);
         environment.run();

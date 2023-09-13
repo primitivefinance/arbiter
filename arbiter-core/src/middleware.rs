@@ -36,7 +36,7 @@ use ethers::{
     signers::{Signer, Wallet},
     types::{
         transaction::eip2718::TypedTransaction, Address, BlockId, Bloom, Bytes, Filter,
-        FilteredParams, Log, Transaction, TransactionReceipt, U64,
+        FilteredParams, Log, NameOrAddress, Transaction, TransactionReceipt, U64,
     },
 };
 use futures_timer::Delay;
@@ -46,8 +46,8 @@ use serde::{de::DeserializeOwned, Serialize};
 use thiserror::Error;
 
 use crate::environment::{
-    Environment, EventBroadcaster, Instruction, InstructionSender, Outcome, OutcomeReceiver,
-    OutcomeSender, ReceiptData,
+    Environment, EnvironmentData, EventBroadcaster, Instruction, InstructionSender, Outcome,
+    OutcomeReceiver, OutcomeSender, ReceiptData,
 };
 
 /// A middleware structure that integrates with `revm`.
@@ -69,7 +69,7 @@ use crate::environment::{
 /// use std::sync::Arc;
 ///
 /// use arbiter_core::{
-///     environment::{BlockType, EnvironmentParameters},
+///     environment::{BlockType, GasSettings, EnvironmentParameters},
 ///     manager::Manager,
 ///     middleware::RevmMiddleware,
 /// };
@@ -83,8 +83,12 @@ use crate::environment::{
 ///         block_time: 12,
 ///         seed: 1,
 ///     },
+///    gas_settings: GasSettings::RandomlySampled {
+///       multiplier: 1.0,
+///    },
 /// };
 /// manager.add_environment(params).unwrap();
+/// manager.start_environment("example_env").unwrap();
 ///
 /// // Retrieve the environment to create a new middleware instance
 /// let environment = manager.environments.get("example_env").unwrap();
@@ -185,7 +189,7 @@ impl RevmMiddleware {
     /// # Examples
     /// ```
     /// use arbiter_core::{
-    ///     environment::{BlockType, EnvironmentParameters},
+    ///     environment::{BlockType, GasSettings, EnvironmentParameters},
     ///     manager::Manager,
     ///     middleware::RevmMiddleware,
     /// };
@@ -198,29 +202,37 @@ impl RevmMiddleware {
     ///         block_time: 12,
     ///         seed: 1,
     ///     },
+    ///    gas_settings: GasSettings::RandomlySampled {
+    ///       multiplier: 1.0,
+    ///    },
     /// };
     /// manager.add_environment(params).unwrap();
+    /// manager.start_environment("example_env").unwrap();
+    ///
+    /// // Retrieve the environment to create a new middleware instance
     /// let environment = manager.environments.get("example_env").unwrap();
-    /// let middleware = RevmMiddleware::new(&environment, Some("test_label".to_string()));
     ///
     /// // We can create a middleware instance without a seed by doing the following
     /// let no_seed_middleware = RevmMiddleware::new(&environment, None);
     /// ```
     /// Use a seed if you want to have a constant address across simulations as
     /// well as a label for a client. This can be useful for debugging.
-    pub fn new(environment: &Environment, seed_and_label: Option<String>) -> Self {
+    pub fn new(
+        environment: &Environment,
+        seed_and_label: Option<String>,
+    ) -> Result<Self, RevmMiddlewareError> {
         let instruction_sender = environment.socket.instruction_sender.clone();
         let (outcome_sender, outcome_receiver) = crossbeam_channel::unbounded();
         let connection = Connection {
-            instruction_sender,
-            outcome_sender,
-            outcome_receiver,
+            instruction_sender: instruction_sender.clone(),
+            outcome_sender: outcome_sender.clone(),
+            outcome_receiver: outcome_receiver.clone(),
             event_broadcaster: Arc::clone(&environment.socket.event_broadcaster),
             filter_receivers: Arc::new(tokio::sync::Mutex::new(HashMap::new())),
             environment_state: Arc::clone(&environment.state),
         };
         let provider = Provider::new(connection);
-        if let Some(seed) = seed_and_label {
+        let new_middleware = if let Some(seed) = seed_and_label {
             let mut hasher = Sha256::new();
             hasher.update(seed.clone());
             let hashed = hasher.finalize();
@@ -231,7 +243,15 @@ impl RevmMiddleware {
             let mut rng = rand::thread_rng();
             let wallet = Wallet::new(&mut rng);
             Self { provider, wallet }
-        }
+        };
+        instruction_sender
+            .send(Instruction::AddAccount {
+                address: new_middleware.wallet.address(),
+                outcome_sender,
+            })
+            .map_err(|e| RevmMiddlewareError::Send(e.to_string()))?;
+        outcome_receiver.recv()??;
+        Ok(new_middleware)
     }
 
     /// Allows the user to update the block number and timestamp of the
@@ -259,6 +279,72 @@ impl RevmMiddleware {
             Ok(Ok(Outcome::BlockUpdateCompleted(receipt_data))) => Ok(receipt_data),
             _ => Err(RevmMiddlewareError::MissingData(
                 "Block did not update Succesfully".to_string(),
+            )),
+        }
+    }
+
+    pub async fn get_block_timestamp(&self) -> Result<ethers::types::U256, RevmMiddlewareError> {
+        self.provider()
+            .as_ref()
+            .instruction_sender
+            .send(Instruction::Query {
+                environment_data: EnvironmentData::BlockTimestamp,
+                outcome_sender: self.provider().as_ref().outcome_sender.clone(),
+            })
+            .map_err(|e| RevmMiddlewareError::Send(e.to_string()))?;
+        match self.provider().as_ref().outcome_receiver.recv()?? {
+            Outcome::QueryReturn(outcome) => {
+                ethers::types::U256::from_str_radix(outcome.as_ref(), 10)
+                    .map_err(|e| RevmMiddlewareError::Conversion(e.to_string()))
+            }
+            _ => Err(RevmMiddlewareError::MissingData(
+                "Wrong variant returned via query!".to_string(),
+            )),
+        }
+    }
+
+    pub async fn deal(
+        &self,
+        address: Address,
+        amount: ethers::types::U256,
+    ) -> Result<(), RevmMiddlewareError> {
+        self.provider()
+            .as_ref()
+            .instruction_sender
+            .send(Instruction::Deal {
+                address,
+                amount,
+                outcome_sender: self.provider().as_ref().outcome_sender.clone(),
+            })
+            .map_err(|e| RevmMiddlewareError::Send(e.to_string()))?;
+        match self.provider().as_ref().outcome_receiver.recv()?? {
+            Outcome::DealCompleted => Ok(()),
+            _ => Err(RevmMiddlewareError::MissingData(
+                "Wrong variant returned via instruction outcome!".to_string(),
+            )),
+        }
+    }
+
+    pub fn address(&self) -> Address {
+        self.wallet.address()
+    }
+
+    pub async fn set_gas_price(
+        &self,
+        gas_price: ethers::types::U256,
+    ) -> Result<(), RevmMiddlewareError> {
+        self.provider()
+            .as_ref()
+            .instruction_sender
+            .send(Instruction::SetGasPrice {
+                gas_price,
+                outcome_sender: self.provider().as_ref().outcome_sender.clone(),
+            })
+            .map_err(|e| RevmMiddlewareError::Send(e.to_string()))?;
+        match self.provider().as_ref().outcome_receiver.recv()?? {
+            Outcome::SetGasPriceCompleted => Ok(()),
+            _ => Err(RevmMiddlewareError::MissingData(
+                "Wrong variant returned via instruction outcome!".to_string(),
             )),
         }
     }
@@ -320,11 +406,11 @@ impl Middleware for RevmMiddleware {
             Some(to) => TransactTo::Call(B160::from(*to)),
             None => TransactTo::Create(CreateScheme::Create),
         };
-
+        println!("gas_price: {:?}", self.get_gas_price().await?);
         let tx_env = TxEnv {
             caller: B160::from(self.wallet.address()),
             gas_limit: u64::MAX,
-            gas_price: U256::ZERO,
+            gas_price: revm::primitives::U256::from_limbs(self.get_gas_price().await?.0),
             gas_priority_fee: None,
             transact_to,
             value: U256::ZERO,
@@ -616,6 +702,85 @@ impl Middleware for RevmMiddleware {
     ) -> Result<FilterWatcher<'b, Self::Provider, Log>, Self::Error> {
         let id = self.new_filter(FilterKind::Logs(filter)).await?;
         Ok(FilterWatcher::new(id, self.provider()).interval(Duration::ZERO))
+    }
+
+    async fn get_gas_price(&self) -> Result<ethers::types::U256, Self::Error> {
+        self.provider()
+            .as_ref()
+            .instruction_sender
+            .send(Instruction::Query {
+                environment_data: EnvironmentData::GasPrice,
+                outcome_sender: self.provider().as_ref().outcome_sender.clone(),
+            })
+            .map_err(|e| RevmMiddlewareError::Send(e.to_string()))?;
+        match self.provider().as_ref().outcome_receiver.recv()?? {
+            Outcome::QueryReturn(outcome) => {
+                ethers::types::U256::from_str_radix(outcome.as_ref(), 10)
+                    .map_err(|e| RevmMiddlewareError::Conversion(e.to_string()))
+            }
+            _ => Err(RevmMiddlewareError::MissingData(
+                "Wrong variant returned via query!".to_string(),
+            )),
+        }
+    }
+
+    async fn get_block_number(&self) -> Result<U64, Self::Error> {
+        self.provider()
+            .as_ref()
+            .instruction_sender
+            .send(Instruction::Query {
+                environment_data: EnvironmentData::BlockNumber,
+                outcome_sender: self.provider().as_ref().outcome_sender.clone(),
+            })
+            .map_err(|e| RevmMiddlewareError::Send(e.to_string()))?;
+        match self.provider().as_ref().outcome_receiver.recv()?? {
+            Outcome::QueryReturn(outcome) => {
+                ethers::types::U64::from_str_radix(outcome.as_ref(), 10)
+                    .map_err(|e| RevmMiddlewareError::Conversion(e.to_string()))
+            }
+            _ => Err(RevmMiddlewareError::MissingData(
+                "Wrong variant returned via query!".to_string(),
+            )),
+        }
+    }
+
+    async fn get_balance<T: Into<NameOrAddress> + Send + Sync>(
+        &self,
+        from: T,
+        block: Option<BlockId>,
+    ) -> Result<ethers::types::U256, Self::Error> {
+        if block.is_some() {
+            return Err(RevmMiddlewareError::MissingData(
+                "Querying balance at a specific block is not supported!".to_string(),
+            ));
+        }
+        let address: NameOrAddress = from.into();
+        let address = match address {
+            NameOrAddress::Name(_) => {
+                return Err(RevmMiddlewareError::MissingData(
+                    "Querying balance via name is not supported!".to_string(),
+                ))
+            }
+            NameOrAddress::Address(address) => address,
+        };
+
+        self.provider()
+            .as_ref()
+            .instruction_sender
+            .send(Instruction::Query {
+                environment_data: EnvironmentData::Balance(ethers::types::Address::from(address)),
+                outcome_sender: self.provider().as_ref().outcome_sender.clone(),
+            })
+            .map_err(|e| RevmMiddlewareError::Send(e.to_string()))?;
+        match self.provider().as_ref().outcome_receiver.recv()?? {
+            Outcome::QueryReturn(outcome) => {
+                ethers::types::U256::from_str_radix(outcome.as_ref(), 10)
+                    .map_err(|e| RevmMiddlewareError::Conversion(e.to_string()))
+            }
+            _ => Err(RevmMiddlewareError::MissingData(
+                "Wrong variant returned via query!".to_string(),
+            )),
+        }
     }
 }
 

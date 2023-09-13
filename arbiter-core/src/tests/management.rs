@@ -5,11 +5,8 @@ fn add_environment() {
     let mut manager = Manager::new();
     let params = EnvironmentParameters {
         label: TEST_ENV_LABEL.to_string(),
-        block_type: BlockType::RandomlySampled {
-            block_rate: TEST_BLOCK_RATE,
-            block_time: TEST_BLOCK_TIME,
-            seed: TEST_ENV_SEED,
-        },
+        block_type: BlockType::UserControlled,
+        gas_settings: GasSettings::UserControlled,
     };
     manager.add_environment(params).unwrap();
     assert!(manager
@@ -28,7 +25,7 @@ fn add_environment() {
 
 #[test_log::test]
 fn run_environment() {
-    let (manager, _client) = startup_randomly_sampled().unwrap();
+    let (manager, _client) = startup_user_controlled().unwrap();
     assert_eq!(
         manager
             .environments
@@ -42,7 +39,7 @@ fn run_environment() {
 
 #[test_log::test]
 fn pause_environment() {
-    let (mut manager, _client) = startup_randomly_sampled().unwrap();
+    let (mut manager, _client) = startup_user_controlled().unwrap();
 
     manager.pause_environment(TEST_ENV_LABEL).unwrap();
     std::thread::sleep(std::time::Duration::from_millis(100));
@@ -70,7 +67,7 @@ fn pause_environment() {
 
 #[test_log::test]
 fn stop_environment() {
-    let (mut manager, _client) = startup_randomly_sampled().unwrap();
+    let (mut manager, _client) = startup_user_controlled().unwrap();
 
     manager.stop_environment(TEST_ENV_LABEL).unwrap();
     assert_eq!(
@@ -86,7 +83,7 @@ fn stop_environment() {
 
 #[tokio::test]
 async fn stop_environment_after_transactions() {
-    let (mut manager, client) = startup_randomly_sampled().unwrap();
+    let (mut manager, client) = startup_user_controlled().unwrap();
     ArbiterMath::deploy(client, ())
         .unwrap()
         .send()
@@ -103,4 +100,35 @@ async fn stop_environment_after_transactions() {
             .load(std::sync::atomic::Ordering::Relaxed),
         State::Stopped
     );
+}
+
+#[tokio::test]
+async fn pause_prevents_processing_transactions() {
+    let (mut manager, client) = startup_user_controlled().unwrap();
+
+    // Send a tx and check it works (it should)
+    let arbiter_math_1 = ArbiterMath::deploy(client.clone(), ())
+        .unwrap()
+        .send()
+        .await;
+    assert!(arbiter_math_1.is_ok());
+
+    // Pause the environment.
+    manager.pause_environment(TEST_ENV_LABEL).unwrap();
+
+    // Send a tx while the environment is paused (it should not process) will return
+    // an environment error
+    let arbiter_math_2 = ArbiterMath::deploy(client.clone(), ())
+        .unwrap()
+        .send()
+        .await;
+    assert!(arbiter_math_2.is_err());
+
+    // Unpause the environment
+    manager.start_environment(TEST_ENV_LABEL).unwrap();
+    let arbiter_math_2 = ArbiterMath::deploy(client.clone(), ())
+        .unwrap()
+        .send()
+        .await;
+    assert!(arbiter_math_2.is_ok());
 }
