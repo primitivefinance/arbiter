@@ -294,3 +294,15 @@ async fn deal_missing_account() {
     let balance = client.get_balance(wrong_address, None).await;
     assert!(balance.is_err());
 }
+
+#[tokio::test]
+async fn set_gas_price() {
+    let (_manager, client) = startup_user_controlled().unwrap();
+    assert_eq!(
+        client.get_gas_price().await.unwrap(),
+        ethers::types::U256::from(0)
+    );
+    let test_gas_price = ethers::types::U256::from(1337);
+    client.set_gas_price(test_gas_price).await.unwrap();
+    assert_eq!(client.get_gas_price().await.unwrap(), test_gas_price);
+}
