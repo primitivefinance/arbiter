@@ -74,18 +74,18 @@ fn bindings_for_submodules(dir: &Path) -> io::Result<()> {
                     .arg("--overwrite")
                     .output()?;
 
-                    if output.status.success() {
-                        let output_str = String::from_utf8_lossy(&output.stdout);
-                        println!("Command output: {}", output_str);
-                        println!("Revert strings are on");
-                    } else {
-                        let err_str = String::from_utf8_lossy(&output.stderr);
-                        println!("Command failed, error: {}", err_str);
-                        return Err(std::io::Error::new(
-                            std::io::ErrorKind::Other,
-                            "Command failed",
-                        ));
-                    }
+                if output.status.success() {
+                    let output_str = String::from_utf8_lossy(&output.stdout);
+                    println!("Command output: {}", output_str);
+                    println!("Revert strings are on");
+                } else {
+                    let err_str = String::from_utf8_lossy(&output.stderr);
+                    println!("Command failed, error: {}", err_str);
+                    return Err(std::io::Error::new(
+                        std::io::ErrorKind::Other,
+                        "Command failed",
+                    ));
+                }
             }
         }
     }
