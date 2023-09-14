@@ -1,4 +1,4 @@
-use std::{env, io, process::Command};
+use std::{env, fs, io, process::Command};
 
 /// Initializes a new Arbiter project from a template.
 ///
@@ -42,6 +42,12 @@ pub(crate) fn init_project(name: &str) -> io::Result<()> {
     }
 
     env::set_current_dir(name)?;
+
+    let mut cargo_toml_content = fs::read_to_string("Cargo.toml")?;
+    cargo_toml_content = cargo_toml_content.replace("arbiter_template", name);
+    // Write the modified Cargo.toml back to disk
+    fs::write("Cargo.toml", cargo_toml_content)?;
+
     let install_output = Command::new("forge").arg("install").output()?;
 
     if install_output.status.success() {
