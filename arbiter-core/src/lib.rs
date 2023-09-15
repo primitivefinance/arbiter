@@ -32,6 +32,7 @@
 #![warn(missing_docs)]
 
 pub mod bindings; // TODO: Add better documentation here and some kind of overwrite protection.
+pub mod data_collection;
 pub mod environment;
 pub mod manager;
 pub mod math;
