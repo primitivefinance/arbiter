@@ -307,3 +307,44 @@ async fn price_simulation_oracle() {
         assert_eq!(new_price, wad_price);
     }
 }
+
+#[tokio::test]
+async fn auto_approval_on_transfer() {
+    let (_manager, admin) = startup_user_controlled().unwrap();
+    let arbx = deploy_arbx(admin.clone()).await.unwrap();
+    let initial_balance = U256::from(1337);
+    arbx.mint(admin.address(), initial_balance)
+        .send()
+        .await
+        .unwrap()
+        .await
+        .unwrap();
+    let balance = arbx.balance_of(admin.address()).call().await.unwrap();
+    assert_eq!(balance, initial_balance);
+    println!("Balance: {:?}", balance);
+
+    let amount_to_transfer = U256::from(337);
+    arbx.transfer(Address::default(), amount_to_transfer)
+        .send()
+        .await
+        .unwrap()
+        .await
+        .unwrap();
+    let new_balance = arbx.balance_of(admin.address()).call().await.unwrap();
+    assert_eq!(new_balance, initial_balance - amount_to_transfer);
+    println!("New balance: {:?}", new_balance);
+
+    let other_amount_to_transfer = U256::from(1000);
+    arbx.transfer_from(
+        admin.address(),
+        Address::default(),
+        other_amount_to_transfer,
+    )
+    .send()
+    .await
+    .unwrap()
+    .await
+    .unwrap();
+    let final_new_balance = arbx.balance_of(admin.address()).call().await.unwrap();
+    assert_eq!(final_new_balance, U256::from(0));
+}

