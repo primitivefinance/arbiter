@@ -3,6 +3,7 @@
 // mod interaction;
 mod clients;
 mod contracts;
+mod derives;
 mod environment_control;
 mod management;
 mod middleware_instructions;
