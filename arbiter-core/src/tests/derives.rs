@@ -1,6 +1,7 @@
-use super::*;
 use arbiter_derive::Deploy;
 use ethers::prelude::{ContractDeploymentTx, ContractError};
+
+use super::*;
 
 #[derive(Deploy)]
 pub struct Contracts {
