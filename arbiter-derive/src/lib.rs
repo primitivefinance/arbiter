@@ -64,13 +64,13 @@ pub fn derive(input: TokenStream) -> TokenStream {
 
     // Generate the code for new struct and impl
     let expanded = quote! {
-        #[derive(Debug)]
+        #[derive(Clone, Debug)]
         pub struct #new_struct_name {
-            #( #field_names: #new_field_types ),*
+            #( pub #field_names: #new_field_types ),*
         }
 
         impl #struct_name {
-            pub async fn deploy(self) -> Result<#new_struct_name, ContractError<#middleware_type>> {
+            pub async fn deploy(self) -> Result<#new_struct_name, ethers::contract::ContractError<#middleware_type>> {
                 Ok(#new_struct_name {
                     #(
                         #field_names: self.#field_names.send().await.unwrap(),
