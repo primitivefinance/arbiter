@@ -60,6 +60,29 @@ impl<F: Serialize + EthEvent + EthLogDecode + Debug> EventCapture<F> {
                             None
                         }
                     } => {
+                        for (name, value) in deserialized.iter() {
+                            series_vec.push(Series::new(
+                                name,
+                                value
+                                    .as_array()
+                                    .unwrap()
+                                    .iter()
+                                    .map(|x| x.as_str().unwrap().to_string())
+                                    .collect::<Vec<String>>(),
+                            ));
+                        }
+                        let mut dataframe = DataFrame::new(series_vec)?;
+
+                        // Create a directory in the CWD to store the CSV file.
+                        let current_dir = env::current_dir()?;
+                        let output_dir = current_dir.join("output");
+                        fs::create_dir_all(&output_dir)?;
+
+                        // Write out the CSV file using the environment label.
+                        let file_path = output_dir.join(format!("{}.csv", label));
+                        let file = fs::File::create(file_path)?;
+                        let mut writer = CsvWriter::new(file);
+                        writer.finish(&mut dataframe)?;
                         break capture;
                     }
                     // Or continue to process events
@@ -67,6 +90,7 @@ impl<F: Serialize + EthEvent + EthLogDecode + Debug> EventCapture<F> {
                         if let Some(Ok(event)) = next_event {
                             let serialized = serde_json::to_string(&event).unwrap();
                             let deserialized: BTreeMap<String, Value> = serde_json::from_str(&serialized).unwrap();
+                            println!("deserialized: {:?}", deserialized);
                             capture.push(deserialized);
                         }
                     }
@@ -88,7 +112,7 @@ impl<F: Serialize + EthEvent + EthLogDecode + Debug> EventCapture<F> {
     }
 }
 
-pub struct EventTransmuter<B, M, D> {
+struct EventTransmuter<B, M, D> {
     /// The event filter's state
     pub filter: Filter,
     pub provider: B,
