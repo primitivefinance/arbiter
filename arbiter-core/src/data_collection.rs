@@ -2,48 +2,51 @@ use std::{
     any::type_name,
     collections::BTreeMap,
     fmt::Debug,
+    marker::PhantomData,
+    mem::transmute,
     sync::{atomic::AtomicBool, Arc},
 };
 
 use ethers::{
     contract::{EthEvent, EthLogDecode, Event},
-    providers::StreamExt,
+    providers::{Middleware, MiddlewareError, StreamExt},
+    types::Filter,
 };
 use serde::Serialize;
 use serde_json::Value;
 
-use crate::middleware::RevmMiddleware;
+use crate::{
+    environment::{Instruction, InstructionSender, Outcome},
+    middleware::{RevmMiddleware, RevmMiddlewareError},
+};
 
 pub type ArbiterEvent<F> = Event<Arc<RevmMiddleware>, RevmMiddleware, F>;
 
 pub struct EventCapture<F: EthEvent + EthLogDecode + Debug + 'static> {
     event: ArbiterEvent<F>,
-    name: String,
     capture: Vec<BTreeMap<String, Value>>,
-    pub running: Arc<AtomicBool>,
+    pub state: Arc<AtomicBool>,
 }
 
 impl<F: Serialize + EthEvent + EthLogDecode + Debug> EventCapture<F> {
     pub fn new(event: ArbiterEvent<F>) -> Self {
         Self {
             event,
-            name: type_name::<F>().to_owned(),
             capture: vec![],
-            running: Arc::new(AtomicBool::new(false)),
+            state: Arc::new(AtomicBool::new(false)),
         }
     }
 
-    pub fn run(
-        self,
-    ) -> (
-        tokio::task::JoinHandle<Vec<BTreeMap<String, Value>>>,
-        Arc<AtomicBool>,
-    ) {
-        self.running
-            .store(true, std::sync::atomic::Ordering::SeqCst);
-        let event = self.event;
+    // TODO: We should probalby set the state only once everything is sent to the environment properly
+    pub async fn run(self) -> Result<(), RevmMiddlewareError> {
+        let event_transmuter: EventTransmuter<Arc<RevmMiddleware>, RevmMiddleware, F> =
+            unsafe { transmute(self.event) };
+        let provider = event_transmuter.provider.clone();
+        let event: Event<Arc<RevmMiddleware>, RevmMiddleware, F> =
+            unsafe { transmute(event_transmuter) };
+        self.state.store(true, std::sync::atomic::Ordering::SeqCst);
         let mut capture = self.capture;
-        let running = self.running.clone();
+        let running = self.state.clone();
         let handle = tokio::spawn(async move {
             println!("Listening for events");
             let mut stream = event.stream().await.unwrap();
@@ -70,6 +73,26 @@ impl<F: Serialize + EthEvent + EthLogDecode + Debug> EventCapture<F> {
                 }
             }
         });
-        (handle, self.running)
+        let instruction = Instruction::AttachCapture {
+            handle,
+            state: self.state,
+            outcome_sender: provider.outcome_sender(),
+        };
+        let outcome = provider.send_instruction(instruction).await?;
+        match outcome {
+            Outcome::AttachCaptureComplete => Ok(()),
+            _ => Err(RevmMiddlewareError::MissingData(
+                "Wrong variant returned via instruction outcome!".to_string(),
+            )),
+        }
     }
+}
+
+pub struct EventTransmuter<B, M, D> {
+    /// The event filter's state
+    pub filter: Filter,
+    pub provider: B,
+    /// Stores the event datatype
+    pub(crate) datatype: PhantomData<D>,
+    pub(crate) _m: PhantomData<M>,
 }
