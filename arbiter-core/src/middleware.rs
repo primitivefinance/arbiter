@@ -352,6 +352,22 @@ impl RevmMiddleware {
             )),
         }
     }
+
+    pub(crate) async fn send_instruction(
+        &self,
+        instruction: Instruction,
+    ) -> Result<Outcome, RevmMiddlewareError> {
+        self.provider()
+            .as_ref()
+            .instruction_sender
+            .send(instruction)
+            .map_err(|e| RevmMiddlewareError::Send(e.to_string()))?;
+        Ok(self.provider().as_ref().outcome_receiver.recv()??)
+    }
+
+    pub(crate) fn outcome_sender(&self) -> OutcomeSender {
+        self.provider().as_ref().outcome_sender.clone()
+    }
 }
 
 #[async_trait::async_trait]

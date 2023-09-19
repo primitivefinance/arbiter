@@ -30,14 +30,16 @@
 #![warn(missing_docs, unsafe_code)]
 
 use std::{
+    collections::BTreeMap,
     convert::Infallible,
     fmt::Debug,
-    sync::{Arc, Condvar, Mutex},
+    sync::{atomic::AtomicBool, Arc, Condvar, Mutex},
     thread::{self, JoinHandle},
 };
 
 use crossbeam_channel::{unbounded, Receiver, Sender};
 use ethers::core::types::U64;
+use futures_util::SinkExt;
 use log::error;
 use revm::{
     db::{CacheDB, EmptyDB},
@@ -47,13 +49,14 @@ use revm::{
     EVM,
 };
 use serde::{Deserialize, Serialize};
+use serde_json::Value;
 use thiserror::Error;
 
-use crate::math::SeededPoisson;
 #[cfg_attr(doc, doc(hidden))]
 #[cfg_attr(doc, allow(unused_imports))]
 #[cfg(doc)]
 use crate::{manager::Manager, middleware::RevmMiddleware};
+use crate::{manager::ManagerError, math::SeededPoisson};
 
 /// Alias for the sender of the channel for transmitting transactions.
 pub(crate) type InstructionSender = Sender<Instruction>;
@@ -147,6 +150,15 @@ pub struct Environment {
     /// Used for assuring that the environment is stopped properly or for
     /// performing any blocking action the end user needs.
     pub(crate) handle: Option<JoinHandle<Result<(), EnvironmentError>>>,
+
+    pub captures: Arc<
+        Mutex<
+            Vec<(
+                std::thread::JoinHandle<()>,
+                futures_channel::mpsc::Sender<()>,
+            )>,
+        >,
+    >, // does not need to be pub
 }
 
 /// Parameters necessary for creating or modifying an `Environment`.
@@ -285,6 +297,9 @@ pub enum EnvironmentError {
     /// [`BlockType::RandomlySampled`].
     #[error("error in the environment! attempted to set a gas price via a multiplier when the `BlockType` is not `BlockType::RandomlySampled`.")]
     NotRandomlySampledBlockType,
+
+    #[error("failed to gain lock on environment field mutex! error due to: {0}")]
+    Lock(String),
 }
 
 impl Environment {
@@ -315,6 +330,7 @@ impl Environment {
             socket,
             handle: None,
             pausevar: Arc::new((Mutex::new(()), Condvar::new())),
+            captures: Arc::new(Mutex::new(Vec::new())),
         }
     }
 
@@ -348,6 +364,7 @@ impl Environment {
             .store(State::Running, std::sync::atomic::Ordering::SeqCst);
         let state = Arc::clone(&self.state);
         let pausevar = Arc::clone(&self.pausevar);
+        let captures = Arc::clone(&self.captures);
 
         // Move the EVM and its socket to a new thread and retrieve this handle
         let handle = thread::spawn(move || {
@@ -384,7 +401,18 @@ impl Environment {
                 // The outermost check is to find what the `Environment`'s state is in
                 match state.load(std::sync::atomic::Ordering::SeqCst) {
                     // Leave the loop upon seeing `State::Stopped`
-                    State::Stopped => break,
+                    State::Stopped => {
+                        let mut guard = captures
+                            .lock()
+                            .map_err(|e| EnvironmentError::Lock(e.to_string()))?;
+                        for (handle, stop_signal_sender) in guard.iter_mut() {
+                            stop_signal_sender.send(());
+                            // let handle = *handle;
+                            // let rt = tokio::runtime::Runtime::new().unwrap();
+                            // rt.block_on(async { tokio::join!(handle) });
+                            // handle.join();
+                        }
+                    }
 
                     // Await for the condvar alert to change the state
                     State::Paused => {
@@ -400,6 +428,7 @@ impl Environment {
                         while let Ok(request) = instruction_receiver.try_recv() {
                             let sender = match request {
                                 Instruction::AddAccount { outcome_sender, .. } => outcome_sender,
+                                Instruction::AttachCapture { outcome_sender, .. } => outcome_sender, // TODO: This may be a bad thing if we don't handle this properly
                                 Instruction::BlockUpdate { outcome_sender, .. } => outcome_sender,
                                 Instruction::Deal { outcome_sender, .. } => outcome_sender,
                                 Instruction::Call { outcome_sender, .. } => outcome_sender,
@@ -452,6 +481,21 @@ impl Environment {
                                                 })?;
                                         }
                                     }
+                                }
+                                Instruction::AttachCapture {
+                                    handle,
+                                    stop_signal_sender,
+                                    outcome_sender,
+                                } => {
+                                    let mut guard = captures
+                                        .lock()
+                                        .map_err(|e| EnvironmentError::Lock(e.to_string()))?;
+                                    guard.push((handle, stop_signal_sender));
+                                    outcome_sender
+                                        .send(Ok(Outcome::AttachCaptureComplete))
+                                        .map_err(|e| {
+                                            EnvironmentError::Communication(e.to_string())
+                                        })?;
                                 }
                                 Instruction::BlockUpdate {
                                     block_number,
@@ -723,6 +767,12 @@ pub enum Instruction {
         outcome_sender: OutcomeSender,
     },
 
+    AttachCapture {
+        handle: std::thread::JoinHandle<()>,
+        stop_signal_sender: futures_channel::mpsc::Sender<()>,
+        outcome_sender: OutcomeSender,
+    },
+
     /// A `BlockUpdate` is used to update the block number and timestamp of the
     /// [`EVM`].
     BlockUpdate {
@@ -857,6 +907,8 @@ pub enum Outcome {
     /// representation of the data. Currently this may carry the block
     /// number, block timestamp, gas price, or balance of an account.
     QueryReturn(String),
+
+    AttachCaptureComplete,
 }
 /// Provides channels for communication between the EVM and external entities.
 ///

@@ -39,6 +39,10 @@ thiserror = "1.0.30"
 # Logging
 log = "0.4.19"
 futures-util = "0.3.28"
+futures-channel = "0.3.28"
+
+# Data output
+polars = "0.32.0"
 
 # Dependencies for the test build and development
 [dev-dependencies]
