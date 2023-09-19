@@ -1,11 +1,12 @@
 [package]
 name = "arbiter-core"
-version = "0.5.0"
+version = "0.5.1"
 edition = "2021"
 authors = ["Waylon Jepsen <waylonjepsen1@gmail.com>", "Colin Roberts <colin@autoparallel.xyz>"]
 description = "Allowing smart contract developers to do simulation driven development via an EVM emulator"
 license = "Apache-2.0"
 keywords = ["ethereum", "evm", "emulator", "testing", "smart-contracts"]
+readme = "../README.md"
 
 # Dependencies for the release build
 [dependencies]
@@ -45,6 +46,7 @@ hex = { version = "0.4.3", default-features = false }
 anyhow = "1.0.71"
 env_logger = "0.10.0"
 test-log = "0.2.12"
+arbiter-derive = { path = "../arbiter-derive" }
 
 futures = "0.3.28"
 assert_matches = "1.5"
