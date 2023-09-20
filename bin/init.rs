@@ -1,4 +1,4 @@
-use std::{env, fs, io, process::Command, error::Error};
+use std::{env, error::Error, fs, io, process::Command};
 
 /// Initializes a new Arbiter project from a template.
 ///
@@ -109,15 +109,11 @@ pub(crate) fn init_project(name: &str) -> io::Result<()> {
 /// This function will return an error in the following situations:
 ///
 /// - The `rm` command is not found or cannot be executed.
-/// - The `.git` directory does not exist or cannot be removed due to
-///   permission issues.
-///
+/// - The `.git` directory does not exist or cannot be removed due to permission
+///   issues.
 pub fn remove_git() -> Result<(), Box<dyn Error>> {
-    let status = Command::new("rm")
-        .arg("-rf")
-        .arg(".git")
-        .status()?;
-        
+    let status = Command::new("rm").arg("-rf").arg(".git").status()?;
+
     if !status.success() {
         return Err("failed to execute process".into());
     }
