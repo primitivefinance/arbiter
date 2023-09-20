@@ -87,7 +87,7 @@ enum Commands {
         simulation_name: String,
         /// Optional no git flag
         #[clap(short, long)]
-        optional_flag: Option<String>
+        optional_flag: Option<String>,
     },
 }
 
@@ -104,7 +104,10 @@ fn main() -> Result<(), Box<dyn Error>> {
     let args = Args::parse();
 
     match &args.command {
-        Some(Commands::Init { simulation_name, optional_flag }) => {
+        Some(Commands::Init {
+            simulation_name,
+            optional_flag,
+        }) => {
             println!("Initializing Arbiter project...");
             init::init_project(simulation_name)?;
             if let Some(flag_value) = optional_flag {
