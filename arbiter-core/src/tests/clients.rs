@@ -3,7 +3,6 @@ use super::*;
 #[test]
 fn simulation_signer() -> Result<()> {
     let (_, client) = startup_user_controlled()?;
-    println!("client.address(): {}", client.address());
     assert_eq!(
         client.address(),
         Address::from_str("0x2efdc9eecfee3a776209fcb8e9a83a6b221d74f5").unwrap()

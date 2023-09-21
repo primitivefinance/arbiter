@@ -76,16 +76,12 @@ fn startup_randomly_sampled() -> Result<(Environment, Arc<RevmMiddleware>)> {
 }
 
 fn startup_user_controlled() -> Result<(Environment, Arc<RevmMiddleware>)> {
-    println!("where we at bro");
     let mut env = EnvironmentBuilder::new().build(); 
-    println!("where we at bro");
     env.run();
     let client = Arc::new(RevmMiddleware::new(
         &env,
         Some(TEST_SIGNER_SEED_AND_LABEL.to_string()),
     )?);
-    println!("client.address(): {}", client.address());
-    println!("wtf bro");
     Ok((env, client))
 }
 
