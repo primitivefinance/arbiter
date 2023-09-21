@@ -137,6 +137,13 @@ We hope to improve our API to allow the end user to be able to interface with th
 
 Please let us know if you find any issues with these benchmarks or if you have any suggestions on how to improve them!
 
+## Testing
+
+If you contribute please write tests for any new code you write, To run the tests, you can run:
+
+```bash
+cargo test --all --all-features
+```
 
 ## Contributing
 
