@@ -166,8 +166,6 @@ async fn filter_address() {
     assert!(!event_two.data.is_empty());
 
     // check that the address_watcher has not received any events
-
-    // Set a timeout for waiting for an event from the address_watcher
     let mut ctx = Context::from_waker(futures::task::noop_waker_ref());
     let poll_result = Pin::new(&mut address_watcher).poll_next(&mut ctx);
     match poll_result {
