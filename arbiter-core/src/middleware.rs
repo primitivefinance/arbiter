@@ -312,6 +312,34 @@ impl RevmMiddleware {
         }
     }
 
+    /// Overwrites the data `value` of an account at `address` at the storage slot `key`.
+    pub async fn store(
+        &self,
+        address: Address,
+        key: ethers::types::H256,
+        value: ethers::types::H256,
+    ) -> Result<(), RevmMiddlewareError> {
+        self.provider()
+            .as_ref()
+            .instruction_sender
+            .send(Instruction::Cheatcode {
+                cheatcode: Cheatcode::Store {
+                    account: address,
+                    key,
+                    value,
+                },
+                outcome_sender: self.provider().as_ref().outcome_sender.clone(),
+            })
+            .map_err(|e| RevmMiddlewareError::Send(e.to_string()))?;
+
+        match self.provider().as_ref().outcome_receiver.recv()?? {
+            Outcome::CheatcodeCompleted => Ok(()),
+            _ => Err(RevmMiddlewareError::MissingData(
+                "Wrong variant returned via instruction outcome!".to_string(),
+            )),
+        }
+    }
+
     /// Returns the address of the wallet/signer given to a client.
     pub fn address(&self) -> Address {
         self.wallet.address()
@@ -779,6 +807,50 @@ impl Middleware for RevmMiddleware {
             Err(RevmMiddlewareError::Send(
                 "Environment is offline!".to_string(),
             ))
+        }
+    }
+
+    /// Fetches the value stored at the storage slot `key` for an account at `address`.
+    /// todo: implement the storage at a specific block feature.
+    async fn get_storage_at<T: Into<NameOrAddress> + Send + Sync>(
+        &self,
+        account: T,
+        key: ethers::types::H256,
+        block: Option<BlockId>,
+    ) -> Result<ethers::types::H256, RevmMiddlewareError> {
+        let address: NameOrAddress = account.into();
+        let address = match address {
+            NameOrAddress::Name(_) => {
+                return Err(RevmMiddlewareError::MissingData(
+                    "Querying storage via name is not supported!".to_string(),
+                ))
+            }
+            NameOrAddress::Address(address) => address,
+        };
+
+        self.provider()
+            .as_ref()
+            .instruction_sender
+            .send(Instruction::Cheatcode {
+                cheatcode: Cheatcode::GetStorageAt {
+                    account: address,
+                    key,
+                    block, // note: currently does not support querying storage at a specific block
+                },
+                outcome_sender: self.provider().as_ref().outcome_sender.clone(),
+            })
+            .map_err(|e| RevmMiddlewareError::Send(e.to_string()))?;
+
+        // Account storage is a HashMap of revm's primitive U256 type alias (alias of ruint crates Uint<256, 4> type).
+        // However, ethers-rs middleware expects the storage key and value to be ethers::types::H256.
+        match self.provider().as_ref().outcome_receiver.recv()?? {
+            Outcome::CheatcodeReturn(outcome) => {
+                let value: ethers::types::H256 = ethers::types::H256::from(outcome.to_be_bytes());
+                Ok(value)
+            }
+            _ => Err(RevmMiddlewareError::MissingData(
+                "Wrong variant returned via instruction outcome!".to_string(),
+            )),
         }
     }
 }

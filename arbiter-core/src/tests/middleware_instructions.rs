@@ -299,3 +299,34 @@ async fn set_gas_price() {
     client.set_gas_price(test_gas_price).await.unwrap();
     assert_eq!(client.get_gas_price().await.unwrap(), test_gas_price);
 }
+
+#[tokio::test]
+async fn test_cheatcode_store() {
+    let (_manager, client) = startup_randomly_sampled().unwrap();
+    // Get the initial storage and assert it is zero.
+    let storage = client
+        .get_storage_at(client.address(), ethers::types::H256::zero(), None)
+        .await
+        .unwrap();
+    assert_eq!(storage, ethers::types::H256::zero());
+
+    // Store a random value at the zero storage slot.
+    let random_value: ethers::types::H256 = ethers::types::H256::random();
+    client
+        .store(
+            client.address(),
+            ethers::types::H256::zero(),
+            random_value.clone(),
+        )
+        .await
+        .unwrap();
+
+    // Get the account's storage after calling `store`.
+    let storage = client
+        .get_storage_at(client.address(), ethers::types::H256::zero(), None)
+        .await
+        .unwrap();
+
+    // Assert that the storage is equal to the random value.
+    assert_eq!(storage, random_value);
+}
