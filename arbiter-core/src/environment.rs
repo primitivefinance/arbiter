@@ -183,10 +183,38 @@ pub struct EnvironmentParameters {
     pub gas_settings: GasSettings,
 }
 
+/// A builder for creating an `Environment`.
+///
+/// This builder allows for the configuration of an `Environment` before it is
+/// instantiated. It provides methods for setting the label, block settings, and
+/// gas settings of the `Environment`.
 pub struct EnvironmentBuilder {
+    /// An optional label for the `Environment`.
+    /// This label is used to allow the [`Manager`] to locate the [`Environment`] in order
+    /// to control it. It is also used for organizing, tracking progress, and
+    /// post-processing results.
     pub label: Option<String>,
+
+    /// The type of block that will be used to step forward the [`EVM`].
+    /// This can either be a [`BlockType::UserControlled`] or a
+    /// [`BlockType::RandomlySampled`].
+    /// The former allows the end user to control the block number from
+    /// their own external API and the latter allows the end user to set
+    /// a rate parameter and seed for a Poisson distribution that will be
+    /// used to sample the amount of transactions per block.
     pub block_settings: BlockSettings,
-    pub gas_settings: GasSettings
+
+    /// The gas settings for the `Environment`.
+    /// This can either be [`GasSettings::UserControlled`],
+    /// [`GasSettings::RandomlySampled`], or [`GasSettings::Constant`].
+    /// The first allows the end user to control the gas price from
+    /// their own external API (not yet implemented) and the second allows
+    /// the end user to set a multiplier for the gas price that will be used
+    /// to sample the amount of transactions per block. The last allows
+    /// the end user to set a constant gas price for all transactions.
+    /// By default, [`GasSettings::UserControlled`] begins with a gas price of
+    /// 0.
+    pub gas_settings: GasSettings,
 }
 
 
