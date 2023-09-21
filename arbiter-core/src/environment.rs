@@ -48,6 +48,7 @@ use revm::{
 };
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
+use log::info;
 
 use crate::math::SeededPoisson;
 #[cfg_attr(doc, doc(hidden))]
@@ -271,6 +272,13 @@ pub enum EnvironmentError {
     /// please report this error!
     #[error("error pausing! due to: {0:?}")]
     Pause(String),
+
+    /// [`EnvironmentError::Stop`] is thrown when the [`Environment`]
+    /// fails to stop. This error could occur due to an invalid state transition
+    /// or other unexpected conditions. If this error is thrown, it indicates
+    /// a serious issue that needs to be investigated. Please report this error!
+    #[error("error stopping! due to: {0:?}")]
+    Stop(String),
 
     /// [`EnvironmentError::Communication`] is thrown when a channel for
     /// receiving or broadcasting fails in some way. This error could happen
@@ -785,6 +793,65 @@ impl Environment {
             Ok(())
         });
         self.handle = Some(handle);
+    }
+
+    /// Pauses the execution of the environment.
+    ///
+    /// This method changes the state of the environment to `Paused` if it is currently `Running`.
+    /// If the environment is already `Paused`, it does nothing and returns `Ok(())`.
+    /// If the environment is `Stopped`, it returns an `Err(EnvironmentError::Pause("Environment is stopped. Cannot pause."))`.
+    /// If the environment is in `Initialization` state, it returns an `Err(EnvironmentError::Pause("Environment is in an invalid state: Initialization. This should not be possible."))`.
+    ///
+    /// # Returns
+    ///
+    /// * `Ok(())` if the environment was successfully paused or was already paused.
+    /// * `Err(EnvironmentError::Pause(String))` if the environment is stopped or in an invalid state.
+    pub fn pause(&mut self) -> Result<(), EnvironmentError> {
+        match self.state.load(std::sync::atomic::Ordering::SeqCst) {
+            State::Running => {
+                self.state.store(State::Paused, std::sync::atomic::Ordering::SeqCst);
+                info!("Pausing environment with label: {}", self.parameters.label.as_ref().unwrap_or(&"".into()));
+                Ok(())
+            }
+            State::Paused => Ok(()),
+            State::Stopped => Err(EnvironmentError::Pause(
+                "Environment is stopped. Cannot pause.".into(),
+            )),
+            State::Initialization => Err(EnvironmentError::Pause(
+                "Environment is in an invalid state: Initialization. This should not be possible."
+                    .into(),
+            )),
+        }
+    }
+
+    /// Stops the execution of the environment.
+    ///
+    /// This method changes the state of the environment to `Stopped` if it is currently `Running` or `Paused`.
+    /// If the environment is already `Stopped`, it does nothing and returns `Ok(())`.
+    /// If the environment is in `Initialization` state, it returns an `Err(EnvironmentError::Stop("Environment is in an invalid state: Initialization. This should not be possible."))`.
+    ///
+    /// # Returns
+    ///
+    /// * `Ok(())` if the environment was successfully stopped or was already stopped.
+    /// * `Err(EnvironmentError::Stop(String))` if the environment is in an invalid state.
+    pub fn stop(&mut self) -> Result<(), EnvironmentError> {
+        match self.state.load(std::sync::atomic::Ordering::SeqCst) {
+            State::Running => {
+                self.state.store(State::Stopped, std::sync::atomic::Ordering::SeqCst);
+                info!("Stopping environment with label: {}", self.parameters.label.as_ref().unwrap_or(&"".into()));
+                Ok(())
+            }
+            State::Paused => {
+                self.state.store(State::Stopped, std::sync::atomic::Ordering::SeqCst);
+                info!("Stopping environment with label: {}", self.parameters.label.as_ref().unwrap_or(&"".into()));
+                Ok(())
+            }
+            State::Stopped => Ok(()),
+            State::Initialization => Err(EnvironmentError::Stop(
+                "Environment is in an invalid state: Initialization. This should not be possible."
+                    .into(),
+            )),
+        }
     }
 }
 
