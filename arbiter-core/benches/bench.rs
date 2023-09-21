@@ -10,8 +10,7 @@ use arbiter_core::{
         arbiter_math::ArbiterMath,
         arbiter_token::{self, ArbiterToken},
     },
-    environment::{BlockSettings, EnvironmentParameters, GasSettings},
-    manager::Manager,
+    environment::{EnvironmentBuilder, Environment},
     middleware::RevmMiddleware,
 };
 use ethers::{
@@ -59,9 +58,8 @@ async fn main() -> Result<()> {
                     duration
                 }
                 label @ "arbiter" => {
-                    let (client, mut manager) = arbiter_startup().await?;
+                    let (_environment, client) = arbiter_startup().await?;
                     let duration = bencher(client, label).await?;
-                    manager.stop_environment(ENV_LABEL)?;
                     duration
                 }
                 _ => panic!("Invalid argument"),
@@ -156,22 +154,15 @@ async fn anvil_startup() -> Result<(
     Ok((client, anvil))
 }
 
-async fn arbiter_startup() -> Result<(Arc<RevmMiddleware>, Manager)> {
-    let mut manager = Manager::new();
-    let params = EnvironmentParameters {
-        label: ENV_LABEL.to_string(),
-        block_settings: BlockSettings::UserControlled,
-        gas_settings: GasSettings::UserControlled,
-    };
-    manager.add_environment(params)?;
-    manager.start_environment(ENV_LABEL)?;
+async fn arbiter_startup() -> Result<(Environment, Arc<RevmMiddleware>)> {
+    let environment = EnvironmentBuilder::new().build();
 
     let client = Arc::new(RevmMiddleware::new(
-        manager.environments.get(ENV_LABEL).unwrap(),
+        &environment,
         Some("name".to_string()),
     )?);
 
-    Ok((client, manager))
+    Ok((environment, client))
 }
 
 async fn deployments<M: Middleware + 'static>(
