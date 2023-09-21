@@ -10,7 +10,7 @@ use arbiter_core::{
         arbiter_math::ArbiterMath,
         arbiter_token::{self, ArbiterToken},
     },
-    environment::{EnvironmentBuilder, Environment},
+    environment::{Environment, EnvironmentBuilder},
     middleware::RevmMiddleware,
 };
 use ethers::{
@@ -157,10 +157,7 @@ async fn anvil_startup() -> Result<(
 async fn arbiter_startup() -> Result<(Environment, Arc<RevmMiddleware>)> {
     let environment = EnvironmentBuilder::new().build();
 
-    let client = Arc::new(RevmMiddleware::new(
-        &environment,
-        Some("name".to_string()),
-    )?);
+    let client = Arc::new(RevmMiddleware::new(&environment, Some("name".to_string()))?);
 
     Ok((environment, client))
 }

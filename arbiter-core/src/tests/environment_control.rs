@@ -201,23 +201,33 @@ async fn constant_gas_price() {
 fn pause_environment() {
     let (mut environment, _client) = startup_user_controlled().unwrap();
     environment.pause().unwrap();
-    assert_eq!(environment.state.load(std::sync::atomic::Ordering::Relaxed), State::Paused);
+    assert_eq!(
+        environment.state.load(std::sync::atomic::Ordering::Relaxed),
+        State::Paused
+    );
 }
 
 #[test]
 fn stop_environment() {
     let (mut environment, _client) = startup_user_controlled().unwrap();
     environment.stop().unwrap();
-    assert_eq!(environment.state.load(std::sync::atomic::Ordering::Relaxed), State::Stopped);
+    assert_eq!(
+        environment.state.load(std::sync::atomic::Ordering::Relaxed),
+        State::Stopped
+    );
 }
 
 #[test]
 fn can_start_from_paused() {
     let (mut environment, _client) = startup_user_controlled().unwrap();
     environment.pause().unwrap();
-    assert_eq!(environment.state.load(std::sync::atomic::Ordering::Relaxed), State::Paused);
+    assert_eq!(
+        environment.state.load(std::sync::atomic::Ordering::Relaxed),
+        State::Paused
+    );
     environment.run();
-    assert_eq!(environment.state.load(std::sync::atomic::Ordering::Relaxed), State::Running);
+    assert_eq!(
+        environment.state.load(std::sync::atomic::Ordering::Relaxed),
+        State::Running
+    );
 }
-
-

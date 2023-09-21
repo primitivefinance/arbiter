@@ -39,6 +39,7 @@ use std::{
 use crossbeam_channel::{unbounded, Receiver, Sender};
 use ethers::core::types::U64;
 use log::error;
+use log::info;
 use revm::{
     db::{CacheDB, EmptyDB},
     primitives::{
@@ -48,7 +49,6 @@ use revm::{
 };
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
-use log::info;
 
 use crate::math::SeededPoisson;
 #[cfg_attr(doc, doc(hidden))]
@@ -218,8 +218,6 @@ pub struct EnvironmentBuilder {
     pub gas_settings: GasSettings,
 }
 
-
-
 /// Allow the end user to be able to access a debug printout for the
 /// [`Environment`]. Note that the [`EVM`] does not implement debug display,
 /// hence the implementation by hand here.
@@ -340,7 +338,7 @@ impl EnvironmentBuilder {
         Self {
             label: None,
             block_settings: BlockSettings::UserControlled,
-            gas_settings: GasSettings::UserControlled
+            gas_settings: GasSettings::UserControlled,
         }
     }
 
@@ -371,7 +369,7 @@ impl EnvironmentBuilder {
         EnvironmentParameters {
             label: self.label.clone(),
             block_settings: self.block_settings.clone(),
-            gas_settings: self.gas_settings.clone()
+            gas_settings: self.gas_settings.clone(),
         }
     }
 
@@ -809,8 +807,12 @@ impl Environment {
     pub fn pause(&mut self) -> Result<(), EnvironmentError> {
         match self.state.load(std::sync::atomic::Ordering::SeqCst) {
             State::Running => {
-                self.state.store(State::Paused, std::sync::atomic::Ordering::SeqCst);
-                info!("Pausing environment with label: {}", self.parameters.label.as_ref().unwrap_or(&"".into()));
+                self.state
+                    .store(State::Paused, std::sync::atomic::Ordering::SeqCst);
+                info!(
+                    "Pausing environment with label: {}",
+                    self.parameters.label.as_ref().unwrap_or(&"".into())
+                );
                 Ok(())
             }
             State::Paused => Ok(()),
@@ -837,13 +839,21 @@ impl Environment {
     pub fn stop(&mut self) -> Result<(), EnvironmentError> {
         match self.state.load(std::sync::atomic::Ordering::SeqCst) {
             State::Running => {
-                self.state.store(State::Stopped, std::sync::atomic::Ordering::SeqCst);
-                info!("Stopping environment with label: {}", self.parameters.label.as_ref().unwrap_or(&"".into()));
+                self.state
+                    .store(State::Stopped, std::sync::atomic::Ordering::SeqCst);
+                info!(
+                    "Stopping environment with label: {}",
+                    self.parameters.label.as_ref().unwrap_or(&"".into())
+                );
                 Ok(())
             }
             State::Paused => {
-                self.state.store(State::Stopped, std::sync::atomic::Ordering::SeqCst);
-                info!("Stopping environment with label: {}", self.parameters.label.as_ref().unwrap_or(&"".into()));
+                self.state
+                    .store(State::Stopped, std::sync::atomic::Ordering::SeqCst);
+                info!(
+                    "Stopping environment with label: {}",
+                    self.parameters.label.as_ref().unwrap_or(&"".into())
+                );
                 Ok(())
             }
             State::Stopped => Ok(()),

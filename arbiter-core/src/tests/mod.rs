@@ -60,13 +60,16 @@ pub const ARBITER_TOKEN_Y_DECIMALS: u8 = 18;
 pub const LIQUID_EXCHANGE_PRICE: f64 = 420.69;
 
 fn startup_randomly_sampled() -> Result<(Environment, Arc<RevmMiddleware>)> {
-    let mut env = EnvironmentBuilder::new().block_settings(BlockSettings::RandomlySampled {
-        block_rate: TEST_BLOCK_RATE,
-        block_time: TEST_BLOCK_TIME,
-        seed: TEST_ENV_SEED,
-    }).gas_settings(GasSettings::RandomlySampled {
-        multiplier: TEST_GAS_MULTIPLIER,
-    }).build();
+    let mut env = EnvironmentBuilder::new()
+        .block_settings(BlockSettings::RandomlySampled {
+            block_rate: TEST_BLOCK_RATE,
+            block_time: TEST_BLOCK_TIME,
+            seed: TEST_ENV_SEED,
+        })
+        .gas_settings(GasSettings::RandomlySampled {
+            multiplier: TEST_GAS_MULTIPLIER,
+        })
+        .build();
     env.run();
     let client = Arc::new(RevmMiddleware::new(
         &env,
@@ -76,7 +79,7 @@ fn startup_randomly_sampled() -> Result<(Environment, Arc<RevmMiddleware>)> {
 }
 
 fn startup_user_controlled() -> Result<(Environment, Arc<RevmMiddleware>)> {
-    let mut env = EnvironmentBuilder::new().build(); 
+    let mut env = EnvironmentBuilder::new().build();
     env.run();
     let client = Arc::new(RevmMiddleware::new(
         &env,
@@ -86,7 +89,9 @@ fn startup_user_controlled() -> Result<(Environment, Arc<RevmMiddleware>)> {
 }
 
 fn startup_constant_gas() -> Result<(Environment, Arc<RevmMiddleware>)> {
-    let mut env = EnvironmentBuilder::new().gas_settings(GasSettings::Constant(TEST_GAS_PRICE)).build(); 
+    let mut env = EnvironmentBuilder::new()
+        .gas_settings(GasSettings::Constant(TEST_GAS_PRICE))
+        .build();
     env.run();
     let client = Arc::new(RevmMiddleware::new(
         &env,
