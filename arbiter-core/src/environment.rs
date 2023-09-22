@@ -358,8 +358,8 @@ impl EnvironmentBuilder {
 
     /// Sets the `label` for the `EnvironmentBuilder`.
     /// This is an optional string that can be used to identify the [`Environment`].
-    pub fn label(mut self, label: String) -> Self {
-        self.label = Some(label);
+    pub fn label(mut self, label: impl Into<String>) -> Self {
+        self.label = Some(label.into());
         self
     }
 
@@ -809,10 +809,11 @@ impl Environment {
             State::Running => {
                 self.state
                     .store(State::Paused, std::sync::atomic::Ordering::SeqCst);
-                info!(
-                    "Pausing environment with label: {}",
-                    self.parameters.label.as_ref().unwrap_or(&"".into())
-                );
+                if let Some(label) = &self.parameters.label {
+                    info!("Pausing environment with label: {}", label);
+                } else {
+                    info!("Pausing environment with no label.");
+                }
                 Ok(())
             }
             State::Paused => Ok(()),
@@ -841,10 +842,11 @@ impl Environment {
             State::Running => {
                 self.state
                     .store(State::Stopped, std::sync::atomic::Ordering::SeqCst);
-                info!(
-                    "Stopping environment with label: {}",
-                    self.parameters.label.as_ref().unwrap_or(&"".into())
-                );
+                if let Some(label) = &self.parameters.label {
+                    info!("Stopping environment with label: {}", label);
+                } else {
+                    info!("Stopping environment with no label.");
+                }
                 Ok(())
             }
             State::Paused => {
@@ -1197,7 +1199,7 @@ pub(crate) mod tests {
     #[test]
     fn new_with_builder_custom_settings() {
         let environment = EnvironmentBuilder::new()
-            .label(TEST_ENV_LABEL.into())
+            .label(TEST_ENV_LABEL)
             .block_settings(BlockSettings::RandomlySampled {
                 block_rate: 1.0,
                 block_time: 12,
