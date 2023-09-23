@@ -2,7 +2,7 @@ use super::*;
 
 #[tokio::test]
 async fn receipt_data() {
-    let (_manager, client) = startup_user_controlled().unwrap();
+    let (_environment, client) = startup_user_controlled().unwrap();
     let arbiter_token = deploy_arbx(client.clone()).await.unwrap();
     let receipt = arbiter_token
         .mint(client.default_sender().unwrap(), 1000u64.into())
@@ -51,13 +51,10 @@ async fn receipt_data() {
 // transactions per block. We should check these.
 #[tokio::test]
 async fn randomly_sampled_blocks() {
-    let (manager, client) = startup_randomly_sampled().unwrap();
+    let (environment, client) = startup_randomly_sampled().unwrap();
     client.deal(client.address(), U256::MAX).await.unwrap();
     // tx_0 is the transaction that creates the token contract
     let arbiter_token = deploy_arbx(client.clone()).await.unwrap();
-
-    // get the environment so we can look at its distribution
-    let environment = manager.environments.get(TEST_ENV_LABEL).unwrap();
 
     let mut distribution = match environment.parameters.block_settings {
         BlockSettings::RandomlySampled {
@@ -103,7 +100,7 @@ async fn randomly_sampled_blocks() {
 
 #[tokio::test]
 async fn user_update_block() {
-    let (_manager, client) = startup_user_controlled().unwrap();
+    let (_environment, client) = startup_user_controlled().unwrap();
     let block_number = client.get_block_number().await.unwrap();
     assert_eq!(block_number, ethers::types::U64::from(0));
 
@@ -126,13 +123,10 @@ async fn user_update_block() {
 
 #[tokio::test]
 async fn randomly_sampled_gas_price() {
-    let (manager, client) = startup_randomly_sampled().unwrap();
+    let (environment, client) = startup_randomly_sampled().unwrap();
     client.deal(client.address(), U256::MAX).await.unwrap();
     // tx_0 is the transaction that creates the token contract
     let arbiter_token = deploy_arbx(client.clone()).await.unwrap();
-
-    // get the environment so we can look at its distribution
-    let environment = manager.environments.get(TEST_ENV_LABEL).unwrap();
 
     let mut distribution = match environment.parameters.block_settings {
         BlockSettings::RandomlySampled {
@@ -183,7 +177,7 @@ async fn randomly_sampled_gas_price() {
 
 #[tokio::test]
 async fn constant_gas_price() {
-    let (_manager, client) = startup_constant_gas().unwrap();
+    let (_environment, client) = startup_constant_gas().unwrap();
     client.deal(client.address(), U256::MAX).await.unwrap();
     // tx_0 is the transaction that creates the token contract
     let arbiter_token = deploy_arbx(client.clone()).await.unwrap();
@@ -201,4 +195,39 @@ async fn constant_gas_price() {
             .unwrap();
         assert_eq!(gas_price, U256::from(TEST_GAS_PRICE));
     }
+}
+
+#[test]
+fn pause_environment() {
+    let (mut environment, _client) = startup_user_controlled().unwrap();
+    environment.pause().unwrap();
+    assert_eq!(
+        environment.state.load(std::sync::atomic::Ordering::Relaxed),
+        State::Paused
+    );
+}
+
+#[test]
+fn stop_environment() {
+    let (mut environment, _client) = startup_user_controlled().unwrap();
+    environment.stop().unwrap();
+    assert_eq!(
+        environment.state.load(std::sync::atomic::Ordering::Relaxed),
+        State::Stopped
+    );
+}
+
+#[test]
+fn can_start_from_paused() {
+    let (mut environment, _client) = startup_user_controlled().unwrap();
+    environment.pause().unwrap();
+    assert_eq!(
+        environment.state.load(std::sync::atomic::Ordering::Relaxed),
+        State::Paused
+    );
+    environment.run();
+    assert_eq!(
+        environment.state.load(std::sync::atomic::Ordering::Relaxed),
+        State::Running
+    );
 }

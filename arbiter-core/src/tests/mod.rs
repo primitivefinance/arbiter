@@ -5,7 +5,6 @@ mod clients;
 mod contracts;
 mod derives;
 mod environment_control;
-mod management;
 mod middleware_instructions;
 
 use std::{
@@ -29,7 +28,6 @@ use futures::{Stream, StreamExt};
 use crate::{
     bindings::{arbiter_math::*, arbiter_token::*, liquid_exchange::LiquidExchange},
     environment::{tests::TEST_ENV_LABEL, *},
-    manager::*,
     math::*,
     middleware::*,
 };
@@ -61,61 +59,45 @@ pub const ARBITER_TOKEN_Y_DECIMALS: u8 = 18;
 
 pub const LIQUID_EXCHANGE_PRICE: f64 = 420.69;
 
-fn startup_randomly_sampled() -> Result<(Manager, Arc<RevmMiddleware>)> {
-    let mut manager = Manager::new();
-    let params = EnvironmentParameters {
-        label: TEST_ENV_LABEL.to_string(),
-        block_settings: BlockSettings::RandomlySampled {
+fn startup_randomly_sampled() -> Result<(Environment, Arc<RevmMiddleware>)> {
+    let mut env = EnvironmentBuilder::new()
+        .block_settings(BlockSettings::RandomlySampled {
             block_rate: TEST_BLOCK_RATE,
             block_time: TEST_BLOCK_TIME,
             seed: TEST_ENV_SEED,
-        },
-        gas_settings: GasSettings::RandomlySampled {
+        })
+        .gas_settings(GasSettings::RandomlySampled {
             multiplier: TEST_GAS_MULTIPLIER,
-        },
-    };
-    manager.add_environment(params).unwrap();
-    manager.start_environment(TEST_ENV_LABEL)?;
-    let environment = manager.environments.get(TEST_ENV_LABEL).unwrap();
+        })
+        .build();
+    env.run();
     let client = Arc::new(RevmMiddleware::new(
-        environment,
+        &env,
         Some(TEST_SIGNER_SEED_AND_LABEL.to_string()),
     )?);
-    Ok((manager, client))
+    Ok((env, client))
 }
 
-fn startup_user_controlled() -> Result<(Manager, Arc<RevmMiddleware>)> {
-    let mut manager = Manager::new();
-    let params = EnvironmentParameters {
-        label: TEST_ENV_LABEL.to_string(),
-        block_settings: BlockSettings::UserControlled,
-        gas_settings: GasSettings::UserControlled,
-    };
-    manager.add_environment(params).unwrap();
-    manager.start_environment(TEST_ENV_LABEL)?;
-    let environment = manager.environments.get(TEST_ENV_LABEL).unwrap();
+fn startup_user_controlled() -> Result<(Environment, Arc<RevmMiddleware>)> {
+    let mut env = EnvironmentBuilder::new().build();
+    env.run();
     let client = Arc::new(RevmMiddleware::new(
-        environment,
+        &env,
         Some(TEST_SIGNER_SEED_AND_LABEL.to_string()),
     )?);
-    Ok((manager, client))
+    Ok((env, client))
 }
 
-fn startup_constant_gas() -> Result<(Manager, Arc<RevmMiddleware>)> {
-    let mut manager = Manager::new();
-    let params = EnvironmentParameters {
-        label: TEST_ENV_LABEL.to_string(),
-        block_settings: BlockSettings::UserControlled,
-        gas_settings: GasSettings::Constant(TEST_GAS_PRICE),
-    };
-    manager.add_environment(params).unwrap();
-    manager.start_environment(TEST_ENV_LABEL)?;
-    let environment = manager.environments.get(TEST_ENV_LABEL).unwrap();
+fn startup_constant_gas() -> Result<(Environment, Arc<RevmMiddleware>)> {
+    let mut env = EnvironmentBuilder::new()
+        .gas_settings(GasSettings::Constant(TEST_GAS_PRICE))
+        .build();
+    env.run();
     let client = Arc::new(RevmMiddleware::new(
-        environment,
+        &env,
         Some(TEST_SIGNER_SEED_AND_LABEL.to_string()),
     )?);
-    Ok((manager, client))
+    Ok((env, client))
 }
 
 async fn deploy_arbx(client: Arc<RevmMiddleware>) -> Result<ArbiterToken<RevmMiddleware>> {
