@@ -44,6 +44,9 @@ futures-channel = "0.3.28"
 
 # Data output
 polars = "0.32.0"
+stream-cancel = "0.8.1"
+tracing = "0.1.37"
+tracing-test = "0.2.4"
 
 # Dependencies for the test build and development
 [dev-dependencies]
