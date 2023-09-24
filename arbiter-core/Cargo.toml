@@ -21,7 +21,8 @@ serde = { version = "1.0.163", features = ["derive"] }
 serde_json = { version = "1.0.96" }
 
 # Concurrency/async
-tokio = { version = "1.28.1", features = ["macros", "full"] }
+tokio = { version = "1.28.1", features = ["macros", "full", ] }
+tokio-util = "0.7.9"
 async-trait = "0.1.68"
 crossbeam-channel = "0.5.8"
 futures-timer = "3.0.2"
