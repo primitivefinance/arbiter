@@ -5,10 +5,10 @@ use ethers::{
     providers::{Middleware, StreamExt as ProviderStreamExt},
 };
 
-use futures_channel::mpsc::{Sender, Receiver, channel};
-use tokio::task::JoinHandle;
 use crate::middleware::RevmMiddlewareError;
+use futures_channel::mpsc::{channel, Receiver, Sender};
 use stream_cancel::{StreamExt, Tripwire};
+use tokio::task::JoinHandle;
 use tracing::info;
 
 pub struct EventCapture<
@@ -29,19 +29,26 @@ impl<
         Self { events }
     }
 
-    pub async fn run(self, tripwire: Tripwire) -> Result<JoinHandle<()>, RevmMiddlewareError> {
+    pub async fn run(
+        self,
+        tripwire: Tripwire,
+    ) -> Result<std::thread::JoinHandle<()>, RevmMiddlewareError> {
         let events = self.events;
-
-        let handle = tokio::spawn(async move {
-            let mut stream = events.stream().await.unwrap().take_until_if(tripwire);
-            loop {
-                if let Some(log) = stream.next().await {
-                        info!("got inside stream!");
-                        println!("log: {:?}", log);
-                } else {
-                    continue;
+        let handle = std::thread::spawn(move || {
+            let rt = tokio::runtime::Runtime::new().unwrap();
+            rt.block_on(async {
+                let mut stream = events.stream().await.unwrap().take_until_if(tripwire);
+                let mut i = 0;
+                loop {
+                    if let Some(log) = stream.next().await {
+                        info!("log: {:?}", log);
+                        info!("i: {}", i);
+                        i += 1;
+                    } else {
+                        continue
+                    }
                 }
-            }         
+            });
         });
         Ok(handle)
     }

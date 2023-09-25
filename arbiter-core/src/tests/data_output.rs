@@ -19,30 +19,18 @@ async fn data_capture() {
 
     let (trigger, tripwire) = Tripwire::new();
 
+    let handle1 = event_capture.run(tripwire).await.unwrap();
 
-    let handle2 = tokio::spawn(async move {
-        for i in 0..10 {
-            println!("Task 2: {}", i);
-            arbx.approve(client.address(), U256::from(1))
-                .send()
-                .await
-                .unwrap()
-                .await
-                .unwrap();
-        }
-        info!("Task 2: done");
-        drop(trigger);
-    });
-    tokio::join!(event_capture.run(tripwire), handle2);
-
-
-    // println!("next approval: {:?}", stream.next().await);
-    let environment = manager.environments.get(TEST_ENV_LABEL).unwrap();
-    let mut guard = environment.captures.lock().unwrap();
-    for (handle, mut sender) in guard.drain(..) {
-        sender.send(()).await.unwrap();
-        // handle.join();
+    for i in 0..5 {
+        info!("Task 1: {}", i);
+        arbx.approve(client.address(), U256::from(1))
+            .send()
+            .await
+            .unwrap()
+            .await
+            .unwrap();
     }
-    println!("guard: {:?}", guard);
-    // manager.stop_environment(TEST_ENV_LABEL).unwrap();
+    info!("Task 2: done");
+    drop(trigger);
+    handle1.join();
 }
