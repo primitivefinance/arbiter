@@ -38,6 +38,7 @@ use std::{
 
 use crossbeam_channel::{bounded, unbounded, Receiver, Sender};
 use ethers::core::types::U64;
+use futures_util::future::join;
 use log::{error, info, warn};
 use revm::{
     db::{CacheDB, EmptyDB},
@@ -53,7 +54,7 @@ use crate::math::SeededPoisson;
 #[cfg_attr(doc, doc(hidden))]
 #[cfg_attr(doc, allow(unused_imports))]
 #[cfg(doc)]
-use crate::{manager::Manager, middleware::RevmMiddleware};
+use crate::middleware::RevmMiddleware;
 
 pub(crate) mod instruction;
 use instruction::*;
@@ -177,7 +178,7 @@ impl Environment {
 
         let (instruction_sender, instruction_receiver) = unbounded();
         let socket = Socket {
-            instruction_sender,
+            instruction_sender: Arc::new(instruction_sender),
             instruction_receiver,
             event_broadcaster: Arc::new(Mutex::new(EventBroadcaster::new())),
         };
@@ -246,7 +247,7 @@ impl Environment {
 
             // Loop over the reception of calls/transactions sent through the socket
             // The outermost check is to find what the `Environment`'s state is in
-            while let Ok(instruction) = instruction_receiver.try_recv() {
+            while let Ok(instruction) = instruction_receiver.recv() {
                 match instruction {
                     Instruction::AddAccount {
                         address,
@@ -474,12 +475,10 @@ impl Environment {
                         outcome_sender
                             .send(Ok(Outcome::StopCompleted))
                             .map_err(|e| EnvironmentError::Communication(e.to_string()))?;
-                        drop(instruction_receiver);
                         break;
                     }
                 }
             }
-
             Ok(())
         });
         self.handle = Some(handle);
@@ -500,7 +499,7 @@ impl Environment {
     ///   stopped.
     /// * `Err(EnvironmentError::Stop(String))` if the environment is in an
     ///   invalid state.
-    pub fn stop(&mut self) -> Result<(), EnvironmentError> {
+    pub fn stop(mut self) -> Result<(), EnvironmentError> {
         let (outcome_sender, outcome_receiver) = bounded(1);
         self.socket
             .instruction_sender
@@ -523,6 +522,16 @@ impl Environment {
         } else {
             warn!("Stopped environment with no label.");
         }
+        drop(self.socket.instruction_sender);
+        self.handle
+            .take()
+            .ok_or(EnvironmentError::Stop(
+                "failed to join the environment handle!".to_owned(),
+            ))?
+            .join()
+            .map_err(|_| {
+                EnvironmentError::Stop("Failed to join environment handle.".to_owned())
+            })??;
         Ok(())
     }
 }
@@ -533,7 +542,7 @@ impl Environment {
 /// event broadcaster to broadcast logs from the EVM to subscribers.
 #[derive(Debug, Clone)]
 pub(crate) struct Socket {
-    pub(crate) instruction_sender: InstructionSender,
+    pub(crate) instruction_sender: Arc<InstructionSender>,
     pub(crate) instruction_receiver: InstructionReceiver,
     pub(crate) event_broadcaster: Arc<Mutex<EventBroadcaster>>,
 }

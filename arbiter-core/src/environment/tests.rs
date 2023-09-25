@@ -6,8 +6,6 @@ pub(crate) const TEST_ENV_LABEL: &str = "test";
 fn new_with_builder() {
     let environment = EnvironmentBuilder::new().build();
     assert_eq!(environment.parameters.label, None);
-    let state = environment.state.load(std::sync::atomic::Ordering::SeqCst);
-    assert_eq!(state, State::Initialization);
 }
 #[test]
 fn new_with_builder_custom_settings() {
@@ -21,8 +19,6 @@ fn new_with_builder_custom_settings() {
         .gas_settings(GasSettings::RandomlySampled { multiplier: 1.0 })
         .build();
     assert_eq!(environment.parameters.label, Some(TEST_ENV_LABEL.into()));
-    let state = environment.state.load(std::sync::atomic::Ordering::SeqCst);
-    assert_eq!(state, State::Initialization);
 }
 #[test]
 fn new_user_controlled() {
@@ -33,8 +29,6 @@ fn new_user_controlled() {
     };
     let environment = Environment::new(params);
     assert_eq!(environment.parameters.label, Some(TEST_ENV_LABEL.into()));
-    let state = environment.state.load(std::sync::atomic::Ordering::SeqCst);
-    assert_eq!(state, State::Initialization);
 }
 
 #[test]
@@ -51,8 +45,6 @@ fn new_randomly_sampled() {
     };
     let environment = Environment::new(params);
     assert_eq!(environment.parameters.label, Some(TEST_ENV_LABEL.into()));
-    let state = environment.state.load(std::sync::atomic::Ordering::SeqCst);
-    assert_eq!(state, State::Initialization);
 }
 
 #[test]
@@ -64,8 +56,6 @@ fn run() {
     };
     let mut environment = Environment::new(params);
     environment.run();
-    let state = environment.state.load(std::sync::atomic::Ordering::SeqCst);
-    assert_eq!(state, State::Running);
 }
 
 #[test]

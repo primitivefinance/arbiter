@@ -65,20 +65,14 @@ fn startup_randomly_sampled() -> Result<(Environment, Arc<RevmMiddleware>)> {
         })
         .build();
     env.run();
-    let client = Arc::new(RevmMiddleware::new(
-        &env,
-        Some(TEST_SIGNER_SEED_AND_LABEL.to_string()),
-    )?);
+    let client = Arc::new(RevmMiddleware::new(&env, Some(TEST_SIGNER_SEED_AND_LABEL))?);
     Ok((env, client))
 }
 
 fn startup_user_controlled() -> Result<(Environment, Arc<RevmMiddleware>)> {
     let mut env = builder::EnvironmentBuilder::new().build();
     env.run();
-    let client = Arc::new(RevmMiddleware::new(
-        &env,
-        Some(TEST_SIGNER_SEED_AND_LABEL.to_string()),
-    )?);
+    let client = Arc::new(RevmMiddleware::new(&env, Some(TEST_SIGNER_SEED_AND_LABEL))?);
     Ok((env, client))
 }
 
@@ -87,10 +81,7 @@ fn startup_constant_gas() -> Result<(Environment, Arc<RevmMiddleware>)> {
         .gas_settings(builder::GasSettings::Constant(TEST_GAS_PRICE))
         .build();
     env.run();
-    let client = Arc::new(RevmMiddleware::new(
-        &env,
-        Some(TEST_SIGNER_SEED_AND_LABEL.to_string()),
-    )?);
+    let client = Arc::new(RevmMiddleware::new(&env, Some(TEST_SIGNER_SEED_AND_LABEL))?);
     Ok((env, client))
 }
 

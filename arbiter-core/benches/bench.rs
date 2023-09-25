@@ -56,7 +56,7 @@ async fn main() -> Result<()> {
                     duration
                 }
                 label @ "arbiter" => {
-                    let (_environment, client) = arbiter_startup().await?;
+                    let (_environment, client) = arbiter_startup()?;
                     bencher(client, label).await?
                 }
                 _ => panic!("Invalid argument"),
@@ -151,11 +151,11 @@ async fn anvil_startup() -> Result<(
     Ok((client, anvil))
 }
 
-async fn arbiter_startup() -> Result<(Environment, Arc<RevmMiddleware>)> {
-    let environment = EnvironmentBuilder::new().build();
+fn arbiter_startup() -> Result<(Environment, Arc<RevmMiddleware>)> {
+    let mut environment = EnvironmentBuilder::new().build();
+    environment.run();
 
-    let client = Arc::new(RevmMiddleware::new(&environment, Some("name".to_string()))?);
-
+    let client = Arc::new(RevmMiddleware::new(&environment, Some("name"))?);
     Ok((environment, client))
 }
 

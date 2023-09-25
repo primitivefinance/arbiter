@@ -39,6 +39,7 @@ pub struct EnvironmentParameters {
 /// This builder allows for the configuration of an `Environment` before it is
 /// instantiated. It provides methods for setting the label, block settings, and
 /// gas settings of the `Environment`.
+#[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct EnvironmentBuilder {
     /// An optional label for the `Environment`.
     /// This label is used to allow the [`Manager`] to locate the

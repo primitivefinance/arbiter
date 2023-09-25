@@ -14,8 +14,8 @@ fn simulation_signer() -> Result<()> {
 fn multiple_signer_addresses() {
     let mut environment = builder::EnvironmentBuilder::new().build();
     environment.run();
-    let client_1 = RevmMiddleware::new(&environment, Some("0".to_string())).unwrap();
-    let client_2 = RevmMiddleware::new(&environment, Some("1".to_string())).unwrap();
+    let client_1 = RevmMiddleware::new(&environment, Some("0")).unwrap();
+    let client_2 = RevmMiddleware::new(&environment, Some("1")).unwrap();
     assert_ne!(client_1.address(), client_2.address());
 }
 
@@ -23,6 +23,6 @@ fn multiple_signer_addresses() {
 fn signer_collision() {
     let mut environment = builder::EnvironmentBuilder::new().build();
     environment.run();
-    RevmMiddleware::new(&environment, Some("0".to_string())).unwrap();
-    assert!(RevmMiddleware::new(&environment, Some("0".to_string())).is_err());
+    RevmMiddleware::new(&environment, Some("0")).unwrap();
+    assert!(RevmMiddleware::new(&environment, Some("0")).is_err());
 }

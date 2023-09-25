@@ -4,7 +4,6 @@ use super::*;
 async fn deploy() {
     let (_manager, client) = startup_user_controlled().unwrap();
     let arbiter_token = deploy_arbx(client).await.unwrap();
-    println!("{:?}", arbiter_token);
     assert_eq!(
         arbiter_token.address(),
         Address::from_str("0x067ea9e44c76a2620f10b39a1b51d5124a299192").unwrap()

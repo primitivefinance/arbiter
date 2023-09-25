@@ -197,37 +197,9 @@ async fn constant_gas_price() {
     }
 }
 
-#[test]
-fn pause_environment() {
-    let (mut environment, _client) = startup_user_controlled().unwrap();
-    environment.pause().unwrap();
-    assert_eq!(
-        environment.state.load(std::sync::atomic::Ordering::Relaxed),
-        State::Paused
-    );
-}
-
-#[test]
-fn stop_environment() {
-    let (mut environment, _client) = startup_user_controlled().unwrap();
+#[tokio::test]
+async fn stop_environment() {
+    let (environment, client) = startup_user_controlled().unwrap();
     environment.stop().unwrap();
-    assert_eq!(
-        environment.state.load(std::sync::atomic::Ordering::Relaxed),
-        State::Stopped
-    );
-}
-
-#[test]
-fn can_start_from_paused() {
-    let (mut environment, _client) = startup_user_controlled().unwrap();
-    environment.pause().unwrap();
-    assert_eq!(
-        environment.state.load(std::sync::atomic::Ordering::Relaxed),
-        State::Paused
-    );
-    environment.run();
-    assert_eq!(
-        environment.state.load(std::sync::atomic::Ordering::Relaxed),
-        State::Running
-    );
+    assert!(deploy_arbx(client).await.is_err());
 }

@@ -11,6 +11,7 @@ use super::*;
 /// The [`Instruction`]s are sent to the [`Environment`] via the
 /// [`Socket::instruction_sender`] and the results are received via the
 /// [`crate::middleware::Connection::outcome_receiver`].
+#[derive(Debug, Clone)]
 pub(crate) enum Instruction {
     /// An `AddAccount` is used to add a default/unfunded account to the
     /// [`EVM`].
@@ -94,6 +95,7 @@ pub(crate) enum Instruction {
 /// [`Socket`].
 /// These outcomes can be from `Call`, `Transaction`, or `BlockUpdate`
 /// instructions sent to the [`Environment`]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub enum Outcome {
     /// The outcome of an [`Instruction::AddAccount`] instruction that is used
     /// to signify that the account was added successfully.
@@ -150,6 +152,7 @@ pub(crate) enum EnvironmentData {
 
 /// [`ReceiptData`] is a structure that holds the block number, transaction
 /// index, and cumulative gas used per block for a transaction.
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct ReceiptData {
     /// `block_number` is the number of the block in which the transaction was
     /// included.
