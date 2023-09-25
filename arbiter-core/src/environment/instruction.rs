@@ -87,6 +87,7 @@ pub(crate) enum Instruction {
         /// The sender used to to send the outcome of the query back to.
         outcome_sender: OutcomeSender,
     },
+    Stop(OutcomeSender),
 }
 
 /// [`Outcome`]s that can be sent back to the the client via the
@@ -124,6 +125,8 @@ pub enum Outcome {
     /// representation of the data. Currently this may carry the block
     /// number, block timestamp, gas price, or balance of an account.
     QueryReturn(String),
+
+    StopCompleted,
 }
 
 /// [`EnvironmentData`] is an enum used inside of the [`Instruction::Query`] to
