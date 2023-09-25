@@ -10,14 +10,16 @@
 [![Twitter Badge](https://badgen.net/badge/icon/twitter?icon=twitter&label)](https://twitter.com/primitivefi)
 
 **Arbiter** is a framework for stateful Ethereum smart-contract simulation. 
-The framework features an [`ethers-rs`](https://github.com/gakonst/ethers-rs) middleware built on top of [revm](https://github.com/bluealloy/revm) which allows the end user to interact with a sandboxed `revm` instance as if it were an Ethereum node. This provides a familiar interface for interacting with the Ethereum Virtual Machine (EVM), but with unrivaled speed. 
+The framework features an [`ethers-rs`](https://github.com/gakonst/ethers-rs) middleware built on top of [revm](https://github.com/bluealloy/revm) which allows the end user to interact with a sandboxed `revm` instance as if it were an Ethereum node. 
+This provides a familiar interface for interacting with the Ethereum Virtual Machine (EVM), but with unrivaled speed. 
 Furthermore, Arbiter provides containment and management for simulations.
 
 ## Overview
 
-The Arbiter workspace has two crates:
-- `arbiter-core`: The lib crate that contains the core logic for the Arbiter framework including the `RevmMiddleware` discussed before, the `Environment` which envelopes simulations, and the `Manager` who controls a collection of environments.
+The Arbiter workspace has three crates:
 - `arbiter`: The binary crate that exposes a command line interface for initializing simulations via a templated repository and generating contract bindings needed for the simulation.
+- `arbiter-core`: The lib crate that contains the core logic for the Arbiter framework including the `RevmMiddleware` discussed before, the `Environment` which envelopes simulations, and the `Manager` who controls a collection of environments.
+- `arbiter-derive`: The lib crate that contains custom derive macros for more succinct simulation building.
 
 The purpose of Arbiter is to provide a toolset to construct arbitrary agents (defined in Rust, by smart contracts, or even other FFI) and have these agents interact with an Ethereum-like environment of your design. 
 All contract bytecode is run directly using a blazing-fast EVM instance `revm` (which is used in live RPC nodes such as [`reth`](https://github.com/paradigmxyz/reth)) so that your contracts are tested in the exact same type of environment that they are deployed in.
@@ -49,12 +51,12 @@ This is especially important in the world of DeFi where strategies are often a m
 
 ## Installation
 
-To install Arbiter, you will need to have Rust installed on your machine. You can install Rust by following the instructions [here](https://www.rust-lang.org/tools/install). 
+To install Arbiter, you will need to have Rust installed on your machine. 
+You can install Rust by following the instructions [here](https://www.rust-lang.org/tools/install). 
 Once you have Rust installed, you can install Arbiter by running the following commands:
 
 ```bash
-git clone https://github.com/primitivefinance/arbiter.git
-cargo install --path ./arbiter
+cargo install arbiter
 ```
 This will install the Arbiter binary on your machine. You can then run `arbiter --help` to see that Arbiter was installed properly as well as see the help menu.
 
@@ -90,15 +92,12 @@ You can run `arbiter init -o` followed by any optional arguments. Currently the 
 
 ## Documentation
 
-To see the documentation for Arbiter, after cloning the repo, you can run:
+To see the documentation for the Arbiter crates, please visit the following:
+- [`arbiter`](https://docs.rs/crate/arbiter/0.3.2/)
+- [`arbiter-core`](https://docs.rs/arbiter-core/0.5.1/arbiter_core/)
+- [`arbiter-derive`](https://docs.rs/arbiter-derive/0.1.0/arbiter_derive/)
 
-```bash
-cargo doc --workspace --no-deps --open
-```
-
-This will generate and open the docs in your browser. 
-From there, you can look at the documentation for each crate in the Arbiter workspace. 
-We will post both crates to crates.io once we have removed any and all Github linked crates.
+You will also find each of these on crates.io.
 
 ## Benchmarks
 
