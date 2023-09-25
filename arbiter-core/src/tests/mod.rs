@@ -21,7 +21,7 @@ use futures::StreamExt;
 
 use crate::{
     bindings::{arbiter_math::*, arbiter_token::*, liquid_exchange::LiquidExchange},
-    environment::{tests::TEST_ENV_LABEL, *},
+    environment::*,
     math::*,
     middleware::*,
 };
@@ -54,13 +54,13 @@ pub const ARBITER_TOKEN_Y_DECIMALS: u8 = 18;
 pub const LIQUID_EXCHANGE_PRICE: f64 = 420.69;
 
 fn startup_randomly_sampled() -> Result<(Environment, Arc<RevmMiddleware>)> {
-    let mut env = EnvironmentBuilder::new()
-        .block_settings(BlockSettings::RandomlySampled {
+    let mut env = builder::EnvironmentBuilder::new()
+        .block_settings(builder::BlockSettings::RandomlySampled {
             block_rate: TEST_BLOCK_RATE,
             block_time: TEST_BLOCK_TIME,
             seed: TEST_ENV_SEED,
         })
-        .gas_settings(GasSettings::RandomlySampled {
+        .gas_settings(builder::GasSettings::RandomlySampled {
             multiplier: TEST_GAS_MULTIPLIER,
         })
         .build();
@@ -73,7 +73,7 @@ fn startup_randomly_sampled() -> Result<(Environment, Arc<RevmMiddleware>)> {
 }
 
 fn startup_user_controlled() -> Result<(Environment, Arc<RevmMiddleware>)> {
-    let mut env = EnvironmentBuilder::new().build();
+    let mut env = builder::EnvironmentBuilder::new().build();
     env.run();
     let client = Arc::new(RevmMiddleware::new(
         &env,
@@ -83,8 +83,8 @@ fn startup_user_controlled() -> Result<(Environment, Arc<RevmMiddleware>)> {
 }
 
 fn startup_constant_gas() -> Result<(Environment, Arc<RevmMiddleware>)> {
-    let mut env = EnvironmentBuilder::new()
-        .gas_settings(GasSettings::Constant(TEST_GAS_PRICE))
+    let mut env = builder::EnvironmentBuilder::new()
+        .gas_settings(builder::GasSettings::Constant(TEST_GAS_PRICE))
         .build();
     env.run();
     let client = Arc::new(RevmMiddleware::new(

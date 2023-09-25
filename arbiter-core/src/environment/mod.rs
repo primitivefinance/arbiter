@@ -65,7 +65,7 @@ pub mod builder;
 use builder::*;
 
 #[cfg(test)]
-mod tests;
+pub(crate) mod tests;
 
 /// Alias for the sender of the channel for transmitting transactions.
 pub(crate) type InstructionSender = Sender<Instruction>;

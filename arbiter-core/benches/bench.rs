@@ -10,7 +10,7 @@ use arbiter_core::{
         arbiter_math::ArbiterMath,
         arbiter_token::{self, ArbiterToken},
     },
-    environment::{Environment, EnvironmentBuilder},
+    environment::{builder::EnvironmentBuilder, Environment},
     middleware::RevmMiddleware,
 };
 use ethers::{
@@ -22,8 +22,6 @@ use ethers::{
     utils::AnvilInstance,
 };
 use log::info;
-
-const ENV_LABEL: &str = "env";
 
 const NUM_BENCH_ITERATIONS: usize = 1000;
 const NUM_LOOP_STEPS: usize = 100;
@@ -59,8 +57,7 @@ async fn main() -> Result<()> {
                 }
                 label @ "arbiter" => {
                     let (_environment, client) = arbiter_startup().await?;
-                    let duration = bencher(client, label).await?;
-                    duration
+                    bencher(client, label).await?
                 }
                 _ => panic!("Invalid argument"),
             });

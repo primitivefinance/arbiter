@@ -57,7 +57,7 @@ async fn randomly_sampled_blocks() {
     let arbiter_token = deploy_arbx(client.clone()).await.unwrap();
 
     let mut distribution = match environment.parameters.block_settings {
-        BlockSettings::RandomlySampled {
+        builder::BlockSettings::RandomlySampled {
             block_rate,
             block_time,
             seed,
@@ -129,7 +129,7 @@ async fn randomly_sampled_gas_price() {
     let arbiter_token = deploy_arbx(client.clone()).await.unwrap();
 
     let mut distribution = match environment.parameters.block_settings {
-        BlockSettings::RandomlySampled {
+        builder::BlockSettings::RandomlySampled {
             block_rate,
             block_time,
             seed,

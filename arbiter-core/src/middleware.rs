@@ -46,9 +46,8 @@ use serde::{de::DeserializeOwned, Serialize};
 use thiserror::Error;
 
 use crate::environment::{
-    instruction::{EnvironmentData, Instruction},
-    Environment, EventBroadcaster, InstructionSender, Outcome, OutcomeReceiver, OutcomeSender,
-    ReceiptData,
+    instruction::{EnvironmentData, Instruction, Outcome, ReceiptData},
+    Environment, EventBroadcaster, InstructionSender, OutcomeReceiver, OutcomeSender,
 };
 
 /// A middleware structure that integrates with `revm`.
@@ -117,7 +116,7 @@ pub struct RevmMiddleware {
 pub enum RevmMiddlewareError {
     /// An error occurred while attempting to interact with the environment.
     #[error("an error came from the environment! due to: {0}")]
-    Environment(#[from] crate::environment::EnvironmentError),
+    Environment(#[from] crate::environment::error::EnvironmentError),
 
     /// An error occurred while attempting to send a transaction.
     #[error("failed to send transaction! due to: {0}")]
