@@ -137,7 +137,8 @@ async fn filter_address() {
     assert_eq!(default_watcher_event, address_watcher_event);
 
     // Create a new token contract to check that the address watcher only gets
-    // events from the correct contract Check that only the default watcher gets
+    // events from the correct contract.
+    // Check that only the default watcher gets
     // this event
     let arbiter_token2 = ArbiterToken::deploy(
         client.clone(),
@@ -155,6 +156,7 @@ async fn filter_address() {
     // Sanity check that tokens have different addresses
     assert_ne!(arbiter_token.address(), arbiter_token2.address());
 
+    // Send the tx that generates the event
     let approval = arbiter_token2.approve(
         client.default_sender().unwrap(),
         ethers::types::U256::from(TEST_APPROVAL_AMOUNT),
@@ -166,14 +168,10 @@ async fn filter_address() {
     assert!(!event_two.data.is_empty());
 
     // check that the address_watcher has not received any events
-    let mut ctx = Context::from_waker(futures::task::noop_waker_ref());
-    let poll_result = Pin::new(&mut address_watcher).poll_next(&mut ctx);
-    match poll_result {
-        Poll::Ready(Some(_event)) => panic!("Event received unexpectedly!"),
-        Poll::Ready(None) => println!("Stream completed!"),
-        Poll::Pending => println!("No event ready yet, as expected."),
-    }
-    assert_matches!(poll_result, Poll::Pending);
+    tokio::select! {
+        _ = address_watcher.next() => panic!("Event received unexpectedly!"),
+        _ = tokio::time::sleep(std::time::Duration::from_secs(1)) => println!("No event captured, as expected. This test passes."),
+    };
 }
 
 #[tokio::test]
@@ -208,15 +206,11 @@ async fn filter_topics() {
     let default_watcher_event = default_watcher.next().await.unwrap();
     assert!(!default_watcher_event.data.is_empty());
 
-    // check that the address_watcher has not received any events
-    let mut ctx = Context::from_waker(futures::task::noop_waker_ref());
-    let poll_result = Pin::new(&mut approval_watcher).poll_next(&mut ctx);
-    match poll_result {
-        Poll::Ready(Some(_event)) => panic!("Event received unexpectedly!"),
-        Poll::Ready(None) => println!("Stream completed!"),
-        Poll::Pending => println!("No event ready yet, as expected."),
-    }
-    assert_matches!(poll_result, Poll::Pending);
+    // check that the approval_watcher has not received any events
+    tokio::select! {
+        _ = approval_watcher.next() => panic!("Event received unexpectedly!"),
+        _ = tokio::time::sleep(std::time::Duration::from_secs(1)) => println!("No event captured, as expected. This test passes."),
+    };
 }
 
 #[tokio::test]
