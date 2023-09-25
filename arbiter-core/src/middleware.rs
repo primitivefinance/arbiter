@@ -46,8 +46,9 @@ use serde::{de::DeserializeOwned, Serialize};
 use thiserror::Error;
 
 use crate::environment::{
-    Environment, EnvironmentData, EventBroadcaster, Instruction, InstructionSender, Outcome,
-    OutcomeReceiver, OutcomeSender, ReceiptData,
+    instruction::{EnvironmentData, Instruction},
+    Environment, EventBroadcaster, InstructionSender, Outcome, OutcomeReceiver, OutcomeSender,
+    ReceiptData,
 };
 
 /// A middleware structure that integrates with `revm`.
