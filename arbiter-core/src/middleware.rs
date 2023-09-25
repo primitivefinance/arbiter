@@ -879,7 +879,7 @@ impl JsonRpcClient for Connection {
                         ))?;
                 let mut logs = vec![];
                 let filtered_params = FilteredParams::new(Some(filter_receiver.filter.clone()));
-                if let Ok(received_logs) = filter_receiver.receiver.recv() {
+                if let Ok(received_logs) = filter_receiver.receiver.try_recv() {
                     let ethers_logs = revm_logs_to_ethers_logs(received_logs);
                     for log in ethers_logs {
                         if filtered_params.filter_address(&log)

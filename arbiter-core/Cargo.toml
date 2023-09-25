@@ -1,6 +1,6 @@
 [package]
 name = "arbiter-core"
-version = "0.5.1"
+version = "0.5.3"
 edition = "2021"
 authors = ["Waylon Jepsen <waylonjepsen1@gmail.com>", "Colin Roberts <colin@autoparallel.xyz>"]
 description = "Allowing smart contract developers to do simulation driven development via an EVM emulator"
@@ -31,7 +31,7 @@ futures-timer = "3.0.2"
 rand = "0.8.5"
 rand_distr = "0.4.3"
 statrs = "0.16.0"
-RustQuant = { version = "0.0.26", features = ["seedable"]}
+RustQuant = { version = "0.0.31", features = ["seedable"]}
 
 # Errors
 thiserror = "1.0.30"

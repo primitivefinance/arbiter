@@ -41,6 +41,7 @@ use crossbeam_channel::{unbounded, Receiver, Sender};
 use ethers::core::types::U64;
 use futures_util::SinkExt;
 use log::error;
+use log::info;
 use revm::{
     db::{CacheDB, EmptyDB},
     primitives::{
@@ -165,13 +166,13 @@ pub struct Environment {
 ///
 /// This structure holds configuration details or other parameters that might
 /// be required when instantiating or updating an `Environment`.
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, Serialize, Default)]
 pub struct EnvironmentParameters {
     /// A label for the [`Environment`].
     /// Used to allow the [`Manager`] to locate the [`Environment`] in order to
     /// control it. Also used to be able to organize, track progress, and
     /// post-process results.
-    pub label: String,
+    pub label: Option<String>,
 
     /// The type of block that will be used to step forward the [`EVM`].
     /// This can either be a [`BlockType::UserControlled`] or a
@@ -189,6 +190,40 @@ pub struct EnvironmentParameters {
     /// their own external API (not yet implemented) and the second will allow
     /// the end user to set a multiplier for the gas price that will be used
     /// to sample the amount of transactions per block. The last will allow
+    /// the end user to set a constant gas price for all transactions.
+    /// By default, [`GasSettings::UserControlled`] begins with a gas price of
+    /// 0.
+    pub gas_settings: GasSettings,
+}
+
+/// A builder for creating an `Environment`.
+///
+/// This builder allows for the configuration of an `Environment` before it is
+/// instantiated. It provides methods for setting the label, block settings, and
+/// gas settings of the `Environment`.
+pub struct EnvironmentBuilder {
+    /// An optional label for the `Environment`.
+    /// This label is used to allow the [`Manager`] to locate the [`Environment`] in order
+    /// to control it. It is also used for organizing, tracking progress, and
+    /// post-processing results.
+    pub label: Option<String>,
+
+    /// The type of block that will be used to step forward the [`EVM`].
+    /// This can either be a [`BlockType::UserControlled`] or a
+    /// [`BlockType::RandomlySampled`].
+    /// The former allows the end user to control the block number from
+    /// their own external API and the latter allows the end user to set
+    /// a rate parameter and seed for a Poisson distribution that will be
+    /// used to sample the amount of transactions per block.
+    pub block_settings: BlockSettings,
+
+    /// The gas settings for the `Environment`.
+    /// This can either be [`GasSettings::UserControlled`],
+    /// [`GasSettings::RandomlySampled`], or [`GasSettings::Constant`].
+    /// The first allows the end user to control the gas price from
+    /// their own external API (not yet implemented) and the second allows
+    /// the end user to set a multiplier for the gas price that will be used
+    /// to sample the amount of transactions per block. The last allows
     /// the end user to set a constant gas price for all transactions.
     /// By default, [`GasSettings::UserControlled`] begins with a gas price of
     /// 0.
@@ -248,6 +283,13 @@ pub enum EnvironmentError {
     #[error("error pausing! due to: {0:?}")]
     Pause(String),
 
+    /// [`EnvironmentError::Stop`] is thrown when the [`Environment`]
+    /// fails to stop. This error could occur due to an invalid state transition
+    /// or other unexpected conditions. If this error is thrown, it indicates
+    /// a serious issue that needs to be investigated. Please report this error!
+    #[error("error stopping! due to: {0:?}")]
+    Stop(String),
+
     /// [`EnvironmentError::Communication`] is thrown when a channel for
     /// receiving or broadcasting fails in some way. This error could happen
     /// due to a channel being closed accidentally. If this is thrown, a
@@ -300,6 +342,58 @@ pub enum EnvironmentError {
 
     #[error("failed to gain lock on environment field mutex! error due to: {0}")]
     Lock(String),
+}
+
+/// The `EnvironmentBuilder` is a builder pattern for creating an [`Environment`].
+/// It allows for the configuration of the [`Environment`] before it is created.
+impl EnvironmentBuilder {
+    /// Creates a new `EnvironmentBuilder` with default settings.
+    /// By default, the `block_settings` and `gas_settings` are set to `UserControlled`.
+    pub fn new() -> Self {
+        Self {
+            label: None,
+            block_settings: BlockSettings::UserControlled,
+            gas_settings: GasSettings::UserControlled,
+        }
+    }
+
+    /// Sets the `block_settings` for the `EnvironmentBuilder`.
+    /// This determines how the block number and timestamp are controlled in the [`Environment`].
+    pub fn block_settings(mut self, block_settings: BlockSettings) -> Self {
+        self.block_settings = block_settings;
+        self
+    }
+
+    /// Sets the `gas_settings` for the `EnvironmentBuilder`.
+    /// This determines how the gas price is controlled in the [`Environment`].
+    pub fn gas_settings(mut self, gas_settings: GasSettings) -> Self {
+        self.gas_settings = gas_settings;
+        self
+    }
+
+    /// Sets the `label` for the `EnvironmentBuilder`.
+    /// This is an optional string that can be used to identify the [`Environment`].
+    pub fn label(mut self, label: impl Into<String>) -> Self {
+        self.label = Some(label.into());
+        self
+    }
+
+    /// Converts the `EnvironmentBuilder` into `EnvironmentParameters`.
+    /// This is a private function used in the `build` function.
+    fn into_environment_parameters(&self) -> EnvironmentParameters {
+        EnvironmentParameters {
+            label: self.label.clone(),
+            block_settings: self.block_settings.clone(),
+            gas_settings: self.gas_settings.clone(),
+        }
+    }
+
+    /// Builds the `Environment` from the `EnvironmentBuilder`.
+    /// This consumes the `EnvironmentBuilder` and returns an [`Environment`].
+    pub fn build(self) -> Environment {
+        let parameters = self.into_environment_parameters();
+        Environment::new(parameters)
+    }
 }
 
 impl Environment {
@@ -742,6 +836,79 @@ impl Environment {
         });
         self.handle = Some(handle);
     }
+
+    /// Pauses the execution of the environment.
+    ///
+    /// This method changes the state of the environment to `Paused` if it is currently `Running`.
+    /// If the environment is already `Paused`, it does nothing and returns `Ok(())`.
+    /// If the environment is `Stopped`, it returns an `Err(EnvironmentError::Pause("Environment is stopped. Cannot pause."))`.
+    /// If the environment is in `Initialization` state, it returns an `Err(EnvironmentError::Pause("Environment is in an invalid state: Initialization. This should not be possible."))`.
+    ///
+    /// # Returns
+    ///
+    /// * `Ok(())` if the environment was successfully paused or was already paused.
+    /// * `Err(EnvironmentError::Pause(String))` if the environment is stopped or in an invalid state.
+    pub fn pause(&mut self) -> Result<(), EnvironmentError> {
+        match self.state.load(std::sync::atomic::Ordering::SeqCst) {
+            State::Running => {
+                self.state
+                    .store(State::Paused, std::sync::atomic::Ordering::SeqCst);
+                if let Some(label) = &self.parameters.label {
+                    info!("Pausing environment with label: {}", label);
+                } else {
+                    info!("Pausing environment with no label.");
+                }
+                Ok(())
+            }
+            State::Paused => Ok(()),
+            State::Stopped => Err(EnvironmentError::Pause(
+                "Environment is stopped. Cannot pause.".into(),
+            )),
+            State::Initialization => Err(EnvironmentError::Pause(
+                "Environment is in an invalid state: Initialization. This should not be possible."
+                    .into(),
+            )),
+        }
+    }
+
+    /// Stops the execution of the environment.
+    ///
+    /// This method changes the state of the environment to `Stopped` if it is currently `Running` or `Paused`.
+    /// If the environment is already `Stopped`, it does nothing and returns `Ok(())`.
+    /// If the environment is in `Initialization` state, it returns an `Err(EnvironmentError::Stop("Environment is in an invalid state: Initialization. This should not be possible."))`.
+    ///
+    /// # Returns
+    ///
+    /// * `Ok(())` if the environment was successfully stopped or was already stopped.
+    /// * `Err(EnvironmentError::Stop(String))` if the environment is in an invalid state.
+    pub fn stop(&mut self) -> Result<(), EnvironmentError> {
+        match self.state.load(std::sync::atomic::Ordering::SeqCst) {
+            State::Running => {
+                self.state
+                    .store(State::Stopped, std::sync::atomic::Ordering::SeqCst);
+                if let Some(label) = &self.parameters.label {
+                    info!("Stopping environment with label: {}", label);
+                } else {
+                    info!("Stopping environment with no label.");
+                }
+                Ok(())
+            }
+            State::Paused => {
+                self.state
+                    .store(State::Stopped, std::sync::atomic::Ordering::SeqCst);
+                info!(
+                    "Stopping environment with label: {}",
+                    self.parameters.label.as_ref().unwrap_or(&"".into())
+                );
+                Ok(())
+            }
+            State::Stopped => Ok(()),
+            State::Initialization => Err(EnvironmentError::Stop(
+                "Environment is in an invalid state: Initialization. This should not be possible."
+                    .into(),
+            )),
+        }
+    }
 }
 
 /// [`Instruction`]s that can be sent to the [`Environment`] via the
@@ -965,9 +1132,10 @@ pub(crate) struct Socket {
 /// their own external API and the latter will allow the end user to set
 /// a rate parameter and seed for a Poisson distribution that will be
 /// used to sample the amount of transactions per block.
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default)]
 pub enum BlockSettings {
     /// The block number will be controlled by the end user.
+    #[default]
     UserControlled,
 
     /// The block number will be sampled from a Poisson distribution.
@@ -997,11 +1165,12 @@ pub enum BlockSettings {
 /// The former will allow the end user to control the gas price from
 /// their own external API and the latter will allow the end user to set
 /// a constant gas price.
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default)]
 pub enum GasSettings {
     /// The gas limit will be controlled by the end user.
     /// In the future, Foundry cheatcodes will be used to control gas
     /// on-the-fly.
+    #[default]
     UserControlled,
 
     /// The gas price will depend on the number of transactions in the block.
@@ -1073,14 +1242,36 @@ pub(crate) mod tests {
     pub(crate) const TEST_ENV_LABEL: &str = "test";
 
     #[test]
+    fn new_with_builder() {
+        let environment = EnvironmentBuilder::new().build();
+        assert_eq!(environment.parameters.label, None);
+        let state = environment.state.load(std::sync::atomic::Ordering::SeqCst);
+        assert_eq!(state, State::Initialization);
+    }
+    #[test]
+    fn new_with_builder_custom_settings() {
+        let environment = EnvironmentBuilder::new()
+            .label(TEST_ENV_LABEL)
+            .block_settings(BlockSettings::RandomlySampled {
+                block_rate: 1.0,
+                block_time: 12,
+                seed: 1,
+            })
+            .gas_settings(GasSettings::RandomlySampled { multiplier: 1.0 })
+            .build();
+        assert_eq!(environment.parameters.label, Some(TEST_ENV_LABEL.into()));
+        let state = environment.state.load(std::sync::atomic::Ordering::SeqCst);
+        assert_eq!(state, State::Initialization);
+    }
+    #[test]
     fn new_user_controlled() {
         let params = EnvironmentParameters {
-            label: TEST_ENV_LABEL.to_string(),
+            label: Some(TEST_ENV_LABEL.to_string()),
             block_settings: BlockSettings::UserControlled,
             gas_settings: GasSettings::UserControlled,
         };
         let environment = Environment::new(params);
-        assert_eq!(environment.parameters.label, TEST_ENV_LABEL);
+        assert_eq!(environment.parameters.label, Some(TEST_ENV_LABEL.into()));
         let state = environment.state.load(std::sync::atomic::Ordering::SeqCst);
         assert_eq!(state, State::Initialization);
     }
@@ -1093,12 +1284,12 @@ pub(crate) mod tests {
             seed: 1,
         };
         let params = EnvironmentParameters {
-            label: TEST_ENV_LABEL.to_string(),
+            label: Some(TEST_ENV_LABEL.to_string()),
             block_settings: block_type,
             gas_settings: GasSettings::RandomlySampled { multiplier: 1.0 },
         };
         let environment = Environment::new(params);
-        assert_eq!(environment.parameters.label, TEST_ENV_LABEL);
+        assert_eq!(environment.parameters.label, Some(TEST_ENV_LABEL.into()));
         let state = environment.state.load(std::sync::atomic::Ordering::SeqCst);
         assert_eq!(state, State::Initialization);
     }
@@ -1106,7 +1297,7 @@ pub(crate) mod tests {
     #[test]
     fn run() {
         let params = EnvironmentParameters {
-            label: TEST_ENV_LABEL.to_string(),
+            label: Some(TEST_ENV_LABEL.to_string()),
             block_settings: BlockSettings::UserControlled,
             gas_settings: GasSettings::UserControlled,
         };
