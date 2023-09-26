@@ -88,6 +88,8 @@ pub(crate) enum Instruction {
         /// The sender used to to send the outcome of the query back to.
         outcome_sender: OutcomeSender,
     },
+
+    /// A `Stop` is used to stop the [`Environment`].
     Stop(OutcomeSender),
 }
 
@@ -96,7 +98,7 @@ pub(crate) enum Instruction {
 /// These outcomes can be from `Call`, `Transaction`, or `BlockUpdate`
 /// instructions sent to the [`Environment`]
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
-pub enum Outcome {
+pub(crate) enum Outcome {
     /// The outcome of an [`Instruction::AddAccount`] instruction that is used
     /// to signify that the account was added successfully.
     AddAccountCompleted,
@@ -128,6 +130,8 @@ pub enum Outcome {
     /// number, block timestamp, gas price, or balance of an account.
     QueryReturn(String),
 
+    /// The outcome of a `Stop` instruction that is used to signify that the
+    /// [`Environment`] was stopped successfully.
     StopCompleted,
 }
 
