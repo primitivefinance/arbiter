@@ -1,3 +1,6 @@
+//! Errors that can occur when managing or interfacing with Arbiter's sandboxed
+//! Ethereum environment.
+
 use super::*;
 
 /// Errors that can occur when managing or interfacing with the Ethereum

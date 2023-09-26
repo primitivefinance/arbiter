@@ -32,14 +32,13 @@
 use std::{
     convert::Infallible,
     fmt::Debug,
-    sync::{Arc, Condvar, Mutex},
+    sync::{Arc, Mutex},
     thread::{self, JoinHandle},
 };
 
 use crossbeam_channel::{bounded, unbounded, Receiver, Sender};
 use ethers::core::types::U64;
-use futures_util::future::join;
-use log::{error, info, warn};
+use log::{error, warn};
 use revm::{
     db::{CacheDB, EmptyDB},
     primitives::{
@@ -86,8 +85,7 @@ pub(crate) type OutcomeReceiver = Receiver<Result<Outcome, EnvironmentError>>;
 /// contract events via [`Log`].
 pub(crate) type EventSender = Sender<Vec<Log>>;
 
-/// Represents a [`Manager`]-controllable version of the Ethereum execution
-/// environment.
+/// Represents a sandboxed EVM environment.
 ///
 /// ## Communication
 /// The dominant feature is the

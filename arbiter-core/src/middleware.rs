@@ -46,7 +46,7 @@ use serde::{de::DeserializeOwned, Serialize};
 use thiserror::Error;
 
 use crate::environment::{
-    instruction::{self, EnvironmentData, Instruction, Outcome, ReceiptData},
+    instruction::{EnvironmentData, Instruction, Outcome, ReceiptData},
     Environment, EventBroadcaster, InstructionSender, OutcomeReceiver, OutcomeSender,
 };
 
@@ -68,10 +68,7 @@ use crate::environment::{
 /// // Import `Arc` if you need to create a client instance
 /// use std::sync::Arc;
 ///
-/// use arbiter_core::{
-///     environment::builder::EnvironmentBuilder,
-///     middleware::RevmMiddleware,
-/// };
+/// use arbiter_core::{environment::builder::EnvironmentBuilder, middleware::RevmMiddleware};
 ///
 /// // Create a new environment and run it
 /// let mut environment = EnvironmentBuilder::new().build();
@@ -178,10 +175,7 @@ impl RevmMiddleware {
     /// // Import `Arc` if you need to create a client instance
     /// use std::sync::Arc;
     ///
-    /// use arbiter_core::{
-    ///     environment::builder::EnvironmentBuilder,
-    ///     middleware::RevmMiddleware,
-    /// };
+    /// use arbiter_core::{environment::builder::EnvironmentBuilder, middleware::RevmMiddleware};
     ///
     /// // Create a new environment and run it
     /// let mut environment = EnvironmentBuilder::new().build();

@@ -1,3 +1,8 @@
+//! This module provides all the necessary structures for creating an
+//! [`Environment`]. This includes the [`EnvironmentBuilder`] and
+//! [`EnvironmentParameters`] structures as well as the [`BlockSettings`] and
+//! [`GasSettings`] enums.
+
 use super::*;
 
 /// Parameters necessary for creating or modifying an `Environment`.
@@ -110,7 +115,7 @@ impl EnvironmentBuilder {
 
     /// Converts the `EnvironmentBuilder` into `EnvironmentParameters`.
     /// This is a private function used in the `build` function.
-    fn into_environment_parameters(&self) -> EnvironmentParameters {
+    fn into_environment_parameters(self) -> EnvironmentParameters {
         EnvironmentParameters {
             label: self.label.clone(),
             block_settings: self.block_settings.clone(),
