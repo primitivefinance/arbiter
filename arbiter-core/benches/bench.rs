@@ -10,7 +10,7 @@ use arbiter_core::{
         arbiter_math::ArbiterMath,
         arbiter_token::{self, ArbiterToken},
     },
-    environment::{Environment, EnvironmentBuilder},
+    environment::{builder::EnvironmentBuilder, Environment},
     middleware::RevmMiddleware,
 };
 use ethers::{
@@ -22,8 +22,6 @@ use ethers::{
     utils::AnvilInstance,
 };
 use log::info;
-
-const ENV_LABEL: &str = "env";
 
 const NUM_BENCH_ITERATIONS: usize = 1000;
 const NUM_LOOP_STEPS: usize = 100;
@@ -58,9 +56,8 @@ async fn main() -> Result<()> {
                     duration
                 }
                 label @ "arbiter" => {
-                    let (_environment, client) = arbiter_startup().await?;
-                    let duration = bencher(client, label).await?;
-                    duration
+                    let (_environment, client) = arbiter_startup()?;
+                    bencher(client, label).await?
                 }
                 _ => panic!("Invalid argument"),
             });
@@ -154,11 +151,11 @@ async fn anvil_startup() -> Result<(
     Ok((client, anvil))
 }
 
-async fn arbiter_startup() -> Result<(Environment, Arc<RevmMiddleware>)> {
-    let environment = EnvironmentBuilder::new().build();
+fn arbiter_startup() -> Result<(Environment, Arc<RevmMiddleware>)> {
+    let mut environment = EnvironmentBuilder::new().build();
+    environment.run();
 
-    let client = Arc::new(RevmMiddleware::new(&environment, Some("name".to_string()))?);
-
+    let client = Arc::new(RevmMiddleware::new(&environment, Some("name"))?);
     Ok((environment, client))
 }
 

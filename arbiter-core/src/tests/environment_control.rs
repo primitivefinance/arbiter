@@ -57,7 +57,7 @@ async fn randomly_sampled_blocks() {
     let arbiter_token = deploy_arbx(client.clone()).await.unwrap();
 
     let mut distribution = match environment.parameters.block_settings {
-        BlockSettings::RandomlySampled {
+        builder::BlockSettings::RandomlySampled {
             block_rate,
             block_time,
             seed,
@@ -129,7 +129,7 @@ async fn randomly_sampled_gas_price() {
     let arbiter_token = deploy_arbx(client.clone()).await.unwrap();
 
     let mut distribution = match environment.parameters.block_settings {
-        BlockSettings::RandomlySampled {
+        builder::BlockSettings::RandomlySampled {
             block_rate,
             block_time,
             seed,
@@ -197,37 +197,9 @@ async fn constant_gas_price() {
     }
 }
 
-#[test]
-fn pause_environment() {
-    let (mut environment, _client) = startup_user_controlled().unwrap();
-    environment.pause().unwrap();
-    assert_eq!(
-        environment.state.load(std::sync::atomic::Ordering::Relaxed),
-        State::Paused
-    );
-}
-
-#[test]
-fn stop_environment() {
-    let (mut environment, _client) = startup_user_controlled().unwrap();
+#[tokio::test]
+async fn stop_environment() {
+    let (environment, client) = startup_user_controlled().unwrap();
     environment.stop().unwrap();
-    assert_eq!(
-        environment.state.load(std::sync::atomic::Ordering::Relaxed),
-        State::Stopped
-    );
-}
-
-#[test]
-fn can_start_from_paused() {
-    let (mut environment, _client) = startup_user_controlled().unwrap();
-    environment.pause().unwrap();
-    assert_eq!(
-        environment.state.load(std::sync::atomic::Ordering::Relaxed),
-        State::Paused
-    );
-    environment.run();
-    assert_eq!(
-        environment.state.load(std::sync::atomic::Ordering::Relaxed),
-        State::Running
-    );
+    assert!(deploy_arbx(client).await.is_err());
 }
