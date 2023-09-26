@@ -58,8 +58,8 @@ use crate::middleware::RevmMiddleware;
 pub(crate) mod instruction;
 use instruction::*;
 
-pub mod error;
-use error::*;
+pub mod errors;
+use errors::*;
 
 pub mod builder;
 use builder::*;

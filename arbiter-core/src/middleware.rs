@@ -101,7 +101,7 @@ pub struct RevmMiddleware {
 pub enum RevmMiddlewareError {
     /// An error occurred while attempting to interact with the environment.
     #[error("an error came from the environment! due to: {0}")]
-    Environment(#[from] crate::environment::error::EnvironmentError),
+    Environment(#[from] crate::environment::errors::EnvironmentError),
 
     /// An error occurred while attempting to send a transaction.
     #[error("failed to send transaction! due to: {0}")]
