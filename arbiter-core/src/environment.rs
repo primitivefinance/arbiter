@@ -401,7 +401,6 @@ impl Environment {
                             let sender = match request {
                                 Instruction::AddAccount { outcome_sender, .. } => outcome_sender,
                                 Instruction::BlockUpdate { outcome_sender, .. } => outcome_sender,
-                                Instruction::Deal { outcome_sender, .. } => outcome_sender,
                                 Instruction::Call { outcome_sender, .. } => outcome_sender,
                                 Instruction::Cheatcode { outcome_sender, .. } => outcome_sender,
                                 Instruction::SetGasPrice { outcome_sender, .. } => outcome_sender,
@@ -489,7 +488,7 @@ impl Environment {
                                     cheatcode,
                                     outcome_sender,
                                 } => match cheatcode {
-                                    Cheatcode::GetStorageAt {
+                                    Cheatcodes::Load {
                                         account,
                                         key,
                                         block,
@@ -538,7 +537,7 @@ impl Environment {
                                             }
                                         };
                                     }
-                                    Cheatcode::Store {
+                                    Cheatcodes::Store {
                                         account,
                                         key,
                                         value,
@@ -581,34 +580,35 @@ impl Environment {
                                             }
                                         };
                                     }
+                                    Cheatcodes::Deal { address, amount } => {
+                                        let db = evm.db.as_mut().unwrap();
+                                        let recast_address =
+                                            revm::primitives::Address::from(address);
+                                        match db.accounts.get_mut(&recast_address) {
+                                            Some(account) => {
+                                                account.info.balance += U256::from_limbs(amount.0);
+                                                outcome_sender
+                                                    .send(Ok(Outcome::CheatcodeCompleted))
+                                                    .map_err(|e| {
+                                                        EnvironmentError::Communication(
+                                                            e.to_string(),
+                                                        )
+                                                    })?;
+                                            }
+                                            None => {
+                                                outcome_sender
+                                                    .send(Err(EnvironmentError::Account(
+                                                        "Account is missing!".to_string(),
+                                                    )))
+                                                    .map_err(|e| {
+                                                        EnvironmentError::Communication(
+                                                            e.to_string(),
+                                                        )
+                                                    })?;
+                                            }
+                                        };
+                                    }
                                 },
-                                Instruction::Deal {
-                                    address,
-                                    amount,
-                                    outcome_sender,
-                                } => {
-                                    let db = evm.db.as_mut().unwrap();
-                                    let recast_address = revm::primitives::Address::from(address);
-                                    match db.accounts.get_mut(&recast_address) {
-                                        Some(account) => {
-                                            account.info.balance += U256::from_limbs(amount.0);
-                                            outcome_sender
-                                                .send(Ok(Outcome::DealCompleted))
-                                                .map_err(|e| {
-                                                    EnvironmentError::Communication(e.to_string())
-                                                })?;
-                                        }
-                                        None => {
-                                            outcome_sender
-                                                .send(Err(EnvironmentError::Account(
-                                                    "Account is missing!".to_string(),
-                                                )))
-                                                .map_err(|e| {
-                                                    EnvironmentError::Communication(e.to_string())
-                                                })?;
-                                        }
-                                    };
-                                }
                                 // A `Call` is not state changing and will not create events.
                                 Instruction::Call {
                                     tx_env,
@@ -799,7 +799,25 @@ impl Environment {
 }
 
 /// Cheatcodes are a direct way to access the underlying [`EVM`] environment and database.
-pub enum Cheatcode {
+pub enum Cheatcodes {
+    /// A `Deal` is used to increase the balance of an account in the [`EVM`].
+    Deal {
+        /// The address of the account to increase the balance of.
+        address: ethers::types::Address,
+
+        /// The amount to increase the balance of the account by.
+        amount: ethers::types::U256,
+    },
+    /// Fetches the value of a storage slot of an account.
+    Load {
+        /// The address of the account to fetch the storage slot from.
+        account: ethers::types::Address,
+        /// The storage slot to fetch.
+        key: ethers::types::H256,
+        /// The block to fetch the storage slot from.
+        /// todo: implement storage slots at blocks.
+        block: Option<ethers::types::BlockId>,
+    },
     /// Overwrites a storage slot of an account.
     /// todo: for more complicated data types, like structs, there's more work to do.
     Store {
@@ -809,16 +827,6 @@ pub enum Cheatcode {
         key: ethers::types::H256,
         /// The value to overwrite the storage slot with.
         value: ethers::types::H256,
-    },
-    /// Fetches the value of a storage slot of an account.
-    GetStorageAt {
-        /// The address of the account to fetch the storage slot from.
-        account: ethers::types::Address,
-        /// The storage slot to fetch.
-        key: ethers::types::H256,
-        /// The block to fetch the storage slot from.
-        /// todo: implement storage slots at blocks.
-        block: Option<ethers::types::BlockId>,
     },
 }
 
@@ -861,21 +869,9 @@ pub enum Instruction {
     /// A `cheatcode` enables direct access to the underlying [`EVM`].
     Cheatcode {
         /// The [`Cheatcode`] to use to access the underlying [`EVM`].
-        cheatcode: Cheatcode,
+        cheatcode: Cheatcodes,
 
         /// The sender used to to send the outcome of the cheatcode back to.
-        outcome_sender: OutcomeSender,
-    },
-
-    /// A `Deal` is used to increase the balance of an account in the [`EVM`].
-    Deal {
-        /// The address of the account to increase the balance of.
-        address: ethers::types::Address,
-
-        /// The amount to increase the balance of the account by.
-        amount: ethers::types::U256,
-
-        /// The sender used to to send the outcome of the deal back to.
         outcome_sender: OutcomeSender,
     },
 
@@ -966,10 +962,6 @@ pub enum Outcome {
     /// non-error output of updating the block number and timestamp of the
     /// [`EVM`] to the client.
     BlockUpdateCompleted(ReceiptData),
-
-    /// The outcome of a [`Instruction::Deal`] instruction that is used to
-    /// signify that increasing the balance of an account was successful.
-    DealCompleted,
 
     /// The outcome of a [`Instruction::Cheatcode`] instruction that is used to
     /// signify that the cheatcode was successful.

@@ -46,8 +46,8 @@ use serde::{de::DeserializeOwned, Serialize};
 use thiserror::Error;
 
 use crate::environment::{
-    instruction::{EnvironmentData, Instruction, Outcome, ReceiptData},
-    Environment, EventBroadcaster, InstructionSender, OutcomeReceiver, OutcomeSender,
+    Cheatcodes, Environment, EnvironmentData, EventBroadcaster, Instruction, InstructionSender,
+    Outcome, OutcomeReceiver, OutcomeSender, ReceiptData,
 };
 
 /// A middleware structure that integrates with `revm`.
@@ -284,50 +284,13 @@ impl RevmMiddleware {
         }
     }
 
-    /// Provides functionality to increase the balance of a given address by a
-    /// given amount.
-    pub async fn deal(
-        &self,
-        address: Address,
-        amount: ethers::types::U256,
-    ) -> Result<(), RevmMiddlewareError> {
-        if let Some(instruction_sender) = self.provider().as_ref().instruction_sender.upgrade() {
-            instruction_sender
-                .send(Instruction::Deal {
-                    address,
-                    amount,
-                    outcome_sender: self.provider().as_ref().outcome_sender.clone(),
-                })
-                .map_err(|e| RevmMiddlewareError::Send(e.to_string()))?;
-            match self.provider().as_ref().outcome_receiver.recv()?? {
-                Outcome::DealCompleted => Ok(()),
-                _ => Err(RevmMiddlewareError::MissingData(
-                    "Wrong variant returned via instruction outcome!".to_string(),
-                )),
-            }
-        } else {
-            Err(RevmMiddlewareError::Send(
-                "Environment is offline!".to_string(),
-            ))
-        }
-    }
-
-    /// Overwrites the data `value` of an account at `address` at the storage slot `key`.
-    pub async fn store(
-        &self,
-        address: Address,
-        key: ethers::types::H256,
-        value: ethers::types::H256,
-    ) -> Result<(), RevmMiddlewareError> {
+    /// Sends a cheatcode instruction to the environment.
+    pub async fn apply_cheatcode(&self, cheatcode: Cheatcodes) -> Result<(), RevmMiddlewareError> {
         self.provider()
             .as_ref()
             .instruction_sender
             .send(Instruction::Cheatcode {
-                cheatcode: Cheatcode::Store {
-                    account: address,
-                    key,
-                    value,
-                },
+                cheatcode,
                 outcome_sender: self.provider().as_ref().outcome_sender.clone(),
             })
             .map_err(|e| RevmMiddlewareError::Send(e.to_string()))?;
@@ -832,7 +795,7 @@ impl Middleware for RevmMiddleware {
             .as_ref()
             .instruction_sender
             .send(Instruction::Cheatcode {
-                cheatcode: Cheatcode::GetStorageAt {
+                cheatcode: Cheatcodes::Load {
                     account: address,
                     key,
                     block, // note: currently does not support querying storage at a specific block

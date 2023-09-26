@@ -51,8 +51,14 @@ async fn receipt_data() {
 // transactions per block. We should check these.
 #[tokio::test]
 async fn randomly_sampled_blocks() {
-    let (environment, client) = startup_randomly_sampled().unwrap();
-    client.deal(client.address(), U256::MAX).await.unwrap();
+    let (manager, client) = startup_randomly_sampled().unwrap();
+    client
+        .apply_cheatcode(Cheatcodes::Deal {
+            address: client.address(),
+            amount: U256::MAX,
+        })
+        .await
+        .unwrap();
     // tx_0 is the transaction that creates the token contract
     let arbiter_token = deploy_arbx(client.clone()).await.unwrap();
 
@@ -123,8 +129,14 @@ async fn user_update_block() {
 
 #[tokio::test]
 async fn randomly_sampled_gas_price() {
-    let (environment, client) = startup_randomly_sampled().unwrap();
-    client.deal(client.address(), U256::MAX).await.unwrap();
+    let (manager, client) = startup_randomly_sampled().unwrap();
+    client
+        .apply_cheatcode(Cheatcodes::Deal {
+            address: client.address(),
+            amount: U256::MAX,
+        })
+        .await
+        .unwrap();
     // tx_0 is the transaction that creates the token contract
     let arbiter_token = deploy_arbx(client.clone()).await.unwrap();
 
@@ -177,8 +189,14 @@ async fn randomly_sampled_gas_price() {
 
 #[tokio::test]
 async fn constant_gas_price() {
-    let (_environment, client) = startup_constant_gas().unwrap();
-    client.deal(client.address(), U256::MAX).await.unwrap();
+    let (_manager, client) = startup_constant_gas().unwrap();
+    client
+        .apply_cheatcode(Cheatcodes::Deal {
+            address: client.address(),
+            amount: U256::MAX,
+        })
+        .await
+        .unwrap();
     // tx_0 is the transaction that creates the token contract
     let arbiter_token = deploy_arbx(client.clone()).await.unwrap();
 

@@ -261,10 +261,10 @@ async fn get_gas_price_user_controlled() {
 async fn deal() {
     let (_manager, client) = startup_user_controlled().unwrap();
     client
-        .deal(
-            client.default_sender().unwrap(),
-            ethers::types::U256::from(1),
-        )
+        .apply_cheatcode(Cheatcodes::Deal {
+            address: client.default_sender().unwrap(),
+            amount: ethers::types::U256::from(1),
+        })
         .await
         .unwrap();
     let balance = client.get_balance(client.address(), None).await;
@@ -275,10 +275,10 @@ async fn deal() {
 async fn deal_missing_account() {
     let (_manager, client) = startup_user_controlled().unwrap();
     client
-        .deal(
-            client.default_sender().unwrap(),
-            ethers::types::U256::from(1),
-        )
+        .apply_cheatcode(Cheatcodes::Deal {
+            address: client.default_sender().unwrap(),
+            amount: ethers::types::U256::from(1),
+        })
         .await
         .unwrap();
     let mut wrong_address = client.address().0;
@@ -301,7 +301,7 @@ async fn set_gas_price() {
 }
 
 #[tokio::test]
-async fn test_cheatcode_store() {
+async fn test_cheatcodes_store() {
     let (_manager, client) = startup_randomly_sampled().unwrap();
     // Get the initial storage and assert it is zero.
     let storage = client
@@ -313,11 +313,11 @@ async fn test_cheatcode_store() {
     // Store a random value at the zero storage slot.
     let random_value: ethers::types::H256 = ethers::types::H256::random();
     client
-        .store(
-            client.address(),
-            ethers::types::H256::zero(),
-            random_value.clone(),
-        )
+        .apply_cheatcode(Cheatcodes::Store {
+            account: client.address(),
+            key: ethers::types::H256::zero(),
+            value: random_value.clone(),
+        })
         .await
         .unwrap();
 
