@@ -517,7 +517,9 @@ impl Environment {
                                                 // Sends the revm::primitives::U256 storage value back to the
                                                 // sender via CheatcodeReturn(revm::primitives::U256).
                                                 outcome_sender
-                                                    .send(Ok(Outcome::CheatcodeReturn(value)))
+                                                    .send(Ok(Outcome::CheatcodeReturn(
+                                                        CheatcodesReturn::Load { value },
+                                                    )))
                                                     .map_err(|e| {
                                                         EnvironmentError::Communication(
                                                             e.to_string(),
@@ -560,7 +562,9 @@ impl Environment {
                                                     .insert(recast_key.into(), recast_value.into());
 
                                                 outcome_sender
-                                                    .send(Ok(Outcome::CheatcodeCompleted))
+                                                    .send(Ok(Outcome::CheatcodeReturn(
+                                                        CheatcodesReturn::Store,
+                                                    )))
                                                     .map_err(|e| {
                                                         EnvironmentError::Communication(
                                                             e.to_string(),
@@ -588,7 +592,9 @@ impl Environment {
                                             Some(account) => {
                                                 account.info.balance += U256::from_limbs(amount.0);
                                                 outcome_sender
-                                                    .send(Ok(Outcome::CheatcodeCompleted))
+                                                    .send(Ok(Outcome::CheatcodeReturn(
+                                                        CheatcodesReturn::Deal,
+                                                    )))
                                                     .map_err(|e| {
                                                         EnvironmentError::Communication(
                                                             e.to_string(),
@@ -949,6 +955,19 @@ pub struct ReceiptData {
     pub(crate) cumulative_gas_per_block: U256,
 }
 
+/// Return values of applying cheatcodes.
+pub enum CheatcodesReturn {
+    /// A `Load` returns the value of a storage slot of an account.
+    Load {
+        /// The value of the storage slot.
+        value: revm::primitives::U256,
+    },
+    /// A `Store` returns nothing.
+    Store,
+    /// A `Deal` returns nothing.
+    Deal,
+}
+
 /// [`Outcome`]s that can be sent back to the the client via the
 /// [`Socket`].
 /// These outcomes can be from `Call`, `Transaction`, or `BlockUpdate`
@@ -963,14 +982,9 @@ pub enum Outcome {
     /// [`EVM`] to the client.
     BlockUpdateCompleted(ReceiptData),
 
-    /// The outcome of a [`Instruction::Cheatcode`] instruction that is used to
-    /// signify that the cheatcode was successful.
-    /// todo: maybe collapse this into the cheatcode return and make it a larger enum?
-    CheatcodeCompleted,
-
     /// Return value from a cheatcode instruction.
     /// todo: make a decision on how to handle cheatcode returns.
-    CheatcodeReturn(revm::primitives::U256),
+    CheatcodeReturn(CheatcodesReturn),
 
     /// The outcome of a `Call` instruction that is used to provide the output
     /// of some [`EVM`] computation to the client.

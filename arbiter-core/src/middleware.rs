@@ -46,8 +46,8 @@ use serde::{de::DeserializeOwned, Serialize};
 use thiserror::Error;
 
 use crate::environment::{
-    Cheatcodes, Environment, EnvironmentData, EventBroadcaster, Instruction, InstructionSender,
-    Outcome, OutcomeReceiver, OutcomeSender, ReceiptData,
+    Cheatcodes, CheatcodesReturn, Environment, EnvironmentData, EventBroadcaster, Instruction,
+    InstructionSender, Outcome, OutcomeReceiver, OutcomeSender, ReceiptData,
 };
 
 /// A middleware structure that integrates with `revm`.
@@ -285,7 +285,10 @@ impl RevmMiddleware {
     }
 
     /// Sends a cheatcode instruction to the environment.
-    pub async fn apply_cheatcode(&self, cheatcode: Cheatcodes) -> Result<(), RevmMiddlewareError> {
+    pub async fn apply_cheatcode(
+        &self,
+        cheatcode: Cheatcodes,
+    ) -> Result<CheatcodesReturn, RevmMiddlewareError> {
         self.provider()
             .as_ref()
             .instruction_sender
@@ -296,7 +299,7 @@ impl RevmMiddleware {
             .map_err(|e| RevmMiddlewareError::Send(e.to_string()))?;
 
         match self.provider().as_ref().outcome_receiver.recv()?? {
-            Outcome::CheatcodeCompleted => Ok(()),
+            Outcome::CheatcodeReturn(outcome) => Ok(outcome),
             _ => Err(RevmMiddlewareError::MissingData(
                 "Wrong variant returned via instruction outcome!".to_string(),
             )),
@@ -791,28 +794,23 @@ impl Middleware for RevmMiddleware {
             NameOrAddress::Address(address) => address,
         };
 
-        self.provider()
-            .as_ref()
-            .instruction_sender
-            .send(Instruction::Cheatcode {
-                cheatcode: Cheatcodes::Load {
-                    account: address,
-                    key,
-                    block, // note: currently does not support querying storage at a specific block
-                },
-                outcome_sender: self.provider().as_ref().outcome_sender.clone(),
+        let result = self
+            .apply_cheatcode(Cheatcodes::Load {
+                account: address.into(),
+                key: key.into(),
+                block: block.map(|b| b.into()),
             })
-            .map_err(|e| RevmMiddlewareError::Send(e.to_string()))?;
+            .await
+            .unwrap();
 
-        // Account storage is a HashMap of revm's primitive U256 type alias (alias of ruint crates Uint<256, 4> type).
-        // However, ethers-rs middleware expects the storage key and value to be ethers::types::H256.
-        match self.provider().as_ref().outcome_receiver.recv()?? {
-            Outcome::CheatcodeReturn(outcome) => {
-                let value: ethers::types::H256 = ethers::types::H256::from(outcome.to_be_bytes());
+        match result {
+            CheatcodesReturn::Load { value } => {
+                /// Convert the revm ruint type into big endian bytes, then convert into ethers H256.
+                let value: ethers::types::H256 = ethers::types::H256::from(value.to_be_bytes());
                 Ok(value)
             }
             _ => Err(RevmMiddlewareError::MissingData(
-                "Wrong variant returned via instruction outcome!".to_string(),
+                "Wrong variant returned via cheatcode!".to_string(),
             )),
         }
     }
