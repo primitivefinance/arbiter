@@ -37,15 +37,12 @@ pub(crate) enum Instruction {
         outcome_sender: OutcomeSender,
     },
 
-    /// A `Deal` is used to increase the balance of an account in the [`EVM`].
-    Deal {
-        /// The address of the account to increase the balance of.
-        address: ethers::types::Address,
+    /// A `cheatcode` enables direct access to the underlying [`EVM`].
+    Cheatcode {
+        /// The [`Cheatcode`] to use to access the underlying [`EVM`].
+        cheatcode: Cheatcodes,
 
-        /// The amount to increase the balance of the account by.
-        amount: ethers::types::U256,
-
-        /// The sender used to to send the outcome of the deal back to.
+        /// The sender used to to send the outcome of the cheatcode back to.
         outcome_sender: OutcomeSender,
     },
 
@@ -108,9 +105,9 @@ pub(crate) enum Outcome {
     /// [`EVM`] to the client.
     BlockUpdateCompleted(ReceiptData),
 
-    /// The outcome of a [`Instruction::Deal`] instruction that is used to
-    /// signify that increasing the balance of an account was successful.
-    DealCompleted,
+    /// Return value from a cheatcode instruction.
+    /// todo: make a decision on how to handle cheatcode returns.
+    CheatcodeReturn(CheatcodesReturn),
 
     /// The outcome of a `Call` instruction that is used to provide the output
     /// of some [`EVM`] computation to the client.

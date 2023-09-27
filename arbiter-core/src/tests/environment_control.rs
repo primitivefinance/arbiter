@@ -51,7 +51,7 @@ async fn receipt_data() {
 // transactions per block. We should check these.
 #[tokio::test]
 async fn randomly_sampled_blocks() {
-    let (manager, client) = startup_randomly_sampled().unwrap();
+    let (environment, client) = startup_randomly_sampled().unwrap();
     client
         .apply_cheatcode(Cheatcodes::Deal {
             address: client.address(),
@@ -129,7 +129,7 @@ async fn user_update_block() {
 
 #[tokio::test]
 async fn randomly_sampled_gas_price() {
-    let (manager, client) = startup_randomly_sampled().unwrap();
+    let (environment, client) = startup_randomly_sampled().unwrap();
     client
         .apply_cheatcode(Cheatcodes::Deal {
             address: client.address(),

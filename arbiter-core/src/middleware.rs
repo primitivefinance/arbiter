@@ -46,8 +46,8 @@ use serde::{de::DeserializeOwned, Serialize};
 use thiserror::Error;
 
 use crate::environment::{
-    Cheatcodes, CheatcodesReturn, Environment, EnvironmentData, EventBroadcaster, Instruction,
-    InstructionSender, Outcome, OutcomeReceiver, OutcomeSender, ReceiptData,
+    cheatcodes::*, instruction::*, Environment, EventBroadcaster, InstructionSender,
+    OutcomeReceiver, OutcomeSender,
 };
 
 /// A middleware structure that integrates with `revm`.
@@ -289,20 +289,24 @@ impl RevmMiddleware {
         &self,
         cheatcode: Cheatcodes,
     ) -> Result<CheatcodesReturn, RevmMiddlewareError> {
-        self.provider()
-            .as_ref()
-            .instruction_sender
-            .send(Instruction::Cheatcode {
-                cheatcode,
-                outcome_sender: self.provider().as_ref().outcome_sender.clone(),
-            })
-            .map_err(|e| RevmMiddlewareError::Send(e.to_string()))?;
+        if let Some(instruction_sender) = self.provider.as_ref().instruction_sender.upgrade() {
+            instruction_sender
+                .send(Instruction::Cheatcode {
+                    cheatcode,
+                    outcome_sender: self.provider().as_ref().outcome_sender.clone(),
+                })
+                .map_err(|e| RevmMiddlewareError::Send(e.to_string()))?;
 
-        match self.provider().as_ref().outcome_receiver.recv()?? {
-            Outcome::CheatcodeReturn(outcome) => Ok(outcome),
-            _ => Err(RevmMiddlewareError::MissingData(
-                "Wrong variant returned via instruction outcome!".to_string(),
-            )),
+            match self.provider().as_ref().outcome_receiver.recv()?? {
+                Outcome::CheatcodeReturn(outcome) => Ok(outcome),
+                _ => Err(RevmMiddlewareError::MissingData(
+                    "Wrong variant returned via instruction outcome!".to_string(),
+                )),
+            }
+        } else {
+            Err(RevmMiddlewareError::Send(
+                "Environment is offline!".to_string(),
+            ))
         }
     }
 
@@ -805,7 +809,7 @@ impl Middleware for RevmMiddleware {
 
         match result {
             CheatcodesReturn::Load { value } => {
-                /// Convert the revm ruint type into big endian bytes, then convert into ethers H256.
+                // Convert the revm ruint type into big endian bytes, then convert into ethers H256.
                 let value: ethers::types::H256 = ethers::types::H256::from(value.to_be_bytes());
                 Ok(value)
             }
