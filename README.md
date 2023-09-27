@@ -88,7 +88,7 @@ Arbiter treats Rust smart-contract bindings as first-class citizens. The contrac
 
 ### Optional Arguments
 
-You can run `arbiter init -o` followed by any optional arguments. Currently the only optional argument is `no-git` that will be sure to remove the `.git` directory from the template upon initialization.
+You can run `arbiter init <simulation_name> --no-git` to remove the `.git` directory from the template upon initialization.
 
 ## Documentation
 
