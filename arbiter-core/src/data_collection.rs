@@ -4,9 +4,10 @@ use ethers::{
     contract::{builders::Event as EventBuilder, EthLogDecode},
     providers::{Middleware, StreamExt as ProviderStreamExt},
 };
+use futures_util::FutureExt;
 
 use crate::middleware::RevmMiddlewareError;
-use futures_channel::mpsc::{channel, Receiver, Sender};
+use tokio::sync::oneshot::{Receiver, Sender};
 use stream_cancel::{StreamExt, Tripwire};
 use tokio::task::JoinHandle;
 use tracing::info;
@@ -17,6 +18,7 @@ pub struct EventCapture<
     E: EthLogDecode + Debug + 'static,
 > {
     events: EventBuilder<M, D, E>,
+    channel: (Sender<()>, Receiver<()>),
 }
 
 impl<
@@ -26,30 +28,38 @@ impl<
     > EventCapture<M, D, E>
 {
     pub fn new(events: EventBuilder<M, D, E>) -> Self {
-        Self { events }
+        Self { events, channel: tokio::sync::oneshot::channel() }
     }
 
     pub async fn run(
         self,
-        tripwire: Tripwire,
-    ) -> Result<std::thread::JoinHandle<()>, RevmMiddlewareError> {
+    ) -> Result<(std::thread::JoinHandle<()>, Sender<()>), RevmMiddlewareError> {
         let events = self.events;
+        let (sender, mut receiver) = self.channel;
         let handle = std::thread::spawn(move || {
             let rt = tokio::runtime::Runtime::new().unwrap();
             rt.block_on(async {
-                let mut stream = events.stream().await.unwrap().take_until_if(tripwire);
-                let mut i = 0;
+                let mut stream = events.stream().await.unwrap();
                 loop {
-                    if let Some(log) = stream.next().await {
-                        info!("log: {:?}", log);
-                        info!("i: {}", i);
-                        i += 1;
-                    } else {
-                        continue
+                    info!("looping");
+                    tokio::select! {
+                        biased;
+                        Some(log) = stream.next() => {
+                            info!("log: {:?}", log);
+                        }
+                        _ = &mut receiver => {
+                            info!("received message");
+                            let remainder = stream.next().now_or_never();
+                            info!("remainder: {:?}", remainder);
+                            break;
+                        }
                     }
                 }
+                info!("exiting");
+                let remainder = stream.next().now_or_never();
+                info!("remainder: {:?}", remainder);
             });
         });
-        Ok(handle)
+        Ok((handle, sender))
     }
 }
