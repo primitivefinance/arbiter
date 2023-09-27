@@ -17,9 +17,7 @@ async fn data_capture() {
     let arbx = deploy_arbx(client.clone()).await.unwrap();
     let event_capture = EventCapture::new(arbx.events());
 
-    let (trigger, tripwire) = Tripwire::new();
-
-    let handle1 = event_capture.run(tripwire).await.unwrap();
+    let (handle1, tx) = event_capture.run().await.unwrap();
 
     for i in 0..5 {
         info!("Task 1: {}", i);
@@ -31,6 +29,6 @@ async fn data_capture() {
             .unwrap();
     }
     info!("Task 2: done");
-    drop(trigger);
+    tx.send(()).unwrap();
     handle1.join();
 }
