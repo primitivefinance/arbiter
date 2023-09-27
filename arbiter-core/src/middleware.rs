@@ -99,9 +99,14 @@ pub struct RevmMiddleware {
 /// [GitHub](https://github.com/primitivefinance/arbiter/).
 #[derive(Error, Debug)]
 pub enum RevmMiddlewareError {
-    /// An error occurred while attempting to interact with the environment.
+    /// An error occurred while attempting to interact with the [`Environment`].
     #[error("an error came from the environment! due to: {0}")]
     Environment(#[from] crate::environment::errors::EnvironmentError),
+
+    /// An error occurred while attempting to interact with the provider:
+    /// [`Connection`].
+    #[error("an error came from the provider! due to: {0}")]
+    Provider(#[from] ProviderError),
 
     /// An error occurred while attempting to send a transaction.
     #[error("failed to send transaction! due to: {0}")]
@@ -117,7 +122,8 @@ pub enum RevmMiddlewareError {
     #[error("failed to gain event broadcaster lock! due to: {0}")]
     EventBroadcaster(String),
 
-    /// The required data for a transaction was missing or incomplete.
+    /// The required data or functionality for an instruction was missing or
+    /// incomplete.
     #[error("missing data! due to: {0}")]
     MissingData(String),
 
@@ -153,10 +159,10 @@ pub enum RevmMiddlewareError {
 }
 
 impl MiddlewareError for RevmMiddlewareError {
-    type Inner = Self;
+    type Inner = ProviderError;
 
     fn from_err(e: Self::Inner) -> Self {
-        e
+        RevmMiddlewareError::Provider(e)
     }
 
     fn as_inner(&self) -> Option<&Self::Inner> {
@@ -348,12 +354,12 @@ impl RevmMiddleware {
 impl Middleware for RevmMiddleware {
     type Provider = Connection;
     type Error = RevmMiddlewareError;
-    type Inner = Self;
+    type Inner = Provider<Connection>;
 
     /// Returns a reference to the inner middleware of which there is none when
     /// using [`RevmMiddleware`] so we relink to `Self`
     fn inner(&self) -> &Self::Inner {
-        self
+        &self.provider
     }
 
     /// Provides access to the associated Ethereum provider which is given by
@@ -907,11 +913,9 @@ impl JsonRpcClient for Connection {
                 // Take the logs and Stringify then JSONify to cast into `R`.
                 let logs_str = serde_json::to_string(&logs)?;
                 let logs_deserializeowned: R = serde_json::from_str(&logs_str)?;
-                return Ok(logs_deserializeowned);
+                Ok(logs_deserializeowned)
             }
-            var => {
-                unimplemented!("We don't cover this case yet: {}", var);
-            }
+            _ => Err(ProviderError::UnsupportedRPC),
         }
     }
 }

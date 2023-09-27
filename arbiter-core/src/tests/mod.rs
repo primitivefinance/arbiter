@@ -15,6 +15,7 @@ use ethers::{
         k256::sha2::{Digest, Sha256},
         EthLogDecode, Middleware,
     },
+    providers::ProviderError,
     types::{Address, Filter, ValueOrArray, U256},
 };
 use futures::StreamExt;
