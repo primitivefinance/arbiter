@@ -10,15 +10,14 @@ jobs:
   test:
     name: test
     runs-on: ubuntu-latest
-    env:
-      ETH_RPC_URL: https://eth-mainnet.alchemyapi.io/v2/Lc7oIGYeL_QvInzI0Wiu_pOZZDEKBrdf
     steps:
       - uses: actions/checkout@v3
 
       - name: install rust toolchain
         uses: actions-rs/toolchain@v1
         with:
-          toolchain: stable
+          toolchain: 1.71.0
+          override: true
 
       - name: test
         run: cargo test --all --all-features
