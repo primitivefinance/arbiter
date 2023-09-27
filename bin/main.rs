@@ -23,6 +23,8 @@ use clap::{command, CommandFactory, Parser, Subcommand};
 use thiserror::Error;
 
 mod bind;
+#[cfg(test)]
+mod fork;
 mod init;
 
 /// Represents command-line arguments passed to the `Arbiter` tool.
@@ -86,6 +88,12 @@ enum Commands {
         #[clap(index = 1)]
         simulation_name: String,
     },
+
+    Fork {
+        /// The name of the config file used to configure the fork.
+        #[clap(index = 1)]
+        fork_config: String,
+    },
 }
 
 /// The main entry point for the `Arbiter` tool.
@@ -108,6 +116,10 @@ fn main() -> Result<(), Box<dyn Error>> {
         Some(Commands::Bind) => {
             println!("Generating bindings...");
             bind::forge_bind()?;
+        }
+        Some(Commands::Fork { fork_config }) => {
+            println!("Forking...");
+            // fork::fork(fork_config)?;
         }
         None => {
             Args::command()

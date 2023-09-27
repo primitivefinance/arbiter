@@ -1,0 +1,4 @@
+filename = "test.json"
+output_path = "output/"
+block_number = 18228556
+addresses = ["0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2"]
