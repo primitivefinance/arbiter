@@ -1,7 +1,9 @@
-///! Unwraps the result of the EVM execution into a more structured `Success` type.
+use revm::primitives::{ExecutionResult, Output};
+
+/// ! Unwraps the result of the EVM execution into a more structured `Success`
+/// type.
 use super::cast::revm_logs_to_ethers_logs;
 use super::errors::RevmMiddlewareError;
-use revm::primitives::{ExecutionResult, Output};
 
 /// Contains the result of a successful transaction execution.
 #[derive(Debug)]

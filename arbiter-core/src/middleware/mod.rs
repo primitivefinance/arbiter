@@ -722,8 +722,8 @@ impl Middleware for RevmMiddleware {
     ) -> Result<U256, RevmMiddlewareError> {
         todo!();
     }
-    /// Fetches the value stored at the storage slot `key` for an account at `address`.
-    /// todo: implement the storage at a specific block feature.
+    /// Fetches the value stored at the storage slot `key` for an account at
+    /// `address`. todo: implement the storage at a specific block feature.
     async fn get_storage_at<T: Into<NameOrAddress> + Send + Sync>(
         &self,
         account: T,
@@ -751,7 +751,8 @@ impl Middleware for RevmMiddleware {
 
         match result {
             CheatcodesReturn::Load { value } => {
-                // Convert the revm ruint type into big endian bytes, then convert into ethers H256.
+                // Convert the revm ruint type into big endian bytes, then convert into ethers
+                // H256.
                 let value: ethers::types::H256 = ethers::types::H256::from(value.to_be_bytes());
                 Ok(value)
             }

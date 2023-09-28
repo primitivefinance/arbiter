@@ -1,17 +1,21 @@
-//! The `nonce_middleware` module provides a middleware implementation for managing nonces for
-//! Ethereum-like virtual machines. A nonce is a number that is used only once in a cryptographic
-//! communication. In this case, it is used to ensure that each transaction sent from the address
-//! associated with the middleware is unique and cannot be replayed.
+//! The `nonce_middleware` module provides a middleware implementation for
+//! managing nonces for Ethereum-like virtual machines. A nonce is a number that
+//! is used only once in a cryptographic communication. In this case, it is used
+//! to ensure that each transaction sent from the address associated with the
+//! middleware is unique and cannot be replayed.
 //!
 //! Main components:
 //! - [`NonceManagerMiddleware`]: The core middleware implementation.
 //! - [`NonceManagerError`]: Error type for the middleware.
 
-use async_trait::async_trait;
-use ethers::{types::{transaction::eip2718::TypedTransaction, *}, providers::{Middleware, MiddlewareError, PendingTransaction}};
 use std::sync::atomic::{AtomicBool, AtomicU64, Ordering};
-use thiserror::Error;
 
+use async_trait::async_trait;
+use ethers::{
+    providers::{Middleware, MiddlewareError, PendingTransaction},
+    types::{transaction::eip2718::TypedTransaction, *},
+};
+use thiserror::Error;
 
 #[derive(Debug)]
 /// Middleware used for calculating nonces locally, useful for signing multiple
@@ -25,10 +29,11 @@ pub struct NonceManagerMiddleware<M> {
 }
 
 impl<M> NonceManagerMiddleware<M>
-    where M: Middleware
-    {
-        /// Instantiates the nonce manager with a 0 nonce. The `address` should be the
-    /// address which you'll be sending transactions from
+where
+    M: Middleware,
+{
+    /// Instantiates the nonce manager with a 0 nonce. The `address` should be
+    /// the address which you'll be sending transactions from
     pub fn new(inner: M, address: Address) -> Self {
         Self {
             inner,
@@ -46,21 +51,23 @@ impl<M> NonceManagerMiddleware<M>
     }
     /// Initializes the nonce for the address associated with this middleware.
     ///
-    /// This function initializes the nonce for the address associated with this middleware. If the
-    /// nonce has already been initialized, this function returns the current nonce. Otherwise, it
-    /// initializes the nonce by querying the blockchain for the current transaction count for the
-    /// address. The nonce is used to ensure that each transaction sent from the address is unique
-    /// and cannot be replayed.
+    /// This function initializes the nonce for the address associated with this
+    /// middleware. If the nonce has already been initialized, this function
+    /// returns the current nonce. Otherwise, it initializes the nonce by
+    /// querying the blockchain for the current transaction count for the
+    /// address. The nonce is used to ensure that each transaction sent from the
+    /// address is unique and cannot be replayed.
     ///
     /// # Arguments
     ///
-    /// * `block` - An optional block ID to use when querying the blockchain for the current
-    ///             transaction count. If `None`, the latest block will be used.
+    /// * `block` - An optional block ID to use when querying the blockchain for
+    ///   the current transaction count. If `None`, the latest block will be
+    ///   used.
     ///
     /// # Errors
     ///
-    /// This function returns an error if there is an error querying the blockchain for the current
-    /// transaction count.
+    /// This function returns an error if there is an error querying the
+    /// blockchain for the current transaction count.
 
     pub async fn initialize_nonce(
         &self,
@@ -68,7 +75,7 @@ impl<M> NonceManagerMiddleware<M>
     ) -> Result<U256, NonceManagerError<M>> {
         if self.initialized.load(Ordering::SeqCst) {
             // return current nonce
-            return Ok(self.nonce.load(Ordering::SeqCst).into())
+            return Ok(self.nonce.load(Ordering::SeqCst).into());
         }
 
         let _guard = self.init_guard.lock().await;
@@ -76,7 +83,7 @@ impl<M> NonceManagerMiddleware<M>
         // do this again in case multiple tasks enter this codepath
         if self.initialized.load(Ordering::SeqCst) {
             // return current nonce
-            return Ok(self.nonce.load(Ordering::SeqCst).into())
+            return Ok(self.nonce.load(Ordering::SeqCst).into());
         }
 
         // Note: Need to implement get_transaction_count for the middleware
@@ -155,12 +162,16 @@ where
             tx.set_nonce(self.get_transaction_count_with_manager(block).await?);
         }
 
-        Ok(self.inner().fill_transaction(tx, block).await.map_err(MiddlewareError::from_err)?)
+        Ok(self
+            .inner()
+            .fill_transaction(tx, block)
+            .await
+            .map_err(MiddlewareError::from_err)?)
     }
 
-    /// Signs and broadcasts the transaction. The optional parameter `block` can be passed so that
-    /// gas cost and nonce calculations take it into account. For simple transactions this can be
-    /// left to `None`.
+    /// Signs and broadcasts the transaction. The optional parameter `block` can
+    /// be passed so that gas cost and nonce calculations take it into
+    /// account. For simple transactions this can be left to `None`.
     async fn send_transaction<T: Into<TypedTransaction> + Send + Sync>(
         &self,
         tx: T,
@@ -181,7 +192,10 @@ where
                     // was a nonce mismatch
                     self.nonce.store(nonce.as_u64(), Ordering::SeqCst);
                     tx.set_nonce(nonce);
-                    self.inner.send_transaction(tx, block).await.map_err(MiddlewareError::from_err)
+                    self.inner
+                        .send_transaction(tx, block)
+                        .await
+                        .map_err(MiddlewareError::from_err)
                 } else {
                     // propagate the error otherwise
                     Err(MiddlewareError::from_err(err))

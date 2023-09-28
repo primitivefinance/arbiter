@@ -360,13 +360,15 @@ impl Environment {
                             // Get the underlying database
                             let db = evm.db.as_mut().unwrap();
 
-                            // Cast the ethers-rs types passed in the cheatcode arguments into revm primitive types
+                            // Cast the ethers-rs types passed in the cheatcode arguments into revm
+                            // primitive types
                             let recast_address = revm::primitives::Address::from(account);
                             let recast_key = revm::primitives::B256::from(key);
                             let recast_value = revm::primitives::B256::from(value);
 
-                            // Mutate the db by inserting the new key-value pair into the account's storage
-                            // and send the successful CheatcodeCompleted outcome.
+                            // Mutate the db by inserting the new key-value pair into the account's
+                            // storage and send the successful
+                            // CheatcodeCompleted outcome.
                             match db.accounts.get_mut(&recast_address) {
                                 Some(account) => {
                                     account

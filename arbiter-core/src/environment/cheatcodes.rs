@@ -1,7 +1,8 @@
-///! Cheatcodes are a direct way to access the underlying [`EVM`] environment and database.
-///! Use them via the `apply_cheatcode` method on a `client`.
+/// ! Cheatcodes are a direct way to access the underlying [`EVM`] environment
+/// and database. ! Use them via the `apply_cheatcode` method on a `client`.
 
-/// Cheatcodes are a direct way to access the underlying [`EVM`] environment and database.
+/// Cheatcodes are a direct way to access the underlying [`EVM`] environment and
+/// database.
 #[derive(Clone, Debug, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 pub enum Cheatcodes {
     /// A `Deal` is used to increase the balance of an account in the [`EVM`].
@@ -23,7 +24,8 @@ pub enum Cheatcodes {
         block: Option<ethers::types::BlockId>,
     },
     /// Overwrites a storage slot of an account.
-    /// todo: for more complicated data types, like structs, there's more work to do.
+    /// todo: for more complicated data types, like structs, there's more work
+    /// to do.
     Store {
         /// The address of the account to overwrite the storage slot of.
         account: ethers::types::Address,
