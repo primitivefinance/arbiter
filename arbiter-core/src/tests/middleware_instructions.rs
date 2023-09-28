@@ -340,7 +340,9 @@ async fn unimplemented_middleware_instruction() {
     // "this method is not yet implemented" error.
     let should_be_error = client.client_version().await;
     assert!(should_be_error.is_err());
-    if let RevmMiddlewareError::Provider(e) = should_be_error.unwrap_err() {
+    if let crate::middleware::errors::RevmMiddlewareError::Provider(e) =
+        should_be_error.unwrap_err()
+    {
         assert_eq!(e.to_string(), ProviderError::UnsupportedRPC.to_string());
     } else {
         panic!("Expected RevmMiddlewareError::Provider");
