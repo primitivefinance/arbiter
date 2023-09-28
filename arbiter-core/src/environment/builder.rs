@@ -120,8 +120,8 @@ impl EnvironmentBuilder {
         self
     }
 
-    pub fn db(mut self, db: CacheDB<EmptyDB>) -> Self {
-        self.db = Some(db);
+    pub fn db(mut self, db: impl Into<CacheDB<EmptyDB>>) -> Self {
+        self.db = Some(db.into());
         self
     }
 
