@@ -26,6 +26,8 @@ mod bind;
 #[cfg(test)]
 mod fork;
 mod init;
+#[cfg(test)]
+mod tests;
 
 /// Represents command-line arguments passed to the `Arbiter` tool.
 #[derive(Parser)]
