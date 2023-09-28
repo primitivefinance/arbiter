@@ -310,6 +310,8 @@ async fn create_nonce_middleware() {
     let nonce = nonce_middleware.initialize_nonce(None).await.unwrap();
     assert_eq!(nonce, 0.into());
 }
+
+#[tokio::test]
 async fn test_cheatcodes_store() {
     let (_manager, client) = startup_randomly_sampled().unwrap();
     // Get the initial storage and assert it is zero.

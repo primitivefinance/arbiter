@@ -79,6 +79,7 @@ impl<M> NonceManagerMiddleware<M>
             return Ok(self.nonce.load(Ordering::SeqCst).into())
         }
 
+        // Note: Need to implement get_transaction_count for the middleware
         // initialize the nonce the first time the manager is called
         let nonce = self
             .inner

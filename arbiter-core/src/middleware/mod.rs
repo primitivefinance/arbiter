@@ -714,6 +714,14 @@ impl Middleware for RevmMiddleware {
         }
     }
 
+    /// Returns the nonce of the address
+    async fn get_transaction_count<T: Into<NameOrAddress> + Send + Sync>(
+        &self,
+        from: T,
+        block: Option<BlockId>,
+    ) -> Result<U256, RevmMiddlewareError> {
+        todo!();
+    }
     /// Fetches the value stored at the storage slot `key` for an account at `address`.
     /// todo: implement the storage at a specific block feature.
     async fn get_storage_at<T: Into<NameOrAddress> + Send + Sync>(
