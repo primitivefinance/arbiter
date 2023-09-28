@@ -86,6 +86,10 @@ Arbiter treats Rust smart-contract bindings as first-class citizens. The contrac
 `arbiter bind` wraps `forge` with some convenience features that will generate all your bindings to src/biindings as a rust module. 
 [Foundry](https://github.com/foundry-rs/foundry) power-users are welcome to use `forge` directly.
 
+### Optional Arguments
+
+You can run `arbiter init <simulation_name> --no-git` to remove the `.git` directory from the template upon initialization.
+
 ## Documentation
 
 To see the documentation for the Arbiter crates, please visit the following:

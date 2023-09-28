@@ -85,6 +85,9 @@ enum Commands {
         /// The name of the simulation to be initialized.
         #[clap(index = 1)]
         simulation_name: String,
+        /// Flag to indicate if git should be skipped.
+        #[clap(long)]
+        no_git: bool,
     },
 }
 
@@ -101,9 +104,15 @@ fn main() -> Result<(), Box<dyn Error>> {
     let args = Args::parse();
 
     match &args.command {
-        Some(Commands::Init { simulation_name }) => {
+        Some(Commands::Init {
+            simulation_name,
+            no_git,
+        }) => {
             println!("Initializing Arbiter project...");
             init::init_project(simulation_name)?;
+            if *no_git {
+                init::remove_git()?;
+            }
         }
         Some(Commands::Bind) => {
             println!("Generating bindings...");
