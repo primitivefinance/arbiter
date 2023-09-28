@@ -33,7 +33,6 @@
 
 pub mod bindings; // TODO: Add better documentation here and some kind of overwrite protection.
 pub mod environment;
-pub mod manager;
 pub mod math;
 pub mod middleware;
 pub mod nonce_middleware;

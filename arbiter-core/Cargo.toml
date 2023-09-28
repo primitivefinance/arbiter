@@ -13,7 +13,7 @@ readme = "../README.md"
 
 # Ethereum and EVM
 ethers = "2.0.8"
-revm = "3.3.0"
+revm = { version = "3.3.0", features = ["serde"] }
 
 # Serialization
 bytes = "1.4.0"
@@ -24,9 +24,9 @@ serde_json = { version = "1.0.96" }
 tokio = { version = "1.28.1", features = ["macros", "full"] }
 async-trait = "0.1.68"
 crossbeam-channel = "0.5.8"
-atomic_enum = "0.2.0"
 futures-timer = "3.0.2"
 futures-locks = "0.7.1"
+strum_macros = "0.25.2"
 
 # Randomness
 rand = "0.8.5"

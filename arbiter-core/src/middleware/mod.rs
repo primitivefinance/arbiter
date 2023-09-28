@@ -16,7 +16,7 @@ use std::{
     fmt::Debug,
     future::Future,
     pin::Pin,
-    sync::{Arc, Mutex},
+    sync::{Arc, Mutex, Weak},
     time::Duration,
 };
 
@@ -35,20 +35,30 @@ use ethers::{
     },
     signers::{Signer, Wallet},
     types::{
-        transaction::eip2718::TypedTransaction, Address, BlockId, Bloom, Bytes, Filter,
-        FilteredParams, Log, NameOrAddress, Transaction, TransactionReceipt, U64,
+        transaction::eip2718::TypedTransaction, Address, BlockId, Bloom, Bytes, Filter, Log,
+        NameOrAddress, Transaction, TransactionReceipt, U64,
     },
 };
 use futures_timer::Delay;
 use rand::{rngs::StdRng, SeedableRng};
-use revm::primitives::{CreateScheme, ExecutionResult, Output, TransactTo, TxEnv, B160, U256};
-use serde::{de::DeserializeOwned, Serialize};
-use thiserror::Error;
+use revm::primitives::{CreateScheme, Output, TransactTo, TxEnv, B160, U256};
 
-use crate::environment::{
-    Environment, EnvironmentData, EventBroadcaster, Instruction, InstructionSender, Outcome,
-    OutcomeReceiver, OutcomeSender, ReceiptData,
-};
+use crate::environment::{cheatcodes::*, instruction::*, Environment};
+
+pub mod errors;
+use errors::*;
+
+pub mod transactions;
+use transactions::*;
+
+pub mod connections;
+use connections::*;
+
+pub mod events;
+use events::*;
+
+pub mod cast;
+use cast::*;
 
 /// A middleware structure that integrates with `revm`.
 ///
@@ -68,115 +78,24 @@ use crate::environment::{
 /// // Import `Arc` if you need to create a client instance
 /// use std::sync::Arc;
 ///
-/// use arbiter_core::{
-///     environment::{BlockSettings, EnvironmentParameters, GasSettings},
-///     manager::Manager,
-///     middleware::RevmMiddleware,
-/// };
+/// use arbiter_core::{environment::builder::EnvironmentBuilder, middleware::RevmMiddleware};
 ///
-/// // Create a manager and add an environment
-/// let mut manager = Manager::new();
-/// let params = EnvironmentParameters {
-///     label: "example_env".to_string(),
-///     block_settings: BlockSettings::RandomlySampled {
-///         block_rate: 1.0,
-///         block_time: 12,
-///         seed: 1,
-///     },
-///     gas_settings: GasSettings::RandomlySampled { multiplier: 1.0 },
-/// };
-/// manager.add_environment(params).unwrap();
-/// manager.start_environment("example_env").unwrap();
+/// // Create a new environment and run it
+/// let mut environment = EnvironmentBuilder::new().build();
+/// environment.run();
 ///
 /// // Retrieve the environment to create a new middleware instance
-/// let environment = manager.environments.get("example_env").unwrap();
-/// let middleware = RevmMiddleware::new(&environment, Some("test_label".to_string()));
+/// let middleware = RevmMiddleware::new(&environment, Some("test_label"));
 /// let client = Arc::new(&middleware);
 /// ```
 /// The client can now be used for transactions with the environment.
-/// Use a seed like `Some("test_label".to_string())` for maintaining a
+/// Use a seed like `Some("test_label")` for maintaining a
 /// consistent address across simulations and client labeling. Seeding is be
 /// useful for debugging and post-processing.
 #[derive(Debug)]
 pub struct RevmMiddleware {
     provider: Provider<Connection>,
     wallet: Wallet<SigningKey>,
-}
-
-/// Errors that can occur while using the [`RevmMiddleware`].
-/// These errors are likely to be more common than other errors in
-/// `arbiter-core` as they can come from simple issues such as contract reverts
-/// or halts. Certain errors such as [`RevmMiddlewareError::Send`],
-/// [`RevmMiddlewareError::Receive`], [`RevmMiddlewareError::Conversion`],
-/// [`RevmMiddlewareError::Json`], and [`RevmMiddlewareError::EventBroadcaster`]
-/// are considered more worrying. If these are achieved, please feel free to
-/// contact our team via the [Telegram group](https://t.me/arbiter_rs) or on
-/// [GitHub](https://github.com/primitivefinance/arbiter/).
-#[derive(Error, Debug)]
-pub enum RevmMiddlewareError {
-    /// An error occurred while attempting to interact with the environment.
-    #[error("an error came from the environment! due to: {0}")]
-    Environment(#[from] crate::environment::EnvironmentError),
-
-    /// An error occurred while attempting to send a transaction.
-    #[error("failed to send transaction! due to: {0}")]
-    Send(String),
-
-    /// There was an issue receiving an [`ExecutionResult`], possibly from
-    /// another service or module.
-    #[error("failed to receive `ExecutionResult`! due to: {0}")]
-    Receive(#[from] crossbeam_channel::RecvError),
-
-    /// There was a failure trying to obtain a lock on the [`EventBroadcaster`],
-    /// possibly due to concurrency issues.
-    #[error("failed to gain event broadcaster lock! due to: {0}")]
-    EventBroadcaster(String),
-
-    /// The required data for a transaction was missing or incomplete.
-    #[error("missing data! due to: {0}")]
-    MissingData(String),
-
-    /// An error occurred during type conversion, possibly when translating
-    /// between domain-specific types.
-    #[error("failed to convert types! due to: {0}")]
-    Conversion(String),
-
-    /// An error occurred while trying to serialize or deserialize JSON data.
-    #[error("failed to handle with JSON data! due to: {0:?}")]
-    Json(serde_json::Error),
-
-    /// The execution of a transaction was reverted, indicating that the
-    /// transaction was not successful.
-    #[error("execution failed to succeed due to revert!\n gas used is: {gas_used}\n output is {output:?}")]
-    ExecutionRevert {
-        /// Provides the amount of gas used by the transaction.
-        gas_used: u64,
-
-        /// Provides the output or reason why the transaction was reverted.
-        output: revm::primitives::Bytes,
-    },
-
-    /// The execution of a transaction halted unexpectedly.
-    #[error("execution failed to succeed due to halt!\n reason is: {reason:?}\n gas used is: {gas_used}")]
-    ExecutionHalt {
-        /// Provides the reason for the halt.
-        reason: revm::primitives::Halt,
-
-        /// Provides the amount of gas used by the transaction.
-        gas_used: u64,
-    },
-}
-
-impl MiddlewareError for RevmMiddlewareError {
-    type Inner = Self;
-
-    fn from_err(e: Self::Inner) -> Self {
-        e
-    }
-
-    fn as_inner(&self) -> Option<&Self::Inner> {
-        None
-    }
 }
 
 impl RevmMiddleware {
@@ -186,27 +105,19 @@ impl RevmMiddleware {
     ///
     /// # Examples
     /// ```
-    /// use arbiter_core::{
-    ///     environment::{BlockSettings, EnvironmentParameters, GasSettings},
-    ///     manager::Manager,
-    ///     middleware::RevmMiddleware,
-    /// };
+    /// // Get the necessary dependencies
+    /// // Import `Arc` if you need to create a client instance
+    /// use std::sync::Arc;
     ///
-    /// let mut manager = Manager::new();
-    /// let params = EnvironmentParameters {
-    ///     label: "example_env".to_string(),
-    ///     block_settings: BlockSettings::RandomlySampled {
-    ///         block_rate: 1.0,
-    ///         block_time: 12,
-    ///         seed: 1,
-    ///     },
-    ///     gas_settings: GasSettings::RandomlySampled { multiplier: 1.0 },
-    /// };
-    /// manager.add_environment(params).unwrap();
-    /// manager.start_environment("example_env").unwrap();
+    /// use arbiter_core::{environment::builder::EnvironmentBuilder, middleware::RevmMiddleware};
+    ///
+    /// // Create a new environment and run it
+    /// let mut environment = EnvironmentBuilder::new().build();
+    /// environment.run();
     ///
     /// // Retrieve the environment to create a new middleware instance
-    /// let environment = manager.environments.get("example_env").unwrap();
+    /// let middleware = RevmMiddleware::new(&environment, Some("test_label"));
+    /// let client = Arc::new(&middleware);
     ///
     /// // We can create a middleware instance without a seed by doing the following
     /// let no_seed_middleware = RevmMiddleware::new(&environment, None);
@@ -215,39 +126,37 @@ impl RevmMiddleware {
     /// well as a label for a client. This can be useful for debugging.
     pub fn new(
         environment: &Environment,
-        seed_and_label: Option<String>,
+        seed_and_label: Option<&str>,
     ) -> Result<Self, RevmMiddlewareError> {
-        let instruction_sender = environment.socket.instruction_sender.clone();
+        let instruction_sender = &Arc::clone(&environment.socket.instruction_sender);
         let (outcome_sender, outcome_receiver) = crossbeam_channel::unbounded();
-        let connection = Connection {
-            instruction_sender: instruction_sender.clone(),
-            outcome_sender: outcome_sender.clone(),
-            outcome_receiver: outcome_receiver.clone(),
-            event_broadcaster: Arc::clone(&environment.socket.event_broadcaster),
-            filter_receivers: Arc::new(tokio::sync::Mutex::new(HashMap::new())),
-            environment_state: Arc::clone(&environment.state),
-        };
-        let provider = Provider::new(connection);
-        let new_middleware = if let Some(seed) = seed_and_label {
+        let wallet = if let Some(seed) = seed_and_label {
             let mut hasher = Sha256::new();
-            hasher.update(seed.clone());
+            hasher.update(seed);
             let hashed = hasher.finalize();
             let mut rng: StdRng = SeedableRng::from_seed(hashed.into());
-            let wallet = Wallet::new(&mut rng);
-            Self { provider, wallet }
+            Wallet::new(&mut rng)
         } else {
             let mut rng = rand::thread_rng();
-            let wallet = Wallet::new(&mut rng);
-            Self { provider, wallet }
+            Wallet::new(&mut rng)
         };
         instruction_sender
             .send(Instruction::AddAccount {
-                address: new_middleware.wallet.address(),
-                outcome_sender,
+                address: wallet.address(),
+                outcome_sender: outcome_sender.clone(),
             })
             .map_err(|e| RevmMiddlewareError::Send(e.to_string()))?;
         outcome_receiver.recv()??;
-        Ok(new_middleware)
+
+        let connection = Connection {
+            instruction_sender: Arc::downgrade(instruction_sender),
+            outcome_sender,
+            outcome_receiver: outcome_receiver.clone(),
+            event_broadcaster: Arc::clone(&environment.socket.event_broadcaster),
+            filter_receivers: Arc::new(tokio::sync::Mutex::new(HashMap::new())),
+        };
+        let provider = Provider::new(connection);
+        Ok(Self { wallet, provider })
     }
 
     /// Allows the user to update the block number and timestamp of the
@@ -262,65 +171,76 @@ impl RevmMiddleware {
     ) -> Result<ReceiptData, RevmMiddlewareError> {
         let block_number: ethers::types::U256 = block_number.into();
         let block_timestamp: ethers::types::U256 = block_timestamp.into();
-        let provider = self.provider.as_ref();
-        provider
-            .instruction_sender
-            .send(Instruction::BlockUpdate {
-                block_number: block_number.into(),
-                block_timestamp: block_timestamp.into(),
-                outcome_sender: provider.outcome_sender.clone(),
-            })
-            .map_err(|e| RevmMiddlewareError::Send(e.to_string()))?;
-        match provider.outcome_receiver.recv() {
-            Ok(Ok(Outcome::BlockUpdateCompleted(receipt_data))) => Ok(receipt_data),
-            _ => Err(RevmMiddlewareError::MissingData(
-                "Block did not update Successfully".to_string(),
-            )),
+        let provider = self.provider().as_ref();
+        if let Some(instruction_sender) = provider.instruction_sender.upgrade() {
+            instruction_sender
+                .send(Instruction::BlockUpdate {
+                    block_number: block_number.into(),
+                    block_timestamp: block_timestamp.into(),
+                    outcome_sender: provider.outcome_sender.clone(),
+                })
+                .map_err(|e| RevmMiddlewareError::Send(e.to_string()))?;
+            match provider.outcome_receiver.recv() {
+                Ok(Ok(Outcome::BlockUpdateCompleted(receipt_data))) => Ok(receipt_data),
+                _ => Err(RevmMiddlewareError::MissingData(
+                    "Block did not update Successfully".to_string(),
+                )),
+            }
+        } else {
+            Err(RevmMiddlewareError::Send(
+                "Environment is offline!".to_string(),
+            ))
         }
     }
 
     /// Returns the timestamp of the current block.
     pub async fn get_block_timestamp(&self) -> Result<ethers::types::U256, RevmMiddlewareError> {
-        self.provider()
-            .as_ref()
-            .instruction_sender
-            .send(Instruction::Query {
-                environment_data: EnvironmentData::BlockTimestamp,
-                outcome_sender: self.provider().as_ref().outcome_sender.clone(),
-            })
-            .map_err(|e| RevmMiddlewareError::Send(e.to_string()))?;
-        match self.provider().as_ref().outcome_receiver.recv()?? {
-            Outcome::QueryReturn(outcome) => {
-                ethers::types::U256::from_str_radix(outcome.as_ref(), 10)
-                    .map_err(|e| RevmMiddlewareError::Conversion(e.to_string()))
+        if let Some(instruction_sender) = self.provider().as_ref().instruction_sender.upgrade() {
+            instruction_sender
+                .send(Instruction::Query {
+                    environment_data: EnvironmentData::BlockTimestamp,
+                    outcome_sender: self.provider().as_ref().outcome_sender.clone(),
+                })
+                .map_err(|e| RevmMiddlewareError::Send(e.to_string()))?;
+            match self.provider().as_ref().outcome_receiver.recv()?? {
+                Outcome::QueryReturn(outcome) => {
+                    ethers::types::U256::from_str_radix(outcome.as_ref(), 10)
+                        .map_err(|e| RevmMiddlewareError::Conversion(e.to_string()))
+                }
+                _ => Err(RevmMiddlewareError::MissingData(
+                    "Wrong variant returned via query!".to_string(),
+                )),
             }
-            _ => Err(RevmMiddlewareError::MissingData(
-                "Wrong variant returned via query!".to_string(),
-            )),
+        } else {
+            Err(RevmMiddlewareError::Send(
+                "Environment is offline!".to_string(),
+            ))
         }
     }
 
-    /// Provides functionality to increase the balance of a given address by a
-    /// given amount.
-    pub async fn deal(
+    /// Sends a cheatcode instruction to the environment.
+    pub async fn apply_cheatcode(
         &self,
-        address: Address,
-        amount: ethers::types::U256,
-    ) -> Result<(), RevmMiddlewareError> {
-        self.provider()
-            .as_ref()
-            .instruction_sender
-            .send(Instruction::Deal {
-                address,
-                amount,
-                outcome_sender: self.provider().as_ref().outcome_sender.clone(),
-            })
-            .map_err(|e| RevmMiddlewareError::Send(e.to_string()))?;
-        match self.provider().as_ref().outcome_receiver.recv()?? {
-            Outcome::DealCompleted => Ok(()),
-            _ => Err(RevmMiddlewareError::MissingData(
-                "Wrong variant returned via instruction outcome!".to_string(),
-            )),
+        cheatcode: Cheatcodes,
+    ) -> Result<CheatcodesReturn, RevmMiddlewareError> {
+        if let Some(instruction_sender) = self.provider.as_ref().instruction_sender.upgrade() {
+            instruction_sender
+                .send(Instruction::Cheatcode {
+                    cheatcode,
+                    outcome_sender: self.provider().as_ref().outcome_sender.clone(),
+                })
+                .map_err(|e| RevmMiddlewareError::Send(e.to_string()))?;
+
+            match self.provider().as_ref().outcome_receiver.recv()?? {
+                Outcome::CheatcodeReturn(outcome) => Ok(outcome),
+                _ => Err(RevmMiddlewareError::MissingData(
+                    "Wrong variant returned via instruction outcome!".to_string(),
+                )),
+            }
+        } else {
+            Err(RevmMiddlewareError::Send(
+                "Environment is offline!".to_string(),
+            ))
         }
     }
 
@@ -337,19 +257,23 @@ impl RevmMiddleware {
         &self,
         gas_price: ethers::types::U256,
     ) -> Result<(), RevmMiddlewareError> {
-        self.provider()
-            .as_ref()
-            .instruction_sender
-            .send(Instruction::SetGasPrice {
-                gas_price,
-                outcome_sender: self.provider().as_ref().outcome_sender.clone(),
-            })
-            .map_err(|e| RevmMiddlewareError::Send(e.to_string()))?;
-        match self.provider().as_ref().outcome_receiver.recv()?? {
-            Outcome::SetGasPriceCompleted => Ok(()),
-            _ => Err(RevmMiddlewareError::MissingData(
-                "Wrong variant returned via instruction outcome!".to_string(),
-            )),
+        if let Some(instruction_sender) = self.provider().as_ref().instruction_sender.upgrade() {
+            instruction_sender
+                .send(Instruction::SetGasPrice {
+                    gas_price,
+                    outcome_sender: self.provider().as_ref().outcome_sender.clone(),
+                })
+                .map_err(|e| RevmMiddlewareError::Send(e.to_string()))?;
+            match self.provider().as_ref().outcome_receiver.recv()?? {
+                Outcome::SetGasPriceCompleted => Ok(()),
+                _ => Err(RevmMiddlewareError::MissingData(
+                    "Wrong variant returned via instruction outcome!".to_string(),
+                )),
+            }
+        } else {
+            Err(RevmMiddlewareError::Send(
+                "Environment is offline!".to_string(),
+            ))
         }
     }
 }
@@ -358,12 +282,12 @@ impl RevmMiddleware {
 impl Middleware for RevmMiddleware {
     type Provider = Connection;
     type Error = RevmMiddlewareError;
-    type Inner = Self;
+    type Inner = Provider<Connection>;
 
     /// Returns a reference to the inner middleware of which there is none when
     /// using [`RevmMiddleware`] so we relink to `Self`
     fn inner(&self) -> &Self::Inner {
-        self
+        &self.provider
     }
 
     /// Provides access to the associated Ethereum provider which is given by
@@ -391,16 +315,6 @@ impl Middleware for RevmMiddleware {
         tx: T,
         _block: Option<BlockId>,
     ) -> Result<PendingTransaction<'_, Self::Provider>, Self::Error> {
-        if self
-            .provider()
-            .as_ref()
-            .environment_state
-            .load(std::sync::atomic::Ordering::SeqCst)
-            == crate::environment::State::Paused
-        {
-            return Err(RevmMiddlewareError::Send("Environment Paused".to_string()));
-        }
-
         let tx: TypedTransaction = tx.into();
 
         // Check the `to` field of the transaction to determine if it is a call or a
@@ -432,11 +346,16 @@ impl Middleware for RevmMiddleware {
             tx_env: tx_env.clone(),
             outcome_sender: self.provider.as_ref().outcome_sender.clone(),
         };
-        self.provider()
-            .as_ref()
-            .instruction_sender
-            .send(instruction)
-            .map_err(|e| RevmMiddlewareError::Send(e.to_string()))?;
+
+        if let Some(instruction_sender) = self.provider().as_ref().instruction_sender.upgrade() {
+            instruction_sender
+                .send(instruction)
+                .map_err(|e| RevmMiddlewareError::Send(e.to_string()))?;
+        } else {
+            return Err(RevmMiddlewareError::Send(
+                "Environment is offline!".to_string(),
+            ));
+        }
 
         let outcome = self.provider().as_ref().outcome_receiver.recv()??;
 
@@ -585,15 +504,6 @@ impl Middleware for RevmMiddleware {
         tx: &TypedTransaction,
         _block: Option<BlockId>,
     ) -> Result<Bytes, Self::Error> {
-        if self
-            .provider()
-            .as_ref()
-            .environment_state
-            .load(std::sync::atomic::Ordering::SeqCst)
-            == crate::environment::State::Paused
-        {
-            return Err(RevmMiddlewareError::Send("Environment Paused".to_string()));
-        }
         let tx = tx.clone();
 
         // Check the `to` field of the transaction to determine if it is a call or a
@@ -625,11 +535,15 @@ impl Middleware for RevmMiddleware {
             tx_env,
             outcome_sender: self.provider().as_ref().outcome_sender.clone(),
         };
-        self.provider()
-            .as_ref()
-            .instruction_sender
-            .send(instruction)
-            .map_err(|e| RevmMiddlewareError::Send(e.to_string()))?;
+        if let Some(instruction_sender) = self.provider().as_ref().instruction_sender.upgrade() {
+            instruction_sender
+                .send(instruction)
+                .map_err(|e| RevmMiddlewareError::Send(e.to_string()))?;
+        } else {
+            return Err(RevmMiddlewareError::Send(
+                "Environment is offline!".to_string(),
+            ));
+        }
         let outcome = self.provider().as_ref().outcome_receiver.recv()??;
 
         if let Outcome::CallCompleted(execution_result) = outcome {
@@ -708,42 +622,50 @@ impl Middleware for RevmMiddleware {
     }
 
     async fn get_gas_price(&self) -> Result<ethers::types::U256, Self::Error> {
-        self.provider()
-            .as_ref()
-            .instruction_sender
-            .send(Instruction::Query {
-                environment_data: EnvironmentData::GasPrice,
-                outcome_sender: self.provider().as_ref().outcome_sender.clone(),
-            })
-            .map_err(|e| RevmMiddlewareError::Send(e.to_string()))?;
-        match self.provider().as_ref().outcome_receiver.recv()?? {
-            Outcome::QueryReturn(outcome) => {
-                ethers::types::U256::from_str_radix(outcome.as_ref(), 10)
-                    .map_err(|e| RevmMiddlewareError::Conversion(e.to_string()))
+        if let Some(instruction_sender) = self.provider().as_ref().instruction_sender.upgrade() {
+            instruction_sender
+                .send(Instruction::Query {
+                    environment_data: EnvironmentData::GasPrice,
+                    outcome_sender: self.provider().as_ref().outcome_sender.clone(),
+                })
+                .map_err(|e| RevmMiddlewareError::Send(e.to_string()))?;
+            match self.provider().as_ref().outcome_receiver.recv()?? {
+                Outcome::QueryReturn(outcome) => {
+                    ethers::types::U256::from_str_radix(outcome.as_ref(), 10)
+                        .map_err(|e| RevmMiddlewareError::Conversion(e.to_string()))
+                }
+                _ => Err(RevmMiddlewareError::MissingData(
+                    "Wrong variant returned via query!".to_string(),
+                )),
             }
-            _ => Err(RevmMiddlewareError::MissingData(
-                "Wrong variant returned via query!".to_string(),
-            )),
+        } else {
+            Err(RevmMiddlewareError::Send(
+                "Environment is offline!".to_string(),
+            ))
         }
     }
 
     async fn get_block_number(&self) -> Result<U64, Self::Error> {
-        self.provider()
-            .as_ref()
-            .instruction_sender
-            .send(Instruction::Query {
-                environment_data: EnvironmentData::BlockNumber,
-                outcome_sender: self.provider().as_ref().outcome_sender.clone(),
-            })
-            .map_err(|e| RevmMiddlewareError::Send(e.to_string()))?;
-        match self.provider().as_ref().outcome_receiver.recv()?? {
-            Outcome::QueryReturn(outcome) => {
-                ethers::types::U64::from_str_radix(outcome.as_ref(), 10)
-                    .map_err(|e| RevmMiddlewareError::Conversion(e.to_string()))
+        if let Some(instruction_sender) = self.provider().as_ref().instruction_sender.upgrade() {
+            instruction_sender
+                .send(Instruction::Query {
+                    environment_data: EnvironmentData::BlockNumber,
+                    outcome_sender: self.provider().as_ref().outcome_sender.clone(),
+                })
+                .map_err(|e| RevmMiddlewareError::Send(e.to_string()))?;
+            match self.provider().as_ref().outcome_receiver.recv()?? {
+                Outcome::QueryReturn(outcome) => {
+                    ethers::types::U64::from_str_radix(outcome.as_ref(), 10)
+                        .map_err(|e| RevmMiddlewareError::Conversion(e.to_string()))
+                }
+                _ => Err(RevmMiddlewareError::MissingData(
+                    "Wrong variant returned via query!".to_string(),
+                )),
             }
-            _ => Err(RevmMiddlewareError::MissingData(
-                "Wrong variant returned via query!".to_string(),
-            )),
+        } else {
+            Err(RevmMiddlewareError::Send(
+                "Environment is offline!".to_string(),
+            ))
         }
     }
 
@@ -767,233 +689,69 @@ impl Middleware for RevmMiddleware {
             NameOrAddress::Address(address) => address,
         };
 
-        self.provider()
-            .as_ref()
-            .instruction_sender
-            .send(Instruction::Query {
-                environment_data: EnvironmentData::Balance(ethers::types::Address::from(address)),
-                outcome_sender: self.provider().as_ref().outcome_sender.clone(),
+        if let Some(instruction_sender) = self.provider().as_ref().instruction_sender.upgrade() {
+            instruction_sender
+                .send(Instruction::Query {
+                    environment_data: EnvironmentData::Balance(ethers::types::Address::from(
+                        address,
+                    )),
+                    outcome_sender: self.provider().as_ref().outcome_sender.clone(),
+                })
+                .map_err(|e| RevmMiddlewareError::Send(e.to_string()))?;
+            match self.provider().as_ref().outcome_receiver.recv()?? {
+                Outcome::QueryReturn(outcome) => {
+                    ethers::types::U256::from_str_radix(outcome.as_ref(), 10)
+                        .map_err(|e| RevmMiddlewareError::Conversion(e.to_string()))
+                }
+                _ => Err(RevmMiddlewareError::MissingData(
+                    "Wrong variant returned via query!".to_string(),
+                )),
+            }
+        } else {
+            Err(RevmMiddlewareError::Send(
+                "Environment is offline!".to_string(),
+            ))
+        }
+    }
+
+    /// Fetches the value stored at the storage slot `key` for an account at `address`.
+    /// todo: implement the storage at a specific block feature.
+    async fn get_storage_at<T: Into<NameOrAddress> + Send + Sync>(
+        &self,
+        account: T,
+        key: ethers::types::H256,
+        block: Option<BlockId>,
+    ) -> Result<ethers::types::H256, RevmMiddlewareError> {
+        let address: NameOrAddress = account.into();
+        let address = match address {
+            NameOrAddress::Name(_) => {
+                return Err(RevmMiddlewareError::MissingData(
+                    "Querying storage via name is not supported!".to_string(),
+                ))
+            }
+            NameOrAddress::Address(address) => address,
+        };
+
+        let result = self
+            .apply_cheatcode(Cheatcodes::Load {
+                account: address.into(),
+                key: key.into(),
+                block: block.map(|b| b.into()),
             })
-            .map_err(|e| RevmMiddlewareError::Send(e.to_string()))?;
-        match self.provider().as_ref().outcome_receiver.recv()?? {
-            Outcome::QueryReturn(outcome) => {
-                ethers::types::U256::from_str_radix(outcome.as_ref(), 10)
-                    .map_err(|e| RevmMiddlewareError::Conversion(e.to_string()))
+            .await
+            .unwrap();
+
+        match result {
+            CheatcodesReturn::Load { value } => {
+                // Convert the revm ruint type into big endian bytes, then convert into ethers H256.
+                let value: ethers::types::H256 = ethers::types::H256::from(value.to_be_bytes());
+                Ok(value)
             }
             _ => Err(RevmMiddlewareError::MissingData(
-                "Wrong variant returned via query!".to_string(),
+                "Wrong variant returned via cheatcode!".to_string(),
             )),
         }
     }
-}
-
-/// Represents a connection to the EVM contained in the corresponding
-/// [`Environment`].
-#[derive(Debug)]
-pub struct Connection {
-    /// Used to send calls and transactions to the [`Environment`] to be
-    /// executed by `revm`.
-    instruction_sender: InstructionSender,
-
-    /// Used to send results back to a client that made a call/transaction with
-    /// the [`Environment`]. This [`ResultSender`] is passed along with a
-    /// call/transaction so the [`Environment`] can reply back with the
-    /// [`ExecutionResult`].
-    outcome_sender: OutcomeSender,
-
-    /// Used to receive the [`ExecutionResult`] from the [`Environment`] upon
-    /// call/transact.
-    outcome_receiver: OutcomeReceiver,
-
-    /// A reference to the [`EventBroadcaster`] so that more receivers of the
-    /// broadcast can be taken from it.
-    event_broadcaster: Arc<Mutex<EventBroadcaster>>,
-
-    /// A collection of `FilterReceiver`s that will receive outgoing logs
-    /// generated by `revm` and output by the [`Environment`].
-    filter_receivers: Arc<tokio::sync::Mutex<HashMap<ethers::types::U256, FilterReceiver>>>,
-
-    environment_state: Arc<crate::environment::AtomicState>,
-}
-
-#[async_trait::async_trait]
-impl JsonRpcClient for Connection {
-    type Error = ProviderError;
-
-    /// Processes a JSON-RPC request and returns the response.
-    /// Currently only handles the `eth_getFilterChanges` call since this is
-    /// used for polling events emitted from the [`Environment`].
-    async fn request<T: Serialize + Send + Sync, R: DeserializeOwned>(
-        &self,
-        method: &str,
-        params: T,
-    ) -> Result<R, ProviderError> {
-        match method {
-            "eth_getFilterChanges" => {
-                // TODO: The extra json serialization/deserialization can probably be avoided
-                // somehow
-
-                // Get the `Filter` ID from the params `T`
-                // First convert it into a JSON `Value`
-                let value = serde_json::to_value(&params)?;
-
-                // Take this value as an array then cast it to a string
-                let str = value.as_array().ok_or(ProviderError::CustomError(
-                    "The params value passed to the `Connection` via a `request` was empty. 
-                    This is likely due to not specifying a specific `Filter` ID!".to_string()
-                ))?[0]
-                    .as_str().ok_or(ProviderError::CustomError(
-                        "The params value passed to the `Connection` via a `request` could not be later cast to `str`!".to_string()
-                    ))?;
-
-                // Now get the `U256` ID via the string decoded from hex radix.
-                let id = ethers::types::U256::from_str_radix(str, 16)
-                    .map_err(|e| ProviderError::CustomError(
-                        format!("The `str` representation of the filter ID could not be cast into `U256` due to: {:?}!", 
-                        e)))?;
-
-                // Get the corresponding `filter_receiver` and await for logs to appear.
-                let mut filter_receivers = self.filter_receivers.lock().await;
-                let filter_receiver =
-                    filter_receivers
-                        .get_mut(&id)
-                        .ok_or(ProviderError::CustomError(
-                            "The filter ID does not seem to match any that this client owns!"
-                                .to_string(),
-                        ))?;
-                let mut logs = vec![];
-                let filtered_params = FilteredParams::new(Some(filter_receiver.filter.clone()));
-                if let Ok(received_logs) = filter_receiver.receiver.try_recv() {
-                    let ethers_logs = revm_logs_to_ethers_logs(received_logs);
-                    for log in ethers_logs {
-                        if filtered_params.filter_address(&log)
-                            && filtered_params.filter_topics(&log)
-                        {
-                            logs.push(log);
-                        }
-                    }
-                }
-                // Take the logs and Stringify then JSONify to cast into `R`.
-                let logs_str = serde_json::to_string(&logs)?;
-                let logs_deserializeowned: R = serde_json::from_str(&logs_str)?;
-                return Ok(logs_deserializeowned);
-            }
-            var => {
-                unimplemented!("We don't cover this case yet: {}", var);
-            }
-        }
-    }
-}
-
-/// Packages together a [`crossbeam_channel::Receiver<Vec<Log>>`] along with a
-/// [`Filter`] for events. Allows the client to have a stream of filtered
-/// events.
-#[derive(Debug)]
-pub(crate) struct FilterReceiver {
-    /// The filter definition used for this receiver.
-    /// Comes from the `ethers-rs` crate.
-    pub(crate) filter: Filter,
-
-    /// The receiver for the channel that receives logs from the broadcaster.
-    /// These are filtered upon reception.
-    pub(crate) receiver: crossbeam_channel::Receiver<Vec<revm::primitives::Log>>,
-}
-
-/// Contains the result of a successful transaction execution.
-#[derive(Debug)]
-struct Success {
-    _reason: revm::primitives::Eval,
-    _gas_used: u64,
-    _gas_refunded: u64,
-    logs: Vec<ethers::types::Log>,
-    output: Output,
-}
-
-/// Unpacks the result of the EVM execution.
-///
-/// This function converts the raw execution result from the EVM into a more
-/// structured [`Success`] type or an error indicating the failure of the
-/// execution.
-fn unpack_execution_result(
-    execution_result: ExecutionResult,
-) -> Result<Success, RevmMiddlewareError> {
-    match execution_result {
-        ExecutionResult::Success {
-            reason,
-            gas_used,
-            gas_refunded,
-            logs,
-            output,
-        } => {
-            let logs = revm_logs_to_ethers_logs(logs);
-            Ok(Success {
-                _reason: reason,
-                _gas_used: gas_used,
-                _gas_refunded: gas_refunded,
-                logs,
-                output,
-            })
-        }
-        ExecutionResult::Revert { gas_used, output } => {
-            Err(RevmMiddlewareError::ExecutionRevert { gas_used, output })
-        }
-        ExecutionResult::Halt { reason, gas_used } => {
-            Err(RevmMiddlewareError::ExecutionHalt { reason, gas_used })
-        }
-    }
-}
-
-/// Converts logs from the Revm format to the Ethers format.
-///
-/// This function iterates over a list of logs as they appear in the `revm` and
-/// converts each log entry to the corresponding format used by the `ethers-rs`
-/// library.
-#[inline]
-fn revm_logs_to_ethers_logs(
-    revm_logs: Vec<revm::primitives::Log>,
-) -> Vec<ethers::core::types::Log> {
-    let mut logs: Vec<ethers::core::types::Log> = vec![];
-    for revm_log in revm_logs {
-        let topics = revm_log.topics.into_iter().map(recast_b256).collect();
-        let log = ethers::core::types::Log {
-            address: recast_address(revm_log.address),
-            topics,
-            data: ethers::core::types::Bytes::from(revm_log.data),
-            block_hash: None,
-            block_number: None,
-            transaction_hash: None,
-            transaction_index: None,
-            log_index: None,
-            transaction_log_index: None,
-            log_type: None,
-            removed: None,
-        };
-        logs.push(log);
-    }
-    logs
-}
-
-// Certainly will go away with alloy-types
-/// Recast a B160 into an Address type
-/// # Arguments
-/// * `address` - B160 to recast. (B160)
-/// # Returns
-/// * `Address` - Recasted Address.
-#[inline]
-pub fn recast_address(address: B160) -> Address {
-    let temp: [u8; 20] = address.as_bytes().try_into().unwrap();
-    Address::from(temp)
-}
-
-/// Recast a B256 into an H256 type
-/// # Arguments
-/// * `input` - B256 to recast. (B256)
-/// # Returns
-/// * `H256` - Recasted H256.
-#[inline]
-pub fn recast_b256(input: revm::primitives::B256) -> ethers::types::H256 {
-    let temp: [u8; 32] = input.as_bytes().try_into().unwrap();
-    ethers::types::H256::from(temp)
 }
 
 #[cfg(target_arch = "wasm32")]

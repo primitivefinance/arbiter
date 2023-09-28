@@ -4,9 +4,8 @@ use super::*;
 
 #[tokio::test]
 async fn deploy() {
-    let (_manager, client) = startup_user_controlled().unwrap();
+    let (_environment, client) = startup_user_controlled().unwrap();
     let arbiter_token = deploy_arbx(client).await.unwrap();
-    println!("{:?}", arbiter_token);
     assert_eq!(
         arbiter_token.address(),
         Address::from_str("0x067ea9e44c76a2620f10b39a1b51d5124a299192").unwrap()
@@ -15,7 +14,7 @@ async fn deploy() {
 
 #[tokio::test]
 async fn call() {
-    let (_manager, client) = startup_user_controlled().unwrap();
+    let (_environment, client) = startup_user_controlled().unwrap();
     let arbiter_token = deploy_arbx(client).await.unwrap();
     let admin = arbiter_token.admin();
     let output = admin.call().await.unwrap();
@@ -27,7 +26,7 @@ async fn call() {
 
 #[tokio::test]
 async fn transact() {
-    let (_manager, client) = startup_user_controlled().unwrap();
+    let (_environment, client) = startup_user_controlled().unwrap();
     let arbiter_token = deploy_arbx(client).await.unwrap();
     let mint = arbiter_token.mint(
         Address::from_str(TEST_MINT_TO).unwrap(),
@@ -61,7 +60,7 @@ async fn transact() {
 
 #[tokio::test]
 async fn filter_id() {
-    let (_manager, client) = startup_user_controlled().unwrap();
+    let (_environment, client) = startup_user_controlled().unwrap();
     let arbiter_token = deploy_arbx(client.clone()).await.unwrap();
     let filter_watcher_1 = client.watch(&Filter::default()).await.unwrap();
     let filter_watcher_2 = client
@@ -73,7 +72,7 @@ async fn filter_id() {
 
 #[tokio::test]
 async fn filter_watcher() {
-    let (_manager, client) = startup_user_controlled().unwrap();
+    let (_environment, client) = startup_user_controlled().unwrap();
     let arbiter_token = deploy_arbx(client.clone()).await.unwrap();
     let mut filter_watcher = client.watch(&Filter::default()).await.unwrap();
     let approval = arbiter_token.approve(
@@ -117,7 +116,7 @@ async fn filter_watcher() {
 
 #[tokio::test]
 async fn filter_address() {
-    let (_manager, client) = startup_user_controlled().unwrap();
+    let (_environment, client) = startup_user_controlled().unwrap();
     let arbiter_token = deploy_arbx(client.clone()).await.unwrap();
 
     let mut default_watcher = client.watch(&Filter::default()).await.unwrap();
@@ -178,7 +177,7 @@ async fn filter_address() {
 
 #[tokio::test]
 async fn filter_topics() {
-    let (_manager, client) = startup_user_controlled().unwrap();
+    let (_environment, client) = startup_user_controlled().unwrap();
     let arbiter_token = deploy_arbx(client.clone()).await.unwrap();
 
     let mut default_watcher = client.watch(&Filter::default()).await.unwrap();
@@ -217,7 +216,7 @@ async fn filter_topics() {
 
 #[tokio::test]
 async fn block_update_receipt() {
-    let (_manager, client) = startup_user_controlled().unwrap();
+    let (_environment, client) = startup_user_controlled().unwrap();
     let arbiter_token = deploy_arbx(client.clone()).await.unwrap();
     let receipt = arbiter_token
         .mint(client.default_sender().unwrap(), 1000u64.into())
@@ -240,14 +239,14 @@ async fn block_update_receipt() {
 
 #[tokio::test]
 async fn get_block_number() {
-    let (_manager, client) = startup_user_controlled().unwrap();
+    let (_environment, client) = startup_user_controlled().unwrap();
     let block_number = client.get_block_number().await.unwrap();
     assert_eq!(block_number.as_u64(), 0_u64)
 }
 
 #[tokio::test]
 async fn get_block_timestamp() {
-    let (_manager, client) = startup_user_controlled().unwrap();
+    let (_environment, client) = startup_user_controlled().unwrap();
     let block_timestamp = client.get_block_timestamp().await.unwrap();
     assert_eq!(block_timestamp, ethers::types::U256::from(1))
 }
@@ -255,19 +254,19 @@ async fn get_block_timestamp() {
 #[tokio::test]
 async fn get_gas_price_user_controlled() {
     // User controlled should have 0 gas price initially
-    let (_manager, client) = startup_user_controlled().unwrap();
+    let (_environment, client) = startup_user_controlled().unwrap();
     let gas_price = client.get_gas_price().await.unwrap();
     assert_eq!(gas_price, ethers::types::U256::from(0));
 }
 
 #[tokio::test]
 async fn deal() {
-    let (_manager, client) = startup_user_controlled().unwrap();
+    let (_environment, client) = startup_user_controlled().unwrap();
     client
-        .deal(
-            client.default_sender().unwrap(),
-            ethers::types::U256::from(1),
-        )
+        .apply_cheatcode(Cheatcodes::Deal {
+            address: client.default_sender().unwrap(),
+            amount: ethers::types::U256::from(1),
+        })
         .await
         .unwrap();
     let balance = client.get_balance(client.address(), None).await;
@@ -276,12 +275,12 @@ async fn deal() {
 
 #[tokio::test]
 async fn deal_missing_account() {
-    let (_manager, client) = startup_user_controlled().unwrap();
+    let (_environment, client) = startup_user_controlled().unwrap();
     client
-        .deal(
-            client.default_sender().unwrap(),
-            ethers::types::U256::from(1),
-        )
+        .apply_cheatcode(Cheatcodes::Deal {
+            address: client.default_sender().unwrap(),
+            amount: ethers::types::U256::from(1),
+        })
         .await
         .unwrap();
     let mut wrong_address = client.address().0;
@@ -293,7 +292,7 @@ async fn deal_missing_account() {
 
 #[tokio::test]
 async fn set_gas_price() {
-    let (_manager, client) = startup_user_controlled().unwrap();
+    let (_environment, client) = startup_user_controlled().unwrap();
     assert_eq!(
         client.get_gas_price().await.unwrap(),
         ethers::types::U256::from(0)
@@ -310,4 +309,51 @@ async fn create_nonce_middleware() {
     println!("Got here");
     let nonce = nonce_middleware.initialize_nonce(None).await.unwrap();
     assert_eq!(nonce, 0.into());
+}
+async fn test_cheatcodes_store() {
+    let (_manager, client) = startup_randomly_sampled().unwrap();
+    // Get the initial storage and assert it is zero.
+    let storage = client
+        .get_storage_at(client.address(), ethers::types::H256::zero(), None)
+        .await
+        .unwrap();
+    assert_eq!(storage, ethers::types::H256::zero());
+
+    // Store a random value at the zero storage slot.
+    let random_value: ethers::types::H256 = ethers::types::H256::random();
+    client
+        .apply_cheatcode(Cheatcodes::Store {
+            account: client.address(),
+            key: ethers::types::H256::zero(),
+            value: random_value.clone(),
+        })
+        .await
+        .unwrap();
+
+    // Get the account's storage after calling `store`.
+    let storage = client
+        .get_storage_at(client.address(), ethers::types::H256::zero(), None)
+        .await
+        .unwrap();
+
+    // Assert that the storage is equal to the random value.
+    assert_eq!(storage, random_value);
+}
+
+#[tokio::test]
+async fn unimplemented_middleware_instruction() {
+    let (_environment, client) = startup_user_controlled().unwrap();
+
+    // This method is not implemented and likely never will, so it works to test
+    // what happens when we send an unimplemented instruction. We should get a
+    // "this method is not yet implemented" error.
+    let should_be_error = client.client_version().await;
+    assert!(should_be_error.is_err());
+    if let crate::middleware::errors::RevmMiddlewareError::Provider(e) =
+        should_be_error.unwrap_err()
+    {
+        assert_eq!(e.to_string(), ProviderError::UnsupportedRPC.to_string());
+    } else {
+        panic!("Expected RevmMiddlewareError::Provider");
+    }
 }
