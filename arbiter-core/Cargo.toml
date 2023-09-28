@@ -26,6 +26,7 @@ async-trait = "0.1.68"
 crossbeam-channel = "0.5.8"
 atomic_enum = "0.2.0"
 futures-timer = "3.0.2"
+futures-locks = "0.7.1"
 
 # Randomness
 rand = "0.8.5"
