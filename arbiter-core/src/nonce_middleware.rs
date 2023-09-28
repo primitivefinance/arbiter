@@ -1,3 +1,12 @@
+//! The `nonce_middleware` module provides a middleware implementation for managing nonces for
+//! Ethereum-like virtual machines. A nonce is a number that is used only once in a cryptographic
+//! communication. In this case, it is used to ensure that each transaction sent from the address
+//! associated with the middleware is unique and cannot be replayed.
+//!
+//! Main components:
+//! - [`NonceManagerMiddleware`]: The core middleware implementation.
+//! - [`NonceManagerError`]: Error type for the middleware.
+
 use async_trait::async_trait;
 use ethers::{types::{transaction::eip2718::TypedTransaction, *}, providers::{Middleware, MiddlewareError, PendingTransaction}};
 use std::sync::atomic::{AtomicBool, AtomicU64, Ordering};
@@ -52,15 +61,6 @@ impl<M> NonceManagerMiddleware<M>
     ///
     /// This function returns an error if there is an error querying the blockchain for the current
     /// transaction count.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use my_crate::NonceMiddleware;
-    ///
-    /// let middleware = NonceMiddleware::new(...);
-    /// let nonce = middleware.initialize_nonce(None).await.unwrap();
-    /// ```
 
     pub async fn initialize_nonce(
         &self,

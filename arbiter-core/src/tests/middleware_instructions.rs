@@ -1,3 +1,5 @@
+use crate::nonce_middleware::NonceManagerMiddleware;
+
 use super::*;
 
 #[tokio::test]
@@ -299,4 +301,13 @@ async fn set_gas_price() {
     let test_gas_price = ethers::types::U256::from(1337);
     client.set_gas_price(test_gas_price).await.unwrap();
     assert_eq!(client.get_gas_price().await.unwrap(), test_gas_price);
+}
+
+#[tokio::test]
+async fn create_nonce_middleware() {
+    let (_manager, client) = startup_user_controlled().unwrap();
+    let nonce_middleware = NonceManagerMiddleware::new(client.clone(), client.address());
+    println!("Got here");
+    let nonce = nonce_middleware.initialize_nonce(None).await.unwrap();
+    assert_eq!(nonce, 0.into());
 }
