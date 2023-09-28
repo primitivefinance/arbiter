@@ -46,8 +46,8 @@ use serde::{de::DeserializeOwned, Serialize};
 use thiserror::Error;
 
 use crate::environment::{
-    instruction::{EnvironmentData, Instruction, Outcome, ReceiptData},
-    Environment, EventBroadcaster, InstructionSender, OutcomeReceiver, OutcomeSender,
+    cheatcodes::*, instruction::*, Environment, EventBroadcaster, InstructionSender,
+    OutcomeReceiver, OutcomeSender,
 };
 
 /// A middleware structure that integrates with `revm`.
@@ -284,23 +284,21 @@ impl RevmMiddleware {
         }
     }
 
-    /// Provides functionality to increase the balance of a given address by a
-    /// given amount.
-    pub async fn deal(
+    /// Sends a cheatcode instruction to the environment.
+    pub async fn apply_cheatcode(
         &self,
-        address: Address,
-        amount: ethers::types::U256,
-    ) -> Result<(), RevmMiddlewareError> {
-        if let Some(instruction_sender) = self.provider().as_ref().instruction_sender.upgrade() {
+        cheatcode: Cheatcodes,
+    ) -> Result<CheatcodesReturn, RevmMiddlewareError> {
+        if let Some(instruction_sender) = self.provider.as_ref().instruction_sender.upgrade() {
             instruction_sender
-                .send(Instruction::Deal {
-                    address,
-                    amount,
+                .send(Instruction::Cheatcode {
+                    cheatcode,
                     outcome_sender: self.provider().as_ref().outcome_sender.clone(),
                 })
                 .map_err(|e| RevmMiddlewareError::Send(e.to_string()))?;
+
             match self.provider().as_ref().outcome_receiver.recv()?? {
-                Outcome::DealCompleted => Ok(()),
+                Outcome::CheatcodeReturn(outcome) => Ok(outcome),
                 _ => Err(RevmMiddlewareError::MissingData(
                     "Wrong variant returned via instruction outcome!".to_string(),
                 )),
@@ -779,6 +777,45 @@ impl Middleware for RevmMiddleware {
             Err(RevmMiddlewareError::Send(
                 "Environment is offline!".to_string(),
             ))
+        }
+    }
+
+    /// Fetches the value stored at the storage slot `key` for an account at `address`.
+    /// todo: implement the storage at a specific block feature.
+    async fn get_storage_at<T: Into<NameOrAddress> + Send + Sync>(
+        &self,
+        account: T,
+        key: ethers::types::H256,
+        block: Option<BlockId>,
+    ) -> Result<ethers::types::H256, RevmMiddlewareError> {
+        let address: NameOrAddress = account.into();
+        let address = match address {
+            NameOrAddress::Name(_) => {
+                return Err(RevmMiddlewareError::MissingData(
+                    "Querying storage via name is not supported!".to_string(),
+                ))
+            }
+            NameOrAddress::Address(address) => address,
+        };
+
+        let result = self
+            .apply_cheatcode(Cheatcodes::Load {
+                account: address.into(),
+                key: key.into(),
+                block: block.map(|b| b.into()),
+            })
+            .await
+            .unwrap();
+
+        match result {
+            CheatcodesReturn::Load { value } => {
+                // Convert the revm ruint type into big endian bytes, then convert into ethers H256.
+                let value: ethers::types::H256 = ethers::types::H256::from(value.to_be_bytes());
+                Ok(value)
+            }
+            _ => Err(RevmMiddlewareError::MissingData(
+                "Wrong variant returned via cheatcode!".to_string(),
+            )),
         }
     }
 }

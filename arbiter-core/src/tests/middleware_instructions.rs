@@ -261,10 +261,10 @@ async fn get_gas_price_user_controlled() {
 async fn deal() {
     let (_manager, client) = startup_user_controlled().unwrap();
     client
-        .deal(
-            client.default_sender().unwrap(),
-            ethers::types::U256::from(1),
-        )
+        .apply_cheatcode(Cheatcodes::Deal {
+            address: client.default_sender().unwrap(),
+            amount: ethers::types::U256::from(1),
+        })
         .await
         .unwrap();
     let balance = client.get_balance(client.address(), None).await;
@@ -275,10 +275,10 @@ async fn deal() {
 async fn deal_missing_account() {
     let (_manager, client) = startup_user_controlled().unwrap();
     client
-        .deal(
-            client.default_sender().unwrap(),
-            ethers::types::U256::from(1),
-        )
+        .apply_cheatcode(Cheatcodes::Deal {
+            address: client.default_sender().unwrap(),
+            amount: ethers::types::U256::from(1),
+        })
         .await
         .unwrap();
     let mut wrong_address = client.address().0;
@@ -298,4 +298,35 @@ async fn set_gas_price() {
     let test_gas_price = ethers::types::U256::from(1337);
     client.set_gas_price(test_gas_price).await.unwrap();
     assert_eq!(client.get_gas_price().await.unwrap(), test_gas_price);
+}
+
+#[tokio::test]
+async fn test_cheatcodes_store() {
+    let (_manager, client) = startup_randomly_sampled().unwrap();
+    // Get the initial storage and assert it is zero.
+    let storage = client
+        .get_storage_at(client.address(), ethers::types::H256::zero(), None)
+        .await
+        .unwrap();
+    assert_eq!(storage, ethers::types::H256::zero());
+
+    // Store a random value at the zero storage slot.
+    let random_value: ethers::types::H256 = ethers::types::H256::random();
+    client
+        .apply_cheatcode(Cheatcodes::Store {
+            account: client.address(),
+            key: ethers::types::H256::zero(),
+            value: random_value.clone(),
+        })
+        .await
+        .unwrap();
+
+    // Get the account's storage after calling `store`.
+    let storage = client
+        .get_storage_at(client.address(), ethers::types::H256::zero(), None)
+        .await
+        .unwrap();
+
+    // Assert that the storage is equal to the random value.
+    assert_eq!(storage, random_value);
 }

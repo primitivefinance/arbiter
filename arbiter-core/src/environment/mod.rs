@@ -55,6 +55,9 @@ use crate::math::SeededPoisson;
 #[cfg(doc)]
 use crate::middleware::RevmMiddleware;
 
+pub mod cheatcodes;
+use cheatcodes::*;
+
 pub(crate) mod instruction;
 use instruction::*;
 
@@ -299,29 +302,118 @@ impl Environment {
                             .send(Ok(Outcome::BlockUpdateCompleted(receipt_data)))
                             .map_err(|e| EnvironmentError::Communication(e.to_string()))?;
                     }
-                    Instruction::Deal {
-                        address,
-                        amount,
+                    Instruction::Cheatcode {
+                        cheatcode,
                         outcome_sender,
-                    } => {
-                        let db = evm.db.as_mut().unwrap();
-                        let recast_address = revm::primitives::Address::from(address);
-                        match db.accounts.get_mut(&recast_address) {
-                            Some(account) => {
-                                account.info.balance += U256::from_limbs(amount.0);
-                                outcome_sender
-                                    .send(Ok(Outcome::DealCompleted))
-                                    .map_err(|e| EnvironmentError::Communication(e.to_string()))?;
-                            }
-                            None => {
-                                outcome_sender
-                                    .send(Err(EnvironmentError::Account(
-                                        "Account is missing!".to_string(),
-                                    )))
-                                    .map_err(|e| EnvironmentError::Communication(e.to_string()))?;
-                            }
-                        };
-                    }
+                    } => match cheatcode {
+                        Cheatcodes::Load {
+                            account,
+                            key,
+                            block,
+                        } => {
+                            // Get the underlying database.
+                            let db = evm.db.as_mut().unwrap();
+
+                            // Cast the ethers-rs cheatcode arguments into revm types.
+                            let recast_address = revm::primitives::Address::from(account);
+                            let recast_key = revm::primitives::B256::from(key);
+
+                            // Get the account storage value at the key in the db.
+                            match db.accounts.get_mut(&recast_address) {
+                                Some(account) => {
+                                    // Returns zero if the account is missing.
+                                    let value: revm::primitives::U256 = match account
+                                        .storage
+                                        .get::<revm::primitives::U256>(
+                                        &recast_key.into(),
+                                    ) {
+                                        Some(value) => *value,
+                                        None => revm::primitives::U256::ZERO,
+                                    };
+
+                                    // Sends the revm::primitives::U256 storage value back to the
+                                    // sender via CheatcodeReturn(revm::primitives::U256).
+                                    outcome_sender
+                                        .send(Ok(Outcome::CheatcodeReturn(
+                                            CheatcodesReturn::Load { value },
+                                        )))
+                                        .map_err(|e| {
+                                            EnvironmentError::Communication(e.to_string())
+                                        })?;
+                                }
+                                None => {
+                                    outcome_sender
+                                        .send(Err(EnvironmentError::Account(
+                                            "Account is missing!".to_string(),
+                                        )))
+                                        .map_err(|e| {
+                                            EnvironmentError::Communication(e.to_string())
+                                        })?;
+                                }
+                            };
+                        }
+                        Cheatcodes::Store {
+                            account,
+                            key,
+                            value,
+                        } => {
+                            // Get the underlying database
+                            let db = evm.db.as_mut().unwrap();
+
+                            // Cast the ethers-rs types passed in the cheatcode arguments into revm primitive types
+                            let recast_address = revm::primitives::Address::from(account);
+                            let recast_key = revm::primitives::B256::from(key);
+                            let recast_value = revm::primitives::B256::from(value);
+
+                            // Mutate the db by inserting the new key-value pair into the account's storage
+                            // and send the successful CheatcodeCompleted outcome.
+                            match db.accounts.get_mut(&recast_address) {
+                                Some(account) => {
+                                    account
+                                        .storage
+                                        .insert(recast_key.into(), recast_value.into());
+
+                                    outcome_sender
+                                        .send(Ok(Outcome::CheatcodeReturn(CheatcodesReturn::Store)))
+                                        .map_err(|e| {
+                                            EnvironmentError::Communication(e.to_string())
+                                        })?;
+                                }
+                                None => {
+                                    outcome_sender
+                                        .send(Err(EnvironmentError::Account(
+                                            "Account is missing!".to_string(),
+                                        )))
+                                        .map_err(|e| {
+                                            EnvironmentError::Communication(e.to_string())
+                                        })?;
+                                }
+                            };
+                        }
+                        Cheatcodes::Deal { address, amount } => {
+                            let db = evm.db.as_mut().unwrap();
+                            let recast_address = revm::primitives::Address::from(address);
+                            match db.accounts.get_mut(&recast_address) {
+                                Some(account) => {
+                                    account.info.balance += U256::from_limbs(amount.0);
+                                    outcome_sender
+                                        .send(Ok(Outcome::CheatcodeReturn(CheatcodesReturn::Deal)))
+                                        .map_err(|e| {
+                                            EnvironmentError::Communication(e.to_string())
+                                        })?;
+                                }
+                                None => {
+                                    outcome_sender
+                                        .send(Err(EnvironmentError::Account(
+                                            "Account is missing!".to_string(),
+                                        )))
+                                        .map_err(|e| {
+                                            EnvironmentError::Communication(e.to_string())
+                                        })?;
+                                }
+                            };
+                        }
+                    },
                     // A `Call` is not state changing and will not create events.
                     Instruction::Call {
                         tx_env,

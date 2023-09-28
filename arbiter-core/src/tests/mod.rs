@@ -21,7 +21,7 @@ use futures::StreamExt;
 
 use crate::{
     bindings::{arbiter_math::*, arbiter_token::*, liquid_exchange::LiquidExchange},
-    environment::*,
+    environment::{cheatcodes::*, *},
     math::*,
     middleware::*,
 };
