@@ -25,8 +25,6 @@ path = "bin/main.rs"
 [dependencies]
 # Command line and config
 clap = { version = "4.3.0", features = ["derive"] }
-serde = { version = "1.0.163", features = ["derive"] }
-serde_json = "1.0.107"
 toml = "0.8.0"
 config = "0.13.1"
 
@@ -39,6 +37,12 @@ thiserror = { version = "=1.0.49" }
 # Forking
 ethers = "2.0.10"
 revm = { version = "3.3.0", features = ["serde", "ethersdb"] }
+
+# General serialization
+serde = { version = "1.0.163", features = ["derive"] }
+serde_json = "1.0.107"
+strum = "=0.25.0" # MIGHT NOT NEED
+strum_macros = "=0.25.2" #MIGHT NOT NEEd
 
 # Dependencies for the test build and development
 [dev-dependencies]

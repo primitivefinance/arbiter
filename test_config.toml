@@ -10,5 +10,5 @@ artifacts_path = "bin/tests/WETH.sol/WETH.json"
 
 [contracts.weth.mappings]
 balanceOf = [
-  "0x6B44ba0a126a2A1a8aa6cD1AdeeD002e141Bcd44",
+  "0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045", # vitalik.eth as of 10/2/2023
 ]
