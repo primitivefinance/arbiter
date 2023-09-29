@@ -11,14 +11,7 @@
 
 #![warn(missing_docs)]
 
-use std::{
-    collections::HashMap,
-    fmt::Debug,
-    future::Future,
-    pin::Pin,
-    sync::{Arc, Mutex, Weak},
-    time::Duration,
-};
+use std::{collections::HashMap, fmt::Debug, future::Future, pin::Pin, sync::Arc, time::Duration};
 
 use ethers::{
     abi::ethereum_types::BloomInput,
@@ -29,10 +22,7 @@ use ethers::{
         },
         ProviderError,
     },
-    providers::{
-        FilterKind, FilterWatcher, JsonRpcClient, Middleware, MiddlewareError, PendingTransaction,
-        Provider,
-    },
+    providers::{FilterKind, FilterWatcher, Middleware, PendingTransaction, Provider},
     signers::{Signer, Wallet},
     types::{
         transaction::eip2718::TypedTransaction, Address, BlockId, Bloom, Bytes, Filter, Log,
@@ -719,9 +709,66 @@ impl Middleware for RevmMiddleware {
     async fn get_transaction_count<T: Into<NameOrAddress> + Send + Sync>(
         &self,
         from: T,
+        _block: Option<BlockId>,
+    ) -> Result<eU256, Self::Error> {
+        let address: NameOrAddress = from.into();
+        let address = match address {
+            NameOrAddress::Name(_) => {
+                return Err(RevmMiddlewareError::MissingData(
+                    "Querying storage via name is not supported!".to_string(),
+                ))
+            }
+            NameOrAddress::Address(address) => address,
+        };
+        if let Some(instruction_sender) = self.provider().as_ref().instruction_sender.upgrade() {
+            instruction_sender
+                .send(Instruction::Query {
+                    environment_data: EnvironmentData::TransactionCount(address),
+                    outcome_sender: self.provider().as_ref().outcome_sender.clone(),
+                })
+                .map_err(|e| RevmMiddlewareError::Send(e.to_string()))?;
+
+            match self.provider().as_ref().outcome_receiver.recv()?? {
+                Outcome::QueryReturn(outcome) => {
+                    ethers::types::U256::from_str_radix(outcome.as_ref(), 10)
+                        .map_err(|e| RevmMiddlewareError::Conversion(e.to_string()))
+                }
+                _ => Err(RevmMiddlewareError::MissingData(
+                    "Wrong variant returned via query!".to_string(),
+                )),
+            }
+        } else {
+            Err(RevmMiddlewareError::Send(
+                "Environment is offline!".to_string(),
+            ))
+        }
+    }
+
+    /// Fill necessary details of a transaction for dispatch
+    ///
+    /// This function is defined on providers to behave as follows:
+    /// 1. populate the `from` field with the client address
+    /// 2. Estimate gas usage
+    ///
+    /// It does NOT set the nonce by default.
+
+    async fn fill_transaction(
+        &self,
+        tx: &mut TypedTransaction,
         block: Option<BlockId>,
-    ) -> Result<eU256, RevmMiddlewareError> {
-        todo!();
+    ) -> Result<(), Self::Error> {
+        // Set the `from` field of the transaction to the client address
+        if tx.from().is_none() {
+            tx.set_from(self.address());
+        }
+
+        // Estimate the gas usage of the transaction
+        if tx.gas_price().is_none() {
+            let gas_price = self.provider().estimate_gas(tx, block).await?;
+            tx.set_gas_price(gas_price);
+        }
+
+        Ok(())
     }
     /// Fetches the value stored at the storage slot `key` for an account at
     /// `address`. todo: implement the storage at a specific block feature.

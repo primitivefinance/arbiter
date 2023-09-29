@@ -33,7 +33,7 @@ use std::{
     convert::Infallible,
     fmt::Debug,
     sync::{Arc, Mutex},
-    thread::{self, JoinHandle}, f64::consts::E,
+    thread::{self, JoinHandle},
 };
 
 use crossbeam_channel::{bounded, unbounded, Receiver, Sender};
@@ -42,8 +42,7 @@ use log::{error, warn};
 use revm::{
     db::{CacheDB, EmptyDB},
     primitives::{
-        hash_map, AccountInfo, EVMError, ExecutionResult, HashMap, InvalidTransaction, Log, TxEnv,
-        U256,
+        AccountInfo, EVMError, ExecutionResult, HashMap, InvalidTransaction, Log, TxEnv, U256,
     },
     EVM,
 };
@@ -150,10 +149,6 @@ pub struct Environment {
     /// Used for assuring that the environment is stopped properly or for
     /// performing any blocking action the end user needs.
     pub(crate) handle: Option<JoinHandle<Result<(), EnvironmentError>>>,
-
-    // hashmap of addresses and their respective transaction counts
-    // Used by the none manager middleware
-    // pub(crate) transaction_counts: Arc<Mutex<HashMap<revm::primitives::Address, U256>>>,
 }
 
 /// Allow the end user to be able to access a debug printout for the
@@ -195,7 +190,6 @@ impl Environment {
             evm,
             socket,
             handle: None,
-            // transaction_counts: Arc::new(Mutex::new(HashMap::new())),
         }
     }
 
@@ -489,16 +483,6 @@ impl Environment {
                         cumulative_gas_per_block += U256::from(execution_result.clone().gas_used());
 
                         // update transaction count for sender
-                        // let address = revm::primitives::Address::from(evm.env.tx.caller);
-                        // let mut tc = transaction_counts.lock().unwrap();
-                        // match tc.entry(address) {
-                        //     hash_map::Entry::Occupied(mut entry) => {
-                        //         *entry.get_mut() += U256::from(1);
-                        //     }
-                        //     hash_map::Entry::Vacant(entry) => {
-                        //         entry.insert(U256::from(1));
-                        //     }
-                        // }
 
                         let event_broadcaster = event_broadcaster
                             .lock()
