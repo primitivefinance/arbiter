@@ -29,29 +29,15 @@ impl ForkedDb {
         // Read the fork config file.
         let fork_config = ForkConfig::new(&fork_config.into()).unwrap();
 
+        // Check if a file at the output path already exists.
+        // check_existing(&fork_config);
+
         // Spawn the `EthersDB` and the `CacheDB` we will write to.
         let mut ethers_db = spawn_ethers_db(&fork_config).unwrap();
-        let mut db = CacheDB::new(EmptyDB::default());
 
-        // For each contract in the fork config, get the account info and storage.
-        for contract_digest in fork_config.contract_digests.clone() {
-            let address = contract_digest.address;
-            let info = ethers_db.basic(address.into()).unwrap().unwrap();
-            db.insert_account_info(address.into(), info);
+        // Digest all of the contracts and their storage data listed in the fork config.
+        let db = digest_config(&fork_config, &mut ethers_db).unwrap();
 
-            let artifacts = parse_artifacts(contract_digest.artifacts_path.as_str()).unwrap();
-            let storage_layout = artifacts.storage_layout;
-
-            for storage_item in storage_layout.storage {
-                let slot = storage_item.slot;
-                let slot_bytes = U256::from_str_radix(slot.as_str(), 16).unwrap();
-                let storage = ethers_db
-                    .storage(address.into(), slot_bytes.into())
-                    .unwrap();
-                db.insert_account_storage(address.into(), slot_bytes.into(), storage)
-                    .unwrap();
-            }
-        }
         Ok(ForkedDb(db))
     }
 }
@@ -60,6 +46,10 @@ impl From<ForkedDb> for CacheDB<EmptyDB> {
     fn from(val: ForkedDb) -> Self {
         val.0
     }
+}
+
+pub fn check_existing(fork_config: &ForkConfig) -> Result<(), ConfigurationError> {
+    todo!("check if the file exists and if it does, load it into the db")
 }
 
 pub fn spawn_ethers_db(

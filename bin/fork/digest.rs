@@ -1,12 +1,14 @@
+use std::ops::Add;
+
 use super::*;
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct ForkConfig {
-    pub provider: String,
     pub output_path: Option<String>, //TODO: Provide default storage locations based on name of config/block number
-    pub filename: String,
+    pub output_filename: String,
+    pub provider: String,
     pub block_number: u64,
-    pub contract_digests: Vec<ContractDigest>,
+    pub contracts: HashMap<String, ContractData>,
 }
 
 impl ForkConfig {
@@ -19,7 +21,7 @@ impl ForkConfig {
 }
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
-pub struct ContractDigest {
+pub struct ContractData {
     pub address: Address,
     pub artifacts_path: String,
 }
@@ -68,7 +70,29 @@ pub enum StorageType {
     },
 }
 
-pub fn parse_artifacts(path: &str) -> Result<Artifacts, ConfigurationError> {
+/// Digests the config file and takes in an `EthersDB` so that the data can be fetched from the
+/// blockchain.
+/// Once all the `AccountInfo` for the contracts are fetched, we digest the contract artifacts to
+/// get the storage layout.
+pub fn digest_config(
+    fork_config: &ForkConfig,
+    ethers_db: &mut EthersDB<Provider<Http>>,
+) -> Result<CacheDB<EmptyDB>, ConfigurationError> {
+    let mut db = CacheDB::new(EmptyDB::default());
+    for contract_digest in fork_config.contracts.values() {
+        let address = contract_digest.address;
+        let info = ethers_db.basic(address.into()).unwrap().unwrap();
+        db.insert_account_info(address.into(), info);
+
+        let artifacts = digest_artifacts(contract_digest.artifacts_path.as_str()).unwrap();
+        let storage_layout = artifacts.storage_layout;
+
+        create_storage_layout(address, storage_layout, &mut db, ethers_db).unwrap();
+    }
+    Ok(db)
+}
+
+pub fn digest_artifacts(path: &str) -> Result<Artifacts, ConfigurationError> {
     // Read the file to a string
     let data = fs::read_to_string(path)?;
 
@@ -79,10 +103,20 @@ pub fn parse_artifacts(path: &str) -> Result<Artifacts, ConfigurationError> {
     Ok(json_data)
 }
 
-pub fn digest() {
-    todo!()
-}
-
-pub fn check_existing() -> Result<(), ConfigurationError> {
-    todo!("check if the file exists and if it does, load it into the db")
+pub fn create_storage_layout(
+    address: Address,
+    storage_layout: StorageLayout,
+    db: &mut CacheDB<EmptyDB>,
+    ethers_db: &mut EthersDB<Provider<Http>>,
+) -> Result<(), ConfigurationError> {
+    for storage_item in storage_layout.storage {
+        let slot = storage_item.slot;
+        let slot_bytes = U256::from_str_radix(slot.as_str(), 16).unwrap();
+        let storage = ethers_db
+            .storage(address.into(), slot_bytes.into())
+            .unwrap();
+        db.insert_account_storage(address.into(), slot_bytes.into(), storage)
+            .unwrap();
+    }
+    Ok(())
 }
