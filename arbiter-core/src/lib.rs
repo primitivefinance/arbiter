@@ -35,6 +35,5 @@ pub mod bindings; // TODO: Add better documentation here and some kind of overwr
 pub mod environment;
 pub mod math;
 pub mod middleware;
-pub mod nonce_middleware;
 #[cfg(test)]
 mod tests;

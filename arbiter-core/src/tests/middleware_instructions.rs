@@ -1,5 +1,5 @@
 use super::*;
-use crate::nonce_middleware::NonceManagerMiddleware;
+use crate::middleware::nonce_middleware::{self, NonceManagerMiddleware};
 
 #[tokio::test]
 async fn deploy() {

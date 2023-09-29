@@ -33,7 +33,7 @@ use std::{
     convert::Infallible,
     fmt::Debug,
     sync::{Arc, Mutex},
-    thread::{self, JoinHandle},
+    thread::{self, JoinHandle}, f64::consts::E,
 };
 
 use crossbeam_channel::{bounded, unbounded, Receiver, Sender};
@@ -42,10 +42,12 @@ use log::{error, warn};
 use revm::{
     db::{CacheDB, EmptyDB},
     primitives::{
-        AccountInfo, EVMError, ExecutionResult, HashMap, InvalidTransaction, Log, TxEnv, U256,
+        hash_map, AccountInfo, EVMError, ExecutionResult, HashMap, InvalidTransaction, Log, TxEnv,
+        U256,
     },
     EVM,
 };
+// use hashbrown::{hash_map, HashMap as HashMapBrown};
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
 
@@ -148,6 +150,10 @@ pub struct Environment {
     /// Used for assuring that the environment is stopped properly or for
     /// performing any blocking action the end user needs.
     pub(crate) handle: Option<JoinHandle<Result<(), EnvironmentError>>>,
+
+    // hashmap of addresses and their respective transaction counts
+    // Used by the none manager middleware
+    // pub(crate) transaction_counts: Arc<Mutex<HashMap<revm::primitives::Address, U256>>>,
 }
 
 /// Allow the end user to be able to access a debug printout for the
@@ -189,6 +195,7 @@ impl Environment {
             evm,
             socket,
             handle: None,
+            // transaction_counts: Arc::new(Mutex::new(HashMap::new())),
         }
     }
 
@@ -215,6 +222,7 @@ impl Environment {
             BlockSettings::UserControlled => None,
         };
         let gas_settings = self.parameters.gas_settings.clone();
+        // let transaction_counts = self.transaction_counts.clone();
 
         // Move the EVM and its socket to a new thread and retrieve this handle
         let handle = thread::spawn(move || {
@@ -309,7 +317,7 @@ impl Environment {
                         Cheatcodes::Load {
                             account,
                             key,
-                            block,
+                            block: _,
                         } => {
                             // Get the underlying database.
                             let db = evm.db.as_mut().unwrap();
@@ -480,6 +488,18 @@ impl Environment {
                         // increment cumulative gas per block
                         cumulative_gas_per_block += U256::from(execution_result.clone().gas_used());
 
+                        // update transaction count for sender
+                        // let address = revm::primitives::Address::from(evm.env.tx.caller);
+                        // let mut tc = transaction_counts.lock().unwrap();
+                        // match tc.entry(address) {
+                        //     hash_map::Entry::Occupied(mut entry) => {
+                        //         *entry.get_mut() += U256::from(1);
+                        //     }
+                        //     hash_map::Entry::Vacant(entry) => {
+                        //         entry.insert(U256::from(1));
+                        //     }
+                        // }
+
                         let event_broadcaster = event_broadcaster
                             .lock()
                             .map_err(|e| EnvironmentError::Communication(e.to_string()))?;
@@ -552,6 +572,18 @@ impl Environment {
                                 match db.accounts.get(&recast_address) {
                                     Some(account) => {
                                         Ok(Outcome::QueryReturn(account.info.balance.to_string()))
+                                    }
+                                    None => Err(EnvironmentError::Account(
+                                        "Account is missing!".to_string(),
+                                    )),
+                                }
+                            }
+                            EnvironmentData::TransactionCount(address) => {
+                                let db = evm.db().unwrap();
+                                let recast_address = revm::primitives::Address::from(address);
+                                match db.accounts.get(&recast_address) {
+                                    Some(account) => {
+                                        Ok(Outcome::QueryReturn(account.info.nonce.to_string()))
                                     }
                                     None => Err(EnvironmentError::Account(
                                         "Account is missing!".to_string(),

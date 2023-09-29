@@ -36,7 +36,7 @@ use ethers::{
     signers::{Signer, Wallet},
     types::{
         transaction::eip2718::TypedTransaction, Address, BlockId, Bloom, Bytes, Filter, Log,
-        NameOrAddress, Transaction, TransactionReceipt, U64,
+        NameOrAddress, Transaction, TransactionReceipt, U256 as eU256, U64,
     },
 };
 use futures_timer::Delay;
@@ -60,6 +60,7 @@ use events::*;
 pub mod cast;
 use cast::*;
 
+pub mod nonce_middleware;
 /// A middleware structure that integrates with `revm`.
 ///
 /// [`RevmMiddleware`] serves as a bridge between the application and `revm`'s
@@ -719,7 +720,7 @@ impl Middleware for RevmMiddleware {
         &self,
         from: T,
         block: Option<BlockId>,
-    ) -> Result<U256, RevmMiddlewareError> {
+    ) -> Result<eU256, RevmMiddlewareError> {
         todo!();
     }
     /// Fetches the value stored at the storage slot `key` for an account at
