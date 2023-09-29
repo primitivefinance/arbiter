@@ -1,6 +1,6 @@
 use std::fmt::Debug;
 
-/// ! Specific event types that can be emitted by the [`Environment`].
+/// Specific event types that can be emitted by the [`Environment`].
 use ethers::types::Filter;
 
 /// Packages together a [`crossbeam_channel::Receiver<Vec<Log>>`] along with a

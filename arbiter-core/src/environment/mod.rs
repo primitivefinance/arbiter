@@ -552,8 +552,10 @@ impl Environment {
                             EnvironmentData::Balance(address) => {
                                 // This unwrap should never fail.
                                 let db = evm.db().unwrap();
-                                let recast_address = revm::primitives::Address::from(address);
-                                match db.accounts.get(&recast_address) {
+                                match db
+                                    .accounts
+                                    .get::<revm::primitives::Address>(&address.into())
+                                {
                                     Some(account) => {
                                         Ok(Outcome::QueryReturn(account.info.balance.to_string()))
                                     }
@@ -562,9 +564,13 @@ impl Environment {
                                     )),
                                 }
                             }
+
                             EnvironmentData::TransactionCount(address) => {
                                 let db = evm.db().unwrap();
-                                match db.accounts.get(&address.into()) {
+                                match db
+                                    .accounts
+                                    .get::<revm::primitives::Address>(&address.into())
+                                {
                                     Some(account) => {
                                         Ok(Outcome::QueryReturn(account.info.nonce.to_string()))
                                     }

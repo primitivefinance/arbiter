@@ -1,4 +1,4 @@
-/// ! Utility functions for casting between revm and ethers-rs types.
+//! Utility functions for casting between revm and ethers-rs types.
 use ethers::types::Address;
 use revm::primitives::B160;
 

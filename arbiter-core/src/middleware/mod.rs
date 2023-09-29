@@ -35,15 +35,18 @@ use revm::primitives::{CreateScheme, Output, TransactTo, TxEnv, B160, U256};
 
 use crate::environment::{cheatcodes::*, instruction::*, Environment};
 
+/// Possible errors thrown by interacting with the revm middleware client.
 pub mod errors;
 use errors::*;
 
+/// Graceful handling of the [`ExecutionResult`] returned by the [`Environment`]
 pub mod transactions;
 use transactions::*;
 
 pub mod connections;
 use connections::*;
 
+/// Specific event types that can be emitted by the [`Environment`].
 pub mod events;
 use events::*;
 

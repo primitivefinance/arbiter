@@ -1,6 +1,6 @@
 use std::fmt::Debug;
 
-/// ! Possible errors thrown by interacting with the revm middleware client.
+/// Possible errors thrown by interacting with the revm middleware client.
 use ethers::{prelude::ProviderError, providers::MiddlewareError};
 use thiserror::Error;
 
