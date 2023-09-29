@@ -17,8 +17,6 @@ use ethers::{
 };
 use thiserror::Error;
 
-use super::RevmMiddleware;
-
 #[derive(Debug)]
 /// Middleware used for calculating nonces locally, useful for signing multiple
 /// consecutive transactions without waiting for them to hit the mempool

@@ -1,7 +1,7 @@
 use ethers::types::transaction::eip2718::TypedTransaction;
 
 use super::*;
-use crate::middleware::nonce_middleware::{self, NonceManagerMiddleware};
+use crate::middleware::nonce_middleware::NonceManagerMiddleware;
 
 #[tokio::test]
 async fn deploy() {
@@ -360,6 +360,18 @@ async fn inner_nonce_manager() {
 }
 
 #[tokio::test]
+async fn fill_transaction() {
+    let (_manager, client) = startup_user_controlled().unwrap();
+    let mut tx = TypedTransaction::Eip1559(Default::default());
+
+    assert!(tx.from().is_none());
+    assert!(tx.gas_price().is_none());
+    client.fill_transaction(&mut tx, None).await.unwrap();
+    assert!(tx.from().is_some());
+    assert!(tx.gas_price().is_some());
+}
+
+#[tokio::test]
 async fn fill_transaction_nonce_middleware() {
     let (_manager, client) = startup_user_controlled().unwrap();
     let nonce_middleware = NonceManagerMiddleware::new(client.clone(), client.address());
@@ -367,12 +379,10 @@ async fn fill_transaction_nonce_middleware() {
     let mut tx = TypedTransaction::Eip1559(Default::default());
 
     assert!(tx.nonce().is_none());
-    println!("got before");
     nonce_middleware
         .fill_transaction(&mut tx, None)
         .await
         .unwrap();
-    println!("got after");
     assert!(tx.nonce().is_some());
 }
 

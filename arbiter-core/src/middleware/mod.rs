@@ -755,16 +755,16 @@ impl Middleware for RevmMiddleware {
     async fn fill_transaction(
         &self,
         tx: &mut TypedTransaction,
-        block: Option<BlockId>,
+        _block: Option<BlockId>,
     ) -> Result<(), Self::Error> {
         // Set the `from` field of the transaction to the client address
         if tx.from().is_none() {
             tx.set_from(self.address());
         }
 
-        // Estimate the gas usage of the transaction
+        // get the gas usage price
         if tx.gas_price().is_none() {
-            let gas_price = self.provider().estimate_gas(tx, block).await?;
+            let gas_price = self.get_gas_price().await?;
             tx.set_gas_price(gas_price);
         }
 
