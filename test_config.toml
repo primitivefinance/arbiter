@@ -6,3 +6,8 @@ block_number = 18228556
 [[contract_digests]]
 address = "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2" # WETH
 artifacts_path = "bin/tests/WETH.sol/WETH.json"
+
+[contract_digests.mappings]
+balanceOf = [
+  "0x6B44ba0a126a2A1a8aa6cD1AdeeD002e141Bcd44",
+]
