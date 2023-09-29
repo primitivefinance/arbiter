@@ -793,9 +793,9 @@ impl Middleware for RevmMiddleware {
 
         let result = self
             .apply_cheatcode(Cheatcodes::Load {
-                account: address.into(),
-                key: key.into(),
-                block: block.map(|b| b.into()),
+                account: address,
+                key,
+                block,
             })
             .await
             .unwrap();

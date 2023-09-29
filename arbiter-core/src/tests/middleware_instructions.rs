@@ -322,7 +322,7 @@ async fn get_transaction_count() {
 
 #[tokio::test]
 async fn create_nonce_middleware() {
-    let (_manager, client) = startup_user_controlled().unwrap();
+    let (_environment, client) = startup_user_controlled().unwrap();
     let nonce_middleware = NonceManagerMiddleware::new(client.clone(), client.address());
     let nonce = nonce_middleware.initialize_nonce(None).await.unwrap();
     assert_eq!(nonce, 0.into());
@@ -330,7 +330,7 @@ async fn create_nonce_middleware() {
 
 #[tokio::test]
 async fn next_nonce_middleware() {
-    let (_manager, client) = startup_user_controlled().unwrap();
+    let (_environment, client) = startup_user_controlled().unwrap();
     let nonce_middleware = NonceManagerMiddleware::new(client.clone(), client.address());
 
     let next_nonce = nonce_middleware.next();
@@ -342,8 +342,8 @@ async fn next_nonce_middleware() {
 }
 
 #[tokio::test]
-async fn with_manager_nonce_middleware() {
-    let (_manager, client) = startup_user_controlled().unwrap();
+async fn with_environment_nonce_middleware() {
+    let (_environment, client) = startup_user_controlled().unwrap();
     let nonce_middleware = NonceManagerMiddleware::new(client.clone(), client.address());
 
     let nonce = nonce_middleware.initialize_nonce(None).await.unwrap();
@@ -351,8 +351,8 @@ async fn with_manager_nonce_middleware() {
 }
 
 #[tokio::test]
-async fn inner_nonce_manager() {
-    let (_manager, client) = startup_user_controlled().unwrap();
+async fn inner_nonce_environment() {
+    let (_environment, client) = startup_user_controlled().unwrap();
     let nonce_middleware = NonceManagerMiddleware::new(client.clone(), client.address());
 
     let inner = nonce_middleware.inner();
@@ -361,7 +361,7 @@ async fn inner_nonce_manager() {
 
 #[tokio::test]
 async fn fill_transaction() {
-    let (_manager, client) = startup_user_controlled().unwrap();
+    let (_environment, client) = startup_user_controlled().unwrap();
     let mut tx = TypedTransaction::Eip1559(Default::default());
 
     assert!(tx.from().is_none());
@@ -373,7 +373,7 @@ async fn fill_transaction() {
 
 #[tokio::test]
 async fn fill_transaction_nonce_middleware() {
-    let (_manager, client) = startup_user_controlled().unwrap();
+    let (_environment, client) = startup_user_controlled().unwrap();
     let nonce_middleware = NonceManagerMiddleware::new(client.clone(), client.address());
 
     let mut tx = TypedTransaction::Eip1559(Default::default());
@@ -388,7 +388,7 @@ async fn fill_transaction_nonce_middleware() {
 
 #[tokio::test]
 async fn send_nonce_middleware() {
-    let (_manager, client) = startup_user_controlled().unwrap();
+    let (_environment, client) = startup_user_controlled().unwrap();
     let nonce_middleware = NonceManagerMiddleware::new(client.clone(), client.address());
     let tx = ArbiterToken::deploy(
         client,
@@ -416,7 +416,7 @@ async fn send_nonce_middleware() {
 
 #[tokio::test]
 async fn test_cheatcodes_store() {
-    let (_manager, client) = startup_randomly_sampled().unwrap();
+    let (_environment, client) = startup_randomly_sampled().unwrap();
     // Get the initial storage and assert it is zero.
     let storage = client
         .get_storage_at(client.address(), ethers::types::H256::zero(), None)

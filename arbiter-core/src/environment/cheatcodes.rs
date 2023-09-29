@@ -1,5 +1,5 @@
-/// ! Cheatcodes are a direct way to access the underlying [`EVM`] environment
-/// and database. ! Use them via the `apply_cheatcode` method on a `client`.
+//! Cheatcodes are a direct way to access the underlying [`EVM`] environment
+// and database. ! Use them via the `apply_cheatcode` method on a `client`.
 
 /// Cheatcodes are a direct way to access the underlying [`EVM`] environment and
 /// database.
