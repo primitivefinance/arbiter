@@ -37,6 +37,7 @@ thiserror = "1.0.40"
 # Dependencies for the test build and development
 [dev-dependencies]
 assert_cmd = "2.0.11"
+tempfile = "3.8.0"
 
 # Release profile
 [profile.release]
@@ -45,3 +46,5 @@ lto = true
 # The Rust compiler splits your crate into multiple codegen units to parallelize (and thus speed up) compilation but at the cost of optimization. 
 # This setting tells the compiler to use only one codegen unit, which will slow down compilation but improve optimization.
 codegen-units = 1
+
+
