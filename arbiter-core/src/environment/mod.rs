@@ -564,8 +564,7 @@ impl Environment {
                             }
                             EnvironmentData::TransactionCount(address) => {
                                 let db = evm.db().unwrap();
-                                let recast_address = revm::primitives::Address::from(address);
-                                match db.accounts.get(&recast_address) {
+                                match db.accounts.get(&address.into()) {
                                     Some(account) => {
                                         Ok(Outcome::QueryReturn(account.info.nonce.to_string()))
                                     }
