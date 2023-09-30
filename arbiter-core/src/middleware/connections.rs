@@ -1,4 +1,4 @@
-///! Messengers/connections to the underlying EVM in the environment.
+//! Messengers/connections to the underlying EVM in the environment.
 use std::{
     collections::HashMap,
     fmt::Debug,
@@ -8,9 +8,7 @@ use std::{
 use ethers::{prelude::ProviderError, providers::JsonRpcClient, types::FilteredParams};
 use serde::{de::DeserializeOwned, Serialize};
 
-use super::cast::revm_logs_to_ethers_logs;
-use super::events::FilterReceiver;
-
+use super::{cast::revm_logs_to_ethers_logs, events::FilterReceiver};
 use crate::environment::{EventBroadcaster, InstructionSender, OutcomeReceiver, OutcomeSender};
 
 /// Represents a connection to the EVM contained in the corresponding

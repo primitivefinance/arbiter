@@ -149,6 +149,9 @@ pub(crate) enum EnvironmentData {
 
     /// The query is for the balance of an account given by the inner `Address`.
     Balance(ethers::types::Address),
+
+    /// The query is for the nonce of an account given by the inner `Address`.
+    TransactionCount(ethers::types::Address),
 }
 
 /// [`ReceiptData`] is a structure that holds the block number, transaction

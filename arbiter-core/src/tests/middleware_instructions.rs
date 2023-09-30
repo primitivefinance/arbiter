@@ -1,4 +1,7 @@
+use ethers::types::transaction::eip2718::TypedTransaction;
+
 use super::*;
+use crate::middleware::nonce_middleware::NonceManagerMiddleware;
 
 #[tokio::test]
 async fn deploy() {
@@ -301,8 +304,119 @@ async fn set_gas_price() {
 }
 
 #[tokio::test]
+async fn get_transaction_count() {
+    let (_environment, client) = startup_user_controlled().unwrap();
+    let nonce = client
+        .get_transaction_count(client.address(), Some(0.into()))
+        .await
+        .unwrap();
+    assert_eq!(nonce.as_u64(), 0_u64);
+
+    let _arbiter_token = deploy_arbx(client.clone()).await.unwrap();
+    let nonce_after_tx = client
+        .get_transaction_count(client.address(), Some(0.into()))
+        .await
+        .unwrap();
+    assert_eq!(nonce_after_tx.as_u64(), 1_u64);
+}
+
+#[tokio::test]
+async fn create_nonce_middleware() {
+    let (_environment, client) = startup_user_controlled().unwrap();
+    let nonce_middleware = NonceManagerMiddleware::new(client.clone(), client.address());
+    let nonce = nonce_middleware.initialize_nonce(None).await.unwrap();
+    assert_eq!(nonce, 0.into());
+}
+
+#[tokio::test]
+async fn next_nonce_middleware() {
+    let (_environment, client) = startup_user_controlled().unwrap();
+    let nonce_middleware = NonceManagerMiddleware::new(client.clone(), client.address());
+
+    let next_nonce = nonce_middleware.next();
+    assert_eq!(next_nonce, 0.into());
+
+    let _arbiter_token = deploy_arbx(client.clone()).await.unwrap();
+    let next_nonce = nonce_middleware.next();
+    assert_eq!(next_nonce.as_u64(), 1_u64);
+}
+
+#[tokio::test]
+async fn with_environment_nonce_middleware() {
+    let (_environment, client) = startup_user_controlled().unwrap();
+    let nonce_middleware = NonceManagerMiddleware::new(client.clone(), client.address());
+
+    let nonce = nonce_middleware.initialize_nonce(None).await.unwrap();
+    assert_eq!(nonce, 0.into());
+}
+
+#[tokio::test]
+async fn inner_nonce_environment() {
+    let (_environment, client) = startup_user_controlled().unwrap();
+    let nonce_middleware = NonceManagerMiddleware::new(client.clone(), client.address());
+
+    let inner = nonce_middleware.inner();
+    assert_eq!(inner.address(), client.address());
+}
+
+#[tokio::test]
+async fn fill_transaction() {
+    let (_environment, client) = startup_user_controlled().unwrap();
+    let mut tx = TypedTransaction::Eip1559(Default::default());
+
+    assert!(tx.from().is_none());
+    assert!(tx.gas_price().is_none());
+    client.fill_transaction(&mut tx, None).await.unwrap();
+    assert!(tx.from().is_some());
+    assert!(tx.gas_price().is_some());
+}
+
+#[tokio::test]
+async fn fill_transaction_nonce_middleware() {
+    let (_environment, client) = startup_user_controlled().unwrap();
+    let nonce_middleware = NonceManagerMiddleware::new(client.clone(), client.address());
+
+    let mut tx = TypedTransaction::Eip1559(Default::default());
+
+    assert!(tx.nonce().is_none());
+    nonce_middleware
+        .fill_transaction(&mut tx, None)
+        .await
+        .unwrap();
+    assert!(tx.nonce().is_some());
+}
+
+#[tokio::test]
+async fn send_nonce_middleware() {
+    let (_environment, client) = startup_user_controlled().unwrap();
+    let nonce_middleware = NonceManagerMiddleware::new(client.clone(), client.address());
+    let tx = ArbiterToken::deploy(
+        client,
+        (
+            ARBITER_TOKEN_X_NAME.to_string(),
+            ARBITER_TOKEN_X_SYMBOL.to_string(),
+            ARBITER_TOKEN_X_DECIMALS,
+        ),
+    )
+    .unwrap()
+    .deployer
+    .tx;
+    let receipt = nonce_middleware
+        .send_transaction(tx, None)
+        .await
+        .unwrap()
+        .await
+        .unwrap()
+        .unwrap();
+    println!("receipt: {:#?}", receipt);
+    let status = receipt.status.unwrap();
+    assert_eq!(status, 1.into());
+    assert_eq!(receipt.to, None);
+}
+
+#[tokio::test]
 async fn test_cheatcodes_store() {
-    let (_manager, client) = startup_randomly_sampled().unwrap();
+    let (_environment, client) = startup_randomly_sampled().unwrap();
     // Get the initial storage and assert it is zero.
     let storage = client
         .get_storage_at(client.address(), ethers::types::H256::zero(), None)

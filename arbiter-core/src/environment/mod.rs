@@ -46,6 +46,7 @@ use revm::{
     },
     EVM,
 };
+// use hashbrown::{hash_map, HashMap as HashMapBrown};
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
 
@@ -215,6 +216,7 @@ impl Environment {
             BlockSettings::UserControlled => None,
         };
         let gas_settings = self.parameters.gas_settings.clone();
+        // let transaction_counts = self.transaction_counts.clone();
 
         // Move the EVM and its socket to a new thread and retrieve this handle
         let handle = thread::spawn(move || {
@@ -309,7 +311,7 @@ impl Environment {
                         Cheatcodes::Load {
                             account,
                             key,
-                            block,
+                            block: _,
                         } => {
                             // Get the underlying database.
                             let db = evm.db.as_mut().unwrap();
@@ -360,13 +362,15 @@ impl Environment {
                             // Get the underlying database
                             let db = evm.db.as_mut().unwrap();
 
-                            // Cast the ethers-rs types passed in the cheatcode arguments into revm primitive types
+                            // Cast the ethers-rs types passed in the cheatcode arguments into revm
+                            // primitive types
                             let recast_address = revm::primitives::Address::from(account);
                             let recast_key = revm::primitives::B256::from(key);
                             let recast_value = revm::primitives::B256::from(value);
 
-                            // Mutate the db by inserting the new key-value pair into the account's storage
-                            // and send the successful CheatcodeCompleted outcome.
+                            // Mutate the db by inserting the new key-value pair into the account's
+                            // storage and send the successful
+                            // CheatcodeCompleted outcome.
                             match db.accounts.get_mut(&recast_address) {
                                 Some(account) => {
                                     account
@@ -478,6 +482,8 @@ impl Environment {
                         // increment cumulative gas per block
                         cumulative_gas_per_block += U256::from(execution_result.clone().gas_used());
 
+                        // update transaction count for sender
+
                         let event_broadcaster = event_broadcaster
                             .lock()
                             .map_err(|e| EnvironmentError::Communication(e.to_string()))?;
@@ -546,10 +552,27 @@ impl Environment {
                             EnvironmentData::Balance(address) => {
                                 // This unwrap should never fail.
                                 let db = evm.db().unwrap();
-                                let recast_address = revm::primitives::Address::from(address);
-                                match db.accounts.get(&recast_address) {
+                                match db
+                                    .accounts
+                                    .get::<revm::primitives::Address>(&address.into())
+                                {
                                     Some(account) => {
                                         Ok(Outcome::QueryReturn(account.info.balance.to_string()))
+                                    }
+                                    None => Err(EnvironmentError::Account(
+                                        "Account is missing!".to_string(),
+                                    )),
+                                }
+                            }
+
+                            EnvironmentData::TransactionCount(address) => {
+                                let db = evm.db().unwrap();
+                                match db
+                                    .accounts
+                                    .get::<revm::primitives::Address>(&address.into())
+                                {
+                                    Some(account) => {
+                                        Ok(Outcome::QueryReturn(account.info.nonce.to_string()))
                                     }
                                     None => Err(EnvironmentError::Account(
                                         "Account is missing!".to_string(),
