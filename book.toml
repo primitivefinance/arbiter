@@ -1,0 +1,6 @@
+[book]
+authors = ["Sabnock01"]
+language = "en"
+multilingual = false
+src = "docs/src"
+title = "Arbiter"
