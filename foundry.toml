@@ -5,7 +5,7 @@ test = 'test' # default
 libs = ['contracts']
 cache = false # !important! breaks echidna if cache = true.
 remappings = [
-    '@forge-std/=contracts/forge-std/src/',
-    '@solmate/=contracts/portfolio/lib/solmate/src/',
-    '@solstat/=contracts/solstat/src/',
+    'forge-std/=contracts/forge-std/src/',
+    'solmate/=contracts/solmate/src/',
+    'solstat/=contracts/solstat/src/',
 ]

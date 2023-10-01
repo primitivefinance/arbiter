@@ -1,0 +1,9 @@
+[submodule "contracts/forge-std"]
+	path = contracts/forge-std
+	url = https://github.com/foundry-rs/forge-std
+[submodule "contracts/solmate"]
+	path = contracts/solmate
+	url = https://github.com/transmissions11/solmate
+[submodule "contracts/solstat"]
+	path = contracts/solstat
+	url = https://github.com/primitivefinance/solstat
