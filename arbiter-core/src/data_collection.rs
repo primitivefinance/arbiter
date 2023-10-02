@@ -1,80 +1,105 @@
-use std::{fmt::Debug, sync::Arc};
+use std::{collections::BTreeMap, fmt::Debug};
 
 use ethers::{
-    contract::{builders::Event as EventBuilder, EthLogDecode},
-    providers::{Middleware, StreamExt as ProviderStreamExt}, types::{Filter, U256},
-    prelude::k256::sha2::{Digest, Sha256}
+    contract::{builders::Event, EthLogDecode},
+    providers::{Middleware, StreamExt as ProviderStreamExt},
 };
-use futures_util::FutureExt;
+use serde::Serialize;
 
-use crate::middleware::{RevmMiddlewareError, RevmMiddleware};
-use tokio::sync::oneshot::{Receiver, Sender};
-use stream_cancel::{StreamExt, Tripwire};
-use tokio::task::JoinHandle;
+use crate::middleware::errors::RevmMiddlewareError;
+use serde_json::Value;
+use tokio::{io::AsyncWriteExt, task::JoinHandle};
 use tracing::info;
 
-pub struct EventCapture<
+pub struct EventLogger<
     M: Middleware + std::borrow::Borrow<D> + 'static,
     D: Middleware + Debug + Send + Sync + 'static,
-    E: EthLogDecode + Debug + 'static,
+    E: EthLogDecode + Debug + Serialize + 'static,
 > {
-    events: EventBuilder<M, D, E>,
-    channel: (Sender<()>, Receiver<()>),
-    id: U256,
-    client: Arc<RevmMiddleware>
+    events: Vec<Event<M, D, E>>,
 }
 
 impl<
         M: Middleware + std::borrow::Borrow<D>,
         D: Middleware + Debug + Send + Sync,
-        E: EthLogDecode + Debug + 'static,
-    > EventCapture<M, D, E>
+        E: EthLogDecode + Debug + Serialize + 'static,
+    > EventLogger<M, D, E>
 {
-    pub fn new(events: EventBuilder<M, D, E>, client: Arc<RevmMiddleware>) -> Self {
-        let filter = events.filter.clone();
-        let mut hasher = Sha256::new();
-        hasher.update(serde_json::to_string(&filter).map_err(RevmMiddlewareError::Json).unwrap());
-        let hash = hasher.finalize();
-        let id = ethers::types::U256::from(ethers::types::H256::from_slice(&hash).as_bytes());
-        Self { events, channel: tokio::sync::oneshot::channel(), id, client }
+    pub fn builder() -> Self {
+        Self { events: Vec::new() }
     }
 
-    pub async fn run(
-        self,
-    ) -> Result<(Sender<()>, JoinHandle<()>), RevmMiddlewareError> {
-        let events = self.events;
-        let (sender, mut recv) = self.channel;
+    pub fn add(mut self, event: Event<M, D, E>) -> Self {
+        self.events.push(event);
+        self
+    }
+
+    pub async fn run(self) -> Result<JoinHandle<()>, RevmMiddlewareError> {
         let handle = tokio::spawn(async move {
-            let client = self.client.clone();
-            let connection = client.provider().as_ref();
-            let mut stream = events.stream().await.unwrap();
-            info!("here1");
-            loop {
-                info!("looping");
-                tokio::select! {
-                    Some(log) = stream.next() => {
-                        info!("log: {:?}", log);
-                    }
-                    _ = &mut recv => {
-                        info!("received message");
-                        loop {
-                            let receivers = connection.filter_receivers.lock().await;
-                            if let Some (receiver) = receivers.get(&self.id) {
-                                if receiver.receiver.len() == 0 {
-                                    break;
-                                } else {
-                                    drop(receivers);
-                                    if let Some(log) = stream.next().await {
-                                        info!("log: {:?}", log);
-                                    }
-                                }
+            let mut set = tokio::task::JoinSet::new();
+            for event in self.events {
+                set.spawn(async move {
+                    let mut stream = event.stream().await.unwrap();
+                    while let Some(Ok(log)) = stream.next().await {
+                        let serialized = serde_json::to_string(&log).unwrap();
+                        let deserialized: BTreeMap<String, Value> =
+                            serde_json::from_str(&serialized).unwrap();
+                        let (key, value) = deserialized.iter().next().unwrap();
+                        let file_name = format!("{}.csv", key);
+                        match tokio::fs::metadata(&file_name).await {
+                            Ok(_) => {
+                                let mut file = tokio::fs::OpenOptions::new()
+                                    .write(true)
+                                    .append(true)
+                                    .open(&file_name)
+                                    .await
+                                    .unwrap();
+                                let values = value
+                                    .as_object()
+                                    .unwrap()
+                                    .values()
+                                    .map(|x| x.to_string())
+                                    .collect::<Vec<String>>()
+                                    .join(",");
+                                file.write_all(values.as_bytes()).await.unwrap();
+                                file.write_all("\n".as_bytes()).await.unwrap();
+                            }
+                            Err(_) => {
+                                let mut file = tokio::fs::OpenOptions::new()
+                                    .write(true)
+                                    .create(true)
+                                    .append(true)
+                                    .open(&file_name)
+                                    .await
+                                    .unwrap();
+                                let columns = value
+                                    .as_object()
+                                    .unwrap()
+                                    .keys()
+                                    .map(|x| x.to_string())
+                                    .collect::<Vec<String>>()
+                                    .join(",");
+                                file.write_all(columns.as_bytes()).await.unwrap();
+                                file.write_all("\n".as_bytes()).await.unwrap();
+                                let values = value
+                                    .as_object()
+                                    .unwrap()
+                                    .values()
+                                    .map(|x| x.to_string())
+                                    .collect::<Vec<String>>()
+                                    .join(",");
+                                file.write_all(values.as_bytes()).await.unwrap();
+                                file.write_all("\n".as_bytes()).await.unwrap();
+                                continue;
                             }
                         }
-                        break;
                     }
-                }
+                });
+            }
+            while let Some(res) = set.join_next().await {
+                info!("task completed: {:?}", res);
             }
         });
-        Ok((sender, handle))
+        Ok(handle)
     }
 }
