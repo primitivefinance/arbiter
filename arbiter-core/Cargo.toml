@@ -34,7 +34,7 @@ statrs = { version = "=0.16.0" }
 RustQuant = { version = "=0.0.31", features = ["seedable"]}
 
 # Errors
-thiserror =  { version = "=1.0.47" }
+thiserror =  { version = "=1.0.49" }
 
 # Logging
 log =  { version = "=0.4.19" }
