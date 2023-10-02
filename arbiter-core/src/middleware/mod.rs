@@ -335,6 +335,8 @@ impl Middleware for RevmMiddleware {
             chain_id: None,
             nonce: None,
             access_list: Vec::new(),
+            blob_hashes: Vec::new(),
+            max_fee_per_blob_gas: None,
         };
         let instruction = Instruction::Transaction {
             tx_env: tx_env.clone(),
@@ -524,6 +526,8 @@ impl Middleware for RevmMiddleware {
             chain_id: None,
             nonce: None,
             access_list: Vec::new(),
+            blob_hashes: Vec::new(),
+            max_fee_per_blob_gas: None,
         };
         let instruction = Instruction::Call {
             tx_env,

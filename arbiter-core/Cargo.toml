@@ -12,45 +12,44 @@ readme = "../README.md"
 [dependencies]
 
 # Ethereum and EVM
-ethers = "2.0.8"
-revm = { version = "3.3.0", features = ["serde"] }
+ethers = { version = "=2.0.10"}
+revm = { version = "=3.4.0", features = ["serde"] }
 
 # Serialization
-bytes = "1.4.0"
+bytes = { version = "=1.5.0" }
 serde = { version = "1.0.163", features = ["derive"] }
 serde_json = { version = "1.0.96" }
 
 # Concurrency/async
-tokio = { version = "1.28.1", features = ["macros", "full"] }
-async-trait = "0.1.68"
-crossbeam-channel = "0.5.8"
-futures-timer = "3.0.2"
-futures-locks = "0.7.1"
-strum_macros = "0.25.2"
+tokio = { version = "=1.32.0", features = ["macros", "full"] }
+async-trait =  { version = "=0.1.73" }
+crossbeam-channel =  { version = "=0.5.8" }
+atomic_enum = { version = "=0.2.0" }
+futures-timer = { version = "=3.0.2" }
 
 # Randomness
-rand = "0.8.5"
-rand_distr = "0.4.3"
-statrs = "0.16.0"
-RustQuant = { version = "0.0.31", features = ["seedable"]}
+rand =  { version = "=0.8.5" }
+rand_distr = { version = "=0.4.3" }
+statrs = { version = "=0.16.0" }
+RustQuant = { version = "=0.0.31", features = ["seedable"]}
 
 # Errors
-thiserror = "1.0.30"
+thiserror =  { version = "=1.0.47" }
 
 # Logging
-log = "0.4.19"
-futures-util = "0.3.28"
+log =  { version = "=0.4.19" }
+futures-util =  { version = "=0.3.28" }
 
 # Dependencies for the test build and development
 [dev-dependencies]
-hex = { version = "0.4.3", default-features = false }
-anyhow = "1.0.71"
-env_logger = "0.10.0"
-test-log = "0.2.12"
+hex = { version = "=0.4.3", default-features = false }
+anyhow =  { version = "=1.0.71" }
+env_logger =  { version = "=0.10.0" }
+test-log =  { version = "=0.2.12" }
 arbiter-derive = { path = "../arbiter-derive" }
 
-futures = "0.3.28"
-assert_matches = "1.5"
+futures =  { version = "=0.3.28" }
+assert_matches =  { version = "=1.5" }
 
 [[bench]]
 name = "bench"
