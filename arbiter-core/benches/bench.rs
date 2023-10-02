@@ -155,7 +155,7 @@ fn arbiter_startup() -> Result<(Environment, Arc<RevmMiddleware>)> {
     let mut environment = EnvironmentBuilder::new().build();
     environment.run();
 
-    let client = Arc::new(RevmMiddleware::new(&environment, Some("name"))?);
+    let client = RevmMiddleware::new(&environment, Some("name"))?;
     Ok((environment, client))
 }
 
