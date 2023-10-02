@@ -17,6 +17,7 @@ pub struct EventLogger<
     E: EthLogDecode + Debug + Serialize + 'static,
 > {
     events: BTreeMap<String, Vec<Event<M, D, E>>>,
+    path: Option<String>,
 }
 
 impl<
@@ -28,6 +29,7 @@ impl<
     pub fn builder() -> Self {
         Self {
             events: BTreeMap::new(),
+            path: None,
         }
     }
 
@@ -37,16 +39,20 @@ impl<
         self
     }
 
+    pub fn path<S: Into<String>>(mut self, path: S) -> Self {
+        self.path = Some(path.into());
+        self
+    }
+
     pub async fn run(self) -> Result<JoinHandle<()>, RevmMiddlewareError> {
         // Delete the ./events path before kicking off the run loop
-        tokio::fs::remove_dir_all("./events")
-            .await
-            .unwrap_or_default();
+        let path = self.path.unwrap_or("./events".to_string());
+        tokio::fs::remove_dir_all(&path).await.unwrap_or_default();
 
         let handle = tokio::spawn(async move {
             let mut set = tokio::task::JoinSet::new();
             for (name, events) in self.events {
-                let dir_path = format!("./events/{}", name);
+                let dir_path = format!("{}/{}", path, name);
                 tokio::fs::create_dir_all(&dir_path).await.unwrap();
                 for event in events {
                     let dir_path = dir_path.clone();
