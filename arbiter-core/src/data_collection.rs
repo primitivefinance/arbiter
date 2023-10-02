@@ -38,6 +38,11 @@ impl<
     }
 
     pub async fn run(self) -> Result<JoinHandle<()>, RevmMiddlewareError> {
+        // Delete the ./events path before kicking off the run loop
+        tokio::fs::remove_dir_all("./events")
+            .await
+            .unwrap_or_default();
+
         let handle = tokio::spawn(async move {
             let mut set = tokio::task::JoinSet::new();
             for (name, events) in self.events {
