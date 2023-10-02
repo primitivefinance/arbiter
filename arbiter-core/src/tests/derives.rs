@@ -1,5 +1,5 @@
 use arbiter_derive::Deploy;
-use ethers::prelude::{ContractDeploymentTx, ContractError};
+use ethers::prelude::ContractDeploymentTx;
 
 use super::*;
 

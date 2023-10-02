@@ -24,20 +24,20 @@ path = "bin/main.rs"
 # Dependencies for the release build
 [dependencies]
 # Command line and config
-clap = { version = "4.3.0", features = ["derive"] }
-serde = { version = "1.0.163", features = ["derive"] }
-toml = "0.8.0"
+clap = { version = "=4.3.0", features = ["derive"] }
+serde = { version = "=1.0.163", features = ["derive"] }
+toml = { version = "=0.8.0" }
 
 # Building files
-quote = "1.0.28"
+quote = { version = "=1.0.33" }
 
 # Errors
-thiserror = "1.0.40"
+thiserror = { version = "=1.0.47" }
 
 # Dependencies for the test build and development
 [dev-dependencies]
-assert_cmd = "2.0.11"
-tempfile = "3.8.0"
+assert_cmd = { version = "=2.0.11" }
+tempfile = { version = "=3.8.0" }
 
 # Release profile
 [profile.release]
