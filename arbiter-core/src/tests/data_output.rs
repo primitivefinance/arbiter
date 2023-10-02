@@ -1,36 +1,31 @@
 use super::*;
-use crate::data_collection::EventCapture;
-use ethers::{
-    contract::{EthEvent, EthLogDecode, Event},
-    providers::{Middleware, MiddlewareError, StreamExt},
-    types::Filter,
-};
-use futures_util::SinkExt;
-use stream_cancel::{StreamExt as StreamCancelExt, Tripwire};
+use crate::data_collection::EventLogger;
 use tracing::info;
 use tracing_test::traced_test;
 
 #[traced_test]
-#[tokio::test]
+#[tokio::test(flavor = "multi_thread")]
 async fn data_capture() {
     let (mut _manager, client) = startup_user_controlled().unwrap();
     let arbx = deploy_arbx(client.clone()).await.unwrap();
-    let event_capture = EventCapture::new(arbx.events(), client.clone());
+    let arby = deploy_arbx(client.clone()).await.unwrap();
+    let listener = EventLogger::builder().add(arbx.events()).add(arby.events());
 
-    let (tx, handle) = event_capture.run().await.unwrap();
-    
-    let handle2 = tokio::spawn(async move {
-        for i in 0..5 {
-            info!("Task 1: {}", i);
-            arbx.approve(client.address(), U256::from(1))
-                .send()
-                .await
-                .unwrap()
-                .await
-                .unwrap();
-        }
-        tx.send(()).unwrap();
-        info!("Task 2: done");
-    });
-    tokio::join!(handle, handle2);
+    listener.run().await.unwrap();
+
+    for i in 0..5 {
+        info!("Task 1: {}", i);
+        arbx.approve(client.address(), U256::from(1))
+            .send()
+            .await
+            .unwrap()
+            .await
+            .unwrap();
+        arby.approve(client.address(), U256::from(1))
+            .send()
+            .await
+            .unwrap()
+            .await
+            .unwrap();
+    }
 }
