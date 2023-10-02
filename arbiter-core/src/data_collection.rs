@@ -16,7 +16,7 @@ pub struct EventLogger<
     D: Middleware + Debug + Send + Sync + 'static,
     E: EthLogDecode + Debug + Serialize + 'static,
 > {
-    events: Vec<Event<M, D, E>>,
+    events: BTreeMap<String, Vec<Event<M, D, E>>>,
 }
 
 impl<
@@ -26,75 +26,83 @@ impl<
     > EventLogger<M, D, E>
 {
     pub fn builder() -> Self {
-        Self { events: Vec::new() }
+        Self {
+            events: BTreeMap::new(),
+        }
     }
 
-    pub fn add(mut self, event: Event<M, D, E>) -> Self {
-        self.events.push(event);
+    pub fn add<S: Into<String>>(mut self, event: Event<M, D, E>, name: S) -> Self {
+        let name = name.into();
+        self.events.entry(name).or_insert_with(Vec::new).push(event);
         self
     }
 
     pub async fn run(self) -> Result<JoinHandle<()>, RevmMiddlewareError> {
         let handle = tokio::spawn(async move {
             let mut set = tokio::task::JoinSet::new();
-            for event in self.events {
-                set.spawn(async move {
-                    let mut stream = event.stream().await.unwrap();
-                    while let Some(Ok(log)) = stream.next().await {
-                        let serialized = serde_json::to_string(&log).unwrap();
-                        let deserialized: BTreeMap<String, Value> =
-                            serde_json::from_str(&serialized).unwrap();
-                        let (key, value) = deserialized.iter().next().unwrap();
-                        let file_name = format!("{}.csv", key);
-                        match tokio::fs::metadata(&file_name).await {
-                            Ok(_) => {
-                                let mut file = tokio::fs::OpenOptions::new()
-                                    .write(true)
-                                    .append(true)
-                                    .open(&file_name)
-                                    .await
-                                    .unwrap();
-                                let values = value
-                                    .as_object()
-                                    .unwrap()
-                                    .values()
-                                    .map(|x| x.to_string())
-                                    .collect::<Vec<String>>()
-                                    .join(",");
-                                file.write_all(values.as_bytes()).await.unwrap();
-                                file.write_all("\n".as_bytes()).await.unwrap();
-                            }
-                            Err(_) => {
-                                let mut file = tokio::fs::OpenOptions::new()
-                                    .write(true)
-                                    .create(true)
-                                    .append(true)
-                                    .open(&file_name)
-                                    .await
-                                    .unwrap();
-                                let columns = value
-                                    .as_object()
-                                    .unwrap()
-                                    .keys()
-                                    .map(|x| x.to_string())
-                                    .collect::<Vec<String>>()
-                                    .join(",");
-                                file.write_all(columns.as_bytes()).await.unwrap();
-                                file.write_all("\n".as_bytes()).await.unwrap();
-                                let values = value
-                                    .as_object()
-                                    .unwrap()
-                                    .values()
-                                    .map(|x| x.to_string())
-                                    .collect::<Vec<String>>()
-                                    .join(",");
-                                file.write_all(values.as_bytes()).await.unwrap();
-                                file.write_all("\n".as_bytes()).await.unwrap();
-                                continue;
+            for (name, events) in self.events {
+                let dir_path = format!("./events/{}", name);
+                tokio::fs::create_dir_all(&dir_path).await.unwrap();
+                for event in events {
+                    let dir_path = dir_path.clone();
+                    set.spawn(async move {
+                        let mut stream = event.stream().await.unwrap();
+                        while let Some(Ok(log)) = stream.next().await {
+                            let serialized = serde_json::to_string(&log).unwrap();
+                            let deserialized: BTreeMap<String, Value> =
+                                serde_json::from_str(&serialized).unwrap();
+                            let (key, value) = deserialized.iter().next().unwrap();
+                            let file_name = format!("{}/{}.csv", dir_path, key);
+                            match tokio::fs::metadata(&file_name).await {
+                                Ok(_) => {
+                                    let mut file = tokio::fs::OpenOptions::new()
+                                        .write(true)
+                                        .append(true)
+                                        .open(&file_name)
+                                        .await
+                                        .unwrap();
+                                    let values = value
+                                        .as_object()
+                                        .unwrap()
+                                        .values()
+                                        .map(|x| x.to_string())
+                                        .collect::<Vec<String>>()
+                                        .join(",");
+                                    file.write_all(values.as_bytes()).await.unwrap();
+                                    file.write_all("\n".as_bytes()).await.unwrap();
+                                }
+                                Err(_) => {
+                                    let mut file = tokio::fs::OpenOptions::new()
+                                        .write(true)
+                                        .create(true)
+                                        .append(true)
+                                        .open(&file_name)
+                                        .await
+                                        .unwrap();
+                                    let columns = value
+                                        .as_object()
+                                        .unwrap()
+                                        .keys()
+                                        .map(|x| x.to_string())
+                                        .collect::<Vec<String>>()
+                                        .join(",");
+                                    file.write_all(columns.as_bytes()).await.unwrap();
+                                    file.write_all("\n".as_bytes()).await.unwrap();
+                                    let values = value
+                                        .as_object()
+                                        .unwrap()
+                                        .values()
+                                        .map(|x| x.to_string())
+                                        .collect::<Vec<String>>()
+                                        .join(",");
+                                    file.write_all(values.as_bytes()).await.unwrap();
+                                    file.write_all("\n".as_bytes()).await.unwrap();
+                                    continue;
+                                }
                             }
                         }
-                    }
-                });
+                    });
+                }
             }
             while let Some(res) = set.join_next().await {
                 info!("task completed: {:?}", res);

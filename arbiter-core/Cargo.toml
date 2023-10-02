@@ -13,7 +13,10 @@ readme = "../README.md"
 
 # Ethereum and EVM
 ethers = "2.0.8"
-revm = { version = "3.3.0", features = ["serde"] }
+revm = { version = "=3.3.0", features = ["serde"] }
+revm-precompile = "=2.0.3"
+revm-interpreter = "=1.1.2"
+revm-primitives = "=1.1.2"
 
 # Serialization
 bytes = "1.4.0"
@@ -21,8 +24,7 @@ serde = { version = "1.0.163", features = ["derive"] }
 serde_json = { version = "1.0.96" }
 
 # Concurrency/async
-tokio = { version = "1.28.1", features = ["macros", "full", ] }
-tokio-util = "0.7.9"
+tokio = { version = "1.28.1", features = ["macros", "full"] }
 async-trait = "0.1.68"
 crossbeam-channel = "0.5.8"
 futures-timer = "3.0.2"
@@ -40,11 +42,6 @@ thiserror = "1.0.30"
 # Logging
 log = "0.4.19"
 futures-util = "0.3.28"
-futures-channel = "0.3.28"
-
-# Data output
-polars = "0.32.0"
-stream-cancel = "0.8.1"
 tracing = "0.1.37"
 tracing-test = "0.2.4"
 
