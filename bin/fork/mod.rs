@@ -1,3 +1,4 @@
+use std::str::FromStr;
 use std::{
     collections::HashMap,
     fs::{self, File},
@@ -6,10 +7,6 @@ use std::{
     sync::Arc,
 };
 
-use arbiter_core::{
-    environment,
-    middleware::{cast::recast_address, RevmMiddleware},
-};
 use config::{Config, ConfigError};
 use ethers::{
     providers::{Http, Provider},
@@ -26,7 +23,7 @@ use strum_macros::{Display, EnumString};
 
 use super::*;
 
-mod digest;
+pub(crate) mod digest;
 use digest::*;
 #[cfg(test)]
 mod tests;

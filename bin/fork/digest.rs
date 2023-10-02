@@ -1,5 +1,3 @@
-use std::path::Path;
-
 use super::*;
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
@@ -27,23 +25,25 @@ impl ForkConfig {
             fork_config.output_filename = Some("output.json".to_string());
         }
 
-        // Check if a file at the output path already exists.
-        // These unwraps cannot fail.
-        let path = Path::new(&fork_config.output_directory.clone().unwrap())
-            .join(fork_config.output_filename.clone().unwrap());
-        if path.exists() && path.is_file() {
-            // TODO: We should allow for an overwrite flag here.
-            panic!(
-                "File already exists at output path. Please delete it or change the output path."
-            );
-        }
-
         Ok(fork_config)
     }
 
-    pub(crate) fn to_disk(&self) -> Result<(), ConfigurationError> {
+    pub(crate) fn to_disk(&self, overwrite: &bool) -> Result<(), ConfigurationError> {
         // Check if a file at the output path already exists.
-        // check_existing(&fork_config);
+        // These unwraps cannot fail.
+        let path = Path::new(&self.output_directory.clone().unwrap())
+            .join(self.output_filename.clone().unwrap());
+        if path.exists() && path.is_file() {
+            if !overwrite {
+                // TODO: We should allow for an overwrite flag here.
+                panic!(
+                "File already exists at output path. Please use the `--overwrite` flag, delete it, or change the output path."
+            );
+            } else {
+                fs::remove_file(path).unwrap();
+            }
+        }
+
         let forked_db = ForkedDB::new(self).unwrap();
         let mut account_mapping = HashMap::new();
         for (address, db_account) in forked_db.0.accounts {
@@ -54,7 +54,8 @@ impl ForkConfig {
                 let recast_value = db_account.storage.get(key).unwrap().to_string();
                 storage.insert(recast_key, recast_value);
             }
-            account_mapping.insert(recast_address(address), (info, storage));
+            let address_as_bytes: [u8; 20] = address.as_bytes().try_into().unwrap();
+            account_mapping.insert(Address::from(address_as_bytes), (info, storage));
         }
         let disk_data = DiskData(account_mapping);
 

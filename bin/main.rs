@@ -22,8 +22,9 @@ use std::error::Error;
 use clap::{command, CommandFactory, Parser, Subcommand};
 use thiserror::Error;
 
+use crate::fork::{digest::ForkConfig, ForkedDB};
+
 mod bind;
-#[cfg(test)]
 mod fork;
 mod init;
 #[cfg(test)]
@@ -97,7 +98,9 @@ enum Commands {
     Fork {
         /// The name of the config file used to configure the fork.
         #[clap(index = 1)]
-        fork_config: String,
+        fork_config_path: String,
+        #[clap(long)]
+        overwrite: bool,
     },
 }
 
@@ -128,9 +131,13 @@ fn main() -> Result<(), Box<dyn Error>> {
             println!("Generating bindings...");
             bind::forge_bind()?;
         }
-        Some(Commands::Fork { fork_config }) => {
+        Some(Commands::Fork {
+            fork_config_path,
+            overwrite,
+        }) => {
             println!("Forking...");
-            // fork::fork(fork_config)?;
+            let fork_config = ForkConfig::new(fork_config_path)?;
+            fork_config.to_disk(overwrite)?;
         }
         None => {
             Args::command()
