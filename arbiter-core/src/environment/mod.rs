@@ -171,7 +171,7 @@ impl Environment {
     pub(crate) fn new(environment_parameters: EnvironmentParameters) -> Self {
         // Initialize the EVM used
         let mut evm = EVM::new();
-        let db = CacheDB::new(EmptyDB {});
+        let db = CacheDB::new(EmptyDB::new());
         evm.database(db);
 
         // Choose extra large code size and gas limit

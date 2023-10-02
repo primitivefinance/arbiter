@@ -21,8 +21,7 @@ fn multiple_signer_addresses() {
 
 #[test]
 fn signer_collision() {
-    let mut environment = builder::EnvironmentBuilder::new().build();
-    environment.run();
+    let environment = builder::EnvironmentBuilder::new().build();
     RevmMiddleware::new(&environment, Some("0")).unwrap();
     assert!(RevmMiddleware::new(&environment, Some("0")).is_err());
 }

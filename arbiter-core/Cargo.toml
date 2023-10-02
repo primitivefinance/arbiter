@@ -26,6 +26,7 @@ async-trait =  { version = "=0.1.73" }
 crossbeam-channel =  { version = "=0.5.8" }
 atomic_enum = { version = "=0.2.0" }
 futures-timer = { version = "=3.0.2" }
+futures-locks = { version = "0.7.1" }
 
 # Randomness
 rand =  { version = "=0.8.5" }

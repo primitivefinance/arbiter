@@ -430,7 +430,7 @@ async fn test_cheatcodes_store() {
         .apply_cheatcode(Cheatcodes::Store {
             account: client.address(),
             key: ethers::types::H256::zero(),
-            value: random_value.clone(),
+            value: random_value,
         })
         .await
         .unwrap();

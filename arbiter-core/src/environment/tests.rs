@@ -1,6 +1,13 @@
 use super::*;
+use crate::middleware::RevmMiddleware;
 
 pub(crate) const TEST_ENV_LABEL: &str = "test";
+
+#[test]
+fn auto_start_on_build() {
+    let environment = EnvironmentBuilder::new().build();
+    let _client = RevmMiddleware::new(&environment, Some(TEST_ENV_LABEL)).unwrap();
+}
 
 #[test]
 fn new_with_builder() {
@@ -54,8 +61,7 @@ fn run() {
         block_settings: BlockSettings::UserControlled,
         gas_settings: GasSettings::UserControlled,
     };
-    let mut environment = Environment::new(params);
-    environment.run();
+    Environment::new(params);
 }
 
 #[test]

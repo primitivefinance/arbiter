@@ -121,7 +121,7 @@ impl RevmMiddleware {
     pub fn new(
         environment: &Environment,
         seed_and_label: Option<&str>,
-    ) -> Result<Self, RevmMiddlewareError> {
+    ) -> Result<Arc<Self>, RevmMiddlewareError> {
         let instruction_sender = &Arc::clone(&environment.socket.instruction_sender);
         let (outcome_sender, outcome_receiver) = crossbeam_channel::unbounded();
         let wallet = if let Some(seed) = seed_and_label {
@@ -150,7 +150,7 @@ impl RevmMiddleware {
             filter_receivers: Arc::new(tokio::sync::Mutex::new(HashMap::new())),
         };
         let provider = Provider::new(connection);
-        Ok(Self { wallet, provider })
+        Ok(Arc::new(Self { wallet, provider }))
     }
 
     /// Allows the user to update the block number and timestamp of the
