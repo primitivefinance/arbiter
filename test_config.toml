@@ -1,9 +1,11 @@
-output_path = "output/"
+# Basic configuration
+output_directory = "./output/"
 output_filename = "test.json"
 provider = "https://eth.llamarpc.com"
 block_number = 18228556
 
-# WE SHOULD STORE THESE IN A MAP ACTUALLy
+# Contracts stored in a mapping
+# Try this out with the weth contract
 [contracts.weth]
 address = "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2" 
 artifacts_path = "bin/tests/WETH.sol/WETH.json"
