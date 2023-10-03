@@ -46,7 +46,7 @@ pub struct EnvironmentParameters {
 /// This builder allows for the configuration of an `Environment` before it is
 /// instantiated. It provides methods for setting the label, block settings, and
 /// gas settings of the `Environment`.
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug)]
 pub struct EnvironmentBuilder {
     /// An optional label for the `Environment`.
     /// This label is used to allow the [`Manager`] to locate the
@@ -74,6 +74,10 @@ pub struct EnvironmentBuilder {
     /// By default, [`GasSettings::UserControlled`] begins with a gas price of
     /// 0.
     pub gas_settings: GasSettings,
+
+    /// The database to be loaded into the `Environment`.
+    /// This can come from a [`fork::Fork`] or otherwise.
+    pub db: Option<CacheDB<EmptyDB>>,
 }
 
 /// The `EnvironmentBuilder` is a builder pattern for creating an
@@ -89,6 +93,7 @@ impl EnvironmentBuilder {
             label: None,
             block_settings: BlockSettings::UserControlled,
             gas_settings: GasSettings::UserControlled,
+            db: None,
         }
     }
 
@@ -115,21 +120,23 @@ impl EnvironmentBuilder {
         self
     }
 
-    /// Converts the `EnvironmentBuilder` into `EnvironmentParameters`.
-    /// This is a private function used in the `build` function.
-    fn into_environment_parameters(self) -> EnvironmentParameters {
-        EnvironmentParameters {
-            label: self.label.clone(),
-            block_settings: self.block_settings.clone(),
-            gas_settings: self.gas_settings.clone(),
-        }
+    /// Sets the `db` for the `EnvironmentBuilder`.
+    /// This is an optional [`fork::Fork`] that can be loaded into the
+    /// [`Environment`].
+    pub fn db(mut self, db: impl Into<CacheDB<EmptyDB>>) -> Self {
+        self.db = Some(db.into());
+        self
     }
 
     /// Builds the `Environment` from the `EnvironmentBuilder`.
     /// This consumes the `EnvironmentBuilder` and returns an [`Environment`].
     pub fn build(self) -> Environment {
-        let parameters = self.into_environment_parameters();
-        let mut env = Environment::new(parameters);
+        let parameters = EnvironmentParameters {
+            label: self.label,
+            block_settings: self.block_settings,
+            gas_settings: self.gas_settings,
+        };
+        let mut env = Environment::new(parameters, self.db);
         env.run();
         env
     }

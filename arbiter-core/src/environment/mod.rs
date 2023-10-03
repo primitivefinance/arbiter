@@ -65,6 +65,8 @@ use instruction::*;
 pub mod errors;
 use errors::*;
 
+pub mod fork;
+
 pub mod builder;
 use builder::*;
 
@@ -138,7 +140,7 @@ pub struct Environment {
 
     /// The [`EVM`] that is used as an execution environment and database for
     /// calls and transactions.
-    evm: EVM<CacheDB<EmptyDB>>,
+    db: Option<CacheDB<EmptyDB>>,
 
     /// This gives a means of letting the "outside world" connect to the
     /// [`Environment`] so that users (or agents) may send and receive data from
@@ -168,16 +170,10 @@ impl Environment {
     /// Privately accessible constructor function for creating an
     /// [`Environment`]. This function should be accessed by the
     /// [`Manager`].
-    pub(crate) fn new(environment_parameters: EnvironmentParameters) -> Self {
-        // Initialize the EVM used
-        let mut evm = EVM::new();
-        let db = CacheDB::new(EmptyDB::new());
-        evm.database(db);
-
-        // Choose extra large code size and gas limit
-        evm.env.cfg.limit_contract_code_size = Some(0x100000);
-        evm.env.block.gas_limit = U256::MAX;
-
+    pub(crate) fn new(
+        environment_parameters: EnvironmentParameters,
+        db: Option<CacheDB<EmptyDB>>,
+    ) -> Self {
         let (instruction_sender, instruction_receiver) = unbounded();
         let socket = Socket {
             instruction_sender: Arc::new(instruction_sender),
@@ -187,7 +183,7 @@ impl Environment {
 
         Self {
             parameters: environment_parameters,
-            evm,
+            db,
             socket,
             handle: None,
         }
@@ -200,8 +196,20 @@ impl Environment {
     /// [`State::Running`]. Errors here may trigger the [`Environment`] to
     /// be placed in [`State::Paused`].
     pub fn run(&mut self) {
+        // Initialize the EVM used
+        let mut evm = EVM::new();
+
+        if self.db.is_some() {
+            evm.database(self.db.take().unwrap());
+        } else {
+            evm.database(CacheDB::new(EmptyDB::new()));
+        };
+
+        // Choose extra large code size and gas limit
+        evm.env.cfg.limit_contract_code_size = Some(0x100000);
+        evm.env.block.gas_limit = U256::MAX;
+
         // Pull clones of the relevant data prepare to send into a new thread
-        let mut evm = self.evm.clone();
         let instruction_receiver = self.socket.instruction_receiver.clone();
         let event_broadcaster = self.socket.event_broadcaster.clone();
         let block_type = self.parameters.block_settings.clone();

@@ -1,4 +1,4 @@
-use std::{env, fs, io, process::Command};
+use std::{env, error::Error, fs, io, process::Command};
 
 /// Initializes a new Arbiter project from a template.
 ///
@@ -89,5 +89,34 @@ pub(crate) fn init_project(name: &str) -> io::Result<()> {
         "Your Arbiter project '{}' has been successfully initialized!",
         name
     );
+    Ok(())
+}
+/// Removes the `.git` directory from the current working directory.
+///
+/// This function executes the `rm` command with the `-rf` flag to remove
+/// the `.git` directory. The function is designed to be used in scenarios
+/// where you want to uninitialize a Git repository without deleting the
+/// working directory.
+///
+/// # Returns
+///
+/// - `Ok(())` if the `.git` directory is successfully removed.
+/// - `Err(Box<dyn Error>)` if the `rm` command fails to execute or if the
+///   `.git` directory could not be removed.
+///
+/// # Errors
+///
+/// This function will return an error in the following situations:
+///
+/// - The `rm` command is not found or cannot be executed.
+/// - The `.git` directory does not exist or cannot be removed due to permission
+///   issues.
+pub fn remove_git() -> Result<(), Box<dyn Error>> {
+    let status = Command::new("rm").arg("-rf").arg(".git").status()?;
+
+    if !status.success() {
+        return Err("failed to execute process".into());
+    }
+
     Ok(())
 }
