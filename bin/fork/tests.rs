@@ -18,13 +18,12 @@ async fn fork_into_arbiter() {
     let forked_db = ForkedDB::new(&fork_config).unwrap();
 
     // Get the environment going
-    let mut environment = environment::builder::EnvironmentBuilder::new()
+    let environment = environment::builder::EnvironmentBuilder::new()
         .db(forked_db)
         .build();
-    environment.run();
 
     // Create a client
-    let client = Arc::new(RevmMiddleware::new(&environment, Some("name")).unwrap());
+    let client = RevmMiddleware::new(&environment, Some("name")).unwrap();
 
     // Deal with the weth contract
     let weth_data = fork_config.contracts.get("weth").unwrap();
