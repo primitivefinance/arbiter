@@ -27,8 +27,8 @@ arbiter-core = { path = "arbiter-core" }
 
 # Command line and config
 clap = { version = "4.3.0", features = ["derive"] }
-toml = "0.8.0"
-config = "0.13.1"
+toml = "=0.8.2"
+config = "=0.13.3"
 
 # Building files
 quote = { version = "=1.0.33" }
@@ -37,20 +37,20 @@ quote = { version = "=1.0.33" }
 thiserror = { version = "=1.0.49" }
 
 # Forking
-ethers = "2.0.10"
-revm = { version = "3.3.0", features = ["serde", "ethersdb"] }
+ethers = "=2.0.10"
+revm = { version = "=3.4.0", features = ["serde", "ethersdb"] }
 
 # General serialization
-serde = { version = "1.0.163", features = ["derive"] }
-serde_json = "1.0.107"
+serde = { version = "=1.0.188", features = ["derive"] }
+serde_json = "=1.0.107"
 strum = "=0.25.0" 
 strum_macros = "=0.25.2"
 
 # Dependencies for the test build and development
 [dev-dependencies]
-assert_cmd = "2.0.11"
-tempfile = "3.8.0"
-tokio = { version = "1.32.0", features = ["full"] }
+assert_cmd = "=2.0.12"
+tempfile = "=3.8.0"
+tokio = { version = "=1.32.0", features = ["full"] }
 
 # Release profile
 [profile.release]
