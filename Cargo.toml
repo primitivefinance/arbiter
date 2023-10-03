@@ -26,9 +26,9 @@ path = "bin/main.rs"
 arbiter-core = { path = "arbiter-core" }
 
 # Command line and config
-clap = { version = "4.3.0", features = ["derive"] }
-toml = "=0.8.2"
-config = "=0.13.3"
+clap = { version = "=4.3.0", features = ["derive"] }
+serde = { version = "=1.0.163", features = ["derive"] }
+toml = { version = "=0.8.1" }
 
 # Building files
 quote = { version = "=1.0.33" }
@@ -48,9 +48,10 @@ strum_macros = "=0.25.2"
 
 # Dependencies for the test build and development
 [dev-dependencies]
-assert_cmd = "=2.0.12"
-tempfile = "=3.8.0"
 tokio = { version = "=1.32.0", features = ["full"] }
+tempfile = { version = "=3.8.0" }
+assert_cmd = { version = "=2.0.12" }
+
 
 # Release profile
 [profile.release]

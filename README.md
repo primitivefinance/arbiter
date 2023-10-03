@@ -97,6 +97,7 @@ Arbiter treats Rust smart-contract bindings as first-class citizens. The contrac
 `arbiter bind` wraps `forge` with some convenience features that will generate all your bindings to src/biindings as a rust module. 
 [Foundry](https://github.com/foundry-rs/foundry) power-users are welcome to use `forge` directly.
 
+
 ### Forking
 
 To fork a state of an EVM network, you must first create a fork config file.
@@ -116,7 +117,9 @@ Forking is done this way to make sure that all emulation done does not require a
 You can run `arbiter fork <fork_config.toml> --overwrite` to overwrite the fork if it already exists.
 
 
+### Optional Arguments
 
+You can run `arbiter init <simulation_name> --no-git` to remove the `.git` directory from the template upon initialization.
 
 
 ## Documentation
