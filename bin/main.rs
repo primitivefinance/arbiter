@@ -22,7 +22,10 @@ use std::error::Error;
 use clap::{command, CommandFactory, Parser, Subcommand};
 use thiserror::Error;
 
+use crate::fork::ForkConfig;
+
 mod bind;
+mod fork;
 mod init;
 
 /// Represents command-line arguments passed to the `Arbiter` tool.
@@ -89,6 +92,14 @@ enum Commands {
         #[clap(long)]
         no_git: bool,
     },
+
+    Fork {
+        /// The name of the config file used to configure the fork.
+        #[clap(index = 1)]
+        fork_config_path: String,
+        #[clap(long)]
+        overwrite: bool,
+    },
 }
 
 /// The main entry point for the `Arbiter` tool.
@@ -117,6 +128,14 @@ fn main() -> Result<(), Box<dyn Error>> {
         Some(Commands::Bind) => {
             println!("Generating bindings...");
             bind::forge_bind()?;
+        }
+        Some(Commands::Fork {
+            fork_config_path,
+            overwrite,
+        }) => {
+            println!("Forking...");
+            let fork_config = ForkConfig::new(fork_config_path)?;
+            fork_config.write_to_disk(overwrite)?;
         }
         None => {
             Args::command()

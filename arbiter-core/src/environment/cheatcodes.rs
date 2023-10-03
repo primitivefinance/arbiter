@@ -1,6 +1,8 @@
 //! Cheatcodes are a direct way to access the underlying [`EVM`] environment
 // and database. ! Use them via the `apply_cheatcode` method on a `client`.
 
+#![warn(missing_docs)]
+
 /// Cheatcodes are a direct way to access the underlying [`EVM`] environment and
 /// database.
 #[derive(Clone, Debug, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
