@@ -1,8 +1,8 @@
 #![warn(missing_docs)]
 
-use std::env;
-use std::{collections::HashMap, fs, io::Write, path::Path, sync::Arc};
+use std::{collections::HashMap, env, fs, io::Write, path::Path, sync::Arc};
 
+use arbiter_core::environment::fork::*;
 use config::{Config, ConfigError};
 use ethers::{
     providers::{Http, Provider},
@@ -15,8 +15,6 @@ use revm::{
 };
 use serde::{Deserialize, Serialize};
 use strum_macros::{Display, EnumString};
-
-use arbiter_core::environment::fork::*;
 
 use super::*;
 
@@ -57,8 +55,8 @@ impl ForkConfig {
         Ok(fork_config)
     }
 
-    /// Digests the config file and takes in an `EthersDB` so that the data can be
-    /// fetched from the blockchain.
+    /// Digests the config file and takes in an `EthersDB` so that the data can
+    /// be fetched from the blockchain.
     /// Once all the `AccountInfo` for the contracts are fetched, we digest the
     /// contract artifacts to get the storage layout.
     pub(crate) fn digest_config(&self) -> Result<CacheDB<EmptyDB>, ConfigurationError> {

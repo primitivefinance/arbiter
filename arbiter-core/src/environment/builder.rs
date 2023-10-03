@@ -121,7 +121,8 @@ impl EnvironmentBuilder {
     }
 
     /// Sets the `db` for the `EnvironmentBuilder`.
-    /// This is an optional [`fork::Fork`] that can be loaded into the [`Environment`].
+    /// This is an optional [`fork::Fork`] that can be loaded into the
+    /// [`Environment`].
     pub fn db(mut self, db: impl Into<CacheDB<EmptyDB>>) -> Self {
         self.db = Some(db.into());
         self

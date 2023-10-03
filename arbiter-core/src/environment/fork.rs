@@ -1,7 +1,8 @@
-//! This module contains the [`Fork`] struct which is used to store the data that will be loaded into an [`Environment`]
-//! and be used in `arbiter-core`. [`Fork`] contains a [`CacheDB`] and [`ContractMetadata`] so
-//! that the [`Environment`] can be initialized with a forked database and the end-user still has access to the relevant
-//! metadata.
+//! This module contains the [`Fork`] struct which is used to store the data
+//! that will be loaded into an [`Environment`] and be used in `arbiter-core`.
+//! [`Fork`] contains a [`CacheDB`] and [`ContractMetadata`] so
+//! that the [`Environment`] can be initialized with a forked database and the
+//! end-user still has access to the relevant metadata.
 
 use std::{collections::HashMap, env, fs};
 
@@ -9,7 +10,8 @@ use ethers::types::Address;
 
 use super::*;
 
-/// A [`ContractMetadata`] is used to store the metadata of a contract that will be loaded into a [`Fork`].
+/// A [`ContractMetadata`] is used to store the metadata of a contract that will
+/// be loaded into a [`Fork`].
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct ContractMetadata {
     /// The address of the contract.
@@ -22,15 +24,18 @@ pub struct ContractMetadata {
     pub mappings: HashMap<String, Vec<String>>,
 }
 
-/// A [`Fork`] is used to store the data that will be loaded into an [`Environment`] and be used in `arbiter-core`.
-/// It is a wrapper around a [`CacheDB`] and a [`HashMap`] of [`ContractMetadata`] so that the [`Environment`] can be
-/// initialized with the data and the end-user still has access to the relevant metadata.
+/// A [`Fork`] is used to store the data that will be loaded into an
+/// [`Environment`] and be used in `arbiter-core`. It is a wrapper around a
+/// [`CacheDB`] and a [`HashMap`] of [`ContractMetadata`] so that the
+/// [`Environment`] can be initialized with the data and the end-user still has
+/// access to the relevant metadata.
 #[derive(Clone, Debug)]
 pub struct Fork {
     /// The [`CacheDB`] that will be loaded into the [`Environment`].
     pub db: CacheDB<EmptyDB>,
 
-    /// The [`HashMap`] of [`ContractMetadata`] that will be used by the end-user.
+    /// The [`HashMap`] of [`ContractMetadata`] that will be used by the
+    /// end-user.
     pub contracts_meta: HashMap<String, ContractMetadata>,
 }
 
@@ -81,10 +86,12 @@ impl From<Fork> for CacheDB<EmptyDB> {
 
 type Storage = HashMap<String, String>;
 
-/// This is the data that will be written to and loaded from disk to generate a [`Fork`].
+/// This is the data that will be written to and loaded from disk to generate a
+/// [`Fork`].
 #[derive(Debug, Serialize, Deserialize)]
 pub struct DiskData {
-    /// This is the metadata for the contracts that will be loaded into the [`Fork`].
+    /// This is the metadata for the contracts that will be loaded into the
+    /// [`Fork`].
     pub meta: HashMap<String, ContractMetadata>,
 
     /// This is the raw data that will be loaded into the [`Fork`].

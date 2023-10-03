@@ -1,6 +1,5 @@
-use crate::environment::fork::Fork;
-
 use super::*;
+use crate::environment::fork::Fork;
 
 #[tokio::test]
 async fn receipt_data() {
