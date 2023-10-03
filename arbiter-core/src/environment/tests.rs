@@ -34,7 +34,7 @@ fn new_user_controlled() {
         block_settings: BlockSettings::UserControlled,
         gas_settings: GasSettings::UserControlled,
     };
-    let environment = Environment::new(params);
+    let environment = Environment::new(params, None);
     assert_eq!(environment.parameters.label, Some(TEST_ENV_LABEL.into()));
 }
 
@@ -50,7 +50,7 @@ fn new_randomly_sampled() {
         block_settings: block_type,
         gas_settings: GasSettings::RandomlySampled { multiplier: 1.0 },
     };
-    let environment = Environment::new(params);
+    let environment = Environment::new(params, None);
     assert_eq!(environment.parameters.label, Some(TEST_ENV_LABEL.into()));
 }
 
@@ -61,7 +61,7 @@ fn run() {
         block_settings: BlockSettings::UserControlled,
         gas_settings: GasSettings::UserControlled,
     };
-    Environment::new(params);
+    Environment::new(params, None);
 }
 
 #[test]
