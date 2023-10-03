@@ -128,7 +128,11 @@ impl EnvironmentBuilder {
     /// Builds the `Environment` from the `EnvironmentBuilder`.
     /// This consumes the `EnvironmentBuilder` and returns an [`Environment`].
     pub fn build(self) -> Environment {
-        let parameters = self.into_environment_parameters();
+        let parameters = EnvironmentParameters {
+            label: self.label,
+            block_settings: self.block_settings,
+            gas_settings: self.gas_settings,
+        };
         let mut env = Environment::new(parameters, self.db);
         env.run();
         env
