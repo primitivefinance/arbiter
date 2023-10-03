@@ -14,11 +14,12 @@ readme = "../README.md"
 # Ethereum and EVM
 ethers = { version = "=2.0.10"}
 revm = { version = "=3.4.0", features = ["serde"] }
+revm-primitives = "=1.2.0"
 
 # Serialization
 bytes = { version = "=1.5.0" }
-serde = { version = "=1.0.163", features = ["derive"] }
-serde_json = { version = "=1.0.96" }
+serde = { version = "=1.0.188", features = ["derive"] }
+serde_json = { version = "=1.0.107" }
 
 # Concurrency/async
 tokio = { version = "=1.32.0", features = ["macros", "full"] }
@@ -32,19 +33,19 @@ futures-locks = { version = "=0.7.1" }
 rand =  { version = "=0.8.5" }
 rand_distr = { version = "=0.4.3" }
 statrs = { version = "=0.16.0" }
-RustQuant = { version = "=0.0.31", features = ["seedable"]}
+RustQuant = { version = "=0.0.32", features = ["seedable"]}
 
 # Errors
-thiserror =  { version = "=1.0.47" }
+thiserror =  { version = "=1.0.49" }
 
 # Logging
-log =  { version = "=0.4.19" }
+log =  { version = "=0.4.20" }
 futures-util =  { version = "=0.3.28" }
 
 # Dependencies for the test build and development
 [dev-dependencies]
 hex = { version = "=0.4.3", default-features = false }
-anyhow =  { version = "=1.0.71" }
+anyhow =  { version = "=1.0.75" }
 env_logger =  { version = "=0.10.0" }
 test-log =  { version = "=0.2.12" }
 arbiter-derive = { path = "../arbiter-derive" }
