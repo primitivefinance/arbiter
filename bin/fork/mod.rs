@@ -1,3 +1,5 @@
+#![warn(missing_docs)]
+
 use std::env;
 use std::str::FromStr;
 use std::{
@@ -37,7 +39,8 @@ pub struct ForkConfig {
     pub output_filename: Option<String>,
     pub provider: String,
     pub block_number: u64,
-    pub contracts: HashMap<String, ContractData>,
+    #[serde(rename = "contracts")]
+    pub contracts_meta: HashMap<String, ContractMetadata>,
 }
 
 impl ForkConfig {
@@ -62,14 +65,37 @@ impl ForkConfig {
         Ok(fork_config)
     }
 
-    pub fn to_db(&self) -> Result<ForkedDB, ConfigurationError> {
+    /// Digests the config file and takes in an `EthersDB` so that the data can be
+    /// fetched from the blockchain.
+    /// Once all the `AccountInfo` for the contracts are fetched, we digest the
+    /// contract artifacts to get the storage layout.
+    pub(crate) fn digest_config(&self) -> Result<CacheDB<EmptyDB>, ConfigurationError> {
         // Spawn the `EthersDB` and the `CacheDB` we will write to.
-        let mut ethers_db = self.spawn_ethers_db().unwrap();
+        let ethers_db = &mut self.spawn_ethers_db().unwrap();
+        let mut db = CacheDB::new(EmptyDB::default());
+        for contract_data in self.contracts_meta.values() {
+            let address = contract_data.address;
+            let info = ethers_db.basic(address.into()).unwrap().unwrap();
+            db.insert_account_info(address.into(), info);
 
+            let artifacts =
+                digest::digest_artifacts(contract_data.artifacts_path.as_str()).unwrap();
+            let storage_layout = artifacts.storage_layout;
+
+            digest::create_storage_layout(contract_data, storage_layout, &mut db, ethers_db)
+                .unwrap();
+        }
+        Ok(db)
+    }
+
+    pub fn into_fork(&self) -> Result<Fork, ConfigurationError> {
         // Digest all of the contracts and their storage data listed in the fork config.
-        let db = digest_config(self, &mut ethers_db).unwrap();
+        let db = self.digest_config().unwrap();
 
-        Ok(ForkedDB(db))
+        Ok(Fork {
+            db,
+            contracts_meta: self.contracts_meta.clone(),
+        })
     }
 
     pub(crate) fn to_disk(&self, overwrite: &bool) -> Result<(), ConfigurationError> {
@@ -88,9 +114,9 @@ impl ForkConfig {
             }
         }
 
-        let forked_db = self.to_db().unwrap();
-        let mut account_mapping = HashMap::new();
-        for (address, db_account) in forked_db.0.accounts {
+        let forked_db = self.into_fork().unwrap();
+        let mut raw = HashMap::new();
+        for (address, db_account) in forked_db.db.accounts {
             let info = db_account.info;
             let mut storage = HashMap::new();
             for key in db_account.storage.keys() {
@@ -99,9 +125,12 @@ impl ForkConfig {
                 storage.insert(recast_key, recast_value);
             }
             let address_as_bytes: [u8; 20] = address.as_bytes().try_into().unwrap();
-            account_mapping.insert(Address::from(address_as_bytes), (info, storage));
+            raw.insert(Address::from(address_as_bytes), (info, storage));
         }
-        let disk_data = DiskData(account_mapping);
+        let disk_data = DiskData {
+            meta: self.contracts_meta.clone(),
+            raw,
+        };
 
         let json_data = serde_json::to_string(&disk_data).unwrap();
 

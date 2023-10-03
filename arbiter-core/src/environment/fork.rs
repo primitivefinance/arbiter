@@ -4,11 +4,22 @@ use ethers::types::Address;
 
 use super::*;
 
-#[derive(Clone, Debug)]
-pub struct ForkedDB(pub CacheDB<EmptyDB>);
+// add clippy warning for doc
+#[derive(Clone, Debug, Deserialize, Serialize)]
+pub struct ContractMetadata {
+    pub address: Address,
+    pub artifacts_path: String,
+    pub mappings: HashMap<String, Vec<String>>,
+}
 
-impl ForkedDB {
-    pub fn from_disk(path: &str) -> Result<CacheDB<EmptyDB>, EnvironmentError> {
+#[derive(Clone, Debug)]
+pub struct Fork {
+    pub db: CacheDB<EmptyDB>,
+    pub contracts_meta: HashMap<String, ContractMetadata>,
+}
+
+impl Fork {
+    pub fn from_disk(path: &str) -> Result<Self, EnvironmentError> {
         // Read the file
         let mut cwd = env::current_dir().unwrap();
         cwd.push(path);
@@ -22,7 +33,7 @@ impl ForkedDB {
         let mut db = CacheDB::new(EmptyDB::default());
 
         // Populate the CacheDB from the OutputData
-        for (address, (info, storage_map)) in disk_data.0 {
+        for (address, (info, storage_map)) in disk_data.raw {
             // Convert the string address back to its original type
             let address = address.into(); // You'd need to define this
 
@@ -38,17 +49,23 @@ impl ForkedDB {
             }
         }
 
-        Ok(db)
+        Ok(Self {
+            db,
+            contracts_meta: disk_data.meta,
+        })
     }
 }
 
-impl From<ForkedDB> for CacheDB<EmptyDB> {
-    fn from(val: ForkedDB) -> Self {
-        val.0
+impl From<Fork> for CacheDB<EmptyDB> {
+    fn from(val: Fork) -> Self {
+        val.db
     }
 }
 
 type Storage = HashMap<String, String>;
 
 #[derive(Debug, Serialize, Deserialize)]
-pub struct DiskData(pub HashMap<Address, (AccountInfo, Storage)>);
+pub struct DiskData {
+    pub meta: HashMap<String, ContractMetadata>,
+    pub raw: HashMap<Address, (AccountInfo, Storage)>,
+}

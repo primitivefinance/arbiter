@@ -1,40 +1,35 @@
+#![warn(missing_docs)]
+
 use super::*;
 
-#[derive(Clone, Debug, Deserialize, Serialize)]
-pub struct ContractData {
-    pub address: Address,
-    pub artifacts_path: String,
-    pub mappings: HashMap<String, Vec<String>>,
-}
-
 #[derive(Debug, Deserialize, Serialize)]
-pub struct Artifacts {
+pub(crate) struct Artifacts {
     #[serde(rename = "storageLayout")]
-    pub storage_layout: StorageLayout,
+    pub(crate) storage_layout: StorageLayout,
     // TODO: Add more here if we need them.
 }
 
 #[derive(Debug, Deserialize, Serialize)]
-pub struct StorageLayout {
-    pub storage: Vec<StorageItem>,
-    pub types: HashMap<String, StorageType>,
+pub(crate) struct StorageLayout {
+    pub(crate) storage: Vec<StorageItem>,
+    pub(crate) types: HashMap<String, StorageType>,
 }
 
 #[derive(Debug, Deserialize, Serialize)]
-pub struct StorageItem {
+pub(crate) struct StorageItem {
     #[serde(rename = "astId")]
-    pub ast_id: usize,
-    pub contract: String,
-    pub label: String,
-    pub offset: usize,
-    pub slot: String,
+    ast_id: usize,
+    contract: String,
+    label: String,
+    offset: usize,
+    slot: String,
     #[serde(rename = "type")]
-    pub type_: String,
+    type_: String,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(untagged)]
-pub enum StorageType {
+pub(crate) enum StorageType {
     // mapping has to come first so we attempt to deserialize that way first.
     Mapping {
         encoding: String,
@@ -52,29 +47,7 @@ pub enum StorageType {
     },
 }
 
-/// Digests the config file and takes in an `EthersDB` so that the data can be
-/// fetched from the blockchain.
-/// Once all the `AccountInfo` for the contracts are fetched, we digest the
-/// contract artifacts to get the storage layout.
-pub fn digest_config(
-    fork_config: &ForkConfig,
-    ethers_db: &mut EthersDB<Provider<Http>>,
-) -> Result<CacheDB<EmptyDB>, ConfigurationError> {
-    let mut db = CacheDB::new(EmptyDB::default());
-    for contract_data in fork_config.contracts.values() {
-        let address = contract_data.address;
-        let info = ethers_db.basic(address.into()).unwrap().unwrap();
-        db.insert_account_info(address.into(), info);
-
-        let artifacts = digest_artifacts(contract_data.artifacts_path.as_str()).unwrap();
-        let storage_layout = artifacts.storage_layout;
-
-        create_storage_layout(contract_data, storage_layout, &mut db, ethers_db).unwrap();
-    }
-    Ok(db)
-}
-
-pub fn digest_artifacts(path: &str) -> Result<Artifacts, ConfigurationError> {
+pub(crate) fn digest_artifacts(path: &str) -> Result<Artifacts, ConfigurationError> {
     // Read the file to a string
     let data = fs::read_to_string(path)?;
     let json_data = serde_json::from_str(&data).unwrap();
@@ -82,8 +55,8 @@ pub fn digest_artifacts(path: &str) -> Result<Artifacts, ConfigurationError> {
     Ok(json_data)
 }
 
-pub fn create_storage_layout(
-    contract_data: &ContractData,
+pub(crate) fn create_storage_layout(
+    contract_data: &ContractMetadata,
     storage_layout: StorageLayout,
     db: &mut CacheDB<EmptyDB>,
     ethers_db: &mut EthersDB<Provider<Http>>,
@@ -178,7 +151,7 @@ pub fn create_storage_layout(
 }
 
 #[derive(Debug, Display, EnumString, Serialize, Deserialize)]
-pub enum BasicType {
+enum BasicType {
     #[strum(serialize = "t_address")]
     Address {
         encoding: String,

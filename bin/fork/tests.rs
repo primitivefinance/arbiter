@@ -8,8 +8,8 @@ const PATH_TO_DISK_STORAGE: &str = "example_fork/test.json";
 #[test]
 fn create_forked_db() {
     let fork_config = ForkConfig::new(FORK_CONFIG_PATH).unwrap();
-    let forked_db = fork_config.to_db().unwrap();
-    assert!(!forked_db.0.accounts.is_empty());
+    let fork = fork_config.into_fork().unwrap();
+    assert!(!fork.db.accounts.is_empty());
 }
 
 #[test]
@@ -24,6 +24,6 @@ fn read_in() {
     let fork_config = ForkConfig::new(FORK_CONFIG_PATH).unwrap();
     fork_config.to_disk(&true).unwrap();
 
-    let forked_db = ForkedDB::from_disk(PATH_TO_DISK_STORAGE).unwrap();
+    let forked_db = Fork::from_disk(PATH_TO_DISK_STORAGE).unwrap();
     println!("{:#?}", forked_db);
 }

@@ -1,4 +1,4 @@
-use crate::environment::fork::ForkedDB;
+use crate::environment::fork::Fork;
 
 use super::*;
 
@@ -226,21 +226,27 @@ async fn stop_environment() {
 
 #[tokio::test]
 async fn fork_into_arbiter() {
-    let forked_db = ForkedDB::from_disk("../example_fork/test.json").unwrap();
+    let fork = Fork::from_disk("../example_fork/test.json").unwrap();
 
     // Get the environment going
     let environment = crate::environment::builder::EnvironmentBuilder::new()
-        .db(forked_db)
+        .db(fork.db)
         .build();
 
     // Create a client
     let client = RevmMiddleware::new(&environment, Some("name")).unwrap();
 
     // Deal with the weth contract
-    let weth_address = Address::from_str("0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2").unwrap();
-    let weth = weth::WETH::new(weth_address, client.clone());
+    let weth_meta = fork.contracts_meta.get("weth").unwrap();
+    let weth = weth::WETH::new(weth_meta.address, client.clone());
 
-    let address_to_check = Address::from_str("0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045").unwrap();
-    let balance = weth.balance_of(address_to_check).call().await.unwrap();
+    let address_to_check_balance =
+        Address::from_str(&weth_meta.mappings.get("balanceOf").unwrap()[0]).unwrap();
+
+    let balance = weth
+        .balance_of(address_to_check_balance)
+        .call()
+        .await
+        .unwrap();
     assert_eq!(balance, U256::from(34890707020710109111_u128));
 }

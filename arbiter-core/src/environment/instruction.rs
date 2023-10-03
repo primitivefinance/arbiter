@@ -1,3 +1,5 @@
+#![warn(missing_docs)]
+
 use super::*;
 
 /// [`Instruction`]s that can be sent to the [`Environment`] via the

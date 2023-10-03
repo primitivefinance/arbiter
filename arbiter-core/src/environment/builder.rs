@@ -5,8 +5,6 @@
 
 #![warn(missing_docs)]
 
-use revm::db;
-
 use super::*;
 
 /// Parameters necessary for creating or modifying an `Environment`.
