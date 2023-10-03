@@ -135,7 +135,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         }) => {
             println!("Forking...");
             let fork_config = ForkConfig::new(fork_config_path)?;
-            fork_config.to_disk(overwrite)?;
+            fork_config.write_to_disk(overwrite)?;
         }
         None => {
             Args::command()

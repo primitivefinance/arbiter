@@ -75,6 +75,8 @@ pub struct EnvironmentBuilder {
     /// 0.
     pub gas_settings: GasSettings,
 
+    /// The database to be loaded into the `Environment`.
+    /// This can come from a [`fork::Fork`] or otherwise.
     pub db: Option<CacheDB<EmptyDB>>,
 }
 
@@ -118,6 +120,8 @@ impl EnvironmentBuilder {
         self
     }
 
+    /// Sets the `db` for the `EnvironmentBuilder`.
+    /// This is an optional [`fork::Fork`] that can be loaded into the [`Environment`].
     pub fn db(mut self, db: impl Into<CacheDB<EmptyDB>>) -> Self {
         self.db = Some(db.into());
         self

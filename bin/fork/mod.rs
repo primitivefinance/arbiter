@@ -1,14 +1,7 @@
 #![warn(missing_docs)]
 
 use std::env;
-use std::str::FromStr;
-use std::{
-    collections::HashMap,
-    fs::{self, File},
-    io::Write,
-    path::Path,
-    sync::Arc,
-};
+use std::{collections::HashMap, fs, io::Write, path::Path, sync::Arc};
 
 use config::{Config, ConfigError};
 use ethers::{
@@ -18,7 +11,6 @@ use ethers::{
 };
 use revm::{
     db::{ethersdb::EthersDB, CacheDB, EmptyDB},
-    primitives::AccountInfo,
     Database,
 };
 use serde::{Deserialize, Serialize};
@@ -29,22 +21,22 @@ use arbiter_core::environment::fork::*;
 use super::*;
 
 pub(crate) mod digest;
-use digest::*;
 #[cfg(test)]
 mod tests;
 
+/// A `ForkConfig` is a d
 #[derive(Clone, Debug, Deserialize, Serialize)]
-pub struct ForkConfig {
-    pub output_directory: Option<String>,
-    pub output_filename: Option<String>,
-    pub provider: String,
-    pub block_number: u64,
+pub(crate) struct ForkConfig {
+    output_directory: Option<String>,
+    output_filename: Option<String>,
+    provider: String,
+    block_number: u64,
     #[serde(rename = "contracts")]
-    pub contracts_meta: HashMap<String, ContractMetadata>,
+    contracts_meta: HashMap<String, ContractMetadata>,
 }
 
 impl ForkConfig {
-    pub fn new(fork_config_path: &str) -> Result<Self, ConfigError> {
+    pub(crate) fn new(fork_config_path: &str) -> Result<Self, ConfigError> {
         let mut cwd = env::current_dir().unwrap();
         cwd.push(fork_config_path);
         println!("Reading config from: {:?}", cwd);
@@ -88,7 +80,7 @@ impl ForkConfig {
         Ok(db)
     }
 
-    pub fn into_fork(&self) -> Result<Fork, ConfigurationError> {
+    pub(crate) fn into_fork(self) -> Result<Fork, ConfigurationError> {
         // Digest all of the contracts and their storage data listed in the fork config.
         let db = self.digest_config().unwrap();
 
@@ -98,25 +90,27 @@ impl ForkConfig {
         })
     }
 
-    pub(crate) fn to_disk(&self, overwrite: &bool) -> Result<(), ConfigurationError> {
+    pub(crate) fn write_to_disk(self, overwrite: &bool) -> Result<(), ConfigurationError> {
         // Check if a file at the output path already exists.
         // These unwraps cannot fail.
-        let path = Path::new(&self.output_directory.clone().unwrap())
+        let dir = self.output_directory.clone().unwrap();
+        let file_path = Path::new(&self.output_directory.clone().unwrap())
             .join(self.output_filename.clone().unwrap());
-        if path.exists() && path.is_file() {
+        println!("path: {:?}", file_path);
+        if file_path.exists() && file_path.is_file() {
             if !overwrite {
                 // TODO: We should allow for an overwrite flag here.
                 panic!(
                 "File already exists at output path. Please use the `--overwrite` flag, delete it, or change the output path."
             );
             } else {
-                fs::remove_file(path).unwrap();
+                fs::remove_file(&file_path).unwrap();
             }
         }
 
-        let forked_db = self.into_fork().unwrap();
+        let fork = self.into_fork().unwrap();
         let mut raw = HashMap::new();
-        for (address, db_account) in forked_db.db.accounts {
+        for (address, db_account) in fork.db.accounts {
             let info = db_account.info;
             let mut storage = HashMap::new();
             for key in db_account.storage.keys() {
@@ -128,25 +122,20 @@ impl ForkConfig {
             raw.insert(Address::from(address_as_bytes), (info, storage));
         }
         let disk_data = DiskData {
-            meta: self.contracts_meta.clone(),
+            meta: fork.contracts_meta,
             raw,
         };
 
         let json_data = serde_json::to_string(&disk_data).unwrap();
 
-        // Create a directory in the CWD to store the CSV file.
-        // The unwraps for the file storage cannot fail since they are set to defaults in the
-        // `new` function.
-        let output_directory = self.output_directory.clone().unwrap();
-        fs::create_dir_all(&output_directory)?;
-        let file_path = Path::new(&output_directory).join(self.output_filename.clone().unwrap());
+        fs::create_dir_all(dir)?;
         let mut file = fs::File::create(file_path)?;
         file.write_all(json_data.as_bytes()).unwrap();
 
         Ok(())
     }
 
-    pub fn spawn_ethers_db(&self) -> Result<EthersDB<Provider<Http>>, ConfigurationError> {
+    fn spawn_ethers_db(&self) -> Result<EthersDB<Provider<Http>>, ConfigurationError> {
         let ethers_db = EthersDB::new(
             Arc::new(
                 Provider::<Http>::try_from(self.provider.clone())
