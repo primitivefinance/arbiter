@@ -5,11 +5,11 @@ use ethers::{
     providers::{Middleware, StreamExt as ProviderStreamExt},
 };
 use serde::Serialize;
-
-use crate::middleware::errors::RevmMiddlewareError;
 use serde_json::Value;
 use tokio::io::AsyncWriteExt;
 use tracing::info;
+
+use crate::middleware::errors::RevmMiddlewareError;
 
 pub struct EventLogger<
     M: Middleware + std::borrow::Borrow<D> + 'static,

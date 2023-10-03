@@ -1,8 +1,9 @@
-use super::*;
-use crate::data_collection::EventLogger;
 use tokio::io::AsyncReadExt;
 use tracing::info;
 use tracing_test::traced_test;
+
+use super::*;
+use crate::data_collection::EventLogger;
 
 #[traced_test]
 #[tokio::test(flavor = "multi_thread")]
