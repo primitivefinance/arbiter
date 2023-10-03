@@ -226,7 +226,7 @@ async fn stop_environment() {
 
 #[tokio::test]
 async fn fork_into_arbiter() {
-    let forked_db = ForkedDB::from_disk("./output/test.json").unwrap();
+    let forked_db = ForkedDB::from_disk("../example_fork/test.json").unwrap();
 
     // Get the environment going
     let environment = crate::environment::builder::EnvironmentBuilder::new()

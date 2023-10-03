@@ -1,5 +1,5 @@
 # Basic configuration
-output_directory = "./output/"
+output_directory = "example_fork/"
 output_filename = "test.json"
 provider = "https://eth.llamarpc.com"
 block_number = 18228556

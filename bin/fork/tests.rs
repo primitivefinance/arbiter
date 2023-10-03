@@ -3,7 +3,7 @@ use arbiter_core::{environment, middleware::RevmMiddleware};
 use super::*;
 
 const FORK_CONFIG_PATH: &str = "example_fork/weth_config.toml";
-const PATH_TO_DISK_STORAGE: &str = "./output/test.json";
+const PATH_TO_DISK_STORAGE: &str = "example_fork/test.json";
 
 #[test]
 fn create_forked_db() {
