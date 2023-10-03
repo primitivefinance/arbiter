@@ -14,6 +14,7 @@ readme = "../README.md"
 # Ethereum and EVM
 ethers = { version = "=2.0.10"}
 revm = { version = "=3.4.0", features = ["serde"] }
+revm-primitives = "=1.2.0"
 
 # Serialization
 bytes = { version = "=1.5.0" }
@@ -40,6 +41,8 @@ thiserror =  { version = "=1.0.47" }
 # Logging
 log =  { version = "=0.4.19" }
 futures-util =  { version = "=0.3.28" }
+tracing-test = "0.2.4"
+tracing = "0.1.37"
 
 # Dependencies for the test build and development
 [dev-dependencies]
