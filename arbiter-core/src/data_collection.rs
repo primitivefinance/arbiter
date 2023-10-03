@@ -8,7 +8,7 @@ use serde::Serialize;
 
 use crate::middleware::errors::RevmMiddlewareError;
 use serde_json::Value;
-use tokio::{io::AsyncWriteExt, task::JoinHandle};
+use tokio::io::AsyncWriteExt;
 use tracing::info;
 
 pub struct EventLogger<
@@ -44,12 +44,12 @@ impl<
         self
     }
 
-    pub async fn run(self) -> Result<JoinHandle<()>, RevmMiddlewareError> {
+    pub async fn run(self) -> Result<(), RevmMiddlewareError> {
         // Delete the ./events path before kicking off the run loop
         let path = self.path.unwrap_or("./events".to_string());
         tokio::fs::remove_dir_all(&path).await.unwrap_or_default();
 
-        let handle = tokio::spawn(async move {
+        tokio::spawn(async move {
             let mut set = tokio::task::JoinSet::new();
             for (name, events) in self.events {
                 let dir_path = format!("{}/{}", path, name);
@@ -119,6 +119,6 @@ impl<
                 info!("task completed: {:?}", res);
             }
         });
-        Ok(handle)
+        Ok(())
     }
 }

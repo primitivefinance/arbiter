@@ -1,13 +1,13 @@
 use super::*;
 use crate::data_collection::EventLogger;
+use tokio::io::AsyncReadExt;
 use tracing::info;
 use tracing_test::traced_test;
-use tokio::io::AsyncReadExt;
 
 #[traced_test]
 #[tokio::test(flavor = "multi_thread")]
 async fn data_capture() {
-    let (mut _manager, client) = startup_user_controlled().unwrap();
+    let (mut _env, client) = startup_user_controlled().unwrap();
     let arbx = deploy_arbx(client.clone()).await.unwrap();
     let arby = deploy_arbx(client.clone()).await.unwrap();
     let listener = EventLogger::builder()
@@ -34,11 +34,10 @@ async fn data_capture() {
     tokio::fs::remove_dir_all("./events").await.unwrap();
 }
 
-
 #[traced_test]
 #[tokio::test(flavor = "multi_thread")]
 async fn data_capture_output_validation() {
-    let (mut _manager, client) = startup_user_controlled().unwrap();
+    let (mut _env, client) = startup_user_controlled().unwrap();
     let arbx = deploy_arbx(client.clone()).await.unwrap();
     let arby = deploy_arbx(client.clone()).await.unwrap();
     let listener = EventLogger::builder()
@@ -79,8 +78,5 @@ async fn data_capture_output_validation() {
 
     assert_eq!(contents0, contents1);
 
-    // deleta test_output directory
-
     tokio::fs::remove_dir_all("./test_output").await.unwrap();
-
 }
