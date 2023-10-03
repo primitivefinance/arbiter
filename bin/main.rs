@@ -22,13 +22,11 @@ use std::error::Error;
 use clap::{command, CommandFactory, Parser, Subcommand};
 use thiserror::Error;
 
-use crate::fork::{digest::ForkConfig, ForkedDB};
+use crate::fork::ForkConfig;
 
 mod bind;
 mod fork;
 mod init;
-#[cfg(test)]
-mod tests;
 
 /// Represents command-line arguments passed to the `Arbiter` tool.
 #[derive(Parser)]

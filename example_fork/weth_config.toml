@@ -8,7 +8,7 @@ block_number = 18228556
 # Try this out with the weth contract
 [contracts.weth]
 address = "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2" 
-artifacts_path = "bin/tests/WETH.sol/WETH.json"
+artifacts_path = "example_fork/WETH.json"
 
 [contracts.weth.mappings]
 balanceOf = [

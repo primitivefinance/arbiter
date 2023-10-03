@@ -65,6 +65,9 @@ use instruction::*;
 pub mod errors;
 use errors::*;
 
+pub mod fork;
+use fork::*;
+
 pub mod builder;
 use builder::*;
 
