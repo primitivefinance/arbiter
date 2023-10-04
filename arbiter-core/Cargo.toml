@@ -13,7 +13,7 @@ readme = "../README.md"
 
 # Ethereum and EVM
 ethers = { version = "=2.0.10"}
-revm = { version = "=3.4.0", features = ["serde"] }
+revm = { version = "=3.4.0", features = ["serde", "std"] }
 revm-primitives = "=1.2.0"
 
 # Serialization

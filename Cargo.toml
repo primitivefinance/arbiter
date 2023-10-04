@@ -32,10 +32,7 @@ serde_json = { version = "1.0.107" }
 toml = { version = "=0.8.2" }
 config = { version = "=0.13.3" }
 ethers = { version = "=2.0.10" }
-revm = { version = "=3.4.0", features = [ "ethersdb" ] }
-
-strum = { version = "0.25.0" }
-strum_macros = { version = "=0.25.2" }
+revm = { version = "=3.4.0", features = [ "ethersdb", "std" ] }
 
 # Building files
 quote = { version = "=1.0.33" }

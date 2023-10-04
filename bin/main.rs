@@ -17,8 +17,6 @@
 //! This CLI leverages the power of Rust's type system to
 //! offer fast and reliable operations, ensuring data integrity and ease of use.
 
-use std::error::Error;
-
 use clap::{command, CommandFactory, Parser, Subcommand};
 use thiserror::Error;
 
@@ -43,38 +41,28 @@ struct Args {
 /// `ConfigurationError` enumeration type for errors parsing a `.toml`
 /// configuration file.
 #[derive(Error, Debug)]
-pub enum ConfigurationError {
+pub enum ArbiterError {
+    /// Indicates an error occurred during the parsing of the configuration
+    /// file.
+    #[error("Error with config parsing: {0}")]
+    ConfigError(#[from] config::ConfigError),
     /// Indicates that the configuration file could not be read from the given
     /// path.
-    #[error("configuration file path does not exist")]
-    FilepathError(#[from] std::io::Error),
+    #[error("Error with file IO: {0}")]
+    IOError(#[from] std::io::Error),
 
     /// Indicates an error occurred during the deserialization of the `.toml`
     /// file.
-    #[error("toml deserialization failed")]
-    DeserializationError(#[from] toml::de::Error),
+    #[error("Error with toml deserialization: {0}")]
+    TomlError(#[from] toml::de::Error),
 
-    /// Indicates that certain expected fields were missing from the `.toml`
-    /// file.
-    #[error("missing fields in toml file")]
-    MissingFieldsError(String),
-}
+    /// Indicates an error occurred during processing of a JSON file.
+    #[error("Error with serde_json: {0}")]
+    JsonError(#[from] serde_json::Error),
 
-/// Provides functionality for classes that need to be configured using a
-/// `.toml` file.
-pub trait Configurable: Sized {
-    /// Parses the given `.toml` file to configure the object.
-    ///
-    /// # Arguments
-    ///
-    /// * `command_path` - A string slice that holds the path to the `.toml`
-    ///   configuration file.
-    ///
-    /// # Returns
-    ///
-    /// * A `Result` which is either a configured object of type `Self` or a
-    ///   `ConfigurationError`.
-    fn configure(command_path: &str) -> Result<Self, ConfigurationError>;
+    /// Indicates an error occurred with a database.
+    #[error("Error with DB: {0}")]
+    DBError(String),
 }
 
 /// Defines available subcommands for the `Arbiter` tool.
@@ -111,7 +99,7 @@ enum Commands {
 ///
 /// * A `Result` which is either an empty tuple for successful execution or a
 ///   dynamic error.
-fn main() -> Result<(), Box<dyn Error>> {
+fn main() -> Result<(), ArbiterError> {
     let args = Args::parse();
 
     match &args.command {
@@ -137,12 +125,7 @@ fn main() -> Result<(), Box<dyn Error>> {
             let fork_config = ForkConfig::new(fork_config_path)?;
             fork_config.write_to_disk(overwrite)?;
         }
-        None => {
-            Args::command()
-                .print_long_help()
-                .map_err(|err| println!("{:?}", err))
-                .ok();
-        }
+        None => Args::command().print_long_help()?,
     }
 
     Ok(())

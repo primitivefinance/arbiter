@@ -14,7 +14,6 @@ use revm::{
     Database,
 };
 use serde::{Deserialize, Serialize};
-use strum_macros::{Display, EnumString};
 
 use super::*;
 
@@ -39,9 +38,12 @@ impl ForkConfig {
         cwd.push(fork_config_path);
         println!("Reading config from: {:?}", cwd);
         let config = Config::builder()
-            .add_source(config::File::with_name(cwd.to_str().unwrap()))
+            .add_source(config::File::with_name(
+                cwd.to_str()
+                    .ok_or(ConfigError::NotFound("File not found!".to_owned()))?,
+            ))
             .build()?;
-        let mut fork_config: ForkConfig = config.try_deserialize().unwrap();
+        let mut fork_config: ForkConfig = config.try_deserialize()?;
 
         if fork_config.output_directory.is_none() {
             println!("No output path specified. Defaulting to current directory.");
@@ -59,28 +61,33 @@ impl ForkConfig {
     /// be fetched from the blockchain.
     /// Once all the `AccountInfo` for the contracts are fetched, we digest the
     /// contract artifacts to get the storage layout.
-    pub(crate) fn digest_config(&self) -> Result<CacheDB<EmptyDB>, ConfigurationError> {
+    pub(crate) fn digest_config(&self) -> Result<CacheDB<EmptyDB>, ArbiterError> {
         // Spawn the `EthersDB` and the `CacheDB` we will write to.
-        let ethers_db = &mut self.spawn_ethers_db().unwrap();
+        let ethers_db = &mut self.spawn_ethers_db()?;
         let mut db = CacheDB::new(EmptyDB::default());
         for contract_data in self.contracts_meta.values() {
             let address = contract_data.address;
-            let info = ethers_db.basic(address.into()).unwrap().unwrap();
+            let info = ethers_db
+                .basic(address.into())
+                .map_err(|_| {
+                    ArbiterError::DBError("Failed to fetch account info with EthersDB.".to_string())
+                })?
+                .ok_or(ArbiterError::DBError(
+                    "Failed to fetch account info with EthersDB.".to_string(),
+                ))?;
             db.insert_account_info(address.into(), info);
 
-            let artifacts =
-                digest::digest_artifacts(contract_data.artifacts_path.as_str()).unwrap();
+            let artifacts = digest::digest_artifacts(contract_data.artifacts_path.as_str())?;
             let storage_layout = artifacts.storage_layout;
 
-            digest::create_storage_layout(contract_data, storage_layout, &mut db, ethers_db)
-                .unwrap();
+            digest::create_storage_layout(contract_data, storage_layout, &mut db, ethers_db)?;
         }
         Ok(db)
     }
 
-    pub(crate) fn into_fork(self) -> Result<Fork, ConfigurationError> {
+    pub(crate) fn into_fork(self) -> Result<Fork, ArbiterError> {
         // Digest all of the contracts and their storage data listed in the fork config.
-        let db = self.digest_config().unwrap();
+        let db = self.digest_config()?;
 
         Ok(Fork {
             db,
@@ -88,9 +95,10 @@ impl ForkConfig {
         })
     }
 
-    pub(crate) fn write_to_disk(self, overwrite: &bool) -> Result<(), ConfigurationError> {
+    pub(crate) fn write_to_disk(self, overwrite: &bool) -> Result<(), ArbiterError> {
+        // The unwraps that appear here should not fail.
+
         // Check if a file at the output path already exists.
-        // These unwraps cannot fail.
         let dir = self.output_directory.clone().unwrap();
         let file_path = Path::new(&self.output_directory.clone().unwrap())
             .join(self.output_filename.clone().unwrap());
@@ -106,7 +114,7 @@ impl ForkConfig {
             }
         }
 
-        let fork = self.into_fork().unwrap();
+        let fork = self.into_fork()?;
         let mut raw = HashMap::new();
         for (address, db_account) in fork.db.accounts {
             let info = db_account.info;
@@ -124,7 +132,7 @@ impl ForkConfig {
             raw,
         };
 
-        let json_data = serde_json::to_string(&disk_data).unwrap();
+        let json_data = serde_json::to_string(&disk_data)?;
 
         fs::create_dir_all(dir)?;
         let mut file = fs::File::create(file_path)?;
@@ -133,7 +141,7 @@ impl ForkConfig {
         Ok(())
     }
 
-    fn spawn_ethers_db(&self) -> Result<EthersDB<Provider<Http>>, ConfigurationError> {
+    fn spawn_ethers_db(&self) -> Result<EthersDB<Provider<Http>>, ArbiterError> {
         let ethers_db = EthersDB::new(
             Arc::new(
                 Provider::<Http>::try_from(self.provider.clone())
