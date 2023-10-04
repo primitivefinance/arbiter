@@ -434,7 +434,7 @@ impl Environment {
                         // Set the tx_env and prepare to process it
                         evm.env.tx = tx_env;
 
-                        let result = evm.transact().map_err(EnvironmentError::Execution)?.result;
+                        let result = evm.transact()?.result;
                         outcome_sender
                             .send(Ok(Outcome::CallCompleted(result)))
                             .map_err(|e| EnvironmentError::Communication(e.to_string()))?;

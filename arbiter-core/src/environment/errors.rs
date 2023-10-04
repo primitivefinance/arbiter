@@ -22,7 +22,7 @@ pub enum EnvironmentError {
     /// revert or halt, this is likely an error in `revm`. Please report
     /// this type of error.
     #[error("execution error! the source error is: {0:?}")]
-    Execution(EVMError<Infallible>),
+    Execution(#[from] EVMError<Infallible>),
 
     /// [`EnvironmentError::Transaction`] is thrown when a transaction fails
     /// to be processed by the [`EVM`]. This could be due to a insufficient
