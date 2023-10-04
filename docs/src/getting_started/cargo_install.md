@@ -1,15 +1,25 @@
 # CLI Installation with Cargo
 
 ## Prerequisites
-The best way to build Arbiter today is from source. 
-
-Install Git, if you haven't already. There are many online guides on how to install Git on different devices, including one from [Github](https://github.com/git-guides/install-git).
 
 Before installing Arbiter, ensure that you have Rust installed. You can install and verify your Rust installation from the [official website](https://www.rust-lang.org/tools/install).
 
 The Arbiter CLI works alongside [Foundry](https://github.com/foundry-rs/foundry) and aims to provide a similar CLI interface of setting up and interacting with Arbiter projects. Install Foundry from the [official website](https://getfoundry.sh/).
 
 ## Installing the Arbiter CLI
+
+### Install using Cargo
+
+Once Rust is installed, you can install Arbiter from the package registry using Cargo. To do this, just run:
+```bash
+cargo install arbiter
+```
+
+You can now run `arbiter --help` to verify your installation and view the help menu.
+
+### Building From Source
+Install Git, if you haven't already. There are many online guides on how to install Git on different devices, including one from [Github](https://github.com/git-guides/install-git).
+
 Once you're done with the above, you can install Arbiter by cloning the repository. The local crate can then be used to install the Arbiter binary on your machine.
 
 ```bash
@@ -17,7 +27,7 @@ git clone https://github.com/primitivefinance/arbiter.git
 cargo install --path ./arbiter
 ```
 
-Once this is complete, you can run `arbiter --help` to verify your installation and view the help menu.
+You can now run `arbiter --help` to verify your installation and view the help menu.
 
 ## Interacting with the Arbiter CLI
 Arbiter provides a Foundry-like CLI experience. You can initialize new projects, generate bindings and execute simulations using the CLI.
