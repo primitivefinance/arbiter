@@ -8,8 +8,12 @@ use super::*;
 /// - [`Instruction::AddAccount`],
 /// - [`Instruction::BlockUpdate`],
 /// - [`Instruction::Call`],
-/// - [`Instruction::Transaction`],
+/// - [`Instruction::Cheatcode`],
 /// - [`Instruction::Query`].
+/// - [`Instruction::SetGasPrice`],
+/// - [`Instruction::Stop`],
+/// - [`Instruction::Transaction`],
+
 /// The [`Instruction`]s are sent to the [`Environment`] via the
 /// [`Socket::instruction_sender`] and the results are received via the
 /// [`crate::middleware::Connection::outcome_receiver`].
@@ -39,15 +43,6 @@ pub(crate) enum Instruction {
         outcome_sender: OutcomeSender,
     },
 
-    /// A `cheatcode` enables direct access to the underlying [`EVM`].
-    Cheatcode {
-        /// The [`Cheatcode`] to use to access the underlying [`EVM`].
-        cheatcode: Cheatcodes,
-
-        /// The sender used to to send the outcome of the cheatcode back to.
-        outcome_sender: OutcomeSender,
-    },
-
     /// A `Call` is processed by the [`EVM`] but will not be state changing and
     /// will not create events.
     Call {
@@ -58,23 +53,12 @@ pub(crate) enum Instruction {
         outcome_sender: OutcomeSender,
     },
 
-    /// A `SetGasPrice` is used to set the gas price of the [`EVM`].
-    SetGasPrice {
-        /// The gas price to set the [`EVM`] to.
-        gas_price: ethers::types::U256,
+    /// A `cheatcode` enables direct access to the underlying [`EVM`].
+    Cheatcode {
+        /// The [`Cheatcode`] to use to access the underlying [`EVM`].
+        cheatcode: Cheatcodes,
 
-        /// The sender used to to send the outcome of the gas price setting back
-        /// to.
-        outcome_sender: OutcomeSender,
-    },
-
-    /// A `Transaction` is processed by the [`EVM`] and will be state changing
-    /// and will create events.
-    Transaction {
-        /// The transaction environment for the transaction.
-        tx_env: TxEnv,
-
-        /// The sender used to to send the outcome of the transaction back to.
+        /// The sender used to to send the outcome of the cheatcode back to.
         outcome_sender: OutcomeSender,
     },
 
@@ -88,8 +72,28 @@ pub(crate) enum Instruction {
         outcome_sender: OutcomeSender,
     },
 
+    /// A `SetGasPrice` is used to set the gas price of the [`EVM`].
+    SetGasPrice {
+        /// The gas price to set the [`EVM`] to.
+        gas_price: ethers::types::U256,
+
+        /// The sender used to to send the outcome of the gas price setting back
+        /// to.
+        outcome_sender: OutcomeSender,
+    },
+
     /// A `Stop` is used to stop the [`Environment`].
     Stop(OutcomeSender),
+
+    /// A `Transaction` is processed by the [`EVM`] and will be state changing
+    /// and will create events.
+    Transaction {
+        /// The transaction environment for the transaction.
+        tx_env: TxEnv,
+
+        /// The sender used to to send the outcome of the transaction back to.
+        outcome_sender: OutcomeSender,
+    },
 }
 
 /// [`Outcome`]s that can be sent back to the the client via the
