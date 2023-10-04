@@ -106,24 +106,10 @@ pub(crate) type EventSender = Sender<Vec<Log>>;
 /// will route transactions sent over channels to the stack machine
 /// [`EVM`](https://github.com/bluealloy/revm/blob/main/crates/revm/src/evm.rs)
 /// to process smart contract interactions.
-///
-/// Allows for the initialization, starting, stopping, and pausing of the EVM
-/// execution. It provides channels for sending transactions to the EVM and for
+/// It provides channels for sending transactions to the EVM and for
 /// receiving results or broadcasting events to any subscribers via the
 /// `Socket` field exposed only as `pub(crate)`.
 ///
-/// ## Status
-/// The environment also maintains its current
-/// state, which can be one of the following:
-/// - [`State::Initialization`],
-/// - [`State::Running`],
-/// - [`State::Paused`],
-/// - [`State::Stopped`].
-///
-/// A state of [`State::Paused`] is recoverable and a state of
-/// [`State::Stopped`] is not recoverable. [`State::Initialization`] is adopted
-/// only prior to the [`Environment`] being ran and marks that this
-/// [`Environment`] may still change in configuration.
 ///
 /// ## Controlling Block Rate
 /// The blocks for the [`Environment`] are chosen using a Poisson distribution
@@ -192,10 +178,7 @@ impl Environment {
     /// The [`EVM`] will be
     /// offloaded onto a separate thread for processing.
     /// Calls, transactions, and events will enter/exit through the `Socket`.
-    /// Upon calling this function, the [`Environment`] will be placed in
-    /// [`State::Running`]. Errors here may trigger the [`Environment`] to
-    /// be placed in [`State::Paused`].
-    pub fn run(&mut self) {
+    pub(crate) fn run(&mut self) {
         // Initialize the EVM used
         let mut evm = EVM::new();
 
@@ -606,13 +589,7 @@ impl Environment {
     }
 
     /// Stops the execution of the environment.
-    ///
-    /// This method changes the state of the environment to `Stopped` if it is
-    /// currently `Running` or `Paused`. If the environment is already
-    /// `Stopped`, it does nothing and returns `Ok(())`. If the environment
-    /// is in `Initialization` state, it returns an
-    /// `Err(EnvironmentError::Stop("Environment is in an invalid state:
-    /// Initialization. This should not be possible."))`.
+    /// This cannot be recovered from!
     ///
     /// # Returns
     ///
