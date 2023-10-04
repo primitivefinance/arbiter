@@ -46,10 +46,6 @@ use transactions::*;
 pub mod connection;
 use connection::*;
 
-/// Specific event types that can be emitted by the [`Environment`].
-pub mod events;
-use events::*;
-
 pub mod cast;
 use cast::*;
 

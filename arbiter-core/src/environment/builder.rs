@@ -48,7 +48,8 @@ pub struct EnvironmentParameters {
 #[derive(Clone, Debug)]
 pub struct EnvironmentBuilder {
     /// An optional label for the `Environment`.
-    /// It is also used for organizing, tracking progress, and post-processing results.
+    /// It is also used for organizing, tracking progress, and post-processing
+    /// results.
     pub label: Option<String>,
 
     /// The type of block that will be used to step forward the [`EVM`].
@@ -189,10 +190,11 @@ pub enum GasSettings {
     UserControlled,
 
     /// The gas price will depend on the number of transactions in the block.
-    /// The user *must* set the [`BlockSettings`] to [`BlockSettings::RandomlySampled`].
-    /// We determine the gas price by multiplying the number of transactions in
-    /// the block by the multiplier which represents paying higher fees for a
-    /// more congested network.
+    /// The user *must* set the [`BlockSettings`] to
+    /// [`BlockSettings::RandomlySampled`]. We determine the gas price by
+    /// multiplying the number of transactions in the block by the
+    /// multiplier which represents paying higher fees for a more congested
+    /// network.
     RandomlySampled {
         /// Multiplies the number of transactions in the block to determine the
         /// gas price.

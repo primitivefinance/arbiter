@@ -80,8 +80,8 @@ pub enum EnvironmentError {
     NotUserControlledBlockSettings,
 
     /// [`EnvironmentError::NotRandomlySampledBlockSettings`] is thrown when
-    /// the [`Environment`] is **not** in a [`BlockSettings::RandomlySampled`] state
-    /// and an attempt is made to set the gas price via a multiplier.
+    /// the [`Environment`] is **not** in a [`BlockSettings::RandomlySampled`]
+    /// state and an attempt is made to set the gas price via a multiplier.
     /// That is, the user has chosen [`GasSettings::RandomlySampled`] without
     /// [`BlockSettings::RandomlySampled`].
     #[error("error in the environment! attempted to set a gas price via a multiplier when the `BlockSettings` is not `BlockSettings::RandomlySampled`.")]

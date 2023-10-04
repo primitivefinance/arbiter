@@ -5,10 +5,14 @@ use std::{
     sync::{Arc, Mutex, Weak},
 };
 
-use ethers::{prelude::ProviderError, providers::JsonRpcClient, types::FilteredParams};
+use ethers::{
+    prelude::ProviderError,
+    providers::JsonRpcClient,
+    types::{Filter, FilteredParams},
+};
 use serde::{de::DeserializeOwned, Serialize};
 
-use super::{cast::revm_logs_to_ethers_logs, events::FilterReceiver};
+use super::cast::revm_logs_to_ethers_logs;
 use crate::environment::{EventBroadcaster, InstructionSender, OutcomeReceiver, OutcomeSender};
 
 /// Represents a connection to the EVM contained in the corresponding
@@ -104,4 +108,18 @@ impl JsonRpcClient for Connection {
             _ => Err(ProviderError::UnsupportedRPC),
         }
     }
+}
+
+/// Packages together a [`crossbeam_channel::Receiver<Vec<Log>>`] along with a
+/// [`Filter`] for events. Allows the client to have a stream of filtered
+/// events.
+#[derive(Debug)]
+pub(crate) struct FilterReceiver {
+    /// The filter definition used for this receiver.
+    /// Comes from the `ethers-rs` crate.
+    pub(crate) filter: Filter,
+
+    /// The receiver for the channel that receives logs from the broadcaster.
+    /// These are filtered upon reception.
+    pub(crate) receiver: crossbeam_channel::Receiver<Vec<revm::primitives::Log>>,
 }
