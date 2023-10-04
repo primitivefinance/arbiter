@@ -43,8 +43,8 @@ use errors::*;
 pub mod transactions;
 use transactions::*;
 
-pub mod connections;
-use connections::*;
+pub mod connection;
+use connection::*;
 
 /// Specific event types that can be emitted by the [`Environment`].
 pub mod events;
