@@ -26,7 +26,7 @@ pub enum Cheatcodes {
         block: Option<ethers::types::BlockId>,
     },
     /// Overwrites a storage slot of an account.
-    /// todo: for more complicated data types, like structs, there's more work
+    /// TODO: for more complicated data types, like structs, there's more work
     /// to do.
     Store {
         /// The address of the account to overwrite the storage slot of.
