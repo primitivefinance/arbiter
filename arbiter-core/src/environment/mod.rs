@@ -230,7 +230,7 @@ impl Environment {
         let handle = thread::spawn(move || {
             if let GasSettings::RandomlySampled { multiplier: _ } = gas_settings {
                 if seeded_poisson.is_none() {
-                    return Err(EnvironmentError::NotRandomlySampledBlockType);
+                    return Err(EnvironmentError::NotRandomlySampledBlockSettings);
                 }
             }
             // Get the first amount of transactions per block from the distribution and set
@@ -244,7 +244,7 @@ impl Environment {
                 }
                 GasSettings::RandomlySampled { multiplier } => {
                     let gas_price = (transactions_per_block
-                        .ok_or(EnvironmentError::NotRandomlySampledBlockType)?
+                        .ok_or(EnvironmentError::NotRandomlySampledBlockSettings)?
                         as f64)
                         * multiplier;
                     evm.env.tx.gas_price = U256::from(gas_price as u128);
@@ -293,7 +293,7 @@ impl Environment {
                     } => {
                         if block_type != BlockSettings::UserControlled {
                             outcome_sender
-                                .send(Err(EnvironmentError::NotUserControlledBlockType))
+                                .send(Err(EnvironmentError::NotUserControlledBlockSettings))
                                 .map_err(|e| EnvironmentError::Communication(e.to_string()))?;
                         }
                         // Update the block number and timestamp
@@ -536,7 +536,7 @@ impl Environment {
                             };
                             if let GasSettings::RandomlySampled { multiplier } = gas_settings {
                                 let gas_price = (transactions_per_block
-                                    .ok_or(EnvironmentError::NotRandomlySampledBlockType)?
+                                    .ok_or(EnvironmentError::NotRandomlySampledBlockSettings)?
                                     as f64)
                                     * multiplier;
                                 evm.env.tx.gas_price = U256::from(gas_price as u128);

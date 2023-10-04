@@ -37,12 +37,6 @@ pub enum EnvironmentError {
     #[error("account error! due to: {0:?}")]
     Account(String),
 
-    /// [`EnvironmentError::Pause`] is thrown when the [`Environment`]
-    /// fails to pause. This should likely never occur, but if it does,
-    /// please report this error!
-    #[error("error pausing! due to: {0:?}")]
-    Pause(String),
-
     /// [`EnvironmentError::Stop`] is thrown when the [`Environment`]
     /// fails to stop. This error could occur due to an invalid state transition
     /// or other unexpected conditions. If this error is thrown, it indicates
@@ -73,30 +67,23 @@ pub enum EnvironmentError {
     #[error("conversion error! the source error is: {0}")]
     Conversion(String),
 
-    /// [`EnvironmentError::TransactionReceivedWhilePaused`] is thrown when
-    /// a transaction is received while the [`Environment`] is paused.
-    /// This can be quite common due to concurrency issues, but should be
-    /// handled gracefully.
-    #[error("transaction was received while the environment was paused. this transaction was not processed.")]
-    TransactionReceivedWhilePaused,
-
     /// [`EnvironmentError::NotUserControlledGasSettings`] is thrown when the
     /// [`Environment`] is not in a [`GasSettings::UserControlled`] state and
     /// an attempt is made to externally change the gas price.
     #[error("error in the environment! attempted to set a gas price when the `GasSettings` is not `GasSettings::UserControlled`")]
     NotUserControlledGasSettings,
 
-    /// [`EnvironmentError::NotUserControlledBlockType`] is thrown when
-    /// the [`Environment`] is in a [`BlockType::RandomlySampled`] state and
+    /// [`EnvironmentError::NotUserControlledBlockSettings`] is thrown when
+    /// the [`Environment`] is in a [`BlockSettings::RandomlySampled`] state and
     /// an attempt is made to externally change the block number and timestamp.
-    #[error("error in the environment! attempted to externally change block number and timestamp when `BlockType` is not `BlockType::UserControlled`.")]
-    NotUserControlledBlockType,
+    #[error("error in the environment! attempted to externally change block number and timestamp when `BlockSettings` is not `BlockSettings::UserControlled`.")]
+    NotUserControlledBlockSettings,
 
-    /// [`EnvironmentError::NotRandomlySampledBlockType`] is thrown when
-    /// the [`Environment`] is **not** in a [`BlockType::RandomlySampled`] state
+    /// [`EnvironmentError::NotRandomlySampledBlockSettings`] is thrown when
+    /// the [`Environment`] is **not** in a [`BlockSettings::RandomlySampled`] state
     /// and an attempt is made to set the gas price via a multiplier.
     /// That is, the user has chosen [`GasSettings::RandomlySampled`] without
-    /// [`BlockType::RandomlySampled`].
-    #[error("error in the environment! attempted to set a gas price via a multiplier when the `BlockType` is not `BlockType::RandomlySampled`.")]
-    NotRandomlySampledBlockType,
+    /// [`BlockSettings::RandomlySampled`].
+    #[error("error in the environment! attempted to set a gas price via a multiplier when the `BlockSettings` is not `BlockSettings::RandomlySampled`.")]
+    NotRandomlySampledBlockSettings,
 }
