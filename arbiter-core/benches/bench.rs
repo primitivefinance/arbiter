@@ -21,7 +21,7 @@ use ethers::{
     types::{Address, I256, U256},
     utils::AnvilInstance,
 };
-use log::info;
+use tracing::info;
 
 const NUM_BENCH_ITERATIONS: usize = 1000;
 const NUM_LOOP_STEPS: usize = 100;

@@ -38,7 +38,6 @@ use std::{
 
 use crossbeam_channel::{bounded, unbounded, Receiver, Sender};
 use ethers::core::types::U64;
-use log::{error, warn};
 use revm::{
     db::{CacheDB, EmptyDB},
     primitives::{
@@ -46,6 +45,7 @@ use revm::{
     },
     EVM,
 };
+use tracing::{error, warn};
 // use hashbrown::{hash_map, HashMap as HashMapBrown};
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
