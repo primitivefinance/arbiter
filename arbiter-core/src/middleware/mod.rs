@@ -40,8 +40,8 @@ pub mod errors;
 use errors::*;
 
 /// Graceful handling of the [`ExecutionResult`] returned by the [`Environment`]
-pub mod transactions;
-use transactions::*;
+pub mod transaction;
+use transaction::*;
 
 pub mod connection;
 use connection::*;
