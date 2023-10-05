@@ -38,6 +38,7 @@ async fn data_capture() {
                 .await
                 .unwrap();
         }
+        tokio::fs::remove_dir_all("./test_output2").await.unwrap();
 }
 
 #[traced_test]
@@ -89,4 +90,5 @@ async fn data_capture_output_validation() {
         let contents1 = String::from_utf8(contents1).unwrap();
 
         assert_eq!(contents0, contents1);
+        tokio::fs::remove_dir_all("./test_output2").await.unwrap();
 }
