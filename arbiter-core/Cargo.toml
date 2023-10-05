@@ -8,6 +8,9 @@ license = "Apache-2.0"
 keywords = ["ethereum", "evm", "emulator", "testing", "smart-contracts"]
 readme = "../README.md"
 
+[features]
+contracts = []
+
 # Dependencies for the release build
 [dependencies]
 
