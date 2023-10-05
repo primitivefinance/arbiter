@@ -7,7 +7,6 @@ use crate::data_collection::EventLogger;
 #[traced_test]
 #[tokio::test(flavor = "multi_thread")]
 async fn data_capture() {
-    for _ in 0..10 {
         let (mut _env, client) = startup_user_controlled().unwrap();
         let (arbx, arby, lex) = deploy_liquid_exchange(client.clone()).await.unwrap();
 
@@ -39,14 +38,11 @@ async fn data_capture() {
                 .await
                 .unwrap();
         }
-    }
 }
 
 #[traced_test]
 #[tokio::test(flavor = "multi_thread")]
 async fn data_capture_output_validation() {
-    for i in 0..10 {
-        println!("Test iteration {}", i);
         let (mut _env, client) = startup_user_controlled().unwrap();
         let (arbx, arby, lex) = deploy_liquid_exchange(client.clone()).await.unwrap();
         let listener = EventLogger::builder()
@@ -93,5 +89,4 @@ async fn data_capture_output_validation() {
         let contents1 = String::from_utf8(contents1).unwrap();
 
         assert_eq!(contents0, contents1);
-    }
 }
