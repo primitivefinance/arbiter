@@ -38,7 +38,7 @@ async fn data_capture() {
                 .await
                 .unwrap();
         }
-        tokio::fs::remove_dir_all("./test_output2").await.unwrap();
+        tokio::fs::remove_dir_all("./test_output1").await.unwrap();
 }
 
 #[traced_test]
