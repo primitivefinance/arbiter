@@ -1,5 +1,4 @@
 use tokio::io::AsyncReadExt;
-use tracing::info;
 use tracing_test::traced_test;
 
 use super::*;
