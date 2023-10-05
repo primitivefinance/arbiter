@@ -13,7 +13,7 @@ readme = "../README.md"
 
 # Ethereum and EVM
 ethers = { version = "=2.0.10"}
-revm = { version = "=3.4.0", features = ["serde"] }
+revm = { version = "=3.4.0", features = ["serde", "std"] }
 revm-primitives = "=1.2.0"
 
 # Serialization
@@ -39,18 +39,16 @@ RustQuant = { version = "=0.0.33", features = ["seedable"]}
 thiserror =  { version = "=1.0.49" }
 
 # Logging
-log =  { version = "=0.4.20" }
 futures-util =  { version = "=0.3.28" }
-tracing-test = "0.2.4"
 tracing = "0.1.37"
 
 # Dependencies for the test build and development
 [dev-dependencies]
+arbiter-derive = { path = "../arbiter-derive" }
 hex = { version = "=0.4.3", default-features = false }
 anyhow =  { version = "=1.0.75" }
-env_logger =  { version = "=0.10.0" }
 test-log =  { version = "=0.2.12" }
-arbiter-derive = { path = "../arbiter-derive" }
+tracing-test = "0.2.4"
 
 futures =  { version = "=0.3.28" }
 assert_matches =  { version = "=1.5" }

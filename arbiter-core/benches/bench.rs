@@ -21,7 +21,7 @@ use ethers::{
     types::{Address, I256, U256},
     utils::AnvilInstance,
 };
-use log::info;
+use tracing::info;
 
 const NUM_BENCH_ITERATIONS: usize = 1000;
 const NUM_LOOP_STEPS: usize = 100;
@@ -152,8 +152,7 @@ async fn anvil_startup() -> Result<(
 }
 
 fn arbiter_startup() -> Result<(Environment, Arc<RevmMiddleware>)> {
-    let mut environment = EnvironmentBuilder::new().build();
-    environment.run();
+    let environment = EnvironmentBuilder::new().build();
 
     let client = RevmMiddleware::new(&environment, Some("name"))?;
     Ok((environment, client))

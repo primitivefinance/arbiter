@@ -47,10 +47,10 @@ pub(crate) enum StorageType {
     },
 }
 
-pub(crate) fn digest_artifacts(path: &str) -> Result<Artifacts, ConfigurationError> {
+pub(crate) fn digest_artifacts(path: &str) -> Result<Artifacts, ArbiterError> {
     // Read the file to a string
     let data = fs::read_to_string(path)?;
-    let json_data = serde_json::from_str(&data).unwrap();
+    let json_data = serde_json::from_str(&data)?;
 
     Ok(json_data)
 }
@@ -60,8 +60,9 @@ pub(crate) fn create_storage_layout(
     storage_layout: StorageLayout,
     db: &mut CacheDB<EmptyDB>,
     ethers_db: &mut EthersDB<Provider<Http>>,
-) -> Result<(), ConfigurationError> {
+) -> Result<(), ArbiterError> {
     for storage_item in storage_layout.storage {
+        // The unwraps here should not fail.
         let label = storage_item.label;
         let slot = storage_item.slot;
         let slot_bytes =
@@ -148,37 +149,4 @@ pub(crate) fn create_storage_layout(
         }
     }
     Ok(())
-}
-
-#[derive(Debug, Display, EnumString, Serialize, Deserialize)]
-enum BasicType {
-    #[strum(serialize = "t_address")]
-    Address {
-        encoding: String,
-        label: String,
-        #[serde(rename = "numberOfBytes")]
-        number_of_bytes: String,
-    },
-    #[strum(serialize = "t_uint256")]
-    UInt256 {
-        encoding: String,
-        label: String,
-        #[serde(rename = "numberOfBytes")]
-        number_of_bytes: String,
-    },
-    #[strum(serialize = "t_string_storage")]
-    String {
-        encoding: String,
-        label: String,
-        #[serde(rename = "numberOfBytes")]
-        number_of_bytes: String,
-    },
-    Mapping {
-        encoding: String,
-        key: String,
-        value: String,
-        label: Option<String>,
-        #[serde(rename = "numberOfBytes")]
-        number_of_bytes: Option<String>,
-    },
 }

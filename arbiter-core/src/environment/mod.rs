@@ -38,7 +38,6 @@ use std::{
 
 use crossbeam_channel::{bounded, unbounded, Receiver, Sender};
 use ethers::core::types::U64;
-use log::{error, warn};
 use revm::{
     db::{CacheDB, EmptyDB},
     primitives::{
@@ -49,6 +48,7 @@ use revm::{
 // use hashbrown::{hash_map, HashMap as HashMapBrown};
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
+use tracing::{error, warn};
 
 use crate::math::SeededPoisson;
 #[cfg_attr(doc, doc(hidden))]
@@ -106,24 +106,10 @@ pub(crate) type EventSender = Sender<Vec<Log>>;
 /// will route transactions sent over channels to the stack machine
 /// [`EVM`](https://github.com/bluealloy/revm/blob/main/crates/revm/src/evm.rs)
 /// to process smart contract interactions.
-///
-/// Allows for the initialization, starting, stopping, and pausing of the EVM
-/// execution. It provides channels for sending transactions to the EVM and for
+/// It provides channels for sending transactions to the EVM and for
 /// receiving results or broadcasting events to any subscribers via the
 /// `Socket` field exposed only as `pub(crate)`.
 ///
-/// ## Status
-/// The environment also maintains its current
-/// state, which can be one of the following:
-/// - [`State::Initialization`],
-/// - [`State::Running`],
-/// - [`State::Paused`],
-/// - [`State::Stopped`].
-///
-/// A state of [`State::Paused`] is recoverable and a state of
-/// [`State::Stopped`] is not recoverable. [`State::Initialization`] is adopted
-/// only prior to the [`Environment`] being ran and marks that this
-/// [`Environment`] may still change in configuration.
 ///
 /// ## Controlling Block Rate
 /// The blocks for the [`Environment`] are chosen using a Poisson distribution
@@ -192,10 +178,7 @@ impl Environment {
     /// The [`EVM`] will be
     /// offloaded onto a separate thread for processing.
     /// Calls, transactions, and events will enter/exit through the `Socket`.
-    /// Upon calling this function, the [`Environment`] will be placed in
-    /// [`State::Running`]. Errors here may trigger the [`Environment`] to
-    /// be placed in [`State::Paused`].
-    pub fn run(&mut self) {
+    pub(crate) fn run(&mut self) {
         // Initialize the EVM used
         let mut evm = EVM::new();
 
@@ -230,7 +213,7 @@ impl Environment {
         let handle = thread::spawn(move || {
             if let GasSettings::RandomlySampled { multiplier: _ } = gas_settings {
                 if seeded_poisson.is_none() {
-                    return Err(EnvironmentError::NotRandomlySampledBlockType);
+                    return Err(EnvironmentError::NotRandomlySampledBlockSettings);
                 }
             }
             // Get the first amount of transactions per block from the distribution and set
@@ -244,7 +227,7 @@ impl Environment {
                 }
                 GasSettings::RandomlySampled { multiplier } => {
                     let gas_price = (transactions_per_block
-                        .ok_or(EnvironmentError::NotRandomlySampledBlockType)?
+                        .ok_or(EnvironmentError::NotRandomlySampledBlockSettings)?
                         as f64)
                         * multiplier;
                     evm.env.tx.gas_price = U256::from(gas_price as u128);
@@ -293,7 +276,7 @@ impl Environment {
                     } => {
                         if block_type != BlockSettings::UserControlled {
                             outcome_sender
-                                .send(Err(EnvironmentError::NotUserControlledBlockType))
+                                .send(Err(EnvironmentError::NotUserControlledBlockSettings))
                                 .map_err(|e| EnvironmentError::Communication(e.to_string()))?;
                         }
                         // Update the block number and timestamp
@@ -434,7 +417,7 @@ impl Environment {
                         // Set the tx_env and prepare to process it
                         evm.env.tx = tx_env;
 
-                        let result = evm.transact().map_err(EnvironmentError::Execution)?.result;
+                        let result = evm.transact()?.result;
                         outcome_sender
                             .send(Ok(Outcome::CallCompleted(result)))
                             .map_err(|e| EnvironmentError::Communication(e.to_string()))?;
@@ -536,7 +519,7 @@ impl Environment {
                             };
                             if let GasSettings::RandomlySampled { multiplier } = gas_settings {
                                 let gas_price = (transactions_per_block
-                                    .ok_or(EnvironmentError::NotRandomlySampledBlockType)?
+                                    .ok_or(EnvironmentError::NotRandomlySampledBlockSettings)?
                                     as f64)
                                     * multiplier;
                                 evm.env.tx.gas_price = U256::from(gas_price as u128);
@@ -606,13 +589,7 @@ impl Environment {
     }
 
     /// Stops the execution of the environment.
-    ///
-    /// This method changes the state of the environment to `Stopped` if it is
-    /// currently `Running` or `Paused`. If the environment is already
-    /// `Stopped`, it does nothing and returns `Ok(())`. If the environment
-    /// is in `Initialization` state, it returns an
-    /// `Err(EnvironmentError::Stop("Environment is in an invalid state:
-    /// Initialization. This should not be possible."))`.
+    /// This cannot be recovered from!
     ///
     /// # Returns
     ///

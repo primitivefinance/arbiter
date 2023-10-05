@@ -40,15 +40,11 @@ pub mod errors;
 use errors::*;
 
 /// Graceful handling of the [`ExecutionResult`] returned by the [`Environment`]
-pub mod transactions;
-use transactions::*;
+pub mod transaction;
+use transaction::*;
 
-pub mod connections;
-use connections::*;
-
-/// Specific event types that can be emitted by the [`Environment`].
-pub mod events;
-use events::*;
+pub mod connection;
+use connection::*;
 
 pub mod cast;
 use cast::*;
