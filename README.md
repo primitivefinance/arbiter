@@ -94,7 +94,7 @@ You can run `arbiter init <simulation_name> --no-git` to remove the `.git` direc
 ### Bindings
 You can load or write your own smart contracts in the templates `contracts/` directory and begin writing your own simulations. 
 Arbiter treats Rust smart-contract bindings as first-class citizens. The contract bindings are generated via Foundry's `forge` command. 
-`arbiter bind` wraps `forge` with some convenience features that will generate all your bindings to src/biindings as a rust module. 
+`arbiter bind` wraps `forge` with some convenience features that will generate all your bindings to src/bindings as a rust module. 
 [Foundry](https://github.com/foundry-rs/foundry) power-users are welcome to use `forge` directly.
 
 
