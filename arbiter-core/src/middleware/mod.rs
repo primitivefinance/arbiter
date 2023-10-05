@@ -72,11 +72,9 @@ pub mod nonce_middleware;
 ///
 /// // Create a new environment and run it
 /// let mut environment = EnvironmentBuilder::new().build();
-/// environment.run();
 ///
 /// // Retrieve the environment to create a new middleware instance
 /// let middleware = RevmMiddleware::new(&environment, Some("test_label"));
-/// let client = Arc::new(&middleware);
 /// ```
 /// The client can now be used for transactions with the environment.
 /// Use a seed like `Some("test_label")` for maintaining a
@@ -103,11 +101,9 @@ impl RevmMiddleware {
     ///
     /// // Create a new environment and run it
     /// let mut environment = EnvironmentBuilder::new().build();
-    /// environment.run();
     ///
     /// // Retrieve the environment to create a new middleware instance
-    /// let middleware = RevmMiddleware::new(&environment, Some("test_label"));
-    /// let client = Arc::new(&middleware);
+    /// let client = RevmMiddleware::new(&environment, Some("test_label"));
     ///
     /// // We can create a middleware instance without a seed by doing the following
     /// let no_seed_middleware = RevmMiddleware::new(&environment, None);

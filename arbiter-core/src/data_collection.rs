@@ -1,41 +1,49 @@
-//! The `data_collection` module provides the `EventLogger` struct for logging events from the Ethereum network.
+//! The `data_collection` module provides the `EventLogger` struct for logging
+//! events from the Ethereum network.
 //!
-//! The `EventLogger` struct contains a BTreeMap of events, where each event is represented by a string key and a vector of `Event` instances.
+//! The `EventLogger` struct contains a BTreeMap of events, where each event is
+//! represented by a string key and a vector of `Event` instances.
 //! It also optionally contains a path where the event logs will be stored.
 //!
-//! This module also provides the implementation of the `EventLogger` struct, including methods for constructing a new `EventLogger`, adding an event to the `EventLogger`, and writing the event logs to a file.
+//! This module also provides the implementation of the `EventLogger` struct,
+//! including methods for constructing a new `EventLogger`, adding an event to
+//! the `EventLogger`, and writing the event logs to a file.
 //!
 //! # Type Parameters
 //!
-//! * `M` - Middleware that implements the `Middleware` trait, `std::borrow::Borrow<D>`, and has a static lifetime.
-//! * `D` - Middleware that implements the `Middleware` trait, `Debug`, `Send`, `Sync`, and has a static lifetime.
-//! * `E` - Type that implements the `EthLogDecode`, `Debug`, `Serialize` traits, and has a static lifetime.
-use std::{collections::BTreeMap, fmt::Debug};
+//! * `M` - Middleware that implements the `Middleware` trait,
+//!   `std::borrow::Borrow<D>`, and has a static lifetime.
+//! * `D` - Middleware that implements the `Middleware` trait, `Debug`, `Send`,
+//!   `Sync`, and has a static lifetime.
+//! * `E` - Type that implements the `EthLogDecode`, `Debug`, `Serialize`
+//!   traits, and has a static lifetime.
+use std::{collections::BTreeMap, env::current_dir, fmt::Debug, sync::Arc};
 
 use ethers::{
     contract::{builders::Event, EthLogDecode},
     providers::StreamExt as ProviderStreamExt,
 };
 use serde::Serialize;
-use std::sync::Arc;
-
-use crate::middleware::errors::RevmMiddlewareError;
-use crate::middleware::RevmMiddleware;
 use serde_json::Value;
-use std::env::current_dir;
 use tokio::io::AsyncWriteExt;
 use tracing::info;
 
+use crate::middleware::{errors::RevmMiddlewareError, RevmMiddleware};
+
 /// `EventLogger` is a struct that logs events from the Ethereum network.
 ///
-/// It contains a BTreeMap of events, where each event is represented by a string key and a vector of `Event` instances.
-/// It also optionally contains a path where the event logs will be stored.
+/// It contains a BTreeMap of events, where each event is represented by a
+/// string key and a vector of `Event` instances. It also optionally contains a
+/// path where the event logs will be stored.
 ///
 /// # Type Parameters
 ///
-/// * `M` - Middleware that implements the `Middleware` trait, `std::borrow::Borrow<D>`, and has a static lifetime.
-/// * `D` - Middleware that implements the `Middleware` trait, `Debug`, `Send`, `Sync`, and has a static lifetime.
-/// * `E` - Type that implements the `EthLogDecode`, `Debug`, `Serialize` traits, and has a static lifetime.
+/// * `M` - Middleware that implements the `Middleware` trait,
+///   `std::borrow::Borrow<D>`, and has a static lifetime.
+/// * `D` - Middleware that implements the `Middleware` trait, `Debug`, `Send`,
+///   `Sync`, and has a static lifetime.
+/// * `E` - Type that implements the `EthLogDecode`, `Debug`, `Serialize`
+///   traits, and has a static lifetime.
 pub struct EventLogger {
     events: tokio::task::JoinSet<()>,
     path: Option<String>,
@@ -46,7 +54,8 @@ impl EventLogger {
     ///
     /// # Returns
     ///
-    /// A fresh `EventLogger` instance with an uninitialized events BTreeMap and no specified path.
+    /// A fresh `EventLogger` instance with an uninitialized events BTreeMap and
+    /// no specified path.
     pub fn builder() -> Self {
         Self {
             events: tokio::task::JoinSet::new(),
@@ -70,7 +79,10 @@ impl EventLogger {
         name: S,
     ) -> Self {
         let name = name.into();
-        let event_dir = current_dir().unwrap().join(&self.path.clone().unwrap_or("events".into())).join(&name);
+        let event_dir = current_dir()
+            .unwrap()
+            .join(self.path.clone().unwrap_or("events".into()))
+            .join(name);
         std::fs::create_dir_all(&event_dir).unwrap();
         self.events.spawn(async move {
             let mut stream = event.stream().await.unwrap();
@@ -83,18 +95,20 @@ impl EventLogger {
                 let (key, value) = deserialized.iter().next().unwrap();
                 let file_name = event_dir.join(format!("{}.csv", key));
                 let file_key = file_name.to_str().unwrap();
-                let file_value = files.get(file_key); 
-                let file: &mut tokio::fs::File;
+                let file_value = files.get(file_key);
                 if file_value.is_none() {
-                    files.insert(file_key.into(), tokio::fs::OpenOptions::new()
-                        .write(true)
-                        .create(true)
-                        .truncate(true)
-                        .open(&file_name)
-                        .await
-                        .unwrap());
-                } 
-                file = files.get_mut(file_key).unwrap();
+                    files.insert(
+                        file_key.into(),
+                        tokio::fs::OpenOptions::new()
+                            .write(true)
+                            .create(true)
+                            .truncate(true)
+                            .open(&file_name)
+                            .await
+                            .unwrap(),
+                    );
+                }
+                let file: &mut tokio::fs::File = files.get_mut(file_key).unwrap();
 
                 if toggle_written_columns {
                     let values = value
@@ -148,21 +162,24 @@ impl EventLogger {
 
     /// Executes the `EventLogger`.
     ///
-    /// This function starts the event logging process. It first deletes the existing events directory,
-    /// then creates a new directory for each event. For each event, it creates a new CSV file and writes
-    /// the event data into the file. If the file already exists, it appends the new data to the file.
+    /// This function starts the event logging process. It first deletes the
+    /// existing events directory, then creates a new directory for each
+    /// event. For each event, it creates a new CSV file and writes
+    /// the event data into the file. If the file already exists, it appends the
+    /// new data to the file.
     ///
     /// # Returns
     ///
     /// A `Result` which is:
     ///
     /// * `Ok(())` if the `EventLogger` ran successfully.
-    /// * `Err(RevmMiddlewareError)` if there was an error running the `EventLogger`.
+    /// * `Err(RevmMiddlewareError)` if there was an error running the
+    ///   `EventLogger`.
     ///
     /// # Errors
     ///
-    /// This function will return an error if there is a problem creating the directories or files,
-    /// or writing to the files.
+    /// This function will return an error if there is a problem creating the
+    /// directories or files, or writing to the files.
     pub fn run(self) -> Result<(), RevmMiddlewareError> {
         tokio::spawn(async move {
             let mut set = self.events;
