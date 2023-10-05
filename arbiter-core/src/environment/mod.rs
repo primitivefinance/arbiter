@@ -248,7 +248,8 @@ impl Environment {
                         outcome_sender,
                     } => {
                         let db = evm.db.as_mut().unwrap();
-                        let recast_address = revm::primitives::Address::from(address);
+                        let recast_address =
+                            revm::primitives::Address::from(address.as_fixed_bytes());
                         let account = revm::db::DbAccount {
                             info: AccountInfo::default(),
                             account_state: revm::db::AccountState::None,
@@ -308,8 +309,9 @@ impl Environment {
                             let db = evm.db.as_mut().unwrap();
 
                             // Cast the ethers-rs cheatcode arguments into revm types.
-                            let recast_address = revm::primitives::Address::from(account);
-                            let recast_key = revm::primitives::B256::from(key);
+                            let recast_address =
+                                revm::primitives::Address::from(account.as_fixed_bytes());
+                            let recast_key = revm::primitives::B256::from(key.as_fixed_bytes());
 
                             // Get the account storage value at the key in the db.
                             match db.accounts.get_mut(&recast_address) {
@@ -355,9 +357,10 @@ impl Environment {
 
                             // Cast the ethers-rs types passed in the cheatcode arguments into revm
                             // primitive types
-                            let recast_address = revm::primitives::Address::from(account);
-                            let recast_key = revm::primitives::B256::from(key);
-                            let recast_value = revm::primitives::B256::from(value);
+                            let recast_address =
+                                revm::primitives::Address::from(account.as_fixed_bytes());
+                            let recast_key = revm::primitives::B256::from(key.as_fixed_bytes());
+                            let recast_value = revm::primitives::B256::from(value.as_fixed_bytes());
 
                             // Mutate the db by inserting the new key-value pair into the account's
                             // storage and send the successful
@@ -387,7 +390,8 @@ impl Environment {
                         }
                         Cheatcodes::Deal { address, amount } => {
                             let db = evm.db.as_mut().unwrap();
-                            let recast_address = revm::primitives::Address::from(address);
+                            let recast_address =
+                                revm::primitives::Address::from(address.as_fixed_bytes());
                             match db.accounts.get_mut(&recast_address) {
                                 Some(account) => {
                                     account.info.balance += U256::from_limbs(amount.0);
@@ -543,10 +547,9 @@ impl Environment {
                             EnvironmentData::Balance(address) => {
                                 // This unwrap should never fail.
                                 let db = evm.db().unwrap();
-                                match db
-                                    .accounts
-                                    .get::<revm::primitives::Address>(&address.into())
-                                {
+                                match db.accounts.get::<revm::primitives::Address>(
+                                    &address.as_fixed_bytes().into(),
+                                ) {
                                     Some(account) => {
                                         Ok(Outcome::QueryReturn(account.info.balance.to_string()))
                                     }
@@ -558,10 +561,9 @@ impl Environment {
 
                             EnvironmentData::TransactionCount(address) => {
                                 let db = evm.db().unwrap();
-                                match db
-                                    .accounts
-                                    .get::<revm::primitives::Address>(&address.into())
-                                {
+                                match db.accounts.get::<revm::primitives::Address>(
+                                    &address.as_fixed_bytes().into(),
+                                ) {
                                     Some(account) => {
                                         Ok(Outcome::QueryReturn(account.info.nonce.to_string()))
                                     }

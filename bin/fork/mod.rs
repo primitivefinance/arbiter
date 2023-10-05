@@ -68,14 +68,14 @@ impl ForkConfig {
         for contract_data in self.contracts_meta.values() {
             let address = contract_data.address;
             let info = ethers_db
-                .basic(address.into())
+                .basic(address.to_fixed_bytes().into())
                 .map_err(|_| {
                     ArbiterError::DBError("Failed to fetch account info with EthersDB.".to_string())
                 })?
                 .ok_or(ArbiterError::DBError(
                     "Failed to fetch account info with EthersDB.".to_string(),
                 ))?;
-            db.insert_account_info(address.into(), info);
+            db.insert_account_info(address.to_fixed_bytes().into(), info);
 
             let artifacts = digest::digest_artifacts(contract_data.artifacts_path.as_str())?;
             let storage_layout = artifacts.storage_layout;
@@ -124,8 +124,7 @@ impl ForkConfig {
                 let recast_value = db_account.storage.get(key).unwrap().to_string();
                 storage.insert(recast_key, recast_value);
             }
-            let address_as_bytes: [u8; 20] = address.as_bytes().try_into().unwrap();
-            raw.insert(Address::from(address_as_bytes), (info, storage));
+            raw.insert(Address::from(address.into_array()), (info, storage));
         }
         let disk_data = DiskData {
             meta: fork.contracts_meta,

@@ -31,7 +31,7 @@ use ethers::{
 };
 use futures_timer::Delay;
 use rand::{rngs::StdRng, SeedableRng};
-use revm::primitives::{CreateScheme, Output, TransactTo, TxEnv, B160, U256};
+use revm::primitives::{CreateScheme, Output, TransactTo, TxEnv, U256};
 
 use crate::environment::{cheatcodes::*, instruction::*, Environment};
 
@@ -161,8 +161,9 @@ impl RevmMiddleware {
         if let Some(instruction_sender) = provider.instruction_sender.upgrade() {
             instruction_sender
                 .send(Instruction::BlockUpdate {
-                    block_number: block_number.into(),
-                    block_timestamp: block_timestamp.into(),
+                    block_number: revm_primitives::FixedBytes::<32>(block_number.into()).into(),
+                    block_timestamp: revm_primitives::FixedBytes::<32>(block_timestamp.into())
+                        .into(),
                     outcome_sender: provider.outcome_sender.clone(),
                 })
                 .map_err(|e| RevmMiddlewareError::Send(e.to_string()))?;
@@ -307,23 +308,23 @@ impl Middleware for RevmMiddleware {
         // deploy. If there is no `to` field, then it is a `Deploy` else it is a
         // `Call`.
         let transact_to = match tx.to_addr() {
-            Some(to) => TransactTo::Call(B160::from(*to)),
+            Some(&to) => TransactTo::Call(to.to_fixed_bytes().into()),
             None => TransactTo::Create(CreateScheme::Create),
         };
         let tx_env = TxEnv {
-            caller: B160::from(self.wallet.address()),
+            caller: self.wallet.address().to_fixed_bytes().into(),
             gas_limit: u64::MAX,
             gas_price: revm::primitives::U256::from_limbs(self.get_gas_price().await?.0),
             gas_priority_fee: None,
             transact_to,
             value: U256::ZERO,
-            data: bytes::Bytes::from(
+            data: revm_primitives::Bytes(bytes::Bytes::from(
                 tx.data()
                     .ok_or(RevmMiddlewareError::MissingData(
                         "Data missing in transaction!".to_string(),
                     ))?
                     .to_vec(),
-            ),
+            )),
             chain_id: None,
             nonce: None,
             access_list: Vec::new(),
@@ -357,7 +358,7 @@ impl Middleware for RevmMiddleware {
             } = unpack_execution_result(execution_result)?;
 
             let to: Option<ethers::types::H160> = match tx_env.transact_to {
-                TransactTo::Call(address) => Some(address.into()),
+                TransactTo::Call(address) => Some(address.into_array().into()),
                 TransactTo::Create(_) => None,
             };
 
@@ -384,10 +385,13 @@ impl Middleware for RevmMiddleware {
                         logs: logs.clone(),
                         from: sender,
                         gas_used: Some(gas_used.into()),
-                        effective_gas_price: Some(tx_env.clone().gas_price.into()),
+                        effective_gas_price: Some(tx_env.clone().gas_price.to_be_bytes().into()), /* TODO */
                         transaction_hash: ethers::types::TxHash::from_slice(&hash),
                         to,
-                        cumulative_gas_used: receipt_data.cumulative_gas_per_block.into(),
+                        cumulative_gas_used: receipt_data
+                            .cumulative_gas_per_block
+                            .to_be_bytes() // TODO
+                            .into(),
                         status: Some(1.into()),
                         root: None,
                         logs_bloom: {
@@ -432,10 +436,13 @@ impl Middleware for RevmMiddleware {
                         logs: logs.clone(),
                         from: sender,
                         gas_used: Some(gas_used.into()),
-                        effective_gas_price: Some(tx_env.clone().gas_price.into()),
+                        effective_gas_price: Some(tx_env.clone().gas_price.to_be_bytes().into()),
                         transaction_hash: ethers::types::TxHash::from_slice(&hash),
                         to,
-                        cumulative_gas_used: receipt_data.cumulative_gas_per_block.into(),
+                        cumulative_gas_used: receipt_data
+                            .cumulative_gas_per_block
+                            .to_be_bytes()
+                            .into(),
                         status: Some(1.into()),
                         root: None,
                         logs_bloom: {
@@ -498,23 +505,23 @@ impl Middleware for RevmMiddleware {
         // deploy. If there is no `to` field, then it is a `Deploy` else it is a
         // `Call`.
         let transact_to = match tx.to_addr() {
-            Some(to) => TransactTo::Call(B160::from(*to)),
+            Some(&to) => TransactTo::Call(to.to_fixed_bytes().into()),
             None => TransactTo::Create(CreateScheme::Create),
         };
         let tx_env = TxEnv {
-            caller: B160::from(self.wallet.address()),
+            caller: self.wallet.address().to_fixed_bytes().into(),
             gas_limit: u64::MAX,
             gas_price: U256::ZERO,
             gas_priority_fee: None,
             transact_to,
             value: U256::ZERO,
-            data: bytes::Bytes::from(
+            data: revm_primitives::Bytes(bytes::Bytes::from(
                 tx.data()
                     .ok_or(RevmMiddlewareError::MissingData(
                         "Data missing in transaction!".to_string(),
                     ))?
                     .to_vec(),
-            ),
+            )),
             chain_id: None,
             nonce: None,
             access_list: Vec::new(),

@@ -57,7 +57,7 @@ impl Fork {
         // Populate the CacheDB from the OutputData
         for (address, (info, storage_map)) in disk_data.raw {
             // Convert the string address back to its original type
-            let address = address.into(); // You'd need to define this
+            let address = address.as_fixed_bytes().into(); // You'd need to define this
 
             // Insert account info into the DB
             db.insert_account_info(address, info);

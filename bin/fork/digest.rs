@@ -68,10 +68,14 @@ pub(crate) fn create_storage_layout(
         let slot_bytes =
             revm::primitives::U256::from_limbs(U256::from_str_radix(slot.as_str(), 10).unwrap().0);
         let storage = ethers_db
-            .storage(contract_data.address.into(), slot_bytes)
+            .storage(contract_data.address.to_fixed_bytes().into(), slot_bytes)
             .unwrap();
-        db.insert_account_storage(contract_data.address.into(), slot_bytes, storage)
-            .unwrap();
+        db.insert_account_storage(
+            contract_data.address.to_fixed_bytes().into(),
+            slot_bytes,
+            storage,
+        )
+        .unwrap();
         match storage_layout.types.get(&storage_item.type_).unwrap() {
             StorageType::Simple {
                 encoding: _,
@@ -133,12 +137,12 @@ pub(crate) fn create_storage_layout(
                         let slot_to_get = keccak256(to_hash);
                         let storage = ethers_db
                             .storage(
-                                contract_data.address.into(),
+                                contract_data.address.to_fixed_bytes().into(),
                                 revm::primitives::U256::from_be_bytes(slot_to_get),
                             )
                             .unwrap();
                         db.insert_account_storage(
-                            contract_data.address.into(),
+                            contract_data.address.to_fixed_bytes().into(),
                             revm::primitives::U256::from_be_bytes(slot_to_get),
                             storage,
                         )
