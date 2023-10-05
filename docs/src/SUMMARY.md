@@ -3,7 +3,7 @@
 - [Introduction](./introduction/introduction.md)
   - [Anomaly Detection](./introduction/anomaly_detection.md)
 - [Getting Started / Installation](./getting_started/getting_started.md)
-  - [CLI installation with cargo](./getting_started/cargo_install.md)
+  - [CLI Installation with Cargo](./getting_started/cargo_install.md)
   - [Setting up Simulations](./getting_started/simulation.md)
   - [Configuring Agents](./getting_started/agents.md)
   - [Examples](./getting_started/examples.md)
