@@ -1,6 +1,5 @@
 //! Utility functions for casting between revm and ethers-rs types.
 use ethers::types::Address;
-use revm::primitives::B160;
 
 /// Converts logs from the Revm format to the Ethers format.
 ///
@@ -15,9 +14,9 @@ pub fn revm_logs_to_ethers_logs(
     for revm_log in revm_logs {
         let topics = revm_log.topics.into_iter().map(recast_b256).collect();
         let log = ethers::core::types::Log {
-            address: recast_address(revm_log.address),
+            address: ethers::core::types::H160::from(revm_log.address.into_array()),
             topics,
-            data: ethers::core::types::Bytes::from(revm_log.data),
+            data: ethers::core::types::Bytes::from(revm_log.data.0),
             block_hash: None,
             block_number: None,
             transaction_hash: None,
@@ -39,9 +38,8 @@ pub fn revm_logs_to_ethers_logs(
 /// # Returns
 /// * `Address` - Recasted Address.
 #[inline]
-pub fn recast_address(address: B160) -> Address {
-    let temp: [u8; 20] = address.as_bytes().try_into().unwrap();
-    Address::from(temp)
+pub fn recast_address(address: revm::primitives::Address) -> Address {
+    Address::from(address.into_array())
 }
 
 /// Recast a B256 into an H256 type
@@ -51,6 +49,5 @@ pub fn recast_address(address: B160) -> Address {
 /// * `H256` - Recasted H256.
 #[inline]
 pub fn recast_b256(input: revm::primitives::B256) -> ethers::types::H256 {
-    let temp: [u8; 32] = input.as_bytes().try_into().unwrap();
-    ethers::types::H256::from(temp)
+    ethers::types::H256::from(input.0)
 }
