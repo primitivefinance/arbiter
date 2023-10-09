@@ -22,7 +22,7 @@ serde = { version = "1.0.163", features = ["derive"] }
 serde_json = { version = "1.0.96" }
 
 # Concurrency/async
-tokio = { version = "=1.32.0", features = ["macros", "full"] }
+tokio = { version = "=1.33.0", features = ["macros", "full"] }
 async-trait =  { version = "=0.1.73" }
 crossbeam-channel =  { version = "=0.5.8" }
 atomic_enum = { version = "=0.2.0" }
