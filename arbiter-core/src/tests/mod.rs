@@ -7,7 +7,6 @@ mod data_output;
 mod derives;
 mod environment_control;
 mod middleware_instructions;
-mod weth;
 
 use std::{str::FromStr, sync::Arc};
 

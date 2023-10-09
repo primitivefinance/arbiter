@@ -36,7 +36,6 @@ impl ForkConfig {
     pub(crate) fn new(fork_config_path: &str) -> Result<Self, ConfigError> {
         let mut cwd = env::current_dir().unwrap();
         cwd.push(fork_config_path);
-        println!("Reading config from: {:?}", cwd);
         let config = Config::builder()
             .add_source(config::File::with_name(
                 cwd.to_str()
@@ -70,13 +69,17 @@ impl ForkConfig {
             let info = ethers_db
                 .basic(address.to_fixed_bytes().into())
                 .map_err(|_| {
-                    ArbiterError::DBError("Failed to fetch account info with EthersDB.".to_string())
+                    ArbiterError::DBError(
+                        "Failed to fetch account info with
+                EthersDB."
+                            .to_string(),
+                    )
                 })?
                 .ok_or(ArbiterError::DBError(
                     "Failed to fetch account info with EthersDB.".to_string(),
                 ))?;
-            db.insert_account_info(address.to_fixed_bytes().into(), info);
 
+            db.insert_account_info(address.to_fixed_bytes().into(), info);
             let artifacts = digest::digest_artifacts(contract_data.artifacts_path.as_str())?;
             let storage_layout = artifacts.storage_layout;
 
@@ -102,7 +105,6 @@ impl ForkConfig {
         let dir = self.output_directory.clone().unwrap();
         let file_path = Path::new(&self.output_directory.clone().unwrap())
             .join(self.output_filename.clone().unwrap());
-        println!("path: {:?}", file_path);
         if file_path.exists() && file_path.is_file() {
             if !overwrite {
                 // TODO: We should allow for an overwrite flag here.
@@ -113,7 +115,6 @@ impl ForkConfig {
                 fs::remove_file(&file_path).unwrap();
             }
         }
-
         let fork = self.into_fork()?;
         let mut raw = HashMap::new();
         for (address, db_account) in fork.db.accounts {
@@ -136,7 +137,7 @@ impl ForkConfig {
         fs::create_dir_all(dir)?;
         let mut file = fs::File::create(file_path)?;
         file.write_all(json_data.as_bytes()).unwrap();
-
+        println!("Wrote fork data to disk.");
         Ok(())
     }
 
