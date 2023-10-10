@@ -10,8 +10,7 @@ use arbiter_core::{
         arbiter_math::ArbiterMath,
         arbiter_token::{self, ArbiterToken},
     },
-    environment::{BlockSettings, EnvironmentParameters, GasSettings},
-    manager::Manager,
+    environment::{builder::EnvironmentBuilder, Environment},
     middleware::RevmMiddleware,
 };
 use ethers::{
@@ -22,9 +21,7 @@ use ethers::{
     types::{Address, I256, U256},
     utils::AnvilInstance,
 };
-use log::info;
-
-const ENV_LABEL: &str = "env";
+use tracing::info;
 
 const NUM_BENCH_ITERATIONS: usize = 1000;
 const NUM_LOOP_STEPS: usize = 100;
@@ -59,10 +56,8 @@ async fn main() -> Result<()> {
                     duration
                 }
                 label @ "arbiter" => {
-                    let (client, mut manager) = arbiter_startup().await?;
-                    let duration = bencher(client, label).await?;
-                    manager.stop_environment(ENV_LABEL)?;
-                    duration
+                    let (_environment, client) = arbiter_startup()?;
+                    bencher(client, label).await?
                 }
                 _ => panic!("Invalid argument"),
             });
@@ -156,22 +151,11 @@ async fn anvil_startup() -> Result<(
     Ok((client, anvil))
 }
 
-async fn arbiter_startup() -> Result<(Arc<RevmMiddleware>, Manager)> {
-    let mut manager = Manager::new();
-    let params = EnvironmentParameters {
-        label: ENV_LABEL.to_string(),
-        block_settings: BlockSettings::UserControlled,
-        gas_settings: GasSettings::UserControlled,
-    };
-    manager.add_environment(params)?;
-    manager.start_environment(ENV_LABEL)?;
+fn arbiter_startup() -> Result<(Environment, Arc<RevmMiddleware>)> {
+    let environment = EnvironmentBuilder::new().build();
 
-    let client = Arc::new(RevmMiddleware::new(
-        manager.environments.get(ENV_LABEL).unwrap(),
-        Some("name".to_string()),
-    )?);
-
-    Ok((client, manager))
+    let client = RevmMiddleware::new(&environment, Some("name"))?;
+    Ok((environment, client))
 }
 
 async fn deployments<M: Middleware + 'static>(
