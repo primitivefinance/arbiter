@@ -141,6 +141,7 @@ impl EventLogger {
                         .collect::<Vec<String>>()
                         .join(",");
                     file.write_all(values.as_bytes()).await.unwrap();
+                    file.write_all("\n".as_bytes()).await.unwrap();
                 }
                 continue;
             }
