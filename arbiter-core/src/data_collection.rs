@@ -86,8 +86,8 @@ impl EventLogger {
         std::fs::create_dir_all(&event_dir).unwrap();
         self.events.spawn(async move {
             let mut stream = event.stream().await.unwrap();
-            let mut toggle_written_columns = false;
             let mut files: BTreeMap<String, tokio::fs::File> = BTreeMap::new();
+            let mut columns_written: BTreeMap<String, bool> = BTreeMap::new();
             while let Some(Ok(log)) = stream.next().await {
                 let serialized = serde_json::to_string(&log).unwrap();
                 let deserialized: BTreeMap<String, Value> =
@@ -96,6 +96,8 @@ impl EventLogger {
                 let file_name = event_dir.join(format!("{}.csv", key));
                 let file_key = file_name.to_str().unwrap();
                 let file_value = files.get(file_key);
+                let toggle_written_columns = columns_written.get(file_key).unwrap_or(&false);
+                let file: &mut tokio::fs::File;
                 if file_value.is_none() {
                     files.insert(
                         file_key.into(),
@@ -108,9 +110,9 @@ impl EventLogger {
                             .unwrap(),
                     );
                 }
-                let file: &mut tokio::fs::File = files.get_mut(file_key).unwrap();
+                file = files.get_mut(file_key).unwrap();
 
-                if toggle_written_columns {
+                if toggle_written_columns == &true {
                     let values = value
                         .as_object()
                         .unwrap()
@@ -121,7 +123,7 @@ impl EventLogger {
                     file.write_all(values.as_bytes()).await.unwrap();
                     file.write_all("\n".as_bytes()).await.unwrap();
                 } else {
-                    toggle_written_columns = true;
+                    columns_written.entry(file_key.into()).or_insert(true);
                     let columns = value
                         .as_object()
                         .unwrap()
