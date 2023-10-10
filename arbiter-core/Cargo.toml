@@ -1,6 +1,6 @@
 [package]
 name = "arbiter-core"
-version = "0.5.3"
+version = "0.6.0"
 edition = "2021"
 authors = ["Waylon Jepsen <waylonjepsen1@gmail.com>", "Colin Roberts <colin@autoparallel.xyz>"]
 description = "Allowing smart contract developers to do simulation driven development via an EVM emulator"
@@ -13,13 +13,13 @@ readme = "../README.md"
 
 # Ethereum and EVM
 ethers = { version = "=2.0.10"}
-revm = { version = "=3.4.0" }
-revm-primitives = "=1.2.0"
+revm = { version = "=3.5.0", features = ["serde", "std"] }
+revm-primitives = "=1.3.0"
 
 # Serialization
 bytes = { version = "=1.5.0" }
-serde = { version = "1.0.163", features = ["derive"] }
-serde_json = { version = "1.0.96" }
+serde = { version = "=1.0.188", features = ["derive"] }
+serde_json = { version = "=1.0.107" }
 
 # Concurrency/async
 tokio = { version = "=1.32.0", features = ["macros", "full"] }
@@ -27,6 +27,7 @@ async-trait =  { version = "=0.1.73" }
 crossbeam-channel =  { version = "=0.5.8" }
 atomic_enum = { version = "=0.2.0" }
 futures-timer = { version = "=3.0.2" }
+futures-locks = { version = "=0.7.1" }
 
 # Randomness
 rand =  { version = "=0.8.5" }
@@ -38,16 +39,16 @@ RustQuant = { version = "=0.0.33", features = ["seedable"]}
 thiserror =  { version = "=1.0.49" }
 
 # Logging
-log =  { version = "=0.4.20" }
 futures-util =  { version = "=0.3.28" }
+tracing = "0.1.37"
 
 # Dependencies for the test build and development
 [dev-dependencies]
+arbiter-derive = { path = "../arbiter-derive" }
 hex = { version = "=0.4.3", default-features = false }
 anyhow =  { version = "=1.0.75" }
-env_logger =  { version = "=0.10.0" }
 test-log =  { version = "=0.2.12" }
-arbiter-derive = { path = "../arbiter-derive" }
+tracing-test = "0.2.4"
 
 futures =  { version = "=0.3.28" }
 assert_matches =  { version = "=1.5" }

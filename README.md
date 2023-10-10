@@ -62,8 +62,13 @@ This will install the Arbiter binary on your machine. You can then run `arbiter 
 
 ## Command Line Interface 
 
-The Arbiter binary provides a CLI for creating new projects much like [Foundry](https://github.com/foundry-rs/foundry), which Arbiter aims to work alongside with. 
-This requires you to have foundry installed. If you do not have foundry installed you can install it [here](https://getfoundry.sh/). To create a new project, you can run:
+The Arbiter binary provides a CLI for creating new project much like [Foundry](https://github.com/foundry-rs/foundry), which Arbiter aims to work alongside with. 
+It also gives you the abilities to fork a state of an EVM network and store it to disk so that you can use this fork in a simulation.
+
+### Initialization 
+To create a new project, you should have Foundry installed.
+You can find the installation [here](https://getfoundry.sh/). 
+To create a new Arbiter project, you can run:
 
 ```bash
 arbiter init your-project-name
@@ -81,10 +86,41 @@ The template is executable at this point and you can run it by running:
 cargo run
 ```
 
+**Optional Arguments**
+
+You can run `arbiter init <simulation_name> --no-git` to remove the `.git` directory from the template upon initialization.
+
+
+### Bindings
 You can load or write your own smart contracts in the templates `contracts/` directory and begin writing your own simulations. 
 Arbiter treats Rust smart-contract bindings as first-class citizens. The contract bindings are generated via Foundry's `forge` command. 
 `arbiter bind` wraps `forge` with some convenience features that will generate all your bindings to src/bindings as a rust module. 
 [Foundry](https://github.com/foundry-rs/foundry) power-users are welcome to use `forge` directly.
+
+
+### Forking
+
+To fork a state of an EVM network, you must first create a fork config file.
+An example is provided in the `example_fork` directory.
+Essentially, you provide your storage location for the data, the network you want the block number you want, and metadata about the contracts you want to fork.
+
+```bash
+arbiter fork <fork_config.toml>
+```
+
+This will create a fork of the network you specified in the config file and store it in the location you specified.
+It can then be loaded into an `arbiter-core` `Environment` by using the `Fork::from_disk()` method.
+
+Forking is done this way to make sure that all emulation done does not require a constant connection to an RPC-endpoint.
+
+**Optional Arguments** 
+You can run `arbiter fork <fork_config.toml> --overwrite` to overwrite the fork if it already exists.
+
+
+### Optional Arguments
+
+You can run `arbiter init <simulation_name> --no-git` to remove the `.git` directory from the template upon initialization.
+
 
 ## Documentation
 
