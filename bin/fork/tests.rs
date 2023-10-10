@@ -25,8 +25,8 @@ fn write_out() {
         assert!(disk_op.is_ok());
     });
 
-    let remove_op = fs::remove_file(PATH_TO_DISK_STORAGE);
-    assert!(remove_op.is_ok());
+    fs::remove_file(PATH_TO_DISK_STORAGE).unwrap();
+
 }
 
 #[test]
@@ -51,6 +51,5 @@ fn read_in() {
         let forked_db = Fork::from_disk(PATH_TO_DISK_STORAGE);
         assert!(forked_db.is_ok());
     });
-    let remove_op = fs::remove_file(PATH_TO_DISK_STORAGE);
-    assert!(remove_op.is_ok());
+    fs::remove_file(PATH_TO_DISK_STORAGE).unwrap();
 }
