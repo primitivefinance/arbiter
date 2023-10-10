@@ -1,5 +1,8 @@
 use super::*;
-use crate::environment::fork::Fork;
+use crate::{
+    bindings::weth::weth,
+    environment::{builder::EnvironmentBuilder, fork::Fork},
+};
 
 #[tokio::test]
 async fn receipt_data() {
@@ -149,7 +152,6 @@ async fn randomly_sampled_gas_price() {
         } => SeededPoisson::new(block_rate, block_time, seed),
         _ => panic!("Expected RandomlySampled block type"),
     };
-
     let mut expected_txs_per_block_vec = vec![];
     for _ in 0..2 {
         expected_txs_per_block_vec.push(distribution.sample());
@@ -225,12 +227,10 @@ async fn stop_environment() {
 
 #[tokio::test]
 async fn fork_into_arbiter() {
-    let fork = Fork::from_disk("../example_fork/test.json").unwrap();
+    let fork = Fork::from_disk("../example_fork/fork_into_test.json").unwrap();
 
     // Get the environment going
-    let environment = crate::environment::builder::EnvironmentBuilder::new()
-        .db(fork.db)
-        .build();
+    let environment = EnvironmentBuilder::new().db(fork.db).build();
 
     // Create a client
     let client = RevmMiddleware::new(&environment, Some("name")).unwrap();
@@ -242,6 +242,7 @@ async fn fork_into_arbiter() {
     let address_to_check_balance =
         Address::from_str(&weth_meta.mappings.get("balanceOf").unwrap()[0]).unwrap();
 
+    println!("checking address: {}", address_to_check_balance);
     let balance = weth
         .balance_of(address_to_check_balance)
         .call()

@@ -1,3 +1,6 @@
+use arbiter_core::environment::fork::Fork;
+use rayon::prelude::{IntoParallelIterator, ParallelIterator};
+
 use super::*;
 
 const FORK_CONFIG_PATH: &str = "example_fork/weth_config.toml";
@@ -12,16 +15,42 @@ fn create_forked_db() {
 
 #[test]
 fn write_out() {
-    let fork_config = ForkConfig::new(FORK_CONFIG_PATH).unwrap();
-    fork_config.write_to_disk(&true).unwrap();
+    let fork_config = ForkConfig::new(FORK_CONFIG_PATH);
+    assert!(fork_config.is_ok());
+    let fork_config = fork_config.unwrap();
+
+    // Use par_iter to parallelize the loop
+    (0..10).into_par_iter().for_each(|_| {
+        let disk_op = fork_config.clone().write_to_disk(&true);
+        assert!(disk_op.is_ok());
+    });
+
+    let remove_op = fs::remove_file(PATH_TO_DISK_STORAGE);
+    assert!(remove_op.is_ok());
 }
 
 #[test]
 fn read_in() {
     // First write out so we know the file exists.
-    let fork_config = ForkConfig::new(FORK_CONFIG_PATH).unwrap();
-    fork_config.write_to_disk(&true).unwrap();
+    let fork_config = ForkConfig::new(FORK_CONFIG_PATH);
+    assert!(fork_config.is_ok());
+    let fork_config = fork_config.unwrap();
+    let disk_op = fork_config.clone().write_to_disk(&true);
+    assert!(disk_op.is_ok());
 
-    let forked_db = Fork::from_disk(PATH_TO_DISK_STORAGE).unwrap();
-    println!("{:#?}", forked_db);
+    let thing = Path::new(PATH_TO_DISK_STORAGE).try_exists().unwrap();
+    if thing {
+        assert!(thing)
+    } else {
+        // try again
+        let disk_op = fork_config.clone().write_to_disk(&true);
+        assert!(disk_op.is_ok());
+    }
+    // Use par_iter to parallelize the loop
+    (0..10).into_par_iter().for_each(|_| {
+        let forked_db = Fork::from_disk(PATH_TO_DISK_STORAGE);
+        assert!(forked_db.is_ok());
+    });
+    let remove_op = fs::remove_file(PATH_TO_DISK_STORAGE);
+    assert!(remove_op.is_ok());
 }
