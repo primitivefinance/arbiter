@@ -112,7 +112,7 @@ impl ForkConfig {
                 "File already exists at output path. Please use the `--overwrite` flag, delete it, or change the output path."
             );
             } else {
-                // wierdly fails here with message: "No such file or directory"
+                // weirdly sometimes fails here with message: "No such file or directory"
                 fs::remove_file(&file_path).unwrap();
             }
         }
