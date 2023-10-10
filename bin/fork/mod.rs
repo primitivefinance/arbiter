@@ -105,13 +105,14 @@ impl ForkConfig {
         let dir = self.output_directory.clone().unwrap();
         let file_path = Path::new(&self.output_directory.clone().unwrap())
             .join(self.output_filename.clone().unwrap());
-        if file_path.exists() && file_path.is_file() {
+        if file_path.try_exists().unwrap() && file_path.is_file() {
             if !overwrite {
                 // TODO: We should allow for an overwrite flag here.
                 panic!(
                 "File already exists at output path. Please use the `--overwrite` flag, delete it, or change the output path."
             );
             } else {
+                // wierdly fails here with message: "No such file or directory"
                 fs::remove_file(&file_path).unwrap();
             }
         }

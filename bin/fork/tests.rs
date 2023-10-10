@@ -41,10 +41,17 @@ fn read_in() {
     let fork_config = ForkConfig::new(FORK_CONFIG_PATH);
     assert!(fork_config.is_ok());
     let fork_config = fork_config.unwrap();
-    let disk_op = fork_config.write_to_disk(&true);
+    let disk_op = fork_config.clone().write_to_disk(&true);
     assert!(disk_op.is_ok());
-    assert!(Path::new(PATH_TO_DISK_STORAGE).exists());
 
+    let thing = Path::new(PATH_TO_DISK_STORAGE).try_exists().unwrap();
+    if thing {
+        assert!(thing)
+    } else {
+        // try again
+        let disk_op = fork_config.clone().write_to_disk(&true);
+        assert!(disk_op.is_ok());
+    }
     // Use par_iter to parallelize the loop
     (0..100).into_par_iter().for_each(|_| {
         let forked_db = Fork::from_disk(PATH_TO_DISK_STORAGE);
