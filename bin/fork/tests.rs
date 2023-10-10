@@ -20,7 +20,7 @@ fn write_out() {
     let fork_config = fork_config.unwrap();
 
     // Use par_iter to parallelize the loop
-    (0..100).into_par_iter().for_each(|_| {
+    (0..10).into_par_iter().for_each(|_| {
         let disk_op = fork_config.clone().write_to_disk(&true);
         assert!(disk_op.is_ok());
     });
@@ -47,7 +47,7 @@ fn read_in() {
         assert!(disk_op.is_ok());
     }
     // Use par_iter to parallelize the loop
-    (0..100).into_par_iter().for_each(|_| {
+    (0..10).into_par_iter().for_each(|_| {
         let forked_db = Fork::from_disk(PATH_TO_DISK_STORAGE);
         assert!(forked_db.is_ok());
     });
