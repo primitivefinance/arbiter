@@ -1,4 +1,8 @@
 use super::*;
+use crate::{
+    bindings::weth::weth,
+    environment::{builder::EnvironmentBuilder, fork::Fork},
+};
 
 #[tokio::test]
 async fn receipt_data() {
@@ -219,4 +223,30 @@ async fn stop_environment() {
     let (environment, client) = startup_user_controlled().unwrap();
     environment.stop().unwrap();
     assert!(deploy_arbx(client).await.is_err());
+}
+
+#[tokio::test]
+async fn fork_into_arbiter() {
+    let fork = Fork::from_disk("../example_fork/fork_into_test.json").unwrap();
+
+    // Get the environment going
+    let environment = EnvironmentBuilder::new().db(fork.db).build();
+
+    // Create a client
+    let client = RevmMiddleware::new(&environment, Some("name")).unwrap();
+
+    // Deal with the weth contract
+    let weth_meta = fork.contracts_meta.get("weth").unwrap();
+    let weth = weth::WETH::new(weth_meta.address, client.clone());
+
+    let address_to_check_balance =
+        Address::from_str(&weth_meta.mappings.get("balanceOf").unwrap()[0]).unwrap();
+
+    println!("checking address: {}", address_to_check_balance);
+    let balance = weth
+        .balance_of(address_to_check_balance)
+        .call()
+        .await
+        .unwrap();
+    assert_eq!(balance, U256::from(34890707020710109111_u128));
 }

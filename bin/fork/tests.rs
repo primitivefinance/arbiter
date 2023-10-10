@@ -1,10 +1,4 @@
-use std::str::FromStr;
-
-use arbiter_core::{
-    bindings::weth,
-    environment::{builder::EnvironmentBuilder, fork::Fork},
-    middleware::RevmMiddleware,
-};
+use arbiter_core::environment::fork::Fork;
 use rayon::prelude::{IntoParallelIterator, ParallelIterator};
 
 use super::*;
@@ -59,32 +53,4 @@ fn read_in() {
     });
     let remove_op = fs::remove_file(PATH_TO_DISK_STORAGE);
     assert!(remove_op.is_ok());
-}
-
-#[tokio::test]
-async fn fork_into_arbiter() {
-    // for some reason i couldn't get this to work by generating a new fork and
-    // writing it to disk but if it exists on disk it works fine
-    let fork = Fork::from_disk("example_fork/fork_into_test.json").unwrap();
-
-    // Get the environment going
-    let environment = EnvironmentBuilder::new().db(fork.db).build();
-
-    // Create a client
-    let client = RevmMiddleware::new(&environment, Some("name")).unwrap();
-
-    // Deal with the weth contract
-    let weth_meta = fork.contracts_meta.get("weth").unwrap();
-    let weth = weth::WETH::new(weth_meta.address, client.clone());
-
-    let address_to_check_balance =
-        Address::from_str(&weth_meta.mappings.get("balanceOf").unwrap()[0]).unwrap();
-
-    println!("checking address: {}", address_to_check_balance);
-    let balance = weth
-        .balance_of(address_to_check_balance)
-        .call()
-        .await
-        .unwrap();
-    assert_eq!(balance, U256::from(34890707020710109111_u128));
 }
