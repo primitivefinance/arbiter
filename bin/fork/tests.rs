@@ -26,7 +26,6 @@ fn write_out() {
     });
 
     fs::remove_file(PATH_TO_DISK_STORAGE).unwrap();
-
 }
 
 #[test]
