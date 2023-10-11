@@ -97,7 +97,6 @@ impl EventLogger {
                 let file_key = file_name.to_str().unwrap();
                 let file_value = files.get(file_key);
                 let toggle_written_columns = columns_written.get(file_key).unwrap_or(&false);
-                let file: &mut tokio::fs::File;
                 if file_value.is_none() {
                     files.insert(
                         file_key.into(),
@@ -110,7 +109,8 @@ impl EventLogger {
                             .unwrap(),
                     );
                 }
-                file = files.get_mut(file_key).unwrap();
+
+                let file = files.get_mut(file_key).unwrap();
 
                 if toggle_written_columns == &true {
                     let values = value
