@@ -1,4 +1,5 @@
 #![allow(missing_docs)]
+#![cfg(feature = "contracts")]
 
 // mod interaction;
 mod clients;
