@@ -8,6 +8,9 @@ use std::{
     process::Command,
 };
 
+use inflector::Inflector;
+use proc_macro2::{Ident, Span};
+
 /// Runs the `forge` command-line tool to generate bindings.
 ///
 /// This function attempts to execute the external command `forge` with the
@@ -48,6 +51,7 @@ pub(crate) fn forge_bind() -> std::io::Result<()> {
         ));
     }
 
+    // TODO: load this path from a config file (foundry.toml)
     let src_binding_dir = Path::new("src/bindings");
     remove_unneeded_contracts(src_binding_dir, project_contracts)?;
 
@@ -133,10 +137,10 @@ fn collect_contract_list(dir: &Path) -> io::Result<Vec<String>> {
 
             if path.is_file() {
                 let filename = path.file_stem().unwrap().to_str().unwrap();
-
-                if !filename.starts_with('I') {
-                    let snake_case_name = camel_to_snake_case(filename);
-                    contract_list.push(snake_case_name);
+                let valid_name = Ident::new(filename, proc_macro2::Span::call_site());
+                let safe_filename = safe_module_name(&valid_name.to_string());
+                if !safe_filename.starts_with('i') {
+                    contract_list.push(safe_filename);
                 }
             }
         }
@@ -211,18 +215,49 @@ fn update_mod_file(bindings_path: &Path, contracts_to_keep: Vec<String>) -> io::
     Ok(())
 }
 
-fn camel_to_snake_case(s: &str) -> String {
-    let mut snake_case = String::new();
-    let chars: Vec<char> = s.chars().collect();
+/// The following methods were picked out of https://github.com/gakonst/ethers-rs/blob/9d01a9810940d3acd7c78bf2b2f2ca85a74f73eb/ethers-contract/ethers-contract-abigen/src/lib.rs#L393
+/// Expands an identifier string into a token and appending `_` if the
+/// identifier is for a reserved keyword.
+///
+/// Parsing keywords like `self` can fail, in this case we add an underscore.
+pub(crate) fn safe_ident(name: &str) -> Ident {
+    syn::parse_str::<Ident>(name).unwrap_or_else(|_| ident(&format!("{name}_")))
+}
+/// Creates a new Ident with the given string at [`Span::call_site`].
+///
+/// # Panics
+///
+/// If the input string is neither a keyword nor a legal variable name.
+pub fn ident(name: &str) -> Ident {
+    Ident::new(name, Span::call_site())
+}
+/// converts invalid rust module names to valid ones
+pub fn safe_module_name(name: &str) -> String {
+    // handle reserve words used in contracts (eg Enum is a gnosis contract)
+    safe_ident(&safe_snake_case(name)).to_string()
+}
 
-    for (i, ch) in chars.iter().enumerate() {
-        if ch.is_uppercase() && i != 0 {
-            snake_case.push('_');
-        }
-        snake_case.extend(ch.to_lowercase());
+// /// Generate the default file name of the module.
+// pub fn module_filename() -> String {
+//     let mut name = self.module_name();
+//     name.push_str(".rs");
+//     name
+// }
+
+///  Converts a `&str` to `snake_case` `String` while respecting identifier
+/// rules
+pub(crate) fn safe_snake_case(ident: &str) -> String {
+    safe_identifier_name(ident.to_snake_case())
+}
+
+/// respects identifier rules, such as, an identifier must not start with a
+/// numeric char
+pub(crate) fn safe_identifier_name(name: String) -> String {
+    if name.starts_with(char::is_numeric) {
+        format!("_{name}")
+    } else {
+        name
     }
-
-    snake_case
 }
 
 #[cfg(test)]
@@ -232,13 +267,11 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_camel_to_snake_case() {
-        assert_eq!(camel_to_snake_case("PositionRenderer"), "position_renderer");
-        assert_eq!(camel_to_snake_case("Test"), "test");
-        assert_eq!(
-            camel_to_snake_case("AnotherTestExample"),
-            "another_test_example"
-        );
+    fn test_safe_module_name() {
+        assert_eq!(safe_module_name("Valid"), "valid");
+        assert_eq!(safe_module_name("Enum"), "enum_");
+        assert_eq!(safe_module_name("Mod"), "mod_");
+        assert_eq!(safe_module_name("2Two"), "_2_two");
     }
 
     #[test]
@@ -251,15 +284,23 @@ mod tests {
         fs::create_dir(&contracts_dir).expect("Failed to create contracts directory");
 
         // Create files in the contracts directory
-        fs::write(contracts_dir.join("ExampleContract.rs"), "").expect("Failed to write file");
-        fs::write(contracts_dir.join("AnotherTest.rs"), "").expect("Failed to write file");
-        fs::write(contracts_dir.join("ITestInterface.rs"), "").expect("Failed to write file"); // This should be ignored
+        fs::write(contracts_dir.join("ExampleContract.sol"), "").expect("Failed to write file");
+        fs::write(contracts_dir.join("AnotherTest.sol"), "").expect("Failed to write file");
+        fs::write(contracts_dir.join("ITestInterface.sol"), "").expect("Failed to write file"); // This should be ignored
+        fs::write(contracts_dir.join("G3M.sol"), "").expect("Failed to write file");
+        fs::write(contracts_dir.join("SD59x18Math.sol"), "").expect("Failed to write file");
 
         // Call the function
         let contracts = collect_contract_list(dir.path()).expect("Failed to collect contracts");
 
         // Assert the results
-        let expected = vec!["shared_types", "example_contract", "another_test"];
+        let expected = vec![
+            "shared_types",
+            "example_contract",
+            "sd5_9x_18_math",
+            "g3m",
+            "another_test",
+        ];
         assert_eq!(contracts, expected);
 
         // Temp dir will be automatically cleaned up after going out of scope.
@@ -275,14 +316,23 @@ mod tests {
         fs::create_dir(&src_dir).expect("Failed to create src directory");
 
         // Create files in the src directory
-        fs::write(src_dir.join("ExampleOne.rs"), "").expect("Failed to write file");
-        fs::write(src_dir.join("TestTwo.rs"), "").expect("Failed to write file");
+        fs::write(src_dir.join("ExampleOne.sol"), "").expect("Failed to write file");
+        fs::write(src_dir.join("TestTwo.sol"), "").expect("Failed to write file");
+        fs::write(src_dir.join("ITestInterface.sol"), "").expect("Failed to write file"); // This should be ignored
+        fs::write(src_dir.join("G3M.sol"), "").expect("Failed to write file"); // This should be ignored
+        fs::write(src_dir.join("SD59x18Math.sol"), "").expect("Failed to write file"); // This should be ignored
 
         // Call the function
         let contracts = collect_contract_list(dir.path()).expect("Failed to collect contracts");
 
         // Assert the results
-        let expected = vec!["shared_types", "test_two", "example_one"];
+        let expected = vec![
+            "shared_types",
+            "sd5_9x_18_math",
+            "example_one",
+            "test_two",
+            "g3m",
+        ];
         assert_eq!(contracts, expected);
 
         // Temp dir will be automatically cleaned up after going out of scope.

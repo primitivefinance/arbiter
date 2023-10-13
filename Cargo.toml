@@ -33,7 +33,9 @@ config = { version = "=0.13.3" }
 ethers = { version = "=2.0.10" }
 revm = { version = "=3.5.0", features = [ "ethersdb", "std" ] }
 toml = { version = "0.8.2" }
-
+proc-macro2 = { version = "1.0.69" }
+syn = { version = "2.0.38" }
+Inflector = { version = "0.11.4" }
 # Building files
 quote = { version = "=1.0.33" }
 
