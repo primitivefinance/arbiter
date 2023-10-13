@@ -7,10 +7,40 @@ use std::{
     path::Path,
     process::Command,
 };
-
+use foundry_config::Config;
 use inflector::Inflector;
 use proc_macro2::{Ident, Span};
 
+pub struct ArbiterConfig {
+    pub foundry_config: Config,
+    pub binding_config : BindingsConfig,
+}
+
+impl ArbiterConfig {
+    pub fn new() -> Self {
+        let foundry_config = Config::load();
+        let binding_config = BindingsConfig::default();
+        Self {
+            foundry_config,
+            binding_config,
+        }
+    }
+}
+pub struct BindingsConfig {
+    pub output_path: Vec<String>,
+    pub module: bool,
+    pub as_crate: bool,
+}
+
+impl BindingsConfig {
+    pub fn default() -> Self {
+        Self {
+            output_path: vec!["bindings/".to_string()],
+            module: false,
+            as_crate: true,
+        }
+    }
+}
 /// Runs the `forge` command-line tool to generate bindings.
 ///
 /// This function attempts to execute the external command `forge` with the
@@ -28,6 +58,9 @@ use proc_macro2::{Ident, Span};
 
 pub(crate) fn forge_bind() -> std::io::Result<()> {
     println!("Generating bindings for project contracts...");
+    // let config = ArbiterConfig::new();
+    // let command = command_from_config(config);
+    // command.output()?;
     let output = Command::new("forge")
         .arg("bind")
         .arg("--revert-strings")
@@ -35,8 +68,8 @@ pub(crate) fn forge_bind() -> std::io::Result<()> {
         .arg("-b")
         .arg("src/bindings/")
         .arg("--module")
-        .arg("--overwrite")
-        .output()?;
+        .arg("--overwrite");
+        // .output()?;
     let project_contracts = collect_contract_list(Path::new("contracts"))?;
     if output.status.success() {
         let output_str = String::from_utf8_lossy(&output.stdout);
@@ -62,6 +95,11 @@ pub(crate) fn forge_bind() -> std::io::Result<()> {
 
     Ok(())
 }
+
+fn command_from_config(config: ArbiterConfig) -> Command {
+
+    todo!("implement command_from_config")
+} 
 
 fn bindings_for_submodules(dir: &Path) -> io::Result<(String, Vec<String>)> {
     let mut contracts_to_generate = Vec::new(); // to keep track of contracts we're generating bindings for
@@ -220,7 +258,7 @@ fn update_mod_file(bindings_path: &Path, contracts_to_keep: Vec<String>) -> io::
 /// identifier is for a reserved keyword.
 ///
 /// Parsing keywords like `self` can fail, in this case we add an underscore.
-pub(crate) fn safe_ident(name: &str) -> Ident {
+fn safe_ident(name: &str) -> Ident {
     syn::parse_str::<Ident>(name).unwrap_or_else(|_| ident(&format!("{name}_")))
 }
 /// Creates a new Ident with the given string at [`Span::call_site`].
@@ -228,31 +266,24 @@ pub(crate) fn safe_ident(name: &str) -> Ident {
 /// # Panics
 ///
 /// If the input string is neither a keyword nor a legal variable name.
-pub fn ident(name: &str) -> Ident {
+fn ident(name: &str) -> Ident {
     Ident::new(name, Span::call_site())
 }
 /// converts invalid rust module names to valid ones
-pub fn safe_module_name(name: &str) -> String {
+fn safe_module_name(name: &str) -> String {
     // handle reserve words used in contracts (eg Enum is a gnosis contract)
     safe_ident(&safe_snake_case(name)).to_string()
 }
 
-// /// Generate the default file name of the module.
-// pub fn module_filename() -> String {
-//     let mut name = self.module_name();
-//     name.push_str(".rs");
-//     name
-// }
-
 ///  Converts a `&str` to `snake_case` `String` while respecting identifier
 /// rules
-pub(crate) fn safe_snake_case(ident: &str) -> String {
+fn safe_snake_case(ident: &str) -> String {
     safe_identifier_name(ident.to_snake_case())
 }
 
 /// respects identifier rules, such as, an identifier must not start with a
 /// numeric char
-pub(crate) fn safe_identifier_name(name: String) -> String {
+fn safe_identifier_name(name: String) -> String {
     if name.starts_with(char::is_numeric) {
         format!("_{name}")
     } else {
