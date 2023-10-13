@@ -50,7 +50,7 @@ tracing = "0.1.37"
 arbiter-derive = { path = "../arbiter-derive" }
 hex = { version = "=0.4.3", default-features = false }
 anyhow =  { version = "=1.0.75" }
-test-log =  { version = "=0.2.12" }
+test-log =  { version = "=0.2.13" }
 tracing-test = "0.2.4"
 
 futures =  { version = "=0.3.28" }
