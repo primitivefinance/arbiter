@@ -4,43 +4,15 @@ use std::{
     fs::{write, File},
     io,
     io::{BufRead, BufReader},
-    path::Path,
+    path::{Path, PathBuf},
     process::Command,
 };
+
 use foundry_config::Config;
 use inflector::Inflector;
 use proc_macro2::{Ident, Span};
+use toml::Value;
 
-pub struct ArbiterConfig {
-    pub foundry_config: Config,
-    pub binding_config : BindingsConfig,
-}
-
-impl ArbiterConfig {
-    pub fn new() -> Self {
-        let foundry_config = Config::load();
-        let binding_config = BindingsConfig::default();
-        Self {
-            foundry_config,
-            binding_config,
-        }
-    }
-}
-pub struct BindingsConfig {
-    pub output_path: Vec<String>,
-    pub module: bool,
-    pub as_crate: bool,
-}
-
-impl BindingsConfig {
-    pub fn default() -> Self {
-        Self {
-            output_path: vec!["bindings/".to_string()],
-            module: false,
-            as_crate: true,
-        }
-    }
-}
 /// Runs the `forge` command-line tool to generate bindings.
 ///
 /// This function attempts to execute the external command `forge` with the
@@ -57,24 +29,23 @@ impl BindingsConfig {
 ///   tool is not installed.
 
 pub(crate) fn forge_bind() -> std::io::Result<()> {
-    println!("Generating bindings for project contracts...");
-    // let config = ArbiterConfig::new();
-    // let command = command_from_config(config);
-    // command.output()?;
+    let foundry_config = Config::load();
+    let (mut output_path, gen_submodules) = get_settings();
+    output_path.push("src");
+    let contracts_output_path = output_path.join("bindings");
     let output = Command::new("forge")
         .arg("bind")
         .arg("--revert-strings")
         .arg("debug")
         .arg("-b")
-        .arg("src/bindings/")
+        .arg(contracts_output_path.clone())
         .arg("--module")
-        .arg("--overwrite");
-        // .output()?;
-    let project_contracts = collect_contract_list(Path::new("contracts"))?;
+        .arg("--overwrite")
+        .output()?;
+    let project_contracts = collect_contract_list(&foundry_config.src)?;
     if output.status.success() {
         let output_str = String::from_utf8_lossy(&output.stdout);
         println!("Command output: {}", output_str);
-        println!("Revert strings are on");
     } else {
         let err_str = String::from_utf8_lossy(&output.stderr);
         println!("Command failed, error: {}, is forge installed?", err_str);
@@ -84,48 +55,56 @@ pub(crate) fn forge_bind() -> std::io::Result<()> {
         ));
     }
 
-    // TODO: load this path from a config file (foundry.toml)
-    let src_binding_dir = Path::new("src/bindings");
-    remove_unneeded_contracts(src_binding_dir, project_contracts)?;
+    remove_unneeded_contracts(&contracts_output_path, project_contracts)?;
 
-    let lib_dir = Path::new("lib");
-    let (output_path, sub_module_contracts) = bindings_for_submodules(lib_dir)?;
-    println!("submodule contracts: {:?}", sub_module_contracts);
-    remove_unneeded_contracts(Path::new(&output_path), sub_module_contracts)?;
-
+    if gen_submodules {
+        for lib_dir in &foundry_config.libs {
+            println!("Generating bindings for lib: {:?}", lib_dir);
+            let (output_path, sub_module_contracts) =
+                bindings_for_submodules(lib_dir, output_path.clone())?;
+            remove_unneeded_contracts(&output_path, sub_module_contracts)?;
+        }
+    }
     Ok(())
 }
 
-fn command_from_config(config: ArbiterConfig) -> Command {
-
-    todo!("implement command_from_config")
-} 
-
-fn bindings_for_submodules(dir: &Path) -> io::Result<(String, Vec<String>)> {
+fn bindings_for_submodules(libdir: &Path, output: PathBuf) -> io::Result<(PathBuf, Vec<String>)> {
+    let mut last_output_path = output; // Store the last calculated path here
     let mut contracts_to_generate = Vec::new(); // to keep track of contracts we're generating bindings for
-    let mut output_path = String::new();
-    if dir.is_dir() {
+    if libdir.is_dir() {
         // Iterate through entries in the directory
-        for entry in fs::read_dir(dir)? {
+        for entry in fs::read_dir(libdir)? {
             let entry = entry?;
             let path = entry.path();
 
             // If the entry is a directory, run command inside it
             if path.is_dir() && path.file_name().unwrap_or_default() != "forge-std" {
                 contracts_to_generate = collect_contract_list(&path)?;
-                println!("Generating bindings for submodule: {:?}...", path);
+
+                let submodule_name = path
+                    .file_name()
+                    .unwrap()
+                    .to_str()
+                    .unwrap()
+                    .replace('-', "_");
+
+                let output_path = last_output_path
+                    .canonicalize()? // Convert output to absolute path
+                    .join(format!("{}_bindings", submodule_name));
 
                 env::set_current_dir(&path)?;
 
-                let submodule_name = path.file_name().unwrap().to_str().unwrap(); // Assuming file_name() is not None and is valid UTF-8
-                output_path = format!("../../src/{}_bindings/", submodule_name);
+                println!(
+                    "output path: for submodule {:?} is {:?}",
+                    submodule_name, &output_path
+                );
 
                 let output = Command::new("forge")
                     .arg("bind")
                     .arg("--revert-strings")
                     .arg("debug")
                     .arg("-b")
-                    .arg(&output_path) // Use the dynamically generated path
+                    .arg(output_path.clone())
                     .arg("--module")
                     .arg("--overwrite")
                     .output()?;
@@ -133,7 +112,6 @@ fn bindings_for_submodules(dir: &Path) -> io::Result<(String, Vec<String>)> {
                 if output.status.success() {
                     let output_str = String::from_utf8_lossy(&output.stdout);
                     println!("Command output: {}", output_str);
-                    println!("Revert strings are on");
                 } else {
                     let err_str = String::from_utf8_lossy(&output.stderr);
                     println!("Command failed, error: {}", err_str);
@@ -142,10 +120,12 @@ fn bindings_for_submodules(dir: &Path) -> io::Result<(String, Vec<String>)> {
                         "Command failed",
                     ));
                 }
+
+                last_output_path = output_path;
             }
         }
     }
-    Ok((output_path, contracts_to_generate))
+    Ok((last_output_path, contracts_to_generate))
 }
 
 fn collect_contract_list(dir: &Path) -> io::Result<Vec<String>> {
@@ -188,7 +168,7 @@ fn collect_contract_list(dir: &Path) -> io::Result<Vec<String>> {
 }
 
 fn remove_unneeded_contracts(
-    bindings_path: &Path,
+    bindings_path: &PathBuf,
     needed_contracts: Vec<String>,
 ) -> io::Result<()> {
     if bindings_path.is_dir() {
@@ -200,12 +180,11 @@ fn remove_unneeded_contracts(
                 let filename = path.file_stem().unwrap().to_str().unwrap().to_lowercase();
 
                 // Skip if the file is `mod.rs`
-                if filename == "mod" {
+                if filename == "mod" || filename == "settings" {
                     continue;
                 }
 
                 if !needed_contracts.contains(&filename) {
-                    println!("Removing contract binding: {}", path.display());
                     fs::remove_file(path)?;
                 }
             }
@@ -251,6 +230,35 @@ fn update_mod_file(bindings_path: &Path, contracts_to_keep: Vec<String>) -> io::
     write(&mod_path, lines.join("\n"))?;
 
     Ok(())
+}
+
+fn get_settings() -> (PathBuf, bool) {
+    // Initialize default values
+    let mut path = PathBuf::from("src");
+    let mut submodules_value = false;
+
+    // Try loading the TOML content from the file
+    if let Ok(content) = fs::read_to_string("cargo.toml") {
+        // Attempt to parse the content as TOML
+        if let Ok(value) = content.parse::<Value>() {
+            // Navigate to the 'arbiter.bindings_workspace' section and retrieve values
+            if let Some(arbiter) = value.get("arbiter") {
+                if let Some(bindings_workspace) = arbiter.get("bindings_workspace") {
+                    if let Some(bindings_workspace_str) = bindings_workspace.as_str() {
+                        path = PathBuf::from(bindings_workspace_str);
+                    }
+                }
+                if let Some(submodules) = arbiter.get("submodules") {
+                    if let Some(bindings_workspace_bool) = submodules.as_bool() {
+                        submodules_value = bindings_workspace_bool;
+                    }
+                }
+            }
+        }
+    }
+
+    // Return the values
+    (path, submodules_value)
 }
 
 /// The following methods were picked out of https://github.com/gakonst/ethers-rs/blob/9d01a9810940d3acd7c78bf2b2f2ca85a74f73eb/ethers-contract/ethers-contract-abigen/src/lib.rs#L393
