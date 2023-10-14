@@ -330,16 +330,17 @@ mod tests {
         fs::write(contracts_dir.join("SD59x18Math.sol"), "").expect("Failed to write file");
 
         // Call the function
-        let contracts = collect_contract_list(dir.path()).expect("Failed to collect contracts");
-
+        let mut contracts = collect_contract_list(dir.path()).expect("Failed to collect contracts");
+        contracts.sort();
         // Assert the results
-        let expected = vec![
+        let mut expected = vec![
             "shared_types",
             "example_contract",
             "sd5_9x_18_math",
             "g3m",
             "another_test",
         ];
+        expected.sort();
         assert_eq!(contracts, expected);
 
         // Temp dir will be automatically cleaned up after going out of scope.
@@ -362,16 +363,17 @@ mod tests {
         fs::write(src_dir.join("SD59x18Math.sol"), "").expect("Failed to write file"); // This should be ignored
 
         // Call the function
-        let contracts = collect_contract_list(dir.path()).expect("Failed to collect contracts");
-
+        let mut contracts = collect_contract_list(dir.path()).expect("Failed to collect contracts");
+        contracts.sort();
         // Assert the results
-        let expected = vec![
+        let mut expected = vec![
             "shared_types",
             "sd5_9x_18_math",
             "example_one",
             "test_two",
             "g3m",
         ];
+        expected.sort();
         assert_eq!(contracts, expected);
 
         // Temp dir will be automatically cleaned up after going out of scope.
