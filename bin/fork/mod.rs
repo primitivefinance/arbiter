@@ -30,6 +30,7 @@ pub(crate) struct ForkConfig {
     block_number: u64,
     #[serde(rename = "contracts")]
     contracts_meta: HashMap<String, ContractMetadata>,
+    externally_owned_accounts: Vec<Address>,
 }
 
 impl ForkConfig {
@@ -42,7 +43,9 @@ impl ForkConfig {
                     .ok_or(ConfigError::NotFound("File not found!".to_owned()))?,
             ))
             .build()?;
+        println!("before");
         let mut fork_config: ForkConfig = config.try_deserialize()?;
+        println!("after");
 
         if fork_config.output_directory.is_none() {
             println!("No output path specified. Defaulting to current directory.");
@@ -84,6 +87,22 @@ impl ForkConfig {
             let storage_layout = artifacts.storage_layout;
 
             digest::create_storage_layout(contract_data, storage_layout, &mut db, ethers_db)?;
+
+            for eoa in &self.externally_owned_accounts {
+                let info = ethers_db
+                    .basic(eoa.to_fixed_bytes().into())
+                    .map_err(|_| {
+                        ArbiterError::DBError(
+                            "Failed to fetch account info with
+                EthersDB."
+                                .to_string(),
+                        )
+                    })?
+                    .ok_or(ArbiterError::DBError(
+                        "Failed to fetch account info with EthersDB.".to_string(),
+                    ))?;
+                db.insert_account_info(eoa.to_fixed_bytes().into(), info);
+            }
         }
         Ok(db)
     }
