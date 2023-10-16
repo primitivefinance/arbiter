@@ -23,7 +23,7 @@ path = "bin/main.rs"
 
 # Dependencies for the release build
 [dependencies]
-arbiter-core = { version = "0.6.0", path = "arbiter-core" }
+arbiter-core = { version = "0.6.1", path = "arbiter-core" }
 
 # Command line and config
 clap = { version = "=4.4.6", features = ["derive"] }
