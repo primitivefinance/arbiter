@@ -50,5 +50,4 @@ fn read_in() {
         let forked_db = Fork::from_disk(PATH_TO_DISK_STORAGE);
         assert!(forked_db.is_ok());
     });
-    fs::remove_file(PATH_TO_DISK_STORAGE).unwrap();
 }
