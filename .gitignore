@@ -19,3 +19,6 @@ Cargo.lock
 arbiter/
 
 .vscode
+
+# mdbook
+book

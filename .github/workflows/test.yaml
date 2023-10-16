@@ -2,14 +2,12 @@ name: test
 
 on:
   pull_request:
-    branches:
-        - main
     types: [opened, synchronize, reopened]
 
 jobs:
   test:
     name: test
-    runs-on: ubuntu-latest
+    runs-on: macos-latest
     steps:
       - uses: actions/checkout@v3
 

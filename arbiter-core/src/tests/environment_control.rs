@@ -1,8 +1,12 @@
 use super::*;
+use crate::{
+    bindings::weth::weth,
+    environment::{builder::EnvironmentBuilder, fork::Fork},
+};
 
 #[tokio::test]
 async fn receipt_data() {
-    let (_manager, client) = startup_user_controlled().unwrap();
+    let (_environment, client) = startup_user_controlled().unwrap();
     let arbiter_token = deploy_arbx(client.clone()).await.unwrap();
     let receipt = arbiter_token
         .mint(client.default_sender().unwrap(), 1000u64.into())
@@ -51,16 +55,19 @@ async fn receipt_data() {
 // transactions per block. We should check these.
 #[tokio::test]
 async fn randomly_sampled_blocks() {
-    let (manager, client) = startup_randomly_sampled().unwrap();
-    client.deal(client.address(), U256::MAX).await.unwrap();
+    let (environment, client) = startup_randomly_sampled().unwrap();
+    client
+        .apply_cheatcode(Cheatcodes::Deal {
+            address: client.address(),
+            amount: U256::MAX,
+        })
+        .await
+        .unwrap();
     // tx_0 is the transaction that creates the token contract
     let arbiter_token = deploy_arbx(client.clone()).await.unwrap();
 
-    // get the environment so we can look at its distribution
-    let environment = manager.environments.get(TEST_ENV_LABEL).unwrap();
-
     let mut distribution = match environment.parameters.block_settings {
-        BlockSettings::RandomlySampled {
+        builder::BlockSettings::RandomlySampled {
             block_rate,
             block_time,
             seed,
@@ -103,7 +110,7 @@ async fn randomly_sampled_blocks() {
 
 #[tokio::test]
 async fn user_update_block() {
-    let (_manager, client) = startup_user_controlled().unwrap();
+    let (_environment, client) = startup_user_controlled().unwrap();
     let block_number = client.get_block_number().await.unwrap();
     assert_eq!(block_number, ethers::types::U64::from(0));
 
@@ -126,23 +133,25 @@ async fn user_update_block() {
 
 #[tokio::test]
 async fn randomly_sampled_gas_price() {
-    let (manager, client) = startup_randomly_sampled().unwrap();
-    client.deal(client.address(), U256::MAX).await.unwrap();
+    let (environment, client) = startup_randomly_sampled().unwrap();
+    client
+        .apply_cheatcode(Cheatcodes::Deal {
+            address: client.address(),
+            amount: U256::MAX,
+        })
+        .await
+        .unwrap();
     // tx_0 is the transaction that creates the token contract
     let arbiter_token = deploy_arbx(client.clone()).await.unwrap();
 
-    // get the environment so we can look at its distribution
-    let environment = manager.environments.get(TEST_ENV_LABEL).unwrap();
-
     let mut distribution = match environment.parameters.block_settings {
-        BlockSettings::RandomlySampled {
+        builder::BlockSettings::RandomlySampled {
             block_rate,
             block_time,
             seed,
         } => SeededPoisson::new(block_rate, block_time, seed),
         _ => panic!("Expected RandomlySampled block type"),
     };
-
     let mut expected_txs_per_block_vec = vec![];
     for _ in 0..2 {
         expected_txs_per_block_vec.push(distribution.sample());
@@ -184,7 +193,13 @@ async fn randomly_sampled_gas_price() {
 #[tokio::test]
 async fn constant_gas_price() {
     let (_manager, client) = startup_constant_gas().unwrap();
-    client.deal(client.address(), U256::MAX).await.unwrap();
+    client
+        .apply_cheatcode(Cheatcodes::Deal {
+            address: client.address(),
+            amount: U256::MAX,
+        })
+        .await
+        .unwrap();
     // tx_0 is the transaction that creates the token contract
     let arbiter_token = deploy_arbx(client.clone()).await.unwrap();
 
@@ -201,4 +216,37 @@ async fn constant_gas_price() {
             .unwrap();
         assert_eq!(gas_price, U256::from(TEST_GAS_PRICE));
     }
+}
+
+#[tokio::test]
+async fn stop_environment() {
+    let (environment, client) = startup_user_controlled().unwrap();
+    environment.stop().unwrap();
+    assert!(deploy_arbx(client).await.is_err());
+}
+
+#[tokio::test]
+async fn fork_into_arbiter() {
+    let fork = Fork::from_disk("../example_fork/fork_into_test.json").unwrap();
+
+    // Get the environment going
+    let environment = EnvironmentBuilder::new().db(fork.db).build();
+
+    // Create a client
+    let client = RevmMiddleware::new(&environment, Some("name")).unwrap();
+
+    // Deal with the weth contract
+    let weth_meta = fork.contracts_meta.get("weth").unwrap();
+    let weth = weth::WETH::new(weth_meta.address, client.clone());
+
+    let address_to_check_balance =
+        Address::from_str(&weth_meta.mappings.get("balanceOf").unwrap()[0]).unwrap();
+
+    println!("checking address: {}", address_to_check_balance);
+    let balance = weth
+        .balance_of(address_to_check_balance)
+        .call()
+        .await
+        .unwrap();
+    assert_eq!(balance, U256::from(34890707020710109111_u128));
 }

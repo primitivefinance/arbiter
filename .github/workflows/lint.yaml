@@ -2,8 +2,6 @@ name: lint
 
 on:
   pull_request:
-    branches:
-      - main
     types: [opened, synchronize, reopened]
 
 jobs:
@@ -50,4 +48,4 @@ jobs:
           check_hidden: true
           check_filenames: true
           skip: .git,Cargo.lock,target
-          ignore_words_list: crate,Crate
+          ignore_words_list: crate,Crate,functio
