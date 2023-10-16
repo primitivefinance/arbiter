@@ -4,9 +4,14 @@ use std::{
     fs::{write, File},
     io,
     io::{BufRead, BufReader},
-    path::Path,
+    path::{Path, PathBuf},
     process::Command,
 };
+
+use foundry_config::Config;
+use inflector::Inflector;
+use proc_macro2::{Ident, Span};
+use toml::Value;
 
 /// Runs the `forge` command-line tool to generate bindings.
 ///
@@ -24,21 +29,23 @@ use std::{
 ///   tool is not installed.
 
 pub(crate) fn forge_bind() -> std::io::Result<()> {
-    println!("Generating bindings for project contracts...");
+    let foundry_config = Config::load();
+    let (mut output_path, gen_submodules) = get_settings();
+    output_path.push("src");
+    let contracts_output_path = output_path.join("bindings");
     let output = Command::new("forge")
         .arg("bind")
         .arg("--revert-strings")
         .arg("debug")
         .arg("-b")
-        .arg("src/bindings/")
+        .arg(contracts_output_path.clone())
         .arg("--module")
         .arg("--overwrite")
         .output()?;
-    let project_contracts = collect_contract_list(Path::new("contracts"))?;
+    let project_contracts = collect_contract_list(&foundry_config.src)?;
     if output.status.success() {
         let output_str = String::from_utf8_lossy(&output.stdout);
         println!("Command output: {}", output_str);
-        println!("Revert strings are on");
     } else {
         let err_str = String::from_utf8_lossy(&output.stderr);
         println!("Command failed, error: {}, is forge installed?", err_str);
@@ -48,42 +55,56 @@ pub(crate) fn forge_bind() -> std::io::Result<()> {
         ));
     }
 
-    let src_binding_dir = Path::new("src/bindings");
-    remove_unneeded_contracts(src_binding_dir, project_contracts)?;
+    remove_unneeded_contracts(&contracts_output_path, project_contracts)?;
 
-    let lib_dir = Path::new("lib");
-    let (output_path, sub_module_contracts) = bindings_for_submodules(lib_dir)?;
-    println!("submodule contracts: {:?}", sub_module_contracts);
-    remove_unneeded_contracts(Path::new(&output_path), sub_module_contracts)?;
-
+    if gen_submodules {
+        for lib_dir in &foundry_config.libs {
+            println!("Generating bindings for lib: {:?}", lib_dir);
+            let (output_path, sub_module_contracts) =
+                bindings_for_submodules(lib_dir, output_path.clone())?;
+            remove_unneeded_contracts(&output_path, sub_module_contracts)?;
+        }
+    }
     Ok(())
 }
 
-fn bindings_for_submodules(dir: &Path) -> io::Result<(String, Vec<String>)> {
+fn bindings_for_submodules(libdir: &Path, output: PathBuf) -> io::Result<(PathBuf, Vec<String>)> {
+    let mut last_output_path = output; // Store the last calculated path here
     let mut contracts_to_generate = Vec::new(); // to keep track of contracts we're generating bindings for
-    let mut output_path = String::new();
-    if dir.is_dir() {
+    if libdir.is_dir() {
         // Iterate through entries in the directory
-        for entry in fs::read_dir(dir)? {
+        for entry in fs::read_dir(libdir)? {
             let entry = entry?;
             let path = entry.path();
 
             // If the entry is a directory, run command inside it
             if path.is_dir() && path.file_name().unwrap_or_default() != "forge-std" {
                 contracts_to_generate = collect_contract_list(&path)?;
-                println!("Generating bindings for submodule: {:?}...", path);
+
+                let submodule_name = path
+                    .file_name()
+                    .unwrap()
+                    .to_str()
+                    .unwrap()
+                    .replace('-', "_");
+
+                let output_path = last_output_path
+                    .canonicalize()? // Convert output to absolute path
+                    .join(format!("{}_bindings", submodule_name));
 
                 env::set_current_dir(&path)?;
 
-                let submodule_name = path.file_name().unwrap().to_str().unwrap(); // Assuming file_name() is not None and is valid UTF-8
-                output_path = format!("../../src/{}_bindings/", submodule_name);
+                println!(
+                    "output path: for submodule {:?} is {:?}",
+                    submodule_name, &output_path
+                );
 
                 let output = Command::new("forge")
                     .arg("bind")
                     .arg("--revert-strings")
                     .arg("debug")
                     .arg("-b")
-                    .arg(&output_path) // Use the dynamically generated path
+                    .arg(output_path.clone())
                     .arg("--module")
                     .arg("--overwrite")
                     .output()?;
@@ -91,7 +112,6 @@ fn bindings_for_submodules(dir: &Path) -> io::Result<(String, Vec<String>)> {
                 if output.status.success() {
                     let output_str = String::from_utf8_lossy(&output.stdout);
                     println!("Command output: {}", output_str);
-                    println!("Revert strings are on");
                 } else {
                     let err_str = String::from_utf8_lossy(&output.stderr);
                     println!("Command failed, error: {}", err_str);
@@ -100,10 +120,12 @@ fn bindings_for_submodules(dir: &Path) -> io::Result<(String, Vec<String>)> {
                         "Command failed",
                     ));
                 }
+
+                last_output_path = output_path;
             }
         }
     }
-    Ok((output_path, contracts_to_generate))
+    Ok((last_output_path, contracts_to_generate))
 }
 
 fn collect_contract_list(dir: &Path) -> io::Result<Vec<String>> {
@@ -133,10 +155,10 @@ fn collect_contract_list(dir: &Path) -> io::Result<Vec<String>> {
 
             if path.is_file() {
                 let filename = path.file_stem().unwrap().to_str().unwrap();
-
-                if !filename.starts_with('I') {
-                    let snake_case_name = camel_to_snake_case(filename);
-                    contract_list.push(snake_case_name);
+                let valid_name = Ident::new(filename, proc_macro2::Span::call_site());
+                let safe_filename = safe_module_name(&valid_name.to_string());
+                if !safe_filename.starts_with('i') {
+                    contract_list.push(safe_filename);
                 }
             }
         }
@@ -146,7 +168,7 @@ fn collect_contract_list(dir: &Path) -> io::Result<Vec<String>> {
 }
 
 fn remove_unneeded_contracts(
-    bindings_path: &Path,
+    bindings_path: &PathBuf,
     needed_contracts: Vec<String>,
 ) -> io::Result<()> {
     if bindings_path.is_dir() {
@@ -158,12 +180,11 @@ fn remove_unneeded_contracts(
                 let filename = path.file_stem().unwrap().to_str().unwrap().to_lowercase();
 
                 // Skip if the file is `mod.rs`
-                if filename == "mod" {
+                if filename == "mod" || filename == "settings" {
                     continue;
                 }
 
                 if !needed_contracts.contains(&filename) {
-                    println!("Removing contract binding: {}", path.display());
                     fs::remove_file(path)?;
                 }
             }
@@ -211,18 +232,71 @@ fn update_mod_file(bindings_path: &Path, contracts_to_keep: Vec<String>) -> io::
     Ok(())
 }
 
-fn camel_to_snake_case(s: &str) -> String {
-    let mut snake_case = String::new();
-    let chars: Vec<char> = s.chars().collect();
+fn get_settings() -> (PathBuf, bool) {
+    // Initialize default values
+    let mut path = PathBuf::from("src");
+    let mut submodules_value = false;
 
-    for (i, ch) in chars.iter().enumerate() {
-        if ch.is_uppercase() && i != 0 {
-            snake_case.push('_');
+    // Try loading the TOML content from the file
+    if let Ok(content) = fs::read_to_string("cargo.toml") {
+        // Attempt to parse the content as TOML
+        if let Ok(value) = content.parse::<Value>() {
+            // Navigate to the 'arbiter.bindings_workspace' section and retrieve values
+            if let Some(arbiter) = value.get("arbiter") {
+                if let Some(bindings_workspace) = arbiter.get("bindings_workspace") {
+                    if let Some(bindings_workspace_str) = bindings_workspace.as_str() {
+                        path = PathBuf::from(bindings_workspace_str);
+                    }
+                }
+                if let Some(submodules) = arbiter.get("submodules") {
+                    if let Some(bindings_workspace_bool) = submodules.as_bool() {
+                        submodules_value = bindings_workspace_bool;
+                    }
+                }
+            }
         }
-        snake_case.extend(ch.to_lowercase());
     }
 
-    snake_case
+    // Return the values
+    (path, submodules_value)
+}
+
+/// The following methods were picked out of https://github.com/gakonst/ethers-rs/blob/9d01a9810940d3acd7c78bf2b2f2ca85a74f73eb/ethers-contract/ethers-contract-abigen/src/lib.rs#L393
+/// Expands an identifier string into a token and appending `_` if the
+/// identifier is for a reserved keyword.
+///
+/// Parsing keywords like `self` can fail, in this case we add an underscore.
+fn safe_ident(name: &str) -> Ident {
+    syn::parse_str::<Ident>(name).unwrap_or_else(|_| ident(&format!("{name}_")))
+}
+/// Creates a new Ident with the given string at [`Span::call_site`].
+///
+/// # Panics
+///
+/// If the input string is neither a keyword nor a legal variable name.
+fn ident(name: &str) -> Ident {
+    Ident::new(name, Span::call_site())
+}
+/// converts invalid rust module names to valid ones
+fn safe_module_name(name: &str) -> String {
+    // handle reserve words used in contracts (eg Enum is a gnosis contract)
+    safe_ident(&safe_snake_case(name)).to_string()
+}
+
+///  Converts a `&str` to `snake_case` `String` while respecting identifier
+/// rules
+fn safe_snake_case(ident: &str) -> String {
+    safe_identifier_name(ident.to_snake_case())
+}
+
+/// respects identifier rules, such as, an identifier must not start with a
+/// numeric char
+fn safe_identifier_name(name: String) -> String {
+    if name.starts_with(char::is_numeric) {
+        format!("_{name}")
+    } else {
+        name
+    }
 }
 
 #[cfg(test)]
@@ -232,13 +306,11 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_camel_to_snake_case() {
-        assert_eq!(camel_to_snake_case("PositionRenderer"), "position_renderer");
-        assert_eq!(camel_to_snake_case("Test"), "test");
-        assert_eq!(
-            camel_to_snake_case("AnotherTestExample"),
-            "another_test_example"
-        );
+    fn test_safe_module_name() {
+        assert_eq!(safe_module_name("Valid"), "valid");
+        assert_eq!(safe_module_name("Enum"), "enum_");
+        assert_eq!(safe_module_name("Mod"), "mod_");
+        assert_eq!(safe_module_name("2Two"), "_2_two");
     }
 
     #[test]
@@ -251,15 +323,24 @@ mod tests {
         fs::create_dir(&contracts_dir).expect("Failed to create contracts directory");
 
         // Create files in the contracts directory
-        fs::write(contracts_dir.join("ExampleContract.rs"), "").expect("Failed to write file");
-        fs::write(contracts_dir.join("AnotherTest.rs"), "").expect("Failed to write file");
-        fs::write(contracts_dir.join("ITestInterface.rs"), "").expect("Failed to write file"); // This should be ignored
+        fs::write(contracts_dir.join("ExampleContract.sol"), "").expect("Failed to write file");
+        fs::write(contracts_dir.join("AnotherTest.sol"), "").expect("Failed to write file");
+        fs::write(contracts_dir.join("ITestInterface.sol"), "").expect("Failed to write file"); // This should be ignored
+        fs::write(contracts_dir.join("G3M.sol"), "").expect("Failed to write file");
+        fs::write(contracts_dir.join("SD59x18Math.sol"), "").expect("Failed to write file");
 
         // Call the function
-        let contracts = collect_contract_list(dir.path()).expect("Failed to collect contracts");
-
+        let mut contracts = collect_contract_list(dir.path()).expect("Failed to collect contracts");
+        contracts.sort();
         // Assert the results
-        let expected = vec!["shared_types", "example_contract", "another_test"];
+        let mut expected = vec![
+            "shared_types",
+            "example_contract",
+            "sd5_9x_18_math",
+            "g3m",
+            "another_test",
+        ];
+        expected.sort();
         assert_eq!(contracts, expected);
 
         // Temp dir will be automatically cleaned up after going out of scope.
@@ -275,14 +356,24 @@ mod tests {
         fs::create_dir(&src_dir).expect("Failed to create src directory");
 
         // Create files in the src directory
-        fs::write(src_dir.join("ExampleOne.rs"), "").expect("Failed to write file");
-        fs::write(src_dir.join("TestTwo.rs"), "").expect("Failed to write file");
+        fs::write(src_dir.join("ExampleOne.sol"), "").expect("Failed to write file");
+        fs::write(src_dir.join("TestTwo.sol"), "").expect("Failed to write file");
+        fs::write(src_dir.join("ITestInterface.sol"), "").expect("Failed to write file"); // This should be ignored
+        fs::write(src_dir.join("G3M.sol"), "").expect("Failed to write file"); // This should be ignored
+        fs::write(src_dir.join("SD59x18Math.sol"), "").expect("Failed to write file"); // This should be ignored
 
         // Call the function
-        let contracts = collect_contract_list(dir.path()).expect("Failed to collect contracts");
-
+        let mut contracts = collect_contract_list(dir.path()).expect("Failed to collect contracts");
+        contracts.sort();
         // Assert the results
-        let expected = vec!["shared_types", "test_two", "example_one"];
+        let mut expected = vec![
+            "shared_types",
+            "sd5_9x_18_math",
+            "example_one",
+            "test_two",
+            "g3m",
+        ];
+        expected.sort();
         assert_eq!(contracts, expected);
 
         // Temp dir will be automatically cleaned up after going out of scope.
