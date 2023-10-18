@@ -9,4 +9,8 @@ coverage:
         target: 50%
         threshold: 1%
         informational: true
+  ignore:
+    - "arbiter-core/contracts/*"
+    - "arbiter/arbiter-core/benches*"
+    - "arbiter/arbiter-core/src/bindings"
     
