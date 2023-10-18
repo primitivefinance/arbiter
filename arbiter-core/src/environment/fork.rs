@@ -37,6 +37,8 @@ pub struct Fork {
     /// The [`HashMap`] of [`ContractMetadata`] that will be used by the
     /// end-user.
     pub contracts_meta: HashMap<String, ContractMetadata>,
+    /// The [`HashMap`] of [`Address`] that will be used by the end-user.
+    pub eoa: HashMap<String, ethers::types::H160>,
 }
 
 impl Fork {
@@ -74,6 +76,7 @@ impl Fork {
         Ok(Self {
             db,
             contracts_meta: disk_data.meta,
+            eoa: disk_data.externally_owned_accounts,
         })
     }
 }
@@ -96,4 +99,7 @@ pub struct DiskData {
 
     /// This is the raw data that will be loaded into the [`Fork`].
     pub raw: HashMap<Address, (AccountInfo, Storage)>,
+
+    /// This is the eoa data that will be loaded into the [`Fork`].
+    pub externally_owned_accounts: HashMap<String, Address>,
 }

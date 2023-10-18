@@ -37,6 +37,22 @@ jobs:
       - name: cargo clippy
         run: cargo clippy --all --all-features -- -D warnings
 
+  udeps:
+    name: udeps
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: install rust toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: nightly
+          components: rustfmt
+
+      - name: install udeps
+        run: cargo install --git https://github.com/est31/cargo-udeps --locked
+      - name: cargo udeps
+        run: cargo +nightly udeps
+
   codespell:
     name: codespell
     runs-on: ubuntu-latest
