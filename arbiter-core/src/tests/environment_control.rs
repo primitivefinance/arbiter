@@ -249,4 +249,10 @@ async fn fork_into_arbiter() {
         .await
         .unwrap();
     assert_eq!(balance, U256::from(34890707020710109111_u128));
+
+    // eoa check
+    let eoa = fork.eoa.get("vitalik").unwrap();
+    let eth_balance = client.get_balance(*eoa, None).await.unwrap();
+    // Check the balance of the eoa with the load cheatcode
+    assert_eq!(eth_balance, U256::from(934034962177715175765_u128));
 }

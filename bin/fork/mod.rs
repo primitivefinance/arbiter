@@ -30,6 +30,7 @@ pub(crate) struct ForkConfig {
     block_number: u64,
     #[serde(rename = "contracts")]
     contracts_meta: HashMap<String, ContractMetadata>,
+    externally_owned_accounts: HashMap<String, Address>,
 }
 
 impl ForkConfig {
@@ -84,6 +85,22 @@ impl ForkConfig {
             let storage_layout = artifacts.storage_layout;
 
             digest::create_storage_layout(contract_data, storage_layout, &mut db, ethers_db)?;
+
+            for eoa in self.externally_owned_accounts.values() {
+                let info = ethers_db
+                    .basic(eoa.to_fixed_bytes().into())
+                    .map_err(|_| {
+                        ArbiterError::DBError(
+                            "Failed to fetch account info with
+                EthersDB."
+                                .to_string(),
+                        )
+                    })?
+                    .ok_or(ArbiterError::DBError(
+                        "Failed to fetch account info with EthersDB.".to_string(),
+                    ))?;
+                db.insert_account_info(eoa.to_fixed_bytes().into(), info);
+            }
         }
         Ok(db)
     }
@@ -95,6 +112,7 @@ impl ForkConfig {
         Ok(Fork {
             db,
             contracts_meta: self.contracts_meta.clone(),
+            eoa: self.externally_owned_accounts.clone(),
         })
     }
 
@@ -131,6 +149,7 @@ impl ForkConfig {
         let disk_data = DiskData {
             meta: fork.contracts_meta,
             raw,
+            externally_owned_accounts: fork.eoa,
         };
 
         let json_data = serde_json::to_string(&disk_data)?;
