@@ -40,7 +40,7 @@ Inflector = { version = "=0.11.4" }
 quote = { version = "=1.0.33" }
 foundry-config = { version = "=0.2.0" }
 # Errors
-thiserror = { version = "=1.0.49" }
+thiserror = { version = "=1.0.50" }
 
 # Dependencies for the test build and development
 [dev-dependencies]

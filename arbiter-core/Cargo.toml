@@ -39,7 +39,7 @@ statrs = { version = "=0.16.0" }
 RustQuant = { version = "=0.0.35", features = ["seedable"]}
 
 # Errors
-thiserror =  { version = "=1.0.49" }
+thiserror =  { version = "=1.0.50" }
 
 # Logging
 futures-util =  { version = "=0.3.28" }
