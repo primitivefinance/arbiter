@@ -1,6 +1,6 @@
 use super::*;
 use crate::{
-    bindings::weth::weth,
+    bindings::{self, weth::weth},
     environment::{builder::EnvironmentBuilder, fork::Fork},
 };
 
@@ -254,5 +254,32 @@ async fn fork_into_arbiter() {
     let eoa = fork.eoa.get("vitalik").unwrap();
     let eth_balance = client.get_balance(*eoa, None).await.unwrap();
     // Check the balance of the eoa with the load cheatcode
+    assert_eq!(eth_balance, U256::from(934034962177715175765_u128));
+}
+
+#[tokio::test]
+async fn middleware_from_forked_eo() {
+    let fork = Fork::from_disk("../example_fork/fork_into_test.json").unwrap();
+
+    // Get the environment going
+    let environment = EnvironmentBuilder::new().db(fork.db).build();
+
+    let vitalik_address = fork.eoa.get("vitalik").unwrap();
+    let vitalik_as_a_client = RevmMiddleware::new_from_forked_eoa(&environment, *vitalik_address);
+    assert!(vitalik_as_a_client.is_ok());
+    let vitalik_as_a_client = vitalik_as_a_client.unwrap();
+
+    // test a state mutating call from the forked eoa
+    let weth = bindings::weth::WETH::deploy(vitalik_as_a_client.clone(), ())
+        .unwrap()
+        .send()
+        .await;
+    assert!(weth.is_ok()); // vitalik deployed the weth contract
+
+    // test a non mutating call from the forked eoa
+    let eth_balance = vitalik_as_a_client
+        .get_balance(*vitalik_address, None)
+        .await
+        .unwrap();
     assert_eq!(eth_balance, U256::from(934034962177715175765_u128));
 }

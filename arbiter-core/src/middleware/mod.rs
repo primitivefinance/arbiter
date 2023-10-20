@@ -83,7 +83,20 @@ pub mod nonce_middleware;
 #[derive(Debug)]
 pub struct RevmMiddleware {
     provider: Provider<Connection>,
-    wallet: Wallet<SigningKey>,
+    wallet: EOA,
+}
+
+/// A wrapper enum for the two types of accounts that can be used with the
+/// middleware.
+#[derive(Debug)]
+pub enum EOA {
+    /// The [`Forked`] variant is used for the forked EOA,
+    /// allowing us to treat them as mock accounts that we can still authorize
+    /// transactions with that we would be unable to do on mainnet.
+    Forked(Address),
+    /// The [`Wallet`] variant "real" in the sense that is has a valid private
+    /// key from the provided seed
+    Wallet(Wallet<SigningKey>),
 }
 
 impl RevmMiddleware {
@@ -142,7 +155,32 @@ impl RevmMiddleware {
             filter_receivers: Arc::new(tokio::sync::Mutex::new(HashMap::new())),
         };
         let provider = Provider::new(connection);
-        Ok(Arc::new(Self { wallet, provider }))
+        Ok(Arc::new(Self {
+            wallet: EOA::Wallet(wallet),
+            provider,
+        }))
+    }
+
+    ///
+    pub fn new_from_forked_eoa(
+        environment: &Environment,
+        forked_eoa: Address,
+    ) -> Result<Arc<Self>, RevmMiddlewareError> {
+        let instruction_sender = &Arc::clone(&environment.socket.instruction_sender);
+        let (outcome_sender, outcome_receiver) = crossbeam_channel::unbounded();
+
+        let connection = Connection {
+            instruction_sender: Arc::downgrade(instruction_sender),
+            outcome_sender,
+            outcome_receiver: outcome_receiver.clone(),
+            event_broadcaster: Arc::clone(&environment.socket.event_broadcaster),
+            filter_receivers: Arc::new(tokio::sync::Mutex::new(HashMap::new())),
+        };
+        let provider = Provider::new(connection);
+        Ok(Arc::new(Self {
+            wallet: EOA::Forked(forked_eoa),
+            provider,
+        }))
     }
 
     /// Allows the user to update the block number and timestamp of the
@@ -232,8 +270,12 @@ impl RevmMiddleware {
     }
 
     /// Returns the address of the wallet/signer given to a client.
+    /// Matches on the [`EOA`] variant of the [`RevmMiddleware`] struct.
     pub fn address(&self) -> Address {
-        self.wallet.address()
+        match &self.wallet {
+            EOA::Forked(address) => *address,
+            EOA::Wallet(wallet) => wallet.address(),
+        }
     }
 
     /// Allows a client to set a gas price for transactions.
@@ -286,7 +328,7 @@ impl Middleware for RevmMiddleware {
     /// Provides the default sender address for transactions, i.e., the address
     /// of the wallet/signer given to a client of the [`Environment`].
     fn default_sender(&self) -> Option<Address> {
-        Some(self.wallet.address())
+        Some(self.address())
     }
 
     /// Sends a transaction to the [`Environment`] which acts as a simulated
@@ -312,7 +354,7 @@ impl Middleware for RevmMiddleware {
             None => TransactTo::Create(CreateScheme::Create),
         };
         let tx_env = TxEnv {
-            caller: self.wallet.address().to_fixed_bytes().into(),
+            caller: self.address().to_fixed_bytes().into(),
             gas_limit: u64::MAX,
             gas_price: revm::primitives::U256::from_limbs(self.get_gas_price().await?.0),
             gas_priority_fee: None,
@@ -364,7 +406,7 @@ impl Middleware for RevmMiddleware {
 
             // Note that this is technically not the correct construction on the tx hash
             // but until we increment the nonce correctly this will do
-            let sender = self.wallet.address();
+            let sender = self.address();
             let data = tx_env.clone().data;
             let mut hasher = Sha256::new();
             hasher.update(sender.as_bytes());
@@ -509,7 +551,7 @@ impl Middleware for RevmMiddleware {
             None => TransactTo::Create(CreateScheme::Create),
         };
         let tx_env = TxEnv {
-            caller: self.wallet.address().to_fixed_bytes().into(),
+            caller: self.address().to_fixed_bytes().into(),
             gas_limit: u64::MAX,
             gas_price: U256::ZERO,
             gas_priority_fee: None,
