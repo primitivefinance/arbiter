@@ -13,6 +13,24 @@ use inflector::Inflector;
 use proc_macro2::{Ident, Span};
 use toml::Value;
 
+pub struct ArbiterConfig {
+    /// The path to the directory where the bindings will be generated.
+    pub bindings_path: PathBuf,
+    /// Whether to generate bindings for submodules.
+    pub submodules: bool,
+    /// Ignore interfaces flag
+    pub ignore_interfaces: bool,
+}
+
+impl ArbiterConfig {
+    pub fn _new_mock_config() -> Self {
+        ArbiterConfig {
+            bindings_path: PathBuf::from("src").join("bindings"),
+            submodules: false,
+            ignore_interfaces: false,
+        }
+    }
+}
 /// Runs the `forge` command-line tool to generate bindings.
 ///
 /// This function attempts to execute the external command `forge` with the
@@ -30,19 +48,18 @@ use toml::Value;
 
 pub(crate) fn forge_bind() -> std::io::Result<()> {
     let foundry_config = Config::load();
-    let (mut output_path, gen_submodules) = get_settings();
-    output_path.push("src");
-    let contracts_output_path = output_path.join("bindings");
+    let arbiter_config = get_config();
+    // let contracts_output_path: bool =
     let output = Command::new("forge")
         .arg("bind")
         .arg("--revert-strings")
         .arg("debug")
         .arg("-b")
-        .arg(contracts_output_path.clone())
+        .arg(arbiter_config.bindings_path.clone())
         .arg("--module")
         .arg("--overwrite")
         .output()?;
-    let project_contracts = collect_contract_list(&foundry_config.src)?;
+    let project_contracts = collect_contract_list(&foundry_config.src, &arbiter_config)?;
     if output.status.success() {
         let output_str = String::from_utf8_lossy(&output.stdout);
         println!("Command output: {}", output_str);
@@ -55,22 +72,26 @@ pub(crate) fn forge_bind() -> std::io::Result<()> {
         ));
     }
 
-    remove_unneeded_contracts(&contracts_output_path, project_contracts)?;
+    remove_unneeded_contracts(&arbiter_config.bindings_path, project_contracts)?;
 
-    if gen_submodules {
+    if arbiter_config.submodules {
         for lib_dir in &foundry_config.libs {
             println!("Generating bindings for lib: {:?}", lib_dir);
             let (output_path, sub_module_contracts) =
-                bindings_for_submodules(lib_dir, output_path.clone())?;
+                bindings_for_submodules(lib_dir, &arbiter_config)?;
             remove_unneeded_contracts(&output_path, sub_module_contracts)?;
         }
     }
     Ok(())
 }
 
-fn bindings_for_submodules(libdir: &Path, output: PathBuf) -> io::Result<(PathBuf, Vec<String>)> {
-    let mut last_output_path = output; // Store the last calculated path here
+fn bindings_for_submodules(
+    libdir: &Path,
+    config: &ArbiterConfig,
+) -> io::Result<(PathBuf, Vec<String>)> {
     let mut contracts_to_generate = Vec::new(); // to keep track of contracts we're generating bindings for
+    let mut last_output_path = config.bindings_path.clone();
+
     if libdir.is_dir() {
         // Iterate through entries in the directory
         for entry in fs::read_dir(libdir)? {
@@ -79,7 +100,7 @@ fn bindings_for_submodules(libdir: &Path, output: PathBuf) -> io::Result<(PathBu
 
             // If the entry is a directory, run command inside it
             if path.is_dir() && path.file_name().unwrap_or_default() != "forge-std" {
-                contracts_to_generate = collect_contract_list(&path)?;
+                contracts_to_generate = collect_contract_list(&path, config)?;
 
                 let submodule_name = path
                     .file_name()
@@ -88,7 +109,9 @@ fn bindings_for_submodules(libdir: &Path, output: PathBuf) -> io::Result<(PathBu
                     .unwrap()
                     .replace('-', "_");
 
-                let output_path = last_output_path
+                let output_path = config
+                    .bindings_path
+                    .clone() // Get the bindings path from config
                     .canonicalize()? // Convert output to absolute path
                     .join(format!("{}_bindings", submodule_name));
 
@@ -120,7 +143,6 @@ fn bindings_for_submodules(libdir: &Path, output: PathBuf) -> io::Result<(PathBu
                         "Command failed",
                     ));
                 }
-
                 last_output_path = output_path;
             }
         }
@@ -128,10 +150,12 @@ fn bindings_for_submodules(libdir: &Path, output: PathBuf) -> io::Result<(PathBu
     Ok((last_output_path, contracts_to_generate))
 }
 
-fn collect_contract_list(dir: &Path) -> io::Result<Vec<String>> {
+fn collect_contract_list(dir: &Path, settings: &ArbiterConfig) -> io::Result<Vec<String>> {
     let mut contract_list = Vec::new();
     contract_list.push("shared_types".to_string());
+    println!("dir value: {:?}", dir.is_dir());
     if dir.is_dir() {
+        println!("Collecting contracts from {:?}", dir);
         let dir_name = dir.file_name().unwrap().to_str().unwrap(); // Assuming file_name() is not None and is valid UTF-8
 
         let target_dir = if dir_name == "src" || dir_name == "contracts" {
@@ -157,7 +181,7 @@ fn collect_contract_list(dir: &Path) -> io::Result<Vec<String>> {
                 let filename = path.file_stem().unwrap().to_str().unwrap();
                 let valid_name = Ident::new(filename, proc_macro2::Span::call_site());
                 let safe_filename = safe_module_name(&valid_name.to_string());
-                if !safe_filename.starts_with('i') {
+                if !settings.ignore_interfaces || !safe_filename.starts_with('i') {
                     contract_list.push(safe_filename);
                 }
             }
@@ -232,10 +256,11 @@ fn update_mod_file(bindings_path: &Path, contracts_to_keep: Vec<String>) -> io::
     Ok(())
 }
 
-fn get_settings() -> (PathBuf, bool) {
+fn get_config() -> ArbiterConfig {
     // Initialize default values
     let mut path = PathBuf::from("src");
     let mut submodules_value = false;
+    let mut ignore_interfaces = false;
 
     // Try loading the TOML content from the file
     if let Ok(content) = fs::read_to_string("cargo.toml") {
@@ -246,6 +271,7 @@ fn get_settings() -> (PathBuf, bool) {
                 if let Some(bindings_workspace) = arbiter.get("bindings_workspace") {
                     if let Some(bindings_workspace_str) = bindings_workspace.as_str() {
                         path = PathBuf::from(bindings_workspace_str);
+                        path = path.join("src").join("bindings");
                     }
                 }
                 if let Some(submodules) = arbiter.get("submodules") {
@@ -253,12 +279,21 @@ fn get_settings() -> (PathBuf, bool) {
                         submodules_value = bindings_workspace_bool;
                     }
                 }
+
+                if let Some(ignore_interfaces_value) = arbiter.get("ignore_interfaces") {
+                    if let Some(ignore_interfaces_bool) = ignore_interfaces_value.as_bool() {
+                        ignore_interfaces = ignore_interfaces_bool;
+                    }
+                }
             }
         }
     }
-
-    // Return the values
-    (path, submodules_value)
+    path = path.join("bindings");
+    ArbiterConfig {
+        bindings_path: path,
+        submodules: submodules_value,
+        ignore_interfaces,
+    }
 }
 
 /// The following methods were picked out of https://github.com/gakonst/ethers-rs/blob/9d01a9810940d3acd7c78bf2b2f2ca85a74f73eb/ethers-contract/ethers-contract-abigen/src/lib.rs#L393
@@ -317,7 +352,7 @@ mod tests {
     fn test_collect_contract_list_from_contracts() {
         // Create a temporary directory
         let dir = tempdir().expect("Failed to create temporary directory");
-
+        let setting = ArbiterConfig::_new_mock_config();
         // Create nested directories "src" and "contracts"
         let contracts_dir = dir.path().join("contracts");
         fs::create_dir(&contracts_dir).expect("Failed to create contracts directory");
@@ -330,7 +365,8 @@ mod tests {
         fs::write(contracts_dir.join("SD59x18Math.sol"), "").expect("Failed to write file");
 
         // Call the function
-        let mut contracts = collect_contract_list(dir.path()).expect("Failed to collect contracts");
+        let mut contracts =
+            collect_contract_list(dir.path(), &setting).expect("Failed to collect contracts");
         contracts.sort();
         // Assert the results
         let mut expected = vec![
@@ -339,6 +375,7 @@ mod tests {
             "sd5_9x_18_math",
             "g3m",
             "another_test",
+            "i_test_interface",
         ];
         expected.sort();
         assert_eq!(contracts, expected);
@@ -350,6 +387,7 @@ mod tests {
     fn test_collect_contract_list_from_src() {
         // Create a temporary directory
         let dir = tempdir().expect("Failed to create temporary directory");
+        let config = ArbiterConfig::_new_mock_config();
 
         // Create a nested directory "src"
         let src_dir = dir.path().join("src");
@@ -363,7 +401,8 @@ mod tests {
         fs::write(src_dir.join("SD59x18Math.sol"), "").expect("Failed to write file"); // This should be ignored
 
         // Call the function
-        let mut contracts = collect_contract_list(dir.path()).expect("Failed to collect contracts");
+        let mut contracts =
+            collect_contract_list(dir.path(), &config).expect("Failed to collect contracts");
         contracts.sort();
         // Assert the results
         let mut expected = vec![
@@ -372,6 +411,7 @@ mod tests {
             "example_one",
             "test_two",
             "g3m",
+            "i_test_interface",
         ];
         expected.sort();
         assert_eq!(contracts, expected);
