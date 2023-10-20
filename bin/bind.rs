@@ -18,7 +18,7 @@ pub struct ArbiterConfig {
     pub bindings_path: PathBuf,
     /// Whether to generate bindings for submodules.
     pub submodules: bool,
-    /// Ignore intefaces flag
+    /// Ignore interfaces flag
     pub ignore_interfaces: bool,
 }
 
