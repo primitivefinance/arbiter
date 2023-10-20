@@ -1,6 +1,6 @@
 [package]
 name = "arbiter-derive"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2021"
 authors = ["Waylon Jepsen <waylonjepsen1@gmail.com>", "Colin Roberts <colin@autoparallel.xyz>"]
 description = "proc-macro for arbiter"
