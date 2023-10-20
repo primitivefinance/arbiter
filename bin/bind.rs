@@ -19,15 +19,15 @@ pub struct ArbiterConfig {
     /// Whether to generate bindings for submodules.
     pub submodules: bool,
     /// Ignore intefaces flag
-    pub ignore_interfaces: bool
+    pub ignore_interfaces: bool,
 }
 
 impl ArbiterConfig {
-    pub fn new_mock_config() -> Self {
+    pub fn _new_mock_config() -> Self {
         ArbiterConfig {
             bindings_path: PathBuf::from("src").join("bindings"),
             submodules: false,
-            ignore_interfaces: false
+            ignore_interfaces: false,
         }
     }
 }
@@ -49,7 +49,7 @@ impl ArbiterConfig {
 pub(crate) fn forge_bind() -> std::io::Result<()> {
     let foundry_config = Config::load();
     let arbiter_config = get_config();
-    // let contracts_output_path: bool = 
+    // let contracts_output_path: bool =
     let output = Command::new("forge")
         .arg("bind")
         .arg("--revert-strings")
@@ -85,7 +85,10 @@ pub(crate) fn forge_bind() -> std::io::Result<()> {
     Ok(())
 }
 
-fn bindings_for_submodules(libdir: &Path, config: &ArbiterConfig) -> io::Result<(PathBuf, Vec<String>)> {
+fn bindings_for_submodules(
+    libdir: &Path,
+    config: &ArbiterConfig,
+) -> io::Result<(PathBuf, Vec<String>)> {
     let mut contracts_to_generate = Vec::new(); // to keep track of contracts we're generating bindings for
     let mut last_output_path = config.bindings_path.clone();
 
@@ -95,10 +98,9 @@ fn bindings_for_submodules(libdir: &Path, config: &ArbiterConfig) -> io::Result<
             let entry = entry?;
             let path = entry.path();
 
-
             // If the entry is a directory, run command inside it
             if path.is_dir() && path.file_name().unwrap_or_default() != "forge-std" {
-                contracts_to_generate = collect_contract_list(&path, &config)?;
+                contracts_to_generate = collect_contract_list(&path, config)?;
 
                 let submodule_name = path
                     .file_name()
@@ -107,7 +109,9 @@ fn bindings_for_submodules(libdir: &Path, config: &ArbiterConfig) -> io::Result<
                     .unwrap()
                     .replace('-', "_");
 
-                let output_path = config.bindings_path.clone() // Get the bindings path from config
+                let output_path = config
+                    .bindings_path
+                    .clone() // Get the bindings path from config
                     .canonicalize()? // Convert output to absolute path
                     .join(format!("{}_bindings", submodule_name));
 
@@ -288,7 +292,7 @@ fn get_config() -> ArbiterConfig {
     ArbiterConfig {
         bindings_path: path,
         submodules: submodules_value,
-        ignore_interfaces
+        ignore_interfaces,
     }
 }
 
@@ -348,7 +352,7 @@ mod tests {
     fn test_collect_contract_list_from_contracts() {
         // Create a temporary directory
         let dir = tempdir().expect("Failed to create temporary directory");
-        let setting = ArbiterConfig::new_mock_config();
+        let setting = ArbiterConfig::_new_mock_config();
         // Create nested directories "src" and "contracts"
         let contracts_dir = dir.path().join("contracts");
         fs::create_dir(&contracts_dir).expect("Failed to create contracts directory");
@@ -361,7 +365,8 @@ mod tests {
         fs::write(contracts_dir.join("SD59x18Math.sol"), "").expect("Failed to write file");
 
         // Call the function
-        let mut contracts = collect_contract_list(dir.path(), &setting).expect("Failed to collect contracts");
+        let mut contracts =
+            collect_contract_list(dir.path(), &setting).expect("Failed to collect contracts");
         contracts.sort();
         // Assert the results
         let mut expected = vec![
@@ -382,7 +387,7 @@ mod tests {
     fn test_collect_contract_list_from_src() {
         // Create a temporary directory
         let dir = tempdir().expect("Failed to create temporary directory");
-        let config = ArbiterConfig::new_mock_config();
+        let config = ArbiterConfig::_new_mock_config();
 
         // Create a nested directory "src"
         let src_dir = dir.path().join("src");
@@ -396,7 +401,8 @@ mod tests {
         fs::write(src_dir.join("SD59x18Math.sol"), "").expect("Failed to write file"); // This should be ignored
 
         // Call the function
-        let mut contracts = collect_contract_list(dir.path(), &config).expect("Failed to collect contracts");
+        let mut contracts =
+            collect_contract_list(dir.path(), &config).expect("Failed to collect contracts");
         contracts.sort();
         // Assert the results
         let mut expected = vec![
