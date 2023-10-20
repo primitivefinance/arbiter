@@ -149,7 +149,9 @@ fn bindings_for_submodules(libdir: &Path, config: &ArbiterConfig) -> io::Result<
 fn collect_contract_list(dir: &Path, settings: &ArbiterConfig) -> io::Result<Vec<String>> {
     let mut contract_list = Vec::new();
     contract_list.push("shared_types".to_string());
+    println!("dir value: {:?}", dir.is_dir());
     if dir.is_dir() {
+        println!("Collecting contracts from {:?}", dir);
         let dir_name = dir.file_name().unwrap().to_str().unwrap(); // Assuming file_name() is not None and is valid UTF-8
 
         let target_dir = if dir_name == "src" || dir_name == "contracts" {
@@ -175,7 +177,7 @@ fn collect_contract_list(dir: &Path, settings: &ArbiterConfig) -> io::Result<Vec
                 let filename = path.file_stem().unwrap().to_str().unwrap();
                 let valid_name = Ident::new(filename, proc_macro2::Span::call_site());
                 let safe_filename = safe_module_name(&valid_name.to_string());
-                if settings.ignore_interfaces && !safe_filename.starts_with('i') {
+                if !settings.ignore_interfaces || !safe_filename.starts_with('i') {
                     contract_list.push(safe_filename);
                 }
             }
@@ -368,6 +370,7 @@ mod tests {
             "sd5_9x_18_math",
             "g3m",
             "another_test",
+            "i_test_interface",
         ];
         expected.sort();
         assert_eq!(contracts, expected);
@@ -402,6 +405,7 @@ mod tests {
             "example_one",
             "test_two",
             "g3m",
+            "i_test_interface",
         ];
         expected.sort();
         assert_eq!(contracts, expected);
