@@ -43,7 +43,7 @@ This initializes a new Arbiter project with a template. You can generate the bin
 ```bash
 arbiter bind
 ```
-Arbiter bind wraps arround `forge bind` and is configured from your cargo.toml. There are three optional fields you can add to your toml to configure arbiter bind. 
+Arbiter bind wraps `forge bind` and is configured from your cargo.toml. There are three optional fields you can add to your toml to configure arbiter bind. 
 ```toml
 [arbiter]
 bindings_workspace = "simulation" # must be a valid workspace member
