@@ -271,7 +271,7 @@ fn get_config() -> ArbiterConfig {
                 if let Some(bindings_workspace) = arbiter.get("bindings_workspace") {
                     if let Some(bindings_workspace_str) = bindings_workspace.as_str() {
                         path = PathBuf::from(bindings_workspace_str);
-                        path = path.join("src").join("bindings");
+                        path = path.join("src");
                     }
                 }
                 if let Some(submodules) = arbiter.get("submodules") {
