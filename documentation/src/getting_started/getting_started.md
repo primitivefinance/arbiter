@@ -1,4 +1,4 @@
-# CLI Installation with Cargo
+# Getting Started
 
 ## Prerequisites
 
@@ -15,7 +15,7 @@ Once Rust is installed, you can install Arbiter from the package registry using 
 cargo install arbiter
 ```
 
-You can now run `arbiter --help` to verify your installation and view the help menu.
+You can now run `arbiter --version` to verify your installation.
 
 ### Building From Source
 Install Git, if you haven't already. There are many online guides on how to install Git on different devices, including one from [Github](https://github.com/git-guides/install-git).
@@ -42,6 +42,13 @@ This initializes a new Arbiter project with a template. You can generate the bin
 
 ```bash
 arbiter bind
+```
+Arbiter bind wraps `forge bind` and is configured from your cargo.toml. There are three optional fields you can add to your toml to configure arbiter bind. 
+```toml
+[arbiter]
+bindings_workspace = "simulation" # must be a valid workspace member
+submodules = false # change to true if you want the submodule bindings to be generated
+ignore_interfaces = false # change to true if you want to ignore interfaces contracts
 ```
 
 The template is executable at this point and you can run it by running:

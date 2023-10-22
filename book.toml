@@ -2,5 +2,5 @@
 authors = ["Sabnock01"]
 language = "en"
 multilingual = false
-src = "docs/src"
+src = "documentation/src"
 title = "Arbiter"
