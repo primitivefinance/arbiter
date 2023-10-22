@@ -6,6 +6,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.3](https://github.com/primitivefinance/arbiter/compare/arbiter-v0.4.2...arbiter-v0.4.3) - 2023-10-22
+
+### Fixed
+- *(bind)* output directory outputs to src/bindings
+
+### Other
+- Merge pull request [#633](https://github.com/primitivefinance/arbiter/pull/633) from primitivefinance/md_book
+- Merge pull request [#634](https://github.com/primitivefinance/arbiter/pull/634) from primitivefinance/fix/arbiter-bind-output
+
 ## [0.4.2](https://github.com/primitivefinance/arbiter/compare/arbiter-v0.4.1...arbiter-v0.4.2) - 2023-10-20
 
 ### Other
