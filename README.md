@@ -31,7 +31,7 @@ The static stateless testing of contracts can only take you so far.
 To truly test the security of a contract, you need to test it against a wide array of dynamic environments that encompass the externalities of Ethereum mainnet. 
 We wanted to do just that with Arbiter. 
 
-Both smart contract and financial engineers come together in Decentralized Finance (DeFi) to build and deploy a wide array of complex decentralized applications as well as fincancial strategies respectively. 
+Both smart contract and financial engineers come together in Decentralized Finance (DeFi) to build and deploy a wide array of complex decentralized applications as well as financial strategies respectively. 
 For the latter, a financial engineer may want to test their strategies against thousands of market conditions, contract settings, shocks, and autonomous or random or even AI agents all while making sure their strategy isn't vulnerable to bytecode-level exploits.
 
 To configure such a rich simulation environment on a test or local network is also possible with Arbiter by a change in choice of middleware. 
