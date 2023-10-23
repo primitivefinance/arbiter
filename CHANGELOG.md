@@ -6,6 +6,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.4](https://github.com/primitivefinance/arbiter/compare/arbiter-v0.4.3...arbiter-v0.4.4) - 2023-10-23
+
+### Other
+- cargo lock
+- *(deps)* update toml requirement from =0.8.2 to =0.8.4
+
 ## [0.4.3](https://github.com/primitivefinance/arbiter/compare/arbiter-v0.4.2...arbiter-v0.4.3) - 2023-10-22
 
 ### Fixed
