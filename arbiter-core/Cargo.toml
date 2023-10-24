@@ -43,7 +43,7 @@ thiserror =  { version = "=1.0.50" }
 
 # Logging
 futures-util =  { version = "=0.3.28" }
-tracing = "0.1.37"
+tracing = "0.1.40"
 
 # Dependencies for the test build and development
 [dev-dependencies]
