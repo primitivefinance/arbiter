@@ -138,6 +138,21 @@ The biggest reasons why we chose to build Arbiter was to gain more control over 
 For the following, Anvil was set to mine blocks for each transaction as opposed to setting an enforced block time and the `Environment` was set with a block rate of 10.0 (this was chosen somewhat arbitrarily as we will add in more block control in the future).
 Preliminary benchmarks of the `RevmMiddleware` interface over `revm` against Anvil are given in the following table.
 
+to run the benchmarking code yourself, you can run:
+```bash
+cargo bench --package arbiter-core -F contracts
+```
+
+bench from 10/24/23 arbiter-core v0.6.3
+| Operation       |  RevmMiddlwware |    Anvil     | Relative Difference |
+|-----------------|-----------------|--------------|---------------------|
+| Deploy          | 238.975µs       | 7712.436µs   | ~32.2729x           |
+| Lookup          | 565.617µs       | 17880.124µs  | ~31.6117x           |
+| Stateless Call  | 1402.524µs      | 10397.55µs   | ~7.413456x          |
+| Stateful Call   | 2043.88µs       | 154553.225µs | ~75.61756x          |
+
+
+bench from 06/??/23ish arbiter-core v0.4.??
 | Operation       |  RevmMiddlwware |    Anvil     | Relative Difference |
 |-----------------|-----------------|--------------|---------------------|
 | Deploy          | 241.819µs       | 8.215446ms   | ~33.97x             |
