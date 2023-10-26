@@ -17,12 +17,15 @@
 //!   `Sync`, and has a static lifetime.
 //! * `E` - Type that implements the `EthLogDecode`, `Debug`, `Serialize`
 //!   traits, and has a static lifetime.
-use std::{collections::BTreeMap, env::current_dir, fmt::Debug, sync::Arc};
+use std::{
+    collections::BTreeMap, env::current_dir, fmt::Debug, marker::PhantomData, mem::transmute,
+    sync::Arc,
+};
 
 use ethers::{
     contract::{builders::Event, EthLogDecode},
     providers::{Middleware, StreamExt as ProviderStreamExt},
-    types::FilteredParams,
+    types::{Filter, FilteredParams},
 };
 use serde::Serialize;
 use serde_json::Value;
@@ -79,12 +82,15 @@ impl EventLogger {
     /// The `EventLogger` instance with the added event.
     pub fn add<S: Into<String>, E: EthLogDecode + Debug + Serialize + 'static>(
         mut self,
-        client: Arc<RevmMiddleware>,
         event: Event<Arc<RevmMiddleware>, RevmMiddleware, E>,
         name: S,
     ) -> Self {
         // Grab the connection from the client and add a new event sender so that we have a distinct channel to now receive events over
-        let connection = client.provider().as_ref();
+        let event_transmuted: EventTransmuted<Arc<RevmMiddleware>, RevmMiddleware, E> =
+            unsafe { transmute(event) };
+        let middleware = event_transmuted.provider.clone();
+        let filter = event_transmuted.filter.clone();
+        let connection = middleware.provider().as_ref();
         let (event_sender, event_receiver) = crossbeam_channel::unbounded::<Broadcast>();
         connection
             .event_broadcaster
@@ -96,7 +102,7 @@ impl EventLogger {
 
         std::thread::spawn(move || {
             let mut logs = vec![];
-            let filtered_params = FilteredParams::new(Some(event.filter.clone()));
+            let filtered_params = FilteredParams::new(Some(filter));
             while let Ok(broadcast) = event_receiver.recv() {
                 match broadcast {
                     Broadcast::StopSignal => break,
@@ -228,4 +234,13 @@ impl EventLogger {
         });
         Ok(())
     }
+}
+
+pub struct EventTransmuted<B, M, D> {
+    /// The event filter's state
+    pub filter: Filter,
+    pub(crate) provider: B,
+    /// Stores the event datatype
+    pub(crate) datatype: PhantomData<D>,
+    pub(crate) _m: PhantomData<M>,
 }
