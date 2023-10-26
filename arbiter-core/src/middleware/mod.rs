@@ -82,7 +82,7 @@ pub mod nonce_middleware;
 /// useful for debugging and post-processing.
 #[derive(Debug)]
 pub struct RevmMiddleware {
-    provider: Provider<Connection>,
+    pub(crate) provider: Provider<Connection>,
     wallet: EOA,
 }
 
