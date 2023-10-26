@@ -37,7 +37,6 @@ use crate::{
     middleware::{cast::revm_logs_to_ethers_logs, errors::RevmMiddlewareError, RevmMiddleware},
 };
 
-pub trait Decodable = EthLogDecode + Debug + Serialize + 'static + Send + Sync;
 
 /// `EventLogger` is a struct that logs events from the Ethereum network.
 ///
@@ -54,9 +53,8 @@ pub trait Decodable = EthLogDecode + Debug + Serialize + 'static + Send + Sync;
 /// * `E` - Type that implements the `EthLogDecode`, `Debug`, `Serialize`
 ///   traits, and has a static lifetime.
 pub struct EventLogger {
-    events: tokio::task::JoinSet<()>,
     receiver: Option<crossbeam_channel::Receiver<Broadcast>>,
-    decoder: BTreeMap<String, (FilteredParams, Box<dyn Fn(&RawLog) -> String>)>,
+    decoder: BTreeMap<String, (FilteredParams, Box<dyn Fn(&RawLog) -> String + Send + Sync>)>,
     path: Option<String>,
 }
 
@@ -69,7 +67,6 @@ impl EventLogger {
     /// no specified path.
     pub fn builder() -> Self {
         Self {
-            events: tokio::task::JoinSet::new(),
             path: None,
             decoder: BTreeMap::new(),
             receiver: None,
@@ -86,7 +83,7 @@ impl EventLogger {
     /// # Returns
     ///
     /// The `EventLogger` instance with the added event.
-    pub fn add<S: Into<String>, D: Decodable>(
+    pub fn add<S: Into<String>, D: EthLogDecode + Debug + Serialize + 'static>(
         mut self,
         event: Event<Arc<RevmMiddleware>, RevmMiddleware, D>,
         name: S,
@@ -244,14 +241,14 @@ impl EventLogger {
     pub fn run(self) -> Result<(), RevmMiddlewareError> {
         let receiver = self.receiver.unwrap();
         std::thread::spawn(move || {
-            let mut logs = vec![];
+            //let mut logs = vec![];
             while let Ok(broadcast) = receiver.recv() {
                 match broadcast {
                     Broadcast::StopSignal => break,
                     Broadcast::Event(event) => {
                         let ethers_logs = revm_logs_to_ethers_logs(event);
                         for log in ethers_logs {
-                            for (name, (filter, decoder)) in self.decoder.into_iter() {
+                            for (name, (filter, decoder)) in self.decoder.iter() {
                                 if filter.filter_address(&log)
                                     && filter.filter_topics(&log)
                                 {
