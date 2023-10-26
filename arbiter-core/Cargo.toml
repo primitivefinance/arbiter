@@ -42,7 +42,7 @@ RustQuant = { version = "=0.0.35", features = ["seedable"]}
 thiserror =  { version = "=1.0.50" }
 
 # Logging
-futures-util =  { version = "=0.3.28" }
+futures-util =  { version = "=0.3.29" }
 tracing = "0.1.40"
 
 # Dependencies for the test build and development
