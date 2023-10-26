@@ -241,7 +241,7 @@ impl EventLogger {
     pub fn run(self) -> Result<(), RevmMiddlewareError> {
         let receiver = self.receiver.unwrap();
         std::thread::spawn(move || {
-            //let mut logs = vec![];
+            let mut logs: Vec<String> = vec![];
             while let Ok(broadcast) = receiver.recv() {
                 match broadcast {
                     Broadcast::StopSignal => break,
@@ -252,9 +252,9 @@ impl EventLogger {
                                 if filter.filter_address(&log)
                                     && filter.filter_topics(&log)
                                 {
-                                    let cloned_log = log.clone();
-                                    println!("log: {}", decoder(&cloned_log.into()));
-                                    // logs.push(ethers::types::Log::try_from(cloned_log));
+                                    let cloned_logs = log.clone();
+                                    let decoded = decoder(&cloned_logs.into());
+                                    logs.push(decoded);
                                 }
                             }
                         }
