@@ -53,7 +53,7 @@ anyhow =  { version = "=1.0.75" }
 test-log =  { version = "=0.2.13" }
 tracing-test = "0.2.4"
 
-futures =  { version = "=0.3.28" }
+futures =  { version = "=0.3.29" }
 assert_matches =  { version = "=1.5" }
 
 [[bench]]
