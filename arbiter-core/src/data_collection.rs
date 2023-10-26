@@ -147,15 +147,15 @@ impl EventLogger {
     pub fn run(self) -> Result<(), RevmMiddlewareError> {
         let receiver = self.receiver.unwrap();
         std::thread::spawn(move || {
-            let mut logs: BTreeMap<String, BTreeMap<String, BTreeMap<String, Vec<String>>>> =
+            let mut logs: BTreeMap<String, BTreeMap<String, Vec<Value>>> =
                 BTreeMap::new();
             while let Ok(broadcast) = receiver.recv() {
                 match broadcast {
                     Broadcast::StopSignal => {
-                        // let file = File::create("logs.json").expect("Unable to create file");
-                        // let writer = BufWriter::new(file);
-                        // let cleaned_logs = logs.iter().map(|x| serde_json::from_str(x).unwrap()).collect::<Vec<Value>>();
-                        // serde_json::to_writer(writer, &cleaned_logs).expect("Unable to write data");
+                        println!("logs: {:#?}", logs);
+                        let file = File::create("logs.json").expect("Unable to create file");
+                        let writer = BufWriter::new(file);
+                        serde_json::to_writer(writer, &logs).expect("Unable to write data");
                         break;
                     }
                     Broadcast::Event(event) => {
@@ -184,22 +184,13 @@ impl EventLogger {
 
                                     let event = contract.get_mut(&event_name);
                                     if event.is_none() {
-                                        contract.insert(event_name.to_string(), BTreeMap::new());
+                                        contract.insert(event_name.to_string(), vec![]);
                                     }
                                     let event = contract.get_mut(&event_name).unwrap();
 
-                                    for (key, value) in event_as_object {
-                                        let inner = event.get_mut(key);
-                                        if inner.is_none() {
-                                            event.insert(key.to_string(), vec![]);
-                                        }
-                                        let inner = event.get_mut(key).unwrap();
-                                        inner.push(value.to_string());
+                                    for (_key, value) in event_as_object {
+                                        event.push(value.clone());
                                     }
-
-                                    println!("event: {:#?}", event);
-
-                                    println!("logs: {:#?}", logs);
                                 }
                             }
                         }
