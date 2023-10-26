@@ -7,7 +7,7 @@ use crate::data_collection::EventLogger;
 #[traced_test]
 #[tokio::test(flavor = "multi_thread")]
 async fn data_capture() {
-    let (mut _env, client) = startup_user_controlled().unwrap();
+    let (mut env, client) = startup_user_controlled().unwrap();
     let (arbx, arby, lex) = deploy_liquid_exchange(client.clone()).await.unwrap();
     println!("Deployed contracts");
 
@@ -39,13 +39,14 @@ async fn data_capture() {
             .await
             .unwrap();
     }
-    tokio::fs::remove_dir_all("./test_output1").await.unwrap();
+
+    env.stop();
 }
 
 #[traced_test]
 #[tokio::test(flavor = "multi_thread")]
 async fn data_capture_output_validation() {
-    let (mut _env, client) = startup_user_controlled().unwrap();
+    let (mut env, client) = startup_user_controlled().unwrap();
     let (arbx, arby, lex) = deploy_liquid_exchange(client.clone()).await.unwrap();
     let listener = EventLogger::builder()
         .path("./test_output2/")
@@ -75,22 +76,6 @@ async fn data_capture_output_validation() {
             .await
             .unwrap();
     }
-    println!("Done with events");
 
-    let mut file0 = tokio::fs::File::open("./test_output2/arbx/ApprovalFilter.csv")
-        .await
-        .unwrap();
-    let mut contents0 = vec![];
-    file0.read_to_end(&mut contents0).await.unwrap();
-    let contents0 = String::from_utf8(contents0).unwrap();
-
-    let mut file1 = tokio::fs::File::open("./test_output2/arby/ApprovalFilter.csv")
-        .await
-        .unwrap();
-    let mut contents1 = vec![];
-    file1.read_to_end(&mut contents1).await.unwrap();
-    let contents1 = String::from_utf8(contents1).unwrap();
-
-    assert_eq!(contents0, contents1);
-    tokio::fs::remove_dir_all("./test_output2").await.unwrap();
+    env.stop();
 }

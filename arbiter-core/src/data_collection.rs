@@ -19,13 +19,14 @@
 //!   traits, and has a static lifetime.
 use std::{
     collections::BTreeMap, env::current_dir, fmt::Debug, marker::PhantomData, mem::transmute,
-    sync::Arc,
+    sync::Arc, io::BufWriter, fs::File,
 };
 
 use ethers::{
+    abi::RawLog,
     contract::{builders::Event, EthLogDecode},
     providers::{Middleware, StreamExt as ProviderStreamExt},
-    types::{Filter, FilteredParams}, abi::RawLog,
+    types::{Filter, FilteredParams},
 };
 use serde::Serialize;
 use serde_json::Value;
@@ -36,7 +37,6 @@ use crate::{
     environment::{Broadcast, Socket},
     middleware::{cast::revm_logs_to_ethers_logs, errors::RevmMiddlewareError, RevmMiddleware},
 };
-
 
 /// `EventLogger` is a struct that logs events from the Ethereum network.
 ///
@@ -96,10 +96,7 @@ impl EventLogger {
         let filter = event_transmuted.filter.clone();
         self.decoder.insert(
             name.into(),
-            (FilteredParams::new(Some(filter)),
-            Box::new(
-                decoder
-            ))
+            (FilteredParams::new(Some(filter)), Box::new(decoder)),
         );
         let connection = middleware.provider().as_ref();
         if self.receiver.is_none() {
@@ -111,97 +108,6 @@ impl EventLogger {
                 .add_sender(event_sender);
             self.receiver = Some(event_receiver);
         }
-
-        // In here we build as big of a filter as we want, then pass to run to actually get ALL the events
-
-        // std::thread::spawn(move || {
-        //     let mut logs = vec![];
-        //     let filtered_params = FilteredParams::new(Some(filter));
-        //     while let Ok(broadcast) = event_receiver.recv() {
-        //         match broadcast {
-        //             Broadcast::StopSignal => break,
-        //             Broadcast::Event(event) => {
-        //                 let ethers_logs = revm_logs_to_ethers_logs(event);
-        //                 for log in ethers_logs {
-        //                     if filtered_params.filter_address(&log)
-        //                         && filtered_params.filter_topics(&log)
-        //                     {
-        //                         logs.push(log);
-        //                     }
-        //                 }
-        //             }
-        //         }
-        //     }
-        // });
-
-        // let name = name.into();
-        // let event_dir = current_dir()
-        //     .unwrap()
-        //     .join(self.path.clone().unwrap_or("events".into()))
-        //     .join(name);
-        // std::fs::create_dir_all(&event_dir).unwrap();
-        // self.events.spawn(async move {
-        //     let mut stream = event.stream().await.unwrap();
-        //     let mut files: BTreeMap<String, tokio::fs::File> = BTreeMap::new();
-        //     let mut columns_written: BTreeMap<String, bool> = BTreeMap::new();
-        //     while let Some(Ok(log)) = stream.next().await {
-        //         let serialized = serde_json::to_string(&log).unwrap();
-        //         let deserialized: BTreeMap<String, Value> =
-        //             serde_json::from_str(&serialized).unwrap();
-        //         let (key, value) = deserialized.iter().next().unwrap();
-        //         let file_name = event_dir.join(format!("{}.csv", key));
-        //         let file_key = file_name.to_str().unwrap();
-        //         let file_value = files.get(file_key);
-        //         let toggle_written_columns = columns_written.get(file_key).unwrap_or(&false);
-        //         if file_value.is_none() {
-        //             files.insert(
-        //                 file_key.into(),
-        //                 tokio::fs::OpenOptions::new()
-        //                     .write(true)
-        //                     .create(true)
-        //                     .truncate(true)
-        //                     .open(&file_name)
-        //                     .await
-        //                     .unwrap(),
-        //             );
-        //         }
-
-        //         let file = files.get_mut(file_key).unwrap();
-
-        //         if toggle_written_columns == &true {
-        //             let values = value
-        //                 .as_object()
-        //                 .unwrap()
-        //                 .values()
-        //                 .map(|x| x.to_string())
-        //                 .collect::<Vec<String>>()
-        //                 .join(",");
-        //             file.write_all(values.as_bytes()).await.unwrap();
-        //             file.write_all("\n".as_bytes()).await.unwrap();
-        //         } else {
-        //             columns_written.entry(file_key.into()).or_insert(true);
-        //             let columns = value
-        //                 .as_object()
-        //                 .unwrap()
-        //                 .keys()
-        //                 .map(|x| x.to_string())
-        //                 .collect::<Vec<String>>()
-        //                 .join(",");
-        //             file.write_all(columns.as_bytes()).await.unwrap();
-        //             file.write_all("\n".as_bytes()).await.unwrap();
-        //             let values = value
-        //                 .as_object()
-        //                 .unwrap()
-        //                 .values()
-        //                 .map(|x| x.to_string())
-        //                 .collect::<Vec<String>>()
-        //                 .join(",");
-        //             file.write_all(values.as_bytes()).await.unwrap();
-        //             file.write_all("\n".as_bytes()).await.unwrap();
-        //         }
-        //         continue;
-        //     }
-        // });
         self
     }
     /// Sets the path for the `EventLogger`.
@@ -241,20 +147,38 @@ impl EventLogger {
     pub fn run(self) -> Result<(), RevmMiddlewareError> {
         let receiver = self.receiver.unwrap();
         std::thread::spawn(move || {
-            let mut logs: Vec<String> = vec![];
+            let mut logs: BTreeMap<String, BTreeMap<String, Vec<Vec<&Value>>>> = BTreeMap::new();
             while let Ok(broadcast) = receiver.recv() {
                 match broadcast {
-                    Broadcast::StopSignal => break,
+                    Broadcast::StopSignal => {
+                        // let file = File::create("logs.json").expect("Unable to create file");
+                        // let writer = BufWriter::new(file);
+                        // let cleaned_logs = logs.iter().map(|x| serde_json::from_str(x).unwrap()).collect::<Vec<Value>>();
+                        // serde_json::to_writer(writer, &cleaned_logs).expect("Unable to write data");
+                        break;
+                    }
                     Broadcast::Event(event) => {
                         let ethers_logs = revm_logs_to_ethers_logs(event);
                         for log in ethers_logs {
                             for (name, (filter, decoder)) in self.decoder.iter() {
-                                if filter.filter_address(&log)
-                                    && filter.filter_topics(&log)
-                                {
+                                if filter.filter_address(&log) && filter.filter_topics(&log) {
+                                    // name (contract_name) -> event_name -> vec[events]
+                                    // BTreeMap<String, BTreeMap<String, Vec<String>>>
                                     let cloned_logs = log.clone();
-                                    let decoded = decoder(&cloned_logs.into());
-                                    logs.push(decoded);
+                                    let decoded: Value = serde_json::from_str(&decoder(&cloned_logs.into())).unwrap();
+                                    let outer = logs.get(name);
+                                    if outer.is_none() {
+                                        logs.insert(name.clone(), BTreeMap::new());
+                                    }
+                                    let outer = logs.get_mut(name).unwrap();
+                                    let inner_key = decoded.clone().as_object().unwrap().keys().collect::<Vec<&String>>()[0].clone();
+                                    let inner = outer.get_mut(&inner_key);
+                                    if inner.is_none() {
+                                        outer.insert(inner_key.to_string(), Vec::new());
+                                    }
+                                    let inner = outer.get_mut(&inner_key).unwrap();
+                                    inner.push(decoded.clone().as_object().unwrap().values().collect::<Vec<&Value>>());
+                                    // inner.push(decoded.as_object().unwrap().values().collect());
                                 }
                             }
                         }
@@ -264,7 +188,6 @@ impl EventLogger {
         });
         Ok(())
     }
-
 }
 
 pub struct EventTransmuted<B, M, D> {

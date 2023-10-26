@@ -581,6 +581,7 @@ impl Environment {
                         outcome_sender
                             .send(Ok(Outcome::StopCompleted))
                             .map_err(|e| EnvironmentError::Communication(e.to_string()))?;
+                        event_broadcaster.lock().unwrap().broadcast(None, true)?;
                         break;
                     }
                 }
