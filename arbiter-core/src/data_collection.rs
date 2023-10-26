@@ -92,6 +92,8 @@ impl EventLogger {
             .unwrap()
             .add_sender(event_sender);
 
+        // In here we build as big of a filter as we want, then pass to run to actually get ALL the events
+
         std::thread::spawn(move || {
             let mut logs = vec![];
             let filtered_params = FilteredParams::new(Some(event.filter.clone()));
