@@ -27,12 +27,12 @@ arbiter-core = { version = "0.6.1", path = "arbiter-core" }
 
 # Command line and config
 clap = { version = "=4.4.7", features = ["derive"] }
-serde = { version = "=1.0.189", features = ["derive"] }
+serde = { version = "=1.0.190", features = ["derive"] }
 serde_json = { version = "=1.0.107" }
 config = { version = "=0.13.3" }
 ethers = { version = "=2.0.10" }
 revm = { version = "=3.5.0", features = [ "ethersdb", "std" ] }
-toml = { version = "=0.8.4" }
+toml = { version = "=0.8.5" }
 proc-macro2 = { version = "=1.0.69" }
 syn = { version = "=2.0.38" }
 Inflector = { version = "=0.11.4" }
