@@ -151,7 +151,6 @@ impl EventLogger {
             while let Ok(broadcast) = receiver.recv() {
                 match broadcast {
                     Broadcast::StopSignal => {
-                        println!("logs: {:#?}", logs);
                         let file = File::create("logs.json").expect("Unable to create file");
                         let writer = BufWriter::new(file);
                         serde_json::to_writer(writer, &logs).expect("Unable to write data");
@@ -162,8 +161,6 @@ impl EventLogger {
                         for log in ethers_logs {
                             for (contract_name, (filter, decoder)) in self.decoder.iter() {
                                 if filter.filter_address(&log) && filter.filter_topics(&log) {
-                                    // name (contract_name) -> event_name -> vec[events]
-                                    // BTreeMap<String, BTreeMap<String, Vec<String>>>
                                     let cloned_logs = log.clone();
                                     let event_as_value = serde_json::from_str::<Value>(&decoder(
                                         &cloned_logs.into(),
