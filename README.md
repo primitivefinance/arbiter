@@ -144,7 +144,7 @@ cargo bench --package arbiter-core -F contracts
 ```
 
 bench from 10/24/23 arbiter-core v0.6.3
-| Operation       |  RevmMiddlwware |    Anvil     | Relative Difference |
+| Operation       |  RevmMiddleware |    Anvil     | Relative Difference |
 |-----------------|-----------------|--------------|---------------------|
 | Deploy          | 238.975µs       | 7712.436µs   | ~32.2729x           |
 | Lookup          | 565.617µs       | 17880.124µs  | ~31.6117x           |
@@ -153,7 +153,7 @@ bench from 10/24/23 arbiter-core v0.6.3
 
 
 bench from 06/??/23ish arbiter-core v0.4.??
-| Operation       |  RevmMiddlwware |    Anvil     | Relative Difference |
+| Operation       |  RevmMiddleware |    Anvil     | Relative Difference |
 |-----------------|-----------------|--------------|---------------------|
 | Deploy          | 241.819µs       | 8.215446ms   | ~33.97x             |
 | Lookup          | 480.319µs       | 13.052063ms  | ~27.17x             |
