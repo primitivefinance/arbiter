@@ -18,8 +18,8 @@
 //! * `E` - Type that implements the `EthLogDecode`, `Debug`, `Serialize`
 //!   traits, and has a static lifetime.
 use std::{
-    collections::BTreeMap, env::current_dir, fmt::Debug, marker::PhantomData, mem::transmute,
-    sync::Arc, io::BufWriter, fs::File,
+    collections::BTreeMap, env::current_dir, fmt::Debug, fs::File, io::BufWriter,
+    marker::PhantomData, mem::transmute, sync::Arc,
 };
 
 use ethers::{
@@ -147,7 +147,8 @@ impl EventLogger {
     pub fn run(self) -> Result<(), RevmMiddlewareError> {
         let receiver = self.receiver.unwrap();
         std::thread::spawn(move || {
-            let mut logs: BTreeMap<String, BTreeMap<String, Vec<Vec<&Value>>>> = BTreeMap::new();
+            let mut logs: BTreeMap<String, BTreeMap<String, BTreeMap<String, Vec<String>>>> =
+                BTreeMap::new();
             while let Ok(broadcast) = receiver.recv() {
                 match broadcast {
                     Broadcast::StopSignal => {
@@ -160,25 +161,45 @@ impl EventLogger {
                     Broadcast::Event(event) => {
                         let ethers_logs = revm_logs_to_ethers_logs(event);
                         for log in ethers_logs {
-                            for (name, (filter, decoder)) in self.decoder.iter() {
+                            for (contract_name, (filter, decoder)) in self.decoder.iter() {
                                 if filter.filter_address(&log) && filter.filter_topics(&log) {
                                     // name (contract_name) -> event_name -> vec[events]
                                     // BTreeMap<String, BTreeMap<String, Vec<String>>>
                                     let cloned_logs = log.clone();
-                                    let decoded: Value = serde_json::from_str(&decoder(&cloned_logs.into())).unwrap();
-                                    let outer = logs.get(name);
-                                    if outer.is_none() {
-                                        logs.insert(name.clone(), BTreeMap::new());
+                                    let event_as_value = serde_json::from_str::<Value>(&decoder(
+                                        &cloned_logs.into(),
+                                    ))
+                                    .unwrap();
+                                    let event_as_object = event_as_value.as_object().unwrap();
+
+                                    let contract = logs.get(contract_name);
+                                    if contract.is_none() {
+                                        logs.insert(contract_name.clone(), BTreeMap::new());
                                     }
-                                    let outer = logs.get_mut(name).unwrap();
-                                    let inner_key = decoded.clone().as_object().unwrap().keys().collect::<Vec<&String>>()[0].clone();
-                                    let inner = outer.get_mut(&inner_key);
-                                    if inner.is_none() {
-                                        outer.insert(inner_key.to_string(), Vec::new());
+                                    let contract = logs.get_mut(contract_name).unwrap();
+
+                                    let event_name =
+                                        event_as_object.clone().keys().collect::<Vec<&String>>()[0]
+                                            .clone();
+
+                                    let event = contract.get_mut(&event_name);
+                                    if event.is_none() {
+                                        contract.insert(event_name.to_string(), BTreeMap::new());
                                     }
-                                    let inner = outer.get_mut(&inner_key).unwrap();
-                                    inner.push(decoded.clone().as_object().unwrap().values().collect::<Vec<&Value>>());
-                                    // inner.push(decoded.as_object().unwrap().values().collect());
+                                    let event = contract.get_mut(&event_name).unwrap();
+
+                                    for (key, value) in event_as_object {
+                                        let inner = event.get_mut(key);
+                                        if inner.is_none() {
+                                            event.insert(key.to_string(), vec![]);
+                                        }
+                                        let inner = event.get_mut(key).unwrap();
+                                        inner.push(value.to_string());
+                                    }
+
+                                    println!("event: {:#?}", event);
+
+                                    println!("logs: {:#?}", logs);
                                 }
                             }
                         }
