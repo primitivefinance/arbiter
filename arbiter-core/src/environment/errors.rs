@@ -56,7 +56,7 @@ pub enum EnvironmentError {
     /// [`EventBroadcaster`] fails to broadcast events. This should be
     /// rare (if not impossible). If this is thrown, please report this error!
     #[error("error broadcasting! the source error is: {0}")]
-    Broadcast(#[from] crossbeam_channel::SendError<Vec<Log>>),
+    Broadcast(#[from] crossbeam_channel::SendError<Broadcast>),
 
     /// [`EnvironmentError::Conversion`] is thrown when a type fails to
     /// convert into another (typically a type used in `revm` versus a type used

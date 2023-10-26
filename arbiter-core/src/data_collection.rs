@@ -30,7 +30,7 @@ use tokio::io::AsyncWriteExt;
 use tracing::info;
 
 use crate::{
-    environment::Socket,
+    environment::{Broadcast, Socket},
     middleware::{cast::revm_logs_to_ethers_logs, errors::RevmMiddlewareError, RevmMiddleware},
 };
 
@@ -85,8 +85,7 @@ impl EventLogger {
     ) -> Self {
         // Grab the connection from the client and add a new event sender so that we have a distinct channel to now receive events over
         let connection = client.provider().as_ref();
-        let (event_sender, event_receiver) =
-            crossbeam_channel::unbounded::<Vec<revm::primitives::Log>>();
+        let (event_sender, event_receiver) = crossbeam_channel::unbounded::<Broadcast>();
         connection
             .event_broadcaster
             .lock()
@@ -96,11 +95,18 @@ impl EventLogger {
         std::thread::spawn(move || {
             let mut logs = vec![];
             let filtered_params = FilteredParams::new(Some(event.filter.clone()));
-            while let Ok(received_logs) = event_receiver.recv() {
-                let ethers_logs = revm_logs_to_ethers_logs(received_logs);
-                for log in ethers_logs {
-                    if filtered_params.filter_address(&log) && filtered_params.filter_topics(&log) {
-                        logs.push(log);
+            while let Ok(broadcast) = event_receiver.recv() {
+                match broadcast {
+                    Broadcast::StopSignal => break,
+                    Broadcast::Event(event) => {
+                        let ethers_logs = revm_logs_to_ethers_logs(event);
+                        for log in ethers_logs {
+                            if filtered_params.filter_address(&log)
+                                && filtered_params.filter_topics(&log)
+                            {
+                                logs.push(log);
+                            }
+                        }
                     }
                 }
             }
