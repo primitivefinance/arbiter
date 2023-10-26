@@ -30,8 +30,6 @@ use ethers::{
 };
 use serde::Serialize;
 use serde_json::Value;
-use tokio::io::AsyncWriteExt;
-use tracing::info;
 
 use crate::{
     environment::{Broadcast, Socket},
@@ -53,9 +51,10 @@ use crate::{
 /// * `E` - Type that implements the `EthLogDecode`, `Debug`, `Serialize`
 ///   traits, and has a static lifetime.
 pub struct EventLogger {
-    receiver: Option<crossbeam_channel::Receiver<Broadcast>>,
+    directory: Option<String>,
+    file_name: Option<String>,
     decoder: BTreeMap<String, (FilteredParams, Box<dyn Fn(&RawLog) -> String + Send + Sync>)>,
-    path: Option<String>,
+    receiver: Option<crossbeam_channel::Receiver<Broadcast>>,
 }
 
 impl EventLogger {
@@ -67,7 +66,8 @@ impl EventLogger {
     /// no specified path.
     pub fn builder() -> Self {
         Self {
-            path: None,
+            directory: None,
+            file_name: None,
             decoder: BTreeMap::new(),
             receiver: None,
         }
@@ -110,17 +110,31 @@ impl EventLogger {
         }
         self
     }
-    /// Sets the path for the `EventLogger`.
+    /// Sets the directory for the `EventLogger`.
     ///
     /// # Arguments
     ///
-    /// * `path` - The path where the event logs will be stored.
+    /// * `directory` - The directory where the event logs will be stored.
     ///
     /// # Returns
     ///
-    /// The `EventLogger` instance with the specified path.
-    pub fn path<S: Into<String>>(mut self, path: S) -> Self {
-        self.path = Some(path.into());
+    /// The `EventLogger` instance with the specified directory.
+    pub fn directory<S: Into<String>>(mut self, path: S) -> Self {
+        self.directory = Some(path.into());
+        self
+    }
+
+    /// Sets the output file name for the `EventLogger`.
+    ///
+    /// # Arguments
+    ///
+    /// * `file_name` - The file where the event logs will be stored.
+    ///
+    /// # Returns
+    ///
+    /// The `EventLogger` instance with the specified file.
+    pub fn file_name<S: Into<String>>(mut self, path: S) -> Self {
+        self.file_name = Some(path.into());
         self
     }
 
@@ -146,12 +160,18 @@ impl EventLogger {
     /// directories or files, or writing to the files.
     pub fn run(self) -> Result<(), RevmMiddlewareError> {
         let receiver = self.receiver.unwrap();
+        let dir = self.directory.unwrap_or("./out".into());
+        let file_name = self.file_name.unwrap_or("output".into());
         std::thread::spawn(move || {
             let mut logs: BTreeMap<String, BTreeMap<String, Vec<Value>>> = BTreeMap::new();
             while let Ok(broadcast) = receiver.recv() {
                 match broadcast {
                     Broadcast::StopSignal => {
-                        let file = File::create("logs.json").expect("Unable to create file");
+                        // create new directory with path
+                        let output_dir = std::env::current_dir().unwrap().join(dir);
+                        std::fs::create_dir_all(&output_dir).unwrap();
+                        let file_path = output_dir.join(format!("{}.json", file_name));
+                        let file = std::fs::File::create(file_path).unwrap();
                         let writer = BufWriter::new(file);
                         serde_json::to_writer(writer, &logs).expect("Unable to write data");
                         break;
