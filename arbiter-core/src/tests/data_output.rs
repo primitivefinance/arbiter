@@ -9,6 +9,7 @@ use crate::data_collection::EventLogger;
 async fn data_capture() {
     let (mut _env, client) = startup_user_controlled().unwrap();
     let (arbx, arby, lex) = deploy_liquid_exchange(client.clone()).await.unwrap();
+    println!("Deployed contracts");
 
     let listener = EventLogger::builder()
         .path("./test_output1")
@@ -74,6 +75,7 @@ async fn data_capture_output_validation() {
             .await
             .unwrap();
     }
+    println!("Done with events");
 
     let mut file0 = tokio::fs::File::open("./test_output2/arbx/ApprovalFilter.csv")
         .await

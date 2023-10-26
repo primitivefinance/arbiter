@@ -25,7 +25,7 @@ use std::{
 use ethers::{
     contract::{builders::Event, EthLogDecode},
     providers::{Middleware, StreamExt as ProviderStreamExt},
-    types::{Filter, FilteredParams},
+    types::{Filter, FilteredParams}, abi::RawLog,
 };
 use serde::Serialize;
 use serde_json::Value;
@@ -36,6 +36,8 @@ use crate::{
     environment::{Broadcast, Socket},
     middleware::{cast::revm_logs_to_ethers_logs, errors::RevmMiddlewareError, RevmMiddleware},
 };
+
+pub trait Decodable = EthLogDecode + Debug + Serialize + 'static + Send + Sync;
 
 /// `EventLogger` is a struct that logs events from the Ethereum network.
 ///
@@ -53,6 +55,8 @@ use crate::{
 ///   traits, and has a static lifetime.
 pub struct EventLogger {
     events: tokio::task::JoinSet<()>,
+    receiver: Option<crossbeam_channel::Receiver<Broadcast>>,
+    decoder: BTreeMap<String, (FilteredParams, Box<dyn Fn(&RawLog) -> String>)>,
     path: Option<String>,
 }
 
@@ -67,6 +71,8 @@ impl EventLogger {
         Self {
             events: tokio::task::JoinSet::new(),
             path: None,
+            decoder: BTreeMap::new(),
+            receiver: None,
         }
     }
 
@@ -80,45 +86,56 @@ impl EventLogger {
     /// # Returns
     ///
     /// The `EventLogger` instance with the added event.
-    pub fn add<S: Into<String>, E: EthLogDecode + Debug + Serialize + 'static>(
+    pub fn add<S: Into<String>, D: Decodable>(
         mut self,
-        event: Event<Arc<RevmMiddleware>, RevmMiddleware, E>,
+        event: Event<Arc<RevmMiddleware>, RevmMiddleware, D>,
         name: S,
     ) -> Self {
         // Grab the connection from the client and add a new event sender so that we have a distinct channel to now receive events over
-        let event_transmuted: EventTransmuted<Arc<RevmMiddleware>, RevmMiddleware, E> =
+        let event_transmuted: EventTransmuted<Arc<RevmMiddleware>, RevmMiddleware, D> =
             unsafe { transmute(event) };
         let middleware = event_transmuted.provider.clone();
+        let decoder = |x: &_| serde_json::to_string(&D::decode_log(x).unwrap()).unwrap();
         let filter = event_transmuted.filter.clone();
+        self.decoder.insert(
+            name.into(),
+            (FilteredParams::new(Some(filter)),
+            Box::new(
+                decoder
+            ))
+        );
         let connection = middleware.provider().as_ref();
-        let (event_sender, event_receiver) = crossbeam_channel::unbounded::<Broadcast>();
-        connection
-            .event_broadcaster
-            .lock()
-            .unwrap()
-            .add_sender(event_sender);
+        if self.receiver.is_none() {
+            let (event_sender, event_receiver) = crossbeam_channel::unbounded::<Broadcast>();
+            connection
+                .event_broadcaster
+                .lock()
+                .unwrap()
+                .add_sender(event_sender);
+            self.receiver = Some(event_receiver);
+        }
 
         // In here we build as big of a filter as we want, then pass to run to actually get ALL the events
 
-        std::thread::spawn(move || {
-            let mut logs = vec![];
-            let filtered_params = FilteredParams::new(Some(filter));
-            while let Ok(broadcast) = event_receiver.recv() {
-                match broadcast {
-                    Broadcast::StopSignal => break,
-                    Broadcast::Event(event) => {
-                        let ethers_logs = revm_logs_to_ethers_logs(event);
-                        for log in ethers_logs {
-                            if filtered_params.filter_address(&log)
-                                && filtered_params.filter_topics(&log)
-                            {
-                                logs.push(log);
-                            }
-                        }
-                    }
-                }
-            }
-        });
+        // std::thread::spawn(move || {
+        //     let mut logs = vec![];
+        //     let filtered_params = FilteredParams::new(Some(filter));
+        //     while let Ok(broadcast) = event_receiver.recv() {
+        //         match broadcast {
+        //             Broadcast::StopSignal => break,
+        //             Broadcast::Event(event) => {
+        //                 let ethers_logs = revm_logs_to_ethers_logs(event);
+        //                 for log in ethers_logs {
+        //                     if filtered_params.filter_address(&log)
+        //                         && filtered_params.filter_topics(&log)
+        //                     {
+        //                         logs.push(log);
+        //                     }
+        //                 }
+        //             }
+        //         }
+        //     }
+        // });
 
         // let name = name.into();
         // let event_dir = current_dir()
@@ -190,7 +207,6 @@ impl EventLogger {
         // });
         self
     }
-
     /// Sets the path for the `EventLogger`.
     ///
     /// # Arguments
@@ -226,14 +242,32 @@ impl EventLogger {
     /// This function will return an error if there is a problem creating the
     /// directories or files, or writing to the files.
     pub fn run(self) -> Result<(), RevmMiddlewareError> {
-        tokio::spawn(async move {
-            let mut set = self.events;
-            while let Some(res) = set.join_next().await {
-                info!("task completed: {:?}", res);
+        let receiver = self.receiver.unwrap();
+        std::thread::spawn(move || {
+            let mut logs = vec![];
+            while let Ok(broadcast) = receiver.recv() {
+                match broadcast {
+                    Broadcast::StopSignal => break,
+                    Broadcast::Event(event) => {
+                        let ethers_logs = revm_logs_to_ethers_logs(event);
+                        for log in ethers_logs {
+                            for (name, (filter, decoder)) in self.decoder.into_iter() {
+                                if filter.filter_address(&log)
+                                    && filter.filter_topics(&log)
+                                {
+                                    let cloned_log = log.clone();
+                                    println!("log: {}", decoder(&cloned_log.into()));
+                                    // logs.push(ethers::types::Log::try_from(cloned_log));
+                                }
+                            }
+                        }
+                    }
+                }
             }
         });
         Ok(())
     }
+
 }
 
 pub struct EventTransmuted<B, M, D> {
