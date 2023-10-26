@@ -14,9 +14,9 @@ dependencies = [
 
 [[package]]
 name = "RustQuant"
-version = "0.0.35"
+version = "0.0.36"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f49b833c14d1191d4d68563308c300aa9d071b34165cfa94330c6505019fcf8a"
+checksum = "4a2929c11b9817836feee2a412e1f77c8ff10d9134e2b241b3fe93cccd6be358"
 dependencies = [
  "nalgebra 0.32.3",
  "ndarray",
