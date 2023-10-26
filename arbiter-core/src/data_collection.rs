@@ -18,24 +18,26 @@
 //! * `E` - Type that implements the `EthLogDecode`, `Debug`, `Serialize`
 //!   traits, and has a static lifetime.
 use std::{
-    collections::BTreeMap, env::current_dir, fmt::Debug, fs::File, io::BufWriter,
-    marker::PhantomData, mem::transmute, sync::Arc,
+    collections::BTreeMap, fmt::Debug, io::BufWriter, marker::PhantomData, mem::transmute,
+    sync::Arc,
 };
 
 use ethers::{
     abi::RawLog,
     contract::{builders::Event, EthLogDecode},
-    providers::{Middleware, StreamExt as ProviderStreamExt},
+    providers::Middleware,
     types::{Filter, FilteredParams},
 };
 use serde::Serialize;
 use serde_json::Value;
 
 use crate::{
-    environment::{Broadcast, Socket},
+    environment::Broadcast,
     middleware::{cast::revm_logs_to_ethers_logs, errors::RevmMiddlewareError, RevmMiddleware},
 };
 
+type FilterDecoder =
+    BTreeMap<String, (FilteredParams, Box<dyn Fn(&RawLog) -> String + Send + Sync>)>;
 /// `EventLogger` is a struct that logs events from the Ethereum network.
 ///
 /// It contains a BTreeMap of events, where each event is represented by a
@@ -53,7 +55,7 @@ use crate::{
 pub struct EventLogger {
     directory: Option<String>,
     file_name: Option<String>,
-    decoder: BTreeMap<String, (FilteredParams, Box<dyn Fn(&RawLog) -> String + Send + Sync>)>,
+    decoder: FilterDecoder,
     receiver: Option<crossbeam_channel::Receiver<Broadcast>>,
 }
 
@@ -88,7 +90,8 @@ impl EventLogger {
         event: Event<Arc<RevmMiddleware>, RevmMiddleware, D>,
         name: S,
     ) -> Self {
-        // Grab the connection from the client and add a new event sender so that we have a distinct channel to now receive events over
+        // Grab the connection from the client and add a new event sender so that we
+        // have a distinct channel to now receive events over
         let event_transmuted: EventTransmuted<Arc<RevmMiddleware>, RevmMiddleware, D> =
             unsafe { transmute(event) };
         let middleware = event_transmuted.provider.clone();
@@ -218,7 +221,7 @@ impl EventLogger {
     }
 }
 
-pub struct EventTransmuted<B, M, D> {
+struct EventTransmuted<B, M, D> {
     /// The event filter's state
     pub filter: Filter,
     pub(crate) provider: B,

@@ -76,9 +76,7 @@ async fn data_capture_output_validation() {
     }
 
     env.stop();
-    let mut file0 = tokio::fs::File::open("./out/output.json")
-        .await
-        .unwrap();
+    let mut file0 = tokio::fs::File::open("./out/output.json").await.unwrap();
     let mut contents0 = vec![];
     file0.read_to_end(&mut contents0).await.unwrap();
     let contents0 = String::from_utf8(contents0).unwrap();

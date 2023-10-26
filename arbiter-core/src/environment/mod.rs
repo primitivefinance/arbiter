@@ -648,9 +648,19 @@ pub(crate) struct Socket {
     pub(crate) event_broadcaster: Arc<Mutex<EventBroadcaster>>,
 }
 
+/// Enum representing the types of broadcasts that can be sent.
+///
+/// This enum is used to differentiate between different types of broadcasts
+/// that can be sent from the environment to external entities.
+///
+/// Variants:
+/// * `StopSignal`: Represents a signal to stop the event logger process.
+/// * `Event(Vec<Log>)`: Represents a broadcast of a vector of Ethereum logs.
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub enum Broadcast {
+    /// Represents a signal to stop the event logger process.
     StopSignal,
+    /// Represents a broadcast of a vector of Ethereum logs.
     Event(Vec<Log>),
 }
 
@@ -678,7 +688,7 @@ impl EventBroadcaster {
     fn broadcast(&self, logs: Option<Vec<Log>>, stop_signal: bool) -> Result<(), EnvironmentError> {
         if stop_signal {
             for sender in &self.0 {
-                sender.send(Broadcast::StopSignal);
+                sender.send(Broadcast::StopSignal)?;
             }
             return Ok(());
         } else {
