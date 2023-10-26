@@ -40,6 +40,7 @@ async fn data_capture() {
     }
 
     env.stop();
+    tokio::fs::remove_dir_all("./out").await.unwrap();
 }
 
 #[traced_test]
