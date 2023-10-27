@@ -110,23 +110,3 @@ jobs:
           path: ${{ runner.temp }}/artifact.tar
           retention-days: 1
           if-no-files-found: error
-
-  deploy:
-    # Only deploy if a push to main
-    if: github.ref_name == 'main' && github.event_name == 'push'
-    runs-on: ubuntu-latest
-    needs: [test, lint, build]
-
-    # Grant GITHUB_TOKEN the permissions required to make a Pages deployment
-    permissions:
-      pages: write
-      id-token: write
-
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-
-    steps:
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v2
