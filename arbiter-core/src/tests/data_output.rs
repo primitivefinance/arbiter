@@ -42,5 +42,5 @@ async fn data_capture() {
     }
 
     let _ = env.stop();
-    tokio::fs::remove_dir_all("./data").await.unwrap();
+    std::fs::remove_dir_all("./data").unwrap();
 }
