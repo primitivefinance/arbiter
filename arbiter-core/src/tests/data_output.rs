@@ -1,4 +1,4 @@
-use std::{process::Command, io::Read};
+use std::{io::Read, process::Command};
 
 use tokio::io::AsyncReadExt;
 use tracing_test::traced_test;
@@ -84,8 +84,7 @@ async fn data_capture_output_validation() {
     file0.read_to_end(&mut contents0).unwrap();
     let contents0 = String::from_utf8(contents0).unwrap();
 
-    let mut file1 = std::fs::File::open("./src/tests/output_test.json")
-        .unwrap();
+    let mut file1 = std::fs::File::open("./src/tests/output_test.json").unwrap();
     let mut contents1 = vec![];
     file1.read_to_end(&mut contents1).unwrap();
     let contents1 = String::from_utf8(contents1).unwrap();
