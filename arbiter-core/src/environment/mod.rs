@@ -89,7 +89,7 @@ pub(crate) type OutcomeReceiver = Receiver<Result<Outcome, EnvironmentError>>;
 
 /// Alias for the sender used in the [`EventBroadcaster`] that transmits
 /// contract events via [`Log`].
-pub(crate) type EventSender = Sender<Vec<Log>>;
+pub(crate) type EventSender = Sender<Broadcast>;
 
 /// Represents a sandboxed EVM environment.
 ///
@@ -487,7 +487,7 @@ impl Environment {
                             transaction_index: transaction_index.into(),
                             cumulative_gas_per_block,
                         };
-                        event_broadcaster.broadcast(execution_result.logs())?;
+                        event_broadcaster.broadcast(Some(execution_result.logs()), false)?;
                         outcome_sender
                             .send(Ok(Outcome::TransactionCompleted(
                                 execution_result,
@@ -581,6 +581,7 @@ impl Environment {
                         outcome_sender
                             .send(Ok(Outcome::StopCompleted))
                             .map_err(|e| EnvironmentError::Communication(e.to_string()))?;
+                        event_broadcaster.lock().unwrap().broadcast(None, true)?;
                         break;
                     }
                 }
@@ -647,6 +648,22 @@ pub(crate) struct Socket {
     pub(crate) event_broadcaster: Arc<Mutex<EventBroadcaster>>,
 }
 
+/// Enum representing the types of broadcasts that can be sent.
+///
+/// This enum is used to differentiate between different types of broadcasts
+/// that can be sent from the environment to external entities.
+///
+/// Variants:
+/// * `StopSignal`: Represents a signal to stop the event logger process.
+/// * `Event(Vec<Log>)`: Represents a broadcast of a vector of Ethereum logs.
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub enum Broadcast {
+    /// Represents a signal to stop the event logger process.
+    StopSignal,
+    /// Represents a broadcast of a vector of Ethereum logs.
+    Event(Vec<Log>),
+}
+
 /// Responsible for broadcasting Ethereum logs to subscribers.
 ///
 /// Maintains a list of senders to which logs are sent whenever they are
@@ -668,9 +685,19 @@ impl EventBroadcaster {
 
     /// Loop through each sender and send  `Vec<Log>` emitted from a transaction
     /// downstream to any and all receivers
-    fn broadcast(&self, logs: Vec<Log>) -> Result<(), EnvironmentError> {
-        for sender in &self.0 {
-            sender.send(logs.clone())?;
+    fn broadcast(&self, logs: Option<Vec<Log>>, stop_signal: bool) -> Result<(), EnvironmentError> {
+        if stop_signal {
+            for sender in &self.0 {
+                sender.send(Broadcast::StopSignal)?;
+            }
+            return Ok(());
+        } else {
+            if logs.is_none() {
+                panic!("This shouldn't happen, but we should probably make this an error. Somehow we got told to broadcast `None` logs!");
+            }
+            for sender in &self.0 {
+                sender.send(Broadcast::Event(logs.clone().unwrap()))?;
+            }
         }
         Ok(())
     }

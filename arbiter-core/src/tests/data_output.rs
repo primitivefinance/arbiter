@@ -7,11 +7,11 @@ use crate::data_collection::EventLogger;
 #[traced_test]
 #[tokio::test(flavor = "multi_thread")]
 async fn data_capture() {
-    let (mut _env, client) = startup_user_controlled().unwrap();
+    let (env, client) = startup_user_controlled().unwrap();
     let (arbx, arby, lex) = deploy_liquid_exchange(client.clone()).await.unwrap();
+    println!("Deployed contracts");
 
     let listener = EventLogger::builder()
-        .path("./test_output1")
         .add(arbx.events(), "arbx")
         .add(arby.events(), "arby")
         .add(lex.events(), "lex");
@@ -38,16 +38,17 @@ async fn data_capture() {
             .await
             .unwrap();
     }
-    tokio::fs::remove_dir_all("./test_output1").await.unwrap();
+
+    env.stop();
+    tokio::fs::remove_dir_all("./out").await.unwrap();
 }
 
 #[traced_test]
 #[tokio::test(flavor = "multi_thread")]
 async fn data_capture_output_validation() {
-    let (mut _env, client) = startup_user_controlled().unwrap();
+    let (env, client) = startup_user_controlled().unwrap();
     let (arbx, arby, lex) = deploy_liquid_exchange(client.clone()).await.unwrap();
     let listener = EventLogger::builder()
-        .path("./test_output2/")
         .add(arbx.events(), "arbx")
         .add(arby.events(), "arby")
         .add(lex.events(), "lex");
@@ -75,14 +76,13 @@ async fn data_capture_output_validation() {
             .unwrap();
     }
 
-    let mut file0 = tokio::fs::File::open("./test_output2/arbx/ApprovalFilter.csv")
-        .await
-        .unwrap();
+    env.stop();
+    let mut file0 = tokio::fs::File::open("./out/output.json").await.unwrap();
     let mut contents0 = vec![];
     file0.read_to_end(&mut contents0).await.unwrap();
     let contents0 = String::from_utf8(contents0).unwrap();
 
-    let mut file1 = tokio::fs::File::open("./test_output2/arby/ApprovalFilter.csv")
+    let mut file1 = tokio::fs::File::open("./src/tests/output_test.json")
         .await
         .unwrap();
     let mut contents1 = vec![];
@@ -90,5 +90,5 @@ async fn data_capture_output_validation() {
     let contents1 = String::from_utf8(contents1).unwrap();
 
     assert_eq!(contents0, contents1);
-    tokio::fs::remove_dir_all("./test_output2").await.unwrap();
+    tokio::fs::remove_dir_all("./out").await.unwrap();
 }

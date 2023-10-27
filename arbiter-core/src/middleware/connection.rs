@@ -13,7 +13,9 @@ use ethers::{
 use serde::{de::DeserializeOwned, Serialize};
 
 use super::cast::revm_logs_to_ethers_logs;
-use crate::environment::{EventBroadcaster, InstructionSender, OutcomeReceiver, OutcomeSender};
+use crate::environment::{
+    Broadcast, EventBroadcaster, InstructionSender, OutcomeReceiver, OutcomeSender,
+};
 
 /// Represents a connection to the EVM contained in the corresponding
 /// [`Environment`].
@@ -90,13 +92,22 @@ impl JsonRpcClient for Connection {
                         ))?;
                 let mut logs = vec![];
                 let filtered_params = FilteredParams::new(Some(filter_receiver.filter.clone()));
-                if let Ok(received_logs) = filter_receiver.receiver.try_recv() {
-                    let ethers_logs = revm_logs_to_ethers_logs(received_logs);
-                    for log in ethers_logs {
-                        if filtered_params.filter_address(&log)
-                            && filtered_params.filter_topics(&log)
-                        {
-                            logs.push(log);
+                if let Ok(broadcast) = filter_receiver.receiver.try_recv() {
+                    match broadcast {
+                        Broadcast::Event(received_logs) => {
+                            let ethers_logs = revm_logs_to_ethers_logs(received_logs);
+                            for log in ethers_logs {
+                                if filtered_params.filter_address(&log)
+                                    && filtered_params.filter_topics(&log)
+                                {
+                                    logs.push(log);
+                                }
+                            }
+                        }
+                        Broadcast::StopSignal => {
+                            return Err(ProviderError::CustomError(
+                                "The `EventBroadcaster` has stopped!".to_string(),
+                            ))
                         }
                     }
                 }
@@ -121,5 +132,5 @@ pub(crate) struct FilterReceiver {
 
     /// The receiver for the channel that receives logs from the broadcaster.
     /// These are filtered upon reception.
-    pub(crate) receiver: crossbeam_channel::Receiver<Vec<revm::primitives::Log>>,
+    pub(crate) receiver: crossbeam_channel::Receiver<Broadcast>,
 }
