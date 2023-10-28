@@ -1,4 +1,5 @@
 use std::{
+    collections::HashMap,
     convert::TryFrom,
     sync::Arc,
     time::{Duration, Instant},
@@ -25,7 +26,6 @@ use polars::{
     prelude::{DataFrame, NamedFrom},
     series::Series,
 };
-use std::collections::HashMap;
 use tracing::info;
 
 const NUM_BENCH_ITERATIONS: usize = 100;
