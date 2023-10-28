@@ -52,7 +52,10 @@ hex = { version = "=0.4.3", default-features = false }
 anyhow =  { version = "=1.0.75" }
 test-log =  { version = "=0.2.13" }
 tracing-test = "0.2.4"
-
+arbiter-core = { path = ".", features = ["contracts"] }
+polars = "0.34.2"
+cargo_metadata = "0.18.1"
+chrono = "0.4.31"
 futures =  { version = "=0.3.28" }
 assert_matches =  { version = "=1.5" }
 
