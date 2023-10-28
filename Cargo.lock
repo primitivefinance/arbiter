@@ -3560,7 +3560,7 @@ dependencies = [
  "ethnum",
  "foreign_vec",
  "getrandom",
- "hashbrown 0.14.1",
+ "hashbrown 0.14.2",
  "lexical-core",
  "lz4",
  "multiversion",
@@ -3585,7 +3585,7 @@ dependencies = [
  "chrono",
  "comfy-table",
  "either",
- "hashbrown 0.14.1",
+ "hashbrown 0.14.2",
  "indexmap 2.0.2",
  "num-traits",
  "once_cell",
@@ -3678,7 +3678,7 @@ dependencies = [
  "argminmax",
  "bytemuck",
  "either",
- "hashbrown 0.14.1",
+ "hashbrown 0.14.2",
  "indexmap 2.0.2",
  "memchr",
  "num-traits",
@@ -3701,7 +3701,7 @@ dependencies = [
  "crossbeam-channel",
  "crossbeam-queue",
  "enum_dispatch",
- "hashbrown 0.14.1",
+ "hashbrown 0.14.2",
  "num-traits",
  "polars-arrow",
  "polars-core",
@@ -3793,7 +3793,7 @@ checksum = "55d2c038ff67e4eb6019682c3f66d83f744e285de9c28e816109a61bace824cd"
 dependencies = [
  "ahash 0.8.6",
  "bytemuck",
- "hashbrown 0.14.1",
+ "hashbrown 0.14.2",
  "num-traits",
  "once_cell",
  "polars-error",
@@ -5911,7 +5911,6 @@ name = "zerocopy-derive"
 version = "0.7.18"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "4b27b1bb92570f989aac0ab7e9cbfbacdd65973f7ee920d9f0e71ebac878fd0b"
-
 dependencies = [
  "proc-macro2",
  "quote",
