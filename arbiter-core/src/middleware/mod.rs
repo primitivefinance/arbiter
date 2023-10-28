@@ -33,7 +33,7 @@ use futures_timer::Delay;
 use rand::{rngs::StdRng, SeedableRng};
 use revm::primitives::{CreateScheme, Output, TransactTo, TxEnv, U256};
 
-use crate::environment::{cheatcodes::*, instruction::*, Environment};
+use crate::environment::{cheatcodes::*, instruction::*, Broadcast, Environment};
 
 /// Possible errors thrown by interacting with the revm middleware client.
 pub mod errors;
@@ -622,8 +622,7 @@ impl Middleware for RevmMiddleware {
         hasher.update(serde_json::to_string(&args).map_err(RevmMiddlewareError::Json)?);
         let hash = hasher.finalize();
         let id = ethers::types::U256::from(ethers::types::H256::from_slice(&hash).as_bytes());
-        let (event_sender, event_receiver) =
-            crossbeam_channel::unbounded::<Vec<revm::primitives::Log>>();
+        let (event_sender, event_receiver) = crossbeam_channel::unbounded::<Broadcast>();
         let filter_receiver = FilterReceiver {
             filter,
             receiver: event_receiver,

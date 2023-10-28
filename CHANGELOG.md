@@ -6,6 +6,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.5](https://github.com/primitivefinance/arbiter/compare/arbiter-v0.4.4...arbiter-v0.4.5) - 2023-10-27
+
+### Fixed
+- fix data output test to rmdir after completion
+- fix clippy + fmt
+- fix tests
+
+### Other
+- Merge pull request [#656](https://github.com/primitivefinance/arbiter/pull/656) from primitivefinance/colin/fix-event-logger
+- rm printlns
+- fmt
+- create valid json
+- Update data_collection.rs
+- wip
+- push json logs to vec
+- it works!!!!!!!!!!!!
+- wip
+- unsafe transmute
+- Update data_collection.rs
+- broadcast enum
+- create a channel for direct reads
+- Merge pull request [#642](https://github.com/primitivefinance/arbiter/pull/642) from primitivefinance/dependabot/cargo/clap-4.4.7
+
 ## [0.4.4](https://github.com/primitivefinance/arbiter/compare/arbiter-v0.4.3...arbiter-v0.4.4) - 2023-10-23
 
 ### Other
