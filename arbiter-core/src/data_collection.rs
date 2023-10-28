@@ -163,7 +163,7 @@ impl EventLogger {
     /// directories or files, or writing to the files.
     pub fn run(self) -> Result<(), RevmMiddlewareError> {
         let receiver = self.receiver.unwrap();
-        let dir = self.directory.unwrap_or("./out".into());
+        let dir = self.directory.unwrap_or("./data".into());
         let file_name = self.file_name.unwrap_or("output".into());
         std::thread::spawn(move || {
             let mut logs: BTreeMap<String, BTreeMap<String, Vec<Value>>> = BTreeMap::new();
