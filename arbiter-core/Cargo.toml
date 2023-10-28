@@ -28,7 +28,6 @@ serde_json = { version = "=1.0.107" }
 tokio = { version = "1.32.0", features = ["macros", "full"] }
 async-trait =  { version = "0.1.74" }
 crossbeam-channel =  { version = "=0.5.8" }
-atomic_enum = { version = "=0.2.0" }
 futures-timer = { version = "=3.0.2" }
 futures-locks = { version = "=0.7.1" }
 

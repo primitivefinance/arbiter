@@ -21,10 +21,12 @@ use ethers::{
     types::{Address, I256, U256},
     utils::AnvilInstance,
 };
-use tracing::info;
-use polars::{prelude::{DataFrame, NamedFrom, Utf8Type}, series::Series};
+use polars::{
+    prelude::{DataFrame, NamedFrom},
+    series::Series,
+};
 use std::collections::HashMap;
-
+use tracing::info;
 
 const NUM_BENCH_ITERATIONS: usize = 100;
 const NUM_LOOP_STEPS: usize = 10;
@@ -113,7 +115,6 @@ async fn main() -> Result<()> {
     }
     println!("Date: {}", chrono::Local::now().format("%Y-%m-%d"));
     println!("{}", df);
-
 
     Ok(())
 }
@@ -251,18 +252,31 @@ fn create_dataframe(results: &HashMap<&str, HashMap<&str, Duration>>, group: &[&
     let operations = ["Deploy", "Lookup", "Stateless Call", "Stateful Call"];
     let mut df = DataFrame::new(vec![
         Series::new("Operation", operations.to_vec()),
-        Series::new(&format!("{} (μs)", group[0]), operations.iter().map(|&op| results.get(group[0]).unwrap().get(op).unwrap().as_micros() as f64).collect::<Vec<_>>()),
-        Series::new(&format!("{} (μs)", group[1]), operations.iter().map(|&op| results.get(group[1]).unwrap().get(op).unwrap().as_micros() as f64).collect::<Vec<_>>()),
-    ]).unwrap();
+        Series::new(
+            &format!("{} (μs)", group[0]),
+            operations
+                .iter()
+                .map(|&op| results.get(group[0]).unwrap().get(op).unwrap().as_micros() as f64)
+                .collect::<Vec<_>>(),
+        ),
+        Series::new(
+            &format!("{} (μs)", group[1]),
+            operations
+                .iter()
+                .map(|&op| results.get(group[1]).unwrap().get(op).unwrap().as_micros() as f64)
+                .collect::<Vec<_>>(),
+        ),
+    ])
+    .unwrap();
 
     let s0 = df.column(&format!("{} (μs)", group[0])).unwrap().to_owned();
     let s1 = df.column(&format!("{} (μs)", group[1])).unwrap().to_owned();
     let mut relative_difference = s0.divide(&s1).unwrap();
 
-
-    df.with_column::<Series>(relative_difference.rename("Relative Speedup").clone()).unwrap().clone()
+    df.with_column::<Series>(relative_difference.rename("Relative Speedup").clone())
+        .unwrap()
+        .clone()
 }
-
 
 fn get_version_of(crate_name: &str) -> Option<String> {
     let metadata = cargo_metadata::MetadataCommand::new().exec().unwrap();
