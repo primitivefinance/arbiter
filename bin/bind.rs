@@ -49,13 +49,13 @@ impl ArbiterConfig {
 pub(crate) fn forge_bind() -> std::io::Result<()> {
     let foundry_config = Config::load();
     let arbiter_config = get_config();
-    // let contracts_output_path: bool =
+    let project_bidnings_output_path = arbiter_config.bindings_path.join("bindings");
     let output = Command::new("forge")
         .arg("bind")
         .arg("--revert-strings")
         .arg("debug")
         .arg("-b")
-        .arg(arbiter_config.bindings_path.clone())
+        .arg(project_bidnings_output_path.clone())
         .arg("--module")
         .arg("--overwrite")
         .output()?;
@@ -71,8 +71,7 @@ pub(crate) fn forge_bind() -> std::io::Result<()> {
             "Command failed",
         ));
     }
-
-    remove_unneeded_contracts(&arbiter_config.bindings_path, project_contracts)?;
+    remove_unneeded_contracts(&project_bidnings_output_path, project_contracts)?;
 
     if arbiter_config.submodules {
         for lib_dir in &foundry_config.libs {
@@ -263,7 +262,7 @@ fn get_config() -> ArbiterConfig {
     let mut ignore_interfaces = false;
 
     // Try loading the TOML content from the file
-    if let Ok(content) = fs::read_to_string("cargo.toml") {
+    if let Ok(content) = fs::read_to_string("foundry.toml") {
         // Attempt to parse the content as TOML
         if let Ok(value) = content.parse::<Value>() {
             // Navigate to the 'arbiter.bindings_workspace' section and retrieve values
@@ -288,7 +287,6 @@ fn get_config() -> ArbiterConfig {
             }
         }
     }
-    path = path.join("bindings");
     ArbiterConfig {
         bindings_path: path,
         submodules: submodules_value,
