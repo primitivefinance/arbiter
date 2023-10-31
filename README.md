@@ -35,19 +35,19 @@ Both smart contract and financial engineers come together in Decentralized Finan
 For the latter, a financial engineer may want to test their strategies against thousands of market conditions, contract settings, shocks, and autonomous or random or even AI agents all while making sure their strategy isn't vulnerable to bytecode-level exploits.
 
 To configure such a rich simulation environment on a test or local network is also possible with Arbiter by a change in choice of middleware. 
-The most efficient choice for getting robust, yet quick, simulations would bypass any networking and use a low level language's implementation of the EVM. 
-Furthermore, we can gain control over the EVM worldstate by working directly on `revm`.
+The most efficient choice for getting robust, yet quick, simulations would bypass any networking and use a low-level language's implementation of the EVM. 
+Furthermore, we can gain control over the EVM world-state by working directly on `revm`.
 We would like the user to have a choice in how they want to simulate their contracts and Arbiter provides that choice.
 
 ### Sim Driven Development and Strategization 
 
-Test driven development is a popular engineering practice to write tests first, which fail, and implement logic to get the test to eventually pass. 
-With simulation driven development, it's possible to build "tests" that can only pass if the *incentives* actually work. For example, a sim driven test might be `is_loan_liquidated`, and a simulation must be made for a liquidator agent to do the liquidation. 
-This approach significantly improves the testing of economic systems and other mechanism designs, which is important in the world of networks that are mostly incentive driven.
+Test-driven development is a popular engineering practice to write tests first, which fail, and implement logic to get the test to eventually pass. 
+With simulation-driven development, it's possible to build "tests" that can only pass if the *incentives* actually work. For example, a sim driven test might be `is_loan_liquidated`, and a simulation must be made for a liquidator agent to do the liquidation. 
+This approach significantly improves the testing of economic systems and other mechanism designs, which is important in the world of networks that are mostly incentive-driven.
 
-The same goes with developing strategies that one would like to deploy on a live Ethereum network. 
+The same goes for developing strategies that one would like to deploy on a live Ethereum network. 
 One can use Arbiter to simulate their strategy with an intended goal and see if it actually works. 
-This is especially important in the world of DeFi where strategies are often a mix of on and offchain and are susceptible to exploits.
+This is especially important in the world of DeFi where strategies are often a mix of on and off-chains and are susceptible to exploits.
 
 ## Installation
 
@@ -63,7 +63,7 @@ This will install the Arbiter binary on your machine. You can then run `arbiter 
 ## Command Line Interface 
 
 The Arbiter binary provides a CLI for creating new project much like [Foundry](https://github.com/foundry-rs/foundry), which Arbiter aims to work alongside with. 
-It also gives you the abilities to fork a state of an EVM network and store it to disk so that you can use this fork in a simulation.
+It also gives you the ability to fork a state of an EVM network and store it on disk so that you can use this fork in a simulation.
 
 ### Initialization 
 To create a new project, you should have Foundry installed.
@@ -133,9 +133,9 @@ You will also find each of these on crates.io.
 
 ## Benchmarks
 
-In `arbiter-core`, we have a a small benchmarking suite that compares the `RevmMiddleware` implementation over the `Environment` to the [Anvil](https://github.com/foundry-rs/foundry/tree/master/crates/anvil) local testnet chain implementation.
-The biggest reasons why we chose to build Arbiter was to gain more control over the EVM environment and to have a more robust simulation framework, but we also wanted to gain in speed which is why we chose to build our own interface over `revm` as opposed to using Anvil (which does use `revm` under the hood). 
-For the following, Anvil was set to mine blocks for each transaction as opposed to setting an enforced block time and the `Environment` was set with a block rate of 10.0 (this was chosen somewhat arbitrarily as we will add in more block control in the future).
+In `arbiter-core`, we have a small benchmarking suite that compares the `RevmMiddleware` implementation over the `Environment` to the [Anvil](https://github.com/foundry-rs/foundry/tree/master/crates/anvil) local testnet chain implementation.
+The biggest reasons why we chose to build Arbiter were to gain more control over the EVM environment and to have a more robust simulation framework, but we also wanted to gain in speed which is why we chose to build our own interface over `revm` as opposed to using Anvil (which does use `revm` under the hood). 
+For the following, Anvil was set to mine blocks for each transaction as opposed to setting an enforced block time, and the `Environment` was set with a block rate of 10.0 (this was chosen somewhat arbitrarily as we will add in more block control in the future).
 Preliminary benchmarks of the `RevmMiddleware` interface over `revm` against Anvil are given in the following table.
 
 | Operation       |  RevmMiddlwware |    Anvil     | Relative Difference |
@@ -147,9 +147,9 @@ Preliminary benchmarks of the `RevmMiddleware` interface over `revm` against Anv
 
 The above can be described by:
 - Deploy: Deploying a contract to the EVM. 
-We deployed both `ArbiterToken` and `ArbiterMath` in this method, so you can divide the time by two to get an estimate for the time it takes to deploy a single contract.
+We deployed both `ArbiterToken` and `ArbiterMath` in this method, so you can divide the time by two to get an estimate of the time it takes to deploy a single contract.
 
-- Lookup: Looking up a the `balanceOf` for a client's address for `ArbiterToken`.
+- Lookup: Looking up at the `balanceOf` for a client's address for `ArbiterToken`.
 We called `ArbiterToken`'s `balanceOf` function 100 times in this method.
 Divide by 100 to get the time it takes to lookup a single balance.
 
@@ -162,13 +162,13 @@ We called `ArbiterToken`'s `mint` function 100 times in this call.
 Divide by 100 to get the time it takes to call a single stateful function.
 
 The benchmarking code can be found in the `arbiter-core/benches/` directory and these specific times were achieved over a 1000 run average. 
-The above was achieved running `cargo bench --package arbiter-core` which will automatically run with the release profile.
-Times were achieved on an Apple Macbook Pro M1 Max with 8 performance and 2 efficiency cores, and with 32GB of RAM.
+The above was achieved by running `cargo bench --package arbiter-core` which will automatically run with the release profile.
+Times were achieved on an Apple Macbook Pro M1 Max with 8 performance and 2 efficiency cores and with 32GB of RAM.
 
 Of course, the use cases of Anvil and the `RevmMiddleware` can be different. 
-Anvil represents a more realistic environment with networking and mining, while the `RevmMiddleware` is simpler environment with the bare essentials to running stateful simulations.
+Anvil represents a more realistic environment with networking and mining, while the `RevmMiddleware` is a simpler environment with the bare essentials to running stateful simulations.
 Anvil also mines blocks for each transaction, while the `RevmMiddleware` does not.
-We hope to improve our API to allow the end user to be able to interface with their own choice of EVM environment to suit what ever their needs may be!
+We hope to improve our API to allow the end user to be able to interface with their own choice of EVM environment to suit whatever their needs may be!
 
 Please let us know if you find any issues with these benchmarks or if you have any suggestions on how to improve them!
 
