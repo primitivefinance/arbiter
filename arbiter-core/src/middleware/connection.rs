@@ -120,9 +120,6 @@ impl JsonRpcClient for Connection {
                 let logs_deserializeowned: R = serde_json::from_str(&logs_str)?;
                 Ok(logs_deserializeowned)
             }
-            "eth_subscribe" => {
-                // TODO: Should return an ID.
-            }
             val => Err(ProviderError::CustomError(format!(
                 "The method `{}` is not supported by the `Connection`!",
                 val
@@ -196,7 +193,15 @@ impl PubsubClient for Connection {
     }
 
     fn unsubscribe<T: Into<ethers::types::U256>>(&self, id: T) -> Result<(), Self::Error> {
-        todo!()
+        let id = id.into();
+        let mut filter_receivers = self.filter_receivers.lock().unwrap();
+        if filter_receivers.remove(&id).is_some() {
+            Ok(())
+        } else {
+            Err(ProviderError::CustomError(
+                "The filter ID does not seem to match any that this client owns!".to_string(),
+            ))
+        }
     }
 }
 

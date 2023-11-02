@@ -868,6 +868,21 @@ impl Middleware for RevmMiddleware {
         }
     }
 
+    async fn subscribe_logs<'a>(
+        &'a self,
+        filter: &Filter,
+    ) -> Result<SubscriptionStream<'a, Self::Provider, Log>, Self::Error>
+    where
+        <Self as Middleware>::Provider: PubsubClient,
+    {
+        let watcher = self.watch(&filter).await?;
+        let id = watcher.id;
+        let subscription: Result<SubscriptionStream<Connection, Log>, RevmMiddlewareError> =
+            SubscriptionStream::new(id, self.provider())
+                .map_err(|e| RevmMiddlewareError::Provider(e));
+        subscription
+    }
+
     async fn subscribe<T, R>(
         &self,
         params: T,
@@ -877,7 +892,7 @@ impl Middleware for RevmMiddleware {
         R: DeserializeOwned + Send + Sync,
         <Self as Middleware>::Provider: PubsubClient,
     {
-        todo!()
+        todo!("Did this get called somehow??")
     }
 }
 
