@@ -11,7 +11,14 @@
 
 #![warn(missing_docs)]
 
-use std::{collections::HashMap, fmt::Debug, future::Future, pin::Pin, sync::Arc, time::Duration};
+use std::{
+    collections::HashMap,
+    fmt::Debug,
+    future::Future,
+    pin::Pin,
+    sync::{Arc, Mutex},
+    time::Duration,
+};
 
 use ethers::{
     abi::ethereum_types::BloomInput,
@@ -22,7 +29,10 @@ use ethers::{
         },
         ProviderError,
     },
-    providers::{FilterKind, FilterWatcher, Middleware, PendingTransaction, Provider},
+    providers::{
+        FilterKind, FilterWatcher, Middleware, PendingTransaction, Provider, PubsubClient,
+        SubscriptionStream,
+    },
     signers::{Signer, Wallet},
     types::{
         transaction::eip2718::TypedTransaction, Address, BlockId, Bloom, Bytes, Filter, Log,
@@ -32,6 +42,7 @@ use ethers::{
 use futures_timer::Delay;
 use rand::{rngs::StdRng, SeedableRng};
 use revm::primitives::{CreateScheme, Output, TransactTo, TxEnv, U256};
+use serde::{de::DeserializeOwned, Serialize};
 
 use crate::environment::{cheatcodes::*, instruction::*, Broadcast, Environment};
 
@@ -152,7 +163,7 @@ impl RevmMiddleware {
             outcome_sender,
             outcome_receiver: outcome_receiver.clone(),
             event_broadcaster: Arc::clone(&environment.socket.event_broadcaster),
-            filter_receivers: Arc::new(tokio::sync::Mutex::new(HashMap::new())),
+            filter_receivers: Arc::new(Mutex::new(HashMap::new())),
         };
         let provider = Provider::new(connection);
         Ok(Arc::new(Self {
@@ -174,7 +185,7 @@ impl RevmMiddleware {
             outcome_sender,
             outcome_receiver: outcome_receiver.clone(),
             event_broadcaster: Arc::clone(&environment.socket.event_broadcaster),
-            filter_receivers: Arc::new(tokio::sync::Mutex::new(HashMap::new())),
+            filter_receivers: Arc::new(Mutex::new(HashMap::new())),
         };
         let provider = Provider::new(connection);
         Ok(Arc::new(Self {
@@ -642,7 +653,7 @@ impl Middleware for RevmMiddleware {
             .as_ref()
             .filter_receivers
             .lock()
-            .await
+            .unwrap()
             .insert(id, filter_receiver);
         Ok(id)
     }
@@ -855,6 +866,18 @@ impl Middleware for RevmMiddleware {
                 "Wrong variant returned via cheatcode!".to_string(),
             )),
         }
+    }
+
+    async fn subscribe<T, R>(
+        &self,
+        params: T,
+    ) -> Result<SubscriptionStream<'_, Self::Provider, R>, Self::Error>
+    where
+        T: Debug + Serialize + Send + Sync,
+        R: DeserializeOwned + Send + Sync,
+        <Self as Middleware>::Provider: PubsubClient,
+    {
+        todo!()
     }
 }
 

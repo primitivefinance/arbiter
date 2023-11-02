@@ -462,3 +462,26 @@ async fn unimplemented_middleware_instruction() {
         panic!("Expected RevmMiddlewareError::Provider");
     }
 }
+
+#[tokio::test]
+async fn pubsubclient() {
+    let (_environment, client) = startup_user_controlled().unwrap();
+
+    let arbx = deploy_arbx(client.clone()).await.unwrap();
+
+    let filter = arbx.events().filter;
+
+    let mut stream = client.subscribe_logs(&filter).await.unwrap();
+
+    for _ in 0..5 {
+        arbx.approve(client.address(), U256::from(1))
+            .send()
+            .await
+            .unwrap()
+            .await
+            .unwrap();
+    }
+
+    let item = stream.next().await;
+    println!("item: {:?}", item);
+}
