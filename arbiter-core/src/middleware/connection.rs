@@ -10,8 +10,8 @@ use std::{
 use crossbeam_channel::TryRecvError;
 use ethers::{
     prelude::ProviderError,
-    providers::{FilterWatcher, JsonRpcClient, PubsubClient},
-    types::{Filter, FilteredParams, Log},
+    providers::{JsonRpcClient, PubsubClient},
+    types::{Filter, FilteredParams},
 };
 use futures_util::{stream, Stream};
 use serde::{de::DeserializeOwned, Serialize};

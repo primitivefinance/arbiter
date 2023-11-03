@@ -875,24 +875,23 @@ impl Middleware for RevmMiddleware {
     where
         <Self as Middleware>::Provider: PubsubClient,
     {
-        let watcher = self.watch(&filter).await?;
+        let watcher = self.watch(filter).await?;
         let id = watcher.id;
         let subscription: Result<SubscriptionStream<Connection, Log>, RevmMiddlewareError> =
-            SubscriptionStream::new(id, self.provider())
-                .map_err(|e| RevmMiddlewareError::Provider(e));
+            SubscriptionStream::new(id, self.provider()).map_err(RevmMiddlewareError::Provider);
         subscription
     }
 
     async fn subscribe<T, R>(
         &self,
-        params: T,
+        _params: T,
     ) -> Result<SubscriptionStream<'_, Self::Provider, R>, Self::Error>
     where
         T: Debug + Serialize + Send + Sync,
         R: DeserializeOwned + Send + Sync,
         <Self as Middleware>::Provider: PubsubClient,
     {
-        todo!("Did this get called somehow??")
+        todo!("This is not implemented yet, but `subscribe_logs` is.")
     }
 }
 

@@ -457,9 +457,16 @@ async fn unimplemented_middleware_instruction() {
     if let crate::middleware::errors::RevmMiddlewareError::Provider(e) =
         should_be_error.unwrap_err()
     {
-        assert_eq!(e.to_string(), ProviderError::UnsupportedRPC.to_string());
+        assert_eq!(
+            e.to_string(),
+            ProviderError::CustomError(format!(
+                "The method `{}` is not supported by the `Connection`!",
+                "web3_clientVersion"
+            ))
+            .to_string()
+        );
     } else {
-        panic!("Expected RevmMiddlewareError::Provider");
+        panic!("Expected RevmMiddlewareError::CustomError");
     }
 }
 
