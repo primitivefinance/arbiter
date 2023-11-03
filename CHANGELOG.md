@@ -6,6 +6,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.6](https://github.com/primitivefinance/arbiter/compare/arbiter-v0.4.5...arbiter-v0.4.6) - 2023-11-03
+
+### Other
+- Merge branch 'main' into benchmarks
+- *(deps)* bump serde_json from 1.0.107 to 1.0.108
+- Merge pull request [#658](https://github.com/primitivefinance/arbiter/pull/658) from primitivefinance/dependabot/cargo/tempfile-3.8.1
+- Merge branch 'main' into dependabot/cargo/tempfile-3.8.1
+- other test was broken too
+- remove book deploy
+- don't use macos in CI
+
 ## [0.4.5](https://github.com/primitivefinance/arbiter/compare/arbiter-v0.4.4...arbiter-v0.4.5) - 2023-10-27
 
 ### Fixed
