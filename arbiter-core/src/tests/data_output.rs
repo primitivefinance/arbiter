@@ -3,8 +3,7 @@ use tracing_test::traced_test;
 use super::*;
 use crate::data_collection::EventLogger;
 
-#[traced_test]
-#[tokio::test(flavor = "multi_thread")]
+#[tokio::test]
 async fn data_capture() {
     let (env, client) = startup_user_controlled().unwrap();
     let (arbx, arby, lex) = deploy_liquid_exchange(client.clone()).await.unwrap();
@@ -39,5 +38,5 @@ async fn data_capture() {
     }
 
     let _ = env.stop();
-    tokio::fs::remove_dir_all("./data").await.unwrap();
+    std::fs::remove_dir_all("./data").await.unwrap();
 }
