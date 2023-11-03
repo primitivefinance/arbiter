@@ -1,4 +1,5 @@
 use std::{
+    collections::HashMap,
     convert::TryFrom,
     sync::Arc,
     time::{Duration, Instant},
@@ -21,10 +22,14 @@ use ethers::{
     types::{Address, I256, U256},
     utils::AnvilInstance,
 };
+use polars::{
+    prelude::{DataFrame, NamedFrom},
+    series::Series,
+};
 use tracing::info;
 
-const NUM_BENCH_ITERATIONS: usize = 1000;
-const NUM_LOOP_STEPS: usize = 100;
+const NUM_BENCH_ITERATIONS: usize = 100;
+const NUM_LOOP_STEPS: usize = 10;
 
 #[derive(Debug)]
 struct BenchDurations {
@@ -38,11 +43,13 @@ struct BenchDurations {
 async fn main() -> Result<()> {
     // Choose the benchmark group items by label.
     let group = ["anvil", "arbiter"];
+    let mut results: HashMap<&str, HashMap<&str, Duration>> = HashMap::new();
 
     // Set up for showing percentage done.
     let ten_percent = NUM_BENCH_ITERATIONS / 10;
 
     for item in group {
+        let mut item_results = HashMap::new();
         // Count up total durations for each part of the benchmark.
         let mut durations = Vec::with_capacity(NUM_BENCH_ITERATIONS);
         println!("Running {item} benchmark");
@@ -87,8 +94,27 @@ async fn main() -> Result<()> {
             stateful_call: sum_durations.stateful_call / NUM_BENCH_ITERATIONS as u32,
         };
 
-        println!("Average durations for {item}: {:?}", average_durations);
+        item_results.insert("Deploy", average_durations.deploy);
+        item_results.insert("Lookup", average_durations.lookup);
+        item_results.insert("Stateless Call", average_durations.stateless_call);
+        item_results.insert("Stateful Call", average_durations.stateful_call);
+
+        results.insert(item, item_results);
     }
+
+    let df = create_dataframe(&results, &group);
+
+    match get_version_of("arbiter-core") {
+        Some(version) => println!("arbiter-core version: {}", version),
+        None => println!("Could not find version for arbiter-core"),
+    }
+
+    match get_version_of("ethers") {
+        Some(version) => println!("ethers-core anvil version: {}", version),
+        None => println!("Could not find version for anvil"),
+    }
+    println!("Date: {}", chrono::Local::now().format("%Y-%m-%d"));
+    println!("{}", df);
 
     Ok(())
 }
@@ -166,7 +192,7 @@ async fn deployments<M: Middleware + 'static>(
     let arbiter_math = ArbiterMath::deploy(client.clone(), ())?.send().await?;
     let arbiter_token = arbiter_token::ArbiterToken::deploy(
         client.clone(),
-        ("Arbiter Token".to_string(), "ARBT".to_string(), 18_u8),
+        ("Bench Token".to_string(), "BNCH".to_string(), 18_u8),
     )?
     .send()
     .await?;
@@ -220,4 +246,46 @@ async fn stateful_call_loop<M: Middleware + 'static>(
     info!("Time elapsed in {} mint loop is: {:?}", label, duration);
 
     Ok(duration)
+}
+
+fn create_dataframe(results: &HashMap<&str, HashMap<&str, Duration>>, group: &[&str]) -> DataFrame {
+    let operations = ["Deploy", "Lookup", "Stateless Call", "Stateful Call"];
+    let mut df = DataFrame::new(vec![
+        Series::new("Operation", operations.to_vec()),
+        Series::new(
+            &format!("{} (μs)", group[0]),
+            operations
+                .iter()
+                .map(|&op| results.get(group[0]).unwrap().get(op).unwrap().as_micros() as f64)
+                .collect::<Vec<_>>(),
+        ),
+        Series::new(
+            &format!("{} (μs)", group[1]),
+            operations
+                .iter()
+                .map(|&op| results.get(group[1]).unwrap().get(op).unwrap().as_micros() as f64)
+                .collect::<Vec<_>>(),
+        ),
+    ])
+    .unwrap();
+
+    let s0 = df.column(&format!("{} (μs)", group[0])).unwrap().to_owned();
+    let s1 = df.column(&format!("{} (μs)", group[1])).unwrap().to_owned();
+    let mut relative_difference = s0.divide(&s1).unwrap();
+
+    df.with_column::<Series>(relative_difference.rename("Relative Speedup").clone())
+        .unwrap()
+        .clone()
+}
+
+fn get_version_of(crate_name: &str) -> Option<String> {
+    let metadata = cargo_metadata::MetadataCommand::new().exec().unwrap();
+
+    for package in metadata.packages {
+        if package.name == crate_name {
+            return Some(package.version.to_string());
+        }
+    }
+
+    None
 }
