@@ -1,4 +1,4 @@
-use ethers::types::transaction::eip2718::TypedTransaction;
+use ethers::types::{transaction::eip2718::TypedTransaction, Log};
 
 use super::*;
 use crate::middleware::nonce_middleware::NonceManagerMiddleware;
@@ -465,7 +465,7 @@ async fn unimplemented_middleware_instruction() {
 
 #[tokio::test]
 async fn pubsubclient() {
-    let (_environment, client) = startup_user_controlled().unwrap();
+    let (environment, client) = startup_user_controlled().unwrap();
 
     let arbx = deploy_arbx(client.clone()).await.unwrap();
 
@@ -481,7 +481,12 @@ async fn pubsubclient() {
             .await
             .unwrap();
     }
+    // Check we can get events on-the-fly
+    let next = stream.next().await;
+    assert!(next.is_some());
 
-    let item = stream.next().await;
-    println!("item: {:?}", item);
+    // Check we accumulated all the events from the loop
+    environment.stop().unwrap();
+    let items: Vec<Log> = stream.collect().await;
+    assert_eq!(items.len(), 4);
 }
