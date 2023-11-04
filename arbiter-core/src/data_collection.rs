@@ -28,6 +28,11 @@ use ethers::{
     providers::Middleware,
     types::{Filter, FilteredParams},
 };
+use polars::{
+    io::parquet::ParquetWriter,
+    prelude::{CsvWriter, DataFrame, NamedFrom, SerWriter},
+    series::Series,
+};
 use serde::Serialize;
 use serde_json::Value;
 
@@ -57,6 +62,24 @@ pub struct EventLogger {
     file_name: Option<String>,
     decoder: FilterDecoder,
     receiver: Option<crossbeam_channel::Receiver<Broadcast>>,
+    output_file_type: Option<OutputFileType>,
+}
+
+
+/// `OutputFileType` is an enumeration that represents the different types of file formats
+/// that the `EventLogger` can output to.
+#[derive(Debug, Clone, Copy, Serialize)]
+pub enum OutputFileType {
+    /// * `JSON` - Represents the JSON file format. When this variant is used, the `EventLogger`
+    ///   will output the logged events to a JSON file.
+    JSON,
+    /// * `CSV` - Represents the CSV (Comma Separated Values) file format. When this variant is used,
+    ///   the `EventLogger` will output the logged events to a CSV file.
+    CSV,
+    /// * `Parquet` - Represents the Parquet file format. When this variant is used, the `EventLogger`
+    ///   will output the logged events to a Parquet file. Parquet is a columnar storage file format
+    ///   that is optimized for use with big data processing frameworks.
+    Parquet,
 }
 
 impl EventLogger {
@@ -72,6 +95,7 @@ impl EventLogger {
             file_name: None,
             decoder: BTreeMap::new(),
             receiver: None,
+            output_file_type: None,
         }
     }
 
@@ -141,6 +165,19 @@ impl EventLogger {
         self
     }
 
+    /// Sets the output file type for the `EventLogger`.
+    /// The default file type is JSON.
+    /// # Arguments
+    /// 
+    /// * `file_type` - The file type that the event logs will be stored in.
+    /// 
+    /// # Returns
+    /// 
+    /// The `EventLogger` instance with the specified file type.
+    pub fn file_type(mut self, file_type: OutputFileType) -> Self {
+        self.output_file_type = Some(file_type);
+        self
+    }
     /// Executes the `EventLogger`.
     ///
     /// This function starts the event logging process. It first deletes the
@@ -165,19 +202,102 @@ impl EventLogger {
         let receiver = self.receiver.unwrap();
         let dir = self.directory.unwrap_or("./data".into());
         let file_name = self.file_name.unwrap_or("output".into());
+        let file_type = self.output_file_type.unwrap_or(OutputFileType::JSON);
         std::thread::spawn(move || {
             let mut logs: BTreeMap<String, BTreeMap<String, Vec<Value>>> = BTreeMap::new();
             while let Ok(broadcast) = receiver.recv() {
                 match broadcast {
                     Broadcast::StopSignal => {
                         // create new directory with path
-                        let output_dir = std::env::current_dir().unwrap().join(dir);
+                        let output_dir = std::env::current_dir().unwrap().join(&dir);
                         std::fs::create_dir_all(&output_dir).unwrap();
-                        let file_path = output_dir.join(format!("{}.json", file_name));
-                        let file = std::fs::File::create(file_path).unwrap();
-                        let writer = BufWriter::new(file);
-                        serde_json::to_writer(writer, &logs).expect("Unable to write data");
-                        break;
+                        // match the file output type and write to correct file using the right file type
+                        match file_type {
+                            OutputFileType::JSON => {
+                                let file_path = output_dir.join(format!("{}.json", file_name));
+                                let file = std::fs::File::create(file_path).unwrap();
+                                let writer = BufWriter::new(file);
+                                serde_json::to_writer(writer, &logs).expect("Unable to write data");
+                            }
+                            OutputFileType::CSV => {
+                                // 1. Flatten the BTreeMap
+                                let mut contract_names = Vec::new();
+                                let mut event_names = Vec::new();
+                                let mut event_values = Vec::new();
+
+                                for (contract, events) in &logs {
+                                    for (event, values) in events {
+                                        for value in values {
+                                            contract_names.push(contract.clone());
+                                            event_names.push(event.clone());
+                                            event_values.push(value.to_string());
+                                            // Assuming Value has a suitable ToString implementation
+                                        }
+                                    }
+                                }
+
+                                // 2. Convert the vectors into a DataFrame
+                                let mut df = DataFrame::new(vec![
+                                    Series::new("contract_name", contract_names),
+                                    Series::new("event_name", event_names),
+                                    Series::new("event_value", event_values),
+                                ])
+                                .unwrap();
+
+                                println!("{:?}", df);
+
+                                // 3. Write the DataFrame to a CSV file
+
+                                let file_path = output_dir.join(format!("{}.csv", file_name));
+                                let file = std::fs::File::create(file_path).unwrap_or_else(|_| {
+                                    panic!("Error creating csv file");
+                                });
+                                let mut writer = CsvWriter::new(file);
+                                writer.finish(&mut df).unwrap_or_else(|_| {
+                                    panic!("Error writing to csv file");
+                                });
+                                // what should happen here is that we turn the logs into a polars data fram and then use the polars csv writer to write the data
+                            }
+                            OutputFileType::Parquet => {
+                                // 1. Flatten the BTreeMap
+                                let mut contract_names = Vec::new();
+                                let mut event_names = Vec::new();
+                                let mut event_values = Vec::new();
+
+                                for (contract, events) in &logs {
+                                    for (event, values) in events {
+                                        for value in values {
+                                            contract_names.push(contract.clone());
+                                            event_names.push(event.clone());
+                                            event_values.push(value.to_string());
+                                            // Assuming Value has a suitable ToString implementation
+                                        }
+                                    }
+                                }
+
+                                // 2. Convert the vectors into a DataFrame
+                                let mut df = DataFrame::new(vec![
+                                    Series::new("contract_name", contract_names),
+                                    Series::new("event_name", event_names),
+                                    Series::new("event_value", event_values),
+                                ])
+                                .unwrap_or_else(|_| {
+                                    panic!("Error creating DataFrame");
+                                });
+
+                                println!("{:?}", df);
+
+                                // 3. Write the DataFrame to a parquet file
+                                let file_path = output_dir.join(format!("{}.parquet", file_name));
+                                let file = std::fs::File::create(file_path).unwrap_or_else(|_| {
+                                    panic!("Error creating parquet file");
+                                });
+                                let writer = ParquetWriter::new(file);
+                                writer.finish(&mut df).unwrap_or_else(|_| {
+                                    panic!("Error writing to parquet file");
+                                });
+                            }
+                        }
                     }
                     Broadcast::Event(event) => {
                         let ethers_logs = revm_logs_to_ethers_logs(event);
