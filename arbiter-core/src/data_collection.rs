@@ -65,20 +65,21 @@ pub struct EventLogger {
     output_file_type: Option<OutputFileType>,
 }
 
-
-/// `OutputFileType` is an enumeration that represents the different types of file formats
-/// that the `EventLogger` can output to.
+/// `OutputFileType` is an enumeration that represents the different types of
+/// file formats that the `EventLogger` can output to.
 #[derive(Debug, Clone, Copy, Serialize)]
 pub enum OutputFileType {
-    /// * `JSON` - Represents the JSON file format. When this variant is used, the `EventLogger`
-    ///   will output the logged events to a JSON file.
+    /// * `JSON` - Represents the JSON file format. When this variant is used,
+    ///   the `EventLogger` will output the logged events to a JSON file.
     JSON,
-    /// * `CSV` - Represents the CSV (Comma Separated Values) file format. When this variant is used,
-    ///   the `EventLogger` will output the logged events to a CSV file.
+    /// * `CSV` - Represents the CSV (Comma Separated Values) file format. When
+    ///   this variant is used, the `EventLogger` will output the logged events
+    ///   to a CSV file.
     CSV,
-    /// * `Parquet` - Represents the Parquet file format. When this variant is used, the `EventLogger`
-    ///   will output the logged events to a Parquet file. Parquet is a columnar storage file format
-    ///   that is optimized for use with big data processing frameworks.
+    /// * `Parquet` - Represents the Parquet file format. When this variant is
+    ///   used, the `EventLogger` will output the logged events to a Parquet
+    ///   file. Parquet is a columnar storage file format that is optimized for
+    ///   use with big data processing frameworks.
     Parquet,
 }
 
@@ -168,11 +169,11 @@ impl EventLogger {
     /// Sets the output file type for the `EventLogger`.
     /// The default file type is JSON.
     /// # Arguments
-    /// 
+    ///
     /// * `file_type` - The file type that the event logs will be stored in.
-    /// 
+    ///
     /// # Returns
-    /// 
+    ///
     /// The `EventLogger` instance with the specified file type.
     pub fn file_type(mut self, file_type: OutputFileType) -> Self {
         self.output_file_type = Some(file_type);
@@ -211,7 +212,8 @@ impl EventLogger {
                         // create new directory with path
                         let output_dir = std::env::current_dir().unwrap().join(&dir);
                         std::fs::create_dir_all(&output_dir).unwrap();
-                        // match the file output type and write to correct file using the right file type
+                        // match the file output type and write to correct file using the right file
+                        // type
                         match file_type {
                             OutputFileType::JSON => {
                                 let file_path = output_dir.join(format!("{}.json", file_name));
@@ -231,7 +233,8 @@ impl EventLogger {
                                             contract_names.push(contract.clone());
                                             event_names.push(event.clone());
                                             event_values.push(value.to_string());
-                                            // Assuming Value has a suitable ToString implementation
+                                            // Assuming Value has a suitable
+                                            // ToString implementation
                                         }
                                     }
                                 }
@@ -256,7 +259,9 @@ impl EventLogger {
                                 writer.finish(&mut df).unwrap_or_else(|_| {
                                     panic!("Error writing to csv file");
                                 });
-                                // what should happen here is that we turn the logs into a polars data fram and then use the polars csv writer to write the data
+                                // what should happen here is that we turn the
+                                // logs into a polars data fram and then use the
+                                // polars csv writer to write the data
                             }
                             OutputFileType::Parquet => {
                                 // 1. Flatten the BTreeMap
@@ -270,7 +275,8 @@ impl EventLogger {
                                             contract_names.push(contract.clone());
                                             event_names.push(event.clone());
                                             event_values.push(value.to_string());
-                                            // Assuming Value has a suitable ToString implementation
+                                            // Assuming Value has a suitable
+                                            // ToString implementation
                                         }
                                     }
                                 }

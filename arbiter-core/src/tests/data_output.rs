@@ -1,7 +1,10 @@
 use std::{fs, path::Path};
 
 use super::*;
-use crate::{data_collection::{EventLogger, OutputFileType}, middleware::errors::RevmMiddlewareError};
+use crate::{
+    data_collection::{EventLogger, OutputFileType},
+    middleware::errors::RevmMiddlewareError,
+};
 
 #[tokio::test]
 async fn data_capture() {
@@ -10,13 +13,13 @@ async fn data_capture() {
     println!("Deployed contracts");
 
     // default_listener
-   EventLogger::builder()
+    EventLogger::builder()
         .add(arbx.events(), "arbx")
         .add(arby.events(), "arby")
         .add(lex.events(), "lex")
         .run()
         .unwrap();
-    
+
     EventLogger::builder()
         .add(arbx.events(), "arbx")
         .add(arby.events(), "arby")
@@ -33,9 +36,11 @@ async fn data_capture() {
         .run()
         .unwrap();
 
-    generate_events(arbx, arby, lex, client.clone()).await.unwrap_or_else(|e| {
-        panic!("Error generating events: {}", e);
-    });
+    generate_events(arbx, arby, lex, client.clone())
+        .await
+        .unwrap_or_else(|e| {
+            panic!("Error generating events: {}", e);
+        });
 
     let _ = env.stop();
 
@@ -46,7 +51,12 @@ async fn data_capture() {
     std::fs::remove_dir_all("./data").unwrap();
 }
 
-async fn generate_events(arbx: ArbiterToken<RevmMiddleware>, arby: ArbiterToken<RevmMiddleware>, lex: LiquidExchange<RevmMiddleware>, client: Arc<RevmMiddleware>) -> Result<(), RevmMiddlewareError>{
+async fn generate_events(
+    arbx: ArbiterToken<RevmMiddleware>,
+    arby: ArbiterToken<RevmMiddleware>,
+    lex: LiquidExchange<RevmMiddleware>,
+    client: Arc<RevmMiddleware>,
+) -> Result<(), RevmMiddlewareError> {
     for _ in 0..5 {
         arbx.approve(client.address(), U256::from(1))
             .send()
