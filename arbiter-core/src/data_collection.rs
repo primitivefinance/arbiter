@@ -260,7 +260,7 @@ impl EventLogger {
                                     panic!("Error writing to csv file");
                                 });
                                 // what should happen here is that we turn the
-                                // logs into a polars data fram and then use the
+                                // logs into a polars data frame and then use the
                                 // polars csv writer to write the data
                             }
                             OutputFileType::Parquet => {
