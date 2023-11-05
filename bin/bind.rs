@@ -262,7 +262,7 @@ fn get_config() -> ArbiterConfig {
     let mut ignore_interfaces = false;
 
     // Try loading the TOML content from the file
-    if let Ok(content) = fs::read_to_string("foundry.toml") {
+    if let Ok(content) = fs::read_to_string("arbiter.toml") {
         // Attempt to parse the content as TOML
         if let Ok(value) = content.parse::<Value>() {
             // Navigate to the 'arbiter.bindings_workspace' section and retrieve values
