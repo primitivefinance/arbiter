@@ -245,7 +245,7 @@ dependencies = [
 
 [[package]]
 name = "arbiter-core"
-version = "0.7.2"
+version = "0.7.3"
 dependencies = [
  "RustQuant",
  "anyhow",
