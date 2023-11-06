@@ -52,14 +52,15 @@ type FilterDecoder =
 ///   `Sync`, and has a static lifetime.
 /// * `E` - Type that implements the `EthLogDecode`, `Debug`, `Serialize`
 ///   traits, and has a static lifetime.
-pub struct EventLogger {
-    directory: Option<String>,
-    file_name: Option<String>,
+pub struct EventLogger<M: Serialize + Clone + Send + Sync + 'static> {
     decoder: FilterDecoder,
     receiver: Option<crossbeam_channel::Receiver<Broadcast>>,
+    directory: Option<String>,
+    file_name: Option<String>,
+    metadata: Option<M>,
 }
 
-impl EventLogger {
+impl<M: Serialize + Clone + Send + Sync + 'static> EventLogger<M> {
     /// Constructs a new `EventLogger`.
     ///
     /// # Returns
@@ -72,6 +73,7 @@ impl EventLogger {
             file_name: None,
             decoder: BTreeMap::new(),
             receiver: None,
+            metadata: None,
         }
     }
 
@@ -141,6 +143,20 @@ impl EventLogger {
         self
     }
 
+    /// Sets the metadata for the `EventLogger`.
+    ///
+    /// # Arguments
+    ///
+    /// * `metadata` - The metadata to be stored with the event logs which must implement the `Serialize` trait.
+    ///
+    /// # Returns
+    ///
+    /// The `EventLogger` instance with the specified metadata.
+    pub fn metadata(mut self, metadata: M) -> Self {
+        self.metadata = Some(metadata);
+        self
+    }
+
     /// Executes the `EventLogger`.
     ///
     /// This function starts the event logging process. It first deletes the
@@ -165,6 +181,7 @@ impl EventLogger {
         let receiver = self.receiver.unwrap();
         let dir = self.directory.unwrap_or("./data".into());
         let file_name = self.file_name.unwrap_or("output".into());
+        let metadata = self.metadata.clone();
         std::thread::spawn(move || {
             let mut logs: BTreeMap<String, BTreeMap<String, Vec<Value>>> = BTreeMap::new();
             while let Ok(broadcast) = receiver.recv() {
@@ -176,7 +193,18 @@ impl EventLogger {
                         let file_path = output_dir.join(format!("{}.json", file_name));
                         let file = std::fs::File::create(file_path).unwrap();
                         let writer = BufWriter::new(file);
-                        serde_json::to_writer(writer, &logs).expect("Unable to write data");
+
+                        // Create a struct to hold both logs and metadata
+                        #[derive(Serialize)]
+                        struct OutputData<T> {
+                            logs: BTreeMap<String, BTreeMap<String, Vec<Value>>>,
+                            metadata: Option<T>,
+                        }
+
+                        let data = OutputData { logs, metadata };
+
+                        // Write the data to the file
+                        serde_json::to_writer(writer, &data).expect("Unable to write data");
                         break;
                     }
                     Broadcast::Event(event) => {
