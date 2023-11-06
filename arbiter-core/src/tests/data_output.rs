@@ -1,5 +1,12 @@
+use serde::Serialize;
+
 use super::*;
 use crate::data_collection::EventLogger;
+
+#[derive(Serialize, Clone)]
+struct MockMetadata {
+    pub name: String,
+}
 
 #[tokio::test]
 async fn data_capture() {
@@ -7,10 +14,16 @@ async fn data_capture() {
     let (arbx, arby, lex) = deploy_liquid_exchange(client.clone()).await.unwrap();
     println!("Deployed contracts");
 
+    let metadata = MockMetadata {
+        name: "test".to_string(),
+    };
+
     let listener = EventLogger::builder()
         .add(arbx.events(), "arbx")
         .add(arby.events(), "arby")
-        .add(lex.events(), "lex");
+        .add(lex.events(), "lex")
+        .metadata(metadata)
+        .unwrap();
 
     listener.run().unwrap();
 
@@ -37,5 +50,5 @@ async fn data_capture() {
 
     env.stop().unwrap();
     let path = std::env::current_dir().unwrap().join("data");
-    std::fs::remove_dir_all(path).unwrap();
+    // std::fs::remove_dir_all(path).unwrap();
 }
