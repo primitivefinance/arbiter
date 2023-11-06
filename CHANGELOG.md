@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.7](https://github.com/primitivefinance/arbiter/compare/arbiter-v0.4.6...arbiter-v0.4.7) - 2023-11-06
+
+### Other
+- updated the following local packages: arbiter-core
+
 ## [0.4.6](https://github.com/primitivefinance/arbiter/compare/arbiter-v0.4.5...arbiter-v0.4.6) - 2023-10-30
 
 ### Other
