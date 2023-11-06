@@ -1,6 +1,6 @@
 [package]
 name = "arbiter-core"
-version = "0.7.0"
+version = "0.7.1"
 edition = "2021"
 authors = ["Waylon Jepsen <waylonjepsen1@gmail.com>", "Colin Roberts <colin@autoparallel.xyz>"]
 description = "Allowing smart contract developers to do simulation driven development via an EVM emulator"
@@ -28,7 +28,6 @@ serde_json = { version = "=1.0.108" }
 tokio = { version = "1.32.0", features = ["macros", "full"] }
 async-trait =  { version = "0.1.74" }
 crossbeam-channel =  { version = "=0.5.8" }
-atomic_enum = { version = "=0.2.0" }
 futures-timer = { version = "=3.0.2" }
 futures-locks = { version = "=0.7.1" }
 
@@ -53,7 +52,12 @@ anyhow =  { version = "=1.0.75" }
 test-log =  { version = "=0.2.13" }
 tracing-test = "0.2.4"
 
+arbiter-core = { path = ".", features = ["contracts"] }
+polars = "0.34.2"
+cargo_metadata = "0.18.1"
+chrono = "0.4.31"
 futures =  { version = "=0.3.29" }
+
 assert_matches =  { version = "=1.5" }
 
 [[bench]]

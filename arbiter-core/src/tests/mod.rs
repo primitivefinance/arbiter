@@ -4,6 +4,7 @@
 // mod interaction;
 mod clients;
 mod contracts;
+mod data_output;
 mod derives;
 mod environment_control;
 mod middleware_instructions;

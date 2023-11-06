@@ -6,6 +6,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.7.1](https://github.com/primitivefinance/arbiter/compare/arbiter-core-v0.7.0...arbiter-core-v0.7.1) - 2023-10-30
+
+### Fixed
+- fix test and change output directory
+
+### Other
+- *(deps)* bump serde_json from 1.0.107 to 1.0.108
+- other test was broken too
+- fmt
+- remove other redundant file
+- remove test
+- fmt
+
 ## [0.7.0](https://github.com/primitivefinance/arbiter/compare/arbiter-core-v0.6.3...arbiter-core-v0.7.0) - 2023-10-27
 
 ### Fixed
