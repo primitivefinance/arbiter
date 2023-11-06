@@ -52,15 +52,15 @@ type FilterDecoder =
 ///   `Sync`, and has a static lifetime.
 /// * `E` - Type that implements the `EthLogDecode`, `Debug`, `Serialize`
 ///   traits, and has a static lifetime.
-pub struct EventLogger<M: Serialize + Clone + Send + Sync + 'static> {
+pub struct EventLogger {
     decoder: FilterDecoder,
     receiver: Option<crossbeam_channel::Receiver<Broadcast>>,
     directory: Option<String>,
     file_name: Option<String>,
-    metadata: Option<M>,
+    metadata: Option<Value>,
 }
 
-impl<M: Serialize + Clone + Send + Sync + 'static> EventLogger<M> {
+impl EventLogger {
     /// Constructs a new `EventLogger`.
     ///
     /// # Returns
@@ -147,14 +147,16 @@ impl<M: Serialize + Clone + Send + Sync + 'static> EventLogger<M> {
     ///
     /// # Arguments
     ///
-    /// * `metadata` - The metadata to be stored with the event logs which must implement the `Serialize` trait.
+    /// * `metadata` - The metadata to be stored with the event logs which must
+    ///   implement the `Serialize` trait.
     ///
     /// # Returns
     ///
     /// The `EventLogger` instance with the specified metadata.
-    pub fn metadata(mut self, metadata: M) -> Self {
+    pub fn metadata(mut self, metadata: impl Serialize) -> Result<Self, serde_json::Error> {
+        let metadata = serde_json::to_value(metadata)?;
         self.metadata = Some(metadata);
-        self
+        Ok(self)
     }
 
     /// Executes the `EventLogger`.
@@ -183,7 +185,7 @@ impl<M: Serialize + Clone + Send + Sync + 'static> EventLogger<M> {
         let file_name = self.file_name.unwrap_or("output".into());
         let metadata = self.metadata.clone();
         std::thread::spawn(move || {
-            let mut logs: BTreeMap<String, BTreeMap<String, Vec<Value>>> = BTreeMap::new();
+            let mut events: BTreeMap<String, BTreeMap<String, Vec<Value>>> = BTreeMap::new();
             while let Ok(broadcast) = receiver.recv() {
                 match broadcast {
                     Broadcast::StopSignal => {
@@ -197,11 +199,11 @@ impl<M: Serialize + Clone + Send + Sync + 'static> EventLogger<M> {
                         // Create a struct to hold both logs and metadata
                         #[derive(Serialize)]
                         struct OutputData<T> {
-                            logs: BTreeMap<String, BTreeMap<String, Vec<Value>>>,
+                            events: BTreeMap<String, BTreeMap<String, Vec<Value>>>,
                             metadata: Option<T>,
                         }
 
-                        let data = OutputData { logs, metadata };
+                        let data = OutputData { events, metadata };
 
                         // Write the data to the file
                         serde_json::to_writer(writer, &data).expect("Unable to write data");
@@ -219,11 +221,11 @@ impl<M: Serialize + Clone + Send + Sync + 'static> EventLogger<M> {
                                     .unwrap();
                                     let event_as_object = event_as_value.as_object().unwrap();
 
-                                    let contract = logs.get(contract_name);
+                                    let contract = events.get(contract_name);
                                     if contract.is_none() {
-                                        logs.insert(contract_name.clone(), BTreeMap::new());
+                                        events.insert(contract_name.clone(), BTreeMap::new());
                                     }
-                                    let contract = logs.get_mut(contract_name).unwrap();
+                                    let contract = events.get_mut(contract_name).unwrap();
 
                                     let event_name =
                                         event_as_object.clone().keys().collect::<Vec<&String>>()[0]
