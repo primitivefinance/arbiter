@@ -35,6 +35,7 @@ async fn data_capture() {
             .unwrap();
     }
 
-    let _ = env.stop();
-    std::fs::remove_dir_all("./data").unwrap();
+    env.stop().unwrap();
+    let path = std::env::current_dir().unwrap().join("data");
+    std::fs::remove_dir_all(path).unwrap();
 }
