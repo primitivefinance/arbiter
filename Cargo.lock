@@ -220,7 +220,7 @@ dependencies = [
 
 [[package]]
 name = "arbiter"
-version = "0.4.6"
+version = "0.4.7"
 dependencies = [
  "Inflector",
  "arbiter-core",
@@ -245,7 +245,7 @@ dependencies = [
 
 [[package]]
 name = "arbiter-core"
-version = "0.7.1"
+version = "0.7.2"
 dependencies = [
  "RustQuant",
  "anyhow",
