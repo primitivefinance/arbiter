@@ -10,12 +10,13 @@ use std::{
 
 pub(crate) mod digest;
 mod test;
-use self::digest::ArbiterConfig;
 use config::{Config, ConfigError};
 use foundry_config::Config as FoundryConfig;
 use inflector::Inflector;
 use proc_macro2::{Ident, Span};
 use serde::Deserialize;
+
+use self::digest::ArbiterConfig;
 
 /// Runs the `forge` command-line tool to generate bindings.
 ///

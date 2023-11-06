@@ -1,5 +1,3 @@
-use tracing_test::traced_test;
-
 use super::*;
 use crate::data_collection::EventLogger;
 
@@ -38,5 +36,5 @@ async fn data_capture() {
     }
 
     let _ = env.stop();
-    std::fs::remove_dir_all("./data").await.unwrap();
+    std::fs::remove_dir_all("./data").unwrap();
 }

@@ -17,9 +17,10 @@
 //! This CLI leverages the power of Rust's type system to
 //! offer fast and reliable operations, ensuring data integrity and ease of use.
 
-use crate::fork::ForkConfig;
 use clap::{command, CommandFactory, Parser, Subcommand};
 use thiserror::Error;
+
+use crate::fork::ForkConfig;
 
 mod bind;
 mod fork;
