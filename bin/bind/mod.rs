@@ -8,29 +8,16 @@ use std::{
     process::Command,
 };
 
-use foundry_config::Config;
+pub(crate) mod digest;
+mod tests;
+use config::{Config, ConfigError};
+use foundry_config::Config as FoundryConfig;
 use inflector::Inflector;
 use proc_macro2::{Ident, Span};
-use toml::Value;
+use serde::Deserialize;
 
-pub struct ArbiterConfig {
-    /// The path to the directory where the bindings will be generated.
-    pub bindings_path: PathBuf,
-    /// Whether to generate bindings for submodules.
-    pub submodules: bool,
-    /// Ignore interfaces flag
-    pub ignore_interfaces: bool,
-}
+use self::digest::ArbiterConfig;
 
-impl ArbiterConfig {
-    pub fn _new_mock_config() -> Self {
-        ArbiterConfig {
-            bindings_path: PathBuf::from("src").join("bindings"),
-            submodules: false,
-            ignore_interfaces: false,
-        }
-    }
-}
 /// Runs the `forge` command-line tool to generate bindings.
 ///
 /// This function attempts to execute the external command `forge` with the
@@ -47,15 +34,15 @@ impl ArbiterConfig {
 ///   tool is not installed.
 
 pub(crate) fn forge_bind() -> std::io::Result<()> {
-    let foundry_config = Config::load();
-    let arbiter_config = get_config();
-    // let contracts_output_path: bool =
+    let foundry_config = FoundryConfig::load();
+    let arbiter_config = ArbiterConfig::new().unwrap();
+    let project_bidnings_output_path = arbiter_config.bindings_path.join("bindings");
     let output = Command::new("forge")
         .arg("bind")
         .arg("--revert-strings")
         .arg("debug")
         .arg("-b")
-        .arg(arbiter_config.bindings_path.clone())
+        .arg(project_bidnings_output_path.clone())
         .arg("--module")
         .arg("--overwrite")
         .output()?;
@@ -71,8 +58,7 @@ pub(crate) fn forge_bind() -> std::io::Result<()> {
             "Command failed",
         ));
     }
-
-    remove_unneeded_contracts(&arbiter_config.bindings_path, project_contracts)?;
+    remove_unneeded_contracts(&project_bidnings_output_path, project_contracts)?;
 
     if arbiter_config.submodules {
         for lib_dir in &foundry_config.libs {
@@ -256,46 +242,6 @@ fn update_mod_file(bindings_path: &Path, contracts_to_keep: Vec<String>) -> io::
     Ok(())
 }
 
-fn get_config() -> ArbiterConfig {
-    // Initialize default values
-    let mut path = PathBuf::from("src");
-    let mut submodules_value = false;
-    let mut ignore_interfaces = false;
-
-    // Try loading the TOML content from the file
-    if let Ok(content) = fs::read_to_string("cargo.toml") {
-        // Attempt to parse the content as TOML
-        if let Ok(value) = content.parse::<Value>() {
-            // Navigate to the 'arbiter.bindings_workspace' section and retrieve values
-            if let Some(arbiter) = value.get("arbiter") {
-                if let Some(bindings_workspace) = arbiter.get("bindings_workspace") {
-                    if let Some(bindings_workspace_str) = bindings_workspace.as_str() {
-                        path = PathBuf::from(bindings_workspace_str);
-                        path = path.join("src");
-                    }
-                }
-                if let Some(submodules) = arbiter.get("submodules") {
-                    if let Some(bindings_workspace_bool) = submodules.as_bool() {
-                        submodules_value = bindings_workspace_bool;
-                    }
-                }
-
-                if let Some(ignore_interfaces_value) = arbiter.get("ignore_interfaces") {
-                    if let Some(ignore_interfaces_bool) = ignore_interfaces_value.as_bool() {
-                        ignore_interfaces = ignore_interfaces_bool;
-                    }
-                }
-            }
-        }
-    }
-    path = path.join("bindings");
-    ArbiterConfig {
-        bindings_path: path,
-        submodules: submodules_value,
-        ignore_interfaces,
-    }
-}
-
 /// The following methods were picked out of https://github.com/gakonst/ethers-rs/blob/9d01a9810940d3acd7c78bf2b2f2ca85a74f73eb/ethers-contract/ethers-contract-abigen/src/lib.rs#L393
 /// Expands an identifier string into a token and appending `_` if the
 /// identifier is for a reserved keyword.
@@ -331,118 +277,5 @@ fn safe_identifier_name(name: String) -> String {
         format!("_{name}")
     } else {
         name
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use tempfile::tempdir;
-
-    use super::*;
-
-    #[test]
-    fn test_safe_module_name() {
-        assert_eq!(safe_module_name("Valid"), "valid");
-        assert_eq!(safe_module_name("Enum"), "enum_");
-        assert_eq!(safe_module_name("Mod"), "mod_");
-        assert_eq!(safe_module_name("2Two"), "_2_two");
-    }
-
-    #[test]
-    fn test_collect_contract_list_from_contracts() {
-        // Create a temporary directory
-        let dir = tempdir().expect("Failed to create temporary directory");
-        let setting = ArbiterConfig::_new_mock_config();
-        // Create nested directories "src" and "contracts"
-        let contracts_dir = dir.path().join("contracts");
-        fs::create_dir(&contracts_dir).expect("Failed to create contracts directory");
-
-        // Create files in the contracts directory
-        fs::write(contracts_dir.join("ExampleContract.sol"), "").expect("Failed to write file");
-        fs::write(contracts_dir.join("AnotherTest.sol"), "").expect("Failed to write file");
-        fs::write(contracts_dir.join("ITestInterface.sol"), "").expect("Failed to write file"); // This should be ignored
-        fs::write(contracts_dir.join("G3M.sol"), "").expect("Failed to write file");
-        fs::write(contracts_dir.join("SD59x18Math.sol"), "").expect("Failed to write file");
-
-        // Call the function
-        let mut contracts =
-            collect_contract_list(dir.path(), &setting).expect("Failed to collect contracts");
-        contracts.sort();
-        // Assert the results
-        let mut expected = vec![
-            "shared_types",
-            "example_contract",
-            "sd5_9x_18_math",
-            "g3m",
-            "another_test",
-            "i_test_interface",
-        ];
-        expected.sort();
-        assert_eq!(contracts, expected);
-
-        // Temp dir will be automatically cleaned up after going out of scope.
-    }
-
-    #[test]
-    fn test_collect_contract_list_from_src() {
-        // Create a temporary directory
-        let dir = tempdir().expect("Failed to create temporary directory");
-        let config = ArbiterConfig::_new_mock_config();
-
-        // Create a nested directory "src"
-        let src_dir = dir.path().join("src");
-        fs::create_dir(&src_dir).expect("Failed to create src directory");
-
-        // Create files in the src directory
-        fs::write(src_dir.join("ExampleOne.sol"), "").expect("Failed to write file");
-        fs::write(src_dir.join("TestTwo.sol"), "").expect("Failed to write file");
-        fs::write(src_dir.join("ITestInterface.sol"), "").expect("Failed to write file"); // This should be ignored
-        fs::write(src_dir.join("G3M.sol"), "").expect("Failed to write file"); // This should be ignored
-        fs::write(src_dir.join("SD59x18Math.sol"), "").expect("Failed to write file"); // This should be ignored
-
-        // Call the function
-        let mut contracts =
-            collect_contract_list(dir.path(), &config).expect("Failed to collect contracts");
-        contracts.sort();
-        // Assert the results
-        let mut expected = vec![
-            "shared_types",
-            "sd5_9x_18_math",
-            "example_one",
-            "test_two",
-            "g3m",
-            "i_test_interface",
-        ];
-        expected.sort();
-        assert_eq!(contracts, expected);
-
-        // Temp dir will be automatically cleaned up after going out of scope.
-    }
-    #[test]
-    fn test_update_mod_file() {
-        // Create a temporary directory
-        let dir = tempdir().expect("Failed to create temporary directory");
-
-        // Mock a mod.rs file with some content
-        let mocked_mod_path = dir.path().join("mod.rs");
-        let content = "
-        // Some comments
-        pub mod example_contract;
-        pub mod test_contract;
-        ";
-        fs::write(&mocked_mod_path, content).expect("Failed to write mock mod.rs file");
-
-        // Call the function
-        let contracts_to_keep = vec!["example_contract".to_owned()];
-        update_mod_file(mocked_mod_path.parent().unwrap(), contracts_to_keep)
-            .expect("Failed to update mod file");
-
-        // Open the mocked mod.rs file and check its content
-        let updated_content = fs::read_to_string(&mocked_mod_path).unwrap();
-        assert!(updated_content.contains("pub mod example_contract;"));
-        assert!(!updated_content.contains("pub mod test_contract;"));
-
-        // Temp dir (and the mock mod.rs file inside it) will be automatically
-        // cleaned up after going out of scope.
     }
 }
