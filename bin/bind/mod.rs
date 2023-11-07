@@ -9,7 +9,7 @@ use std::{
 };
 
 pub(crate) mod digest;
-mod test;
+mod tests;
 use config::{Config, ConfigError};
 use foundry_config::Config as FoundryConfig;
 use inflector::Inflector;
