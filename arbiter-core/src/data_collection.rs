@@ -238,38 +238,21 @@ impl EventLogger {
                                 let file_path = output_dir.join(format!("{}.json", file_name));
                                 let file = std::fs::File::create(file_path).unwrap();
                                 let writer = BufWriter::new(file);
-                                serde_json::to_writer(writer, &logs).expect("Unable to write data");
+
+                                #[derive(Serialize, Clone)]
+                                struct OutputData<T> {
+                                    events: BTreeMap<String, BTreeMap<String, Vec<Value>>>,
+                                    metadata: Option<T>,
+                                }
+                                let data = OutputData {
+                                    events: events.clone(),
+                                    metadata: metadata.clone(),
+                                };
+                                serde_json::to_writer(writer, &data).expect("Unable to write data");
                             }
                             OutputFileType::CSV => {
-                                // 1. Flatten the BTreeMap
-                                let mut contract_names = Vec::new();
-                                let mut event_names = Vec::new();
-                                let mut event_values = Vec::new();
-
-                                for (contract, events) in &logs {
-                                    for (event, values) in events {
-                                        for value in values {
-                                            contract_names.push(contract.clone());
-                                            event_names.push(event.clone());
-                                            event_values.push(value.to_string());
-                                            // Assuming Value has a suitable
-                                            // ToString implementation
-                                        }
-                                    }
-                                }
-
-                                // 2. Convert the vectors into a DataFrame
-                                let mut df = DataFrame::new(vec![
-                                    Series::new("contract_name", contract_names),
-                                    Series::new("event_name", event_names),
-                                    Series::new("event_value", event_values),
-                                ])
-                                .unwrap();
-
-                                println!("{:?}", df);
-
-                                // 3. Write the DataFrame to a CSV file
-
+                                let mut df = flatten_to_data_frame(events.clone());
+                                // Write the DataFrame to a CSV file
                                 let file_path = output_dir.join(format!("{}.csv", file_name));
                                 let file = std::fs::File::create(file_path).unwrap_or_else(|_| {
                                     panic!("Error creating csv file");
@@ -278,42 +261,10 @@ impl EventLogger {
                                 writer.finish(&mut df).unwrap_or_else(|_| {
                                     panic!("Error writing to csv file");
                                 });
-                                // what should happen here is that we turn the
-                                // logs into a polars data frame and then use
-                                // the
-                                // polars csv writer to write the data
                             }
                             OutputFileType::Parquet => {
-                                // 1. Flatten the BTreeMap
-                                let mut contract_names = Vec::new();
-                                let mut event_names = Vec::new();
-                                let mut event_values = Vec::new();
-
-                                for (contract, events) in &logs {
-                                    for (event, values) in events {
-                                        for value in values {
-                                            contract_names.push(contract.clone());
-                                            event_names.push(event.clone());
-                                            event_values.push(value.to_string());
-                                            // Assuming Value has a suitable
-                                            // ToString implementation
-                                        }
-                                    }
-                                }
-
-                                // 2. Convert the vectors into a DataFrame
-                                let mut df = DataFrame::new(vec![
-                                    Series::new("contract_name", contract_names),
-                                    Series::new("event_name", event_names),
-                                    Series::new("event_value", event_values),
-                                ])
-                                .unwrap_or_else(|_| {
-                                    panic!("Error creating DataFrame");
-                                });
-
-                                println!("{:?}", df);
-
-                                // 3. Write the DataFrame to a parquet file
+                                let mut df = flatten_to_data_frame(events.clone());
+                                // Write the DataFrame to a parquet file
                                 let file_path = output_dir.join(format!("{}.parquet", file_name));
                                 let file = std::fs::File::create(file_path).unwrap_or_else(|_| {
                                     panic!("Error creating parquet file");
@@ -367,6 +318,33 @@ impl EventLogger {
     }
 }
 
+fn flatten_to_data_frame(events: BTreeMap<String, BTreeMap<String, Vec<Value>>>) -> DataFrame {
+    // 1. Flatten the BTreeMap
+    let mut contract_names = Vec::new();
+    let mut event_names = Vec::new();
+    let mut event_values = Vec::new();
+
+    for (contract, events) in &events {
+        for (event, values) in events {
+            for value in values {
+                contract_names.push(contract.clone());
+                event_names.push(event.clone());
+                event_values.push(value.to_string());
+            }
+        }
+    }
+
+    // 2. Convert the vectors into a DataFrame
+    let df = DataFrame::new(vec![
+        Series::new("contract_name", contract_names),
+        Series::new("event_name", event_names),
+        Series::new("event_value", event_values),
+    ])
+    .unwrap();
+    println!("{:?}", df);
+
+    df
+}
 struct EventTransmuted<B, M, D> {
     /// The event filter's state
     pub filter: Filter,

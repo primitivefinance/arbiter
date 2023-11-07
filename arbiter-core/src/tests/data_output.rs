@@ -1,4 +1,5 @@
 use std::path::Path;
+
 use serde::Serialize;
 
 use super::*;
@@ -24,6 +25,7 @@ async fn data_capture() {
         .add(arby.events(), "arby")
         .add(lex.events(), "lex")
         .run()
+        .unwrap();
 
     let metadata = MockMetadata {
         name: "test".to_string(),
@@ -64,7 +66,7 @@ async fn data_capture() {
     assert!(Path::new("./data/output.csv").exists());
     assert!(Path::new("./data/output.parquet").exists());
     assert!(Path::new("./data/output.json").exists());
-    std::fs::remove_dir_all("./data").unwrap();
+    // std::fs::remove_dir_all("./data").unwrap();
 }
 
 async fn generate_events(
@@ -91,5 +93,4 @@ async fn generate_events(
             .await?;
     }
     Ok(())
-
 }
