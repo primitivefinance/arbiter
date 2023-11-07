@@ -8,7 +8,7 @@ exclude = ["benches"]
 # Package configuration
 [package]
 name = "arbiter"
-version = "0.4.6"
+version = "0.4.7"
 edition = "2021"
 authors = ["Waylon Jepsen <waylonjepsen1@gmail.com>", "Colin Roberts <colin@autoparallel.xyz>"]
 description = "Allowing smart contract developers to do simulation driven development via an EVM emulator"
@@ -23,18 +23,18 @@ path = "bin/main.rs"
 
 # Dependencies for the release build
 [dependencies]
-arbiter-core = { version = "0.7.1", path = "arbiter-core" }
+arbiter-core = { version = "0.7.2", path = "arbiter-core" }
 
 # Command line and config
 clap = { version = "=4.4.7", features = ["derive"] }
-serde = { version = "=1.0.190", features = ["derive"] }
+serde = { version = "=1.0.191", features = ["derive"] }
 serde_json = { version = "=1.0.108" }
 config = { version = "=0.13.3" }
 ethers = { version = "=2.0.10" }
 revm = { version = "=3.5.0", features = [ "ethersdb", "std" ] }
 toml = { version = "=0.8.6" }
 proc-macro2 = { version = "=1.0.69" }
-syn = { version = "=2.0.38" }
+syn = { version = "=2.0.39" }
 Inflector = { version = "=0.11.4" }
 # Building files
 quote = { version = "=1.0.33" }

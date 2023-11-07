@@ -58,11 +58,12 @@ type FilterDecoder =
 /// * `E` - Type that implements the `EthLogDecode`, `Debug`, `Serialize`
 ///   traits, and has a static lifetime.
 pub struct EventLogger {
-    directory: Option<String>,
-    file_name: Option<String>,
     decoder: FilterDecoder,
     receiver: Option<crossbeam_channel::Receiver<Broadcast>>,
     output_file_type: Option<OutputFileType>,
+    directory: Option<String>,
+    file_name: Option<String>,
+    metadata: Option<Value>,
 }
 
 /// `OutputFileType` is an enumeration that represents the different types of
@@ -97,6 +98,7 @@ impl EventLogger {
             decoder: BTreeMap::new(),
             receiver: None,
             output_file_type: None,
+            metadata: None,
         }
     }
 
@@ -179,6 +181,22 @@ impl EventLogger {
         self.output_file_type = Some(file_type);
         self
     }
+    /// Sets the metadata for the `EventLogger`.
+    ///
+    /// # Arguments
+    ///
+    /// * `metadata` - The metadata to be stored with the event logs which must
+    ///   implement the `Serialize` trait.
+    ///
+    /// # Returns
+    ///
+    /// The `EventLogger` instance with the specified metadata.
+    pub fn metadata(mut self, metadata: impl Serialize) -> Result<Self, serde_json::Error> {
+        let metadata = serde_json::to_value(metadata)?;
+        self.metadata = Some(metadata);
+        Ok(self)
+    }
+
     /// Executes the `EventLogger`.
     ///
     /// This function starts the event logging process. It first deletes the
@@ -204,8 +222,9 @@ impl EventLogger {
         let dir = self.directory.unwrap_or("./data".into());
         let file_name = self.file_name.unwrap_or("output".into());
         let file_type = self.output_file_type.unwrap_or(OutputFileType::JSON);
+        let metadata = self.metadata.clone();
         std::thread::spawn(move || {
-            let mut logs: BTreeMap<String, BTreeMap<String, Vec<Value>>> = BTreeMap::new();
+            let mut events: BTreeMap<String, BTreeMap<String, Vec<Value>>> = BTreeMap::new();
             while let Ok(broadcast) = receiver.recv() {
                 match broadcast {
                     Broadcast::StopSignal => {
@@ -318,11 +337,11 @@ impl EventLogger {
                                     .unwrap();
                                     let event_as_object = event_as_value.as_object().unwrap();
 
-                                    let contract = logs.get(contract_name);
+                                    let contract = events.get(contract_name);
                                     if contract.is_none() {
-                                        logs.insert(contract_name.clone(), BTreeMap::new());
+                                        events.insert(contract_name.clone(), BTreeMap::new());
                                     }
-                                    let contract = logs.get_mut(contract_name).unwrap();
+                                    let contract = events.get_mut(contract_name).unwrap();
 
                                     let event_name =
                                         event_as_object.clone().keys().collect::<Vec<&String>>()[0]

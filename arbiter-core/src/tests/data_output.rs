@@ -1,10 +1,16 @@
 use std::path::Path;
+use serde::Serialize;
 
 use super::*;
 use crate::{
     data_collection::{EventLogger, OutputFileType},
     middleware::errors::RevmMiddlewareError,
 };
+
+#[derive(Serialize, Clone)]
+struct MockMetadata {
+    pub name: String,
+}
 
 #[tokio::test]
 async fn data_capture() {
@@ -18,6 +24,16 @@ async fn data_capture() {
         .add(arby.events(), "arby")
         .add(lex.events(), "lex")
         .run()
+
+    let metadata = MockMetadata {
+        name: "test".to_string(),
+    };
+
+    let listener = EventLogger::builder()
+        .add(arbx.events(), "arbx")
+        .add(arby.events(), "arby")
+        .add(lex.events(), "lex")
+        .metadata(metadata)
         .unwrap();
 
     EventLogger::builder()
@@ -75,4 +91,5 @@ async fn generate_events(
             .await?;
     }
     Ok(())
+
 }
