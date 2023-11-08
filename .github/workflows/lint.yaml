@@ -88,3 +88,4 @@ jobs:
           commit_message: Update Cargo.lock
           commit_options: '--no-verify --signoff'
           file_pattern: Cargo.lock
+          branch: ${{ github.head_ref }}
