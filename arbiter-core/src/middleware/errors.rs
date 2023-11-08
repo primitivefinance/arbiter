@@ -1,9 +1,6 @@
-use std::fmt::Debug;
+use super::*;
 
 /// Possible errors thrown by interacting with the revm middleware client.
-use ethers::{prelude::ProviderError, providers::MiddlewareError};
-use thiserror::Error;
-
 /// Errors that can occur while using the [`RevmMiddleware`].
 /// These errors are likely to be more common than other errors in
 /// `arbiter-core` as they can come from simple issues such as contract reverts

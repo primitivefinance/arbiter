@@ -27,22 +27,28 @@ use ethers::{
             ecdsa::SigningKey,
             sha2::{Digest, Sha256},
         },
-        ProviderError,
+        JsonRpcClient, ProviderError,
     },
     providers::{
-        FilterKind, FilterWatcher, Middleware, PendingTransaction, Provider, PubsubClient,
-        SubscriptionStream,
+        FilterKind, FilterWatcher, Middleware, MiddlewareError, PendingTransaction, Provider,
+        PubsubClient, SubscriptionStream,
     },
     signers::{Signer, Wallet},
     types::{
-        transaction::eip2718::TypedTransaction, Address, BlockId, Bloom, Bytes, Filter, Log,
-        NameOrAddress, Transaction, TransactionReceipt, U256 as eU256, U64,
+        transaction::eip2718::TypedTransaction, Address, BlockId, Bloom, Bytes, Filter,
+        FilteredParams, Log, NameOrAddress, Transaction, TransactionReceipt, U256 as eU256, U64,
     },
 };
 use futures_timer::Delay;
 use rand::{rngs::StdRng, SeedableRng};
 use revm::primitives::{CreateScheme, Output, TransactTo, TxEnv, U256};
 use serde::{de::DeserializeOwned, Serialize};
+// use revm::primitives::{ExecutionResult, Output};
+// use super::cast::revm_logs_to_ethers_logs;
+// use super::errors::RevmMiddlewareError;
+
+// use async_trait::async_trait;
+use thiserror::Error;
 
 use crate::environment::{cheatcodes::*, instruction::*, Broadcast, Environment};
 

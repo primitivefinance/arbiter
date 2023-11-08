@@ -17,7 +17,11 @@
 //! This CLI leverages the power of Rust's type system to
 //! offer fast and reliable operations, ensuring data integrity and ease of use.
 
+use std::{env, fs, path::Path};
+
 use clap::{command, CommandFactory, Parser, Subcommand};
+use config::{Config, ConfigError};
+use serde::Deserialize;
 use thiserror::Error;
 
 use crate::fork::ForkConfig;
