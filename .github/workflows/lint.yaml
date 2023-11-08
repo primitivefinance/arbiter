@@ -65,27 +65,3 @@ jobs:
           check_filenames: true
           skip: .git,Cargo.lock,target
           ignore_words_list: crate,Crate,functio
-
-  check-lockfile:
-    name: Check Cargo.lock
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
-
-      - name: Install Rust toolchain
-        uses: actions-rs/toolchain@v1
-        with:
-          toolchain: stable
-
-      - name: Generate lockfile
-        run: cargo generate-lockfile
-
-      - name: Commit changes
-        uses: stefanzweifel/git-auto-commit-action@v4
-        with:
-          commit_message: Update Cargo.lock
-          commit_options: '--no-verify --signoff'
-          file_pattern: Cargo.lock
-          branch: ${{ github.head_ref }}
