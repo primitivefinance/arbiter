@@ -17,6 +17,8 @@
 //!   `Sync`, and has a static lifetime.
 //! * `E` - Type that implements the `EthLogDecode`, `Debug`, `Serialize`
 //!   traits, and has a static lifetime.
+
+use super::*;
 use std::{
     collections::BTreeMap, fmt::Debug, io::BufWriter, marker::PhantomData, mem::transmute,
     sync::Arc,
@@ -68,6 +70,7 @@ impl EventLogger {
     /// A fresh `EventLogger` instance with an uninitialized events BTreeMap and
     /// no specified path.
     pub fn builder() -> Self {
+        debug!("`EventLogger` initialized");
         Self {
             directory: None,
             file_name: None,
@@ -92,6 +95,7 @@ impl EventLogger {
         event: Event<Arc<RevmMiddleware>, RevmMiddleware, D>,
         name: S,
     ) -> Self {
+        let name = name.into();
         // Grab the connection from the client and add a new event sender so that we
         // have a distinct channel to now receive events over
         let event_transmuted: EventTransmuted<Arc<RevmMiddleware>, RevmMiddleware, D> =
@@ -100,7 +104,7 @@ impl EventLogger {
         let decoder = |x: &_| serde_json::to_string(&D::decode_log(x).unwrap()).unwrap();
         let filter = event_transmuted.filter.clone();
         self.decoder.insert(
-            name.into(),
+            name.clone(),
             (FilteredParams::new(Some(filter)), Box::new(decoder)),
         );
         let connection = middleware.provider().as_ref();
@@ -113,6 +117,7 @@ impl EventLogger {
                 .add_sender(event_sender);
             self.receiver = Some(event_receiver);
         }
+        debug!("`EventLogger` now provided with event labeled: {:?}", name);
         self
     }
     /// Sets the directory for the `EventLogger`.
@@ -125,7 +130,10 @@ impl EventLogger {
     ///
     /// The `EventLogger` instance with the specified directory.
     pub fn directory<S: Into<String>>(mut self, path: S) -> Self {
-        self.directory = Some(path.into());
+        let cwd = std::env::current_dir().unwrap();
+        let full_path = cwd.join(path.into());
+        self.directory = Some(full_path.to_str().unwrap().to_owned());
+        debug!("`EventLogger` output directory set to: {:?}", full_path);
         self
     }
 
@@ -139,7 +147,9 @@ impl EventLogger {
     ///
     /// The `EventLogger` instance with the specified file.
     pub fn file_name<S: Into<String>>(mut self, path: S) -> Self {
-        self.file_name = Some(path.into());
+        let path = path.into();
+        self.file_name = Some(path.clone());
+        debug!("`EventLogger` output file name set to: {:?}", path);
         self
     }
 
@@ -156,6 +166,7 @@ impl EventLogger {
     pub fn metadata(mut self, metadata: impl Serialize) -> Result<Self, serde_json::Error> {
         let metadata = serde_json::to_value(metadata)?;
         self.metadata = Some(metadata);
+        debug!("`EventLogger` metadata provided");
         Ok(self)
     }
 
@@ -189,10 +200,15 @@ impl EventLogger {
             while let Ok(broadcast) = receiver.recv() {
                 match broadcast {
                     Broadcast::StopSignal => {
+                        debug!("`EventLogger` has seen a stop signal");
                         // create new directory with path
                         let output_dir = std::env::current_dir().unwrap().join(dir);
                         std::fs::create_dir_all(&output_dir).unwrap();
                         let file_path = output_dir.join(format!("{}.json", file_name));
+                        debug!(
+                            "`EventLogger` dumping event data into: {:?}",
+                            file_path.to_str().unwrap().to_owned()
+                        );
                         let file = std::fs::File::create(file_path).unwrap();
                         let writer = BufWriter::new(file);
 
@@ -210,6 +226,7 @@ impl EventLogger {
                         break;
                     }
                     Broadcast::Event(event) => {
+                        trace!("`EventLogger` received an event");
                         let ethers_logs = revm_logs_to_ethers_logs(event);
                         for log in ethers_logs {
                             for (contract_name, (filter, decoder)) in self.decoder.iter() {
@@ -240,6 +257,9 @@ impl EventLogger {
                                     for (_key, value) in event_as_object {
                                         event.push(value.clone());
                                     }
+                                    trace!(
+                                        "`EventLogger` successfully filtered and logged the event"
+                                    )
                                 }
                             }
                         }
