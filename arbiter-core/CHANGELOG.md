@@ -6,6 +6,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.7.4](https://github.com/primitivefinance/arbiter/compare/arbiter-core-v0.7.3...arbiter-core-v0.7.4) - 2023-11-09
+
+### Other
+- workspace dependancies
+- *(deps)* update serde requirement in /arbiter-core
+- *(deps)* bump serde from 1.0.190 to 1.0.191
+
 ## [0.7.2](https://github.com/primitivefinance/arbiter/compare/arbiter-core-v0.7.1...arbiter-core-v0.7.2) - 2023-11-06
 
 ### Added
