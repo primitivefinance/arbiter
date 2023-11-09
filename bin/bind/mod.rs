@@ -1,16 +1,16 @@
 #![warn(missing_docs)]
 use std::{
-    env, fs,
     fs::{write, File},
     io,
     io::{BufRead, BufReader},
-    path::{Path, PathBuf},
+    path::PathBuf,
     process::Command,
 };
 
+use super::*;
+
 pub(crate) mod digest;
 mod tests;
-use config::{Config, ConfigError};
 use foundry_config::Config as FoundryConfig;
 use inflector::Inflector;
 use proc_macro2::{Ident, Span};

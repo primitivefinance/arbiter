@@ -7,15 +7,11 @@
 //! Main components:
 //! - [`NonceManagerMiddleware`]: The core middleware implementation.
 //! - [`NonceManagerError`]: Error type for the middleware.
-
 use std::sync::atomic::{AtomicBool, AtomicU64, Ordering};
 
 use async_trait::async_trait;
-use ethers::{
-    providers::{Middleware, MiddlewareError, PendingTransaction},
-    types::{transaction::eip2718::TypedTransaction, *},
-};
-use thiserror::Error;
+
+use super::*;
 
 #[derive(Debug)]
 /// Middleware used for calculating nonces locally, useful for signing multiple
@@ -45,7 +41,7 @@ where
     }
 
     /// Returns the next nonce to be used
-    pub fn next(&self) -> U256 {
+    pub fn next(&self) -> eU256 {
         let nonce = self.nonce.fetch_add(1, Ordering::SeqCst);
         nonce.into()
     }
@@ -72,7 +68,7 @@ where
     pub async fn initialize_nonce(
         &self,
         block: Option<BlockId>,
-    ) -> Result<U256, NonceManagerError<M>> {
+    ) -> Result<eU256, NonceManagerError<M>> {
         if self.initialized.load(Ordering::SeqCst) {
             // return current nonce
             return Ok(self.nonce.load(Ordering::SeqCst).into());
@@ -101,7 +97,7 @@ where
     async fn get_transaction_count_with_manager(
         &self,
         block: Option<BlockId>,
-    ) -> Result<U256, NonceManagerError<M>> {
+    ) -> Result<eU256, NonceManagerError<M>> {
         // initialize the nonce the first time the manager is called
         if !self.initialized.load(Ordering::SeqCst) {
             let nonce = self
