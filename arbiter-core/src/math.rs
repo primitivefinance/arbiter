@@ -26,8 +26,6 @@
 use ethers::types::U256;
 use rand::{distributions::Distribution, rngs::StdRng, SeedableRng};
 use statrs::distribution::Poisson;
-/// Re-export [`RustQuant`](https://crates.io/crates/RustQuant) stochastics package module.
-pub use RustQuant::stochastics::*;
 
 /// Represents a Poisson distribution with a seeded random number generator.
 ///
