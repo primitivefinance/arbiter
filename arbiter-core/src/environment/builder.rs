@@ -87,6 +87,7 @@ impl EnvironmentBuilder {
     /// `UserControlled`.
     #[allow(clippy::new_without_default)]
     pub fn new() -> Self {
+        debug!("Initialized new environment -- all user controlled");
         Self {
             label: None,
             block_settings: BlockSettings::UserControlled,
@@ -99,6 +100,10 @@ impl EnvironmentBuilder {
     /// This determines how the block number and timestamp are controlled in the
     /// [`Environment`].
     pub fn block_settings(mut self, block_settings: BlockSettings) -> Self {
+        debug!(
+            "Environment now set with: 'block_settings=={:?}",
+            block_settings
+        );
         self.block_settings = block_settings;
         self
     }
@@ -106,6 +111,10 @@ impl EnvironmentBuilder {
     /// Sets the `gas_settings` for the `EnvironmentBuilder`.
     /// This determines how the gas price is controlled in the [`Environment`].
     pub fn gas_settings(mut self, gas_settings: GasSettings) -> Self {
+        debug!(
+            "Environment now set with: 'gas_settings=={:?}",
+            gas_settings
+        );
         self.gas_settings = gas_settings;
         self
     }
@@ -114,7 +123,9 @@ impl EnvironmentBuilder {
     /// This is an optional string that can be used to identify the
     /// [`Environment`].
     pub fn label(mut self, label: impl Into<String>) -> Self {
-        self.label = Some(label.into());
+        let label = label.into();
+        debug!("Environment now labeled as: {:?}", label);
+        self.label = Some(label);
         self
     }
 
@@ -122,6 +133,7 @@ impl EnvironmentBuilder {
     /// This is an optional [`fork::Fork`] that can be loaded into the
     /// [`Environment`].
     pub fn db(mut self, db: impl Into<CacheDB<EmptyDB>>) -> Self {
+        debug!("Environment initialized with an external DB");
         self.db = Some(db.into());
         self
     }
@@ -136,6 +148,7 @@ impl EnvironmentBuilder {
         };
         let mut env = Environment::new(parameters, self.db);
         env.run();
+        info!("Environment built and running!");
         env
     }
 }
