@@ -1,26 +1,12 @@
 //! Messengers/connections to the underlying EVM in the environment.
-use std::{
-    collections::HashMap,
-    fmt::Debug,
-    pin::Pin,
-    sync::{Arc, Mutex, Weak},
-    task::Poll,
-};
+use std::{pin::Pin, sync::Weak, task::Poll};
 
 use crossbeam_channel::TryRecvError;
-use ethers::{
-    prelude::ProviderError,
-    providers::{JsonRpcClient, PubsubClient},
-    types::{Filter, FilteredParams},
-};
 use futures_util::{stream, Stream};
-use serde::{de::DeserializeOwned, Serialize};
 use serde_json::value::RawValue;
 
-use super::cast::revm_logs_to_ethers_logs;
-use crate::environment::{
-    Broadcast, EventBroadcaster, InstructionSender, OutcomeReceiver, OutcomeSender,
-};
+use super::{cast::revm_logs_to_ethers_logs, *};
+use crate::environment::{EventBroadcaster, InstructionSender, OutcomeReceiver, OutcomeSender};
 
 /// Represents a connection to the EVM contained in the corresponding
 /// [`Environment`].

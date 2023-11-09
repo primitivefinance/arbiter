@@ -1,9 +1,8 @@
 #![warn(missing_docs)]
 
-use std::{collections::HashMap, env, fs, io::Write, path::Path, sync::Arc};
+use std::{collections::HashMap, io::Write, sync::Arc};
 
 use arbiter_core::environment::fork::*;
-use config::{Config, ConfigError};
 use ethers::{
     providers::{Http, Provider},
     types::{Address, BlockId, BlockNumber, U256},
@@ -13,7 +12,7 @@ use revm::{
     db::{ethersdb::EthersDB, CacheDB, EmptyDB},
     Database,
 };
-use serde::{Deserialize, Serialize};
+use serde::Serialize;
 
 use super::*;
 
