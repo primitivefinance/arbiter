@@ -19,4 +19,5 @@ arbiter/
 # mdbook
 book
 
+arbiter-core/data
 example_fork/test.json

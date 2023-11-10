@@ -1,5 +1,5 @@
 //! Utility functions for casting between revm and ethers-rs types.
-use ethers::types::Address;
+use super::*;
 
 /// Converts logs from the Revm format to the Ethers format.
 ///

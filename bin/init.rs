@@ -1,5 +1,6 @@
-use std::{env, fs, io, process::Command};
+use std::{io, process::Command};
 
+use super::*;
 use crate::ArbiterError;
 
 /// Initializes a new Arbiter project from a template.
