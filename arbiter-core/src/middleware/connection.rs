@@ -1,5 +1,11 @@
 //! Messengers/connections to the underlying EVM in the environment.
-use std::{pin::Pin, sync::Weak, task::Poll};
+use std::{
+    collections::HashMap,
+    fmt::Debug,
+    pin::Pin,
+    sync::{Arc, Mutex, Weak},
+    task::Poll,
+};
 
 use crossbeam_channel::TryRecvError;
 use futures_util::{stream, Stream};
@@ -52,6 +58,7 @@ impl JsonRpcClient for Connection {
                 // TODO: The extra json serialization/deserialization can probably be avoided
                 // somehow
 
+                trace!("Getting filter changes...");
                 // Get the `Filter` ID from the params `T`
                 // First convert it into a JSON `Value`
                 let value = serde_json::to_value(&params)?;
@@ -122,6 +129,8 @@ impl PubsubClient for Connection {
         id: T,
     ) -> Result<Self::NotificationStream, Self::Error> {
         let id = id.into();
+        debug!("Subscribing to filter with ID: {:?}", id);
+
         let filter_receiver = self.filter_receivers.lock().unwrap().get(&id).cloned();
         match filter_receiver {
             Some(filter_receiver) => {
@@ -180,6 +189,7 @@ impl PubsubClient for Connection {
 
     fn unsubscribe<T: Into<ethers::types::U256>>(&self, id: T) -> Result<(), Self::Error> {
         let id = id.into();
+        debug!("Unsubscribing from filter with ID: {:?}", id);
         let mut filter_receivers = self.filter_receivers.lock().unwrap();
         if filter_receivers.remove(&id).is_some() {
             Ok(())
