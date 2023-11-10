@@ -10,7 +10,6 @@
 //! - `FilterReceiver`: Facilitates event watching based on certain filters.
 
 #![warn(missing_docs)]
-use super::*;
 use std::{
     collections::HashMap,
     fmt::Debug,
@@ -50,6 +49,7 @@ use serde::{de::DeserializeOwned, Serialize};
 // use async_trait::async_trait;
 use thiserror::Error;
 
+use super::*;
 use crate::environment::{cheatcodes::*, instruction::*, Broadcast, Environment};
 
 /// Possible errors thrown by interacting with the revm middleware client.

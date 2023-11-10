@@ -1,5 +1,4 @@
 //! Messengers/connections to the underlying EVM in the environment.
-use super::*;
 use std::{
     collections::HashMap,
     fmt::Debug,

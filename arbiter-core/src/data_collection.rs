@@ -18,7 +18,6 @@
 //! * `E` - Type that implements the `EthLogDecode`, `Debug`, `Serialize`
 //!   traits, and has a static lifetime.
 
-use super::*;
 use std::{
     collections::BTreeMap, fmt::Debug, io::BufWriter, marker::PhantomData, mem::transmute,
     sync::Arc,
@@ -38,6 +37,7 @@ use polars::{
 use serde::Serialize;
 use serde_json::Value;
 
+use super::*;
 use crate::{
     environment::Broadcast,
     middleware::{cast::revm_logs_to_ethers_logs, errors::RevmMiddlewareError, RevmMiddleware},
@@ -248,8 +248,6 @@ impl EventLogger {
                             "`EventLogger` dumping event data into: {:?}",
                             file_path.to_str().unwrap().to_owned()
                         );
-                        let file = std::fs::File::create(file_path).unwrap();
-                        let writer = BufWriter::new(file);
                         // match the file output type and write to correct file using the right file
                         // type
                         match file_type {

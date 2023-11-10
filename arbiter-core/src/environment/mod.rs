@@ -29,8 +29,6 @@
 
 #![warn(missing_docs, unsafe_code)]
 
-use super::*;
-
 use std::{
     convert::Infallible,
     fmt::Debug,
@@ -51,6 +49,7 @@ use revm::{
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
 
+use super::*;
 use crate::math::SeededPoisson;
 #[cfg_attr(doc, doc(hidden))]
 #[cfg_attr(doc, allow(unused_imports))]

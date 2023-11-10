@@ -7,16 +7,16 @@
 //! Main components:
 //! - [`NonceManagerMiddleware`]: The core middleware implementation.
 //! - [`NonceManagerError`]: Error type for the middleware.
-use super::*;
-
 use std::sync::atomic::{AtomicBool, AtomicU64, Ordering};
 
 use async_trait::async_trait;
 use ethers::{
     providers::{Middleware, MiddlewareError, PendingTransaction},
-    types::{transaction::eip2718::TypedTransaction, U256},
+    types::transaction::eip2718::TypedTransaction,
 };
 use thiserror::Error;
+
+use super::*;
 
 #[derive(Debug)]
 /// Middleware used for calculating nonces locally, useful for signing multiple
