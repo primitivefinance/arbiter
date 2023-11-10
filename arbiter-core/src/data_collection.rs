@@ -28,6 +28,11 @@ use ethers::{
     providers::Middleware,
     types::{Filter, FilteredParams},
 };
+use polars::{
+    io::parquet::ParquetWriter,
+    prelude::{CsvWriter, DataFrame, NamedFrom, SerWriter},
+    series::Series,
+};
 use serde::Serialize;
 use serde_json::Value;
 
@@ -55,9 +60,28 @@ type FilterDecoder =
 pub struct EventLogger {
     decoder: FilterDecoder,
     receiver: Option<crossbeam_channel::Receiver<Broadcast>>,
+    output_file_type: Option<OutputFileType>,
     directory: Option<String>,
     file_name: Option<String>,
     metadata: Option<Value>,
+}
+
+/// `OutputFileType` is an enumeration that represents the different types of
+/// file formats that the `EventLogger` can output to.
+#[derive(Debug, Clone, Copy, Serialize)]
+pub enum OutputFileType {
+    /// * `JSON` - Represents the JSON file format. When this variant is used,
+    ///   the `EventLogger` will output the logged events to a JSON file.
+    JSON,
+    /// * `CSV` - Represents the CSV (Comma Separated Values) file format. When
+    ///   this variant is used, the `EventLogger` will output the logged events
+    ///   to a CSV file.
+    CSV,
+    /// * `Parquet` - Represents the Parquet file format. When this variant is
+    ///   used, the `EventLogger` will output the logged events to a Parquet
+    ///   file. Parquet is a columnar storage file format that is optimized for
+    ///   use with big data processing frameworks.
+    Parquet,
 }
 
 impl EventLogger {
@@ -73,6 +97,7 @@ impl EventLogger {
             file_name: None,
             decoder: BTreeMap::new(),
             receiver: None,
+            output_file_type: None,
             metadata: None,
         }
     }
@@ -143,6 +168,19 @@ impl EventLogger {
         self
     }
 
+    /// Sets the output file type for the `EventLogger`.
+    /// The default file type is JSON.
+    /// # Arguments
+    ///
+    /// * `file_type` - The file type that the event logs will be stored in.
+    ///
+    /// # Returns
+    ///
+    /// The `EventLogger` instance with the specified file type.
+    pub fn file_type(mut self, file_type: OutputFileType) -> Self {
+        self.output_file_type = Some(file_type);
+        self
+    }
     /// Sets the metadata for the `EventLogger`.
     ///
     /// # Arguments
@@ -183,6 +221,7 @@ impl EventLogger {
         let receiver = self.receiver.unwrap();
         let dir = self.directory.unwrap_or("./data".into());
         let file_name = self.file_name.unwrap_or("output".into());
+        let file_type = self.output_file_type.unwrap_or(OutputFileType::JSON);
         let metadata = self.metadata.clone();
         std::thread::spawn(move || {
             let mut events: BTreeMap<String, BTreeMap<String, Vec<Value>>> = BTreeMap::new();
@@ -190,24 +229,52 @@ impl EventLogger {
                 match broadcast {
                     Broadcast::StopSignal => {
                         // create new directory with path
-                        let output_dir = std::env::current_dir().unwrap().join(dir);
+                        let output_dir = std::env::current_dir().unwrap().join(&dir);
                         std::fs::create_dir_all(&output_dir).unwrap();
-                        let file_path = output_dir.join(format!("{}.json", file_name));
-                        let file = std::fs::File::create(file_path).unwrap();
-                        let writer = BufWriter::new(file);
+                        // match the file output type and write to correct file using the right file
+                        // type
+                        match file_type {
+                            OutputFileType::JSON => {
+                                let file_path = output_dir.join(format!("{}.json", file_name));
+                                let file = std::fs::File::create(file_path).unwrap();
+                                let writer = BufWriter::new(file);
 
-                        // Create a struct to hold both logs and metadata
-                        #[derive(Serialize)]
-                        struct OutputData<T> {
-                            events: BTreeMap<String, BTreeMap<String, Vec<Value>>>,
-                            metadata: Option<T>,
+                                #[derive(Serialize, Clone)]
+                                struct OutputData<T> {
+                                    events: BTreeMap<String, BTreeMap<String, Vec<Value>>>,
+                                    metadata: Option<T>,
+                                }
+                                let data = OutputData {
+                                    events: events.clone(),
+                                    metadata: metadata.clone(),
+                                };
+                                serde_json::to_writer(writer, &data).expect("Unable to write data");
+                            }
+                            OutputFileType::CSV => {
+                                let mut df = flatten_to_data_frame(events.clone());
+                                // Write the DataFrame to a CSV file
+                                let file_path = output_dir.join(format!("{}.csv", file_name));
+                                let file = std::fs::File::create(file_path).unwrap_or_else(|_| {
+                                    panic!("Error creating csv file");
+                                });
+                                let mut writer = CsvWriter::new(file);
+                                writer.finish(&mut df).unwrap_or_else(|_| {
+                                    panic!("Error writing to csv file");
+                                });
+                            }
+                            OutputFileType::Parquet => {
+                                let mut df = flatten_to_data_frame(events.clone());
+                                // Write the DataFrame to a parquet file
+                                let file_path = output_dir.join(format!("{}.parquet", file_name));
+                                let file = std::fs::File::create(file_path).unwrap_or_else(|_| {
+                                    panic!("Error creating parquet file");
+                                });
+                                let writer = ParquetWriter::new(file);
+                                writer.finish(&mut df).unwrap_or_else(|_| {
+                                    panic!("Error writing to parquet file");
+                                });
+                            }
                         }
-
-                        let data = OutputData { events, metadata };
-
-                        // Write the data to the file
-                        serde_json::to_writer(writer, &data).expect("Unable to write data");
-                        break;
                     }
                     Broadcast::Event(event) => {
                         let ethers_logs = revm_logs_to_ethers_logs(event);
@@ -251,6 +318,33 @@ impl EventLogger {
     }
 }
 
+fn flatten_to_data_frame(events: BTreeMap<String, BTreeMap<String, Vec<Value>>>) -> DataFrame {
+    // 1. Flatten the BTreeMap
+    let mut contract_names = Vec::new();
+    let mut event_names = Vec::new();
+    let mut event_values = Vec::new();
+
+    for (contract, events) in &events {
+        for (event, values) in events {
+            for value in values {
+                contract_names.push(contract.clone());
+                event_names.push(event.clone());
+                event_values.push(value.to_string());
+            }
+        }
+    }
+
+    // 2. Convert the vectors into a DataFrame
+    let df = DataFrame::new(vec![
+        Series::new("contract_name", contract_names),
+        Series::new("event_name", event_names),
+        Series::new("event_value", event_values),
+    ])
+    .unwrap();
+    println!("{:?}", df);
+
+    df
+}
 struct EventTransmuted<B, M, D> {
     /// The event filter's state
     pub filter: Filter,
