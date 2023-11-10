@@ -30,7 +30,7 @@ thiserror = { version = "=1.0.50" }
 syn = { version = "=2.0.39" }
 quote = { version = "=1.0.33" }
 proc-macro2 = { version = "=1.0.69" }
-tokio = { version = "1.32.0", features = ["macros", "full"] }
+tokio = { version = "1.34.0", features = ["macros", "full"] }
 
 # Dependencies for the release build
 [dependencies]
@@ -43,7 +43,7 @@ serde_json.workspace = true
 config = { version = "=0.13.3" }
 ethers.workspace = true
 revm.workspace = true
-toml = { version = "=0.8.6" }
+toml = { version = "=0.8.8" }
 proc-macro2.workspace = true
 syn.workspace = true
 Inflector = { version = "=0.11.4" }

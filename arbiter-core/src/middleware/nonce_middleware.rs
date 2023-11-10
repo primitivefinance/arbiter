@@ -10,6 +10,11 @@
 use std::sync::atomic::{AtomicBool, AtomicU64, Ordering};
 
 use async_trait::async_trait;
+use ethers::{
+    providers::{Middleware, MiddlewareError, PendingTransaction},
+    types::transaction::eip2718::TypedTransaction,
+};
+use thiserror::Error;
 
 use super::*;
 
@@ -91,6 +96,7 @@ where
             .map_err(MiddlewareError::from_err)?;
         self.nonce.store(nonce.as_u64(), Ordering::SeqCst);
         self.initialized.store(true, Ordering::SeqCst);
+        trace!("Nonce initialized for address: {:?}", self.address);
         Ok(nonce)
     } // guard dropped here
 
@@ -188,6 +194,7 @@ where
                     // was a nonce mismatch
                     self.nonce.store(nonce.as_u64(), Ordering::SeqCst);
                     tx.set_nonce(nonce);
+                    trace!("Nonce incremented for address: {:?}", self.address);
                     self.inner
                         .send_transaction(tx, block)
                         .await

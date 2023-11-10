@@ -48,8 +48,8 @@ use revm::{
 // use hashbrown::{hash_map, HashMap as HashMapBrown};
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
-use tracing::{error, warn};
 
+use super::*;
 use crate::math::SeededPoisson;
 #[cfg_attr(doc, doc(hidden))]
 #[cfg_attr(doc, allow(unused_imports))]
@@ -193,6 +193,7 @@ impl Environment {
         evm.env.block.gas_limit = U256::MAX;
 
         // Pull clones of the relevant data prepare to send into a new thread
+        let label = self.parameters.label.clone();
         let instruction_receiver = self.socket.instruction_receiver.clone();
         let event_broadcaster = self.socket.event_broadcaster.clone();
         let block_type = self.parameters.block_settings.clone();
@@ -242,6 +243,11 @@ impl Environment {
             // Loop over the reception of calls/transactions sent through the socket
             // The outermost check is to find what the `Environment`'s state is in
             while let Ok(instruction) = instruction_receiver.recv() {
+                trace!(
+                    "Instruction {:?} received by environment labeled: {:?}",
+                    instruction,
+                    label
+                );
                 match instruction {
                     Instruction::AddAccount {
                         address,
@@ -680,6 +686,7 @@ impl EventBroadcaster {
     /// Called from [`RevmMiddleware`] implementation when setting up a new
     /// `FilterWatcher` as each watcher will need their own sender
     pub(crate) fn add_sender(&mut self, sender: EventSender) {
+        debug!("Sender added for `EventBroadcaster`");
         self.0.push(sender);
     }
 
@@ -690,13 +697,15 @@ impl EventBroadcaster {
             for sender in &self.0 {
                 sender.send(Broadcast::StopSignal)?;
             }
+            debug!("Broadcasted stop signal to all listeners");
             return Ok(());
         } else {
             if logs.is_none() {
-                panic!("This shouldn't happen, but we should probably make this an error. Somehow we got told to broadcast `None` logs!");
+                unreachable!();
             }
             for sender in &self.0 {
                 sender.send(Broadcast::Event(logs.clone().unwrap()))?;
+                trace!("Broadcasting event to all listeners")
             }
         }
         Ok(())

@@ -39,3 +39,5 @@ pub mod math;
 pub mod middleware;
 #[cfg(test)]
 mod tests;
+
+use tracing::{debug, error, info, trace, warn};

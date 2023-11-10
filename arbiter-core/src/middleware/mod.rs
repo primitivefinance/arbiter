@@ -10,7 +10,6 @@
 //! - `FilterReceiver`: Facilitates event watching based on certain filters.
 
 #![warn(missing_docs)]
-
 use std::{
     collections::HashMap,
     fmt::Debug,
@@ -50,6 +49,7 @@ use serde::{de::DeserializeOwned, Serialize};
 // use async_trait::async_trait;
 use thiserror::Error;
 
+use super::*;
 use crate::environment::{cheatcodes::*, instruction::*, Broadcast, Environment};
 
 /// Possible errors thrown by interacting with the revm middleware client.
@@ -172,6 +172,10 @@ impl RevmMiddleware {
             filter_receivers: Arc::new(Mutex::new(HashMap::new())),
         };
         let provider = Provider::new(connection);
+        info!(
+            "Created new `RevmMiddleware` instance attached to environment labeled: {:?}",
+            environment.parameters.label
+        );
         Ok(Arc::new(Self {
             wallet: EOA::Wallet(wallet),
             provider,
@@ -194,6 +198,10 @@ impl RevmMiddleware {
             filter_receivers: Arc::new(Mutex::new(HashMap::new())),
         };
         let provider = Provider::new(connection);
+        info!(
+            "Created new `RevmMiddleware` instance from a fork -- attached to environment labeled: {:?}",
+            environment.parameters.label
+        );
         Ok(Arc::new(Self {
             wallet: EOA::Forked(forked_eoa),
             provider,
@@ -223,7 +231,10 @@ impl RevmMiddleware {
                 })
                 .map_err(|e| RevmMiddlewareError::Send(e.to_string()))?;
             match provider.outcome_receiver.recv() {
-                Ok(Ok(Outcome::BlockUpdateCompleted(receipt_data))) => Ok(receipt_data),
+                Ok(Ok(Outcome::BlockUpdateCompleted(receipt_data))) => {
+                    debug!("Block update applied");
+                    Ok(receipt_data)
+                }
                 _ => Err(RevmMiddlewareError::MissingData(
                     "Block did not update Successfully".to_string(),
                 )),
@@ -274,7 +285,10 @@ impl RevmMiddleware {
                 .map_err(|e| RevmMiddlewareError::Send(e.to_string()))?;
 
             match self.provider().as_ref().outcome_receiver.recv()?? {
-                Outcome::CheatcodeReturn(outcome) => Ok(outcome),
+                Outcome::CheatcodeReturn(outcome) => {
+                    debug!("Cheatcode applied");
+                    Ok(outcome)
+                }
                 _ => Err(RevmMiddlewareError::MissingData(
                     "Wrong variant returned via instruction outcome!".to_string(),
                 )),
@@ -311,7 +325,10 @@ impl RevmMiddleware {
                 })
                 .map_err(|e| RevmMiddlewareError::Send(e.to_string()))?;
             match self.provider().as_ref().outcome_receiver.recv()?? {
-                Outcome::SetGasPriceCompleted => Ok(()),
+                Outcome::SetGasPriceCompleted => {
+                    debug!("Gas price set");
+                    Ok(())
+                }
                 _ => Err(RevmMiddlewareError::MissingData(
                     "Wrong variant returned via instruction outcome!".to_string(),
                 )),
@@ -361,6 +378,7 @@ impl Middleware for RevmMiddleware {
         tx: T,
         _block: Option<BlockId>,
     ) -> Result<PendingTransaction<'_, Self::Provider>, Self::Error> {
+        trace!("Building transaction");
         let tx: TypedTransaction = tx.into();
 
         // Check the `to` field of the transaction to determine if it is a call or a
@@ -558,6 +576,7 @@ impl Middleware for RevmMiddleware {
         tx: &TypedTransaction,
         _block: Option<BlockId>,
     ) -> Result<Bytes, Self::Error> {
+        trace!("Building call");
         let tx = tx.clone();
 
         // Check the `to` field of the transaction to determine if it is a call or a
@@ -661,6 +680,7 @@ impl Middleware for RevmMiddleware {
             .lock()
             .unwrap()
             .insert(id, filter_receiver);
+        debug!("Filter created with ID: {:?}", id);
         Ok(id)
     }
 

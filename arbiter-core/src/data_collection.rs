@@ -17,6 +17,7 @@
 //!   `Sync`, and has a static lifetime.
 //! * `E` - Type that implements the `EthLogDecode`, `Debug`, `Serialize`
 //!   traits, and has a static lifetime.
+
 use std::{
     collections::BTreeMap, fmt::Debug, io::BufWriter, marker::PhantomData, mem::transmute,
     sync::Arc,
@@ -28,9 +29,15 @@ use ethers::{
     providers::Middleware,
     types::{Filter, FilteredParams},
 };
+use polars::{
+    io::parquet::ParquetWriter,
+    prelude::{CsvWriter, DataFrame, NamedFrom, SerWriter},
+    series::Series,
+};
 use serde::Serialize;
 use serde_json::Value;
 
+use super::*;
 use crate::{
     environment::Broadcast,
     middleware::{cast::revm_logs_to_ethers_logs, errors::RevmMiddlewareError, RevmMiddleware},
@@ -55,9 +62,28 @@ type FilterDecoder =
 pub struct EventLogger {
     decoder: FilterDecoder,
     receiver: Option<crossbeam_channel::Receiver<Broadcast>>,
+    output_file_type: Option<OutputFileType>,
     directory: Option<String>,
     file_name: Option<String>,
     metadata: Option<Value>,
+}
+
+/// `OutputFileType` is an enumeration that represents the different types of
+/// file formats that the `EventLogger` can output to.
+#[derive(Debug, Clone, Copy, Serialize)]
+pub enum OutputFileType {
+    /// * `JSON` - Represents the JSON file format. When this variant is used,
+    ///   the `EventLogger` will output the logged events to a JSON file.
+    JSON,
+    /// * `CSV` - Represents the CSV (Comma Separated Values) file format. When
+    ///   this variant is used, the `EventLogger` will output the logged events
+    ///   to a CSV file.
+    CSV,
+    /// * `Parquet` - Represents the Parquet file format. When this variant is
+    ///   used, the `EventLogger` will output the logged events to a Parquet
+    ///   file. Parquet is a columnar storage file format that is optimized for
+    ///   use with big data processing frameworks.
+    Parquet,
 }
 
 impl EventLogger {
@@ -68,11 +94,13 @@ impl EventLogger {
     /// A fresh `EventLogger` instance with an uninitialized events BTreeMap and
     /// no specified path.
     pub fn builder() -> Self {
+        debug!("`EventLogger` initialized");
         Self {
             directory: None,
             file_name: None,
             decoder: BTreeMap::new(),
             receiver: None,
+            output_file_type: None,
             metadata: None,
         }
     }
@@ -92,6 +120,7 @@ impl EventLogger {
         event: Event<Arc<RevmMiddleware>, RevmMiddleware, D>,
         name: S,
     ) -> Self {
+        let name = name.into();
         // Grab the connection from the client and add a new event sender so that we
         // have a distinct channel to now receive events over
         let event_transmuted: EventTransmuted<Arc<RevmMiddleware>, RevmMiddleware, D> =
@@ -100,7 +129,7 @@ impl EventLogger {
         let decoder = |x: &_| serde_json::to_string(&D::decode_log(x).unwrap()).unwrap();
         let filter = event_transmuted.filter.clone();
         self.decoder.insert(
-            name.into(),
+            name.clone(),
             (FilteredParams::new(Some(filter)), Box::new(decoder)),
         );
         let connection = middleware.provider().as_ref();
@@ -113,6 +142,7 @@ impl EventLogger {
                 .add_sender(event_sender);
             self.receiver = Some(event_receiver);
         }
+        debug!("`EventLogger` now provided with event labeled: {:?}", name);
         self
     }
     /// Sets the directory for the `EventLogger`.
@@ -125,7 +155,10 @@ impl EventLogger {
     ///
     /// The `EventLogger` instance with the specified directory.
     pub fn directory<S: Into<String>>(mut self, path: S) -> Self {
-        self.directory = Some(path.into());
+        let cwd = std::env::current_dir().unwrap();
+        let full_path = cwd.join(path.into());
+        self.directory = Some(full_path.to_str().unwrap().to_owned());
+        debug!("`EventLogger` output directory set to: {:?}", full_path);
         self
     }
 
@@ -139,10 +172,25 @@ impl EventLogger {
     ///
     /// The `EventLogger` instance with the specified file.
     pub fn file_name<S: Into<String>>(mut self, path: S) -> Self {
-        self.file_name = Some(path.into());
+        let path = path.into();
+        self.file_name = Some(path.clone());
+        debug!("`EventLogger` output file name set to: {:?}", path);
         self
     }
 
+    /// Sets the output file type for the `EventLogger`.
+    /// The default file type is JSON.
+    /// # Arguments
+    ///
+    /// * `file_type` - The file type that the event logs will be stored in.
+    ///
+    /// # Returns
+    ///
+    /// The `EventLogger` instance with the specified file type.
+    pub fn file_type(mut self, file_type: OutputFileType) -> Self {
+        self.output_file_type = Some(file_type);
+        self
+    }
     /// Sets the metadata for the `EventLogger`.
     ///
     /// # Arguments
@@ -156,6 +204,7 @@ impl EventLogger {
     pub fn metadata(mut self, metadata: impl Serialize) -> Result<Self, serde_json::Error> {
         let metadata = serde_json::to_value(metadata)?;
         self.metadata = Some(metadata);
+        debug!("`EventLogger` metadata provided");
         Ok(self)
     }
 
@@ -183,33 +232,69 @@ impl EventLogger {
         let receiver = self.receiver.unwrap();
         let dir = self.directory.unwrap_or("./data".into());
         let file_name = self.file_name.unwrap_or("output".into());
+        let file_type = self.output_file_type.unwrap_or(OutputFileType::JSON);
         let metadata = self.metadata.clone();
         std::thread::spawn(move || {
             let mut events: BTreeMap<String, BTreeMap<String, Vec<Value>>> = BTreeMap::new();
             while let Ok(broadcast) = receiver.recv() {
                 match broadcast {
                     Broadcast::StopSignal => {
+                        debug!("`EventLogger` has seen a stop signal");
                         // create new directory with path
-                        let output_dir = std::env::current_dir().unwrap().join(dir);
+                        let output_dir = std::env::current_dir().unwrap().join(&dir);
                         std::fs::create_dir_all(&output_dir).unwrap();
                         let file_path = output_dir.join(format!("{}.json", file_name));
-                        let file = std::fs::File::create(file_path).unwrap();
-                        let writer = BufWriter::new(file);
+                        debug!(
+                            "`EventLogger` dumping event data into: {:?}",
+                            file_path.to_str().unwrap().to_owned()
+                        );
+                        // match the file output type and write to correct file using the right file
+                        // type
+                        match file_type {
+                            OutputFileType::JSON => {
+                                let file_path = output_dir.join(format!("{}.json", file_name));
+                                let file = std::fs::File::create(file_path).unwrap();
+                                let writer = BufWriter::new(file);
 
-                        // Create a struct to hold both logs and metadata
-                        #[derive(Serialize)]
-                        struct OutputData<T> {
-                            events: BTreeMap<String, BTreeMap<String, Vec<Value>>>,
-                            metadata: Option<T>,
+                                #[derive(Serialize, Clone)]
+                                struct OutputData<T> {
+                                    events: BTreeMap<String, BTreeMap<String, Vec<Value>>>,
+                                    metadata: Option<T>,
+                                }
+                                let data = OutputData {
+                                    events: events.clone(),
+                                    metadata: metadata.clone(),
+                                };
+                                serde_json::to_writer(writer, &data).expect("Unable to write data");
+                            }
+                            OutputFileType::CSV => {
+                                let mut df = flatten_to_data_frame(events.clone());
+                                // Write the DataFrame to a CSV file
+                                let file_path = output_dir.join(format!("{}.csv", file_name));
+                                let file = std::fs::File::create(file_path).unwrap_or_else(|_| {
+                                    panic!("Error creating csv file");
+                                });
+                                let mut writer = CsvWriter::new(file);
+                                writer.finish(&mut df).unwrap_or_else(|_| {
+                                    panic!("Error writing to csv file");
+                                });
+                            }
+                            OutputFileType::Parquet => {
+                                let mut df = flatten_to_data_frame(events.clone());
+                                // Write the DataFrame to a parquet file
+                                let file_path = output_dir.join(format!("{}.parquet", file_name));
+                                let file = std::fs::File::create(file_path).unwrap_or_else(|_| {
+                                    panic!("Error creating parquet file");
+                                });
+                                let writer = ParquetWriter::new(file);
+                                writer.finish(&mut df).unwrap_or_else(|_| {
+                                    panic!("Error writing to parquet file");
+                                });
+                            }
                         }
-
-                        let data = OutputData { events, metadata };
-
-                        // Write the data to the file
-                        serde_json::to_writer(writer, &data).expect("Unable to write data");
-                        break;
                     }
                     Broadcast::Event(event) => {
+                        trace!("`EventLogger` received an event");
                         let ethers_logs = revm_logs_to_ethers_logs(event);
                         for log in ethers_logs {
                             for (contract_name, (filter, decoder)) in self.decoder.iter() {
@@ -240,6 +325,9 @@ impl EventLogger {
                                     for (_key, value) in event_as_object {
                                         event.push(value.clone());
                                     }
+                                    trace!(
+                                        "`EventLogger` successfully filtered and logged the event"
+                                    )
                                 }
                             }
                         }
@@ -251,6 +339,33 @@ impl EventLogger {
     }
 }
 
+fn flatten_to_data_frame(events: BTreeMap<String, BTreeMap<String, Vec<Value>>>) -> DataFrame {
+    // 1. Flatten the BTreeMap
+    let mut contract_names = Vec::new();
+    let mut event_names = Vec::new();
+    let mut event_values = Vec::new();
+
+    for (contract, events) in &events {
+        for (event, values) in events {
+            for value in values {
+                contract_names.push(contract.clone());
+                event_names.push(event.clone());
+                event_values.push(value.to_string());
+            }
+        }
+    }
+
+    // 2. Convert the vectors into a DataFrame
+    let df = DataFrame::new(vec![
+        Series::new("contract_name", contract_names),
+        Series::new("event_name", event_names),
+        Series::new("event_value", event_values),
+    ])
+    .unwrap();
+    println!("{:?}", df);
+
+    df
+}
 struct EventTransmuted<B, M, D> {
     /// The event filter's state
     pub filter: Filter,
