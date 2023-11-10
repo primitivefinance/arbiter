@@ -213,7 +213,7 @@ dependencies = [
 
 [[package]]
 name = "arbiter"
-version = "0.4.7"
+version = "0.4.8"
 dependencies = [
  "Inflector",
  "arbiter-core",
@@ -238,7 +238,7 @@ dependencies = [
 
 [[package]]
 name = "arbiter-core"
-version = "0.7.3"
+version = "0.7.4"
 dependencies = [
  "anyhow",
  "arbiter-core",
@@ -273,7 +273,7 @@ dependencies = [
 
 [[package]]
 name = "arbiter-derive"
-version = "0.1.1"
+version = "0.1.2"
 dependencies = [
  "proc-macro2",
  "quote",

@@ -8,7 +8,7 @@ exclude = ["benches"]
 # Package configuration
 [package]
 name = "arbiter"
-version = "0.4.7"
+version = "0.4.8"
 edition = "2021"
 authors = ["Waylon Jepsen <waylonjepsen1@gmail.com>", "Colin Roberts <colin@autoparallel.xyz>"]
 description = "Allowing smart contract developers to do simulation driven development via an EVM emulator"
@@ -34,7 +34,7 @@ tokio = { version = "1.34.0", features = ["macros", "full"] }
 
 # Dependencies for the release build
 [dependencies]
-arbiter-core = { version = "0.7.2", path = "arbiter-core" }
+arbiter-core = { version = "0.7.4", path = "arbiter-core" }
 
 # Command line and config
 clap = { version = "=4.4.7", features = ["derive"] }

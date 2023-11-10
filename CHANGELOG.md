@@ -6,6 +6,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.8](https://github.com/primitivefinance/arbiter/compare/arbiter-v0.4.7...arbiter-v0.4.8) - 2023-11-10
+
+### Other
+- release-plz
+- Update README.md
+- Merge pull request [#693](https://github.com/primitivefinance/arbiter/pull/693) from primitivefinance/enhance/logging
+- clippy
+- Merge branch 'main' into enhance/logging
+- Merge pull request [#691](https://github.com/primitivefinance/arbiter/pull/691) from primitivefinance/dependabot/cargo/toml-0.8.8
+- Merge pull request [#672](https://github.com/primitivefinance/arbiter/pull/672) from primitivefinance/outputfile_optionality
+- Merge branch 'main' into cargo_lock
+- move to release-plz pr commits
+- commit to head_ref
+- auto commit lock file
+- Fix broken link in README.md
+- *(deps)* bump serde from 1.0.191 to 1.0.192
+- Merge pull request [#665](https://github.com/primitivefinance/arbiter/pull/665) from primitivefinance/arbiter_config
+- Merge pull request [#679](https://github.com/primitivefinance/arbiter/pull/679) from primitivefinance/dependabot/cargo/syn-2.0.39
+- *(deps)* bump syn from 2.0.38 to 2.0.39
+- *(deps)* bump serde from 1.0.190 to 1.0.191
+
 ## [0.4.7](https://github.com/primitivefinance/arbiter/compare/arbiter-v0.4.6...arbiter-v0.4.7) - 2023-11-06
 
 ### Other
