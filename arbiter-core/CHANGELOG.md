@@ -6,6 +6,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.7.6](https://github.com/primitivefinance/arbiter/compare/arbiter-core-v0.7.5...arbiter-core-v0.7.6) - 2023-11-13
+
+### Other
+- Merge branch 'main' into feat/client-label
+- Update mod.rs
+
 ## [0.7.5](https://github.com/primitivefinance/arbiter/compare/arbiter-core-v0.7.4...arbiter-core-v0.7.5) - 2023-11-13
 
 ### Added
