@@ -101,6 +101,7 @@ pub mod nonce_middleware;
 pub struct RevmMiddleware {
     provider: Provider<Connection>,
     wallet: EOA,
+    label: Option<String>,
 }
 
 /// A wrapper enum for the two types of accounts that can be used with the
@@ -179,10 +180,12 @@ impl RevmMiddleware {
         Ok(Arc::new(Self {
             wallet: EOA::Wallet(wallet),
             provider,
+            label: seed_and_label.map(|s| s.to_string()),
         }))
     }
 
-    ///
+    // TODO: This needs to have the label retrieved from the fork config.
+    /// Creates a new instance of `RevmMiddleware` from a forked EOA.
     pub fn new_from_forked_eoa(
         environment: &Environment,
         forked_eoa: Address,
@@ -205,6 +208,7 @@ impl RevmMiddleware {
         Ok(Arc::new(Self {
             wallet: EOA::Forked(forked_eoa),
             provider,
+            label: None,
         }))
     }
 
