@@ -63,5 +63,5 @@ jobs:
         with:
           check_hidden: true
           check_filenames: true
-          skip: .git,Cargo.lock,target
+          skip: .git,Cargo.lock,target,CHANGELOG.md
           ignore_words_list: crate,Crate,functio
