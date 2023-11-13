@@ -248,29 +248,29 @@ impl EventLogger {
                         let output_dir = std::env::current_dir().unwrap().join(dir);
                         std::fs::create_dir_all(&output_dir).unwrap();
                         let file_path = output_dir.join(format!("{}.json", file_name));
-                        let fp_str = file_path.to_str().unwrap().to_owned();
                         debug!(
                             "`EventLogger` dumping event data into: {:?}",
                             file_path.to_str().unwrap().to_owned()
                         );
                         // match the file output type and write to correct file using the right file
                         // type
-                        let mut df = flatten_to_data_frame(events);
                         match file_type {
                             OutputFileType::JSON => {
                                 let file_path = output_dir.join(format!("{}.json", file_name));
-                                let file = std::fs::File::create(file_path).unwrap_or_else(|_| {
-                                    panic!("Error creating json file");
-                                });
-                                let mut writer = JsonWriter::new(file);
-                                writer.finish(&mut df).unwrap_or_else(|_| {
-                                    panic!("Error writing to json file");
-                                });
-                                warn!("`EventLogger` file path: {:?} has finished writing", fp_str);
-                                self.shutdown_sender.unwrap().send(()).unwrap();
+                                let file = std::fs::File::create(file_path).unwrap();
+                                let writer = BufWriter::new(file);
+
+                                #[derive(Serialize, Clone)]
+                                struct OutputData<T> {
+                                    events: BTreeMap<String, BTreeMap<String, Vec<Value>>>,
+                                    metadata: Option<T>,
+                                }
+                                let data = OutputData { events, metadata };
+                                serde_json::to_writer(writer, &data).expect("Unable to write data");
                             }
                             OutputFileType::CSV => {
                                 // Write the DataFrame to a CSV file
+                                let mut df = flatten_to_data_frame(events);
                                 let file_path = output_dir.join(format!("{}.csv", file_name));
                                 let file = std::fs::File::create(file_path).unwrap_or_else(|_| {
                                     panic!("Error creating csv file");
@@ -283,6 +283,7 @@ impl EventLogger {
                             }
                             OutputFileType::Parquet => {
                                 // Write the DataFrame to a parquet file
+                                let mut df = flatten_to_data_frame(events);
                                 let file_path = output_dir.join(format!("{}.parquet", file_name));
                                 let file = std::fs::File::create(file_path).unwrap_or_else(|_| {
                                     panic!("Error creating parquet file");
