@@ -20,46 +20,14 @@ jobs:
           fetch-depth: 0
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@stable
+      - name: Commit Cargo.lock
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add Cargo.lock
+          git commit -m "Update Cargo.lock" || echo "No changes to commit"
       - name: Run release-plz
         uses: MarcoIeni/release-plz-action@v0.5
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
-          
-  check-lockfile:
-    name: Check Cargo.lock
-    runs-on: ubuntu-latest
-    needs: release-plz
-  
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
-  
-      - name: Install Rust toolchain
-        uses: actions-rs/toolchain@v1
-        with:
-          toolchain: stable
-  
-      - name: Generate lockfile
-        run: cargo generate-lockfile
-  
-      - name: Create new branch
-        run: |
-          git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git config --global user.name "github-actions[bot]"
-          git checkout -b update-cargo-lockfile
-  
-      - name: Commit changes
-        uses: stefanzweifel/git-auto-commit-action@v4
-        with:
-          commit_message: Update Cargo.lock
-          commit_options: '--no-verify --signoff'
-          file_pattern: Cargo.lock
-          branch: update-cargo-lockfile
-  
-      - name: Create Pull Request
-        uses: peter-evans/create-pull-request@v3
-        with:
-          title: Update Cargo.lock
-          body: This PR updates the Cargo.lock file.
-          branch: update-cargo-lockfile
