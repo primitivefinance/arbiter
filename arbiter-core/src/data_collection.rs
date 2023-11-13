@@ -244,6 +244,7 @@ impl EventLogger {
                         let output_dir = std::env::current_dir().unwrap().join(dir);
                         std::fs::create_dir_all(&output_dir).unwrap();
                         let file_path = output_dir.join(format!("{}.json", file_name));
+                        let fp_str = file_path.to_str().unwrap().to_owned();
                         debug!(
                             "`EventLogger` dumping event data into: {:?}",
                             file_path.to_str().unwrap().to_owned()
@@ -261,6 +262,9 @@ impl EventLogger {
                                 writer.finish(&mut df).unwrap_or_else(|_| {
                                     panic!("Error writing to json file");
                                 });
+                                warn!("`EventLogger` file path: {:?} has finished writing", fp_str);
+                                //sleep for 1 second to allow the file to be written
+                                // std::thread::sleep(std::time::Duration::from_secs(1));
                             }
                             OutputFileType::CSV => {
                                 // Write the DataFrame to a CSV file
