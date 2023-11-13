@@ -62,7 +62,6 @@ async fn data_capture() {
 
     let _ = env.stop();
 
-    std::thread::sleep(std::time::Duration::from_secs(1));
     assert!(Path::new("./data/output.csv").exists());
     assert!(Path::new("./data/output.parquet").exists());
     assert!(Path::new("./data/output.json").exists());
