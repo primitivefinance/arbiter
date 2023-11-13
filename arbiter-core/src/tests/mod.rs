@@ -1,13 +1,11 @@
 #![allow(missing_docs)]
 #![cfg(feature = "contracts")]
 
-// mod interaction;
-mod clients;
 mod contracts;
-mod data_output;
+mod data_collection_integration;
 mod derives;
-mod environment_control;
-mod middleware_instructions;
+mod environment_integration;
+mod middleware_integration;
 
 use std::{str::FromStr, sync::Arc};
 

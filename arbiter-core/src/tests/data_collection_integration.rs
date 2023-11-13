@@ -31,7 +31,7 @@ async fn data_capture() {
         name: "test".to_string(),
     };
 
-    let listener = EventLogger::builder()
+    let _listener = EventLogger::builder()
         .add(arbx.events(), "arbx")
         .add(arby.events(), "arby")
         .add(lex.events(), "lex")
