@@ -101,6 +101,7 @@ pub mod nonce_middleware;
 pub struct RevmMiddleware {
     provider: Provider<Connection>,
     wallet: EOA,
+    #[allow(unused)]
     label: Option<String>,
 }
 
