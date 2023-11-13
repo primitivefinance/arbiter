@@ -1,6 +1,6 @@
 [package]
 name = "arbiter-core"
-version = "0.7.4"
+version = "0.7.5"
 edition = "2021"
 authors = ["Waylon Jepsen <waylonjepsen1@gmail.com>", "Colin Roberts <colin@autoparallel.xyz>"]
 description = "Allowing smart contract developers to do simulation driven development via an EVM emulator"
