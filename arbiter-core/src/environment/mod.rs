@@ -91,8 +91,8 @@ pub(crate) type OutcomeReceiver = Receiver<Result<Outcome, EnvironmentError>>;
 /// contract events via [`Log`].
 pub(crate) type EventSender = Sender<Broadcast>;
 
-pub(crate) type ShutDownSender = Sender<()>;
-
+/// Alias for the receiver used in the [`EventBroadcaster`] that accepts
+/// shutdown signals from child processes.
 pub(crate) type ShutDownReceiver = Receiver<()>;
 
 /// Represents a sandboxed EVM environment.

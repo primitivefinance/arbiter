@@ -31,7 +31,7 @@ use ethers::{
 };
 use polars::{
     io::parquet::ParquetWriter,
-    prelude::{CsvWriter, DataFrame, JsonWriter, NamedFrom, SerWriter},
+    prelude::{CsvWriter, DataFrame, NamedFrom, SerWriter},
     series::Series,
 };
 use serde::Serialize;

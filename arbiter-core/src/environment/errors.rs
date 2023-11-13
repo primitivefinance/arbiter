@@ -88,8 +88,8 @@ pub enum EnvironmentError {
     NotRandomlySampledBlockSettings,
 
     /// [`EnvironmentError::ShutDownReceiverError`] is thrown when a malformed
-    /// shutdown receiver is sent to the event broadcaster. This error could occur
-    /// due to an invalid shutdown receiver.
+    /// shutdown receiver is sent to the event broadcaster. This error could
+    /// occur due to an invalid shutdown receiver.
     #[error("error in the environment! malformed shutdown receiver sent to event broadcaster")]
     ShutDownReceiverError,
 }
