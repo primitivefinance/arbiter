@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.3](https://github.com/primitivefinance/arbiter/compare/arbiter-derive-v0.1.2...arbiter-derive-v0.1.3) - 2023-11-13
+
+### Other
+- code spell
+
 ## [0.1.2](https://github.com/primitivefinance/arbiter/compare/arbiter-derive-v0.1.1...arbiter-derive-v0.1.2) - 2023-11-10
 
 ### Other
