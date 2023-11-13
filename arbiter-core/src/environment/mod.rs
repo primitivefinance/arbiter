@@ -91,6 +91,10 @@ pub(crate) type OutcomeReceiver = Receiver<Result<Outcome, EnvironmentError>>;
 /// contract events via [`Log`].
 pub(crate) type EventSender = Sender<Broadcast>;
 
+pub(crate) type ShutDownSender = Sender<()>;
+
+pub(crate) type ShutDownReceiver = Receiver<()>;
+
 /// Represents a sandboxed EVM environment.
 ///
 /// ## Communication
@@ -675,7 +679,7 @@ pub enum Broadcast {
 /// Maintains a list of senders to which logs are sent whenever they are
 /// produced by the EVM.
 #[derive(Clone, Debug)]
-pub(crate) struct EventBroadcaster(Vec<EventSender>);
+pub(crate) struct EventBroadcaster(Vec<(EventSender, Option<ShutDownReceiver>)>);
 
 impl EventBroadcaster {
     /// Called only when creating a new [`Environment`]
@@ -685,25 +689,34 @@ impl EventBroadcaster {
 
     /// Called from [`RevmMiddleware`] implementation when setting up a new
     /// `FilterWatcher` as each watcher will need their own sender
-    pub(crate) fn add_sender(&mut self, sender: EventSender) {
+    pub(crate) fn add_sender(
+        &mut self,
+        sender: EventSender,
+        shutdown_receiver: Option<ShutDownReceiver>,
+    ) {
         debug!("Sender added for `EventBroadcaster`");
-        self.0.push(sender);
+        self.0.push((sender, shutdown_receiver));
     }
 
     /// Loop through each sender and send  `Vec<Log>` emitted from a transaction
     /// downstream to any and all receivers
     fn broadcast(&self, logs: Option<Vec<Log>>, stop_signal: bool) -> Result<(), EnvironmentError> {
         if stop_signal {
-            for sender in &self.0 {
+            for (sender, _) in &self.0 {
                 sender.send(Broadcast::StopSignal)?;
             }
             debug!("Broadcasted stop signal to all listeners");
+            for (_, receiver) in &self.0 {
+                if let Some(receiver) = receiver {
+                    receiver.recv().unwrap();
+                }
+            }
             return Ok(());
         } else {
             if logs.is_none() {
                 unreachable!();
             }
-            for sender in &self.0 {
+            for (sender, _) in &self.0 {
                 sender.send(Broadcast::Event(logs.clone().unwrap()))?;
                 trace!("Broadcasting event to all listeners")
             }

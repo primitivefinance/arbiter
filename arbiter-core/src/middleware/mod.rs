@@ -678,7 +678,7 @@ impl Middleware for RevmMiddleware {
                     e
                 ))
             })?
-            .add_sender(event_sender);
+            .add_sender(event_sender, None);
         self.provider()
             .as_ref()
             .filter_receivers
