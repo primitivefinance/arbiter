@@ -267,6 +267,7 @@ impl EventLogger {
                                 }
                                 let data = OutputData { events, metadata };
                                 serde_json::to_writer(writer, &data).expect("Unable to write data");
+                                self.shutdown_sender.unwrap().send(()).unwrap();
                             }
                             OutputFileType::CSV => {
                                 // Write the DataFrame to a CSV file
