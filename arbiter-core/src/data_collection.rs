@@ -266,6 +266,7 @@ impl EventLogger {
                                     metadata: metadata.clone(),
                                 };
                                 serde_json::to_writer(writer, &data).expect("Unable to write data");
+                                break;
                             }
                             OutputFileType::CSV => {
                                 let mut df = flatten_to_data_frame(events.clone());
@@ -278,6 +279,7 @@ impl EventLogger {
                                 writer.finish(&mut df).unwrap_or_else(|_| {
                                     panic!("Error writing to csv file");
                                 });
+                                break;
                             }
                             OutputFileType::Parquet => {
                                 let mut df = flatten_to_data_frame(events.clone());
@@ -290,6 +292,7 @@ impl EventLogger {
                                 writer.finish(&mut df).unwrap_or_else(|_| {
                                     panic!("Error writing to parquet file");
                                 });
+                                break;
                             }
                         }
                     }
