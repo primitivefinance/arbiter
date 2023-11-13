@@ -102,7 +102,7 @@ pub struct RevmMiddleware {
     provider: Provider<Connection>,
     wallet: EOA,
     #[allow(unused)]
-    label: Option<String>,
+    pub label: Option<String>,
 }
 
 /// A wrapper enum for the two types of accounts that can be used with the
