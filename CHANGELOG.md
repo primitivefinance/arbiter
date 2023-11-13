@@ -6,6 +6,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.10](https://github.com/primitivefinance/arbiter/compare/arbiter-v0.4.9...arbiter-v0.4.10) - 2023-11-13
+
+### Other
+- Merge pull request [#700](https://github.com/primitivefinance/arbiter/pull/700) from primitivefinance/feat/client-label
+- ignore changelog
+- cargo lock
+
 ## [0.4.9](https://github.com/primitivefinance/arbiter/compare/arbiter-v0.4.8...arbiter-v0.4.9) - 2023-11-13
 
 ### Other
