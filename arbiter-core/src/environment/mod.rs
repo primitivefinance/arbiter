@@ -702,13 +702,14 @@ impl EventBroadcaster {
     /// downstream to any and all receivers
     fn broadcast(&self, logs: Option<Vec<Log>>, stop_signal: bool) -> Result<(), EnvironmentError> {
         if stop_signal {
-            for (sender, _) in &self.0 {
+            for (sender, receiver) in &self.0 {
                 sender.send(Broadcast::StopSignal)?;
-            }
-            debug!("Broadcasted stop signal to all listeners");
-            for (_, receiver) in &self.0 {
+                debug!("Broadcasted stop signal to listener");
                 if let Some(receiver) = receiver {
-                    receiver.recv().unwrap();
+                    receiver
+                        .recv()
+                        .map_err(|_| EnvironmentError::ShutDownReceiverError)?;
+                    debug!("Blocked on shutdown receiver signal");
                 }
             }
             return Ok(());
