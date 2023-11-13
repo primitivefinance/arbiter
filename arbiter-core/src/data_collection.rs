@@ -241,7 +241,7 @@ impl EventLogger {
                     Broadcast::StopSignal => {
                         debug!("`EventLogger` has seen a stop signal");
                         // create new directory with path
-                        let output_dir = std::env::current_dir().unwrap().join(&dir);
+                        let output_dir = std::env::current_dir().unwrap().join(dir);
                         std::fs::create_dir_all(&output_dir).unwrap();
                         let file_path = output_dir.join(format!("{}.json", file_name));
                         debug!(
@@ -261,12 +261,9 @@ impl EventLogger {
                                     events: BTreeMap<String, BTreeMap<String, Vec<Value>>>,
                                     metadata: Option<T>,
                                 }
-                                let data = OutputData {
-                                    events: events.clone(),
-                                    metadata: metadata.clone(),
-                                };
+                                let data = OutputData { events, metadata };
                                 serde_json::to_writer(writer, &data).expect("Unable to write data");
-                                break;
+                                warn!("breaking json");
                             }
                             OutputFileType::CSV => {
                                 let mut df = flatten_to_data_frame(events.clone());
@@ -279,7 +276,7 @@ impl EventLogger {
                                 writer.finish(&mut df).unwrap_or_else(|_| {
                                     panic!("Error writing to csv file");
                                 });
-                                break;
+                                warn!("breaking csv");
                             }
                             OutputFileType::Parquet => {
                                 let mut df = flatten_to_data_frame(events.clone());
@@ -292,9 +289,10 @@ impl EventLogger {
                                 writer.finish(&mut df).unwrap_or_else(|_| {
                                     panic!("Error writing to parquet file");
                                 });
-                                break;
+                                warn!("breaking json");
                             }
                         }
+                        break;
                     }
                     Broadcast::Event(event) => {
                         trace!("`EventLogger` received an event");
