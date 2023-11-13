@@ -31,7 +31,7 @@ use ethers::{
 };
 use polars::{
     io::parquet::ParquetWriter,
-    prelude::{CsvWriter, DataFrame, NamedFrom, SerWriter},
+    prelude::{CsvWriter, DataFrame, JsonWriter, NamedFrom, SerWriter},
     series::Series,
 };
 use serde::Serialize;
@@ -250,22 +250,19 @@ impl EventLogger {
                         );
                         // match the file output type and write to correct file using the right file
                         // type
+                        let mut df = flatten_to_data_frame(events);
                         match file_type {
                             OutputFileType::JSON => {
                                 let file_path = output_dir.join(format!("{}.json", file_name));
-                                let file = std::fs::File::create(file_path).unwrap();
-                                let writer = BufWriter::new(file);
-
-                                #[derive(Serialize, Clone)]
-                                struct OutputData<T> {
-                                    events: BTreeMap<String, BTreeMap<String, Vec<Value>>>,
-                                    metadata: Option<T>,
-                                }
-                                let data = OutputData { events, metadata };
-                                serde_json::to_writer(writer, &data).expect("Unable to write data");
+                                let file = std::fs::File::create(file_path).unwrap_or_else(|_| {
+                                    panic!("Error creating json file");
+                                });
+                                let mut writer = JsonWriter::new(file);
+                                writer.finish(&mut df).unwrap_or_else(|_| {
+                                    panic!("Error writing to json file");
+                                });
                             }
                             OutputFileType::CSV => {
-                                let mut df = flatten_to_data_frame(events.clone());
                                 // Write the DataFrame to a CSV file
                                 let file_path = output_dir.join(format!("{}.csv", file_name));
                                 let file = std::fs::File::create(file_path).unwrap_or_else(|_| {
@@ -277,7 +274,6 @@ impl EventLogger {
                                 });
                             }
                             OutputFileType::Parquet => {
-                                let mut df = flatten_to_data_frame(events.clone());
                                 // Write the DataFrame to a parquet file
                                 let file_path = output_dir.join(format!("{}.parquet", file_name));
                                 let file = std::fs::File::create(file_path).unwrap_or_else(|_| {
