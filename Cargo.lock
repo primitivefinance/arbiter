@@ -213,7 +213,7 @@ dependencies = [
 
 [[package]]
 name = "arbiter"
-version = "0.4.10"
+version = "0.4.11"
 dependencies = [
  "Inflector",
  "arbiter-core",
@@ -238,7 +238,7 @@ dependencies = [
 
 [[package]]
 name = "arbiter-core"
-version = "0.7.6"
+version = "0.8.0"
 dependencies = [
  "anyhow",
  "arbiter-core",
