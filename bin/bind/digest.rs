@@ -23,7 +23,7 @@ impl ArbiterConfig {
 impl ArbiterConfig {
     pub(crate) fn new() -> Result<Self, ConfigError> {
         let s = Config::builder()
-            .add_source(config::File::with_name("abiter.toml"))
+            .add_source(config::File::with_name("arbiter.toml"))
             .build()?;
         s.try_deserialize()
         // Try loading the TOML content from the file

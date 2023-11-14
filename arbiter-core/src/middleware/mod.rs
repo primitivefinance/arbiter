@@ -101,6 +101,7 @@ pub mod nonce_middleware;
 pub struct RevmMiddleware {
     provider: Provider<Connection>,
     wallet: EOA,
+    /// An optional label for the middleware instance
     #[allow(unused)]
     pub label: Option<String>,
 }
@@ -678,7 +679,7 @@ impl Middleware for RevmMiddleware {
                     e
                 ))
             })?
-            .add_sender(event_sender);
+            .add_sender(event_sender, None);
         self.provider()
             .as_ref()
             .filter_receivers

@@ -62,6 +62,7 @@ type FilterDecoder =
 pub struct EventLogger {
     decoder: FilterDecoder,
     receiver: Option<crossbeam_channel::Receiver<Broadcast>>,
+    shutdown_sender: Option<crossbeam_channel::Sender<()>>,
     output_file_type: Option<OutputFileType>,
     directory: Option<String>,
     file_name: Option<String>,
@@ -100,6 +101,7 @@ impl EventLogger {
             file_name: None,
             decoder: BTreeMap::new(),
             receiver: None,
+            shutdown_sender: None,
             output_file_type: None,
             metadata: None,
         }
@@ -135,12 +137,14 @@ impl EventLogger {
         let connection = middleware.provider().as_ref();
         if self.receiver.is_none() {
             let (event_sender, event_receiver) = crossbeam_channel::unbounded::<Broadcast>();
+            let (shutdown_sender, shutdown_receiver) = crossbeam_channel::bounded::<()>(1);
             connection
                 .event_broadcaster
                 .lock()
                 .unwrap()
-                .add_sender(event_sender);
+                .add_sender(event_sender, Some(shutdown_receiver));
             self.receiver = Some(event_receiver);
+            self.shutdown_sender = Some(shutdown_sender);
         }
         debug!("`EventLogger` now provided with event labeled: {:?}", name);
         self
@@ -241,7 +245,7 @@ impl EventLogger {
                     Broadcast::StopSignal => {
                         debug!("`EventLogger` has seen a stop signal");
                         // create new directory with path
-                        let output_dir = std::env::current_dir().unwrap().join(&dir);
+                        let output_dir = std::env::current_dir().unwrap().join(dir);
                         std::fs::create_dir_all(&output_dir).unwrap();
                         let file_path = output_dir.join(format!("{}.json", file_name));
                         debug!(
@@ -261,15 +265,13 @@ impl EventLogger {
                                     events: BTreeMap<String, BTreeMap<String, Vec<Value>>>,
                                     metadata: Option<T>,
                                 }
-                                let data = OutputData {
-                                    events: events.clone(),
-                                    metadata: metadata.clone(),
-                                };
+                                let data = OutputData { events, metadata };
                                 serde_json::to_writer(writer, &data).expect("Unable to write data");
+                                self.shutdown_sender.unwrap().send(()).unwrap();
                             }
                             OutputFileType::CSV => {
-                                let mut df = flatten_to_data_frame(events.clone());
                                 // Write the DataFrame to a CSV file
+                                let mut df = flatten_to_data_frame(events);
                                 let file_path = output_dir.join(format!("{}.csv", file_name));
                                 let file = std::fs::File::create(file_path).unwrap_or_else(|_| {
                                     panic!("Error creating csv file");
@@ -278,10 +280,11 @@ impl EventLogger {
                                 writer.finish(&mut df).unwrap_or_else(|_| {
                                     panic!("Error writing to csv file");
                                 });
+                                self.shutdown_sender.unwrap().send(()).unwrap();
                             }
                             OutputFileType::Parquet => {
-                                let mut df = flatten_to_data_frame(events.clone());
                                 // Write the DataFrame to a parquet file
+                                let mut df = flatten_to_data_frame(events);
                                 let file_path = output_dir.join(format!("{}.parquet", file_name));
                                 let file = std::fs::File::create(file_path).unwrap_or_else(|_| {
                                     panic!("Error creating parquet file");
@@ -290,8 +293,10 @@ impl EventLogger {
                                 writer.finish(&mut df).unwrap_or_else(|_| {
                                     panic!("Error writing to parquet file");
                                 });
+                                self.shutdown_sender.unwrap().send(()).unwrap();
                             }
                         }
+                        break;
                     }
                     Broadcast::Event(event) => {
                         trace!("`EventLogger` received an event");

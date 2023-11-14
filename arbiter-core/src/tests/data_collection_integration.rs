@@ -31,11 +31,13 @@ async fn data_capture() {
         name: "test".to_string(),
     };
 
-    let _listener = EventLogger::builder()
+    EventLogger::builder()
         .add(arbx.events(), "arbx")
         .add(arby.events(), "arby")
         .add(lex.events(), "lex")
         .metadata(metadata)
+        .unwrap()
+        .run()
         .unwrap();
 
     EventLogger::builder()
@@ -62,11 +64,10 @@ async fn data_capture() {
 
     let _ = env.stop();
 
-    std::thread::sleep(std::time::Duration::from_secs(1));
     assert!(Path::new("./data/output.csv").exists());
     assert!(Path::new("./data/output.parquet").exists());
     assert!(Path::new("./data/output.json").exists());
-    // std::fs::remove_dir_all("./data").unwrap();
+    std::fs::remove_dir_all("./data").unwrap();
 }
 
 async fn generate_events(
