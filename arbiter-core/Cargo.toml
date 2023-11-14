@@ -46,7 +46,7 @@ tracing = "0.1.40"
 
 # File types
 csv = { version = "1.3.0" }
-polars = { version = "0.34.2", features = ["parquet", "csv"] }
+polars = { version = "0.34.2", features = ["parquet", "csv", "json"] }
 
 # Dependencies for the test build and development
 [dev-dependencies]

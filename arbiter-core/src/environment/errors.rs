@@ -86,4 +86,10 @@ pub enum EnvironmentError {
     /// [`BlockSettings::RandomlySampled`].
     #[error("error in the environment! attempted to set a gas price via a multiplier when the `BlockSettings` is not `BlockSettings::RandomlySampled`.")]
     NotRandomlySampledBlockSettings,
+
+    /// [`EnvironmentError::ShutDownReceiverError`] is thrown when a malformed
+    /// shutdown receiver is sent to the event broadcaster. This error could
+    /// occur due to an invalid shutdown receiver.
+    #[error("error in the environment! malformed shutdown receiver sent to event broadcaster")]
+    ShutDownReceiverError,
 }
