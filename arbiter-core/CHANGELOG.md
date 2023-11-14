@@ -6,6 +6,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.8.0](https://github.com/primitivefinance/arbiter/compare/arbiter-core-v0.7.6...arbiter-core-v0.8.0) - 2023-11-14
+
+### Fixed
+- fix hanging test
+- fix shutdown receiver logic
+
+### Other
+- add missing shutdown signal for json filetype
+- rm sleep in data capture test
+- clippy + fmt
+- revert back to old json style
+- add shutdown sender and receiver oneshot for data collection/environment interaction
+- log when file is done being written
+- use polars JsonWriter
+- rm useless warns
+- try w warn and moving to singleton break
+- break event collector loop
+
 ## [0.7.6](https://github.com/primitivefinance/arbiter/compare/arbiter-core-v0.7.5...arbiter-core-v0.7.6) - 2023-11-13
 
 ### Other

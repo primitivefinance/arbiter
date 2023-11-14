@@ -6,6 +6,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.11](https://github.com/primitivefinance/arbiter/compare/arbiter-v0.4.10...arbiter-v0.4.11) - 2023-11-14
+
+### Other
+- Merge branch 'main' into dependabot/cargo/clap-4.4.8
+- abiter -> arbiter
+
 ## [0.4.10](https://github.com/primitivefinance/arbiter/compare/arbiter-v0.4.9...arbiter-v0.4.10) - 2023-11-13
 
 ### Other
