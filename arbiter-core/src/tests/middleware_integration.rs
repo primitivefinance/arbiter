@@ -1,4 +1,7 @@
-use ethers::types::{transaction::eip2718::TypedTransaction, Log};
+use ethers::{
+    types::{transaction::eip2718::TypedTransaction, Log},
+    utils::parse_ether,
+};
 
 use super::*;
 use crate::middleware::nonce_middleware::NonceManagerMiddleware;
@@ -481,7 +484,7 @@ async fn pubsubclient() {
     let mut stream = client.subscribe_logs(&filter).await.unwrap();
 
     for _ in 0..5 {
-        arbx.approve(client.address(), U256::from(1))
+        arbx.approve(client.address(), ethers::types::U256::from(1))
             .send()
             .await
             .unwrap()
@@ -522,4 +525,71 @@ fn signer_collision() {
     let environment = builder::EnvironmentBuilder::new().build();
     RevmMiddleware::new(&environment, Some("0")).unwrap();
     assert!(RevmMiddleware::new(&environment, Some("0")).is_err());
+}
+
+#[tokio::test]
+async fn access() {
+    let (_environment, client) = startup_user_controlled().unwrap();
+    let arbiter_token = deploy_arbx(client.clone()).await.unwrap();
+    assert_eq!(
+        arbiter_token.address(),
+        Address::from_str("0x067ea9e44c76a2620f10b39a1b51d5124a299192").unwrap()
+    );
+
+    let acc_before = client
+        .clone()
+        .apply_cheatcode(Cheatcodes::Access {
+            address: arbiter_token.address(),
+        })
+        .await
+        .unwrap();
+
+    // Make sure supply is zero.
+    let total_supply = arbiter_token.total_supply().call().await.unwrap();
+    assert_eq!(total_supply, 0.into());
+
+    let to: Address = Address::from_str(TEST_MINT_TO).unwrap();
+
+    let bal_before = arbiter_token.balance_of(to.clone()).call().await.unwrap();
+    assert_eq!(bal_before, 0.into());
+
+    // Mint tokens, altering total supply and balanceOf storage slots.
+    let amount = parse_ether(44.44).unwrap();
+    let _m = arbiter_token
+        .mint(to.clone(), amount.clone())
+        .send()
+        .await
+        .unwrap()
+        .await
+        .unwrap();
+
+    let bal_after = arbiter_token.balance_of(to.clone()).call().await.unwrap();
+    assert_eq!(bal_after, amount);
+
+    let total_supply = arbiter_token.total_supply().call().await.unwrap();
+    assert_eq!(total_supply, amount);
+
+    let acc_after = client
+        .clone()
+        .apply_cheatcode(Cheatcodes::Access {
+            address: arbiter_token.address(),
+        })
+        .await
+        .unwrap();
+
+    println!("acc_before: {:#?}", acc_before);
+    println!("acc_after: {:#?}", acc_after);
+
+    match acc_before {
+        CheatcodesReturn::Access { storage, .. } => match acc_after {
+            CheatcodesReturn::Access {
+                storage: storage_after,
+                ..
+            } => {
+                assert_ne!(storage.len(), storage_after.len());
+            }
+            _ => {}
+        },
+        _ => {}
+    };
 }

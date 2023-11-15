@@ -422,6 +422,51 @@ impl Environment {
                                 }
                             };
                         }
+                        Cheatcodes::Access { address } => {
+                            let db = evm.db.as_mut().unwrap();
+                            let recast_address =
+                                revm::primitives::Address::from(address.as_fixed_bytes());
+
+                            match db.accounts.get(&recast_address) {
+                                Some(account) => {
+                                    let account_state = match account.account_state {
+                                        revm::db::AccountState::None => {
+                                            AccountStateSerializable::None
+                                        }
+                                        revm::db::AccountState::Touched => {
+                                            AccountStateSerializable::Touched
+                                        }
+                                        revm::db::AccountState::StorageCleared => {
+                                            AccountStateSerializable::StorageCleared
+                                        }
+                                        revm::db::AccountState::NotExisting => {
+                                            AccountStateSerializable::NotExisting
+                                        }
+                                    };
+
+                                    let account = CheatcodesReturn::Access {
+                                        account_state,
+                                        info: account.info.clone(),
+                                        storage: account.storage.clone(),
+                                    };
+
+                                    outcome_sender
+                                        .send(Ok(Outcome::CheatcodeReturn(account)))
+                                        .map_err(|e| {
+                                            EnvironmentError::Communication(e.to_string())
+                                        })?;
+                                }
+                                None => {
+                                    outcome_sender
+                                        .send(Err(EnvironmentError::Account(
+                                            "Account is missing!".to_string(),
+                                        )))
+                                        .map_err(|e| {
+                                            EnvironmentError::Communication(e.to_string())
+                                        })?;
+                                }
+                            }
+                        }
                     },
                     // A `Call` is not state changing and will not create events.
                     Instruction::Call {
