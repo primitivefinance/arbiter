@@ -59,7 +59,11 @@ pub(crate) fn forge_bind() -> std::io::Result<()> {
         ));
     }
     remove_unneeded_contracts(&project_bidnings_output_path, project_contracts)?;
+    for_each_submodule(arbiter_config, foundry_config)?;
+    Ok(())
+}
 
+fn for_each_submodule(arbiter_config: ArbiterConfig, foundry_config: FoundryConfig) -> std::io::Result<()> {
     if arbiter_config.submodules {
         for lib_dir in &foundry_config.libs {
             println!("Generating bindings for lib: {:?}", lib_dir);

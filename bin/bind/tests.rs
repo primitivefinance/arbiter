@@ -106,3 +106,4 @@ fn test_update_mod_file() {
     // Temp dir (and the mock mod.rs file inside it) will be automatically
     // cleaned up after going out of scope.
 }
+
