@@ -1,6 +1,6 @@
 use super::*;
 
-#[derive(Debug, Deserialize, serde::Serialize)]
+#[derive(Debug, Deserialize, serde::Serialize, Clone)]
 pub struct ArbiterConfig {
     /// The path to the directory where the bindings will be generated.
     pub bindings_path: PathBuf,
@@ -15,6 +15,14 @@ impl ArbiterConfig {
         ArbiterConfig {
             bindings_path: PathBuf::from("src").join("bindings"),
             submodules: false,
+            ignore_interfaces: false,
+        }
+    }
+
+    pub fn _new_mock_config_with_submodules() -> Self {
+        ArbiterConfig {
+            bindings_path: PathBuf::from("src").join("bindings"),
+            submodules: true,
             ignore_interfaces: false,
         }
     }

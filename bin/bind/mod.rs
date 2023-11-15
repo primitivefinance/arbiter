@@ -10,12 +10,12 @@ use std::{
 use super::*;
 
 pub(crate) mod digest;
+#[cfg(test)]
 mod tests;
 use foundry_config::Config as FoundryConfig;
 use inflector::Inflector;
 use proc_macro2::{Ident, Span};
 use serde::Deserialize;
-
 use self::digest::ArbiterConfig;
 
 /// Runs the `forge` command-line tool to generate bindings.
@@ -59,17 +59,30 @@ pub(crate) fn forge_bind() -> std::io::Result<()> {
         ));
     }
     remove_unneeded_contracts(&project_bidnings_output_path, project_contracts)?;
-    for_each_submodule(arbiter_config, foundry_config)?;
+    if arbiter_config.submodules {
+        for lib_dir in &foundry_config.libs {
+            for_each_submodule(arbiter_config.clone(), lib_dir)?;
+        }
+    }
     Ok(())
 }
 
-fn for_each_submodule(arbiter_config: ArbiterConfig, foundry_config: FoundryConfig) -> std::io::Result<()> {
-    if arbiter_config.submodules {
-        for lib_dir in &foundry_config.libs {
-            println!("Generating bindings for lib: {:?}", lib_dir);
-            let (output_path, sub_module_contracts) =
-                bindings_for_submodules(lib_dir, &arbiter_config)?;
-            remove_unneeded_contracts(&output_path, sub_module_contracts)?;
+fn for_each_submodule(arbiter_config: ArbiterConfig, lib_dir: &Path) -> std::io::Result<()> {
+    if lib_dir.is_dir() {
+        println!("Generating bindings for library: {:?}", lib_dir);
+        for entry in fs::read_dir(lib_dir)? {
+            let entry = entry?;
+            let path = entry.path();
+            if path.is_dir() {
+                println!("Generating bindings for module: {:?}", path);
+                let (output_path, sub_module_contracts) =
+                    bindings_for_submodules(&path, &arbiter_config)?;
+                println!("output_path: {:?}", output_path);
+                println!("sub_module_contracts: {:?}", sub_module_contracts);
+                remove_unneeded_contracts(&output_path, sub_module_contracts)?;
+                // could optionally make a recursive call like this in the future if we want the get sub sub module bindings
+                // for_each_submodule(arbiter_config.clone(), foundry_config.clone(), &path)?;
+            }
         }
     }
     Ok(())
@@ -87,11 +100,12 @@ fn bindings_for_submodules(
         for entry in fs::read_dir(libdir)? {
             let entry = entry?;
             let path = entry.path();
+            println!("LOC 104 path: {:?}", path);
 
             // If the entry is a directory, run command inside it
             if path.is_dir() && path.file_name().unwrap_or_default() != "forge-std" {
                 contracts_to_generate = collect_contract_list(&path, config)?;
-
+                println!("contracts_to_generate: {:?}", contracts_to_generate);
                 let submodule_name = path
                     .file_name()
                     .unwrap()
@@ -99,12 +113,17 @@ fn bindings_for_submodules(
                     .unwrap()
                     .replace('-', "_");
 
+                println!("submodule_name: {:?}", submodule_name);
+
+                // It is failing here,
+                // wtf why
                 let output_path = config
                     .bindings_path
                     .clone() // Get the bindings path from config
                     .canonicalize()? // Convert output to absolute path
                     .join(format!("{}_bindings", submodule_name));
 
+                println!("output_path: {:?}", output_path);
                 env::set_current_dir(&path)?;
 
                 println!(
@@ -185,13 +204,27 @@ fn remove_unneeded_contracts(
     bindings_path: &PathBuf,
     needed_contracts: Vec<String>,
 ) -> io::Result<()> {
+
+    if needed_contracts.is_empty() {
+        return Ok(());
+    }
     if bindings_path.is_dir() {
-        for entry in fs::read_dir(bindings_path)? {
-            let entry = entry?;
+        let entries = fs::read_dir(bindings_path).map_err(|e| {
+            std::io::Error::new(std::io::ErrorKind::Other, format!("Failed to read directory: {}", e))
+        })?;
+
+        for entry in entries {
+            let entry = entry.map_err(|e| {
+                std::io::Error::new(std::io::ErrorKind::Other, format!("Failed to read directory entry: {}", e))
+            })?;
             let path = entry.path();
 
             if path.is_file() {
-                let filename = path.file_stem().unwrap().to_str().unwrap().to_lowercase();
+                let filename = path.file_stem().ok_or_else(|| {
+                    std::io::Error::new(std::io::ErrorKind::Other, "Failed to get file stem")
+                })?.to_str().ok_or_else(|| {
+                    std::io::Error::new(std::io::ErrorKind::Other, "Failed to convert OsStr to str")
+                })?.to_lowercase();
 
                 // Skip if the file is `mod.rs`
                 if filename == "mod" || filename == "settings" {
@@ -199,13 +232,17 @@ fn remove_unneeded_contracts(
                 }
 
                 if !needed_contracts.contains(&filename) {
-                    fs::remove_file(path)?;
+                    fs::remove_file(&path).map_err(|e| {
+                        std::io::Error::new(std::io::ErrorKind::Other, format!("Failed to remove file: {}", e))
+                    })?;
                 }
             }
         }
     }
 
-    update_mod_file(bindings_path, needed_contracts)?;
+    update_mod_file(bindings_path, needed_contracts).map_err(|e| {
+        std::io::Error::new(std::io::ErrorKind::Other, format!("Failed to update mod file: {}", e))
+    })?;
 
     Ok(())
 }
