@@ -120,7 +120,7 @@ fn bindings_for_submodules(
                 let output_path = config
                     .bindings_path
                     .clone() // Get the bindings path from config
-                    .canonicalize()? // Convert output to absolute path
+                    .canonicalize().map_err(|e| io::Error::new(io::ErrorKind::Other, format!("Failed to canonicalize path: {:?}", e)))? // Convert output to absolute path
                     .join(format!("{}_bindings", submodule_name));
 
                 println!("output_path: {:?}", output_path);
