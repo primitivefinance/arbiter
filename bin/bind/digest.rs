@@ -33,7 +33,27 @@ impl ArbiterConfig {
         let s = Config::builder()
             .add_source(config::File::with_name("arbiter.toml"))
             .build()?;
-        s.try_deserialize()
-        // Try loading the TOML content from the file
+        Ok(s.into())
+    }
+}
+
+impl Default for ArbiterConfig {
+    fn default() -> Self {
+        Self {
+            bindings_path: PathBuf::from("src").join("bindings"),
+            submodules: false,
+            ignore_interfaces: false,
+        }
+    }
+}
+
+impl From<config::Config> for ArbiterConfig {
+    fn from(config: config::Config) -> Self {
+        // Here you need to convert the `config::Config` into `ArbiterConfig`
+        ArbiterConfig {
+            bindings_path: PathBuf::from("src").join("bindings"),
+            submodules: config.get_bool("submodules").unwrap_or(false),
+            ignore_interfaces: config.get_bool("ignore_interfaces").unwrap_or(true),
+        }
     }
 }

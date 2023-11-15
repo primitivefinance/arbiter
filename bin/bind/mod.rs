@@ -2,7 +2,7 @@
 use std::{
     fs::{write, File},
     io,
-    io::{BufRead, BufReader},
+    io::{BufRead, BufReader, ErrorKind},
     path::PathBuf,
     process::Command,
 };
@@ -36,7 +36,7 @@ use self::digest::ArbiterConfig;
 
 pub(crate) fn forge_bind() -> std::io::Result<()> {
     let foundry_config = FoundryConfig::load();
-    let arbiter_config = ArbiterConfig::new().unwrap();
+    let arbiter_config = ArbiterConfig::new().unwrap_or_default();
     let project_bidnings_output_path = arbiter_config.bindings_path.join("bindings");
     let output = Command::new("forge")
         .arg("bind")
@@ -335,6 +335,7 @@ fn remove_unneeded_contracts(
         }
     }
 
+    // update_mod_file(bindings_path, needed_contracts).unwrap();
     update_mod_file(bindings_path, needed_contracts).map_err(|e| {
         std::io::Error::new(
             std::io::ErrorKind::Other,
@@ -369,36 +370,67 @@ fn update_mod_file(bindings_path: &Path, contracts_to_keep: Vec<String>) -> io::
     let mod_path = bindings_path.join("mod.rs");
 
     // Open the file and read its contents
-    let file = File::open(&mod_path)?;
+    let file = match File::open(&mod_path) {
+        Ok(file) => file,
+        Err(e) => {
+            if e.kind() == ErrorKind::NotFound {
+                File::create(&mod_path)?
+            } else {
+                return Err(std::io::Error::new(
+                    std::io::ErrorKind::Other,
+                    format!("Failed to open file: {}", e),
+                ));
+            }
+        }
+    };
     let reader = BufReader::new(file);
 
-    let lines: Vec<String> = reader
+    let lines: Result<Vec<String>, std::io::Error> = reader
         .lines()
-        .map_while(Result::ok)
-        .filter(|line| {
-            // Keep the line if it's a comment
-            if line.trim().starts_with("//") || line.trim().starts_with('#') {
-                return true;
-            }
+        .map(|line_result| {
+            line_result.map(|line| {
+                // Keep the line if it's a comment
+                if line.trim().starts_with("//") || line.trim().starts_with('#') {
+                    return line;
+                }
 
-            // Check if the line is a module declaration and if it's one of the contracts we
-            // want to keep
-            if let Some(contract_name) = line
-                .trim()
-                .strip_prefix("pub mod ")
-                .and_then(|s| s.strip_suffix(';'))
-            {
-                return contracts_to_keep.contains(&contract_name.to_string());
-            }
+                // Check if the line is a module declaration and if it's one of the contracts we
+                // want to keep
+                if let Some(contract_name) = line
+                    .trim()
+                    .strip_prefix("pub mod ")
+                    .and_then(|s| s.strip_suffix(';'))
+                {
+                    if contracts_to_keep.contains(&contract_name.to_string()) {
+                        return line;
+                    }
+                }
 
-            true
+                String::new() // return an empty string if the line is not
+                              // needed
+            })
         })
         .collect();
 
-    // Write the new lines back to the mod.rs
-    write(&mod_path, lines.join("\n"))?;
+    let lines = match lines {
+        Ok(lines) => lines,
+        Err(e) => {
+            return Err(std::io::Error::new(
+                std::io::ErrorKind::Other,
+                format!("Failed to read lines from file: {}", e),
+            ))
+        }
+    };
+    let lines: Vec<String> = lines.into_iter().filter(|line| !line.is_empty()).collect();
 
-    Ok(())
+    // Write the new lines back to the mod.rs
+    match write(&mod_path, lines.join("\n")) {
+        Ok(_) => Ok(()),
+        Err(e) => Err(std::io::Error::new(
+            std::io::ErrorKind::Other,
+            format!("Failed to write to file: {}", e),
+        )),
+    }
 }
 
 /// The following methods were picked out of https://github.com/gakonst/ethers-rs/blob/9d01a9810940d3acd7c78bf2b2f2ca85a74f73eb/ethers-contract/ethers-contract-abigen/src/lib.rs#L393

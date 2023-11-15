@@ -167,9 +167,11 @@ fn test_submodule_bindings() {
 
     println!("output_path: {:?}", _output_path);
     println!("contract_list: {:?}", _contract_list);
-    // Check the output path
-    // assert!(
-    //     output_path.to_string_lossy().contains("foo_bindings")
-    //         || output_path.to_string_lossy().contains("bar_bindings")
-    // );
+}
+
+#[test]
+fn test_forge_bind() {
+    // Call the function
+    let result = forge_bind();
+    assert!(result.is_err());
 }
