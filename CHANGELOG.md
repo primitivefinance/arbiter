@@ -6,6 +6,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.12](https://github.com/primitivefinance/arbiter/compare/arbiter-v0.4.11...arbiter-v0.4.12) - 2023-11-15
+
+### Other
+- improve error handling
+- working as intended
+- added a passing itterator test
+- added a passing itterator test
+- abstracted broken code into for_each_submodile() function
+
 ## [0.4.11](https://github.com/primitivefinance/arbiter/compare/arbiter-v0.4.10...arbiter-v0.4.11) - 2023-11-14
 
 ### Other
