@@ -1,6 +1,19 @@
 [profile.default]
-src = "src"
-out = "out"
 libs = ["lib"]
+out = "out"
+src = "contracts"
 
 # See more config options https://github.com/foundry-rs/foundry/blob/master/crates/config/README.md#all-options
+solc_version = "0.8.19"
+bytecode_hash = "none"
+cbor_metadata = false
+# See more config options https://github.com/foundry-rs/foundry/tree/master/config
+
+[fmt]
+bracket_spacing = true
+int_types = 'long'
+line_length = 80
+multiline_func_header = 'params_first'
+quote_style = 'double'
+tab_width = 4
+wrap_comments = false

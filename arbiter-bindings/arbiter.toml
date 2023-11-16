@@ -1,0 +1,4 @@
+bindings_path = "simulation/src/"
+ignore_interfaces = false
+bindings_workspace = "arbiter-bindings" # must be a valid workspace member
+submodules = false                # change to true if you want the submodule bindings to be generated
