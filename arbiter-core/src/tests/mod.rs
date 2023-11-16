@@ -20,8 +20,11 @@ use ethers::{
 };
 use futures::StreamExt;
 
+use arbiter_bindings::bindings::{
+    arbiter_math::ArbiterMath,
+    arbiter_token::{self, ArbiterToken}, liquid_exchange::LiquidExchange,
+};
 use crate::{
-    bindings::{arbiter_math::*, arbiter_token::*, liquid_exchange::LiquidExchange},
     environment::{cheatcodes::*, *},
     math::*,
     middleware::*,

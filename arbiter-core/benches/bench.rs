@@ -6,11 +6,11 @@ use std::{
 };
 
 use anyhow::Result;
+use arbiter_bindings::bindings::{
+    arbiter_math::ArbiterMath,
+    arbiter_token::{self, ArbiterToken},
+};
 use arbiter_core::{
-    bindings::{
-        arbiter_math::ArbiterMath,
-        arbiter_token::{self, ArbiterToken},
-    },
     environment::{builder::EnvironmentBuilder, Environment},
     middleware::RevmMiddleware,
 };

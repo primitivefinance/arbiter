@@ -13,6 +13,8 @@ contracts = []
 
 # Dependencies for the release build
 [dependencies]
+# Local
+arbiter-bindings = { path = "../arbiter-bindings" }
 
 # Ethereum and EVM
 ethers.workspace = true
