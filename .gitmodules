@@ -1,0 +1,3 @@
+[submodule "arbiter-bindings/lib/forge-std"]
+	path = arbiter-bindings/lib/forge-std
+	url = https://github.com/foundry-rs/forge-std
