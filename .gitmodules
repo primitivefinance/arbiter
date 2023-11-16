@@ -1,3 +1,6 @@
 [submodule "arbiter-bindings/lib/forge-std"]
 	path = arbiter-bindings/lib/forge-std
 	url = https://github.com/foundry-rs/forge-std
+[submodule "arbiter-bindings/lib/solmate"]
+	path = arbiter-bindings/lib/solmate
+	url = https://github.com/transmissions11/solmate
