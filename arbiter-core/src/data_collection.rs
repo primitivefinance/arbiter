@@ -256,18 +256,18 @@ impl EventLogger {
                         // type
                         match file_type {
                             OutputFileType::JSON => {
-                                let file_path = output_dir.join(format!("{}.json", file_name));
-                                let file = std::fs::File::create(file_path).unwrap();
-                                let writer = BufWriter::new(file);
 
-                                #[derive(Serialize, Clone)]
-                                struct OutputData<T> {
-                                    events: BTreeMap<String, BTreeMap<String, Vec<Value>>>,
-                                    metadata: Option<T>,
-                                }
-                                let data = OutputData { events, metadata };
-                                serde_json::to_writer(writer, &data).expect("Unable to write data");
+                                let mut df = flatten_to_data_frame_json(events);
+                                let file_path = output_dir.join(format!("{}.json", file_name));
+                                let file = std::fs::File::create(file_path).unwrap_or_else(|_| {
+                                    panic!("Error creating json file");
+                                });
+                                let mut writer = polars::io::json::JsonWriter::new(file);
+                                writer.finish(&mut df).unwrap_or_else(|_| {
+                                    panic!("Error writing to json file");
+                                });
                                 self.shutdown_sender.unwrap().send(()).unwrap();
+   
                             }
                             OutputFileType::CSV => {
                                 // Write the DataFrame to a CSV file
@@ -342,6 +342,28 @@ impl EventLogger {
         });
         Ok(())
     }
+}
+
+fn flatten_to_data_frame_json(events: BTreeMap<String, BTreeMap<String, Vec<Value>>>) -> DataFrame {
+    let mut contract_names = Vec::new();
+    let mut event_names = Vec::new();
+    let mut event_values = Vec::new();
+
+    for (contract, events) in &events {
+        for (event, values) in events {
+            for value in values {
+                contract_names.push(contract.clone());
+                event_names.push(event.clone());
+                event_values.push(value.to_string());
+            }
+        }
+    }
+
+    DataFrame::new(vec![
+        Series::new("contract_name", contract_names),
+        Series::new("event_name", event_names),
+        Series::new("event_value", event_values),
+    ]).unwrap()
 }
 
 fn flatten_to_data_frame(events: BTreeMap<String, BTreeMap<String, Vec<Value>>>) -> DataFrame {

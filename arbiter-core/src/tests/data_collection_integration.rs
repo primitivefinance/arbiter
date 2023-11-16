@@ -67,7 +67,7 @@ async fn data_capture() {
     assert!(Path::new("./data/output.csv").exists());
     assert!(Path::new("./data/output.parquet").exists());
     assert!(Path::new("./data/output.json").exists());
-    std::fs::remove_dir_all("./data").unwrap();
+    // std::fs::remove_dir_all("./data").unwrap();
 }
 
 async fn generate_events(
