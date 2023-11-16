@@ -4,3 +4,6 @@
 [submodule "arbiter-bindings/lib/solmate"]
 	path = arbiter-bindings/lib/solmate
 	url = https://github.com/transmissions11/solmate
+[submodule "arbiter-bindings/lib/solstat"]
+	path = arbiter-bindings/lib/solstat
+	url = https://github.com/primitivefinance/solstat
