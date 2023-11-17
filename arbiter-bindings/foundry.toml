@@ -3,11 +3,15 @@ libs = ["lib"]
 out = "out"
 src = "contracts"
 
-# See more config options https://github.com/foundry-rs/foundry/blob/master/crates/config/README.md#all-options
+remappings = [
+  "/solstat=/lib/solstat/src",
+  "/solmate=/lib/solmate/src",
+  "/solmate-erc20=/lib/solmate-erc20/src",
+]
+
 solc_version = "0.8.19"
 bytecode_hash = "none"
 cbor_metadata = false
-# See more config options https://github.com/foundry-rs/foundry/tree/master/config
 
 [fmt]
 bracket_spacing = true
