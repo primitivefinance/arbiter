@@ -37,13 +37,13 @@ use self::digest::ArbiterConfig;
 pub(crate) fn forge_bind() -> std::io::Result<()> {
     let foundry_config = FoundryConfig::load();
     let arbiter_config = ArbiterConfig::new().unwrap_or_default();
-    let project_bidnings_output_path = arbiter_config.bindings_path.join("bindings");
+    // let project_bidnings_output_path = arbiter_config.bindings_path;
     let output = Command::new("forge")
         .arg("bind")
         .arg("--revert-strings")
         .arg("debug")
         .arg("-b")
-        .arg(project_bidnings_output_path.clone())
+        .arg(arbiter_config.bindings_path.clone())
         .arg("--module")
         .arg("--overwrite")
         .arg("--force")
@@ -60,7 +60,7 @@ pub(crate) fn forge_bind() -> std::io::Result<()> {
             "Command failed",
         ));
     }
-    remove_unneeded_contracts(&project_bidnings_output_path, project_contracts.0)?;
+    remove_unneeded_contracts(&arbiter_config.bindings_path, project_contracts.0)?;
     if arbiter_config.submodules {
         for lib_dir in &foundry_config.libs {
             for_each_submodule(arbiter_config.clone(), lib_dir)?;
@@ -87,12 +87,12 @@ pub(crate) fn forge_bind() -> std::io::Result<()> {
 
 fn for_each_submodule(arbiter_config: ArbiterConfig, lib_dir: &Path) -> std::io::Result<()> {
     if lib_dir.is_dir() {
-        println!("Generating bindings for library: {:?}", lib_dir);
         for entry in fs::read_dir(lib_dir)? {
             let entry = entry?;
             let path = entry.path();
             // Check if the directory is a submodule
             if path.is_dir() && path.join(".git").exists() {
+                println!("Generating bindings for library: {:?}", path);
                 let (output_path, sub_module_contracts) =
                     bindings_for_submodules(&path, &arbiter_config)?;
                 if output_path.is_none() {
@@ -136,6 +136,9 @@ fn bindings_for_submodules(
 ) -> io::Result<(Option<PathBuf>, Vec<String>)> {
     let mut contracts_to_generate = Vec::new(); // to keep track of contracts we're generating bindings for
     let mut last_output_path = config.bindings_path.clone();
+    if let Some(parent_path) = last_output_path.parent() {
+        last_output_path = parent_path.to_path_buf();
+    }
     let target;
     if libdir.is_dir()
         && libdir.join(".git").exists()
@@ -151,9 +154,9 @@ fn bindings_for_submodules(
             .to_str()
             .unwrap()
             .replace('-', "_");
+        println!("submodule name: {:?}", submodule_name);
 
-        let output_path = config
-            .bindings_path
+        let output_path = last_output_path
             .clone() // Get the bindings path from config
             .join(format!("{}_bindings", submodule_name));
 

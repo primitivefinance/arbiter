@@ -1,6 +1,6 @@
-use super::*;
+use arbiter_bindings::bindings::{self, weth::weth};
 
-use arbiter_bindings::bindings::{weth::weth, self};
+use super::*;
 use crate::environment::{builder::EnvironmentBuilder, fork::Fork};
 
 #[tokio::test]

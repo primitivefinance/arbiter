@@ -252,7 +252,6 @@ version = "0.8.0"
 dependencies = [
  "anyhow",
  "arbiter-bindings",
- "arbiter-core",
  "arbiter-derive",
  "assert_matches",
  "async-trait",

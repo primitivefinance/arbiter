@@ -8,9 +8,6 @@ license = "Apache-2.0"
 keywords = ["ethereum", "evm", "emulator", "testing", "smart-contracts"]
 readme = "../README.md"
 
-[features]
-contracts = []
-
 # Dependencies for the release build
 [dependencies]
 # Local
@@ -58,7 +55,6 @@ anyhow =  { version = "=1.0.75" }
 test-log =  { version = "=0.2.13" }
 tracing-test = "0.2.4"
 
-arbiter-core = { path = ".", features = ["contracts"] }
 polars = "0.34.2"
 cargo_metadata = "0.18.1"
 chrono = "0.4.31"

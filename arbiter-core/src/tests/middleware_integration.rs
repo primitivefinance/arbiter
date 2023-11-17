@@ -4,7 +4,6 @@ use ethers::{
     utils::parse_ether,
 };
 
-
 use super::*;
 use crate::middleware::nonce_middleware::NonceManagerMiddleware;
 
