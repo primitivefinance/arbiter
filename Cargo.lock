@@ -237,11 +237,21 @@ dependencies = [
 ]
 
 [[package]]
+name = "arbiter-bindings"
+version = "0.1.0"
+dependencies = [
+ "ethers",
+ "revm",
+ "revm-primitives",
+ "serde",
+]
+
+[[package]]
 name = "arbiter-core"
 version = "0.8.0"
 dependencies = [
  "anyhow",
- "arbiter-core",
+ "arbiter-bindings",
  "arbiter-derive",
  "assert_matches",
  "async-trait",

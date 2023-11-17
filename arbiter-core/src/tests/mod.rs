@@ -10,6 +10,11 @@ mod middleware_integration;
 use std::{str::FromStr, sync::Arc};
 
 use anyhow::Result;
+use arbiter_bindings::bindings::{
+    arbiter_math::ArbiterMath,
+    arbiter_token::{self, ArbiterToken},
+    liquid_exchange::LiquidExchange,
+};
 use ethers::{
     prelude::{
         k256::sha2::{Digest, Sha256},
@@ -21,7 +26,6 @@ use ethers::{
 use futures::StreamExt;
 
 use crate::{
-    bindings::{arbiter_math::*, arbiter_token::*, liquid_exchange::LiquidExchange},
     environment::{cheatcodes::*, *},
     math::*,
     middleware::*,

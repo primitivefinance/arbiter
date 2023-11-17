@@ -1,8 +1,7 @@
+use arbiter_bindings::bindings::{self, weth::weth};
+
 use super::*;
-use crate::{
-    bindings::{self, weth::weth},
-    environment::{builder::EnvironmentBuilder, fork::Fork},
-};
+use crate::environment::{builder::EnvironmentBuilder, fork::Fork};
 
 #[tokio::test]
 async fn receipt_data() {

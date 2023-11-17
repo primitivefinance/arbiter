@@ -31,8 +31,6 @@
 
 #![warn(missing_docs)]
 
-#[cfg(feature = "contracts")]
-pub mod bindings; // TODO: Add better documentation here and some kind of overwrite protection.
 pub mod data_collection;
 pub mod environment;
 pub mod math;

@@ -13,4 +13,5 @@ coverage:
     - "arbiter-core/contracts/*"
     - "arbiter/arbiter-core/benches*"
     - "arbiter/arbiter-core/src/bindings"
+    - "arbiter/arbiter-bindings/*"
     

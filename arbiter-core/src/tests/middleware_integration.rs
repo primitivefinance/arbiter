@@ -1,3 +1,4 @@
+use arbiter_bindings::bindings::arbiter_token::ApprovalFilter;
 use ethers::{
     types::{transaction::eip2718::TypedTransaction, Log},
     utils::parse_ether,

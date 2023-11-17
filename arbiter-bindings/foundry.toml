@@ -1,0 +1,23 @@
+[profile.default]
+libs = ["lib"]
+out = "out"
+src = "contracts"
+
+remappings = [
+  "/solstat=/lib/solstat/src",
+  "/solmate=/lib/solmate/src",
+  "/solmate-erc20=/lib/solmate-erc20/src",
+]
+
+solc_version = "0.8.19"
+bytecode_hash = "none"
+cbor_metadata = false
+
+[fmt]
+bracket_spacing = true
+int_types = 'long'
+line_length = 80
+multiline_func_header = 'params_first'
+quote_style = 'double'
+tab_width = 4
+wrap_comments = false

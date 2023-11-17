@@ -21,7 +21,7 @@ impl ArbiterConfig {
 
     pub fn _new_mock_config_with_submodules() -> Self {
         ArbiterConfig {
-            bindings_path: PathBuf::from("src").join("bindings"),
+            bindings_path: PathBuf::from("src"),
             submodules: true,
             ignore_interfaces: false,
         }
@@ -40,7 +40,7 @@ impl ArbiterConfig {
 impl Default for ArbiterConfig {
     fn default() -> Self {
         Self {
-            bindings_path: PathBuf::from("src").join("bindings"),
+            bindings_path: PathBuf::from("src"),
             submodules: false,
             ignore_interfaces: false,
         }

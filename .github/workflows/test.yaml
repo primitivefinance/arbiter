@@ -3,6 +3,8 @@ name: test
 on:
   pull_request:
     types: [opened, synchronize, reopened]
+    paths-ignore:
+      - "arbiter-bindings/*"
 
 jobs:
   test:
@@ -23,6 +25,7 @@ jobs:
   codecov:
     name: codecov
     runs-on: ubuntu-latest
+
     steps:
       - uses: actions/checkout@v3
 
