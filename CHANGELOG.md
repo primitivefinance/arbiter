@@ -6,6 +6,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.13](https://github.com/primitivefinance/arbiter/compare/arbiter-v0.4.12...arbiter-v0.4.13) - 2023-11-18
+
+### Other
+- *(deps)* bump polars from 0.34.2 to 0.35.2
+- codecov.yaml -> codecov.yml
+- arbiter bind doesn't output nested bindings now
+- Merge branch 'main' into arbiter_bindings
+- solstat compiles
+- forge install: solstat
+- forge install: solmate
+- contracts
+- forge install: forge-std
+- forge init
+- arbiter-bindings
+
 ## [0.4.12](https://github.com/primitivefinance/arbiter/compare/arbiter-v0.4.11...arbiter-v0.4.12) - 2023-11-15
 
 ### Other

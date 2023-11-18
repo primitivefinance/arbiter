@@ -6,6 +6,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.9.0](https://github.com/primitivefinance/arbiter/compare/arbiter-core-v0.8.0...arbiter-core-v0.9.0) - 2023-11-18
+
+### Other
+- *(deps)* bump polars from 0.34.2 to 0.35.2
+- arbiter bind doesn't output nested bindings now
+- Merge branch 'main' into arbiter_bindings
+- arbiter-bindings
+
 ## [0.8.0](https://github.com/primitivefinance/arbiter/compare/arbiter-core-v0.7.6...arbiter-core-v0.8.0) - 2023-11-14
 
 ### Fixed
