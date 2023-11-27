@@ -69,7 +69,7 @@ pub enum CheatcodesReturn {
     /// A `Load` returns the value of a storage slot of an account.
     Load {
         /// The value of the storage slot.
-        value: revm_primitives::alloy_primitives::U256,
+        value: alloy_primitives::U256,
     },
     /// A `Store` returns nothing.
     Store,
