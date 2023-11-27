@@ -37,7 +37,7 @@ tokio = { version = "1.34.0", features = ["macros", "full"] }
 arbiter-core = { version = "0.9.0", path = "arbiter-core" }
 
 # Command line and config
-clap = { version = "=4.4.8", features = ["derive"] }
+clap = { version = "=4.4.9", features = ["derive"] }
 serde.workspace = true
 serde_json.workspace = true
 config = { version = "=0.13.4" }
