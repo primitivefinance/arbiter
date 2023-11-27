@@ -41,6 +41,7 @@ use ethers::{
 use futures_timer::Delay;
 use rand::{rngs::StdRng, SeedableRng};
 use revm::primitives::{CreateScheme, Output, TransactTo, TxEnv, U256};
+use revm_primitives::alloy_primitives;
 use serde::{de::DeserializeOwned, Serialize};
 // use revm::primitives::{ExecutionResult, Output};
 // use super::cast::revm_logs_to_ethers_logs;
@@ -869,19 +870,22 @@ impl Middleware for RevmMiddleware {
         block: Option<BlockId>,
     ) -> Result<ethers::types::H256, RevmMiddlewareError> {
         let address: NameOrAddress = account.into();
-        let address = match address {
+        let address: alloy_primitives::Address = match address {
             NameOrAddress::Name(_) => {
                 return Err(RevmMiddlewareError::MissingData(
                     "Querying storage via name is not supported!".to_string(),
                 ))
             }
-            NameOrAddress::Address(address) => address,
+            NameOrAddress::Address(address) => {
+                alloy_primitives::Address::from(address.as_fixed_bytes())
+            }
         };
+        let recast_key: alloy_primitives::B256 = key.as_fixed_bytes().into();
 
         let result = self
             .apply_cheatcode(Cheatcodes::Load {
                 account: address,
-                key,
+                key: recast_key,
                 block,
             })
             .await

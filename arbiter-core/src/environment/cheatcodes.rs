@@ -3,7 +3,7 @@
 
 #![warn(missing_docs)]
 
-use revm_primitives::{AccountInfo, HashMap, U256};
+use revm_primitives::{alloy_primitives, AccountInfo, HashMap, U256};
 
 /// Cheatcodes are a direct way to access the underlying [`EVM`] environment and
 /// database.
@@ -12,17 +12,18 @@ pub enum Cheatcodes {
     /// A `Deal` is used to increase the balance of an account in the [`EVM`].
     Deal {
         /// The address of the account to increase the balance of.
-        address: ethers::types::Address,
+        address: alloy_primitives::Address,
 
         /// The amount to increase the balance of the account by.
-        amount: ethers::types::U256,
+        amount: alloy_primitives::U256,
     },
     /// Fetches the value of a storage slot of an account.
     Load {
         /// The address of the account to fetch the storage slot from.
-        account: ethers::types::Address,
+        account: alloy_primitives::Address,
         /// The storage slot to fetch.
-        key: ethers::types::H256,
+        key: alloy_primitives::B256,
+
         /// The block to fetch the storage slot from.
         /// todo: implement storage slots at blocks.
         block: Option<ethers::types::BlockId>,
@@ -32,16 +33,16 @@ pub enum Cheatcodes {
     /// to do.
     Store {
         /// The address of the account to overwrite the storage slot of.
-        account: ethers::types::Address,
+        account: alloy_primitives::Address,
         /// The storage slot to overwrite.
-        key: ethers::types::H256,
+        key: alloy_primitives::B256,
         /// The value to overwrite the storage slot with.
-        value: ethers::types::H256,
+        value: alloy_primitives::B256,
     },
     /// Fetches the `DbAccount` account at the given address.
     Access {
         /// The address of the account to fetch.
-        address: ethers::types::Address,
+        address: alloy_primitives::Address,
     },
 }
 
@@ -68,7 +69,7 @@ pub enum CheatcodesReturn {
     /// A `Load` returns the value of a storage slot of an account.
     Load {
         /// The value of the storage slot.
-        value: revm::primitives::U256,
+        value: revm_primitives::alloy_primitives::U256,
     },
     /// A `Store` returns nothing.
     Store,
