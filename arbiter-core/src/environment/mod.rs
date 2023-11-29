@@ -41,7 +41,8 @@ use ethers::core::types::U64;
 use revm::{
     db::{CacheDB, EmptyDB},
     primitives::{
-        AccountInfo, EVMError, ExecutionResult, HashMap, InvalidTransaction, Log, TxEnv, U256,
+        alloy_primitives, AccountInfo, EVMError, ExecutionResult, HashMap, InvalidTransaction, Log,
+        TxEnv, U256,
     },
     EVM,
 };
@@ -322,15 +323,14 @@ impl Environment {
                             match db.accounts.get_mut(&account) {
                                 Some(account) => {
                                     // Returns zero if the account is missing.
-                                    let value: revm::primitives::U256 =
-                                        match account
-                                            .storage
-                                            .get::<revm_primitives::alloy_primitives::U256>(
-                                                &key.into(),
-                                            ) {
-                                            Some(value) => *value,
-                                            None => revm::primitives::U256::ZERO,
-                                        };
+                                    let value: revm::primitives::U256 = match account
+                                        .storage
+                                        .get::<alloy_primitives::U256>(
+                                        &key.into(),
+                                    ) {
+                                        Some(value) => *value,
+                                        None => revm::primitives::U256::ZERO,
+                                    };
 
                                     // Sends the revm::primitives::U256 storage value back to the
                                     // sender via CheatcodeReturn(revm::primitives::U256).

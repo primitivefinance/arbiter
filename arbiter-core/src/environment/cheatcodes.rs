@@ -26,7 +26,7 @@ pub enum Cheatcodes {
 
         /// The block to fetch the storage slot from.
         /// todo: implement storage slots at blocks.
-        block: Option<ethers::types::BlockId>,
+        block: Option<alloy_primitives::BlockNumber>,
     },
     /// Overwrites a storage slot of an account.
     /// TODO: for more complicated data types, like structs, there's more work
