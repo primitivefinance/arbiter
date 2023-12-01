@@ -11,7 +11,7 @@ readme = "../README.md"
 # Dependencies for the release build
 [dependencies]
 # Local
-arbiter-bindings = { path = "../arbiter-bindings" }
+arbiter-bindings = { version = "0.1.0" }
 
 # Ethereum and EVM
 ethers.workspace = true
