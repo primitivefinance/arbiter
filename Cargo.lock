@@ -293,6 +293,10 @@ dependencies = [
 [[package]]
 name = "arbiter-engine"
 version = "0.1.0"
+dependencies = [
+ "arbiter-core",
+ "ethers",
+]
 
 [[package]]
 name = "argminmax"

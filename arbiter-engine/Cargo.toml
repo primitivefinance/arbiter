@@ -9,3 +9,5 @@ keywords = ["ethereum", "evm", "emulator", "testing", "smart-contracts"]
 readme = "../README.md"
 
 [dependencies]
+ethers.workspace = true
+arbiter-core.workspace = true
