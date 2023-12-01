@@ -34,13 +34,14 @@ use ethers::{
     },
     signers::{Signer, Wallet},
     types::{
-        transaction::eip2718::TypedTransaction, Address, BlockId, Bloom, Bytes, Filter,
-        FilteredParams, Log, NameOrAddress, Transaction, TransactionReceipt, U256 as eU256, U64,
+        transaction::eip2718::TypedTransaction, Address, BlockId, BlockNumber, Bloom, Bytes,
+        Filter, FilteredParams, Log, NameOrAddress, Transaction, TransactionReceipt, U256 as eU256,
+        U64,
     },
 };
 use futures_timer::Delay;
 use rand::{rngs::StdRng, SeedableRng};
-use revm::primitives::{CreateScheme, Output, TransactTo, TxEnv, U256};
+use revm::primitives::{alloy_primitives, CreateScheme, Output, TransactTo, TxEnv, U256};
 use serde::{de::DeserializeOwned, Serialize};
 // use revm::primitives::{ExecutionResult, Output};
 // use super::cast::revm_logs_to_ethers_logs;
@@ -869,20 +870,32 @@ impl Middleware for RevmMiddleware {
         block: Option<BlockId>,
     ) -> Result<ethers::types::H256, RevmMiddlewareError> {
         let address: NameOrAddress = account.into();
-        let address = match address {
+        let address: alloy_primitives::Address = match address {
             NameOrAddress::Name(_) => {
                 return Err(RevmMiddlewareError::MissingData(
                     "Querying storage via name is not supported!".to_string(),
                 ))
             }
-            NameOrAddress::Address(address) => address,
+            NameOrAddress::Address(address) => {
+                alloy_primitives::Address::from(address.as_fixed_bytes())
+            }
         };
+        let recast_key: alloy_primitives::B256 = key.as_fixed_bytes().into();
+        let recast_block_number: alloy_primitives::BlockNumber;
+        if let Some(BlockId::Number(BlockNumber::Number(block_number))) = block {
+            recast_block_number = block_number.as_u64();
+        } else {
+            return Err(RevmMiddlewareError::MissingData(
+                "Querying storage using anything other than BlockNumber(Number) is not supported!"
+                    .to_string(),
+            ));
+        }
 
         let result = self
             .apply_cheatcode(Cheatcodes::Load {
                 account: address,
-                key,
-                block,
+                key: recast_key,
+                block: Some(recast_block_number),
             })
             .await
             .unwrap();
