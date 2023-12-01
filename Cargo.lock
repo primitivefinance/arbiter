@@ -247,11 +247,23 @@ dependencies = [
 ]
 
 [[package]]
+name = "arbiter-bindings"
+version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "09f923bf63cf3f7ae0111d1446f4fab6aa84b2ae5690ba6036c6969751f2f2aa"
+dependencies = [
+ "ethers",
+ "revm",
+ "revm-primitives",
+ "serde",
+]
+
+[[package]]
 name = "arbiter-core"
 version = "0.9.0"
 dependencies = [
  "anyhow",
- "arbiter-bindings",
+ "arbiter-bindings 0.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "arbiter-derive",
  "assert_matches",
  "async-trait",
