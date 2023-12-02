@@ -187,12 +187,7 @@ impl RevmMiddleware {
         }))
     }
 
-    // TODO: This needs to have the label retrieved from the fork config.
-    /// Creates a new instance of `RevmMiddleware` from a forked EOA.
-    pub fn new_from_forked_eoa(
-        environment: &Environment,
-        forked_eoa: Address,
-    ) -> Result<Arc<Self>, RevmMiddlewareError> {
+    fn from_forked(environment: &Environment, forked_eoa: Address, label: Option<&str>) -> Self {
         let instruction_sender = &Arc::clone(&environment.socket.instruction_sender);
         let (outcome_sender, outcome_receiver) = crossbeam_channel::unbounded();
 
@@ -208,11 +203,30 @@ impl RevmMiddleware {
             "Created new `RevmMiddleware` instance from a fork -- attached to environment labeled: {:?}",
             environment.parameters.label
         );
-        Ok(Arc::new(Self {
+
+        Self {
             wallet: EOA::Forked(forked_eoa),
             provider,
-            label: None,
-        }))
+            label: label.map(|s| s.to_string()),
+        }
+    }
+
+    // TODO: This needs to have the label retrieved from the fork config.
+    /// Creates a new instance of `RevmMiddleware` from a forked EOA.
+    pub fn new_from_forked_eoa(
+        environment: &Environment,
+        forked_eoa: Address,
+    ) -> Result<Arc<Self>, RevmMiddlewareError> {
+        Ok(Arc::new(Self::from_forked(environment, forked_eoa, None)))
+    }
+
+    /// Forks an eoa with a label.
+    pub fn new_from_forked_eoa_with_label(
+        environment: &Environment,
+        forked_eoa: Address,
+        label: Option<&str>,
+    ) -> Result<Arc<Self>, RevmMiddlewareError> {
+        Ok(Arc::new(Self::from_forked(environment, forked_eoa, label)))
     }
 
     /// Allows the user to update the block number and timestamp of the

@@ -39,7 +39,7 @@ use std::{
 use crossbeam_channel::{bounded, unbounded, Receiver, Sender};
 use ethers::core::types::U64;
 use revm::{
-    db::{CacheDB, EmptyDB},
+    db::{CacheDB, EmptyDB, EmptyDBTyped},
     primitives::{
         alloy_primitives, AccountInfo, EVMError, ExecutionResult, HashMap, InvalidTransaction, Log,
         TxEnv, U256,
@@ -131,7 +131,7 @@ pub struct Environment {
 
     /// The [`EVM`] that is used as an execution environment and database for
     /// calls and transactions.
-    db: Option<CacheDB<EmptyDB>>,
+    pub db: Option<CacheDB<EmptyDB>>,
 
     /// This gives a means of letting the "outside world" connect to the
     /// [`Environment`] so that users (or agents) may send and receive data from
@@ -141,7 +141,8 @@ pub struct Environment {
     /// [`JoinHandle`] for the thread in which the [`EVM`] is running.
     /// Used for assuring that the environment is stopped properly or for
     /// performing any blocking action the end user needs.
-    pub(crate) handle: Option<JoinHandle<Result<(), EnvironmentError>>>,
+    pub handle:
+        Option<JoinHandle<Result<Option<CacheDB<EmptyDBTyped<Infallible>>>, EnvironmentError>>>,
 }
 
 /// Allow the end user to be able to access a debug printout for the
@@ -623,7 +624,7 @@ impl Environment {
                     }
                 }
             }
-            Ok(())
+            Ok(evm.db.clone())
         });
         self.handle = Some(handle);
     }
@@ -637,7 +638,7 @@ impl Environment {
     ///   stopped.
     /// * `Err(EnvironmentError::Stop(String))` if the environment is in an
     ///   invalid state.
-    pub fn stop(mut self) -> Result<(), EnvironmentError> {
+    pub fn stop(mut self) -> Result<Option<CacheDB<EmptyDBTyped<Infallible>>>, EnvironmentError> {
         let (outcome_sender, outcome_receiver) = bounded(1);
         self.socket
             .instruction_sender
@@ -661,7 +662,8 @@ impl Environment {
             warn!("Stopped environment with no label.");
         }
         drop(self.socket.instruction_sender);
-        self.handle
+        let result = self
+            .handle
             .take()
             .ok_or(EnvironmentError::Stop(
                 "failed to join the environment handle!".to_owned(),
@@ -670,7 +672,7 @@ impl Environment {
             .map_err(|_| {
                 EnvironmentError::Stop("Failed to join environment handle.".to_owned())
             })??;
-        Ok(())
+        Ok(result)
     }
 }
 

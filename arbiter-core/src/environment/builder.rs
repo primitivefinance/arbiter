@@ -146,6 +146,10 @@ impl EnvironmentBuilder {
             block_settings: self.block_settings,
             gas_settings: self.gas_settings,
         };
+        info!(
+            "Building environment with external db? {:?}",
+            self.db.is_some()
+        );
         let mut env = Environment::new(parameters, self.db);
         env.run();
         info!("Environment built and running!");
