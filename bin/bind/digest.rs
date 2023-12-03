@@ -49,9 +49,14 @@ impl Default for ArbiterConfig {
 
 impl From<config::Config> for ArbiterConfig {
     fn from(config: config::Config) -> Self {
+        let path = config
+            .get_string("bindings_path")
+            .map(|s| PathBuf::from(s))
+            .unwrap_or(PathBuf::from("src".to_string()));
+
         // Here you need to convert the `config::Config` into `ArbiterConfig`
         ArbiterConfig {
-            bindings_path: PathBuf::from("src").join("bindings"),
+            bindings_path: path.join("bindings"),
             submodules: config.get_bool("submodules").unwrap_or(false),
             ignore_interfaces: config.get_bool("ignore_interfaces").unwrap_or(true),
         }
