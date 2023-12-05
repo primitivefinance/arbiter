@@ -20,7 +20,7 @@ jobs:
           override: true
 
       - name: test
-        run: cargo test --all --all-features
+        run: cargo test --workspace --all-features
         
   codecov:
     name: codecov

@@ -1,4 +1,4 @@
-// TODO: Hit all the contract bindings.
+use chrono::format::parse;
 
 use super::*;
 
@@ -292,10 +292,10 @@ async fn price_simulation_oracle() {
 
     // Get the initial price of the liquid exchange.
     let initial_price = liquid_exchange.price().call().await.unwrap();
-    assert_eq!(initial_price, float_to_wad(LIQUID_EXCHANGE_PRICE));
+    assert_eq!(initial_price, parse_ether(LIQUID_EXCHANGE_PRICE).unwrap());
 
     for price in price_path {
-        let wad_price = float_to_wad(price);
+        let wad_price = parse_ether(price).unwrap();
         liquid_exchange
             .set_price(wad_price)
             .send()

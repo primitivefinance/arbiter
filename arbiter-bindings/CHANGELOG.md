@@ -6,6 +6,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.1](https://github.com/primitivefinance/arbiter/compare/arbiter-bindings-v0.1.0...arbiter-bindings-v0.1.1) - 2023-11-21
+
+### Other
+- release
+- solstat compiles
+- forge install: solstat
+- forge install: solmate
+- contracts
+- forge install: forge-std
+- forge init
+- arbiter-bindings
+
 ## [0.1.0](https://github.com/primitivefinance/arbiter/releases/tag/arbiter-bindings-v0.1.0) - 2023-11-18
 
 ### Other
