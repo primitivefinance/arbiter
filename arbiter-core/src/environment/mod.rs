@@ -41,8 +41,7 @@ use ethers::core::types::U64;
 use revm::{
     db::{CacheDB, EmptyDB},
     primitives::{
-        alloy_primitives, AccountInfo, EVMError, ExecutionResult, HashMap, InvalidTransaction, Log,
-        TxEnv, U256,
+        AccountInfo, EVMError, ExecutionResult, HashMap, InvalidTransaction, Log, TxEnv, U256,
     },
     EVM,
 };
@@ -319,14 +318,19 @@ impl Environment {
                             // Get the underlying database.
                             let db = evm.db.as_mut().unwrap();
 
+                            // Cast the ethers-rs cheatcode arguments into revm types.
+                            let recast_address =
+                                revm::primitives::Address::from(account.as_fixed_bytes());
+                            let recast_key = revm::primitives::B256::from(key.as_fixed_bytes());
+
                             // Get the account storage value at the key in the db.
-                            match db.accounts.get_mut(&account) {
+                            match db.accounts.get_mut(&recast_address) {
                                 Some(account) => {
                                     // Returns zero if the account is missing.
                                     let value: revm::primitives::U256 = match account
                                         .storage
-                                        .get::<alloy_primitives::U256>(
-                                        &key.into(),
+                                        .get::<revm::primitives::U256>(
+                                        &recast_key.into(),
                                     ) {
                                         Some(value) => *value,
                                         None => revm::primitives::U256::ZERO,
@@ -361,12 +365,22 @@ impl Environment {
                             // Get the underlying database
                             let db = evm.db.as_mut().unwrap();
 
+                            // Cast the ethers-rs types passed in the cheatcode arguments into revm
+                            // primitive types
+                            let recast_address =
+                                revm::primitives::Address::from(account.as_fixed_bytes());
+                            let recast_key = revm::primitives::B256::from(key.as_fixed_bytes());
+                            let recast_value = revm::primitives::B256::from(value.as_fixed_bytes());
+
                             // Mutate the db by inserting the new key-value pair into the account's
                             // storage and send the successful
                             // CheatcodeCompleted outcome.
-                            match db.accounts.get_mut(&account) {
+                            match db.accounts.get_mut(&recast_address) {
                                 Some(account) => {
-                                    account.storage.insert(key.into(), value.into());
+                                    account
+                                        .storage
+                                        .insert(recast_key.into(), recast_value.into());
+
                                     outcome_sender
                                         .send(Ok(Outcome::CheatcodeReturn(CheatcodesReturn::Store)))
                                         .map_err(|e| {
@@ -386,9 +400,11 @@ impl Environment {
                         }
                         Cheatcodes::Deal { address, amount } => {
                             let db = evm.db.as_mut().unwrap();
-                            match db.accounts.get_mut(&address) {
+                            let recast_address =
+                                revm::primitives::Address::from(address.as_fixed_bytes());
+                            match db.accounts.get_mut(&recast_address) {
                                 Some(account) => {
-                                    account.info.balance += amount;
+                                    account.info.balance += U256::from_limbs(amount.0);
                                     outcome_sender
                                         .send(Ok(Outcome::CheatcodeReturn(CheatcodesReturn::Deal)))
                                         .map_err(|e| {
@@ -408,8 +424,10 @@ impl Environment {
                         }
                         Cheatcodes::Access { address } => {
                             let db = evm.db.as_mut().unwrap();
+                            let recast_address =
+                                revm::primitives::Address::from(address.as_fixed_bytes());
 
-                            match db.accounts.get(&address) {
+                            match db.accounts.get(&recast_address) {
                                 Some(account) => {
                                     let account_state = match account.account_state {
                                         revm::db::AccountState::None => {

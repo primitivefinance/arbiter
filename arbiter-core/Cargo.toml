@@ -10,9 +10,6 @@ readme = "../README.md"
 
 # Dependencies for the release build
 [dependencies]
-# Local
-arbiter-bindings = { version = "0.1.0" }
-
 # Ethereum and EVM
 ethers.workspace = true
 revm.workspace = true
@@ -44,12 +41,12 @@ futures-util =  { version = "=0.3.29" }
 tracing = "0.1.40"
 
 # File types
-csv = { version = "1.3.0" }
 polars = { version = "0.35.4", features = ["parquet", "csv", "json"] }
 
 # Dependencies for the test build and development
 [dev-dependencies]
 arbiter-derive = { path = "../arbiter-derive" }
+arbiter-bindings = { path = "../arbiter-bindings" }
 hex = { version = "=0.4.3", default-features = false }
 anyhow =  { version = "=1.0.75" }
 test-log =  { version = "=0.2.13" }
