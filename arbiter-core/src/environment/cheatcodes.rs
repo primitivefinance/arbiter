@@ -3,7 +3,7 @@
 
 #![warn(missing_docs)]
 
-use revm_primitives::{alloy_primitives, AccountInfo, HashMap, U256};
+use revm_primitives::{AccountInfo, HashMap, U256};
 
 /// Cheatcodes are a direct way to access the underlying [`EVM`] environment and
 /// database.
@@ -12,37 +12,36 @@ pub enum Cheatcodes {
     /// A `Deal` is used to increase the balance of an account in the [`EVM`].
     Deal {
         /// The address of the account to increase the balance of.
-        address: alloy_primitives::Address,
+        address: ethers::types::Address,
 
         /// The amount to increase the balance of the account by.
-        amount: alloy_primitives::U256,
+        amount: ethers::types::U256,
     },
     /// Fetches the value of a storage slot of an account.
     Load {
         /// The address of the account to fetch the storage slot from.
-        account: alloy_primitives::Address,
+        account: ethers::types::Address,
         /// The storage slot to fetch.
-        key: alloy_primitives::B256,
-
+        key: ethers::types::H256,
         /// The block to fetch the storage slot from.
         /// todo: implement storage slots at blocks.
-        block: Option<alloy_primitives::BlockNumber>,
+        block: Option<ethers::types::BlockId>,
     },
     /// Overwrites a storage slot of an account.
     /// TODO: for more complicated data types, like structs, there's more work
     /// to do.
     Store {
         /// The address of the account to overwrite the storage slot of.
-        account: alloy_primitives::Address,
+        account: ethers::types::Address,
         /// The storage slot to overwrite.
-        key: alloy_primitives::B256,
+        key: ethers::types::H256,
         /// The value to overwrite the storage slot with.
-        value: alloy_primitives::B256,
+        value: ethers::types::H256,
     },
     /// Fetches the `DbAccount` account at the given address.
     Access {
         /// The address of the account to fetch.
-        address: alloy_primitives::Address,
+        address: ethers::types::Address,
     },
 }
 
@@ -69,7 +68,7 @@ pub enum CheatcodesReturn {
     /// A `Load` returns the value of a storage slot of an account.
     Load {
         /// The value of the storage slot.
-        value: alloy_primitives::U256,
+        value: revm::primitives::U256,
     },
     /// A `Store` returns nothing.
     Store,
