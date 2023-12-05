@@ -1,5 +1,4 @@
 #![allow(missing_docs)]
-#![cfg(feature = "contracts")]
 
 mod contracts;
 mod data_collection_integration;
@@ -22,6 +21,7 @@ use ethers::{
     },
     providers::ProviderError,
     types::{Address, Filter, ValueOrArray, U256},
+    utils::parse_ether,
 };
 use futures::StreamExt;
 
@@ -122,7 +122,7 @@ async fn deploy_liquid_exchange(
 )> {
     let arbx = deploy_arbx(client.clone()).await?;
     let arby = deploy_arby(client.clone()).await?;
-    let price = float_to_wad(LIQUID_EXCHANGE_PRICE);
+    let price = parse_ether(LIQUID_EXCHANGE_PRICE).unwrap();
     let liquid_exchange = LiquidExchange::deploy(client, (arbx.address(), arby.address(), price))?
         .send()
         .await?;
