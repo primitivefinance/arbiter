@@ -1,4 +1,5 @@
-// NOTES: Each agent essentially has its own engine. We can collect all of the engines together into a world.
+// NOTES: Each agent essentially has its own engine. We can collect all of the
+// engines together into a world.
 
 // AGENT SHOULD BE A STRUCT WITH A STRATEGY
 
@@ -6,12 +7,11 @@
 
 // Can probably use the MempoolExecutor from artemis
 
-use crossbeam_channel::{Receiver, Sender};
-
 use artemis_core::{
     engine::Engine,
     types::{Collector, Executor},
 };
+use crossbeam_channel::{Receiver, Sender};
 
 struct Instruction(String);
 
@@ -46,8 +46,6 @@ where
 
 #[cfg(test)]
 mod tests {
-    use super::*;
-
     use arbiter_bindings::bindings::arbiter_token::ArbiterToken;
     use arbiter_core::{environment::builder::EnvironmentBuilder, middleware::RevmMiddleware};
     use artemis_core::{
@@ -55,6 +53,8 @@ mod tests {
         executors::mempool_executor::{MempoolExecutor, SubmitTxToMempool},
     };
     use ethers::types::U256;
+
+    use super::*;
 
     #[tokio::test]
     async fn test_agent() {
@@ -83,6 +83,7 @@ mod tests {
             gas_bid_info: None,
         };
 
-        // TODO: We should write a test that runs the agent's engine in some meaningful way.
+        // TODO: We should write a test that runs the agent's engine in some
+        // meaningful way.
     }
 }
