@@ -1,29 +1,22 @@
 // NOTES: Each agent essentially has its own engine. We can collect all of the
 // engines together into a world.
 
-// AGENT SHOULD BE A STRUCT WITH A STRATEGY
-
 // CAN GIVE AGENT A CALCULATOR EVM TOO!
 
-// Can probably use the MempoolExecutor from artemis
-
-use std::collections::HashMap;
+// TODO: We may need traits for Events and Actions (e.g., "Event" and "Action"
+// which have a method like "parse()" and "produce()" or something.). TODO: Need
+// an init signal or something.
 
 use artemis_core::{
     engine::Engine,
     types::{Collector, Executor},
 };
-use crossbeam_channel::{Receiver, Sender};
-
-struct Instruction(String);
 
 pub struct Agent<E, A> {
-    id: String,
-    engine: Engine<E, A>,
+    id: String, // TODO: We might not really need an ID here specifically. Hard to say right now.
+    engine: Engine<E, A>, // Note, agent shouldn't need a client as the engine will handle this.
     dependencies: Vec<String>,
     dependents: Vec<String>,
-    receivers: HashMap<String, Receiver<Instruction>>,
-    senders: HashMap<String, Sender<Instruction>>,
 }
 
 impl<E, A> Agent<E, A>
@@ -38,8 +31,6 @@ where
             engine: Engine::new(),
             dependencies: vec![],
             dependents: vec![],
-            receivers: HashMap::new(),
-            senders: HashMap::new(),
         }
     }
 
@@ -52,8 +43,11 @@ where
     }
 
     pub fn add_dependency(&mut self, dependency: &str) {
-        // TODO: This isn't giving a receiver or anyhthing.
         self.dependencies.push(dependency.to_owned());
+    }
+
+    pub fn add_dependent(&mut self, dependent: &str) {
+        self.dependents.push(dependent.to_owned());
     }
 }
 

@@ -144,10 +144,10 @@ impl RevmMiddleware {
     /// Use a seed if you want to have a constant address across simulations as
     /// well as a label for a client. This can be useful for debugging.
     pub fn new(
-        environment: impl Into<Connection>,
+        environment: &Environment,
         seed_and_label: Option<&str>,
     ) -> Result<Arc<Self>, RevmMiddlewareError> {
-        let connection = environment.into();
+        let connection = Connection::from(environment);
         let wallet = if let Some(seed) = seed_and_label {
             let mut hasher = Sha256::new();
             hasher.update(seed);
@@ -172,10 +172,11 @@ impl RevmMiddleware {
         connection.outcome_receiver.recv()??;
 
         let provider = Provider::new(connection);
-        // info!(
-        //     "Created new `RevmMiddleware` instance attached to environment labeled: {:?}",
-        //     environment.parameters.label
-        // );
+        info!(
+            "Created new `RevmMiddleware` instance attached to environment labeled:
+        {:?}",
+            environment.parameters.label
+        );
         Ok(Arc::new(Self {
             wallet: EOA::Wallet(wallet),
             provider,

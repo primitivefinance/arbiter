@@ -21,9 +21,8 @@ serde.workspace = true
 serde_json.workspace = true
 
 # Concurrency/async
-# tokio = { version = "1.32.0", features = ["macros", "full"] }
 tokio.workspace = true
-async-trait =  { version = "0.1.74" }
+async-trait.workspace = true
 crossbeam-channel =  { version = "=0.5.8" }
 futures-timer = { version = "=3.0.2" }
 futures-locks = { version = "=0.7.1" }
