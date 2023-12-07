@@ -41,6 +41,20 @@ pub struct Connection {
     pub(crate) filter_receivers: Arc<Mutex<HashMap<ethers::types::U256, FilterReceiver>>>,
 }
 
+impl From<&Environment> for Connection {
+    fn from(environment: &Environment) -> Self {
+        let instruction_sender = &Arc::clone(&environment.socket.instruction_sender);
+        let (outcome_sender, outcome_receiver) = crossbeam_channel::unbounded();
+        Self {
+            instruction_sender: Arc::downgrade(instruction_sender),
+            outcome_sender,
+            outcome_receiver,
+            event_broadcaster: Arc::clone(&environment.socket.event_broadcaster),
+            filter_receivers: Arc::new(Mutex::new(HashMap::new())),
+        }
+    }
+}
+
 #[async_trait::async_trait]
 impl JsonRpcClient for Connection {
     type Error = ProviderError;

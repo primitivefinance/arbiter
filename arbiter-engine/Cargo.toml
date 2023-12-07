@@ -14,6 +14,7 @@ arbiter-core.workspace = true
 arbiter-bindings = { path = "../arbiter-bindings" }
 artemis-core = { git = "https://github.com/paradigmxyz/artemis.git"}
 crossbeam-channel.workspace = true
+futures-util.workspace = true
 
 [dev-dependencies]
 tokio.workspace = true

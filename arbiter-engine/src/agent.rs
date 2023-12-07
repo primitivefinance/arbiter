@@ -7,6 +7,8 @@
 
 // Can probably use the MempoolExecutor from artemis
 
+use std::collections::HashMap;
+
 use artemis_core::{
     engine::Engine,
     types::{Collector, Executor},
@@ -16,9 +18,12 @@ use crossbeam_channel::{Receiver, Sender};
 struct Instruction(String);
 
 pub struct Agent<E, A> {
+    id: String,
     engine: Engine<E, A>,
-    _dependencies: Vec<Receiver<Instruction>>,
-    _dependents: Vec<Sender<Instruction>>,
+    dependencies: Vec<String>,
+    dependents: Vec<String>,
+    receivers: HashMap<String, Receiver<Instruction>>,
+    senders: HashMap<String, Sender<Instruction>>,
 }
 
 impl<E, A> Agent<E, A>
@@ -27,11 +32,14 @@ where
     A: Send + Clone + 'static + std::fmt::Debug,
 {
     #[allow(clippy::new_without_default)]
-    pub fn new() -> Self {
+    pub fn new(id: &str) -> Self {
         Self {
+            id: id.to_owned(),
             engine: Engine::new(),
-            _dependencies: vec![],
-            _dependents: vec![],
+            dependencies: vec![],
+            dependents: vec![],
+            receivers: HashMap::new(),
+            senders: HashMap::new(),
         }
     }
 
@@ -41,6 +49,11 @@ where
 
     pub fn add_executor(&mut self, executor: impl Executor<A> + 'static) {
         self.engine.add_executor(Box::new(executor));
+    }
+
+    pub fn add_dependency(&mut self, dependency: &str) {
+        // TODO: This isn't giving a receiver or anyhthing.
+        self.dependencies.push(dependency.to_owned());
     }
 }
 
@@ -71,7 +84,7 @@ mod tests {
         .unwrap();
 
         // Build the agent
-        let mut agent = Agent::new();
+        let mut agent = Agent::new("test");
         let collector = LogCollector::new(client.clone(), arb.transfer_filter().filter);
         agent.add_collector(collector);
         let executor = MempoolExecutor::new(client.clone());

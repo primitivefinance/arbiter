@@ -298,6 +298,7 @@ dependencies = [
  "artemis-core",
  "crossbeam-channel",
  "ethers",
+ "futures-util",
  "tokio",
 ]
 

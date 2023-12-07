@@ -37,7 +37,7 @@ statrs = { version = "=0.16.0" }
 thiserror.workspace = true
 
 # Logging
-futures-util =  { version = "=0.3.29" }
+futures-util.workspace = true
 tracing = "0.1.40"
 
 # File types
