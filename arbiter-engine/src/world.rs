@@ -1,29 +1,54 @@
-// TODO: Probalby should move labels to world instead of environment.
+#![warn(missing_docs)]
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+// TODO: Notes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+//  Probably should move labels to world instead of on the environment.
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-use crate::{agent::Agent, messager::Message};
-
-// In order to add dependencies and what not, we need all the agents to be in the world or something probably.
-use super::*;
+//! The world module contains the core world abstraction for the Arbiter Engine.
 
 use crossbeam_channel::{Receiver, Sender};
 use ethers::providers::{Provider, PubsubClient};
 
+use super::*;
+use crate::{agent::Agent, messager::Message};
+
+/// A world is a collection of agents that use the same type of provider, e.g.,
+/// operate on the same blockchain or same `Environment`.
 pub struct World<P, E, A> {
+    /// The identifier of the world.
     pub id: String,
-    pub agents: Vec<Agent<E, A>>,
-    pub provider: Provider<P>,
+
+    /// The agents in the world.
+    pub agents: Vec<Agent<E, A>>, /* TODO: This should be a map of agents. Also, we should not
+                                   * carry up these generics. */
+
+    /// The provider for the world.
+    pub provider: Provider<P>, /* TODO: The world itself may not need to carry around the
+                                * provider, but the agents should all use the same type of
+                                * provider. */
+
+    /// The interconnects between different worlds.
+    /// These can be used, for instance, to pass messages between agents running
+    /// on different blockchain networks (e.g., Ethereum and Optimism).
     pub interconnects: HashMap<String, Interconnect>,
 }
 
+/// An interconnect is a connection between two worlds.
 pub struct Interconnect {
-    sender: Sender<Message>,
-    receiver: Receiver<Message>,
+    /// The message sender.
+    _sender: Sender<Message>,
+
+    /// The message receiver.
+    _receiver: Receiver<Message>,
 }
 
 impl<P, E, A> World<P, E, A>
 where
     P: PubsubClient,
 {
+    // TODO: May not need to take in the provider here, but rather get it from the
+    // agents.
+    /// Creates a new world with the given identifier and provider.
     pub fn new(id: &str, provider: Provider<P>) -> Self {
         Self {
             id: id.to_owned(),
@@ -33,6 +58,7 @@ where
         }
     }
 
+    /// Adds an agent to the world.
     pub fn add_agent(&mut self, agent: Agent<E, A>) {
         self.agents.push(agent);
     }
@@ -40,24 +66,22 @@ where
 
 #[cfg(test)]
 mod tests {
-    use crate::messager::Messager;
+    use std::{str::FromStr, sync::Arc};
 
-    use super::*;
+    use arbiter_bindings::bindings::weth::WETH;
     use arbiter_core::{
         environment::builder::EnvironmentBuilder,
         middleware::{connection::Connection, RevmMiddleware},
     };
-
     use artemis_core::executors::mempool_executor::MempoolExecutor;
     use ethers::{
         providers::{Middleware, Provider, Ws},
         types::Address,
     };
-    use std::str::FromStr;
-
-    use arbiter_bindings::bindings::weth::WETH;
     use futures_util::StreamExt;
-    use std::sync::Arc;
+
+    use super::*;
+    use crate::messager::Messager;
 
     #[ignore]
     #[test]

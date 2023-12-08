@@ -1,25 +1,33 @@
-// TODO: Create a BlockAdmin and a TokenAdmin. Create a Orchestrator that sends
-// instructions to both BlockAdmin and TokenAdmin
+#![warn(missing_docs)]
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+// TODO: Notes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+// Create a BlockAdmin and a TokenAdmin.
+// Potentially create an `Orchestrator`` that sends instructions to both
+// BlockAdmin and TokenAdmin.
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-use std::collections::HashMap;
-use std::sync::Arc;
+//! The examples module contains example strategies.
+
+use std::{collections::HashMap, sync::Arc};
 
 use arbiter_bindings::bindings::arbiter_token::ArbiterToken;
-use arbiter_core::{environment::cheatcodes::Cheatcodes, middleware::RevmMiddleware};
+use arbiter_core::middleware::RevmMiddleware;
 use artemis_core::{
     executors::mempool_executor::SubmitTxToMempool,
-    types::{Collector, Executor, Strategy},
+    types::{Executor, Strategy},
 };
 use ethers::types::{Address, U256};
 
+use super::*;
 use crate::messager::Message;
 
-use super::*;
-
+/// A block executor that updates the block number and timestamp in the
+/// database.
 pub struct BlockExecutor {
     client: Arc<RevmMiddleware>,
 }
 
+/// Used as an action to set new block number and timestamp.
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct NewBlock {
     timestamp: u64,
@@ -37,8 +45,12 @@ impl Executor<NewBlock> for BlockExecutor {
     }
 }
 
+// TODO: This may not be necessary in this way.
+/// The block admin is responsible for sending new block events to the block
+/// executor.
 pub struct BlockAdmin {
-    pub id: String,
+    /// The identifier of the block admin.
+    pub id: String, // TODO: The strategies should not really need an ID.
 }
 
 #[async_trait::async_trait]
@@ -57,15 +69,25 @@ impl Strategy<Message, NewBlock> for BlockAdmin {
     }
 }
 
+/// The token admin is responsible for handling token minting requests.
 pub struct TokenAdmin {
-    pub id: String,
+    /// The identifier of the token admin.
+    pub id: String, // TODO: The strategies should not really need an ID.
+
+    /// The tokens that the token admin has control over.
     pub tokens: HashMap<String, ArbiterToken<RevmMiddleware>>,
 }
 
+/// Used as an action to mint tokens.
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct TokenRequest {
+    /// The token to mint.
     pub token: String,
+
+    /// The address to mint to.
     pub mint_to: Address,
+
+    /// The amount to mint.
     pub mint_amount: u64,
 }
 

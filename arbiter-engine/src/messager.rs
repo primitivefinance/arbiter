@@ -1,20 +1,33 @@
+#![warn(missing_docs)]
+
+//! The messager module contains the core messager layer for the Arbiter Engine.
+
 use artemis_core::types::{Collector, CollectorStream, Executor};
 use tokio::sync::broadcast::Sender;
 
 use super::*;
 
+/// A message that can be sent between agents.
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct Message {
+    /// The sender of the message.
     pub from: String,
+
+    /// The recipient of the message.
     pub to: String,
+
+    /// The data of the message.
+    /// This can be a struct serialized into JSON.
     pub data: String,
 }
 
+/// A messager that can be used to send messages between agents.
 pub struct Messager {
     broadcaster: Sender<Message>,
 }
 
 impl Messager {
+    /// Creates a new messager with the given capacity.
     pub fn new(capacity: usize) -> Self {
         Self {
             broadcaster: Sender::new(capacity),
