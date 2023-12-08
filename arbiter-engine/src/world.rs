@@ -66,9 +66,14 @@ where
     }
 
     /// Runs the agents in the world.
-    pub fn run(&mut self) {
+    pub async fn run(&mut self) {
         for agent in self.agents.iter_mut() {
-            agent.engine.take().unwrap().run();
+            let mut joinset = agent.engine.take().unwrap().run().await.unwrap();
+            while let Some(next) = joinset.join_next().await {
+                if let Err(e) = next {
+                    panic!("Error: {:?}", e);
+                }
+            }
         }
     }
 }
@@ -88,6 +93,7 @@ mod tests {
         types::Address,
     };
     use futures_util::StreamExt;
+    use tracing_test::traced_test;
 
     use super::*;
     use crate::messager::Messager;
@@ -102,7 +108,7 @@ mod tests {
 
         let client = RevmMiddleware::new(&environment, Some("testname")).unwrap();
         let mut agent = Agent::new("agent1");
-        let messager = Messager::default();
+        let messager = Messager::new();
         agent.add_collector(messager);
         agent.add_executor(MempoolExecutor::new(client.clone()));
         world.add_agent(agent);

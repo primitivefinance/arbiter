@@ -12,7 +12,7 @@
 
 use artemis_core::{
     engine::Engine,
-    types::{Collector, Executor},
+    types::{Collector, Executor, Strategy},
 };
 
 /// An agent is an entity capable of processing events and producing actions.
@@ -55,7 +55,7 @@ where
     pub fn add_collector(&mut self, collector: impl Collector<E> + 'static) {
         self.engine
             .as_mut()
-            .unwrap()
+            .expect("Engine has already been taken by the `World::run()` method.")
             .add_collector(Box::new(collector));
     }
 
@@ -63,8 +63,16 @@ where
     pub fn add_executor(&mut self, executor: impl Executor<A> + 'static) {
         self.engine
             .as_mut()
-            .unwrap()
+            .expect("Engine has already been taken by the `World::run()` method.")
             .add_executor(Box::new(executor));
+    }
+
+    /// Adds a strategy to the agent's engine.
+    pub fn add_strategy(&mut self, strategy: impl Strategy<E, A> + 'static) {
+        self.engine
+            .as_mut()
+            .expect("Engine has already been taken by the `World::run()` method.")
+            .add_strategy(Box::new(strategy));
     }
 
     /// Adds a dependency to the agent.

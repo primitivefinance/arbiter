@@ -3,7 +3,7 @@
 //! The messager module contains the core messager layer for the Arbiter Engine.
 
 use artemis_core::types::{Collector, CollectorStream, Executor};
-use tokio::sync::broadcast::Sender;
+use flume::{unbounded, Receiver, Sender};
 
 use super::*;
 
@@ -22,42 +22,37 @@ pub struct Message {
 }
 
 /// A messager that can be used to send messages between agents.
+#[derive(Clone, Debug)]
 pub struct Messager {
-    broadcaster: Sender<Message>,
+    sender: Sender<Message>,
+    receiver: Receiver<Message>,
 }
 
 impl Messager {
     /// Creates a new messager with the given capacity.
-    pub fn new(capacity: usize) -> Self {
-        Self {
-            broadcaster: Sender::new(capacity),
-        }
-    }
-}
-
-impl Default for Messager {
-    fn default() -> Self {
-        Self::new(32)
+    #[allow(clippy::new_without_default)]
+    pub fn new() -> Self {
+        let (sender, receiver) = unbounded();
+        Self { sender, receiver }
     }
 }
 
 #[async_trait::async_trait]
 impl Collector<Message> for Messager {
+    #[tracing::instrument(skip(self), level = "debug", target = "messager")]
     async fn get_event_stream(&self) -> Result<CollectorStream<'_, Message>> {
-        let mut subscription = self.broadcaster.subscribe();
-        let stream = async_stream::stream! {
-            while let Ok(message) = subscription.recv().await {
-                yield message;
-            }
-        };
+        debug!("Getting the event stream for the messager.");
+        let stream = self.receiver.clone().into_stream();
         Ok(Box::pin(stream))
     }
 }
 
 #[async_trait::async_trait]
 impl Executor<Message> for Messager {
+    #[tracing::instrument(skip(self), level = "trace", target = "messager")]
     async fn execute(&self, message: Message) -> Result<()> {
-        let _buf_len = self.broadcaster.send(message)?;
+        trace!("Broadcasting message.");
+        self.sender.send(message)?;
         Ok(())
     }
 }
