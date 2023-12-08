@@ -147,8 +147,7 @@ impl RevmMiddleware {
         environment: &Environment,
         seed_and_label: Option<&str>,
     ) -> Result<Arc<Self>, RevmMiddlewareError> {
-        let instruction_sender = &Arc::clone(&environment.socket.instruction_sender);
-        let (outcome_sender, outcome_receiver) = crossbeam_channel::unbounded();
+        let connection = Connection::from(environment);
         let wallet = if let Some(seed) = seed_and_label {
             let mut hasher = Sha256::new();
             hasher.update(seed);
@@ -159,24 +158,23 @@ impl RevmMiddleware {
             let mut rng = rand::thread_rng();
             Wallet::new(&mut rng)
         };
-        instruction_sender
+        connection
+            .instruction_sender
+            .upgrade()
+            .ok_or(errors::RevmMiddlewareError::Send(
+                "Environment is offline!".to_string(),
+            ))?
             .send(Instruction::AddAccount {
                 address: wallet.address(),
-                outcome_sender: outcome_sender.clone(),
+                outcome_sender: connection.outcome_sender.clone(),
             })
             .map_err(|e| RevmMiddlewareError::Send(e.to_string()))?;
-        outcome_receiver.recv()??;
+        connection.outcome_receiver.recv()??;
 
-        let connection = Connection {
-            instruction_sender: Arc::downgrade(instruction_sender),
-            outcome_sender,
-            outcome_receiver: outcome_receiver.clone(),
-            event_broadcaster: Arc::clone(&environment.socket.event_broadcaster),
-            filter_receivers: Arc::new(Mutex::new(HashMap::new())),
-        };
         let provider = Provider::new(connection);
         info!(
-            "Created new `RevmMiddleware` instance attached to environment labeled: {:?}",
+            "Created new `RevmMiddleware` instance attached to environment labeled:
+        {:?}",
             environment.parameters.label
         );
         Ok(Arc::new(Self {

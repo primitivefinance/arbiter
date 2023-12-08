@@ -293,11 +293,17 @@ dependencies = [
 name = "arbiter-engine"
 version = "0.1.0"
 dependencies = [
+ "anyhow",
  "arbiter-bindings",
  "arbiter-core",
  "artemis-core",
+ "async-stream",
+ "async-trait",
  "crossbeam-channel",
  "ethers",
+ "futures-util",
+ "serde",
+ "serde_json",
  "tokio",
 ]
 
