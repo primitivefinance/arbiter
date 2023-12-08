@@ -45,6 +45,8 @@ pub struct Interconnect {
 impl<P, E, A> World<P, E, A>
 where
     P: PubsubClient,
+    E: Send + Clone + 'static + std::fmt::Debug,
+    A: Send + Clone + 'static + std::fmt::Debug,
 {
     // TODO: May not need to take in the provider here, but rather get it from the
     // agents.
@@ -61,6 +63,13 @@ where
     /// Adds an agent to the world.
     pub fn add_agent(&mut self, agent: Agent<E, A>) {
         self.agents.push(agent);
+    }
+
+    /// Runs the agents in the world.
+    pub fn run(&mut self) {
+        for agent in self.agents.iter_mut() {
+            agent.engine.take().unwrap().run();
+        }
     }
 }
 
