@@ -26,11 +26,11 @@ use ethers::{
             ecdsa::SigningKey,
             sha2::{Digest, Sha256},
         },
-        JsonRpcClient, ProviderError,
+        ProviderError,
     },
     providers::{
-        FilterKind, FilterWatcher, Middleware, MiddlewareError, PendingTransaction, Provider,
-        PubsubClient, SubscriptionStream,
+        FilterKind, FilterWatcher, JsonRpcClient, Middleware, MiddlewareError, PendingTransaction,
+        Provider, PubsubClient, SubscriptionStream,
     },
     signers::{Signer, Wallet},
     types::{
@@ -39,14 +39,12 @@ use ethers::{
     },
 };
 use futures_timer::Delay;
+use futures_util::Stream;
 use rand::{rngs::StdRng, SeedableRng};
 use revm::primitives::{CreateScheme, Output, TransactTo, TxEnv, U256};
 use serde::{de::DeserializeOwned, Serialize};
-// use revm::primitives::{ExecutionResult, Output};
-// use super::cast::revm_logs_to_ethers_logs;
-// use super::errors::RevmMiddlewareError;
 
-// use async_trait::async_trait;
+use serde_json::value::RawValue;
 use thiserror::Error;
 
 use super::*;
@@ -97,7 +95,7 @@ pub mod nonce_middleware;
 /// Use a seed like `Some("test_label")` for maintaining a
 /// consistent address across simulations and client labeling. Seeding is be
 /// useful for debugging and post-processing.
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct RevmMiddleware {
     provider: Provider<Connection>,
     wallet: EOA,
@@ -106,9 +104,37 @@ pub struct RevmMiddleware {
     pub label: Option<String>,
 }
 
+#[async_trait::async_trait]
+impl JsonRpcClient for RevmMiddleware {
+    type Error = ProviderError;
+    async fn request<T: Serialize + Send + Sync + Debug, R: DeserializeOwned + Send>(
+        &self,
+        method: &str,
+        params: T,
+    ) -> Result<R, ProviderError> {
+        self.provider().as_ref().request(method, params).await
+    }
+}
+
+#[async_trait::async_trait]
+impl PubsubClient for RevmMiddleware {
+    type NotificationStream = Pin<Box<dyn Stream<Item = Box<RawValue>> + Send>>;
+
+    fn subscribe<T: Into<ethers::types::U256>>(
+        &self,
+        id: T,
+    ) -> Result<Self::NotificationStream, Self::Error> {
+        self.provider().as_ref().subscribe(id)
+    }
+
+    fn unsubscribe<T: Into<ethers::types::U256>>(&self, id: T) -> Result<(), Self::Error> {
+        self.provider.as_ref().unsubscribe(id)
+    }
+}
+
 /// A wrapper enum for the two types of accounts that can be used with the
 /// middleware.
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum EOA {
     /// The [`Forked`] variant is used for the forked EOA,
     /// allowing us to treat them as mock accounts that we can still authorize
