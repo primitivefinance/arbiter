@@ -97,7 +97,7 @@ pub mod nonce_middleware;
 /// Use a seed like `Some("test_label")` for maintaining a
 /// consistent address across simulations and client labeling. Seeding is be
 /// useful for debugging and post-processing.
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct RevmMiddleware {
     provider: Provider<Connection>,
     wallet: EOA,
@@ -108,7 +108,7 @@ pub struct RevmMiddleware {
 
 /// A wrapper enum for the two types of accounts that can be used with the
 /// middleware.
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum EOA {
     /// The [`Forked`] variant is used for the forked EOA,
     /// allowing us to treat them as mock accounts that we can still authorize

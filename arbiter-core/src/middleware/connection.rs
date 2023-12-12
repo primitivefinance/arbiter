@@ -16,7 +16,7 @@ use crate::environment::{EventBroadcaster, InstructionSender, OutcomeReceiver, O
 
 /// Represents a connection to the EVM contained in the corresponding
 /// [`Environment`].
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Connection {
     /// Used to send calls and transactions to the [`Environment`] to be
     /// executed by `revm`.
