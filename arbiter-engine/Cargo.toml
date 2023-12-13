@@ -12,7 +12,7 @@ readme = "../README.md"
 ethers.workspace = true
 arbiter-core.workspace = true
 arbiter-bindings = { path = "../arbiter-bindings" }
-artemis-core = { path = "../../../artemis/crates/artemis-core" } # TODO: Change this later
+artemis-core = { git = "https://github.com/paradigmxyz/artemis.git" }
 crossbeam-channel.workspace = true
 futures-util.workspace = true
 async-trait.workspace = true
