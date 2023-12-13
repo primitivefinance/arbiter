@@ -25,7 +25,8 @@ pub struct Agent<E, A> {
     pub id: String,
 
     /// The engine that this agent uses to process events and produce actions.
-    pub(crate) engine: Option<Engine<E, A>>, /* Note, agent shouldn't NEED a client as a field as the engine can
+    pub(crate) engine: Option<Engine<E, A>>, /* Note, agent shouldn't NEED a client as a field
+                                              * as the engine can
                                               * handle this. */
 
     /// Agents that this agent depends on.

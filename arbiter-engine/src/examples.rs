@@ -120,7 +120,6 @@ mod tests {
     use arbiter_core::{
         environment::builder::EnvironmentBuilder, middleware::connection::Connection,
     };
-
     use ethers::providers::Provider;
 
     use super::*;
