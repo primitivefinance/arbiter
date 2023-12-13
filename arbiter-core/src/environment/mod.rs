@@ -32,7 +32,7 @@
 use std::{
     convert::Infallible,
     fmt::Debug,
-    sync::{Arc, Mutex},
+    sync::{Arc, Mutex, RwLock},
     thread::{self, JoinHandle},
 };
 
@@ -41,10 +41,11 @@ use ethers::core::types::U64;
 use revm::{
     db::{CacheDB, EmptyDB},
     primitives::{
-        AccountInfo, EVMError, ExecutionResult, HashMap, InvalidTransaction, Log, TxEnv, U256,
+        AccountInfo, EVMError, ExecutionResult, HashMap, InvalidTransaction, Log, TxEnv, B256, U256,
     },
-    EVM,
+    Database, DatabaseCommit, EVM,
 };
+use revm_primitives::{db::DatabaseRef, Bytecode};
 // use hashbrown::{hash_map, HashMap as HashMapBrown};
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
@@ -130,7 +131,7 @@ pub struct Environment {
 
     /// The [`EVM`] that is used as an execution environment and database for
     /// calls and transactions.
-    db: Option<CacheDB<EmptyDB>>,
+    pub(crate) db: Option<ArbiterDB>,
 
     /// This gives a means of letting the "outside world" connect to the
     /// [`Environment`] so that users (or agents) may send and receive data from
@@ -141,6 +142,72 @@ pub struct Environment {
     /// Used for assuring that the environment is stopped properly or for
     /// performing any blocking action the end user needs.
     pub(crate) handle: Option<JoinHandle<Result<(), EnvironmentError>>>,
+}
+
+#[derive(Clone, Debug)]
+pub struct ArbiterDB(Arc<RwLock<CacheDB<EmptyDB>>>);
+
+impl Database for ArbiterDB {
+    type Error = Infallible; // TODO: Not sure we want this, but it works for now.
+
+    fn basic(
+        &mut self,
+        address: revm::primitives::Address,
+    ) -> Result<Option<AccountInfo>, Self::Error> {
+        self.0.read().unwrap().basic(address)
+    }
+
+    fn code_by_hash(&mut self, code_hash: B256) -> Result<Bytecode, Self::Error> {
+        self.0.read().unwrap().code_by_hash(code_hash)
+    }
+
+    fn storage(
+        &mut self,
+        address: revm::primitives::Address,
+        index: U256,
+    ) -> Result<U256, Self::Error> {
+        self.0.read().unwrap().storage(address, index)
+    }
+
+    fn block_hash(&mut self, number: U256) -> Result<B256, Self::Error> {
+        self.0.read().unwrap().block_hash(number)
+    }
+}
+
+impl DatabaseRef for ArbiterDB {
+    type Error = Infallible; // TODO: Not sure we want this, but it works for now.
+
+    fn basic(
+        &self,
+        address: revm::primitives::Address,
+    ) -> Result<Option<AccountInfo>, Self::Error> {
+        self.0.read().unwrap().basic(address)
+    }
+
+    fn code_by_hash(&self, code_hash: B256) -> Result<Bytecode, Self::Error> {
+        self.0.read().unwrap().code_by_hash(code_hash)
+    }
+
+    fn storage(
+        &self,
+        address: revm::primitives::Address,
+        index: U256,
+    ) -> Result<U256, Self::Error> {
+        self.0.read().unwrap().storage(address, index)
+    }
+
+    fn block_hash(&self, number: U256) -> Result<B256, Self::Error> {
+        self.0.read().unwrap().block_hash(number)
+    }
+}
+
+impl DatabaseCommit for ArbiterDB {
+    fn commit(
+        &mut self,
+        changes: hashbrown::HashMap<revm::primitives::Address, revm::primitives::Account>,
+    ) {
+        self.0.write().unwrap().commit(changes)
+    }
 }
 
 /// Allow the end user to be able to access a debug printout for the
@@ -170,6 +237,7 @@ impl Environment {
             instruction_receiver,
             event_broadcaster: Arc::new(Mutex::new(EventBroadcaster::new())),
         };
+        let db = db.map(|db| ArbiterDB(Arc::new(RwLock::new(db))));
 
         Self {
             parameters: environment_parameters,
@@ -187,9 +255,11 @@ impl Environment {
         let mut evm = EVM::new();
 
         if self.db.is_some() {
-            evm.database(self.db.take().unwrap());
+            evm.database(self.db.as_ref().unwrap().clone());
         } else {
-            evm.database(CacheDB::new(EmptyDB::new()));
+            evm.database(ArbiterDB(Arc::new(RwLock::new(CacheDB::new(
+                EmptyDB::new(),
+            )))));
         };
 
         // Choose extra large code size and gas limit
@@ -265,7 +335,13 @@ impl Environment {
                             account_state: revm::db::AccountState::None,
                             storage: HashMap::new(),
                         };
-                        match db.accounts.insert(recast_address, account) {
+                        match db
+                            .0
+                            .write()
+                            .unwrap()
+                            .accounts
+                            .insert(recast_address, account)
+                        {
                             None => {
                                 outcome_sender
                                     .send(Ok(Outcome::AddAccountCompleted))
@@ -324,7 +400,7 @@ impl Environment {
                             let recast_key = revm::primitives::B256::from(key.as_fixed_bytes());
 
                             // Get the account storage value at the key in the db.
-                            match db.accounts.get_mut(&recast_address) {
+                            match db.0.write().unwrap().accounts.get_mut(&recast_address) {
                                 Some(account) => {
                                     // Returns zero if the account is missing.
                                     let value: revm::primitives::U256 = match account
@@ -375,7 +451,7 @@ impl Environment {
                             // Mutate the db by inserting the new key-value pair into the account's
                             // storage and send the successful
                             // CheatcodeCompleted outcome.
-                            match db.accounts.get_mut(&recast_address) {
+                            match db.0.write().unwrap().accounts.get_mut(&recast_address) {
                                 Some(account) => {
                                     account
                                         .storage
@@ -402,7 +478,7 @@ impl Environment {
                             let db = evm.db.as_mut().unwrap();
                             let recast_address =
                                 revm::primitives::Address::from(address.as_fixed_bytes());
-                            match db.accounts.get_mut(&recast_address) {
+                            match db.0.write().unwrap().accounts.get_mut(&recast_address) {
                                 Some(account) => {
                                     account.info.balance += U256::from_limbs(amount.0);
                                     outcome_sender
@@ -427,7 +503,7 @@ impl Environment {
                             let recast_address =
                                 revm::primitives::Address::from(address.as_fixed_bytes());
 
-                            match db.accounts.get(&recast_address) {
+                            match db.0.write().unwrap().accounts.get(&recast_address) {
                                 Some(account) => {
                                     let account_state = match account.account_state {
                                         revm::db::AccountState::None => {
@@ -476,7 +552,7 @@ impl Environment {
                         // Set the tx_env and prepare to process it
                         evm.env.tx = tx_env;
 
-                        let result = evm.transact()?.result;
+                        let result = evm.transact_ref()?.result;
                         outcome_sender
                             .send(Ok(Outcome::CallCompleted(result)))
                             .map_err(|e| EnvironmentError::Communication(e.to_string()))?;
@@ -602,9 +678,14 @@ impl Environment {
                             EnvironmentData::Balance(address) => {
                                 // This unwrap should never fail.
                                 let db = evm.db().unwrap();
-                                match db.accounts.get::<revm::primitives::Address>(
-                                    &address.as_fixed_bytes().into(),
-                                ) {
+                                match db
+                                    .0
+                                    .write()
+                                    .unwrap()
+                                    .accounts
+                                    .get::<revm::primitives::Address>(
+                                        &address.as_fixed_bytes().into(),
+                                    ) {
                                     Some(account) => {
                                         Ok(Outcome::QueryReturn(account.info.balance.to_string()))
                                     }
@@ -616,9 +697,14 @@ impl Environment {
 
                             EnvironmentData::TransactionCount(address) => {
                                 let db = evm.db().unwrap();
-                                match db.accounts.get::<revm::primitives::Address>(
-                                    &address.as_fixed_bytes().into(),
-                                ) {
+                                match db
+                                    .0
+                                    .write()
+                                    .unwrap()
+                                    .accounts
+                                    .get::<revm::primitives::Address>(
+                                        &address.as_fixed_bytes().into(),
+                                    ) {
                                     Some(account) => {
                                         Ok(Outcome::QueryReturn(account.info.nonce.to_string()))
                                     }
