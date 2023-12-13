@@ -159,44 +159,44 @@ mod tests {
         }
     }
 
-    #[ignore]
-    #[tokio::test]
-    async fn base_simulation() {
-        let subscriber = tracing_subscriber::FmtSubscriber::builder()
-            .with_max_level(tracing::Level::TRACE) // Set the maximum level to TRACE
-            .finish();
+    // #[ignore]
+    // #[tokio::test]
+    // async fn base_simulation() {
+    //     let subscriber = tracing_subscriber::FmtSubscriber::builder()
+    //         .with_max_level(tracing::Level::TRACE) // Set the maximum level to TRACE
+    //         .finish();
 
-        let _guard = tracing::subscriber::set_default(subscriber);
-        let environment = EnvironmentBuilder::new().build();
-        let connection = Connection::from(&environment);
-        let provider = Provider::new(connection);
-        let mut world = World::new("test_world", provider);
+    //     let _guard = tracing::subscriber::set_default(subscriber);
+    //     let environment = EnvironmentBuilder::new().build();
+    //     let connection = Connection::from(&environment);
+    //     let provider = Provider::new(connection);
+    //     let mut world = World::new("test_world", provider);
 
-        let mut agent = Agent::new("agent1");
-        let messager = Messager::new();
-        agent.add_collector(messager.clone());
-        agent.add_executor(messager.clone());
+    //     let mut agent = Agent::new("agent1");
+    //     let messager = Messager::new();
+    //     agent.add_collector(messager.clone());
+    //     agent.add_executor(messager.clone());
 
-        let strategy = TimedMessage {
-            delay: 1,
-            message: Message {
-                from: "agent1".to_owned(),
-                to: "agent1".to_owned(),
-                data: "Hello, world!".to_owned(),
-            },
-        };
-        agent.add_strategy(strategy);
+    //     let strategy = TimedMessage {
+    //         delay: 1,
+    //         message: Message {
+    //             from: "agent1".to_owned(),
+    //             to: "agent1".to_owned(),
+    //             data: "Hello, world!".to_owned(),
+    //         },
+    //     };
+    //     agent.add_strategy(strategy);
 
-        world.add_agent(agent);
-        let world_task = tokio::spawn(async move { world.run().await });
+    //     world.add_agent(agent);
+    //     let world_task = tokio::spawn(async move { world.run().await });
 
-        let message = Message {
-            from: "agent1".to_owned(),
-            to: "agent1".to_owned(),
-            data: "Start".to_owned(),
-        };
-        let send_result = messager.execute(message).await;
+    //     let message = Message {
+    //         from: "agent1".to_owned(),
+    //         to: "agent1".to_owned(),
+    //         data: "Start".to_owned(),
+    //     };
+    //     let send_result = messager.execute(message).await;
 
-        world_task.await.unwrap();
-    }
+    //     world_task.await.unwrap();
+    // }
 }

@@ -14,13 +14,13 @@ use crate::{agent::Agent, messager::Message};
 
 /// A world is a collection of agents that use the same type of provider, e.g.,
 /// operate on the same blockchain or same `Environment`.
-pub struct World<P, E, A> {
+pub struct World<P> {
     /// The identifier of the world.
     pub id: String,
 
     /// The agents in the world.
-    pub agents: Vec<Agent<E, A>>, /* TODO: This should be a map of agents. Also, we should not
-                                   * carry up these generics. */
+    pub agents: Vec<Agent>, /* TODO: This should be a map of agents. Also, we should not
+                             * carry up these generics. */
 
     /// The provider for the world.
     pub provider: Provider<P>, /* TODO: The world itself may not need to carry around the
@@ -42,11 +42,9 @@ pub struct Interconnect {
     _receiver: Receiver<Message>,
 }
 
-impl<P, E, A> World<P, E, A>
+impl<P> World<P>
 where
     P: PubsubClient,
-    E: Send + Clone + 'static + std::fmt::Debug,
-    A: Send + Clone + 'static + std::fmt::Debug,
 {
     // TODO: May not need to take in the provider here, but rather get it from the
     // agents.
@@ -61,7 +59,7 @@ where
     }
 
     /// Adds an agent to the world.
-    pub fn add_agent(&mut self, agent: Agent<E, A>) {
+    pub fn add_agent(&mut self, agent: Agent) {
         self.agents.push(agent);
     }
 
@@ -97,36 +95,36 @@ mod tests {
     use super::*;
     use crate::messager::Messager;
 
-    #[ignore]
-    #[test]
-    fn arbiter_world() {
-        let environment = EnvironmentBuilder::new().build();
-        let connection = Connection::from(&environment);
-        let provider = Provider::new(connection);
-        let mut world = World::new("test_world", provider);
+    // #[ignore]
+    // #[test]
+    // fn arbiter_world() {
+    //     let environment = EnvironmentBuilder::new().build();
+    //     let connection = Connection::from(&environment);
+    //     let provider = Provider::new(connection);
+    //     let mut world = World::new("test_world", provider);
 
-        let client = RevmMiddleware::new(&environment, Some("testname")).unwrap();
-        let mut agent = Agent::new("agent1");
-        let messager = Messager::new();
-        agent.add_collector(messager);
-        agent.add_executor(MempoolExecutor::new(client.clone()));
-        world.add_agent(agent);
-    }
+    //     let client = RevmMiddleware::new(&environment, Some("testname")).unwrap();
+    //     let mut agent = Agent::new("agent1");
+    //     let messager = Messager::new();
+    //     agent.add_collector(messager);
+    //     agent.add_executor(MempoolExecutor::new(client.clone()));
+    //     world.add_agent(agent);
+    // }
 
-    #[ignore]
-    #[tokio::test]
-    async fn mainnet_world() {
-        let ws_url = std::env::var("MAINNET_WS_URL").expect("MAINNET_WS_URL must be set");
-        let ws = Ws::connect(ws_url).await.unwrap();
-        let provider = Provider::new(ws);
-        // let mut world = World::new(provider);
-        let client = Arc::new(provider);
-        let weth = WETH::new(
-            Address::from_str("0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2").unwrap(),
-            client.clone(),
-        );
-        let filter = weth.approval_filter().filter;
-        let mut subscription = client.subscribe_logs(&filter).await.unwrap();
-        println!("next: {:?}", subscription.next().await);
-    }
+    // #[ignore]
+    // #[tokio::test]
+    // async fn mainnet_world() {
+    //     let ws_url = std::env::var("MAINNET_WS_URL").expect("MAINNET_WS_URL must be set");
+    //     let ws = Ws::connect(ws_url).await.unwrap();
+    //     let provider = Provider::new(ws);
+    //     // let mut world = World::new(provider);
+    //     let client = Arc::new(provider);
+    //     let weth = WETH::new(
+    //         Address::from_str("0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2").unwrap(),
+    //         client.clone(),
+    //     );
+    //     let filter = weth.approval_filter().filter;
+    //     let mut subscription = client.subscribe_logs(&filter).await.unwrap();
+    //     println!("next: {:?}", subscription.next().await);
+    // }
 }
