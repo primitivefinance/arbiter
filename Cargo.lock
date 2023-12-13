@@ -305,7 +305,6 @@ dependencies = [
  "tokio",
  "tracing",
  "tracing-subscriber",
- "tracing-test",
 ]
 
 [[package]]

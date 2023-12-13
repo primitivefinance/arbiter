@@ -132,13 +132,15 @@ mod tests {
 
     #[async_trait::async_trait]
     impl Strategy<Message, Message> for TimedMessage {
+        #[tracing::instrument(skip(self), level = "trace")]
         async fn sync_state(&mut self) -> Result<()> {
-            println!("sync_state");
+            trace!("Syncing state.");
             Ok(())
         }
 
+        #[tracing::instrument(skip(self, event), level = "trace")]
         async fn process_event(&mut self, event: Message) -> Vec<Message> {
-            println!("event: {:?}", event);
+            trace!("Processing event.");
             if event.to == self.message.to {
                 let message = Message {
                     from: "agent1".to_owned(),
@@ -193,7 +195,6 @@ mod tests {
             data: "Start".to_owned(),
         };
         let send_result = messager.execute(message).await;
-        println!("send_result: {send_result:?}");
 
         world_task.await.unwrap();
     }

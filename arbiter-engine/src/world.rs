@@ -93,7 +93,6 @@ mod tests {
         types::Address,
     };
     use futures_util::StreamExt;
-    use tracing_test::traced_test;
 
     use super::*;
     use crate::messager::Messager;
