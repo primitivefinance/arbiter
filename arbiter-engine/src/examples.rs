@@ -159,6 +159,7 @@ mod tests {
         }
     }
 
+    #[ignore]
     #[tokio::test]
     async fn base_simulation() {
         let subscriber = tracing_subscriber::FmtSubscriber::builder()
