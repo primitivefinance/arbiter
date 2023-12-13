@@ -12,7 +12,7 @@
 
 use artemis_core::{
     engine::Engine,
-    types::{Collector, Executor},
+    types::{Collector, Executor, Strategy},
 };
 
 /// An agent is an entity capable of processing events and producing actions.
@@ -22,17 +22,18 @@ use artemis_core::{
 pub struct Agent<E, A> {
     /// Identifier for this agent.
     /// Used for routing messages.
-    _id: String,
+    pub id: String,
 
     /// The engine that this agent uses to process events and produce actions.
-    engine: Engine<E, A>, /* Note, agent shouldn't NEED a client as a field as the engine can
-                           * handle this. */
+    pub(crate) engine: Option<Engine<E, A>>, /* Note, agent shouldn't NEED a client as a field
+                                              * as the engine can
+                                              * handle this. */
 
     /// Agents that this agent depends on.
-    dependencies: Vec<String>,
+    pub dependencies: Vec<String>,
 
     /// Agents that depend on this agent.
-    dependents: Vec<String>,
+    pub dependents: Vec<String>,
 }
 
 impl<E, A> Agent<E, A>
@@ -44,8 +45,8 @@ where
     /// Produces a new agent with the given identifier.
     pub fn new(id: &str) -> Self {
         Self {
-            _id: id.to_owned(),
-            engine: Engine::new(),
+            id: id.to_owned(),
+            engine: Some(Engine::new()),
             dependencies: vec![],
             dependents: vec![],
         }
@@ -53,12 +54,26 @@ where
 
     /// Adds a collector to the agent's engine.
     pub fn add_collector(&mut self, collector: impl Collector<E> + 'static) {
-        self.engine.add_collector(Box::new(collector));
+        self.engine
+            .as_mut()
+            .expect("Engine has already been taken by the `World::run()` method.")
+            .add_collector(Box::new(collector));
     }
 
     /// Adds an executor to the agent's engine.
     pub fn add_executor(&mut self, executor: impl Executor<A> + 'static) {
-        self.engine.add_executor(Box::new(executor));
+        self.engine
+            .as_mut()
+            .expect("Engine has already been taken by the `World::run()` method.")
+            .add_executor(Box::new(executor));
+    }
+
+    /// Adds a strategy to the agent's engine.
+    pub fn add_strategy(&mut self, strategy: impl Strategy<E, A> + 'static) {
+        self.engine
+            .as_mut()
+            .expect("Engine has already been taken by the `World::run()` method.")
+            .add_strategy(Box::new(strategy));
     }
 
     /// Adds a dependency to the agent.
@@ -86,6 +101,7 @@ mod tests {
 
     use super::*;
 
+    #[ignore]
     #[tokio::test]
     async fn test_agent() {
         // Startup

@@ -35,6 +35,7 @@ arbiter-core = { path = "./arbiter-core" }
 crossbeam-channel =  { version = "=0.5.8" }
 futures-util =  { version = "=0.3.29" }
 async-trait =  { version = "0.1.74" }
+tracing = "0.1.40"
 
 # Dependencies for the release build
 [dependencies]
