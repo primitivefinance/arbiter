@@ -47,7 +47,7 @@ use revm::{
 };
 use revm_primitives::{db::DatabaseRef, Bytecode};
 // use hashbrown::{hash_map, HashMap as HashMapBrown};
-use serde::{Deserialize, Serialize};
+use serde::{Deserialize, Serialize, Serializer};
 use thiserror::Error;
 
 use super::*;
@@ -144,8 +144,24 @@ pub struct Environment {
     pub(crate) handle: Option<JoinHandle<Result<(), EnvironmentError>>>,
 }
 
+use serde::ser::SerializeStruct;
+
 #[derive(Clone, Debug)]
 pub struct ArbiterDB(Arc<RwLock<CacheDB<EmptyDB>>>);
+
+impl Serialize for ArbiterDB {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        let db = self.0.read().unwrap();
+        let mut state = serializer.serialize_struct("ArbiterDB", 2)?;
+        let accounts = db.accounts;
+        state.serialize_field("accounts", &db.accounts)?;
+        state.serialize_field("contracts", &db.contracts)?;
+        state.end()
+    }
+}
 
 impl Database for ArbiterDB {
     type Error = Infallible; // TODO: Not sure we want this, but it works for now.
