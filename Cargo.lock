@@ -305,6 +305,7 @@ dependencies = [
  "tokio",
  "tracing",
  "tracing-subscriber",
+ "tracing-test",
 ]
 
 [[package]]
@@ -341,7 +342,6 @@ dependencies = [
 [[package]]
 name = "artemis-core"
 version = "0.1.0"
-source = "git+https://github.com/paradigmxyz/artemis.git#4bb158070833ec2b789a2ece14c896c4b28ce3be"
 dependencies = [
  "anyhow",
  "async-trait",
