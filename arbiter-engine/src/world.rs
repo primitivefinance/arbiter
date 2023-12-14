@@ -22,7 +22,6 @@ pub struct World<P> {
     pub id: String,
 
     /// The agents in the world.
-    #[allow(private_interfaces)]
     pub agents: HashMap<String, Box<dyn Entity>>, /* TODO: This should be a map of agents. We
                                                    * may also want to add a bit more to the
                                                    * Entity trait (e.g., the id of the agent).

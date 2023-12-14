@@ -18,8 +18,10 @@ use artemis_core::{
 };
 use tokio::task::JoinSet;
 
+/// An entity is a component that can be run by the engine.
 #[async_trait::async_trait]
-pub(crate) trait Entity: Send {
+pub trait Entity: Send {
+    /// Runs the entity.
     async fn run(&mut self) -> Result<JoinSet<()>, Box<dyn std::error::Error>>;
 }
 
