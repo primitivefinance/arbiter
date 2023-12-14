@@ -45,6 +45,8 @@ pub struct Interconnect {
 impl<P, E, A> World<P, E, A>
 where
     P: PubsubClient,
+    E: Send + Clone + 'static + std::fmt::Debug,
+    A: Send + Clone + 'static + std::fmt::Debug,
 {
     // TODO: May not need to take in the provider here, but rather get it from the
     // agents.
@@ -61,6 +63,18 @@ where
     /// Adds an agent to the world.
     pub fn add_agent(&mut self, agent: Agent<E, A>) {
         self.agents.push(agent);
+    }
+
+    /// Runs the agents in the world.
+    pub async fn run(&mut self) {
+        for agent in self.agents.iter_mut() {
+            let mut joinset = agent.engine.take().unwrap().run().await.unwrap();
+            while let Some(next) = joinset.join_next().await {
+                if let Err(e) = next {
+                    panic!("Error: {:?}", e);
+                }
+            }
+        }
     }
 }
 
@@ -93,7 +107,7 @@ mod tests {
 
         let client = RevmMiddleware::new(&environment, Some("testname")).unwrap();
         let mut agent = Agent::new("agent1");
-        let messager = Messager::default();
+        let messager = Messager::new();
         agent.add_collector(messager);
         agent.add_executor(MempoolExecutor::new(client.clone()));
         world.add_agent(agent);

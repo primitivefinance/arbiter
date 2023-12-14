@@ -9,6 +9,4 @@ license = "Apache-2.0"
 
 [dependencies]
 ethers.workspace = true
-revm.workspace = true
-revm-primitives.workspace = true
 serde.workspace = true

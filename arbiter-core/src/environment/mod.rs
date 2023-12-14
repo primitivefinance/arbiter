@@ -45,7 +45,6 @@ use revm::{
     },
     EVM,
 };
-// use hashbrown::{hash_map, HashMap as HashMapBrown};
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
 

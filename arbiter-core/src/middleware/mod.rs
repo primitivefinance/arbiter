@@ -43,7 +43,6 @@ use futures_util::Stream;
 use rand::{rngs::StdRng, SeedableRng};
 use revm::primitives::{CreateScheme, Output, TransactTo, TxEnv, U256};
 use serde::{de::DeserializeOwned, Serialize};
-
 use serde_json::value::RawValue;
 use thiserror::Error;
 
