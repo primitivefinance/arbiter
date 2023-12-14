@@ -6,47 +6,42 @@
 
 //! The world module contains the core world abstraction for the Arbiter Engine.
 
-use crossbeam_channel::{Receiver, Sender};
 use ethers::providers::{Provider, PubsubClient};
 
 use super::*;
-use crate::{agent::Agent, messager::Message};
+use crate::agent::{Agent, Entity};
 
 /// A world is a collection of agents that use the same type of provider, e.g.,
 /// operate on the same blockchain or same `Environment`.
-pub struct World<P, E, A> {
+pub struct World<P> {
     /// The identifier of the world.
     pub id: String,
 
     /// The agents in the world.
-    pub agents: Vec<Agent<E, A>>, /* TODO: This should be a map of agents. Also, we should not
-                                   * carry up these generics. */
+    pub agents: HashMap<String, Box<dyn Entity>>, //TODO: This should be a map of agents. We may also want to add a bit more to the Entity trait (e.g., the id of the agent). In which case, we could expose it as pub so those methods can be grabbed.
 
     /// The provider for the world.
     pub provider: Provider<P>, /* TODO: The world itself may not need to carry around the
                                 * provider, but the agents should all use the same type of
                                 * provider. */
-
-    /// The interconnects between different worlds.
-    /// These can be used, for instance, to pass messages between agents running
-    /// on different blockchain networks (e.g., Ethereum and Optimism).
-    pub interconnects: HashMap<String, Interconnect>,
+                               // / The interconnects between different worlds.
+                               // / These can be used, for instance, to pass messages between agents running
+                               // / on different blockchain networks (e.g., Ethereum and Optimism).
+                               // pub interconnects: HashMap<String, Interconnect>,
 }
 
-/// An interconnect is a connection between two worlds.
-pub struct Interconnect {
-    /// The message sender.
-    _sender: Sender<Message>,
+// /// An interconnect is a connection between two worlds.
+// pub struct Interconnect {
+//     /// The message sender.
+//     _sender: Sender<Message>,
 
-    /// The message receiver.
-    _receiver: Receiver<Message>,
-}
+//     /// The message receiver.
+//     _receiver: Receiver<Message>,
+// }
 
-impl<P, E, A> World<P, E, A>
+impl<P> World<P>
 where
     P: PubsubClient,
-    E: Send + Clone + 'static + std::fmt::Debug,
-    A: Send + Clone + 'static + std::fmt::Debug,
 {
     // TODO: May not need to take in the provider here, but rather get it from the
     // agents.
@@ -54,21 +49,27 @@ where
     pub fn new(id: &str, provider: Provider<P>) -> Self {
         Self {
             id: id.to_owned(),
-            agents: vec![],
+            agents: HashMap::new(),
             provider,
-            interconnects: HashMap::new(),
+            // interconnects: HashMap::new(),
         }
     }
 
     /// Adds an agent to the world.
-    pub fn add_agent(&mut self, agent: Agent<E, A>) {
-        self.agents.push(agent);
+    pub fn add_agent<E, A>(&mut self, agent: Agent<E, A>)
+    where
+        E: Send + Clone + 'static + std::fmt::Debug,
+        A: Send + Clone + 'static + std::fmt::Debug,
+    {
+        let id = agent.id.clone();
+        let entity = Box::new(agent);
+        self.agents.insert(id, entity);
     }
 
     /// Runs the agents in the world.
     pub async fn run(&mut self) {
-        for agent in self.agents.iter_mut() {
-            let mut joinset = agent.engine.take().unwrap().run().await.unwrap();
+        for agent in self.agents.values_mut() {
+            let mut joinset = agent.run().await.unwrap();
             while let Some(next) = joinset.join_next().await {
                 if let Err(e) = next {
                     panic!("Error: {:?}", e);

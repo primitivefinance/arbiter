@@ -14,6 +14,12 @@ use artemis_core::{
     engine::Engine,
     types::{Collector, Executor, Strategy},
 };
+use tokio::task::JoinSet;
+
+#[async_trait::async_trait]
+pub(crate) trait Entity: Send {
+    async fn run(&mut self) -> Result<JoinSet<()>, Box<dyn std::error::Error>>;
+}
 
 /// An agent is an entity capable of processing events and producing actions.
 /// These are the core actors in simulations or in onchain systems.
@@ -34,6 +40,17 @@ pub struct Agent<E, A> {
 
     /// Agents that depend on this agent.
     pub dependents: Vec<String>,
+}
+
+#[async_trait::async_trait]
+impl<E, A> Entity for Agent<E, A>
+where
+    E: Send + Clone + 'static + std::fmt::Debug,
+    A: Send + Clone + 'static + std::fmt::Debug,
+{
+    async fn run(&mut self) -> Result<JoinSet<()>, Box<dyn std::error::Error>> {
+        self.engine.take().unwrap().run().await
+    }
 }
 
 impl<E, A> Agent<E, A>
