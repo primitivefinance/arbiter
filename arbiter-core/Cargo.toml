@@ -38,7 +38,7 @@ thiserror.workspace = true
 
 # Logging
 futures-util.workspace = true
-tracing = "0.1.40"
+tracing.workspace = true
 
 # File types
 polars = { version = "0.35.4", features = ["parquet", "csv", "json"] }

@@ -42,11 +42,6 @@ use futures_timer::Delay;
 use rand::{rngs::StdRng, SeedableRng};
 use revm::primitives::{CreateScheme, Output, TransactTo, TxEnv, U256};
 use serde::{de::DeserializeOwned, Serialize};
-// use revm::primitives::{ExecutionResult, Output};
-// use super::cast::revm_logs_to_ethers_logs;
-// use super::errors::RevmMiddlewareError;
-
-// use async_trait::async_trait;
 use thiserror::Error;
 
 use super::*;

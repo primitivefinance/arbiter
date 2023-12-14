@@ -46,7 +46,6 @@ use revm::{
     Database, DatabaseCommit, EVM,
 };
 use revm_primitives::{db::DatabaseRef, Bytecode};
-// use hashbrown::{hash_map, HashMap as HashMapBrown};
 use serde::{Deserialize, Serialize, Serializer};
 use thiserror::Error;
 
