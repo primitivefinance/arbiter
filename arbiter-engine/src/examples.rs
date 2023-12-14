@@ -195,7 +195,7 @@ mod tests {
             to: "agent1".to_owned(),
             data: "Start".to_owned(),
         };
-        let send_result = messager.execute(message).await;
+        let _send_result = messager.execute(message).await;
 
         world_task.await.unwrap();
     }

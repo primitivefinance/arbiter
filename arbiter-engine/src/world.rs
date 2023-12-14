@@ -2,6 +2,10 @@
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // TODO: Notes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 //  Probably should move labels to world instead of on the environment.
+// One thing that is different about the Arbiter world is that give a bunch of different channels to
+// communicate with the Environment's tx thread. This is different from a connection to a blockchain
+// where you typically will just have a single HTTP/WS connection. What we want is some kind of way
+// of having the world own a reference to a provider or something
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 //! The world module contains the core world abstraction for the Arbiter Engine.
@@ -18,26 +22,21 @@ pub struct World<P> {
     pub id: String,
 
     /// The agents in the world.
-    pub agents: HashMap<String, Box<dyn Entity>>, //TODO: This should be a map of agents. We may also want to add a bit more to the Entity trait (e.g., the id of the agent). In which case, we could expose it as pub so those methods can be grabbed.
+    #[allow(private_interfaces)]
+    pub agents: HashMap<String, Box<dyn Entity>>, /* TODO: This should be a map of agents. We
+                                                   * may also want to add a bit more to the
+                                                   * Entity trait (e.g., the id of the agent).
+                                                   * In which case, we could expose it as pub so
+                                                   * those methods can be grabbed. */
 
     /// The provider for the world.
     pub provider: Provider<P>, /* TODO: The world itself may not need to carry around the
                                 * provider, but the agents should all use the same type of
                                 * provider. */
-                               // / The interconnects between different worlds.
-                               // / These can be used, for instance, to pass messages between agents running
-                               // / on different blockchain networks (e.g., Ethereum and Optimism).
-                               // pub interconnects: HashMap<String, Interconnect>,
 }
 
-// /// An interconnect is a connection between two worlds.
-// pub struct Interconnect {
-//     /// The message sender.
-//     _sender: Sender<Message>,
-
-//     /// The message receiver.
-//     _receiver: Receiver<Message>,
-// }
+// TODO: Can add a messager as an interconnect and have the manager give each
+// world it owns a clone of the same messager.
 
 impl<P> World<P>
 where
@@ -51,7 +50,6 @@ where
             id: id.to_owned(),
             agents: HashMap::new(),
             provider,
-            // interconnects: HashMap::new(),
         }
     }
 

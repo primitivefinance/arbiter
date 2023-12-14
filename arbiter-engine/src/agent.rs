@@ -6,6 +6,8 @@
 // Need an init signal or something.
 // We can give agents a "calculator" evm to send "Actions" to when they are just
 // doing compute so they aren't blocking the main tx thread.
+// Maybe by default we should give agents a messager as part of their engine so we can call a
+// "start" and "stop" with them.
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 //! The agent module contains the core agent abstraction for the Arbiter Engine.
