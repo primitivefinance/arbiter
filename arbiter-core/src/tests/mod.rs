@@ -10,9 +10,7 @@ use std::{str::FromStr, sync::Arc};
 
 use anyhow::Result;
 use arbiter_bindings::bindings::{
-    arbiter_math::ArbiterMath,
-    arbiter_token::{self, ArbiterToken},
-    liquid_exchange::LiquidExchange,
+    arbiter_math::ArbiterMath, arbiter_token::ArbiterToken, liquid_exchange::LiquidExchange,
 };
 use ethers::{
     prelude::{

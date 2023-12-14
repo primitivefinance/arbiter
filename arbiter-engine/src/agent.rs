@@ -6,6 +6,8 @@
 // Need an init signal or something.
 // We can give agents a "calculator" evm to send "Actions" to when they are just
 // doing compute so they aren't blocking the main tx thread.
+// Maybe by default we should give agents a messager as part of their engine so we can call a
+// "start" and "stop" with them.
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 //! The agent module contains the core agent abstraction for the Arbiter Engine.
@@ -14,6 +16,14 @@ use artemis_core::{
     engine::Engine,
     types::{Collector, Executor, Strategy},
 };
+use tokio::task::JoinSet;
+
+/// An entity is a component that can be run by the engine.
+#[async_trait::async_trait]
+pub trait Entity: Send {
+    /// Runs the entity.
+    async fn run(&mut self) -> Result<JoinSet<()>, Box<dyn std::error::Error>>;
+}
 
 /// An agent is an entity capable of processing events and producing actions.
 /// These are the core actors in simulations or in onchain systems.
@@ -34,6 +44,17 @@ pub struct Agent<E, A> {
 
     /// Agents that depend on this agent.
     pub dependents: Vec<String>,
+}
+
+#[async_trait::async_trait]
+impl<E, A> Entity for Agent<E, A>
+where
+    E: Send + Clone + 'static + std::fmt::Debug,
+    A: Send + Clone + 'static + std::fmt::Debug,
+{
+    async fn run(&mut self) -> Result<JoinSet<()>, Box<dyn std::error::Error>> {
+        self.engine.take().unwrap().run().await
+    }
 }
 
 impl<E, A> Agent<E, A>
