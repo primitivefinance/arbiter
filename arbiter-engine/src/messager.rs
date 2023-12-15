@@ -3,8 +3,9 @@
 //! The messager module contains the core messager layer for the Arbiter Engine.
 
 use artemis_core::types::{Collector, CollectorStream, Executor};
-use flume::{unbounded, Receiver, Sender};
+use async_broadcast::{broadcast, Receiver, Sender};
 
+// use tokio::sync::broadcast::{channel, Receiver, Sender};
 use super::*;
 
 /// A message that can be sent between agents.
@@ -22,17 +23,26 @@ pub struct Message {
 }
 
 /// A messager that can be used to send messages between agents.
-#[derive(Clone, Debug)]
+#[derive(Debug)]
 pub struct Messager {
-    sender: Sender<Message>,
+    pub(crate) sender: Sender<Message>,
     receiver: Receiver<Message>,
 }
 
+impl Clone for Messager {
+    fn clone(&self) -> Self {
+        let sender = self.receiver.new_sender();
+        let receiver = self.receiver.new_receiver();
+        Self { sender, receiver }
+    }
+}
+
 impl Messager {
+    // TODO: Allow for modulating the capacity of the messager.
     /// Creates a new messager with the given capacity.
     #[allow(clippy::new_without_default)]
     pub fn new() -> Self {
-        let (sender, receiver) = unbounded();
+        let (sender, receiver) = broadcast(512);
         Self { sender, receiver }
     }
 }
@@ -42,7 +52,16 @@ impl Collector<Message> for Messager {
     #[tracing::instrument(skip(self), level = "debug", target = "messager")]
     async fn get_event_stream(&self) -> Result<CollectorStream<'_, Message>> {
         debug!("Getting the event stream for the messager.");
-        let stream = self.receiver.clone().into_stream();
+        let mut receiver = self.receiver.clone();
+        let stream = async_stream::stream! {
+            loop {
+                let message = receiver.recv().await;
+                match message {
+                    Ok(message) => yield message,
+                    Err(_) => break,
+                }
+            }
+        };
         Ok(Box::pin(stream))
     }
 }
@@ -51,9 +70,15 @@ impl Collector<Message> for Messager {
 impl Executor<Message> for Messager {
     #[tracing::instrument(skip(self), level = "trace", target = "messager")]
     async fn execute(&self, message: Message) -> Result<()> {
-        trace!("Broadcasting message.");
-        self.sender.send(message)?;
-        Ok(())
+        match self.sender.broadcast(message.clone()).await {
+            Ok(_) => {
+                trace!("The message was successfully broadcasted: {:?}", message);
+                Ok(())
+            }
+            Err(e) => {
+                trace!("An error occurred while broadcasting the message: {:?}", e);
+                Err(e.into())
+            }
+        }
     }
 }
-

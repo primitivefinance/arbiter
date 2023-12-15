@@ -1,6 +1,5 @@
-use crate::agent::BehaviorBuilder;
-
 use super::*;
+use crate::agent::BehaviorBuilder;
 
 struct TimedMessage {
     delay: u64,
@@ -37,12 +36,10 @@ impl Strategy<Message, Message> for TimedMessage {
 }
 
 #[ignore]
-#[tokio::test]
+#[tokio::test(flavor = "multi_thread", worker_threads = 8)]
 async fn echoer() {
-    let subscriber = tracing_subscriber::FmtSubscriber::builder()
-        .with_max_level(tracing::Level::TRACE) // Set the maximum level to TRACE
-        .finish();
-    let _guard = tracing::subscriber::set_default(subscriber);
+    std::env::set_var("RUST_LOG", "trace");
+    tracing_subscriber::fmt::init();
 
     let environment = EnvironmentBuilder::new().build();
     let connection = Connection::from(&environment);
@@ -68,13 +65,14 @@ async fn echoer() {
     world.add_agent(agent);
 
     debug!("Starting world.");
-    let world_task = tokio::spawn(async move { world.run().await });
+    let world_fut = world.run();
     let message = Message {
         from: "agent".to_owned(),
         to: "agent".to_owned(),
         data: "Start".to_owned(),
     };
-    let _send_result = messager.execute(message).await;
+    let send_result = messager.execute(message).await;
+    debug!("Start message sent {:?}", send_result);
 
-    world_task.await.unwrap();
+    world_fut.await;
 }

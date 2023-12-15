@@ -93,9 +93,9 @@ type Behavior = Pin<Box<dyn Future<Output = Result<JoinSet<()>, Box<dyn Error>>>
 /// executor, and a strategy that uses those two components.
 /// Agents can have multiple simple behaviors to allow for the agent to have an emergent complex set of actions.
 pub struct BehaviorBuilder<E, A> {
-    collector: Option<Box<dyn Collector<E>>>,
-    executor: Option<Box<dyn Executor<A>>>,
-    strategy: Option<Box<dyn Strategy<E, A>>>,
+    collectors: Vec<Box<dyn Collector<E>>>,
+    executors: Vec<Box<dyn Executor<A>>>,
+    strategies: Vec<Box<dyn Strategy<E, A>>>,
 }
 
 impl<E, A> BehaviorBuilder<E, A>
@@ -107,40 +107,40 @@ where
     #[allow(clippy::new_without_default)]
     pub fn new() -> Self {
         Self {
-            collector: None,
-            executor: None,
-            strategy: None,
+            collectors: vec![],
+            executors: vec![],
+            strategies: vec![],
         }
     }
 
     /// Adds a collector to the behavior.
     pub fn add_collector(mut self, collector: impl Collector<E> + 'static) -> Self {
-        self.collector = Some(Box::new(collector));
+        self.collectors.push(Box::new(collector));
         self
     }
 
     /// Adds an executor to the behavior.
     pub fn add_executor(mut self, executor: impl Executor<A> + 'static) -> Self {
-        self.executor = Some(Box::new(executor));
+        self.executors.push(Box::new(executor));
         self
     }
 
     /// Adds a strategy to the behavior.
     pub fn add_strategy(mut self, strategy: impl Strategy<E, A> + 'static) -> Self {
-        self.strategy = Some(Box::new(strategy));
+        self.strategies.push(Box::new(strategy));
         self
     }
 
     /// Builds the behavior.
     pub fn build(self) -> Engine<E, A> {
         let mut engine = Engine::new();
-        if let Some(collector) = self.collector {
+        for collector in self.collectors {
             engine.add_collector(collector);
         }
-        if let Some(executor) = self.executor {
+        for executor in self.executors {
             engine.add_executor(executor);
         }
-        if let Some(strategy) = self.strategy {
+        for strategy in self.strategies {
             engine.add_strategy(strategy);
         }
         engine

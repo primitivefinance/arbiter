@@ -65,14 +65,13 @@ where
 
     /// Runs the agents in the world.
     pub async fn run(&mut self) {
+        debug!("Running world: {}", self.id);
+
         for agent in self.agents.values_mut() {
-            debug!("Running agent: {:?}", agent.id);
             let join_sets = agent.run().await;
-            debug!("Join sets: {:?}", join_sets);
             for mut join_set in join_sets {
-                debug!("Join set: {:?}", join_set);
+                debug!("Joining agent: {}", agent.id);
                 while let Some(next) = join_set.join_next().await {
-                    debug!("Next: {:?}", next);
                     if let Err(e) = next {
                         panic!("Error: {:?}", e);
                     }

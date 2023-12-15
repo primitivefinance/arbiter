@@ -13,64 +13,72 @@ use std::{collections::HashMap, sync::Arc};
 use arbiter_bindings::bindings::arbiter_token::ArbiterToken;
 use arbiter_core::middleware::RevmMiddleware;
 use artemis_core::{
-    executors::mempool_executor::SubmitTxToMempool,
-    types::{Executor, Strategy},
+    collectors::log_collector::LogCollector,
+    executors::mempool_executor::{MempoolExecutor, SubmitTxToMempool},
+    types::{Collector, CollectorStream, Executor, Strategy},
 };
-use ethers::types::{Address, U256};
+use ethers::{
+    providers::Middleware,
+    types::{Address, Log, U256},
+};
 
 use super::*;
-use crate::messager::Message;
+use crate::messager::{Message, Messager};
 use crate::{agent::Agent, world::World};
 use arbiter_core::{environment::builder::EnvironmentBuilder, middleware::connection::Connection};
 use ethers::providers::Provider;
-
+use futures_util::{stream, StreamExt};
 mod timed_message;
 mod token_minter;
 
-/// A block executor that updates the block number and timestamp in the
-/// database.
-pub struct BlockExecutor {
-    client: Arc<RevmMiddleware>,
+pub struct MessageAndLogCollector<M> {
+    pub messager: Messager,
+    pub log_collector: LogCollector<M>,
 }
 
-/// Used as an action to set new block number and timestamp.
-#[derive(Clone, Debug, Deserialize, Serialize)]
-pub struct NewBlock {
-    timestamp: u64,
-    number: u64,
-}
-
-// TODO: Consider replacing this with a cheatcode executor.
-#[async_trait::async_trait]
-impl Executor<NewBlock> for BlockExecutor {
-    async fn execute(&self, new_block: NewBlock) -> Result<()> {
-        let _receipt_data = self
-            .client
-            .update_block(new_block.number, new_block.timestamp)?;
-        Ok(())
-    }
-}
-
-// TODO: This may not be necessary in this way.
-/// The block admin is responsible for sending new block events to the block
-/// executor.
-pub struct BlockAdmin {
-    /// The identifier of the block admin.
-    pub id: String, // TODO: The strategies should not really need an ID.
+#[derive(Debug, Clone)]
+pub enum MessageOrLog {
+    Message(Message),
+    Log(Log),
 }
 
 #[async_trait::async_trait]
-impl Strategy<Message, NewBlock> for BlockAdmin {
-    async fn sync_state(&mut self) -> Result<()> {
-        Ok(())
-    }
+impl Collector<MessageOrLog> for MessageAndLogCollector<RevmMiddleware> {
+    async fn get_event_stream(&self) -> Result<CollectorStream<'_, MessageOrLog>> {
+        let message_stream = self.messager.get_event_stream().await?;
+        let log_stream = self.log_collector.get_event_stream().await?;
 
-    async fn process_event(&mut self, event: Message) -> Vec<NewBlock> {
-        if event.to == self.id {
-            let new_block: NewBlock = serde_json::from_str(&event.data).unwrap();
-            vec![new_block]
-        } else {
-            vec![]
+        let combined_stream = stream::select(
+            message_stream.map(MessageOrLog::Message),
+            log_stream.map(MessageOrLog::Log),
+        );
+
+        Ok(Box::pin(combined_stream))
+    }
+}
+
+pub struct MessageAndMempoolExecutor<M> {
+    pub messager: Messager,
+    pub mempool_executor: MempoolExecutor<M>,
+}
+
+#[derive(Debug, Clone)]
+pub enum MessageOrTx {
+    Message(Message),
+    Tx(SubmitTxToMempool),
+}
+
+#[async_trait::async_trait]
+impl<M: Middleware + 'static> Executor<MessageOrTx> for MessageAndMempoolExecutor<M> {
+    async fn execute(&self, action: MessageOrTx) -> Result<()> {
+        match action {
+            MessageOrTx::Message(message) => {
+                self.messager.execute(message).await?;
+            }
+            MessageOrTx::Tx(tx) => {
+                self.mempool_executor.execute(tx).await?;
+            }
         }
+        Ok(())
     }
 }
