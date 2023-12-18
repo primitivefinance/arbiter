@@ -35,8 +35,10 @@ impl Strategy<Message, Message> for TimedMessage {
     }
 }
 
+// TODO: Can we combine the `world.run().await` through the `for task in tasks {task.await}` step to make this DEVX super easy
+// TODO: Having something like an automatic impl of Start and Stop for all behaviors would be nice or load that in as a default behavior of agents or something.
 #[ignore]
-#[tokio::test(flavor = "multi_thread", worker_threads = 8)]
+#[tokio::test(flavor = "multi_thread", worker_threads = 2)]
 async fn echoer() {
     std::env::set_var("RUST_LOG", "trace");
     tracing_subscriber::fmt::init();
@@ -65,7 +67,7 @@ async fn echoer() {
     world.add_agent(agent);
 
     debug!("Starting world.");
-    let world_fut = world.run();
+    let tasks = world.run().await;
     let message = Message {
         from: "agent".to_owned(),
         to: "agent".to_owned(),
@@ -74,5 +76,7 @@ async fn echoer() {
     let send_result = messager.execute(message).await;
     debug!("Start message sent {:?}", send_result);
 
-    world_fut.await;
+    for task in tasks {
+        task.await.unwrap();
+    }
 }

@@ -255,7 +255,7 @@ impl Strategy<Message, Message> for TokenRequester {
 // }
 
 #[ignore]
-#[tokio::test(flavor = "multi_thread")]
+#[tokio::test(flavor = "multi_thread", worker_threads = 4)]
 async fn token_minter_simulation() {
     // TODO: Test outline, requester requests 1, 2, 3 tokens, and the test stops
     // when the balance is checked to be 6.
@@ -307,7 +307,7 @@ async fn token_minter_simulation() {
     world.add_agent(requester_agent);
 
     // Run the world and send the start message
-    let world_task = tokio::spawn(async move { world.run().await });
+    let tasks = world.run().await;
     // std::thread::sleep(std::time::Duration::from_millis(100));
     let message = Message {
         from: "host".to_owned(),
@@ -315,5 +315,8 @@ async fn token_minter_simulation() {
         data: "Start".to_owned(),
     };
     let _send_result = messager.execute(message).await;
-    world_task.await.unwrap();
+
+    for task in tasks {
+        task.await.unwrap();
+    }
 }

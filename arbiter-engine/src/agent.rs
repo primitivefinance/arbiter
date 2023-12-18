@@ -55,6 +55,8 @@ impl Agent {
     }
 
     /// Adds a strategy to the agent's engine.
+    /// Does so by pushing a future onto the agent's behavior vector.
+    /// This future returns the `JoinSet<()>` of the engine.
     pub fn add_behavior<E, A>(&mut self, engine: Engine<E, A>)
     where
         E: Send + Clone + 'static + std::fmt::Debug,

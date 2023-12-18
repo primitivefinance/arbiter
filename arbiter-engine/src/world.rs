@@ -64,20 +64,27 @@ where
     }
 
     /// Runs the agents in the world.
-    pub async fn run(&mut self) {
+    pub async fn run(&mut self) -> Vec<tokio::task::JoinHandle<()>> {
         debug!("Running world: {}", self.id);
+        debug!("Agents in world: {:?}", self.agents.keys());
+
+        let mut tasks = Vec::new();
 
         for agent in self.agents.values_mut() {
-            let join_sets = agent.run().await;
-            for mut join_set in join_sets {
-                debug!("Joining agent: {}", agent.id);
-                while let Some(next) = join_set.join_next().await {
-                    if let Err(e) = next {
-                        panic!("Error: {:?}", e);
+            trace!("Running agent: {}", agent.id);
+            let join_sets = Box::leak(Box::new(agent.run().await));
+            for set in join_sets.iter_mut() {
+                let task = tokio::spawn(async move {
+                    while let Some(next) = set.join_next().await {
+                        if let Err(e) = next {
+                            panic!("Error: {:?}", e);
+                        }
                     }
-                }
+                });
+                tasks.push(task);
             }
         }
+        tasks
     }
 }
 

@@ -299,6 +299,7 @@ dependencies = [
  "async-stream",
  "async-trait",
  "ethers",
+ "futures",
  "futures-util",
  "serde",
  "serde_json",

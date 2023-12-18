@@ -44,15 +44,15 @@ pub enum MessageOrLog {
 
 #[async_trait::async_trait]
 impl Collector<MessageOrLog> for MessageAndLogCollector<RevmMiddleware> {
+    #[tracing::instrument(skip(self), level = "debug", target = "message_and_log_collector")]
     async fn get_event_stream(&self) -> Result<CollectorStream<'_, MessageOrLog>> {
+        debug!("Getting the combined `MessageAndLogCollector` stream.");
         let message_stream = self.messager.get_event_stream().await?;
         let log_stream = self.log_collector.get_event_stream().await?;
-
         let combined_stream = stream::select(
             message_stream.map(MessageOrLog::Message),
             log_stream.map(MessageOrLog::Log),
         );
-
         Ok(Box::pin(combined_stream))
     }
 }
@@ -70,7 +70,9 @@ pub enum MessageOrTx {
 
 #[async_trait::async_trait]
 impl<M: Middleware + 'static> Executor<MessageOrTx> for MessageAndMempoolExecutor<M> {
+    #[tracing::instrument(skip(self), level = "trace", target = "message_and_mempool_executor")]
     async fn execute(&self, action: MessageOrTx) -> Result<()> {
+        trace!("Got an action to execute: {:?}", action);
         match action {
             MessageOrTx::Message(message) => {
                 self.messager.execute(message).await?;
