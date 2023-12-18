@@ -11,23 +11,27 @@
 use std::{collections::HashMap, sync::Arc};
 
 use arbiter_bindings::bindings::arbiter_token::ArbiterToken;
-use arbiter_core::middleware::RevmMiddleware;
+use arbiter_core::{
+    environment::builder::EnvironmentBuilder,
+    middleware::{connection::Connection, RevmMiddleware},
+};
 use artemis_core::{
     collectors::log_collector::LogCollector,
     executors::mempool_executor::{MempoolExecutor, SubmitTxToMempool},
     types::{Collector, CollectorStream, Executor, Strategy},
 };
 use ethers::{
-    providers::Middleware,
+    providers::{Middleware, Provider},
     types::{Address, Log, U256},
 };
+use futures_util::{stream, StreamExt};
 
 use super::*;
-use crate::messager::{Message, Messager};
-use crate::{agent::Agent, world::World};
-use arbiter_core::{environment::builder::EnvironmentBuilder, middleware::connection::Connection};
-use ethers::providers::Provider;
-use futures_util::{stream, StreamExt};
+use crate::{
+    agent::Agent,
+    messager::{Message, Messager},
+    world::World,
+};
 mod timed_message;
 mod token_minter;
 

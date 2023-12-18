@@ -93,7 +93,8 @@ type Behavior = Pin<Box<dyn Future<Output = Result<JoinSet<()>, Box<dyn Error>>>
 /// A behavior builder is used to build an agent's behavior.
 /// A behavior is meant to be quite simple, and is composed of a collector, an
 /// executor, and a strategy that uses those two components.
-/// Agents can have multiple simple behaviors to allow for the agent to have an emergent complex set of actions.
+/// Agents can have multiple simple behaviors to allow for the agent to have an
+/// emergent complex set of actions.
 pub struct BehaviorBuilder<E, A> {
     collectors: Vec<Box<dyn Collector<E>>>,
     executors: Vec<Box<dyn Executor<A>>>,

@@ -35,8 +35,10 @@ impl Strategy<Message, Message> for TimedMessage {
     }
 }
 
-// TODO: Can we combine the `world.run().await` through the `for task in tasks {task.await}` step to make this DEVX super easy
-// TODO: Having something like an automatic impl of Start and Stop for all behaviors would be nice or load that in as a default behavior of agents or something.
+// TODO: Can we combine the `world.run().await` through the `for task in tasks
+// {task.await}` step to make this DEVX super easy TODO: Having something like
+// an automatic impl of Start and Stop for all behaviors would be nice or load
+// that in as a default behavior of agents or something.
 #[ignore]
 #[tokio::test(flavor = "multi_thread", worker_threads = 2)]
 async fn echoer() {

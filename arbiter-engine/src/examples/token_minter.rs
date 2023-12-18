@@ -1,11 +1,5 @@
-use artemis_core::{
-    collectors::log_collector::LogCollector, executors::mempool_executor::MempoolExecutor,
-};
-use ethers::{
-    providers::Middleware,
-    types::{Filter, Log},
-};
-use futures_util::StreamExt;
+use artemis_core::executors::mempool_executor::MempoolExecutor;
+
 use tracing::error;
 
 use super::*;

@@ -94,10 +94,8 @@ mod tests {
 
     use arbiter_bindings::bindings::weth::WETH;
     use arbiter_core::{
-        environment::builder::EnvironmentBuilder,
-        middleware::{connection::Connection, RevmMiddleware},
+        environment::builder::EnvironmentBuilder, middleware::connection::Connection,
     };
-    use artemis_core::executors::mempool_executor::MempoolExecutor;
     use ethers::{
         providers::{Middleware, Provider, Ws},
         types::Address,
@@ -105,7 +103,6 @@ mod tests {
     use futures_util::StreamExt;
 
     use super::*;
-    use crate::{agent::BehaviorBuilder, messager::Messager};
 
     #[ignore]
     #[test]
@@ -115,13 +112,13 @@ mod tests {
         let provider = Provider::new(connection);
         let mut world = World::new("test_world", provider);
 
-        let client = RevmMiddleware::new(&environment, Some("testname")).unwrap();
-        let mut agent = Agent::new("agent1");
-        let messager = Messager::new();
-        let behavior = BehaviorBuilder::new()
-            .add_collector(messager.clone())
-            .add_executor(MempoolExecutor::new(client.clone()))
-            .build();
+        // let client = RevmMiddleware::new(&environment, Some("testname")).unwrap();
+        let agent = Agent::new("agent1");
+        // let messager = Messager::new();
+        // let behavior = BehaviorBuilder::new()
+        //     .add_collector(messager.clone())
+        //     .add_executor(MempoolExecutor::new(client.clone()))
+        //     .build();
         world.add_agent(agent);
     }
 
