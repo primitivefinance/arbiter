@@ -10,10 +10,17 @@
 
 //! The world module contains the core world abstraction for the Arbiter Engine.
 
-use ethers::providers::{Provider, PubsubClient};
+use artemis_core::types::{Collector, CollectorStream, Executor};
+use ethers::{
+    abi::Hash,
+    providers::{Provider, PubsubClient},
+};
 
 use super::*;
-use crate::{agent::Agent, messager::Messager};
+use crate::{
+    agent::Agent,
+    messager::{Message, Messager, Relayer},
+};
 
 /// A world is a collection of agents that use the same type of provider, e.g.,
 /// operate on the same blockchain or same `Environment`.
@@ -34,7 +41,7 @@ pub struct World<P> {
                                 * provider. */
 
     /// The messaging layer for the world.
-    pub messager: Messager,
+    pub messager: Messager, // TODO: Use this as the message executor that can be given to all agents and give each agent their specific collector.
 }
 
 // TODO: Can add a messager as an interconnect and have the manager give each
@@ -52,7 +59,7 @@ where
             id: id.to_owned(),
             agents: HashMap::new(),
             provider,
-            messager: Messager::new(),
+            messager: HashMap::new(),
         }
     }
 

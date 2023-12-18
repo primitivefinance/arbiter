@@ -3,7 +3,7 @@
 //! The messager module contains the core messager layer for the Arbiter Engine.
 
 use artemis_core::types::{Collector, CollectorStream, Executor};
-use async_broadcast::{broadcast, Receiver, Sender};
+use crossbeam_channel::{unbounded, Receiver, Sender};
 
 // use tokio::sync::broadcast::{channel, Receiver, Sender};
 use super::*;
@@ -22,55 +22,33 @@ pub struct Message {
     pub data: String,
 }
 
+pub type Messager = HashMap<String, Relayer>;
+
 /// A messager that can be used to send messages between agents.
-#[derive(Debug)]
-pub struct Messager {
+#[derive(Clone, Debug)]
+pub struct Relayer {
     pub(crate) sender: Sender<Message>,
     receiver: Receiver<Message>,
 }
 
-impl Clone for Messager {
-    fn clone(&self) -> Self {
-        let sender = self.receiver.new_sender();
-        let receiver = self.receiver.new_receiver();
-        Self { sender, receiver }
-    }
-}
-
-impl Messager {
+impl Relayer {
     // TODO: Allow for modulating the capacity of the messager.
     /// Creates a new messager with the given capacity.
     #[allow(clippy::new_without_default)]
     pub fn new() -> Self {
-        let (sender, receiver) = broadcast(512);
+        let (sender, receiver) = unbounded();
         Self { sender, receiver }
-    }
-}
-
-#[async_trait::async_trait]
-impl Collector<Message> for Messager {
-    #[tracing::instrument(skip(self), level = "debug", target = "messager")]
-    async fn get_event_stream(&self) -> Result<CollectorStream<'_, Message>> {
-        debug!("Getting the event stream for the messager.");
-        let mut receiver = self.receiver.clone();
-        let stream = async_stream::stream! {
-            loop {
-                let message = receiver.recv().await;
-                match message {
-                    Ok(message) => yield message,
-                    Err(_) => break,
-                }
-            }
-        };
-        Ok(Box::pin(stream))
     }
 }
 
 #[async_trait::async_trait]
 impl Executor<Message> for Messager {
-    #[tracing::instrument(skip(self), level = "trace", target = "messager")]
+    #[tracing::instrument(skip(self), level = "debug", target = "messager")]
     async fn execute(&self, message: Message) -> Result<()> {
-        match self.sender.broadcast(message.clone()).await {
+        debug!("Executing message: {:?}", message);
+        let to = message.to.clone();
+        let messager = self.get(&to).unwrap();
+        match messager.sender.send(message.clone()) {
             Ok(_) => {
                 trace!("The message was successfully broadcasted: {:?}", message);
                 Ok(())
@@ -80,5 +58,24 @@ impl Executor<Message> for Messager {
                 Err(e.into())
             }
         }
+    }
+}
+
+#[async_trait::async_trait]
+impl Collector<Message> for Relayer {
+    #[tracing::instrument(skip(self), level = "debug", target = "messager")]
+    async fn get_event_stream(&self) -> Result<CollectorStream<'_, Message>> {
+        debug!("Getting the event stream for the messager.");
+        let receiver = self.receiver.clone();
+        let stream = async_stream::stream! {
+            loop {
+                let message = receiver.recv();
+                match message {
+                    Ok(message) => yield message,
+                    Err(_) => break,
+                }
+            }
+        };
+        Ok(Box::pin(stream))
     }
 }
