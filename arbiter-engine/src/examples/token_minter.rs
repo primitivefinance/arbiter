@@ -1,5 +1,4 @@
 use artemis_core::executors::mempool_executor::MempoolExecutor;
-
 use tracing::error;
 
 use super::*;
