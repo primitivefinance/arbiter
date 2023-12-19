@@ -2,7 +2,7 @@ use artemis_core::executors::mempool_executor::MempoolExecutor;
 use tracing::error;
 
 use super::*;
-use crate::agent::BehaviorBuilder;
+use crate::{agent::BehaviorBuilder, messager::To};
 
 const TOKEN_ADMIN_ID: &str = "token_admin";
 const REQUESTER_ID: &str = "requester";
@@ -109,42 +109,39 @@ impl Strategy<Message, MessageOrTx> for TokenAdmin {
         if self.tokens.is_none() {
             error!("There were no tokens to deploy! You must add tokens to the token admin before running the simulation.");
         }
-        if event.to == self.id {
-            let query: TokenAdminQuery = serde_json::from_str(&event.data).unwrap();
-            trace!("Got query: {:?}", query);
-            match query {
-                TokenAdminQuery::AddressOf(token_name) => {
-                    trace!(
-                        "Getting address of token with name: {:?}",
-                        token_name.clone()
-                    );
-                    let token_data = self.token_data.get(&token_name).unwrap();
-                    let message = Message {
-                        from: self.id.to_owned(),
-                        to: event.from.clone(), // Reply back to sender
-                        data: serde_json::to_string(token_data).unwrap(),
-                    };
-                    vec![MessageOrTx::Message(message)]
-                }
-                TokenAdminQuery::MintRequest(mint_request) => {
-                    trace!("Minting tokens: {:?}", mint_request);
-                    let token = self
-                        .tokens
-                        .as_ref()
-                        .unwrap()
-                        .get(&mint_request.token)
-                        .unwrap();
-                    let tx = SubmitTxToMempool {
-                        tx: token
-                            .mint(mint_request.mint_to, U256::from(mint_request.mint_amount))
-                            .tx,
-                        gas_bid_info: None,
-                    };
-                    vec![MessageOrTx::Tx(tx)]
-                }
+
+        let query: TokenAdminQuery = serde_json::from_str(&event.data).unwrap();
+        trace!("Got query: {:?}", query);
+        match query {
+            TokenAdminQuery::AddressOf(token_name) => {
+                trace!(
+                    "Getting address of token with name: {:?}",
+                    token_name.clone()
+                );
+                let token_data = self.token_data.get(&token_name).unwrap();
+                let message = Message {
+                    from: self.id.to_owned(),
+                    to: To::Agent(event.from.clone()), // Reply back to sender
+                    data: serde_json::to_string(token_data).unwrap(),
+                };
+                vec![MessageOrTx::Message(message)]
             }
-        } else {
-            vec![]
+            TokenAdminQuery::MintRequest(mint_request) => {
+                trace!("Minting tokens: {:?}", mint_request);
+                let token = self
+                    .tokens
+                    .as_ref()
+                    .unwrap()
+                    .get(&mint_request.token)
+                    .unwrap();
+                let tx = SubmitTxToMempool {
+                    tx: token
+                        .mint(mint_request.mint_to, U256::from(mint_request.mint_amount))
+                        .tx,
+                    gas_bid_info: None,
+                };
+                vec![MessageOrTx::Tx(tx)]
+            }
         }
     }
 }
@@ -191,34 +188,31 @@ impl Strategy<Message, Message> for TokenRequester {
     #[tracing::instrument(skip(self, event), fields(id = %self.id))]
     async fn process_event(&mut self, event: Message) -> Vec<Message> {
         trace!("Processing event for `TokenRequester` {:?}.", event);
-        if event.to == self.id {
-            if event.data == "Start" {
-                trace!("Requesting address of token: {:?}", self.token_data.name);
-                let message = Message {
-                    from: self.id.to_owned(),
-                    to: self.request_to.clone(),
-                    data: serde_json::to_string(&TokenAdminQuery::AddressOf(
-                        self.token_data.name.clone(),
-                    ))
-                    .unwrap(),
-                };
-                vec![message]
-            } else if event.data == "Mint" {
-                trace!("Requesting mint of token: {:?}", self.token_data.name);
-                let message = Message {
-                    from: self.id.to_owned(),
-                    to: self.request_to.clone(),
-                    data: serde_json::to_string(&TokenAdminQuery::MintRequest(MintRequest {
-                        token: self.token_data.name.clone(),
-                        mint_to: self.client.address(),
-                        mint_amount: 1,
-                    }))
-                    .unwrap(),
-                };
-                vec![message]
-            } else {
-                vec![]
-            }
+
+        if event.data == "Start" {
+            trace!("Requesting address of token: {:?}", self.token_data.name);
+            let message = Message {
+                from: self.id.to_owned(),
+                to: To::Agent(self.request_to.clone()),
+                data: serde_json::to_string(&TokenAdminQuery::AddressOf(
+                    self.token_data.name.clone(),
+                ))
+                .unwrap(),
+            };
+            vec![message]
+        } else if event.data == "Mint" {
+            trace!("Requesting mint of token: {:?}", self.token_data.name);
+            let message = Message {
+                from: self.id.to_owned(),
+                to: To::Agent(self.request_to.clone()),
+                data: serde_json::to_string(&TokenAdminQuery::MintRequest(MintRequest {
+                    token: self.token_data.name.clone(),
+                    mint_to: self.client.address(),
+                    mint_amount: 1,
+                }))
+                .unwrap(),
+            };
+            vec![message]
         } else {
             vec![]
         }
@@ -304,7 +298,7 @@ async fn token_minter_simulation() {
     // std::thread::sleep(std::time::Duration::from_millis(100));
     let message = Message {
         from: "host".to_owned(),
-        to: REQUESTER_ID.to_owned(),
+        to: To::Agent(REQUESTER_ID.to_owned()),
         data: "Start".to_owned(),
     };
     let _send_result = messager.execute(message).await;

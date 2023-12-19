@@ -19,7 +19,7 @@ use ethers::{
 use super::*;
 use crate::{
     agent::Agent,
-    messager::{Message, Messager, Relayer},
+    messager::{Message, Messager},
 };
 
 /// A world is a collection of agents that use the same type of provider, e.g.,
@@ -59,7 +59,7 @@ where
             id: id.to_owned(),
             agents: HashMap::new(),
             provider,
-            messager: HashMap::new(),
+            messager: Messager::new(),
         }
     }
 

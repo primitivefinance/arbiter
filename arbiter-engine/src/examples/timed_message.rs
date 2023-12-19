@@ -1,5 +1,5 @@
 use super::*;
-use crate::agent::BehaviorBuilder;
+use crate::{agent::BehaviorBuilder, messager::To};
 
 struct TimedMessage {
     delay: u64,
@@ -14,23 +14,20 @@ impl Strategy<Message, Message> for TimedMessage {
         Ok(())
     }
 
+    // TODO: Okay here is where the agent should NEVER have to know about the `event.to` or anything even if the message is broadcast or direct.
     #[tracing::instrument(skip(self, event), level = "trace")]
     async fn process_event(&mut self, event: Message) -> Vec<Message> {
         trace!("Processing event.");
-        if event.to == self.message.to {
-            let message = Message {
-                from: "agent".to_owned(),
-                to: "agent".to_owned(),
-                data: "Hello, world!".to_owned(),
-            };
-            if event.data == "Start" {
-                vec![message]
-            } else {
-                tokio::time::sleep(std::time::Duration::from_secs(self.delay)).await;
-                vec![message]
-            }
+        let message = Message {
+            from: "agent".to_owned(),
+            to: To::Agent("agent".to_owned()),
+            data: "Hello, world!".to_owned(),
+        };
+        if event.data == "Start" {
+            vec![message]
         } else {
-            vec![]
+            tokio::time::sleep(std::time::Duration::from_secs(self.delay)).await;
+            vec![message]
         }
     }
 }
@@ -56,7 +53,7 @@ async fn echoer() {
         delay: 1,
         message: Message {
             from: "agent".to_owned(),
-            to: "agent".to_owned(),
+            to: To::Agent("agent".to_owned()),
             data: "Hello, world!".to_owned(),
         },
     };
@@ -72,7 +69,7 @@ async fn echoer() {
     let tasks = world.run().await;
     let message = Message {
         from: "agent".to_owned(),
-        to: "agent".to_owned(),
+        to: To::Agent("agent".to_owned()),
         data: "Start".to_owned(),
     };
     let send_result = messager.execute(message).await;

@@ -29,14 +29,14 @@ use futures_util::{stream, StreamExt};
 use super::*;
 use crate::{
     agent::Agent,
-    messager::{Message, Relayer},
+    messager::{Message, Messager},
     world::World,
 };
 mod timed_message;
 mod token_minter;
 
 pub struct MessageAndLogCollector<M> {
-    pub messager: Relayer,
+    pub messager: Messager,
     pub log_collector: LogCollector<M>,
 }
 
@@ -62,7 +62,7 @@ impl Collector<MessageOrLog> for MessageAndLogCollector<RevmMiddleware> {
 }
 
 pub struct MessageAndMempoolExecutor<M> {
-    pub messager: Relayer,
+    pub messager: Messager,
     pub mempool_executor: MempoolExecutor<M>,
 }
 
