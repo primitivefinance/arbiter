@@ -25,7 +25,7 @@ jobs:
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
           git add Cargo.lock
-          git commit -m "Update Cargo.lock" || echo "No changes to commit"
+          git commit -m "Update Cargo.lock" || (git add Cargo.lock && git commit -m "Update Cargo.lock") || echo "No changes to commit"
       - name: Run release-plz
         uses: MarcoIeni/release-plz-action@v0.5
         env:
