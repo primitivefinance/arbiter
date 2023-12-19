@@ -13,7 +13,7 @@
 use ethers::providers::{Provider, PubsubClient};
 
 use super::*;
-use crate::agent::{Agent, Entity};
+use crate::{agent::Agent, messager::Messager};
 
 /// A world is a collection of agents that use the same type of provider, e.g.,
 /// operate on the same blockchain or same `Environment`.
@@ -22,16 +22,19 @@ pub struct World<P> {
     pub id: String,
 
     /// The agents in the world.
-    pub agents: HashMap<String, Box<dyn Entity>>, /* TODO: This should be a map of agents. We
-                                                   * may also want to add a bit more to the
-                                                   * Entity trait (e.g., the id of the agent).
-                                                   * In which case, we could expose it as pub so
-                                                   * those methods can be grabbed. */
+    pub agents: HashMap<String, Agent>, /* TODO: This should be a map of agents. We
+                                         * may also want to add a bit more to the
+                                         * Entity trait (e.g., the id of the agent).
+                                         * In which case, we could expose it as pub so
+                                         * those methods can be grabbed. */
 
     /// The provider for the world.
     pub provider: Provider<P>, /* TODO: The world itself may not need to carry around the
                                 * provider, but the agents should all use the same type of
                                 * provider. */
+
+    /// The messaging layer for the world.
+    pub messager: Messager,
 }
 
 // TODO: Can add a messager as an interconnect and have the manager give each
@@ -49,30 +52,39 @@ where
             id: id.to_owned(),
             agents: HashMap::new(),
             provider,
+            messager: Messager::new(),
         }
     }
 
     /// Adds an agent to the world.
-    pub fn add_agent<E, A>(&mut self, agent: Agent<E, A>)
-    where
-        E: Send + Clone + 'static + std::fmt::Debug,
-        A: Send + Clone + 'static + std::fmt::Debug,
-    {
+    pub fn add_agent(&mut self, agent: Agent) {
+        // TODO: Here is where we can maybe consider giving the agents a client?
         let id = agent.id.clone();
-        let entity = Box::new(agent);
-        self.agents.insert(id, entity);
+        self.agents.insert(id, agent);
     }
 
     /// Runs the agents in the world.
-    pub async fn run(&mut self) {
+    pub async fn run(&mut self) -> Vec<tokio::task::JoinHandle<()>> {
+        debug!("Running world: {}", self.id);
+        debug!("Agents in world: {:?}", self.agents.keys());
+
+        let mut tasks = Vec::new();
+
         for agent in self.agents.values_mut() {
-            let mut joinset = agent.run().await.unwrap();
-            while let Some(next) = joinset.join_next().await {
-                if let Err(e) = next {
-                    panic!("Error: {:?}", e);
-                }
+            trace!("Running agent: {}", agent.id);
+            let join_sets = Box::leak(Box::new(agent.run().await));
+            for set in join_sets.iter_mut() {
+                let task = tokio::spawn(async move {
+                    while let Some(next) = set.join_next().await {
+                        if let Err(e) = next {
+                            panic!("Error: {:?}", e);
+                        }
+                    }
+                });
+                tasks.push(task);
             }
         }
+        tasks
     }
 }
 
@@ -82,10 +94,8 @@ mod tests {
 
     use arbiter_bindings::bindings::weth::WETH;
     use arbiter_core::{
-        environment::builder::EnvironmentBuilder,
-        middleware::{connection::Connection, RevmMiddleware},
+        environment::builder::EnvironmentBuilder, middleware::connection::Connection,
     };
-    use artemis_core::executors::mempool_executor::MempoolExecutor;
     use ethers::{
         providers::{Middleware, Provider, Ws},
         types::Address,
@@ -93,7 +103,6 @@ mod tests {
     use futures_util::StreamExt;
 
     use super::*;
-    use crate::messager::Messager;
 
     #[ignore]
     #[test]
@@ -103,11 +112,13 @@ mod tests {
         let provider = Provider::new(connection);
         let mut world = World::new("test_world", provider);
 
-        let client = RevmMiddleware::new(&environment, Some("testname")).unwrap();
-        let mut agent = Agent::new("agent1");
-        let messager = Messager::new();
-        agent.add_collector(messager);
-        agent.add_executor(MempoolExecutor::new(client.clone()));
+        // let client = RevmMiddleware::new(&environment, Some("testname")).unwrap();
+        let agent = Agent::new("agent1");
+        // let messager = Messager::new();
+        // let behavior = BehaviorBuilder::new()
+        //     .add_collector(messager.clone())
+        //     .add_executor(MempoolExecutor::new(client.clone()))
+        //     .build();
         world.add_agent(agent);
     }
 
