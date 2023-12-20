@@ -87,15 +87,15 @@ impl Agent {
         self.dependents.push(dependent.to_owned());
     }
 
-    pub(crate) async fn run(&mut self) -> Vec<JoinSet<()>> {
-        let mut join_sets = vec![];
-        for behavior in self.behaviors.iter_mut() {
-            trace!("Running behavior");
-            let joinset = behavior.await.unwrap();
-            join_sets.push(joinset);
-        }
-        join_sets
-    }
+    // pub(crate) async fn run(&mut self) -> Vec<JoinSet<()>> {
+    //     let mut join_sets = vec![];
+    //     for behavior in self.behaviors.iter_mut() {
+    //         trace!("Running behavior");
+    //         let joinset = behavior.await.unwrap();
+    //         join_sets.push(joinset);
+    //     }
+    //     join_sets
+    // }
 }
 
 type Behavior = Pin<Box<dyn Future<Output = Result<JoinSet<()>, Box<dyn Error>>> + Send>>;

@@ -313,12 +313,13 @@ async fn token_minter_simulation() {
     requester_agent.add_behavior(mint_behavior);
 
     // Run the world and send the start message
-    let tasks = world.run().await;
+
     let message = Message {
         from: "host".to_owned(),
         to: To::Agent(REQUESTER_ID.to_owned()),
         data: "Start".to_owned(),
     };
+    // TODO: Messages like this could probably be put in the `world.run()`
     world.messager.execute(message).await;
 
     let message = Message {
@@ -328,5 +329,6 @@ async fn token_minter_simulation() {
     };
     world.messager.execute(message).await;
 
-    futures::future::join_all(tasks).await;
+    let tasks = world.run().await;
+    world.join().await;
 }

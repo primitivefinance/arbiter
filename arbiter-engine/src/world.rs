@@ -15,6 +15,7 @@ use ethers::{
     abi::Hash,
     providers::{Provider, PubsubClient},
 };
+use tokio::task::JoinSet;
 
 use super::*;
 use crate::{
@@ -42,6 +43,8 @@ pub struct World<P> {
 
     /// The messaging layer for the world.
     pub messager: Messager, // TODO: Use this as the message executor that can be given to all agents and give each agent their specific collector.
+
+    pub joinsets: Option<Vec<JoinSet<()>>>,
 }
 
 // TODO: Can add a messager as an interconnect and have the manager give each
@@ -60,6 +63,7 @@ where
             agents: HashMap::new(),
             provider,
             messager: Messager::new(),
+            joinsets: None,
         }
     }
 
@@ -72,27 +76,28 @@ where
     }
 
     /// Runs the agents in the world.
-    pub async fn run(&mut self) -> Vec<tokio::task::JoinHandle<()>> {
+    pub async fn run(&mut self) {
         debug!("Running world: {}", self.id);
         debug!("Agents in world: {:?}", self.agents.keys());
 
-        let mut tasks = Vec::new();
-
+        let mut join_sets = vec![];
         for agent in self.agents.values_mut() {
             trace!("Running agent: {}", agent.id);
-            let join_sets = Box::leak(Box::new(agent.run().await));
-            for set in join_sets.iter_mut() {
-                let task = tokio::spawn(async move {
-                    while let Some(next) = set.join_next().await {
-                        if let Err(e) = next {
-                            panic!("Error: {:?}", e);
-                        }
-                    }
-                });
-                tasks.push(task);
+
+            for behavior in agent.behaviors.iter_mut() {
+                trace!("Running behavior");
+                let joinset = behavior.await.unwrap();
+                join_sets.push(joinset);
             }
         }
-        tasks
+        self.joinsets = Some(join_sets);
+    }
+
+    pub async fn join(&mut self) {
+        std::thread::sleep(std::time::Duration::from_secs(3));
+        for joinset in self.joinsets.as_mut().unwrap().iter_mut() {
+            while let Some(_) = joinset.join_next().await {}
+        }
     }
 }
 

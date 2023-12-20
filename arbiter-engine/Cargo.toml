@@ -10,8 +10,8 @@ readme = "../README.md"
 
 [dependencies]
 ethers.workspace = true
-artemis-core = { git = "https://github.com/paradigmxyz/artemis.git" }
-# artemis-core = { path = "../../../artemis/crates/artemis-core" }
+# artemis-core = { git = "https://github.com/paradigmxyz/artemis.git" }
+artemis-core = { path = "../../../artemis/crates/artemis-core" }
 futures-util.workspace = true
 async-trait.workspace = true
 serde_json.workspace = true

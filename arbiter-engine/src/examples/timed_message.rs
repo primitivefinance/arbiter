@@ -76,7 +76,5 @@ async fn echoer() {
     let send_result = world.messager.execute(message).await;
     debug!("Start message sent {:?}", send_result);
 
-    for task in tasks {
-        task.await.unwrap();
-    }
+    world.join().await;
 }
