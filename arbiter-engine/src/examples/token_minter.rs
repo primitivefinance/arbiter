@@ -230,15 +230,16 @@ impl Strategy<Log, Message> for TokenRequester {
 
     #[tracing::instrument(skip(self, event), fields(id = %self.id))]
     async fn process_event(&mut self, event: Log) -> Vec<Message> {
-        println!("Got event for `TokenRequester` logger: {:?}", event);
+        trace!("Got event for `TokenRequester` logger: {:?}", event);
+        std::thread::sleep(std::time::Duration::from_secs(1));
         let message = Message {
             from: self.id.clone(),
-            to: To::Agent(TOKEN_ADMIN_ID.to_owned()),
-            data: serde_json::to_string(&MintRequest {
+            to: To::Agent(self.request_to.clone()),
+            data: serde_json::to_string(&TokenAdminQuery::MintRequest(MintRequest {
                 token: self.token_data.name.clone(),
                 mint_to: self.client.address(),
                 mint_amount: 1,
-            })
+            }))
             .unwrap(),
         };
         vec![message]
@@ -309,6 +310,7 @@ async fn token_minter_simulation() {
         .add_executor(requester_agent.messager.clone())
         .add_strategy(token_requester)
         .build();
+    requester_agent.add_behavior(mint_behavior);
 
     // Run the world and send the start message
     let tasks = world.run().await;
@@ -319,7 +321,6 @@ async fn token_minter_simulation() {
     };
     world.messager.execute(message).await;
 
-    std::thread::sleep(std::time::Duration::from_secs(1));
     let message = Message {
         from: "host".to_owned(),
         to: To::Agent(REQUESTER_ID.to_owned()),

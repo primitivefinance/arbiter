@@ -22,6 +22,7 @@ use ethers::providers::{Middleware, PubsubClient};
 use futures_util::Future;
 use tokio::task::JoinSet;
 
+use super::*;
 use crate::{messager::Messager, world::World};
 
 /// An agent is an entity capable of processing events and producing actions.
@@ -89,6 +90,7 @@ impl Agent {
     pub(crate) async fn run(&mut self) -> Vec<JoinSet<()>> {
         let mut join_sets = vec![];
         for behavior in self.behaviors.iter_mut() {
+            trace!("Running behavior");
             let joinset = behavior.await.unwrap();
             join_sets.push(joinset);
         }
