@@ -328,7 +328,5 @@ async fn token_minter_simulation() {
     };
     world.messager.execute(message).await;
 
-    for task in tasks {
-        task.await.unwrap();
-    }
+    futures::future::join_all(tasks).await;
 }
