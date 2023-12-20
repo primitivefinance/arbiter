@@ -12,16 +12,17 @@
 
 //! The agent module contains the core agent abstraction for the Arbiter Engine.
 
-use std::{error::Error, pin::Pin};
+use std::{error::Error, pin::Pin, rc::Rc, sync::Arc};
 
 use artemis_core::{
     engine::Engine,
     types::{Collector, Executor, Strategy},
 };
+use ethers::providers::{Middleware, PubsubClient};
 use futures_util::Future;
 use tokio::task::JoinSet;
 
-
+use crate::{messager::Messager, world::World};
 
 /// An agent is an entity capable of processing events and producing actions.
 /// These are the core actors in simulations or in onchain systems.
@@ -42,17 +43,22 @@ pub struct Agent {
 
     /// Agents that depend on this agent.
     pub dependents: Vec<String>,
+
+    // TODO: WE CAN GIVE THE AGENT A MESSAGER THAT HAS THEIR ID AND POSSIBLY MAKE SETTING UP BEHAVIORS EASIER BY HAVING THE ABILITY TO DO `agent.messager` as collector and executor.
+    pub messager: Messager,
+    // pub client: Arc<dyn Middleware>,
 }
 
 impl Agent {
-    #[allow(clippy::new_without_default)]
     /// Produces a new agent with the given identifier.
-    pub fn new(id: &str) -> Self {
+    pub(crate) fn connect<P>(id: &str, world: &World<P>) -> Self {
+        let messager = world.messager.for_agent(id);
         Self {
             id: id.to_owned(),
             behaviors: vec![],
             dependencies: vec![],
             dependents: vec![],
+            messager,
         }
     }
 
@@ -164,36 +170,36 @@ mod tests {
 
     use super::*;
 
-    #[ignore]
-    #[tokio::test]
-    async fn test_agent() {
-        // Startup
-        let environment = EnvironmentBuilder::new().build();
-        let client = RevmMiddleware::new(&environment, None).unwrap();
-        let arb = ArbiterToken::deploy(
-            client.clone(),
-            ("Arbiter Token".to_string(), "ARB".to_string(), 18),
-        )
-        .unwrap()
-        .send()
-        .await
-        .unwrap();
+    // #[ignore]
+    // #[tokio::test]
+    // async fn test_agent() {
+    //     // Startup
+    //     let environment = EnvironmentBuilder::new().build();
+    //     let client = RevmMiddleware::new(&environment, None).unwrap();
+    //     let arb = ArbiterToken::deploy(
+    //         client.clone(),
+    //         ("Arbiter Token".to_string(), "ARB".to_string(), 18),
+    //     )
+    //     .unwrap()
+    //     .send()
+    //     .await
+    //     .unwrap();
 
-        // Build the agent
-        let mut agent = Agent::new("test");
-        let behavior = BehaviorBuilder::new()
-            .add_collector(LogCollector::new(
-                client.clone(),
-                arb.transfer_filter().filter,
-            ))
-            .add_executor(MempoolExecutor::new(client.clone()))
-            .build();
-        agent.add_behavior(behavior);
+    //     // Build the agent
+    //     let mut agent = Agent::new("test");
+    //     let behavior = BehaviorBuilder::new()
+    //         .add_collector(LogCollector::new(
+    //             client.clone(),
+    //             arb.transfer_filter().filter,
+    //         ))
+    //         .add_executor(MempoolExecutor::new(client.clone()))
+    //         .build();
+    //     agent.add_behavior(behavior);
 
-        let tx = arb.mint(client.address(), U256::from(1)).tx;
-        let _submit_tx = SubmitTxToMempool {
-            tx,
-            gas_bid_info: None,
-        };
-    }
+    //     let tx = arb.mint(client.address(), U256::from(1)).tx;
+    //     let _submit_tx = SubmitTxToMempool {
+    //         tx,
+    //         gas_bid_info: None,
+    //     };
+    // }
 }

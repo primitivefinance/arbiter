@@ -64,10 +64,11 @@ where
     }
 
     /// Adds an agent to the world.
-    pub fn add_agent(&mut self, agent: Agent) {
+    pub fn create_agent(&mut self, id: &str) -> &mut Agent {
         // TODO: Here is where we can maybe consider giving the agents a client?
-        let id = agent.id.clone();
-        self.agents.insert(id, agent);
+        let agent = Agent::connect(id, self);
+        self.agents.insert(id.to_owned(), agent);
+        self.agents.get_mut(id).unwrap()
     }
 
     /// Runs the agents in the world.
@@ -111,23 +112,23 @@ mod tests {
 
     use super::*;
 
-    #[ignore]
-    #[test]
-    fn arbiter_world() {
-        let environment = EnvironmentBuilder::new().build();
-        let connection = Connection::from(&environment);
-        let provider = Provider::new(connection);
-        let mut world = World::new("test_world", provider);
+    // #[ignore]
+    // #[test]
+    // fn arbiter_world() {
+    //     let environment = EnvironmentBuilder::new().build();
+    //     let connection = Connection::from(&environment);
+    //     let provider = Provider::new(connection);
+    //     let mut world = World::new("test_world", provider);
 
-        // let client = RevmMiddleware::new(&environment, Some("testname")).unwrap();
-        let agent = Agent::new("agent1");
-        // let messager = Messager::new();
-        // let behavior = BehaviorBuilder::new()
-        //     .add_collector(messager.clone())
-        //     .add_executor(MempoolExecutor::new(client.clone()))
-        //     .build();
-        world.add_agent(agent);
-    }
+    //     // let client = RevmMiddleware::new(&environment, Some("testname")).unwrap();
+    //     let agent = Agent::new("agent1");
+    //     // let messager = Messager::new();
+    //     // let behavior = BehaviorBuilder::new()
+    //     //     .add_collector(messager.clone())
+    //     //     .add_executor(MempoolExecutor::new(client.clone()))
+    //     //     .build();
+    //     world.add_agent(agent);
+    // }
 
     #[ignore]
     #[tokio::test]

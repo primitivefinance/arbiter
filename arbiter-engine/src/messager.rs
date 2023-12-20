@@ -6,7 +6,6 @@
 
 //! The messager module contains the core messager layer for the Arbiter Engine.
 
-use artemis_core::types::{Collector, CollectorStream, Executor};
 use async_broadcast::{broadcast, Receiver as BroadcastReceiver, Sender as BroadcastSender};
 use crossbeam_channel::{unbounded, Receiver, Sender};
 
@@ -27,7 +26,7 @@ pub struct Message {
     pub data: String,
 }
 
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, Serialize, PartialEq, Eq)]
 pub enum To {
     All,
     Agent(String),
@@ -45,6 +44,7 @@ pub struct Messager {
 
 impl Messager {
     // TODO: Allow for modulating the capacity of the messager.
+    // TODO: It might be nice to have some kind of messaging header so that we can pipe messages to agents and pipe messages across worlds.
     /// Creates a new messager with the given capacity.
     #[allow(clippy::new_without_default)]
     pub fn new() -> Self {
@@ -57,7 +57,7 @@ impl Messager {
     }
 
     // TODO: Okay if we do something kinda like this, then agents don't even need to filter the `to` field or set the `from` field. Let's give this a shot!
-    pub fn for_agent(&self, id: &str) -> Self {
+    pub(crate) fn for_agent(&self, id: &str) -> Self {
         Self {
             broadcast_sender: self.broadcast_sender.clone(),
             broadcast_receiver: self.broadcast_receiver.clone(),
@@ -79,10 +79,18 @@ impl Collector<Message> for Messager {
         let stream = async_stream::stream! {
             loop {
                 let message = receiver.recv().await;
+                if let Some(id) = &self.id {
+                    if let Ok(message) = message {
+                        if message.to == To::Agent(id.to_owned()) {
+                            yield message;
+                        }
+                    }
+                } else {
                 match message {
                     Ok(message) => yield message,
                     Err(_) => break,
                 }
+            }
             }
         };
         Ok(Box::pin(stream))

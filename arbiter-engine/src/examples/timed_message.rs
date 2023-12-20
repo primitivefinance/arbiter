@@ -1,3 +1,5 @@
+const AGENT_ID: &str = "agent";
+
 use super::*;
 use crate::{agent::BehaviorBuilder, messager::To};
 
@@ -46,9 +48,9 @@ async fn echoer() {
     let connection = Connection::from(&environment);
     let provider = Provider::new(connection);
     let mut world = World::new("test_world", provider);
-    let messager = world.messager.clone();
 
-    let mut agent = Agent::new("agent");
+    let agent = world.create_agent(AGENT_ID);
+
     let strategy = TimedMessage {
         delay: 1,
         message: Message {
@@ -58,12 +60,11 @@ async fn echoer() {
         },
     };
     let behavior = BehaviorBuilder::new()
-        .add_collector(messager.for_agent("agent"))
-        .add_executor(messager.for_agent("agent"))
+        .add_collector(agent.messager.clone())
+        .add_executor(agent.messager.clone())
         .add_strategy(strategy)
         .build();
     agent.add_behavior(behavior);
-    world.add_agent(agent);
 
     debug!("Starting world.");
     let tasks = world.run().await;
@@ -72,7 +73,7 @@ async fn echoer() {
         to: To::Agent("agent".to_owned()),
         data: "Start".to_owned(),
     };
-    let send_result = messager.execute(message).await;
+    let send_result = world.messager.execute(message).await;
     debug!("Start message sent {:?}", send_result);
 
     for task in tasks {

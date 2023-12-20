@@ -24,6 +24,7 @@ tokio-stream = "0.1.14"
 async-broadcast = "0.6.0"
 futures = "0.3.30"
 crossbeam-channel.workspace = true
+arbiter-core.workspace = true
 
 [dev-dependencies]
 arbiter-core.workspace = true

@@ -22,7 +22,7 @@ use artemis_core::{
 };
 use ethers::{
     providers::{Middleware, Provider},
-    types::{Address, Log, U256},
+    types::{transaction::eip2718::TypedTransaction, Address, Log, U256},
 };
 use futures_util::{stream, StreamExt};
 
@@ -30,6 +30,7 @@ use super::*;
 use crate::{
     agent::Agent,
     messager::{Message, Messager},
+    transactor::Transactor,
     world::World,
 };
 mod timed_message;
@@ -61,19 +62,19 @@ impl Collector<MessageOrLog> for MessageAndLogCollector<RevmMiddleware> {
     }
 }
 
-pub struct MessageAndMempoolExecutor<M> {
+pub struct MessageAndTransactionExecutor {
     pub messager: Messager,
-    pub mempool_executor: MempoolExecutor<M>,
+    pub transactor: Transactor,
 }
 
 #[derive(Debug, Clone)]
 pub enum MessageOrTx {
     Message(Message),
-    Tx(SubmitTxToMempool),
+    Tx(TypedTransaction),
 }
 
 #[async_trait::async_trait]
-impl<M: Middleware + 'static> Executor<MessageOrTx> for MessageAndMempoolExecutor<M> {
+impl Executor<MessageOrTx> for MessageAndTransactionExecutor {
     #[tracing::instrument(skip(self), level = "trace", target = "message_and_mempool_executor")]
     async fn execute(&self, action: MessageOrTx) -> Result<()> {
         trace!("Got an action to execute: {:?}", action);
@@ -82,7 +83,7 @@ impl<M: Middleware + 'static> Executor<MessageOrTx> for MessageAndMempoolExecuto
                 self.messager.execute(message).await?;
             }
             MessageOrTx::Tx(tx) => {
-                self.mempool_executor.execute(tx).await?;
+                self.transactor.execute(tx).await?;
             }
         }
         Ok(())

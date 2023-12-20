@@ -1,4 +1,5 @@
 use artemis_core::executors::mempool_executor::MempoolExecutor;
+use ethers::types::{transaction::request, Filter};
 use tracing::error;
 
 use super::*;
@@ -134,12 +135,10 @@ impl Strategy<Message, MessageOrTx> for TokenAdmin {
                     .unwrap()
                     .get(&mint_request.token)
                     .unwrap();
-                let tx = SubmitTxToMempool {
-                    tx: token
-                        .mint(mint_request.mint_to, U256::from(mint_request.mint_amount))
-                        .tx,
-                    gas_bid_info: None,
-                };
+                let tx = token
+                    .mint(mint_request.mint_to, U256::from(mint_request.mint_amount))
+                    .tx;
+
                 vec![MessageOrTx::Tx(tx)]
             }
         }
@@ -181,13 +180,15 @@ impl TokenRequester {
 
 #[async_trait::async_trait]
 impl Strategy<Message, Message> for TokenRequester {
+    #[tracing::instrument(skip(self), fields(id = %self.id))]
     async fn sync_state(&mut self) -> Result<()> {
+        trace!("Syncing state for `TokenRequester` startup.");
         Ok(())
     }
 
     #[tracing::instrument(skip(self, event), fields(id = %self.id))]
     async fn process_event(&mut self, event: Message) -> Vec<Message> {
-        trace!("Processing event for `TokenRequester` {:?}.", event);
+        trace!("Processing event for `TokenRequester` startup {:?}.", event);
 
         if event.data == "Start" {
             trace!("Requesting address of token: {:?}", self.token_data.name);
@@ -219,27 +220,30 @@ impl Strategy<Message, Message> for TokenRequester {
     }
 }
 
-// #[async_trait::async_trait]
-// impl Strategy<Log, Message> for TokenRequester {
-//     async fn sync_state(&mut self) -> Result<()> {
-//         Ok(())
-//     }
+#[async_trait::async_trait]
+impl Strategy<Log, Message> for TokenRequester {
+    #[tracing::instrument(skip(self), fields(id = %self.id))]
+    async fn sync_state(&mut self) -> Result<()> {
+        trace!("Syncing state for `TokenRequester` logger.");
+        Ok(())
+    }
 
-//     async fn process_event(&mut self, event: Log) -> Vec<Message> {
-//         println!("Got event: {:?}", event);
-//         let message = Message {
-//             from: "requester".to_owned(),
-//             to: self.request_to.clone(),
-//             data: serde_json::to_string(&MintRequest {
-//                 token: self.token_data.name.clone(),
-//                 mint_to: self.client.address(),
-//                 mint_amount: 1,
-//             })
-//             .unwrap(),
-//         };
-//         vec![message]
-//     }
-// }
+    #[tracing::instrument(skip(self, event), fields(id = %self.id))]
+    async fn process_event(&mut self, event: Log) -> Vec<Message> {
+        println!("Got event for `TokenRequester` logger: {:?}", event);
+        let message = Message {
+            from: self.id.clone(),
+            to: To::Agent(TOKEN_ADMIN_ID.to_owned()),
+            data: serde_json::to_string(&MintRequest {
+                token: self.token_data.name.clone(),
+                mint_to: self.client.address(),
+                mint_amount: 1,
+            })
+            .unwrap(),
+        };
+        vec![message]
+    }
+}
 
 #[ignore]
 #[tokio::test(flavor = "multi_thread", worker_threads = 4)]
@@ -253,10 +257,9 @@ async fn token_minter_simulation() {
     let connection = Connection::from(&environment);
     let provider = Provider::new(connection);
     let mut world = World::new("test_world", provider);
-    let messager = world.messager.clone();
 
     // Create the token admin agent
-    let mut token_admin_agent = Agent::new(TOKEN_ADMIN_ID);
+    let token_admin_agent = world.create_agent(TOKEN_ADMIN_ID);
     let token_admin_client = RevmMiddleware::new(&environment, Some(TOKEN_ADMIN_ID)).unwrap();
     let mut token_admin_strategy = TokenAdmin::new(token_admin_client.clone());
     token_admin_strategy.add_token(TokenData {
@@ -266,42 +269,63 @@ async fn token_minter_simulation() {
         address: None,
     });
 
-    let message_and_mempool_executor = MessageAndMempoolExecutor {
-        messager: messager.clone(),
-        mempool_executor: MempoolExecutor::new(token_admin_client.clone()),
+    let message_and_mempool_executor = MessageAndTransactionExecutor {
+        messager: token_admin_agent.messager.clone(),
+        transactor: Transactor {
+            client: token_admin_client.clone(),
+        },
     };
 
     let token_admin_behavior = BehaviorBuilder::new()
-        .add_collector(messager.clone())
+        .add_collector(token_admin_agent.messager.clone())
         .add_executor(message_and_mempool_executor)
         .add_strategy(token_admin_strategy.clone())
         .build();
     token_admin_agent.add_behavior(token_admin_behavior);
 
     // Create the token requester agent
-    let mut requester_agent = Agent::new(REQUESTER_ID);
+    let requester_agent = world.create_agent(REQUESTER_ID);
     let requester_client = RevmMiddleware::new(&environment, Some(REQUESTER_ID)).unwrap();
-    let requester_behavior = TokenRequester::new(REQUESTER_ID, requester_client.clone());
-    let requester_behavior = BehaviorBuilder::new()
-        .add_collector(messager.clone())
-        .add_executor(messager.clone())
-        .add_strategy(requester_behavior)
+    let token_requester = TokenRequester::new(REQUESTER_ID, requester_client.clone());
+    let query_behavior = BehaviorBuilder::new()
+        .add_collector(requester_agent.messager.clone())
+        .add_executor(requester_agent.messager.clone())
+        .add_strategy(token_requester.clone())
         .build();
-    requester_agent.add_behavior(requester_behavior);
-
-    // Add agents to world
-    world.add_agent(token_admin_agent);
-    world.add_agent(requester_agent);
+    requester_agent.add_behavior(query_behavior);
+    let mint_behavior = BehaviorBuilder::new()
+        .add_collector(LogCollector::new(
+            requester_client.clone(),
+            Filter::default(),
+            // token_admin_strategy
+            //     .tokens
+            //     .as_ref()
+            //     .unwrap()
+            //     .get(&TOKEN_NAME.to_owned())
+            //     .unwrap()
+            //     .transfer_filter()
+            //     .filter,
+        ))
+        .add_executor(requester_agent.messager.clone())
+        .add_strategy(token_requester)
+        .build();
 
     // Run the world and send the start message
     let tasks = world.run().await;
-    // std::thread::sleep(std::time::Duration::from_millis(100));
     let message = Message {
         from: "host".to_owned(),
         to: To::Agent(REQUESTER_ID.to_owned()),
         data: "Start".to_owned(),
     };
-    let _send_result = messager.execute(message).await;
+    world.messager.execute(message).await;
+
+    std::thread::sleep(std::time::Duration::from_secs(1));
+    let message = Message {
+        from: "host".to_owned(),
+        to: To::Agent(REQUESTER_ID.to_owned()),
+        data: "Mint".to_owned(),
+    };
+    world.messager.execute(message).await;
 
     for task in tasks {
         task.await.unwrap();
