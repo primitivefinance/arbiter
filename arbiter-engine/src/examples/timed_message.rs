@@ -58,8 +58,8 @@ async fn echoer() {
         },
     };
     let behavior = BehaviorBuilder::new()
-        .add_collector(messager.clone())
-        .add_executor(messager.clone())
+        .add_collector(messager.for_agent("agent"))
+        .add_executor(messager.for_agent("agent"))
         .add_strategy(strategy)
         .build();
     agent.add_behavior(behavior);

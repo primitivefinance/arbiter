@@ -37,10 +37,10 @@ pub enum To {
 #[derive(Clone, Debug)]
 pub struct Messager {
     // TODO: Right now these are for broadcasting. We could add a way to send to a specific agent.
-    // In fact, if we just have all agents join the messager, then we can send to all agents if the `to` is `None`.
+    // In fact, if we just have all agents join the messager, then we can send to all agents if the `to` is `None`
     pub(crate) broadcast_sender: BroadcastSender<Message>,
     broadcast_receiver: BroadcastReceiver<Message>,
-    agent_channels: HashMap<String, (Sender<Message>, Receiver<Message>)>,
+    pub id: Option<String>,
 }
 
 impl Messager {
@@ -52,13 +52,17 @@ impl Messager {
         Self {
             broadcast_sender,
             broadcast_receiver,
-            agent_channels: HashMap::new(),
+            id: None,
         }
     }
 
-    pub fn join(&mut self, id: &str) {
-        let agent_channel = unbounded();
-        self.agent_channels.insert(id.to_owned(), agent_channel);
+    // TODO: Okay if we do something kinda like this, then agents don't even need to filter the `to` field or set the `from` field. Let's give this a shot!
+    pub fn for_agent(&self, id: &str) -> Self {
+        Self {
+            broadcast_sender: self.broadcast_sender.clone(),
+            broadcast_receiver: self.broadcast_receiver.clone(),
+            id: Some(id.to_owned()),
+        }
     }
 }
 
@@ -67,7 +71,10 @@ impl Collector<Message> for Messager {
     // TODO: In here we need to get the stream for the broadcast receiver and the SPECIFIC stream for the SPECIFIC agent given the ID and fuse the two streams.
     #[tracing::instrument(skip(self), level = "debug", target = "messager")]
     async fn get_event_stream(&self) -> Result<CollectorStream<'_, Message>> {
-        debug!("Getting the event stream for the messager.");
+        debug!(
+            "Getting the event stream for the messager with ID: {:?}.",
+            self.id
+        );
         let mut receiver = self.broadcast_receiver.clone();
         let stream = async_stream::stream! {
             loop {
