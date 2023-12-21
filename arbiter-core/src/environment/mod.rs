@@ -27,8 +27,6 @@
 //! - `EventBroadcaster`: Responsible for broadcasting Ethereum logs to
 //!   subscribers.
 
-#![warn(missing_docs, unsafe_code)]
-
 use std::{
     convert::Infallible,
     fmt::Debug,
@@ -45,16 +43,15 @@ use revm::{
     },
     Database, DatabaseCommit, EVM,
 };
-use revm_primitives::{db::DatabaseRef, Bytecode};
-use serde::{Deserialize, Serialize, Serializer};
+use serde::{Deserialize, Serialize};
 use thiserror::Error;
 
 use super::*;
-use crate::math::SeededPoisson;
 #[cfg_attr(doc, doc(hidden))]
 #[cfg_attr(doc, allow(unused_imports))]
 #[cfg(doc)]
 use crate::middleware::RevmMiddleware;
+use crate::{database::ArbiterDB, math::SeededPoisson};
 
 pub mod cheatcodes;
 use cheatcodes::*;
@@ -141,72 +138,6 @@ pub struct Environment {
     /// Used for assuring that the environment is stopped properly or for
     /// performing any blocking action the end user needs.
     pub(crate) handle: Option<JoinHandle<Result<(), EnvironmentError>>>,
-}
-
-#[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct ArbiterDB(Arc<RwLock<CacheDB<EmptyDB>>>);
-
-impl Database for ArbiterDB {
-    type Error = Infallible; // TODO: Not sure we want this, but it works for now.
-
-    fn basic(
-        &mut self,
-        address: revm::primitives::Address,
-    ) -> Result<Option<AccountInfo>, Self::Error> {
-        self.0.write().unwrap().basic(address)
-    }
-
-    fn code_by_hash(&mut self, code_hash: B256) -> Result<Bytecode, Self::Error> {
-        self.0.write().unwrap().code_by_hash(code_hash)
-    }
-
-    fn storage(
-        &mut self,
-        address: revm::primitives::Address,
-        index: U256,
-    ) -> Result<U256, Self::Error> {
-        self.0.write().unwrap().storage(address, index)
-    }
-
-    fn block_hash(&mut self, number: U256) -> Result<B256, Self::Error> {
-        self.0.write().unwrap().block_hash(number)
-    }
-}
-
-impl DatabaseRef for ArbiterDB {
-    type Error = Infallible; // TODO: Not sure we want this, but it works for now.
-
-    fn basic_ref(
-        &self,
-        address: revm::primitives::Address,
-    ) -> Result<Option<AccountInfo>, Self::Error> {
-        self.0.read().unwrap().basic_ref(address)
-    }
-
-    fn code_by_hash_ref(&self, code_hash: B256) -> Result<Bytecode, Self::Error> {
-        self.0.read().unwrap().code_by_hash_ref(code_hash)
-    }
-
-    fn storage_ref(
-        &self,
-        address: revm::primitives::Address,
-        index: U256,
-    ) -> Result<U256, Self::Error> {
-        self.0.read().unwrap().storage_ref(address, index)
-    }
-
-    fn block_hash_ref(&self, number: U256) -> Result<B256, Self::Error> {
-        self.0.read().unwrap().block_hash_ref(number)
-    }
-}
-
-impl DatabaseCommit for ArbiterDB {
-    fn commit(
-        &mut self,
-        changes: hashbrown::HashMap<revm::primitives::Address, revm::primitives::Account>,
-    ) {
-        self.0.write().unwrap().commit(changes)
-    }
 }
 
 /// Allow the end user to be able to access a debug printout for the
@@ -719,7 +650,7 @@ impl Environment {
                     }
                     Instruction::Stop(outcome_sender) => {
                         outcome_sender
-                            .send(Ok(Outcome::StopCompleted))
+                            .send(Ok(Outcome::StopCompleted(evm.db.unwrap())))
                             .map_err(|e| EnvironmentError::Communication(e.to_string()))?;
                         event_broadcaster.lock().unwrap().broadcast(None, true)?;
                         break;
@@ -740,7 +671,7 @@ impl Environment {
     ///   stopped.
     /// * `Err(EnvironmentError::Stop(String))` if the environment is in an
     ///   invalid state.
-    pub fn stop(mut self) -> Result<(), EnvironmentError> {
+    pub fn stop(mut self) -> Result<Option<ArbiterDB>, EnvironmentError> {
         let (outcome_sender, outcome_receiver) = bounded(1);
         self.socket
             .instruction_sender
@@ -754,10 +685,12 @@ impl Environment {
         let outcome = outcome_receiver
             .recv()
             .map_err(|e| EnvironmentError::Communication(e.to_string()))??;
-        match outcome {
-            Outcome::StopCompleted => {}
-            _ => Err(EnvironmentError::Stop("Failed to stop environment!".into()))?,
-        }
+
+        let db = match outcome {
+            Outcome::StopCompleted(stopped_db) => Some(stopped_db),
+            _ => return Err(EnvironmentError::Stop("Failed to stop environment!".into())),
+        };
+
         if let Some(label) = &self.parameters.label {
             warn!("Stopped environment with label: {}", label);
         } else {
@@ -773,7 +706,7 @@ impl Environment {
             .map_err(|_| {
                 EnvironmentError::Stop("Failed to join environment handle.".to_owned())
             })??;
-        Ok(())
+        Ok(db)
     }
 }
 

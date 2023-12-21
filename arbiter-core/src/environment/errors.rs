@@ -1,8 +1,6 @@
 //! Errors that can occur when managing or interfacing with Arbiter's sandboxed
 //! Ethereum environment.
 
-#![warn(missing_docs)]
-
 use super::*;
 
 /// Errors that can occur when managing or interfacing with the Ethereum
