@@ -143,24 +143,8 @@ pub struct Environment {
     pub(crate) handle: Option<JoinHandle<Result<(), EnvironmentError>>>,
 }
 
-use serde::ser::SerializeStruct;
-
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct ArbiterDB(Arc<RwLock<CacheDB<EmptyDB>>>);
-
-impl Serialize for ArbiterDB {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: Serializer,
-    {
-        let db = self.0.read().unwrap();
-        let mut state = serializer.serialize_struct("ArbiterDB", 2)?;
-        let accounts = db.accounts;
-        state.serialize_field("accounts", &db.accounts)?;
-        state.serialize_field("contracts", &db.contracts)?;
-        state.end()
-    }
-}
 
 impl Database for ArbiterDB {
     type Error = Infallible; // TODO: Not sure we want this, but it works for now.
@@ -169,11 +153,11 @@ impl Database for ArbiterDB {
         &mut self,
         address: revm::primitives::Address,
     ) -> Result<Option<AccountInfo>, Self::Error> {
-        self.0.read().unwrap().basic(address)
+        self.0.write().unwrap().basic(address)
     }
 
     fn code_by_hash(&mut self, code_hash: B256) -> Result<Bytecode, Self::Error> {
-        self.0.read().unwrap().code_by_hash(code_hash)
+        self.0.write().unwrap().code_by_hash(code_hash)
     }
 
     fn storage(
@@ -181,38 +165,38 @@ impl Database for ArbiterDB {
         address: revm::primitives::Address,
         index: U256,
     ) -> Result<U256, Self::Error> {
-        self.0.read().unwrap().storage(address, index)
+        self.0.write().unwrap().storage(address, index)
     }
 
     fn block_hash(&mut self, number: U256) -> Result<B256, Self::Error> {
-        self.0.read().unwrap().block_hash(number)
+        self.0.write().unwrap().block_hash(number)
     }
 }
 
 impl DatabaseRef for ArbiterDB {
     type Error = Infallible; // TODO: Not sure we want this, but it works for now.
 
-    fn basic(
+    fn basic_ref(
         &self,
         address: revm::primitives::Address,
     ) -> Result<Option<AccountInfo>, Self::Error> {
-        self.0.read().unwrap().basic(address)
+        self.0.read().unwrap().basic_ref(address)
     }
 
-    fn code_by_hash(&self, code_hash: B256) -> Result<Bytecode, Self::Error> {
-        self.0.read().unwrap().code_by_hash(code_hash)
+    fn code_by_hash_ref(&self, code_hash: B256) -> Result<Bytecode, Self::Error> {
+        self.0.read().unwrap().code_by_hash_ref(code_hash)
     }
 
-    fn storage(
+    fn storage_ref(
         &self,
         address: revm::primitives::Address,
         index: U256,
     ) -> Result<U256, Self::Error> {
-        self.0.read().unwrap().storage(address, index)
+        self.0.read().unwrap().storage_ref(address, index)
     }
 
-    fn block_hash(&self, number: U256) -> Result<B256, Self::Error> {
-        self.0.read().unwrap().block_hash(number)
+    fn block_hash_ref(&self, number: U256) -> Result<B256, Self::Error> {
+        self.0.read().unwrap().block_hash_ref(number)
     }
 }
 

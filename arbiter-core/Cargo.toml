@@ -24,7 +24,7 @@ serde_json.workspace = true
 # Concurrency/async
 tokio.workspace = true
 async-trait.workspace = true
-crossbeam-channel =  { version = "=0.5.8" }
+crossbeam-channel.workspace = true
 futures-timer = { version = "=3.0.2" }
 futures-locks = { version = "=0.7.1" }
 
@@ -48,7 +48,7 @@ polars = { version = "0.35.4", features = ["parquet", "csv", "json"] }
 arbiter-derive = { path = "../arbiter-derive" }
 arbiter-bindings = { path = "../arbiter-bindings" }
 hex = { version = "=0.4.3", default-features = false }
-anyhow =  { version = "=1.0.75" }
+anyhow =  { version = "1.0.76" }
 test-log =  { version = "=0.2.14" }
 tracing-test = "0.2.4"
 
