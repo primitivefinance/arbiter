@@ -60,8 +60,6 @@ tempfile = { version = "3.8.1"}
 
 # Errors
 thiserror.workspace = true
-mdbook-katex = "0.5.9"
-
 # Dependencies for the test build and development
 [dev-dependencies]
 tokio.workspace = true
