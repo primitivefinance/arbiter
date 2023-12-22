@@ -1,6 +1,32 @@
 [book]
-authors = ["Sabnock01"]
+authors = ["Arbiter Contributors"]
 language = "en"
 multilingual = false
 src = "documentation/src"
 title = "Arbiter"
+
+
+[output.html]
+katex = true
+
+[preprocessor.katex]
+after = ["links"]
+# KaTeX options.
+output = "html"
+leqno = false
+fleqn = false
+throw-on-error = true
+error-color = "#cc0000"
+min-rule-thickness = -1.0
+max-size = "Infinity"
+max-expand = 1000
+trust = false
+# Extra options.
+no-css = false
+include-src = false
+block-delimiter = { left = "$$", right = "$$" }
+inline-delimiter = { left = "$", right = "$" }
+
+[output.linkcheck]
+optional = true
+follow-web-links = true
