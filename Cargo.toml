@@ -60,7 +60,6 @@ tempfile = { version = "3.8.1"}
 
 # Errors
 thiserror.workspace = true
-
 # Dependencies for the test build and development
 [dev-dependencies]
 tokio.workspace = true
