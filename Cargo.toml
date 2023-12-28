@@ -56,7 +56,7 @@ Inflector = { version = "=0.11.4" }
 # Building files
 quote.workspace = true
 foundry-config = { version = "=0.2.0" }
-tempfile = { version = "3.8.1"}
+tempfile = { version = "3.9.0"}
 
 # Errors
 thiserror.workspace = true
