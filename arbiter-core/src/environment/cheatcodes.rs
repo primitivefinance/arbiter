@@ -1,8 +1,6 @@
 //! Cheatcodes are a direct way to access the underlying [`EVM`] environment
 // and database. ! Use them via the `apply_cheatcode` method on a `client`.
 
-#![warn(missing_docs)]
-
 use revm_primitives::{AccountInfo, HashMap, U256};
 
 /// Cheatcodes are a direct way to access the underlying [`EVM`] environment and

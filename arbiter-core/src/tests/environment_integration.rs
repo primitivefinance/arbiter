@@ -282,3 +282,12 @@ async fn middleware_from_forked_eo() {
         .unwrap();
     assert_eq!(eth_balance, U256::from(934034962177715175765_u128));
 }
+
+#[tokio::test]
+async fn env_returns_db() {
+    let (environment, client) = startup_user_controlled().unwrap();
+    deploy_arbx(client).await.unwrap();
+    let db = environment.stop().unwrap();
+    assert!(db.is_some());
+    assert!(!db.unwrap().0.read().unwrap().accounts.is_empty())
+}

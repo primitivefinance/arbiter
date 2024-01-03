@@ -27,12 +27,10 @@
 //! - `EventBroadcaster`: Responsible for broadcasting Ethereum logs to
 //!   subscribers.
 
-#![warn(missing_docs, unsafe_code)]
-
 use std::{
     convert::Infallible,
     fmt::Debug,
-    sync::{Arc, Mutex},
+    sync::{Arc, Mutex, RwLock},
     thread::{self, JoinHandle},
 };
 
@@ -49,11 +47,11 @@ use serde::{Deserialize, Serialize};
 use thiserror::Error;
 
 use super::*;
-use crate::math::SeededPoisson;
 #[cfg_attr(doc, doc(hidden))]
 #[cfg_attr(doc, allow(unused_imports))]
 #[cfg(doc)]
 use crate::middleware::RevmMiddleware;
+use crate::{database::ArbiterDB, math::SeededPoisson};
 
 pub mod cheatcodes;
 use cheatcodes::*;
@@ -129,7 +127,7 @@ pub struct Environment {
 
     /// The [`EVM`] that is used as an execution environment and database for
     /// calls and transactions.
-    db: Option<CacheDB<EmptyDB>>,
+    pub(crate) db: Option<ArbiterDB>,
 
     /// This gives a means of letting the "outside world" connect to the
     /// [`Environment`] so that users (or agents) may send and receive data from
@@ -169,6 +167,7 @@ impl Environment {
             instruction_receiver,
             event_broadcaster: Arc::new(Mutex::new(EventBroadcaster::new())),
         };
+        let db = db.map(|db| ArbiterDB(Arc::new(RwLock::new(db))));
 
         Self {
             parameters: environment_parameters,
@@ -186,9 +185,11 @@ impl Environment {
         let mut evm = EVM::new();
 
         if self.db.is_some() {
-            evm.database(self.db.take().unwrap());
+            evm.database(self.db.as_ref().unwrap().clone());
         } else {
-            evm.database(CacheDB::new(EmptyDB::new()));
+            evm.database(ArbiterDB(Arc::new(RwLock::new(CacheDB::new(
+                EmptyDB::new(),
+            )))));
         };
 
         // Choose extra large code size and gas limit
@@ -264,7 +265,13 @@ impl Environment {
                             account_state: revm::db::AccountState::None,
                             storage: HashMap::new(),
                         };
-                        match db.accounts.insert(recast_address, account) {
+                        match db
+                            .0
+                            .write()
+                            .unwrap()
+                            .accounts
+                            .insert(recast_address, account)
+                        {
                             None => {
                                 outcome_sender
                                     .send(Ok(Outcome::AddAccountCompleted))
@@ -323,7 +330,7 @@ impl Environment {
                             let recast_key = revm::primitives::B256::from(key.as_fixed_bytes());
 
                             // Get the account storage value at the key in the db.
-                            match db.accounts.get_mut(&recast_address) {
+                            match db.0.write().unwrap().accounts.get_mut(&recast_address) {
                                 Some(account) => {
                                     // Returns zero if the account is missing.
                                     let value: revm::primitives::U256 = match account
@@ -374,7 +381,7 @@ impl Environment {
                             // Mutate the db by inserting the new key-value pair into the account's
                             // storage and send the successful
                             // CheatcodeCompleted outcome.
-                            match db.accounts.get_mut(&recast_address) {
+                            match db.0.write().unwrap().accounts.get_mut(&recast_address) {
                                 Some(account) => {
                                     account
                                         .storage
@@ -401,7 +408,7 @@ impl Environment {
                             let db = evm.db.as_mut().unwrap();
                             let recast_address =
                                 revm::primitives::Address::from(address.as_fixed_bytes());
-                            match db.accounts.get_mut(&recast_address) {
+                            match db.0.write().unwrap().accounts.get_mut(&recast_address) {
                                 Some(account) => {
                                     account.info.balance += U256::from_limbs(amount.0);
                                     outcome_sender
@@ -426,7 +433,7 @@ impl Environment {
                             let recast_address =
                                 revm::primitives::Address::from(address.as_fixed_bytes());
 
-                            match db.accounts.get(&recast_address) {
+                            match db.0.write().unwrap().accounts.get(&recast_address) {
                                 Some(account) => {
                                     let account_state = match account.account_state {
                                         revm::db::AccountState::None => {
@@ -475,7 +482,7 @@ impl Environment {
                         // Set the tx_env and prepare to process it
                         evm.env.tx = tx_env;
 
-                        let result = evm.transact()?.result;
+                        let result = evm.transact_ref()?.result;
                         outcome_sender
                             .send(Ok(Outcome::CallCompleted(result)))
                             .map_err(|e| EnvironmentError::Communication(e.to_string()))?;
@@ -601,9 +608,14 @@ impl Environment {
                             EnvironmentData::Balance(address) => {
                                 // This unwrap should never fail.
                                 let db = evm.db().unwrap();
-                                match db.accounts.get::<revm::primitives::Address>(
-                                    &address.as_fixed_bytes().into(),
-                                ) {
+                                match db
+                                    .0
+                                    .write()
+                                    .unwrap()
+                                    .accounts
+                                    .get::<revm::primitives::Address>(
+                                        &address.as_fixed_bytes().into(),
+                                    ) {
                                     Some(account) => {
                                         Ok(Outcome::QueryReturn(account.info.balance.to_string()))
                                     }
@@ -615,9 +627,14 @@ impl Environment {
 
                             EnvironmentData::TransactionCount(address) => {
                                 let db = evm.db().unwrap();
-                                match db.accounts.get::<revm::primitives::Address>(
-                                    &address.as_fixed_bytes().into(),
-                                ) {
+                                match db
+                                    .0
+                                    .write()
+                                    .unwrap()
+                                    .accounts
+                                    .get::<revm::primitives::Address>(
+                                        &address.as_fixed_bytes().into(),
+                                    ) {
                                     Some(account) => {
                                         Ok(Outcome::QueryReturn(account.info.nonce.to_string()))
                                     }
@@ -633,7 +650,7 @@ impl Environment {
                     }
                     Instruction::Stop(outcome_sender) => {
                         outcome_sender
-                            .send(Ok(Outcome::StopCompleted))
+                            .send(Ok(Outcome::StopCompleted(evm.db.unwrap())))
                             .map_err(|e| EnvironmentError::Communication(e.to_string()))?;
                         event_broadcaster.lock().unwrap().broadcast(None, true)?;
                         break;
@@ -654,7 +671,7 @@ impl Environment {
     ///   stopped.
     /// * `Err(EnvironmentError::Stop(String))` if the environment is in an
     ///   invalid state.
-    pub fn stop(mut self) -> Result<(), EnvironmentError> {
+    pub fn stop(mut self) -> Result<Option<ArbiterDB>, EnvironmentError> {
         let (outcome_sender, outcome_receiver) = bounded(1);
         self.socket
             .instruction_sender
@@ -668,10 +685,12 @@ impl Environment {
         let outcome = outcome_receiver
             .recv()
             .map_err(|e| EnvironmentError::Communication(e.to_string()))??;
-        match outcome {
-            Outcome::StopCompleted => {}
-            _ => Err(EnvironmentError::Stop("Failed to stop environment!".into()))?,
-        }
+
+        let db = match outcome {
+            Outcome::StopCompleted(stopped_db) => Some(stopped_db),
+            _ => return Err(EnvironmentError::Stop("Failed to stop environment!".into())),
+        };
+
         if let Some(label) = &self.parameters.label {
             warn!("Stopped environment with label: {}", label);
         } else {
@@ -687,7 +706,7 @@ impl Environment {
             .map_err(|_| {
                 EnvironmentError::Stop("Failed to join environment handle.".to_owned())
             })??;
-        Ok(())
+        Ok(db)
     }
 }
 

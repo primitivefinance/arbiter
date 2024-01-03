@@ -1,5 +1,3 @@
-#![warn(missing_docs)]
-
 use super::*;
 
 /// [`Instruction`]s that can be sent to the [`Environment`] via the
@@ -135,7 +133,7 @@ pub(crate) enum Outcome {
 
     /// The outcome of a `Stop` instruction that is used to signify that the
     /// [`Environment`] was stopped successfully.
-    StopCompleted,
+    StopCompleted(ArbiterDB),
 }
 
 /// [`EnvironmentData`] is an enum used inside of the [`Instruction::Query`] to

@@ -3,8 +3,6 @@
 //! [`EnvironmentParameters`] structures as well as the [`BlockSettings`] and
 //! [`GasSettings`] enums.
 
-#![warn(missing_docs)]
-
 use super::*;
 
 /// Parameters necessary for creating or modifying an `Environment`.
