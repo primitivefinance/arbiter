@@ -33,8 +33,8 @@ proc-macro2 = { version = "1.0.70" }
 tokio = { version = "1.35.0", features = ["macros", "full"] }
 arbiter-core = { path = "./arbiter-core" }
 crossbeam-channel =  { version = "0.5.9" }
-futures-util =  { version = "=0.3.29" }
-async-trait =  { version = "0.1.74" }
+futures-util =  { version = "=0.3.30" }
+async-trait =  { version = "0.1.76" }
 tracing = "0.1.40"
 
 # Dependencies for the release build
@@ -42,7 +42,7 @@ tracing = "0.1.40"
 arbiter-core.workspace = true
 
 # Command line and config
-clap = { version = "=4.4.11", features = ["derive"] }
+clap = { version = "=4.4.12", features = ["derive"] }
 serde.workspace = true
 serde_json.workspace = true
 config = { version = "=0.13.4" }
@@ -56,11 +56,10 @@ Inflector = { version = "=0.11.4" }
 # Building files
 quote.workspace = true
 foundry-config = { version = "=0.2.0" }
-tempfile = { version = "3.8.1"}
+tempfile = { version = "3.9.0"}
 
 # Errors
 thiserror.workspace = true
-
 # Dependencies for the test build and development
 [dev-dependencies]
 tokio.workspace = true
