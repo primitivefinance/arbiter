@@ -39,9 +39,9 @@ use ethers::core::types::U64;
 use revm::{
     db::{CacheDB, EmptyDB},
     primitives::{
-        AccountInfo, EVMError, ExecutionResult, HashMap, InvalidTransaction, Log, TxEnv, B256, U256,
+        AccountInfo, EVMError, ExecutionResult, HashMap, InvalidTransaction, Log, TxEnv, U256,
     },
-    Database, DatabaseCommit, EVM,
+    EVM,
 };
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
