@@ -49,14 +49,11 @@ pub struct World {
 // TODO: Can add a messager as an interconnect and have the manager give each
 // world it owns a clone of the same messager.
 
-impl<P> World<P>
-where
-    P: PubsubClient,
-{
+impl World {
     // TODO: May not need to take in the provider here, but rather get it from the
     // agents.
     /// Creates a new world with the given identifier and provider.
-    pub fn new(id: &str, provider: Provider<P>) -> Self {
+    pub fn new(id: &str) -> Self {
         Self {
             id: id.to_owned(),
             agents: HashMap::new(),
@@ -85,13 +82,6 @@ where
         //    agents, and the agents can enter their own startup stage.
         //      * Once the agents have finished their start up stage, they
         //        should now be set to enter into their running stage.
-    }
-
-    pub async fn join(&mut self) {
-        std::thread::sleep(std::time::Duration::from_secs(3));
-        for joinset in self.joinsets.as_mut().unwrap().iter_mut() {
-            while let Some(_) = joinset.join_next().await {}
-        }
     }
 }
 

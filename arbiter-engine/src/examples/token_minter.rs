@@ -1,334 +1,335 @@
-use artemis_core::executors::mempool_executor::MempoolExecutor;
-use ethers::types::{transaction::request, Filter};
-use tracing::error;
+// use artemis_core::executors::mempool_executor::MempoolExecutor;
+// use ethers::types::{transaction::request, Filter};
+// use tracing::error;
 
-use super::*;
-use crate::{agent::BehaviorBuilder, messager::To};
+// use super::*;
+// use crate::{agent::BehaviorBuilder, messager::To};
 
-const TOKEN_ADMIN_ID: &str = "token_admin";
-const REQUESTER_ID: &str = "requester";
-const TOKEN_NAME: &str = "Arbiter Token";
-const TOKEN_SYMBOL: &str = "ARB";
-const TOKEN_DECIMALS: u8 = 18;
+// const TOKEN_ADMIN_ID: &str = "token_admin";
+// const REQUESTER_ID: &str = "requester";
+// const TOKEN_NAME: &str = "Arbiter Token";
+// const TOKEN_SYMBOL: &str = "ARB";
+// const TOKEN_DECIMALS: u8 = 18;
 
-/// The token admin is responsible for handling token minting requests.
-#[derive(Clone, Debug)]
-pub struct TokenAdmin {
-    /// The identifier of the token admin.
-    pub id: String, // TODO: The strategies should not really need an ID.
+// /// The token admin is responsible for handling token minting requests.
+// #[derive(Clone, Debug)]
+// pub struct TokenAdmin {
+//     /// The identifier of the token admin.
+//     pub id: String, // TODO: The strategies should not really need an ID.
 
-    pub token_data: HashMap<String, TokenData>,
+//     pub token_data: HashMap<String, TokenData>,
 
-    /// The tokens that the token admin has control over.
-    /// These will be deployed when we call `sync_state()`
-    pub tokens: Option<HashMap<String, ArbiterToken<RevmMiddleware>>>,
+//     /// The tokens that the token admin has control over.
+//     /// These will be deployed when we call `sync_state()`
+//     pub tokens: Option<HashMap<String, ArbiterToken<RevmMiddleware>>>,
 
-    pub client: Arc<RevmMiddleware>,
-}
+//     pub client: Arc<RevmMiddleware>,
+// }
 
-impl TokenAdmin {
-    // TODO: I don't think we should pass in a client like this, probably, doing it
-    // for testing purposes. Also using RevmMiddleware for testing purposes,
-    // although this strategy should never be deployed
-    /// Creates a new token admin with the given identifier.
-    pub fn new(client: Arc<RevmMiddleware>) -> Self {
-        Self {
-            id: TOKEN_ADMIN_ID.to_owned(),
-            token_data: HashMap::new(),
-            tokens: None,
-            client,
-        }
-    }
+// impl TokenAdmin {
+//     // TODO: I don't think we should pass in a client like this, probably,
+// doing it     // for testing purposes. Also using RevmMiddleware for testing
+// purposes,     // although this strategy should never be deployed
+//     /// Creates a new token admin with the given identifier.
+//     pub fn new(client: Arc<RevmMiddleware>) -> Self {
+//         Self {
+//             id: TOKEN_ADMIN_ID.to_owned(),
+//             token_data: HashMap::new(),
+//             tokens: None,
+//             client,
+//         }
+//     }
 
-    /// Adds a token to the token admin.
-    pub fn add_token(&mut self, token_data: TokenData) {
-        self.token_data.insert(token_data.name.clone(), token_data);
-    }
-}
+//     /// Adds a token to the token admin.
+//     pub fn add_token(&mut self, token_data: TokenData) {
+//         self.token_data.insert(token_data.name.clone(), token_data);
+//     }
+// }
 
-#[derive(Clone, Debug, Deserialize, Serialize)]
-pub struct TokenData {
-    pub name: String,
-    pub symbol: String,
-    pub decimals: u8,
-    pub address: Option<Address>,
-}
+// #[derive(Clone, Debug, Deserialize, Serialize)]
+// pub struct TokenData {
+//     pub name: String,
+//     pub symbol: String,
+//     pub decimals: u8,
+//     pub address: Option<Address>,
+// }
 
-/// Used as an action to ask what tokens are available.
-#[derive(Clone, Debug, Deserialize, Serialize)]
-pub enum TokenAdminQuery {
-    /// Get the address of the token.
-    AddressOf(String),
+// /// Used as an action to ask what tokens are available.
+// #[derive(Clone, Debug, Deserialize, Serialize)]
+// pub enum TokenAdminQuery {
+//     /// Get the address of the token.
+//     AddressOf(String),
 
-    /// Mint tokens.
-    MintRequest(MintRequest),
-}
+//     /// Mint tokens.
+//     MintRequest(MintRequest),
+// }
 
-/// Used as an action to mint tokens.
-#[derive(Clone, Debug, Deserialize, Serialize)]
-pub struct MintRequest {
-    /// The token to mint.
-    pub token: String,
+// /// Used as an action to mint tokens.
+// #[derive(Clone, Debug, Deserialize, Serialize)]
+// pub struct MintRequest {
+//     /// The token to mint.
+//     pub token: String,
 
-    /// The address to mint to.
-    pub mint_to: Address,
+//     /// The address to mint to.
+//     pub mint_to: Address,
 
-    /// The amount to mint.
-    pub mint_amount: u64,
-}
+//     /// The amount to mint.
+//     pub mint_amount: u64,
+// }
 
-#[async_trait::async_trait]
-impl Strategy<Message, MessageOrTx> for TokenAdmin {
-    #[tracing::instrument(skip(self), fields(id = %self.id))]
-    async fn sync_state(&mut self) -> Result<()> {
-        debug!("Syncing state for `TokenAdmin`.");
-        for token_data in self.token_data.values_mut() {
-            let token = ArbiterToken::deploy(
-                self.client.clone(),
-                (
-                    token_data.name.clone(),
-                    token_data.symbol.clone(),
-                    token_data.decimals,
-                ),
-            )
-            .unwrap()
-            .send()
-            .await
-            .unwrap();
-            token_data.address = Some(token.address());
-            self.tokens
-                .get_or_insert_with(HashMap::new)
-                .insert(token_data.name.clone(), token.clone());
-            trace!("Deployed token: {:?}", token);
-        }
-        Ok(())
-    }
+// #[async_trait::async_trait]
+// impl Strategy<Message, MessageOrTx> for TokenAdmin {
+//     #[tracing::instrument(skip(self), fields(id = %self.id))]
+//     async fn sync_state(&mut self) -> Result<()> {
+//         debug!("Syncing state for `TokenAdmin`.");
+//         for token_data in self.token_data.values_mut() {
+//             let token = ArbiterToken::deploy(
+//                 self.client.clone(),
+//                 (
+//                     token_data.name.clone(),
+//                     token_data.symbol.clone(),
+//                     token_data.decimals,
+//                 ),
+//             )
+//             .unwrap()
+//             .send()
+//             .await
+//             .unwrap();
+//             token_data.address = Some(token.address());
+//             self.tokens
+//                 .get_or_insert_with(HashMap::new)
+//                 .insert(token_data.name.clone(), token.clone());
+//             trace!("Deployed token: {:?}", token);
+//         }
+//         Ok(())
+//     }
 
-    #[tracing::instrument(skip(self, event), fields(id = %self.id))]
-    async fn process_event(&mut self, event: Message) -> Vec<MessageOrTx> {
-        trace!("Processing event for `TokenAdmin` {:?}.", event);
-        if self.tokens.is_none() {
-            error!("There were no tokens to deploy! You must add tokens to the token admin before running the simulation.");
-        }
+//     #[tracing::instrument(skip(self, event), fields(id = %self.id))]
+//     async fn process_event(&mut self, event: Message) -> Vec<MessageOrTx> {
+//         trace!("Processing event for `TokenAdmin` {:?}.", event);
+//         if self.tokens.is_none() {
+//             error!("There were no tokens to deploy! You must add tokens to
+// the token admin before running the simulation.");         }
 
-        let query: TokenAdminQuery = serde_json::from_str(&event.data).unwrap();
-        trace!("Got query: {:?}", query);
-        match query {
-            TokenAdminQuery::AddressOf(token_name) => {
-                trace!(
-                    "Getting address of token with name: {:?}",
-                    token_name.clone()
-                );
-                let token_data = self.token_data.get(&token_name).unwrap();
-                let message = Message {
-                    from: self.id.to_owned(),
-                    to: To::Agent(event.from.clone()), // Reply back to sender
-                    data: serde_json::to_string(token_data).unwrap(),
-                };
-                vec![MessageOrTx::Message(message)]
-            }
-            TokenAdminQuery::MintRequest(mint_request) => {
-                trace!("Minting tokens: {:?}", mint_request);
-                let token = self
-                    .tokens
-                    .as_ref()
-                    .unwrap()
-                    .get(&mint_request.token)
-                    .unwrap();
-                let tx = token
-                    .mint(mint_request.mint_to, U256::from(mint_request.mint_amount))
-                    .tx;
+//         let query: TokenAdminQuery =
+// serde_json::from_str(&event.data).unwrap();         trace!("Got query: {:?}",
+// query);         match query {
+//             TokenAdminQuery::AddressOf(token_name) => {
+//                 trace!(
+//                     "Getting address of token with name: {:?}",
+//                     token_name.clone()
+//                 );
+//                 let token_data = self.token_data.get(&token_name).unwrap();
+//                 let message = Message {
+//                     from: self.id.to_owned(),
+//                     to: To::Agent(event.from.clone()), // Reply back to
+// sender                     data: serde_json::to_string(token_data).unwrap(),
+//                 };
+//                 vec![MessageOrTx::Message(message)]
+//             }
+//             TokenAdminQuery::MintRequest(mint_request) => {
+//                 trace!("Minting tokens: {:?}", mint_request);
+//                 let token = self
+//                     .tokens
+//                     .as_ref()
+//                     .unwrap()
+//                     .get(&mint_request.token)
+//                     .unwrap();
+//                 let tx = token
+//                     .mint(mint_request.mint_to,
+// U256::from(mint_request.mint_amount))                     .tx;
 
-                vec![MessageOrTx::Tx(tx)]
-            }
-        }
-    }
-}
+//                 vec![MessageOrTx::Tx(tx)]
+//             }
+//         }
+//     }
+// }
 
-/// The token requester is responsible for requesting tokens from the token
-/// admin. This agents is purely for testing purposes as far as I can tell.
-#[derive(Clone, Debug)]
-pub struct TokenRequester {
-    /// The identifier of the token requester.
-    pub id: String,
+// /// The token requester is responsible for requesting tokens from the token
+// /// admin. This agents is purely for testing purposes as far as I can tell.
+// #[derive(Clone, Debug)]
+// pub struct TokenRequester {
+//     /// The identifier of the token requester.
+//     pub id: String,
 
-    /// The tokens that the token requester has requested.
-    pub token_data: TokenData,
+//     /// The tokens that the token requester has requested.
+//     pub token_data: TokenData,
 
-    /// The agent ID to request tokens to.
-    pub request_to: String,
+//     /// The agent ID to request tokens to.
+//     pub request_to: String,
 
-    /// Client to have an address to receive token mint to and check balance
-    pub client: Arc<RevmMiddleware>,
-}
+//     /// Client to have an address to receive token mint to and check balance
+//     pub client: Arc<RevmMiddleware>,
+// }
 
-impl TokenRequester {
-    pub fn new(id: &str, client: Arc<RevmMiddleware>) -> Self {
-        Self {
-            id: id.to_owned(),
-            token_data: TokenData {
-                name: TOKEN_NAME.to_owned(),
-                symbol: TOKEN_SYMBOL.to_owned(),
-                decimals: TOKEN_DECIMALS,
-                address: None,
-            },
-            request_to: TOKEN_ADMIN_ID.to_owned(),
-            client,
-        }
-    }
-}
+// impl TokenRequester {
+//     pub fn new(id: &str, client: Arc<RevmMiddleware>) -> Self {
+//         Self {
+//             id: id.to_owned(),
+//             token_data: TokenData {
+//                 name: TOKEN_NAME.to_owned(),
+//                 symbol: TOKEN_SYMBOL.to_owned(),
+//                 decimals: TOKEN_DECIMALS,
+//                 address: None,
+//             },
+//             request_to: TOKEN_ADMIN_ID.to_owned(),
+//             client,
+//         }
+//     }
+// }
 
-#[async_trait::async_trait]
-impl Strategy<Message, Message> for TokenRequester {
-    #[tracing::instrument(skip(self), fields(id = %self.id))]
-    async fn sync_state(&mut self) -> Result<()> {
-        trace!("Syncing state for `TokenRequester` startup.");
-        Ok(())
-    }
+// #[async_trait::async_trait]
+// impl Strategy<Message, Message> for TokenRequester {
+//     #[tracing::instrument(skip(self), fields(id = %self.id))]
+//     async fn sync_state(&mut self) -> Result<()> {
+//         trace!("Syncing state for `TokenRequester` startup.");
+//         Ok(())
+//     }
 
-    #[tracing::instrument(skip(self, event), fields(id = %self.id))]
-    async fn process_event(&mut self, event: Message) -> Vec<Message> {
-        trace!("Processing event for `TokenRequester` startup {:?}.", event);
+//     #[tracing::instrument(skip(self, event), fields(id = %self.id))]
+//     async fn process_event(&mut self, event: Message) -> Vec<Message> {
+//         trace!("Processing event for `TokenRequester` startup {:?}.", event);
 
-        if event.data == "Start" {
-            trace!("Requesting address of token: {:?}", self.token_data.name);
-            let message = Message {
-                from: self.id.to_owned(),
-                to: To::Agent(self.request_to.clone()),
-                data: serde_json::to_string(&TokenAdminQuery::AddressOf(
-                    self.token_data.name.clone(),
-                ))
-                .unwrap(),
-            };
-            vec![message]
-        } else if event.data == "Mint" {
-            trace!("Requesting mint of token: {:?}", self.token_data.name);
-            let message = Message {
-                from: self.id.to_owned(),
-                to: To::Agent(self.request_to.clone()),
-                data: serde_json::to_string(&TokenAdminQuery::MintRequest(MintRequest {
-                    token: self.token_data.name.clone(),
-                    mint_to: self.client.address(),
-                    mint_amount: 1,
-                }))
-                .unwrap(),
-            };
-            vec![message]
-        } else {
-            vec![]
-        }
-    }
-}
+//         if event.data == "Start" {
+//             trace!("Requesting address of token: {:?}",
+// self.token_data.name);             let message = Message {
+//                 from: self.id.to_owned(),
+//                 to: To::Agent(self.request_to.clone()),
+//                 data: serde_json::to_string(&TokenAdminQuery::AddressOf(
+//                     self.token_data.name.clone(),
+//                 ))
+//                 .unwrap(),
+//             };
+//             vec![message]
+//         } else if event.data == "Mint" {
+//             trace!("Requesting mint of token: {:?}", self.token_data.name);
+//             let message = Message {
+//                 from: self.id.to_owned(),
+//                 to: To::Agent(self.request_to.clone()),
+//                 data:
+// serde_json::to_string(&TokenAdminQuery::MintRequest(MintRequest {            
+// token: self.token_data.name.clone(),                     mint_to:
+// self.client.address(),                     mint_amount: 1,
+//                 }))
+//                 .unwrap(),
+//             };
+//             vec![message]
+//         } else {
+//             vec![]
+//         }
+//     }
+// }
 
-#[async_trait::async_trait]
-impl Strategy<Log, Message> for TokenRequester {
-    #[tracing::instrument(skip(self), fields(id = %self.id))]
-    async fn sync_state(&mut self) -> Result<()> {
-        trace!("Syncing state for `TokenRequester` logger.");
-        Ok(())
-    }
+// #[async_trait::async_trait]
+// impl Strategy<Log, Message> for TokenRequester {
+//     #[tracing::instrument(skip(self), fields(id = %self.id))]
+//     async fn sync_state(&mut self) -> Result<()> {
+//         trace!("Syncing state for `TokenRequester` logger.");
+//         Ok(())
+//     }
 
-    #[tracing::instrument(skip(self, event), fields(id = %self.id))]
-    async fn process_event(&mut self, event: Log) -> Vec<Message> {
-        trace!("Got event for `TokenRequester` logger: {:?}", event);
-        std::thread::sleep(std::time::Duration::from_secs(1));
-        let message = Message {
-            from: self.id.clone(),
-            to: To::Agent(self.request_to.clone()),
-            data: serde_json::to_string(&TokenAdminQuery::MintRequest(MintRequest {
-                token: self.token_data.name.clone(),
-                mint_to: self.client.address(),
-                mint_amount: 1,
-            }))
-            .unwrap(),
-        };
-        vec![message]
-    }
-}
+//     #[tracing::instrument(skip(self, event), fields(id = %self.id))]
+//     async fn process_event(&mut self, event: Log) -> Vec<Message> {
+//         trace!("Got event for `TokenRequester` logger: {:?}", event);
+//         std::thread::sleep(std::time::Duration::from_secs(1));
+//         let message = Message {
+//             from: self.id.clone(),
+//             to: To::Agent(self.request_to.clone()),
+//             data:
+// serde_json::to_string(&TokenAdminQuery::MintRequest(MintRequest {            
+// token: self.token_data.name.clone(),                 mint_to:
+// self.client.address(),                 mint_amount: 1,
+//             }))
+//             .unwrap(),
+//         };
+//         vec![message]
+//     }
+// }
 
-#[ignore]
-#[tokio::test(flavor = "multi_thread", worker_threads = 4)]
-async fn token_minter_simulation() {
-    // TODO: Test outline, requester requests 1, 2, 3 tokens, and the test stops
-    // when the balance is checked to be 6.
-    std::env::set_var("RUST_LOG", "trace");
-    tracing_subscriber::fmt::init();
+// #[ignore]
+// #[tokio::test(flavor = "multi_thread", worker_threads = 4)]
+// async fn token_minter_simulation() {
+//     // TODO: Test outline, requester requests 1, 2, 3 tokens, and the test
+// stops     // when the balance is checked to be 6.
+//     std::env::set_var("RUST_LOG", "trace");
+//     tracing_subscriber::fmt::init();
 
-    let environment = EnvironmentBuilder::new().build();
-    let connection = Connection::from(&environment);
-    let provider = Provider::new(connection);
-    let mut world = World::new("test_world", provider);
+//     let environment = EnvironmentBuilder::new().build();
+//     let connection = Connection::from(&environment);
+//     let provider = Provider::new(connection);
+//     let mut world = World::new("test_world", provider);
 
-    // Create the token admin agent
-    let token_admin_agent = world.create_agent(TOKEN_ADMIN_ID);
-    let token_admin_client = RevmMiddleware::new(&environment, Some(TOKEN_ADMIN_ID)).unwrap();
-    let mut token_admin_strategy = TokenAdmin::new(token_admin_client.clone());
-    token_admin_strategy.add_token(TokenData {
-        name: TOKEN_NAME.to_owned(),
-        symbol: TOKEN_SYMBOL.to_owned(),
-        decimals: TOKEN_DECIMALS,
-        address: None,
-    });
+//     // Create the token admin agent
+//     let token_admin_agent = world.create_agent(TOKEN_ADMIN_ID);
+//     let token_admin_client = RevmMiddleware::new(&environment,
+// Some(TOKEN_ADMIN_ID)).unwrap();     let mut token_admin_strategy =
+// TokenAdmin::new(token_admin_client.clone());     token_admin_strategy.
+// add_token(TokenData {         name: TOKEN_NAME.to_owned(),
+//         symbol: TOKEN_SYMBOL.to_owned(),
+//         decimals: TOKEN_DECIMALS,
+//         address: None,
+//     });
 
-    let message_and_mempool_executor = MessageAndTransactionExecutor {
-        messager: token_admin_agent.messager.clone(),
-        transactor: Transactor {
-            client: token_admin_client.clone(),
-        },
-    };
+//     let message_and_mempool_executor = MessageAndTransactionExecutor {
+//         messager: token_admin_agent.messager.clone(),
+//         transactor: Transactor {
+//             client: token_admin_client.clone(),
+//         },
+//     };
 
-    let token_admin_behavior = BehaviorBuilder::new()
-        .add_collector(token_admin_agent.messager.clone())
-        .add_executor(message_and_mempool_executor)
-        .add_strategy(token_admin_strategy.clone())
-        .build();
-    token_admin_agent.add_behavior(token_admin_behavior);
+//     let token_admin_behavior = BehaviorBuilder::new()
+//         .add_collector(token_admin_agent.messager.clone())
+//         .add_executor(message_and_mempool_executor)
+//         .add_strategy(token_admin_strategy.clone())
+//         .build();
+//     token_admin_agent.add_behavior(token_admin_behavior);
 
-    // Create the token requester agent
-    let requester_agent = world.create_agent(REQUESTER_ID);
-    let requester_client = RevmMiddleware::new(&environment, Some(REQUESTER_ID)).unwrap();
-    let token_requester = TokenRequester::new(REQUESTER_ID, requester_client.clone());
-    let query_behavior = BehaviorBuilder::new()
-        .add_collector(requester_agent.messager.clone())
-        .add_executor(requester_agent.messager.clone())
-        .add_strategy(token_requester.clone())
-        .build();
-    requester_agent.add_behavior(query_behavior);
-    let mint_behavior = BehaviorBuilder::new()
-        .add_collector(LogCollector::new(
-            requester_client.clone(),
-            Filter::default(),
-            // token_admin_strategy
-            //     .tokens
-            //     .as_ref()
-            //     .unwrap()
-            //     .get(&TOKEN_NAME.to_owned())
-            //     .unwrap()
-            //     .transfer_filter()
-            //     .filter,
-        ))
-        .add_executor(requester_agent.messager.clone())
-        .add_strategy(token_requester)
-        .build();
-    requester_agent.add_behavior(mint_behavior);
+//     // Create the token requester agent
+//     let requester_agent = world.create_agent(REQUESTER_ID);
+//     let requester_client = RevmMiddleware::new(&environment,
+// Some(REQUESTER_ID)).unwrap();     let token_requester =
+// TokenRequester::new(REQUESTER_ID, requester_client.clone());
+//     let query_behavior = BehaviorBuilder::new()
+//         .add_collector(requester_agent.messager.clone())
+//         .add_executor(requester_agent.messager.clone())
+//         .add_strategy(token_requester.clone())
+//         .build();
+//     requester_agent.add_behavior(query_behavior);
+//     let mint_behavior = BehaviorBuilder::new()
+//         .add_collector(LogCollector::new(
+//             requester_client.clone(),
+//             Filter::default(),
+//             // token_admin_strategy
+//             //     .tokens
+//             //     .as_ref()
+//             //     .unwrap()
+//             //     .get(&TOKEN_NAME.to_owned())
+//             //     .unwrap()
+//             //     .transfer_filter()
+//             //     .filter,
+//         ))
+//         .add_executor(requester_agent.messager.clone())
+//         .add_strategy(token_requester)
+//         .build();
+//     requester_agent.add_behavior(mint_behavior);
 
-    // Run the world and send the start message
+//     // Run the world and send the start message
 
-    let message = Message {
-        from: "host".to_owned(),
-        to: To::Agent(REQUESTER_ID.to_owned()),
-        data: "Start".to_owned(),
-    };
-    // TODO: Messages like this could probably be put in the `world.run()`
-    world.messager.execute(message).await;
+//     let message = Message {
+//         from: "host".to_owned(),
+//         to: To::Agent(REQUESTER_ID.to_owned()),
+//         data: "Start".to_owned(),
+//     };
+//     // TODO: Messages like this could probably be put in the `world.run()`
+//     world.messager.execute(message).await;
 
-    let message = Message {
-        from: "host".to_owned(),
-        to: To::Agent(REQUESTER_ID.to_owned()),
-        data: "Mint".to_owned(),
-    };
-    world.messager.execute(message).await;
+//     let message = Message {
+//         from: "host".to_owned(),
+//         to: To::Agent(REQUESTER_ID.to_owned()),
+//         data: "Mint".to_owned(),
+//     };
+//     world.messager.execute(message).await;
 
-    let tasks = world.run().await;
-    world.join().await;
-}
+//     let tasks = world.run().await;
+//     world.join().await;
+// }

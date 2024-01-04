@@ -74,8 +74,8 @@ impl Messager {
         }
     }
 
-    pub fn stream(&self) -> Pin<Box<dyn Stream<Item = Message> + Send>> {
-        let receiver = self.broadcast_receiver.clone();
+    pub fn stream(&self) -> Pin<Box<dyn Stream<Item = Message> + Send + '_>> {
+        let mut receiver = self.broadcast_receiver.clone();
         let stream = async_stream::stream! {
             loop {
                 let message = receiver.recv().await;
@@ -96,7 +96,7 @@ impl Messager {
         Box::pin(stream)
     }
 
-    pub async fn send(&self, message: Message) -> Result<()> {
-        self.broadcast_sender.broadcast(message).await
+    pub async fn send(&self, message: Message) {
+        self.broadcast_sender.broadcast(message).await.unwrap();
     }
 }

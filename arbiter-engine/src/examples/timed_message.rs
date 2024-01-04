@@ -1,25 +1,19 @@
 const AGENT_ID: &str = "agent";
 
 use super::*;
-use crate::{agent::Behavior, messager::To};
+use crate::{agent::Behavior, messager::To, world::World};
 
 struct TimedMessage {
     delay: u64,
     message: Message,
 }
 
-#[async_trait::async_trait]
-impl Behavior for TimedMessage {
-    #[tracing::instrument(skip(self), level = "trace")]
-    async fn sync_state(&mut self) -> Result<()> {
+impl Behavior<Message, Message> for TimedMessage {
+    async fn sync_state(&mut self) {
         trace!("Syncing state for `TimedMessage`.");
-        Ok(())
     }
 
-    // TODO: Okay here is where the agent should NEVER have to know about the
-    // `event.to` or anything even if the message is broadcast or direct.
-    #[tracing::instrument(skip(self, event), level = "trace")]
-    async fn process(&mut self) -> Vec<Message> {
+    async fn process(&mut self, event: Message) -> Vec<Message> {
         trace!("Processing event.");
         let message = Message {
             from: "agent".to_owned(),
@@ -33,6 +27,10 @@ impl Behavior for TimedMessage {
             vec![message]
         }
     }
+
+    async fn startup(&mut self) {
+        todo!()
+    }
 }
 
 // TODO: Can we combine the `world.run().await` through the `for task in tasks
@@ -45,10 +43,7 @@ async fn echoer() {
     std::env::set_var("RUST_LOG", "trace");
     tracing_subscriber::fmt::init();
 
-    let environment = EnvironmentBuilder::new().build();
-    let connection = Connection::from(&environment);
-    let provider = Provider::new(connection);
-    let mut world = World::new("test_world", provider);
+    let mut world = World::new("test_world");
 
     let agent = world.create_agent(AGENT_ID);
 
@@ -60,12 +55,6 @@ async fn echoer() {
             data: "Hello, world!".to_owned(),
         },
     };
-    let behavior = BehaviorBuilder::new()
-        .add_collector(agent.messager.clone())
-        .add_executor(agent.messager.clone())
-        .add_strategy(strategy)
-        .build();
-    agent.add_behavior(behavior);
 
     debug!("Starting world.");
     let tasks = world.run().await;
@@ -74,8 +63,6 @@ async fn echoer() {
         to: To::Agent("agent".to_owned()),
         data: "Start".to_owned(),
     };
-    let send_result = world.messager.execute(message).await;
+    let send_result = world.messager.send(message).await;
     debug!("Start message sent {:?}", send_result);
-
-    world.join().await;
 }

@@ -43,7 +43,7 @@ pub struct Agent {
 
 impl Agent {
     /// Produces a new agent with the given identifier.
-    pub(crate) fn connect<P>(id: &str, world: &World) -> Self {
+    pub(crate) fn connect(id: &str, world: &World) -> Self {
         let messager = world.messager.for_agent(id);
         let client = RevmMiddleware::new(&world.environment, Some(id)).unwrap();
         Self {
@@ -62,13 +62,13 @@ pub enum AgentState {
     Stopped,
 }
 
-pub trait Behavior {
+pub trait Behavior<E, A> {
     /// Used to bring the agent back up to date with the latest state of the
     /// world. This could be used if the world was stopped and later restarted.
-    fn sync_state(&mut self);
+    async fn sync_state(&mut self);
 
     /// Used to start the agent.
-    fn startup(&mut self);
+    async fn startup(&mut self);
 
-    fn process(&mut self);
+    async fn process(&mut self, event: E) -> Vec<A>;
 }
