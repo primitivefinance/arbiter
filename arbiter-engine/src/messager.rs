@@ -7,6 +7,9 @@
 // "get_event_stream" on the messager maybe.
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+// TODO: Need to create the pipeline for agent to get all of the streams they need to listen to from
+// the behaviors and then have the events piped to the behaviors upon process stage
+
 //! The messager module contains the core messager layer for the Arbiter Engine.
 
 use std::pin::Pin;
@@ -77,26 +80,30 @@ impl Messager {
     pub fn stream(&self) -> Pin<Box<dyn Stream<Item = Message> + Send + '_>> {
         let mut receiver = self.broadcast_receiver.clone();
         let stream = async_stream::stream! {
-            loop {
-                let message = receiver.recv().await;
-                if let Some(id) = &self.id {
-                    if let Ok(message) = message {
-                        if message.to == To::Agent(id.to_owned()) {
-                            yield message;
+            while let Ok(message) = receiver.recv().await {
+                println!("Received message: {:?}", message);
+
+                match &message.to {
+                    To::All => {
+                        println!("Yielding the broadcasted message");
+                        yield message;
+                    }
+                    To::Agent(id) => {
+                        if let Some(self_id) = &self.id {
+                            if id == self_id {
+                                println!("Yielding the message for the agent");
+                                yield message;
+                            }
                         }
                     }
-                } else {
-                match message {
-                    Ok(message) => yield message,
-                    Err(_) => break,
                 }
             }
-        }
         };
         Box::pin(stream)
     }
 
     pub async fn send(&self, message: Message) {
+        trace!("Sending message");
         self.broadcast_sender.broadcast(message).await.unwrap();
     }
 }

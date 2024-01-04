@@ -10,14 +10,22 @@
 // least relayer).
 // This means we should give agents some way to "start streams" that they can then use to produce
 // events.
+// Can the agent engines basically ask the central hub of events to "if let" into whatever `E` they
+// define and if it doesn't match, then it passes on.
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 //! The agent module contains the core agent abstraction for the Arbiter Engine.
 
-use std::sync::Arc;
+use std::{fmt::Debug, pin::Pin, sync::Arc};
 
-use arbiter_core::middleware::RevmMiddleware;
-use futures_util::{Stream, StreamExt};
+use arbiter_bindings::bindings::arbiter_token::ArbiterToken;
+use arbiter_core::{data_collection::EventLogger, middleware::RevmMiddleware};
+use ethers::{
+    contract::{EthLogDecode, Event},
+    types::U256,
+};
+use futures::stream::{self, Stream, StreamExt};
+use futures_util::stream::{Map, Select};
 
 use super::*;
 use crate::{
@@ -46,7 +54,7 @@ pub struct Agent {
 
     pub client: Arc<RevmMiddleware>,
 
-    pub streams: Vec<Box<dyn Stream<Item = Message>>>,
+    pub event_streamer: Option<EventLogger>,
 }
 
 impl Agent {
@@ -59,12 +67,25 @@ impl Agent {
             state: AgentState::Uninitialized,
             messager,
             client,
-            streams: Vec::new(),
+            event_streamer: Some(EventLogger::builder()),
         }
     }
 
-    pub fn add_stream(&mut self, stream: Box<dyn Stream<Item = Message>>) {
-        self.streams.push(stream);
+    pub fn add_event<D: EthLogDecode + Debug + Serialize + 'static>(
+        &mut self,
+        event: Event<Arc<RevmMiddleware>, RevmMiddleware, D>,
+    ) {
+        self.event_streamer = Some(self.event_streamer.take().unwrap().add_stream(event));
+    }
+
+    pub(crate) fn start_streams(&mut self) -> Pin<Box<dyn Stream<Item = String> + Send + '_>> {
+        let event_stream = self.event_streamer.take().unwrap().stream();
+        let message_stream = self
+            .messager
+            .stream()
+            .map(|msg| serde_json::to_string(&msg).unwrap_or_else(|e| e.to_string()));
+
+        Box::pin(futures::stream::select(event_stream, message_stream))
     }
 }
 
@@ -75,7 +96,7 @@ pub enum AgentState {
     Stopped,
 }
 
-pub trait Behavior<E, A> {
+pub trait Engine<E, A> {
     /// Used to bring the agent back up to date with the latest state of the
     /// world. This could be used if the world was stopped and later restarted.
     async fn sync_state(&mut self);
@@ -84,4 +105,58 @@ pub trait Behavior<E, A> {
     async fn startup(&mut self);
 
     async fn process(&mut self, event: E) -> Vec<A>;
+}
+
+#[ignore]
+#[tokio::test(flavor = "multi_thread", worker_threads = 2)]
+async fn streaming() {
+    std::env::set_var("RUST_LOG", "trace");
+    tracing_subscriber::fmt::init();
+
+    let mut world = World::new("world");
+    let messager = world.messager.clone();
+    println!(
+        "Receiver count: {:?}",
+        messager.broadcast_sender.receiver_count()
+    );
+
+    let agent = world.create_agent("agent");
+
+    let arb = ArbiterToken::deploy(
+        agent.client.clone(),
+        ("ArbiterToken".to_string(), "ARB".to_string(), 18u8),
+    )
+    .unwrap()
+    .send()
+    .await
+    .unwrap();
+
+    agent.add_event(arb.events());
+    let address = agent.client.address();
+    let mut streamer = agent.start_streams();
+    // let mut message_streamer = agent.messager.stream();
+    // let mut event_streamer = agent.event_streamer.take().unwrap().stream();
+    for _ in 0..5 {
+        messager
+            .send(Message {
+                from: "me".to_string(),
+                to: messager::To::All,
+                data: "hello".to_string(),
+            })
+            .await;
+        arb.approve(address, U256::from(1))
+            .send()
+            .await
+            .unwrap()
+            .await
+            .unwrap();
+    }
+    // let thing = streamer.enumerate().collect::<Vec<_>>().await;
+    // println!("Thing: {:?}", thing);
+    while let Some(msg) = streamer.next().await {
+        println!("Printing message in test: {:?}", msg);
+    }
+    // while let Some(event) = event_streamer.next().await {
+    //     println!("Event: {:?}", event);
+    // }
 }

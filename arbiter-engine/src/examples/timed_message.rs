@@ -1,82 +1,83 @@
-const AGENT_ID: &str = "agent";
+// const AGENT_ID: &str = "agent";
 
-use futures::stream::{Stream, StreamExt};
+// use futures::stream::{Stream, StreamExt};
 
-use super::*;
-use crate::{agent::Behavior, messager::To, world::World};
+// use super::*;
+// use crate::{agent::Engine, messager::To, world::World};
 
-struct TimedMessage {
-    delay: u64,
-    message: Message,
-}
+// struct TimedMessage {
+//     delay: u64,
+//     message: Message,
+// }
 
-impl Behavior<Message, Message> for TimedMessage {
-    async fn sync_state(&mut self) {
-        trace!("Syncing state for `TimedMessage`.");
-    }
+// impl Engine<Message, Message> for TimedMessage {
+//     async fn sync_state(&mut self) {
+//         trace!("Syncing state for `TimedMessage`.");
+//     }
 
-    async fn process(&mut self, event: Message) -> Vec<Message> {
-        trace!("Processing event.");
-        let message = Message {
-            from: "agent".to_owned(),
-            to: To::Agent("agent".to_owned()),
-            data: "Hello, world!".to_owned(),
-        };
-        // TODO: Should be able to get rid of this start signal
-        if event.data == "Start" {
-            vec![message]
-        } else {
-            tokio::time::sleep(std::time::Duration::from_secs(self.delay)).await;
-            vec![message]
-        }
-    }
+//     async fn process(&mut self, event: Message) -> Vec<Message> {
+//         trace!("Processing event.");
+//         let message = Message {
+//             from: "agent".to_owned(),
+//             to: To::Agent("agent".to_owned()),
+//             data: "Hello, world!".to_owned(),
+//         };
+//         // TODO: Should be able to get rid of this start signal
+//         if event.data == "Start" {
+//             vec![message]
+//         } else {
+//             
+// tokio::time::sleep(std::time::Duration::from_secs(self.delay)).await;
+//             vec![message]
+//         }
+//     }
 
-    async fn startup(&mut self) {
-        todo!()
-    }
-}
+//     async fn startup(&mut self) {
+//         todo!()
+//     }
+// }
 
-// TODO: Can we combine the `world.run().await` through the `for task in tasks
-// {task.await}` step to make this DEVX super easy TODO: Having something like
-// an automatic impl of Start and Stop for all behaviors would be nice or load
-// that in as a default behavior of agents or something.
-#[ignore]
-#[tokio::test(flavor = "multi_thread", worker_threads = 2)]
-async fn echoer() {
-    std::env::set_var("RUST_LOG", "trace");
-    tracing_subscriber::fmt::init();
+// // TODO: Can we combine the `world.run().await` through the `for task in
+// tasks // {task.await}` step to make this DEVX super easy TODO: Having
+// something like // an automatic impl of Start and Stop for all behaviors would
+// be nice or load // that in as a default behavior of agents or something.
+// #[ignore]
+// #[tokio::test(flavor = "multi_thread", worker_threads = 2)]
+// async fn echoer() {
+//     std::env::set_var("RUST_LOG", "trace");
+//     tracing_subscriber::fmt::init();
 
-    let mut world = World::new("test_world");
+//     let mut world = World::new("test_world");
 
-    let agent = world.create_agent(AGENT_ID);
+//     let agent = world.create_agent(AGENT_ID);
 
-    let arb = ArbiterToken::deploy(
-        agent.client.clone(),
-        ("ARB".to_string(), "Arbiter Token".to_string(), 18),
-    )
-    .unwrap()
-    .send()
-    .await
-    .unwrap();
-    let filter = arb.approval_filter().s;
-    let stream = filter.stream();
+//     let arb = ArbiterToken::deploy(
+//         agent.client.clone(),
+//         ("ARB".to_string(), "Arbiter Token".to_string(), 18),
+//     )
+//     .unwrap()
+//     .send()
+//     .await
+//     .unwrap();
+//     let filter = arb.approval_filter();
+//     let stream = filter.stream();
 
-    let strategy = TimedMessage {
-        delay: 1,
-        message: Message {
-            from: "agent".to_owned(),
-            to: To::Agent("agent".to_owned()),
-            data: "Hello, world!".to_owned(),
-        },
-    };
+//     let strategy = TimedMessage {
+//         delay: 1,
+//         message: Message {
+//             from: "agent".to_owned(),
+//             to: To::Agent("agent".to_owned()),
+//             data: "Hello, world!".to_owned(),
+//         },
+//     };
 
-    debug!("Starting world.");
-    let tasks = world.run().await;
-    let message = Message {
-        from: "agent".to_owned(),
-        to: To::Agent("agent".to_owned()),
-        data: "Start".to_owned(),
-    };
-    let send_result = world.messager.send(message).await;
-    debug!("Start message sent {:?}", send_result);
-}
+//     debug!("Starting world.");
+//     let tasks = world.run().await;
+//     let message = Message {
+//         from: "agent".to_owned(),
+//         to: To::Agent("agent".to_owned()),
+//         data: "Start".to_owned(),
+//     };
+//     let send_result = world.messager.send(message).await;
+//     debug!("Start message sent {:?}", send_result);
+// }

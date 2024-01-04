@@ -368,6 +368,7 @@ impl EventLogger {
             while let Ok(broadcast) = receiver.recv() {
                 match broadcast {
                     Broadcast::StopSignal => {
+                        trace!("`EventLogger` has seen a stop signal");
                         break;
                     }
                     Broadcast::Event(event) => {

@@ -207,7 +207,7 @@
 //                 from: self.id.to_owned(),
 //                 to: To::Agent(self.request_to.clone()),
 //                 data:
-// serde_json::to_string(&TokenAdminQuery::MintRequest(MintRequest {            
+// serde_json::to_string(&TokenAdminQuery::MintRequest(MintRequest {
 // token: self.token_data.name.clone(),                     mint_to:
 // self.client.address(),                     mint_amount: 1,
 //                 }))
@@ -236,7 +236,7 @@
 //             from: self.id.clone(),
 //             to: To::Agent(self.request_to.clone()),
 //             data:
-// serde_json::to_string(&TokenAdminQuery::MintRequest(MintRequest {            
+// serde_json::to_string(&TokenAdminQuery::MintRequest(MintRequest {
 // token: self.token_data.name.clone(),                 mint_to:
 // self.client.address(),                 mint_amount: 1,
 //             }))

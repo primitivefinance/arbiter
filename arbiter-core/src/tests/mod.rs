@@ -85,7 +85,7 @@ fn startup_constant_gas() -> Result<(Environment, Arc<RevmMiddleware>)> {
     Ok((env, client))
 }
 
-async fn deploy_arbx(client: Arc<RevmMiddleware>) -> Result<ArbiterToken<RevmMiddleware>> {
+async fn  deploy_arbx(client: Arc<RevmMiddleware>) -> Result<ArbiterToken<RevmMiddleware>> {
     Ok(ArbiterToken::deploy(
         client,
         (

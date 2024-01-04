@@ -98,12 +98,14 @@ async fn data_capture() {
 
 #[tokio::test]
 async fn data_stream() {
+    std::env::set_var("RUST_LOG", "trace");
+    tracing_subscriber::fmt::init();
     let (env, client) = startup_user_controlled().unwrap();
     let (arbx, arby, lex) = deploy_liquid_exchange(client.clone()).await.unwrap();
     println!("Deployed contracts");
 
     // default_listener
-    let mut streamer = EventLogger::builder()
+    let streamer = EventLogger::builder()
         .add_stream(arbx.events())
         .add_stream(arby.events())
         .add_stream(lex.events())
@@ -114,10 +116,8 @@ async fn data_stream() {
         .unwrap_or_else(|e| {
             panic!("Error generating events: {}", e);
         });
-
-    while let Some(event) = streamer.next().await {
-        println!("Event: {:?}", event);
-    }
-
+    panic!("This test is not complete");
+    let stream_buffer = streamer.enumerate().collect::<Vec<_>>().await;
+    println!("Buffer: {:?}", stream_buffer);
     let _ = env.stop();
 }
