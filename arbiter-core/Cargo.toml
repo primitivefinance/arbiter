@@ -55,7 +55,7 @@ tracing-test = "0.2.4"
 polars = "0.35.4"
 cargo_metadata = "0.18.1"
 chrono = "0.4.31"
-futures =  { version = "=0.3.29" }
+futures =  { version = "=0.3.30" }
 
 assert_matches =  { version = "=1.5" }
 
