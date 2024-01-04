@@ -10,7 +10,7 @@
 
 //! The world module contains the core world abstraction for the Arbiter Engine.
 
-use artemis_core::types::{Collector, CollectorStream, Executor};
+use arbiter_core::environment::{builder::EnvironmentBuilder, Environment};
 use ethers::{
     abi::Hash,
     providers::{Provider, PubsubClient},
@@ -25,7 +25,7 @@ use crate::{
 
 /// A world is a collection of agents that use the same type of provider, e.g.,
 /// operate on the same blockchain or same `Environment`.
-pub struct World<P> {
+pub struct World {
     /// The identifier of the world.
     pub id: String,
 
@@ -36,15 +36,14 @@ pub struct World<P> {
                                          * In which case, we could expose it as pub so
                                          * those methods can be grabbed. */
 
-    /// The provider for the world.
-    pub provider: Provider<P>, /* TODO: The world itself may not need to carry around the
-                                * provider, but the agents should all use the same type of
-                                * provider. */
+    // TODO: The worlds now are just going to be revm worlds. We can generalize
+    // this later.
+    /// The environment for the world.
+    pub environment: Environment,
 
     /// The messaging layer for the world.
-    pub messager: Messager, // TODO: Use this as the message executor that can be given to all agents and give each agent their specific collector.
-
-    pub joinsets: Option<Vec<JoinSet<()>>>,
+    pub messager: Messager, /* TODO: Use this as the message executor that can be given to all
+                             * agents and give each agent their specific collector. */
 }
 
 // TODO: Can add a messager as an interconnect and have the manager give each
@@ -61,9 +60,8 @@ where
         Self {
             id: id.to_owned(),
             agents: HashMap::new(),
-            provider,
+            environment: EnvironmentBuilder::new().build(),
             messager: Messager::new(),
-            joinsets: None,
         }
     }
 
@@ -77,20 +75,16 @@ where
 
     /// Runs the agents in the world.
     pub async fn run(&mut self) {
-        debug!("Running world: {}", self.id);
-        debug!("Agents in world: {:?}", self.agents.keys());
-
-        let mut join_sets = vec![];
-        for agent in self.agents.values_mut() {
-            trace!("Running agent: {}", agent.id);
-
-            for behavior in agent.behaviors.iter_mut() {
-                trace!("Running behavior");
-                let joinset = behavior.await.unwrap();
-                join_sets.push(joinset);
-            }
-        }
-        self.joinsets = Some(join_sets);
+        todo!()
+        // TODO: Notes,
+        // 1. The world should enter a startup stage where it itself starts up
+        //    and connects all the agents.
+        // Any preprocessing should be done here, e.g., loading from old state
+        // or something.
+        // 2. The world should then enter a running stage where it starts the
+        //    agents, and the agents can enter their own startup stage.
+        //      * Once the agents have finished their start up stage, they
+        //        should now be set to enter into their running stage.
     }
 
     pub async fn join(&mut self) {
@@ -99,6 +93,13 @@ where
             while let Some(_) = joinset.join_next().await {}
         }
     }
+}
+
+pub enum WorldState {
+    Uninitialized,
+    Startup,
+    Running,
+    Stopped,
 }
 
 #[cfg(test)]
@@ -125,8 +126,8 @@ mod tests {
     //     let provider = Provider::new(connection);
     //     let mut world = World::new("test_world", provider);
 
-    //     // let client = RevmMiddleware::new(&environment, Some("testname")).unwrap();
-    //     let agent = Agent::new("agent1");
+    //     // let client = RevmMiddleware::new(&environment,
+    // Some("testname")).unwrap();     let agent = Agent::new("agent1");
     //     // let messager = Messager::new();
     //     // let behavior = BehaviorBuilder::new()
     //     //     .add_collector(messager.clone())

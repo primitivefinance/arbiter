@@ -1,7 +1,7 @@
 const AGENT_ID: &str = "agent";
 
 use super::*;
-use crate::{agent::BehaviorBuilder, messager::To};
+use crate::{agent::Behavior, messager::To};
 
 struct TimedMessage {
     delay: u64,
@@ -9,16 +9,17 @@ struct TimedMessage {
 }
 
 #[async_trait::async_trait]
-impl Strategy<Message, Message> for TimedMessage {
+impl Behavior for TimedMessage {
     #[tracing::instrument(skip(self), level = "trace")]
     async fn sync_state(&mut self) -> Result<()> {
         trace!("Syncing state for `TimedMessage`.");
         Ok(())
     }
 
-    // TODO: Okay here is where the agent should NEVER have to know about the `event.to` or anything even if the message is broadcast or direct.
+    // TODO: Okay here is where the agent should NEVER have to know about the
+    // `event.to` or anything even if the message is broadcast or direct.
     #[tracing::instrument(skip(self, event), level = "trace")]
-    async fn process_event(&mut self, event: Message) -> Vec<Message> {
+    async fn process(&mut self) -> Vec<Message> {
         trace!("Processing event.");
         let message = Message {
             from: "agent".to_owned(),

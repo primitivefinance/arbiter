@@ -21,6 +21,8 @@ name = "arbiter"
 path = "bin/main.rs"
 
 [workspace.dependencies]
+arbiter-bindings = { path = "./arbiter-bindings" }
+arbiter-core = { path = "./arbiter-core" }
 ethers = { version = "2.0.11" }
 serde = { version = "1.0.193", features = ["derive"] }
 serde_json = { version = "=1.0.108" }
@@ -31,7 +33,6 @@ syn = { version = "2.0.43" }
 quote = { version = "=1.0.33" }
 proc-macro2 = { version = "1.0.76" }
 tokio = { version = "1.35.1", features = ["macros", "full"] }
-arbiter-core = { path = "./arbiter-core" }
 crossbeam-channel =  { version = "0.5.11" }
 futures-util =  { version = "=0.3.30" }
 async-trait =  { version = "0.1.76" }
