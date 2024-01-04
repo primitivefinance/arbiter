@@ -271,6 +271,7 @@ dependencies = [
  "arbiter-bindings",
  "arbiter-derive",
  "assert_matches",
+ "async-stream",
  "async-trait",
  "bytes",
  "cargo_metadata",

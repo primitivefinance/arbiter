@@ -15,9 +15,9 @@ async-trait.workspace = true
 serde_json.workspace = true
 serde.workspace = true
 tokio.workspace = true
+async-stream.workspace = true
 anyhow =  { version = "=1.0.79" }
 tracing.workspace = true
-async-stream = "0.3.5"
 tokio-stream = "0.1.14"
 async-broadcast = "0.6.0"
 futures = "0.3.30"

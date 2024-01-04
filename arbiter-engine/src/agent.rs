@@ -1,13 +1,15 @@
 #![warn(missing_docs)]
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // TODO: Notes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-// We may need traits for Events and Actions (e.g., "Event" and "Action"
-// which have a method like "parse()" and "produce()" or something.).
-// Need an init signal or something.
-// We can give agents a "calculator" evm to send "Actions" to when they are just
-// doing compute so they aren't blocking the main tx thread.
-// Maybe by default we should give agents a messager as part of their engine so we can call a
-// "start" and "stop" with them.
+// When we start running an agent, we should have their messager start producing events that can be
+// used by any and all behaviors the agent has that takes in messages as an event. Similarly, we
+// should have agents start up any streams listeners that they need so those can also produce
+// events. Those can then be piped into the behaviors that need them.
+// Can perhaps make behaviors come from very specific events (e.g., specific contract events).
+// This means each behavior should be a consumer and perhaps the agent itself is the producer (or at
+// least relayer).
+// This means we should give agents some way to "start streams" that they can then use to produce
+// events.
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 //! The agent module contains the core agent abstraction for the Arbiter Engine.
@@ -15,9 +17,13 @@
 use std::sync::Arc;
 
 use arbiter_core::middleware::RevmMiddleware;
+use futures_util::{Stream, StreamExt};
 
 use super::*;
-use crate::{messager::Messager, world::World};
+use crate::{
+    messager::{Message, Messager},
+    world::World,
+};
 
 // TODO: For the time being, these agents are just meant to be for arbiter
 // instances. We can generalize later.
@@ -39,6 +45,8 @@ pub struct Agent {
     pub messager: Messager,
 
     pub client: Arc<RevmMiddleware>,
+
+    pub streams: Vec<Box<dyn Stream<Item = Message>>>,
 }
 
 impl Agent {
@@ -51,7 +59,12 @@ impl Agent {
             state: AgentState::Uninitialized,
             messager,
             client,
+            streams: Vec::new(),
         }
+    }
+
+    pub fn add_stream(&mut self, stream: Box<dyn Stream<Item = Message>>) {
+        self.streams.push(stream);
     }
 }
 

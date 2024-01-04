@@ -1,5 +1,7 @@
 const AGENT_ID: &str = "agent";
 
+use futures::stream::{Stream, StreamExt};
+
 use super::*;
 use crate::{agent::Behavior, messager::To, world::World};
 
@@ -20,6 +22,7 @@ impl Behavior<Message, Message> for TimedMessage {
             to: To::Agent("agent".to_owned()),
             data: "Hello, world!".to_owned(),
         };
+        // TODO: Should be able to get rid of this start signal
         if event.data == "Start" {
             vec![message]
         } else {
@@ -46,6 +49,17 @@ async fn echoer() {
     let mut world = World::new("test_world");
 
     let agent = world.create_agent(AGENT_ID);
+
+    let arb = ArbiterToken::deploy(
+        agent.client.clone(),
+        ("ARB".to_string(), "Arbiter Token".to_string(), 18),
+    )
+    .unwrap()
+    .send()
+    .await
+    .unwrap();
+    let filter = arb.approval_filter().s;
+    let stream = filter.stream();
 
     let strategy = TimedMessage {
         delay: 1,

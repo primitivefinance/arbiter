@@ -37,6 +37,7 @@ crossbeam-channel =  { version = "0.5.11" }
 futures-util =  { version = "=0.3.30" }
 async-trait =  { version = "0.1.76" }
 tracing = "0.1.40"
+async-stream = "0.3.5"
 
 # Dependencies for the release build
 [dependencies]
