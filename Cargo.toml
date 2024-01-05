@@ -29,7 +29,7 @@ revm-primitives = { git = "https://github.com/bluealloy/revm.git" }
 thiserror = { version = "1.0.51" }
 syn = { version = "2.0.43" }
 quote = { version = "=1.0.33" }
-proc-macro2 = { version = "1.0.70" }
+proc-macro2 = { version = "1.0.75" }
 tokio = { version = "1.35.1", features = ["macros", "full"] }
 arbiter-core = { path = "./arbiter-core" }
 crossbeam-channel =  { version = "0.5.10" }
