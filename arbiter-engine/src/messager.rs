@@ -15,7 +15,6 @@
 use std::pin::Pin;
 
 use async_broadcast::{broadcast, Receiver as BroadcastReceiver, Sender as BroadcastSender};
-use crossbeam_channel::{unbounded, Receiver, Sender};
 use futures_util::Stream;
 
 // use tokio::sync::broadcast::{channel, Receiver, Sender};
@@ -81,17 +80,13 @@ impl Messager {
         let mut receiver = self.broadcast_receiver.clone();
         let stream = async_stream::stream! {
             while let Ok(message) = receiver.recv().await {
-                println!("Received message: {:?}", message);
-
                 match &message.to {
                     To::All => {
-                        println!("Yielding the broadcasted message");
                         yield message;
                     }
                     To::Agent(id) => {
                         if let Some(self_id) = &self.id {
                             if id == self_id {
-                                println!("Yielding the message for the agent");
                                 yield message;
                             }
                         }
@@ -103,7 +98,7 @@ impl Messager {
     }
 
     pub async fn send(&self, message: Message) {
-        trace!("Sending message");
+        trace!("Sending message via messager.");
         self.broadcast_sender.broadcast(message).await.unwrap();
     }
 }

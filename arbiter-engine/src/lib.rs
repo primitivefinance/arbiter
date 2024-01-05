@@ -1,3 +1,5 @@
+#![warn(missing_docs)]
+
 use std::collections::HashMap;
 
 use anyhow::Result;
@@ -6,8 +8,7 @@ use serde::{Deserialize, Serialize};
 use tracing::{debug, trace, warn};
 
 pub mod agent;
-#[cfg(test)]
-pub mod collector;
 pub mod examples;
+pub mod machine;
 pub mod messager;
 pub mod world;

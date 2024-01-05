@@ -413,7 +413,6 @@ fn flatten_to_data_frame(events: BTreeMap<String, BTreeMap<String, Vec<Value>>>)
         Series::new("event_value", event_values),
     ])
     .unwrap();
-    println!("{:?}", df);
 
     df
 }

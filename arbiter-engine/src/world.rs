@@ -15,11 +15,13 @@ use ethers::{
     abi::Hash,
     providers::{Provider, PubsubClient},
 };
-use tokio::task::JoinSet;
+use futures_util::future::{join_all, JoinAll};
+use tokio::task::{JoinHandle, JoinSet};
 
 use super::*;
 use crate::{
     agent::Agent,
+    machine::{State, StateMachine},
     messager::{Message, Messager},
 };
 
@@ -30,11 +32,12 @@ pub struct World {
     pub id: String,
 
     /// The agents in the world.
-    pub agents: HashMap<String, Agent>, /* TODO: This should be a map of agents. We
-                                         * may also want to add a bit more to the
-                                         * Entity trait (e.g., the id of the agent).
-                                         * In which case, we could expose it as pub so
-                                         * those methods can be grabbed. */
+    pub agents: Option<HashMap<String, Agent>>, /* TODO: This should be a map of agents. We
+                                                 * may also want to add a bit more to the
+                                                 * Entity trait (e.g., the id of the agent).
+                                                 * In which case, we could expose it as pub so
+                                                 * those methods can be grabbed. */
+    pub agent_tasks: Option<JoinAll<JoinHandle<Agent>>>,
 
     // TODO: The worlds now are just going to be revm worlds. We can generalize
     // this later.
@@ -56,7 +59,8 @@ impl World {
     pub fn new(id: &str) -> Self {
         Self {
             id: id.to_owned(),
-            agents: HashMap::new(),
+            agents: Some(HashMap::new()),
+            agent_tasks: None,
             environment: EnvironmentBuilder::new().build(),
             messager: Messager::new(),
         }
@@ -66,30 +70,88 @@ impl World {
     pub fn create_agent(&mut self, id: &str) -> &mut Agent {
         // TODO: Here is where we can maybe consider giving the agents a client?
         let agent = Agent::connect(id, self);
-        self.agents.insert(id.to_owned(), agent);
-        self.agents.get_mut(id).unwrap()
-    }
-
-    /// Runs the agents in the world.
-    pub async fn run(&mut self) {
-        todo!()
-        // TODO: Notes,
-        // 1. The world should enter a startup stage where it itself starts up
-        //    and connects all the agents.
-        // Any preprocessing should be done here, e.g., loading from old state
-        // or something.
-        // 2. The world should then enter a running stage where it starts the
-        //    agents, and the agents can enter their own startup stage.
-        //      * Once the agents have finished their start up stage, they
-        //        should now be set to enter into their running stage.
+        let agents = self.agents.as_mut().unwrap();
+        agents.insert(id.to_owned(), agent);
+        agents.get_mut(id).unwrap()
     }
 }
 
-pub enum WorldState {
-    Uninitialized,
-    Startup,
-    Running,
-    Stopped,
+#[async_trait::async_trait]
+impl StateMachine for World {
+    fn run_state(&mut self, state: State) {
+        match state {
+            State::Uninitialized => {
+                unimplemented!("This never gets called.")
+            }
+            State::Syncing => {
+                trace!("World is syncing.");
+                let mut agents = self.agents.take().unwrap();
+                for agent in agents.values_mut() {
+                    agent.run_state(state);
+                }
+                self.agent_tasks = Some(join_all(agents.into_values().map(|mut agent| {
+                    tokio::spawn(async move {
+                        agent.transition().await;
+                        agent
+                    })
+                })));
+            }
+            State::Startup => {
+                trace!("World is starting up.");
+                let mut agents = self.agents.take().unwrap();
+                for agent in agents.values_mut() {
+                    agent.run_state(state);
+                }
+                self.agent_tasks = Some(join_all(agents.into_values().map(|mut agent| {
+                    tokio::spawn(async move {
+                        agent.transition().await;
+                        agent
+                    })
+                })));
+            }
+            State::Processing => {
+                trace!("World is starting up.");
+                let mut agents = self.agents.take().unwrap();
+                for agent in agents.values_mut() {
+                    agent.run_state(state);
+                }
+                self.agent_tasks = Some(join_all(agents.into_values().map(|mut agent| {
+                    tokio::spawn(async move {
+                        agent.transition().await;
+                        agent
+                    })
+                })));
+            }
+            State::Stopped => {
+                trace!("World is starting up.");
+                let mut agents = self.agents.take().unwrap();
+                for agent in agents.values_mut() {
+                    agent.run_state(state);
+                }
+                self.agent_tasks = Some(join_all(agents.into_values().map(|mut agent| {
+                    tokio::spawn(async move {
+                        agent.transition().await;
+                        agent
+                    })
+                })));
+            }
+        }
+    }
+
+    async fn transition(&mut self) {
+        self.agents = Some(
+            self.agent_tasks
+                .take()
+                .unwrap()
+                .await
+                .into_iter()
+                .map(|res| {
+                    let agent = res.unwrap();
+                    (agent.id.clone(), agent)
+                })
+                .collect::<HashMap<String, Agent>>(),
+        );
+    }
 }
 
 #[cfg(test)]
