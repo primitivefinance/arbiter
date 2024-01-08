@@ -32,7 +32,7 @@ quote = { version = "=1.0.33" }
 proc-macro2 = { version = "1.0.75" }
 tokio = { version = "1.35.1", features = ["macros", "full"] }
 arbiter-core = { path = "./arbiter-core" }
-crossbeam-channel =  { version = "0.5.10" }
+crossbeam-channel =  { version = "0.5.11" }
 futures-util =  { version = "=0.3.30" }
 async-trait =  { version = "0.1.76" }
 tracing = "0.1.40"
