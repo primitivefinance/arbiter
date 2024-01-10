@@ -152,8 +152,11 @@ impl EventLogger {
         self
     }
 
+    /// Adds an event to the `EventLogger` and generates a unique ID for the
+    /// event since we don't need to name events that are solely streamed and
+    /// not stored.
     pub fn add_stream<D: EthLogDecode + Debug + Serialize + 'static>(
-        mut self,
+        self,
         event: Event<Arc<RevmMiddleware>, RevmMiddleware, D>,
     ) -> Self {
         let mut hasher = Sha256::new();
@@ -361,6 +364,7 @@ impl EventLogger {
         Ok(())
     }
 
+    /// Returns a stream of the serialized events.
     pub fn stream(self) -> Pin<Box<dyn Stream<Item = String> + Send + 'static>> {
         let receiver = self.receiver.clone().unwrap();
 
@@ -407,14 +411,12 @@ fn flatten_to_data_frame(events: BTreeMap<String, BTreeMap<String, Vec<Value>>>)
     }
 
     // 2. Convert the vectors into a DataFrame
-    let df = DataFrame::new(vec![
+    DataFrame::new(vec![
         Series::new("contract_name", contract_names),
         Series::new("event_name", event_names),
         Series::new("event_value", event_values),
     ])
-    .unwrap();
-
-    df
+    .unwrap()
 }
 pub(crate) struct EventTransmuted<B, M, D> {
     /// The event filter's state

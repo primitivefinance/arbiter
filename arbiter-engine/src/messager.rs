@@ -1,15 +1,3 @@
-#![warn(missing_docs)]
-// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-// TODO: Notes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-// Is it possible to have the messager track the ID of agents connected to it? Perhaps there is some
-// kind of reference counter with identifiers. Then we can offload the messager delivery service to
-// the messager instead of broadcasting all messages. We'd have to do this as we call
-// "get_event_stream" on the messager maybe.
-// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-// TODO: Need to create the pipeline for agent to get all of the streams they need to listen to from
-// the behaviors and then have the events piped to the behaviors upon process stage
-
 //! The messager module contains the core messager layer for the Arbiter Engine.
 
 use std::pin::Pin;
@@ -17,7 +5,6 @@ use std::pin::Pin;
 use async_broadcast::{broadcast, Receiver as BroadcastReceiver, Sender as BroadcastSender};
 use futures_util::Stream;
 
-// use tokio::sync::broadcast::{channel, Receiver, Sender};
 use super::*;
 
 /// A message that can be sent between agents.
@@ -34,21 +21,25 @@ pub struct Message {
     pub data: String,
 }
 
+/// The recipient of the message.
 #[derive(Clone, Debug, Deserialize, Serialize, PartialEq, Eq)]
 pub enum To {
+    /// Send the message to all agents who are listening for broadcasts.
     All,
+
+    /// Send the message to a specific agent.
     Agent(String),
 }
 
 /// A messager that can be used to send messages between agents.
 #[derive(Clone, Debug)]
 pub struct Messager {
-    // TODO: Right now these are for broadcasting. We could add a way to send to a specific agent.
-    // In fact, if we just have all agents join the messager, then we can send to all agents if the
-    // `to` is `None`
-    pub(crate) broadcast_sender: BroadcastSender<Message>,
-    broadcast_receiver: BroadcastReceiver<Message>,
+    /// The identifier of the entity that is using the messager.
     pub id: Option<String>,
+
+    pub(crate) broadcast_sender: BroadcastSender<Message>,
+
+    broadcast_receiver: BroadcastReceiver<Message>,
 }
 
 impl Messager {
@@ -76,6 +67,8 @@ impl Messager {
         }
     }
 
+    /// Returns a stream of messages that are either sent to [`To::All`] or to
+    /// the agent via [`To::Agent(id)`].
     pub fn stream(&self) -> Pin<Box<dyn Stream<Item = Message> + Send + '_>> {
         let mut receiver = self.broadcast_receiver.clone();
         let stream = async_stream::stream! {
@@ -97,6 +90,7 @@ impl Messager {
         Box::pin(stream)
     }
 
+    /// Sends a message to the messager.
     pub async fn send(&self, message: Message) {
         trace!("Sending message via messager.");
         self.broadcast_sender.broadcast(message).await.unwrap();

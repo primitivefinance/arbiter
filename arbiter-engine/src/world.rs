@@ -1,60 +1,75 @@
-#![warn(missing_docs)]
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // TODO: Notes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-//  Probably should move labels to world instead of on the environment.
-// One thing that is different about the Arbiter world is that give a bunch of different channels to
-// communicate with the Environment's tx thread. This is different from a connection to a blockchain
-// where you typically will just have a single HTTP/WS connection. What we want is some kind of way
-// of having the world own a reference to a provider or something
+// * Probably should move labels to world instead of on the environment.
+// * One thing that is different about the Arbiter world is that give a bunch of
+//   different channels to communicate with the Environment's tx thread. This is
+//   different from a connection to a blockchain where you typically will just
+//   have a single HTTP/WS connection. What we want is some kind of way of
+//   having the world own a reference to a provider or something
+// * Can add a messager as an interconnect and have the manager give each world
+//   it owns a clone of the same messager.
+// * The worlds now are just going to be revm worlds. We can generalize this
+//   later.
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 //! The world module contains the core world abstraction for the Arbiter Engine.
 
 use arbiter_core::environment::{builder::EnvironmentBuilder, Environment};
-use ethers::{
-    abi::Hash,
-    providers::{Provider, PubsubClient},
-};
 use futures_util::future::{join_all, JoinAll};
-use tokio::task::{JoinHandle, JoinSet};
+use tokio::task::JoinHandle;
 
 use super::*;
 use crate::{
     agent::Agent,
     machine::{State, StateMachine},
-    messager::{Message, Messager},
+    messager::Messager,
 };
 
 /// A world is a collection of agents that use the same type of provider, e.g.,
-/// operate on the same blockchain or same `Environment`.
+/// operate on the same blockchain or same `Environment`. The world is
+/// responsible for managing the agents and their state transitions.
+///
+/// # How it works
+/// The [`World`] works by implementing the [`StateMachine`] trait. When the
+/// [`World`] is asked to enter into a new state, it will ask each [`Agent`] it
+/// owns to run that state transition by calling [`StateMachine::run_state`].
+/// All of the [`Agent`]s at once will then be able to be asked to block and
+/// wait to finish their state transition by calling
+/// [`StateMachine::transition`]. Ultimately, the [`World`] will transition
+/// through the following states:
+/// 1. [`State::Uninitialized`]: The [`World`] has been created, but has not
+///   been started.
+/// 2. [`State::Syncing`]: The [`World`] is syncing with the agents. This is
+///  where the [`World`] can be brought up to date with the latest state of the
+/// agents. This could be used if the world was stopped and later restarted.
+/// 3. [`State::Startup`]: The [`World`] is starting up. This is where the
+/// [`World`] can be initialized and setup.
+/// 4. [`State::Processing`]: The [`World`] is processing. This is where the
+/// [`World`] can process events and produce actions. The [`State::Processing`]
+/// stage may run for a long time before all [`World`]s are finished processing.
+/// This is the main stage of the [`World`] that predominantly runs automation.
+/// 5. [`State::Stopped`]: The [`World`] is stopped. This is where the [`World`]
+/// can be stopped and state of the [`World`] and its [`Agent`]s can be
+/// offloaded and saved.
 pub struct World {
     /// The identifier of the world.
     pub id: String,
 
     /// The agents in the world.
-    pub agents: Option<HashMap<String, Agent>>, /* TODO: This should be a map of agents. We
-                                                 * may also want to add a bit more to the
-                                                 * Entity trait (e.g., the id of the agent).
-                                                 * In which case, we could expose it as pub so
-                                                 * those methods can be grabbed. */
-    pub agent_tasks: Option<JoinAll<JoinHandle<Agent>>>,
+    pub agents: Option<HashMap<String, Agent>>,
 
-    // TODO: The worlds now are just going to be revm worlds. We can generalize
-    // this later.
     /// The environment for the world.
     pub environment: Environment,
 
     /// The messaging layer for the world.
-    pub messager: Messager, /* TODO: Use this as the message executor that can be given to all
-                             * agents and give each agent their specific collector. */
+    pub messager: Messager,
+
+    /// Holds onto the tasks that represent the agent running a specific state
+    /// transition.
+    agent_tasks: Option<JoinAll<JoinHandle<Agent>>>,
 }
 
-// TODO: Can add a messager as an interconnect and have the manager give each
-// world it owns a clone of the same messager.
-
 impl World {
-    // TODO: May not need to take in the provider here, but rather get it from the
-    // agents.
     /// Creates a new world with the given identifier and provider.
     pub fn new(id: &str) -> Self {
         Self {
@@ -68,7 +83,6 @@ impl World {
 
     /// Adds an agent to the world.
     pub fn create_agent(&mut self, id: &str) -> &mut Agent {
-        // TODO: Here is where we can maybe consider giving the agents a client?
         let agent = Agent::connect(id, self);
         let agents = self.agents.as_mut().unwrap();
         agents.insert(id.to_owned(), agent);
@@ -159,42 +173,18 @@ mod tests {
     use std::{str::FromStr, sync::Arc};
 
     use arbiter_bindings::bindings::weth::WETH;
-    use arbiter_core::{
-        environment::builder::EnvironmentBuilder, middleware::connection::Connection,
-    };
     use ethers::{
         providers::{Middleware, Provider, Ws},
         types::Address,
     };
     use futures_util::StreamExt;
 
-    use super::*;
-
-    // #[ignore]
-    // #[test]
-    // fn arbiter_world() {
-    //     let environment = EnvironmentBuilder::new().build();
-    //     let connection = Connection::from(&environment);
-    //     let provider = Provider::new(connection);
-    //     let mut world = World::new("test_world", provider);
-
-    //     // let client = RevmMiddleware::new(&environment,
-    // Some("testname")).unwrap();     let agent = Agent::new("agent1");
-    //     // let messager = Messager::new();
-    //     // let behavior = BehaviorBuilder::new()
-    //     //     .add_collector(messager.clone())
-    //     //     .add_executor(MempoolExecutor::new(client.clone()))
-    //     //     .build();
-    //     world.add_agent(agent);
-    // }
-
-    #[ignore]
+    #[ignore = "This is unecessary to run on CI currently."]
     #[tokio::test]
-    async fn mainnet_world() {
+    async fn mainnet_ws() {
         let ws_url = std::env::var("MAINNET_WS_URL").expect("MAINNET_WS_URL must be set");
         let ws = Ws::connect(ws_url).await.unwrap();
         let provider = Provider::new(ws);
-        // let mut world = World::new(provider);
         let client = Arc::new(provider);
         let weth = WETH::new(
             Address::from_str("0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2").unwrap(),

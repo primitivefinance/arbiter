@@ -47,7 +47,7 @@ impl Behavior<Message> for TimedMessage {
 // something like // an automatic impl of Start and Stop for all behaviors
 // would  be nice or load // that in as a default behavior of agents or
 // something.
-#[ignore]
+#[ignore = "This is a work in progress and does not work and does not ever terminate."]
 #[tokio::test(flavor = "multi_thread", worker_threads = 2)]
 async fn echoer() {
     std::env::set_var("RUST_LOG", "trace");
@@ -67,7 +67,7 @@ async fn echoer() {
     };
     agent.add_behavior(behavior);
 
-    debug!("Starting world.");
+    tracing::debug!("Starting world.");
     let messager = world.messager.clone();
     world.run_state(State::Syncing);
     world.transition().await;
@@ -83,7 +83,7 @@ async fn echoer() {
         data: "Start".to_owned(),
     };
     let send_result = messager.send(message).await;
-    debug!("Start message sent {:?}", send_result);
+    tracing::debug!("Start message sent {:?}", send_result);
 
     tokio::time::sleep(std::time::Duration::from_secs(1)).await;
 

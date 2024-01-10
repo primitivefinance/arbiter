@@ -10,17 +10,6 @@
 // (or at least relayer).
 // This means we should give agents some way to "start streams" that they can
 // then use to produce events.
-// Can the agent engines basically ask the central hub of events to "if let"
-// into whatever `E` they define and if it doesn't match, then it passes on.
-// Also, all of this should be abstracted so that the user really only ever does
-// something like "Start" the simulation and the agents state machine can
-// progress through the stages of startup, running, and stopped. This way they
-// get their streams and do all this under the hood. The streams should be
-// placed inside of a `tokio::task` when the agents want to run them so they can
-// be watched (i.e., `stream.next().await`) concurrently. In the startup step
-// for the engine, it might be there that we have the behavior tell the event
-// streamer what events it wants to listen to since this is where we can have
-// contracts be added (they can be deployed in sync_state).
 // Behaviors definitely need to be able to reference the agent's client and
 // messager so that they can send messages and interact with the blockchain.
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -32,10 +21,7 @@ use std::{fmt::Debug, pin::Pin, sync::Arc};
 use arbiter_core::{data_collection::EventLogger, middleware::RevmMiddleware};
 use ethers::contract::{EthLogDecode, Event};
 use futures::stream::{Stream, StreamExt};
-use futures_util::{
-    future::{join_all, JoinAll},
-    Future,
-};
+use futures_util::future::{join_all, JoinAll};
 use serde::de::DeserializeOwned;
 use tokio::task::JoinHandle;
 
@@ -53,6 +39,29 @@ use crate::{
 /// These are the core actors in simulations or in onchain systems.
 /// Agents can be connected of other agents either as a dependent, or a
 /// dependency.
+///
+/// # How it works
+/// The [`Agent`] works by implementing the [`StateMachine`] trait. When the
+/// [`World`] that owns the [`Agent`] is asked to enter into a new state, the
+/// [`World`] will ask each [`Agent`] it owns to run that state transition by
+/// calling [`StateMachine::run_state`]. All of the [`Agent`]s at once will then
+/// will be able to be asked to block and wait to finish their state transition
+/// by calling [`StateMachine::transition`]. Ultimately, the [`Agent`] will
+/// transition through the following states:
+/// 1. [`State::Uninitialized`]: The [`Agent`] has been created, but has not
+///   been started.
+/// 2. [`State::Syncing`]: The [`Agent`] is syncing with the world. This is
+///  where the [`Agent`] can be brought up to date with the latest state of the
+/// world. This could be used if the world was stopped and later restarted.
+/// 3. [`State::Startup`]: The [`Agent`] is starting up. This is where the
+/// [`Agent`] can be initialized and setup.
+/// 4. [`State::Processing`]: The [`Agent`] is processing. This is where the
+/// [`Agent`] can process events and produce actions. The [`State::Processing`]
+/// stage may run for a long time before all [`Agent`]s are finished processing.
+/// This is the main stage of the [`Agent`] that predominantly runs automation.
+/// 5. [`State::Stopped`]: The [`Agent`] is stopped. This is where the [`Agent`]
+/// can be stopped and state of the [`World`] and its [`Agent`]s can be
+/// offloaded and saved.
 pub struct Agent {
     /// Identifier for this agent.
     /// Used for routing messages.
@@ -65,15 +74,23 @@ pub struct Agent {
     /// agents.
     pub messager: Messager,
 
+    /// The client the agent uses to interact with the blockchain.
     pub client: Arc<RevmMiddleware>,
 
+    /// The generalized event streamer for the agent that can stream a JSON
+    /// `String`of any Ethereum event that can be decoded by behaviors.
     pub event_streamer: Option<EventLogger>,
 
-    pub behavior_engines: Option<Vec<Box<dyn StateMachine>>>,
+    /// The engines/behaviors that the agent uses to sync, startup, and process
+    /// events.
+    behavior_engines: Option<Vec<Box<dyn StateMachine>>>,
 
-    pub behavior_tasks: Option<JoinAll<JoinHandle<Box<dyn StateMachine>>>>,
+    /// The tasks that represent the agent running a specific state transition.
+    behavior_tasks: Option<JoinAll<JoinHandle<Box<dyn StateMachine>>>>,
 
-    pub distributor: (
+    /// The pipeline for yielding events from the centralized event streamer
+    /// (for both messages and Ethereum events) to agents.
+    distributor: (
         async_broadcast::Sender<String>,
         async_broadcast::Receiver<String>,
     ),
@@ -97,6 +114,7 @@ impl Agent {
         }
     }
 
+    /// Adds an Ethereum event to the agent's event streamer.
     pub fn add_event<D: EthLogDecode + Debug + Serialize + 'static>(
         &mut self,
         event: Event<Arc<RevmMiddleware>, RevmMiddleware, D>,
@@ -104,16 +122,7 @@ impl Agent {
         self.event_streamer = Some(self.event_streamer.take().unwrap().add_stream(event));
     }
 
-    pub(crate) fn start_event_stream(&mut self) -> Pin<Box<dyn Stream<Item = String> + Send + '_>> {
-        let event_stream = self.event_streamer.take().unwrap().stream();
-        let message_stream = self
-            .messager
-            .stream()
-            .map(|msg| serde_json::to_string(&msg).unwrap_or_else(|e| e.to_string()));
-
-        Box::pin(futures::stream::select(event_stream, message_stream))
-    }
-
+    /// Adds a behavior to the agent that it will run.
     pub fn add_behavior<E: DeserializeOwned + Send + Sync + Debug + 'static>(
         &mut self,
         behavior: impl Behavior<E> + 'static,
@@ -127,13 +136,20 @@ impl Agent {
             self.behavior_engines = Some(vec![Box::new(engine)]);
         }
     }
-}
 
-// TODO: Now at this piont, `behavior_engine` should have a task
-// inside of it and we can collect all of the tasks for all of
-// the behaviors. These tasks should be all running
-// concurrently, so we need to await all of them simultaneously
-// using the `transition()` method
+    // TODO: This is unused for now, but we will use it in the future for the event
+    // pipelining.
+    #[allow(unused)]
+    pub(crate) fn start_event_stream(&mut self) -> Pin<Box<dyn Stream<Item = String> + Send + '_>> {
+        let event_stream = self.event_streamer.take().unwrap().stream();
+        let message_stream = self
+            .messager
+            .stream()
+            .map(|msg| serde_json::to_string(&msg).unwrap_or_else(|e| e.to_string()));
+
+        Box::pin(futures::stream::select(event_stream, message_stream))
+    }
+}
 
 #[async_trait::async_trait]
 impl StateMachine for Agent {
@@ -194,8 +210,6 @@ impl StateMachine for Agent {
     }
 
     async fn transition(&mut self) {
-        // TODO: Idea, go through all the behaviors and see if they are done. Processing
-        // may not explicitly finish, but will need awaited nonetheless
         self.behavior_engines = Some(
             self.behavior_tasks
                 .take()
