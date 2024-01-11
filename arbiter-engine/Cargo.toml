@@ -27,6 +27,6 @@ arbiter-bindings.workspace = true
 
 [dev-dependencies]
 arbiter-core.workspace = true
-arbiter-bindings = { path = "../arbiter-bindings" }
+arbiter-bindings = { version = "0.1.1", path = "../arbiter-bindings" }
 tracing-subscriber = "0.3.18"
 tracing-test = "0.2.4"
