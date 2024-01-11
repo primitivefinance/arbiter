@@ -34,7 +34,6 @@ impl Behavior<Message> for TimedMessage {
         }
 
         tokio::time::sleep(std::time::Duration::from_secs(self.delay)).await;
-        // TODO: send a message
         trace!("Processed event.");
     }
 
@@ -51,11 +50,6 @@ impl Behavior<Message> for TimedMessage {
     }
 }
 
-// // TODO: Can we combine the `world.run().await` through the `for task in
-// tasks // {task.await}` step to make this DEVX super easy TODO: Having
-// something like // an automatic impl of Start and Stop for all behaviors
-// would  be nice or load // that in as a default behavior of agents or
-// something.
 #[ignore = "This is a work in progress and does not work and does not ever terminate."]
 #[tokio::test(flavor = "multi_thread", worker_threads = 2)]
 async fn echoer() {
@@ -73,27 +67,17 @@ async fn echoer() {
     };
     world.add_agent(agent.with_behavior(behavior));
 
-    tracing::debug!("Starting world.");
     let messager = world.messager.clone();
-    world.run_state(State::Syncing);
-    world.transition().await;
-
-    world.run_state(State::Startup);
-    world.transition().await;
-
-    world.run_state(State::Processing);
+    let task = world.run();
 
     let message = Message {
         from: "god".to_owned(),
         to: To::Agent("agent".to_owned()),
         data: "Hello, world!".to_owned(),
     };
-    world.messager.send(message).await;
-    tracing::debug!("Start message sent from main thread.");
+    messager.send(message).await;
 
-    tokio::time::sleep(std::time::Duration::from_secs(1)).await;
-
-    world.transition().await;
+    task.await;
 }
 
 #[tokio::test(flavor = "multi_thread", worker_threads = 2)]
@@ -123,26 +107,17 @@ async fn ping_pong() {
             .with_behavior(behavior_pong),
     );
 
-    tracing::debug!("Starting world.");
-    world.run_state(State::Syncing);
-    world.transition().await;
-
-    world.run_state(State::Startup);
-    world.transition().await;
-
-    world.run_state(State::Processing);
+    let messager = world.messager.clone();
+    let task = world.run();
 
     let init_message = Message {
         from: "god".to_owned(),
         to: To::Agent("agent".to_owned()),
         data: "ping".to_owned(),
     };
-    world.messager.send(init_message).await;
-    tracing::debug!("Start message sent from main thread.");
+    messager.send(init_message).await;
 
-    tokio::time::sleep(std::time::Duration::from_secs(1)).await;
-
-    world.transition().await;
+    task.await;
 }
 
 #[tokio::test(flavor = "multi_thread", worker_threads = 2)]
@@ -171,15 +146,8 @@ async fn ping_pong_two_agent() {
     world.add_agent(agent_ping.with_behavior(behavior_ping));
     world.add_agent(agent_pong.with_behavior(behavior_pong));
 
-    tracing::debug!("Starting world.");
     let messager = world.messager.clone();
-    world.run_state(State::Syncing);
-    world.transition().await;
-
-    world.run_state(State::Startup);
-    world.transition().await;
-
-    world.run_state(State::Processing);
+    let task = world.run();
 
     let init_message = Message {
         from: "god".to_owned(),
@@ -187,10 +155,7 @@ async fn ping_pong_two_agent() {
         data: "ping".to_owned(),
     };
 
-    world.messager.send(init_message).await;
-    tracing::debug!("Start message sent from main thread.");
+    messager.send(init_message).await;
 
-    tokio::time::sleep(std::time::Duration::from_secs(1)).await;
-
-    world.transition().await;
+    task.await;
 }

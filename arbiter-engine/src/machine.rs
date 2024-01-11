@@ -47,12 +47,12 @@ pub enum State {
 pub trait Behavior<E>: Send + Sync + 'static {
     /// Used to bring the agent back up to date with the latest state of the
     /// world. This could be used if the world was stopped and later restarted.
-    async fn sync(&mut self);
+    async fn sync(&mut self) {}
 
     /// Used to start the agent.
     /// This is where the agent can engage in its specific start up activities
     /// that it can do given the current state of the world.
-    async fn startup(&mut self);
+    async fn startup(&mut self) {}
 
     /// Used to process events.
     /// This is where the agent can engage in its specific processing
@@ -142,12 +142,14 @@ where
                 let mut receiver = self.event_receiver.clone(); // TODO Could use Option::take() if we don't want to clone.
                 self.behavior_task = Some(tokio::spawn(async move {
                     while let Ok(event) = receiver.recv().await {
-                        trace!("Behavior has gotten event: {:?}", event);
+                        println!("Event received: {:?}", event);
                         let decoding_result = serde_json::from_str::<E>(&event);
                         match decoding_result {
                             Ok(event) => behavior.process(event).await,
-                            Err(e) => {
-                                tracing::error!("Error decoding event: {:?}", e);
+                            Err(_e) => {
+                                trace!(
+                                    "Event received by behavior that could not be deserialized."
+                                );
                                 continue;
                             }
                         }

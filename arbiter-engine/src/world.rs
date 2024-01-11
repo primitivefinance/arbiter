@@ -17,6 +17,7 @@
 use arbiter_core::environment::{builder::EnvironmentBuilder, Environment};
 use futures_util::future::{join_all, JoinAll};
 use tokio::task::JoinHandle;
+use tracing::info;
 
 use super::*;
 use crate::{
@@ -87,6 +88,17 @@ impl World {
         let agents = self.agents.as_mut().unwrap();
         agents.insert(id.to_owned(), agent);
     }
+
+    pub async fn run(&mut self) {
+        self.run_state(State::Syncing);
+        self.transition().await;
+
+        self.run_state(State::Startup);
+        self.transition().await;
+
+        self.run_state(State::Processing);
+        self.transition().await;
+    }
 }
 
 #[async_trait::async_trait]
@@ -97,7 +109,7 @@ impl StateMachine for World {
                 unimplemented!("This never gets called.")
             }
             State::Syncing => {
-                trace!("World is syncing.");
+                info!("World is syncing.");
                 let mut agents = self.agents.take().unwrap();
                 for agent in agents.values_mut() {
                     agent.run_state(state);
@@ -110,7 +122,7 @@ impl StateMachine for World {
                 })));
             }
             State::Startup => {
-                trace!("World is starting up.");
+                info!("World is starting up.");
                 let mut agents = self.agents.take().unwrap();
                 for agent in agents.values_mut() {
                     agent.run_state(state);
@@ -123,7 +135,7 @@ impl StateMachine for World {
                 })));
             }
             State::Processing => {
-                trace!("World is starting up.");
+                info!("World is processing.");
                 let mut agents = self.agents.take().unwrap();
                 for agent in agents.values_mut() {
                     agent.run_state(state);
@@ -136,7 +148,7 @@ impl StateMachine for World {
                 })));
             }
             State::Stopped => {
-                trace!("World is starting up.");
+                info!("World is starting up.");
                 let mut agents = self.agents.take().unwrap();
                 for agent in agents.values_mut() {
                     agent.run_state(state);

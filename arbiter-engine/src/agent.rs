@@ -141,25 +141,11 @@ impl Agent {
         };
         self
     }
-
-    // TODO: This is unused for now, but we will use it in the future for the event
-    // pipelining.
-    #[allow(unused)]
-    pub(crate) fn start_event_stream(&mut self) -> Pin<Box<dyn Stream<Item = String> + Send + '_>> {
-        let message_stream = self
-            .messager
-            .stream()
-            .map(|msg| serde_json::to_string(&msg).unwrap_or_else(|e| e.to_string()));
-        if let Some(event_stream) = self.event_streamer.take().unwrap().stream() {
-            Box::pin(futures::stream::select(event_stream, message_stream))
-        } else {
-            Box::pin(message_stream)
-        }
-    }
 }
 
 #[async_trait::async_trait]
 impl StateMachine for Agent {
+    #[tracing::instrument(skip(self), fields(id = self.id))]
     fn run_state(&mut self, state: State) {
         match state {
             State::Uninitialized => {
@@ -167,7 +153,7 @@ impl StateMachine for Agent {
             }
             State::Syncing => {
                 self.state = state;
-                trace!("Agent is syncing.");
+                debug!("Agent is syncing.");
                 let mut behavior_engines = self.behavior_engines.take().unwrap();
                 for engine in behavior_engines.iter_mut() {
                     engine.run_state(state);
@@ -181,7 +167,7 @@ impl StateMachine for Agent {
                     })));
             }
             State::Startup => {
-                trace!("Agent is starting up.");
+                debug!("Agent is starting up.");
                 self.state = state;
                 let mut behavior_engines = self.behavior_engines.take().unwrap();
                 for engine in behavior_engines.iter_mut() {
@@ -196,7 +182,7 @@ impl StateMachine for Agent {
                     })));
             }
             State::Processing => {
-                trace!("Agent is processing.");
+                debug!("Agent is processing.");
                 self.state = state;
                 let messager = Box::leak(Box::new(self.messager.clone())); // TODO: We shouldn't have to do box leak
                 let message_stream = messager
@@ -207,14 +193,17 @@ impl StateMachine for Agent {
 
                 let mut event_stream: Pin<Box<dyn Stream<Item = String> + Send + '_>> =
                     if let Some(event_stream) = eth_event_stream {
+                        trace!("Merging event streams.");
                         Box::pin(futures::stream::select(event_stream, message_stream))
                     } else {
+                        trace!("Agent only sees message stream.");
                         Box::pin(message_stream)
                     };
 
                 let sender = self.distributor.0.clone();
                 self.broadcast_task = Some(tokio::spawn(async move {
                     while let Some(event) = event_stream.next().await {
+                        println!("Broadcasting event through agent comms: {:?}", event);
                         sender.broadcast(event).await.unwrap();
                     }
                     event_stream
@@ -238,7 +227,8 @@ impl StateMachine for Agent {
     }
 
     async fn transition(&mut self) {
-        // TODO: Might need to handle the broadcast_task here now.
+        // TODO: Might need to handle the broadcast_task here now especially if we need
+        // to stop.
         self.behavior_engines = Some(
             self.behavior_tasks
                 .take()
