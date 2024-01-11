@@ -179,7 +179,7 @@ mod tests {
     };
     use futures_util::StreamExt;
 
-    #[ignore = "This is unecessary to run on CI currently."]
+    #[ignore = "This is unnecessary to run on CI currently."]
     #[tokio::test]
     async fn mainnet_ws() {
         let ws_url = std::env::var("MAINNET_WS_URL").expect("MAINNET_WS_URL must be set");
