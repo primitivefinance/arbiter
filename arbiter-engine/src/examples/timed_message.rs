@@ -18,11 +18,12 @@ struct TimedMessage {
 impl Behavior<Message> for TimedMessage {
     async fn process(&mut self, event: Message) {
         trace!("Processing event.");
-        let message = Message {
-            from: "agent".to_owned(),
-            to: To::Agent("agent".to_owned()),
-            data: "Hello, world!".to_owned(),
-        };
+        if event.data != self.message.data {
+            return;
+        } else {
+            trace!("Event matches message.");
+            trace!("We received: {:?}\n inside the behavior itself", event);
+        }
 
         tokio::time::sleep(std::time::Duration::from_secs(self.delay)).await;
         // TODO: send a message
@@ -57,13 +58,15 @@ async fn echoer() {
 
     let agent = world.create_agent(AGENT_ID);
 
+    let message = Message {
+        from: "agent".to_owned(),
+        to: To::Agent("agent".to_owned()),
+        data: "Hello, world!".to_owned(),
+    };
+
     let behavior = TimedMessage {
-        delay: 2,
-        message: Message {
-            from: "agent".to_owned(),
-            to: To::Agent("agent".to_owned()),
-            data: "Hello, world!".to_owned(),
-        },
+        delay: 1,
+        message: message.clone(),
     };
     agent.add_behavior(behavior);
 
@@ -77,13 +80,8 @@ async fn echoer() {
 
     world.run_state(State::Processing);
 
-    let message = Message {
-        from: "agent".to_owned(),
-        to: To::Agent("agent".to_owned()),
-        data: "Start".to_owned(),
-    };
-    let send_result = messager.send(message).await;
-    tracing::debug!("Start message sent {:?}", send_result);
+    messager.send(message).await;
+    tracing::debug!("Start message sent from main thread.");
 
     tokio::time::sleep(std::time::Duration::from_secs(1)).await;
 

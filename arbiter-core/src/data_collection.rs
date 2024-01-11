@@ -365,32 +365,34 @@ impl EventLogger {
     }
 
     /// Returns a stream of the serialized events.
-    pub fn stream(self) -> Pin<Box<dyn Stream<Item = String> + Send + 'static>> {
-        let receiver = self.receiver.clone().unwrap();
-
-        let stream = async_stream::stream! {
-            while let Ok(broadcast) = receiver.recv() {
-                match broadcast {
-                    Broadcast::StopSignal => {
-                        trace!("`EventLogger` has seen a stop signal");
-                        break;
-                    }
-                    Broadcast::Event(event) => {
-                        trace!("`EventLogger` received an event");
-                        let ethers_logs = revm_logs_to_ethers_logs(event);
-                        for log in ethers_logs {
-                            for (_id, (filter, decoder)) in self.decoder.iter() {
-                                if filter.filter_address(&log) && filter.filter_topics(&log) {
-                                   yield decoder(&log.clone().into());
+    pub fn stream(self) -> Option<Pin<Box<dyn Stream<Item = String> + Send + 'static>>> {
+        if let Some(receiver) = self.receiver.clone() {
+            let stream = async_stream::stream! {
+                while let Ok(broadcast) = receiver.recv() {
+                    match broadcast {
+                        Broadcast::StopSignal => {
+                            trace!("`EventLogger` has seen a stop signal");
+                            break;
+                        }
+                        Broadcast::Event(event) => {
+                            trace!("`EventLogger` received an event");
+                            let ethers_logs = revm_logs_to_ethers_logs(event);
+                            for log in ethers_logs {
+                                for (_id, (filter, decoder)) in self.decoder.iter() {
+                                    if filter.filter_address(&log) && filter.filter_topics(&log) {
+                                       yield decoder(&log.clone().into());
+                                    }
                                 }
                             }
                         }
                     }
                 }
-            }
-        };
+            };
 
-        Box::pin(stream)
+            Some(Box::pin(stream))
+        } else {
+            None
+        }
     }
 }
 

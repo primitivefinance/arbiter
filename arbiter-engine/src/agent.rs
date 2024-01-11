@@ -16,7 +16,7 @@
 
 //! The agent module contains the core agent abstraction for the Arbiter Engine.
 
-use std::{fmt::Debug, pin::Pin, sync::Arc};
+use std::{clone, fmt::Debug, pin::Pin, sync::Arc};
 
 use arbiter_core::{data_collection::EventLogger, middleware::RevmMiddleware};
 use ethers::contract::{EthLogDecode, Event};
@@ -94,6 +94,8 @@ pub struct Agent {
         async_broadcast::Sender<String>,
         async_broadcast::Receiver<String>,
     ),
+
+    broadcast_task: Option<JoinHandle<Pin<Box<dyn Stream<Item = String> + Send>>>>,
 }
 
 impl Agent {
@@ -111,6 +113,7 @@ impl Agent {
             behavior_engines: None,
             distributor,
             behavior_tasks: None,
+            broadcast_task: None,
         }
     }
 
@@ -141,13 +144,15 @@ impl Agent {
     // pipelining.
     #[allow(unused)]
     pub(crate) fn start_event_stream(&mut self) -> Pin<Box<dyn Stream<Item = String> + Send + '_>> {
-        let event_stream = self.event_streamer.take().unwrap().stream();
         let message_stream = self
             .messager
             .stream()
             .map(|msg| serde_json::to_string(&msg).unwrap_or_else(|e| e.to_string()));
-
-        Box::pin(futures::stream::select(event_stream, message_stream))
+        if let Some(event_stream) = self.event_streamer.take().unwrap().stream() {
+            Box::pin(futures::stream::select(event_stream, message_stream))
+        } else {
+            Box::pin(message_stream)
+        }
     }
 }
 
@@ -191,6 +196,27 @@ impl StateMachine for Agent {
             State::Processing => {
                 trace!("Agent is processing.");
                 self.state = state;
+                let messager = Box::leak(Box::new(self.messager.clone())); // TODO: We shouldn't have to do box leak
+                let message_stream = messager
+                    .stream()
+                    .map(|msg| serde_json::to_string(&msg).unwrap_or_else(|e| e.to_string()));
+
+                let eth_event_stream = self.event_streamer.take().unwrap().stream();
+
+                let mut event_stream: Pin<Box<dyn Stream<Item = String> + Send + '_>> =
+                    if let Some(event_stream) = eth_event_stream {
+                        Box::pin(futures::stream::select(event_stream, message_stream))
+                    } else {
+                        Box::pin(message_stream)
+                    };
+
+                let sender = self.distributor.0.clone();
+                self.broadcast_task = Some(tokio::spawn(async move {
+                    while let Some(event) = event_stream.next().await {
+                        sender.broadcast(event).await.unwrap();
+                    }
+                    event_stream
+                }));
                 let mut behavior_engines = self.behavior_engines.take().unwrap();
                 for engine in behavior_engines.iter_mut() {
                     engine.run_state(state);
@@ -210,6 +236,7 @@ impl StateMachine for Agent {
     }
 
     async fn transition(&mut self) {
+        // TODO: Might need to handle the broadcast_task here now.
         self.behavior_engines = Some(
             self.behavior_tasks
                 .take()
