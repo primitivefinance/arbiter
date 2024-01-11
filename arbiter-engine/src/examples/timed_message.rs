@@ -12,6 +12,7 @@ use crate::{
 struct TimedMessage {
     delay: u64,
     message: Message,
+    messager: Messager,
 }
 
 #[async_trait::async_trait]
@@ -21,8 +22,8 @@ impl Behavior<Message> for TimedMessage {
         if event.data != self.message.data {
             return;
         } else {
-            trace!("Event matches message.");
-            trace!("We received: {:?}\n inside the behavior itself", event);
+            trace!("Event matches message. Sending a new message.");
+            self.messager.send(self.message.clone()).await;
         }
 
         tokio::time::sleep(std::time::Duration::from_secs(self.delay)).await;
@@ -56,6 +57,8 @@ async fn echoer() {
 
     let mut world = World::new("world");
 
+    let messager = world.messager.clone();
+
     let agent = world.create_agent(AGENT_ID);
 
     let message = Message {
@@ -67,6 +70,7 @@ async fn echoer() {
     let behavior = TimedMessage {
         delay: 1,
         message: message.clone(),
+        messager,
     };
     agent.add_behavior(behavior);
 
