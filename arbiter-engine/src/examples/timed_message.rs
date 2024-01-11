@@ -11,7 +11,8 @@ use crate::{
 
 struct TimedMessage {
     delay: u64,
-    message: Message,
+    receive_data: String,
+    send_data: String,
     messager: Messager,
 }
 
@@ -19,11 +20,16 @@ struct TimedMessage {
 impl Behavior<Message> for TimedMessage {
     async fn process(&mut self, event: Message) {
         trace!("Processing event.");
-        if event.data != self.message.data {
+        if event.data != self.receive_data {
             return;
         } else {
             trace!("Event matches message. Sending a new message.");
-            self.messager.send(self.message.clone()).await;
+            let message = Message {
+                from: "agent".to_owned(),
+                to: To::Agent("agent".to_owned()),
+                data: self.send_data.clone(),
+            };
+            self.messager.send(message).await;
         }
 
         tokio::time::sleep(std::time::Duration::from_secs(self.delay)).await;
@@ -69,7 +75,8 @@ async fn echoer() {
 
     let behavior = TimedMessage {
         delay: 1,
-        message: message.clone(),
+        receive_data: "Hello, world!".to_owned(),
+        send_data: "Hello, world!".to_owned(),
         messager,
     };
     agent.add_behavior(behavior);
@@ -85,6 +92,62 @@ async fn echoer() {
     world.run_state(State::Processing);
 
     messager.send(message).await;
+    tracing::debug!("Start message sent from main thread.");
+
+    tokio::time::sleep(std::time::Duration::from_secs(1)).await;
+
+    world.transition().await;
+}
+
+#[tokio::test(flavor = "multi_thread", worker_threads = 2)]
+async fn ping_pong() {
+    std::env::set_var("RUST_LOG", "trace");
+    tracing_subscriber::fmt::init();
+
+    let mut world = World::new("world");
+
+    let messager = world.messager.clone();
+
+    let agent = world.create_agent(AGENT_ID);
+
+    let behavior_ping = TimedMessage {
+        delay: 1,
+        receive_data: "pong".to_owned(),
+        send_data: "ping".to_owned(),
+        messager: messager.clone(),
+    };
+    agent.add_behavior(behavior_ping);
+
+    let message_pong = Message {
+        from: "agent".to_owned(),
+        to: To::Agent("agent".to_owned()),
+        data: "pong".to_owned(),
+    };
+    let behavior_pong = TimedMessage {
+        delay: 1,
+        receive_data: "ping".to_owned(),
+        send_data: "pong".to_owned(),
+        messager,
+    };
+    agent.add_behavior(behavior_pong);
+
+    tracing::debug!("Starting world.");
+    let messager = world.messager.clone();
+    world.run_state(State::Syncing);
+    world.transition().await;
+
+    world.run_state(State::Startup);
+    world.transition().await;
+
+    world.run_state(State::Processing);
+
+    let init_message = Message {
+        from: "agent".to_owned(),
+        to: To::Agent("agent".to_owned()),
+        data: "ping".to_owned(),
+    };
+
+    messager.send(init_message).await;
     tracing::debug!("Start message sent from main thread.");
 
     tokio::time::sleep(std::time::Duration::from_secs(1)).await;
