@@ -48,8 +48,8 @@ polars = { version = "0.36.2", features = ["parquet", "csv", "json"] }
 
 # Dependencies for the test build and development
 [dev-dependencies]
-arbiter-derive = { path = "../arbiter-derive" }
-arbiter-bindings = { path = "../arbiter-bindings" }
+arbiter-derive = { version = "0.1.3", path = "../arbiter-derive" }
+arbiter-bindings = { version = "0.1.1", path = "../arbiter-bindings" }
 anyhow =  { version = "=1.0.79" }
 test-log =  { version = "=0.2.14" }
 tracing-test = "0.2.4"
