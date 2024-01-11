@@ -82,11 +82,10 @@ impl World {
     }
 
     /// Adds an agent to the world.
-    pub fn create_agent(&mut self, id: &str) -> &mut Agent {
-        let agent = Agent::connect(id, self);
+    pub fn add_agent(&mut self, agent: Agent) {
+        let id = agent.id.clone();
         let agents = self.agents.as_mut().unwrap();
         agents.insert(id.to_owned(), agent);
-        agents.get_mut(id).unwrap()
     }
 }
 

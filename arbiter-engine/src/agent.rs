@@ -100,7 +100,7 @@ pub struct Agent {
 
 impl Agent {
     /// Produces a new agent with the given identifier.
-    pub(crate) fn connect(id: &str, world: &World) -> Self {
+    pub fn new(id: &str, world: &World) -> Self {
         let messager = world.messager.for_agent(id);
         let client = RevmMiddleware::new(&world.environment, Some(id)).unwrap();
         let distributor = async_broadcast::broadcast(512);
@@ -118,18 +118,19 @@ impl Agent {
     }
 
     /// Adds an Ethereum event to the agent's event streamer.
-    pub fn add_event<D: EthLogDecode + Debug + Serialize + 'static>(
-        &mut self,
+    pub fn with_event<D: EthLogDecode + Debug + Serialize + 'static>(
+        mut self,
         event: Event<Arc<RevmMiddleware>, RevmMiddleware, D>,
-    ) {
+    ) -> Self {
         self.event_streamer = Some(self.event_streamer.take().unwrap().add_stream(event));
+        self
     }
 
     /// Adds a behavior to the agent that it will run.
-    pub fn add_behavior<E: DeserializeOwned + Send + Sync + Debug + 'static>(
-        &mut self,
+    pub fn with_behavior<E: DeserializeOwned + Send + Sync + Debug + 'static>(
+        mut self,
         behavior: impl Behavior<E> + 'static,
-    ) {
+    ) -> Self {
         let event_receiver = self.distributor.0.new_receiver();
 
         let engine = Engine::new(behavior, event_receiver);
@@ -137,7 +138,8 @@ impl Agent {
             engines.push(Box::new(engine));
         } else {
             self.behavior_engines = Some(vec![Box::new(engine)]);
-        }
+        };
+        self
     }
 
     // TODO: This is unused for now, but we will use it in the future for the event
@@ -249,6 +251,7 @@ impl StateMachine for Agent {
     }
 }
 
+#[ignore = "This test should be adjusted or possibly removed as it isn't really testing anything now"]
 #[cfg(test)]
 mod tests {
     use arbiter_bindings::bindings::arbiter_token::ArbiterToken;
@@ -259,49 +262,51 @@ mod tests {
     #[ignore]
     #[tokio::test(flavor = "multi_thread", worker_threads = 2)]
     async fn streaming() {
-        std::env::set_var("RUST_LOG", "trace");
-        tracing_subscriber::fmt::init();
+        todo!()
+        // std::env::set_var("RUST_LOG", "trace");
+        // tracing_subscriber::fmt::init();
 
-        let mut world = World::new("world");
-        let messager = world.messager.clone();
-        println!(
-            "Receiver count: {:?}",
-            messager.broadcast_sender.receiver_count()
-        );
+        // let mut world = World::new("world");
+        // let messager = world.messager.clone();
+        // println!(
+        //     "Receiver count: {:?}",
+        //     messager.broadcast_sender.receiver_count()
+        // );
 
-        let agent = world.create_agent("agent");
+        // let agent = Agent::new("agent", &world);
+        // // world.add_agent(agent); // DON'T NEED TO DO THIS IN THIS EXAMPLE?
 
-        let arb = ArbiterToken::deploy(
-            agent.client.clone(),
-            ("ArbiterToken".to_string(), "ARB".to_string(), 18u8),
-        )
-        .unwrap()
-        .send()
-        .await
-        .unwrap();
+        // let arb = ArbiterToken::deploy(
+        //     agent.client.clone(),
+        //     ("ArbiterToken".to_string(), "ARB".to_string(), 18u8),
+        // )
+        // .unwrap()
+        // .send()
+        // .await
+        // .unwrap();
 
-        agent.add_event(arb.events());
-        let address = agent.client.address();
-        let mut streamer = agent.start_event_stream();
+        // let agent = agent.with_event(arb.events());
+        // let address = agent.client.address();
+        // let mut streamer = agent.start_event_stream();
 
-        for _ in 0..5 {
-            messager
-                .send(Message {
-                    from: "me".to_string(),
-                    to: messager::To::All,
-                    data: "hello".to_string(),
-                })
-                .await;
-            arb.approve(address, U256::from(1))
-                .send()
-                .await
-                .unwrap()
-                .await
-                .unwrap();
-        }
+        // for _ in 0..5 {
+        //     messager
+        //         .send(Message {
+        //             from: "me".to_string(),
+        //             to: messager::To::All,
+        //             data: "hello".to_string(),
+        //         })
+        //         .await;
+        //     arb.approve(address, U256::from(1))
+        //         .send()
+        //         .await
+        //         .unwrap()
+        //         .await
+        //         .unwrap();
+        // }
 
-        while let Some(msg) = streamer.next().await {
-            println!("Printing message in test: {:?}", msg);
-        }
+        // while let Some(msg) = streamer.next().await {
+        //     println!("Printing message in test: {:?}", msg);
+        // }
     }
 }
