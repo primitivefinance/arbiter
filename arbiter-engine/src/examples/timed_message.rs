@@ -1,5 +1,13 @@
+#[cfg(test)]
+
+const AGENT_ID: &str = "agent";
+
 use super::*;
-use crate::agent::BehaviorBuilder;
+use crate::{
+    machine::{Behavior, Engine, State, StateMachine},
+    messager::To,
+    world::World,
+};
 
 struct TimedMessage {
     delay: u64,
@@ -7,78 +15,77 @@ struct TimedMessage {
 }
 
 #[async_trait::async_trait]
-impl Strategy<Message, Message> for TimedMessage {
-    #[tracing::instrument(skip(self), level = "trace")]
-    async fn sync_state(&mut self) -> Result<()> {
-        trace!("Syncing state for `TimedMessage`.");
-        Ok(())
+impl Behavior<Message> for TimedMessage {
+    async fn process(&mut self, event: Message) {
+        trace!("Processing event.");
+        let message = Message {
+            from: "agent".to_owned(),
+            to: To::Agent("agent".to_owned()),
+            data: "Hello, world!".to_owned(),
+        };
+
+        tokio::time::sleep(std::time::Duration::from_secs(self.delay)).await;
+        // TODO: send a message
+        trace!("Processed event.");
     }
 
-    #[tracing::instrument(skip(self, event), level = "trace")]
-    async fn process_event(&mut self, event: Message) -> Vec<Message> {
-        trace!("Processing event.");
-        if event.to == self.message.to {
-            let message = Message {
-                from: "agent".to_owned(),
-                to: "agent".to_owned(),
-                data: "Hello, world!".to_owned(),
-            };
-            if event.data == "Start" {
-                vec![message]
-            } else {
-                tokio::time::sleep(std::time::Duration::from_secs(self.delay)).await;
-                vec![message]
-            }
-        } else {
-            vec![]
-        }
+    async fn sync(&mut self) {
+        trace!("Syncing state for `TimedMessage`.");
+        tokio::time::sleep(std::time::Duration::from_secs(self.delay)).await;
+        trace!("Synced state for `TimedMessage`.");
+    }
+
+    async fn startup(&mut self) {
+        trace!("Starting up `TimedMessage`.");
+        tokio::time::sleep(std::time::Duration::from_secs(self.delay)).await;
+        trace!("Started up `TimedMessage`.");
     }
 }
 
-// TODO: Can we combine the `world.run().await` through the `for task in tasks
-// {task.await}` step to make this DEVX super easy TODO: Having something like
-// an automatic impl of Start and Stop for all behaviors would be nice or load
-// that in as a default behavior of agents or something.
-#[ignore]
+// // TODO: Can we combine the `world.run().await` through the `for task in
+// tasks // {task.await}` step to make this DEVX super easy TODO: Having
+// something like // an automatic impl of Start and Stop for all behaviors
+// would  be nice or load // that in as a default behavior of agents or
+// something.
+#[ignore = "This is a work in progress and does not work and does not ever terminate."]
 #[tokio::test(flavor = "multi_thread", worker_threads = 2)]
 async fn echoer() {
     std::env::set_var("RUST_LOG", "trace");
     tracing_subscriber::fmt::init();
 
-    let environment = EnvironmentBuilder::new().build();
-    let connection = Connection::from(&environment);
-    let provider = Provider::new(connection);
-    let mut world = World::new("test_world", provider);
-    let messager = world.messager.clone();
+    let mut world = World::new("world");
 
-    let mut agent = Agent::new("agent");
-    let strategy = TimedMessage {
-        delay: 1,
+    let agent = world.create_agent(AGENT_ID);
+
+    let behavior = TimedMessage {
+        delay: 2,
         message: Message {
             from: "agent".to_owned(),
-            to: "agent".to_owned(),
+            to: To::Agent("agent".to_owned()),
             data: "Hello, world!".to_owned(),
         },
     };
-    let behavior = BehaviorBuilder::new()
-        .add_collector(messager.clone())
-        .add_executor(messager.clone())
-        .add_strategy(strategy)
-        .build();
     agent.add_behavior(behavior);
-    world.add_agent(agent);
 
-    debug!("Starting world.");
-    let tasks = world.run().await;
+    tracing::debug!("Starting world.");
+    let messager = world.messager.clone();
+    world.run_state(State::Syncing);
+    world.transition().await;
+
+    world.run_state(State::Startup);
+    world.transition().await;
+
+    world.run_state(State::Processing);
+
     let message = Message {
         from: "agent".to_owned(),
-        to: "agent".to_owned(),
+        to: To::Agent("agent".to_owned()),
         data: "Start".to_owned(),
     };
-    let send_result = messager.execute(message).await;
-    debug!("Start message sent {:?}", send_result);
+    let send_result = messager.send(message).await;
+    tracing::debug!("Start message sent {:?}", send_result);
 
-    for task in tasks {
-        task.await.unwrap();
-    }
+    tokio::time::sleep(std::time::Duration::from_secs(1)).await;
+
+    world.transition().await;
 }

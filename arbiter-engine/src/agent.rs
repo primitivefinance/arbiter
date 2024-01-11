@@ -1,197 +1,280 @@
-#![warn(missing_docs)]
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // TODO: Notes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-// We may need traits for Events and Actions (e.g., "Event" and "Action"
-// which have a method like "parse()" and "produce()" or something.).
-// Need an init signal or something.
-// We can give agents a "calculator" evm to send "Actions" to when they are just
-// doing compute so they aren't blocking the main tx thread.
-// Maybe by default we should give agents a messager as part of their engine so we can call a
-// "start" and "stop" with them.
+// When we start running an agent, we should have their messager start producing
+// events that can be used by any and all behaviors the agent has that takes in
+// messages as an event. Similarly, we should have agents start up any streams
+// listeners that they need so those can also produce events. Those can then be
+// piped into the behaviors that need them. Can perhaps make behaviors come from
+// very specific events (e.g., specific contract events). This means each
+// behavior should be a consumer and perhaps the agent itself is the producer
+// (or at least relayer).
+// This means we should give agents some way to "start streams" that they can
+// then use to produce events.
+// Behaviors definitely need to be able to reference the agent's client and
+// messager so that they can send messages and interact with the blockchain.
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 //! The agent module contains the core agent abstraction for the Arbiter Engine.
 
-use std::{error::Error, pin::Pin};
+use std::{fmt::Debug, pin::Pin, sync::Arc};
 
-use artemis_core::{
-    engine::Engine,
-    types::{Collector, Executor, Strategy},
+use arbiter_core::{data_collection::EventLogger, middleware::RevmMiddleware};
+use ethers::contract::{EthLogDecode, Event};
+use futures::stream::{Stream, StreamExt};
+use futures_util::future::{join_all, JoinAll};
+use serde::de::DeserializeOwned;
+use tokio::task::JoinHandle;
+
+use super::*;
+use crate::{
+    machine::{Behavior, Engine, State, StateMachine},
+    messager::Messager,
+    world::World,
 };
-use futures_util::Future;
-use tokio::task::JoinSet;
+
+// TODO: For the time being, these agents are just meant to be for arbiter
+// instances. We can generalize later.
 
 /// An agent is an entity capable of processing events and producing actions.
 /// These are the core actors in simulations or in onchain systems.
 /// Agents can be connected of other agents either as a dependent, or a
 /// dependency.
+///
+/// # How it works
+/// The [`Agent`] works by implementing the [`StateMachine`] trait. When the
+/// [`World`] that owns the [`Agent`] is asked to enter into a new state, the
+/// [`World`] will ask each [`Agent`] it owns to run that state transition by
+/// calling [`StateMachine::run_state`]. All of the [`Agent`]s at once will then
+/// will be able to be asked to block and wait to finish their state transition
+/// by calling [`StateMachine::transition`]. Ultimately, the [`Agent`] will
+/// transition through the following states:
+/// 1. [`State::Uninitialized`]: The [`Agent`] has been created, but has not
+///   been started.
+/// 2. [`State::Syncing`]: The [`Agent`] is syncing with the world. This is
+///  where the [`Agent`] can be brought up to date with the latest state of the
+/// world. This could be used if the world was stopped and later restarted.
+/// 3. [`State::Startup`]: The [`Agent`] is starting up. This is where the
+/// [`Agent`] can be initialized and setup.
+/// 4. [`State::Processing`]: The [`Agent`] is processing. This is where the
+/// [`Agent`] can process events and produce actions. The [`State::Processing`]
+/// stage may run for a long time before all [`Agent`]s are finished processing.
+/// This is the main stage of the [`Agent`] that predominantly runs automation.
+/// 5. [`State::Stopped`]: The [`Agent`] is stopped. This is where the [`Agent`]
+/// can be stopped and state of the [`World`] and its [`Agent`]s can be
+/// offloaded and saved.
 pub struct Agent {
     /// Identifier for this agent.
     /// Used for routing messages.
     pub id: String,
 
-    /// The engine that this agent uses to process events and produce actions.
-    pub(crate) behaviors: Vec<Behavior>, /* Note, agent shouldn't NEED a client as a field
-                                          * as the engine can
-                                          * handle this. */
+    /// The status of the agent.
+    pub state: State,
 
-    /// Agents that this agent depends on.
-    pub dependencies: Vec<String>,
+    /// The messager the agent uses to send and receive messages from other
+    /// agents.
+    pub messager: Messager,
 
-    /// Agents that depend on this agent.
-    pub dependents: Vec<String>,
+    /// The client the agent uses to interact with the blockchain.
+    pub client: Arc<RevmMiddleware>,
+
+    /// The generalized event streamer for the agent that can stream a JSON
+    /// `String`of any Ethereum event that can be decoded by behaviors.
+    pub event_streamer: Option<EventLogger>,
+
+    /// The engines/behaviors that the agent uses to sync, startup, and process
+    /// events.
+    behavior_engines: Option<Vec<Box<dyn StateMachine>>>,
+
+    /// The tasks that represent the agent running a specific state transition.
+    behavior_tasks: Option<JoinAll<JoinHandle<Box<dyn StateMachine>>>>,
+
+    /// The pipeline for yielding events from the centralized event streamer
+    /// (for both messages and Ethereum events) to agents.
+    distributor: (
+        async_broadcast::Sender<String>,
+        async_broadcast::Receiver<String>,
+    ),
 }
 
 impl Agent {
-    #[allow(clippy::new_without_default)]
     /// Produces a new agent with the given identifier.
-    pub fn new(id: &str) -> Self {
+    pub(crate) fn connect(id: &str, world: &World) -> Self {
+        let messager = world.messager.for_agent(id);
+        let client = RevmMiddleware::new(&world.environment, Some(id)).unwrap();
+        let distributor = async_broadcast::broadcast(512);
         Self {
             id: id.to_owned(),
-            behaviors: vec![],
-            dependencies: vec![],
-            dependents: vec![],
+            state: State::Uninitialized,
+            messager,
+            client,
+            event_streamer: Some(EventLogger::builder()),
+            behavior_engines: None,
+            distributor,
+            behavior_tasks: None,
         }
     }
 
-    /// Adds a strategy to the agent's engine.
-    /// Does so by pushing a future onto the agent's behavior vector.
-    /// This future returns the `JoinSet<()>` of the engine.
-    pub fn add_behavior<E, A>(&mut self, engine: Engine<E, A>)
-    where
-        E: Send + Clone + 'static + std::fmt::Debug,
-        A: Send + Clone + 'static + std::fmt::Debug,
-    {
-        let fut = engine.run();
-        self.behaviors.push(Box::pin(fut));
+    /// Adds an Ethereum event to the agent's event streamer.
+    pub fn add_event<D: EthLogDecode + Debug + Serialize + 'static>(
+        &mut self,
+        event: Event<Arc<RevmMiddleware>, RevmMiddleware, D>,
+    ) {
+        self.event_streamer = Some(self.event_streamer.take().unwrap().add_stream(event));
     }
 
-    /// Adds a dependency to the agent.
-    /// Dependencies are agents that this agent depends on.
-    pub fn add_dependency(&mut self, dependency: &str) {
-        self.dependencies.push(dependency.to_owned());
-    }
+    /// Adds a behavior to the agent that it will run.
+    pub fn add_behavior<E: DeserializeOwned + Send + Sync + Debug + 'static>(
+        &mut self,
+        behavior: impl Behavior<E> + 'static,
+    ) {
+        let event_receiver = self.distributor.0.new_receiver();
 
-    /// Adds a dependent to the agent.
-    /// Dependents are agents that depend on this agent.
-    pub fn add_dependent(&mut self, dependent: &str) {
-        self.dependents.push(dependent.to_owned());
-    }
-
-    pub(crate) async fn run(&mut self) -> Vec<JoinSet<()>> {
-        let mut join_sets = vec![];
-        for behavior in self.behaviors.iter_mut() {
-            let joinset = behavior.await.unwrap();
-            join_sets.push(joinset);
+        let engine = Engine::new(behavior, event_receiver);
+        if let Some(engines) = &mut self.behavior_engines {
+            engines.push(Box::new(engine));
+        } else {
+            self.behavior_engines = Some(vec![Box::new(engine)]);
         }
-        join_sets
+    }
+
+    // TODO: This is unused for now, but we will use it in the future for the event
+    // pipelining.
+    #[allow(unused)]
+    pub(crate) fn start_event_stream(&mut self) -> Pin<Box<dyn Stream<Item = String> + Send + '_>> {
+        let event_stream = self.event_streamer.take().unwrap().stream();
+        let message_stream = self
+            .messager
+            .stream()
+            .map(|msg| serde_json::to_string(&msg).unwrap_or_else(|e| e.to_string()));
+
+        Box::pin(futures::stream::select(event_stream, message_stream))
     }
 }
 
-type Behavior = Pin<Box<dyn Future<Output = Result<JoinSet<()>, Box<dyn Error>>> + Send>>;
-
-/// A behavior builder is used to build an agent's behavior.
-/// A behavior is meant to be quite simple, and is composed of a collector, an
-/// executor, and a strategy that uses those two components.
-/// Agents can have multiple simple behaviors to allow for the agent to have an
-/// emergent complex set of actions.
-pub struct BehaviorBuilder<E, A> {
-    collectors: Vec<Box<dyn Collector<E>>>,
-    executors: Vec<Box<dyn Executor<A>>>,
-    strategies: Vec<Box<dyn Strategy<E, A>>>,
-}
-
-impl<E, A> BehaviorBuilder<E, A>
-where
-    E: Send + Clone + 'static + std::fmt::Debug,
-    A: Send + Clone + 'static + std::fmt::Debug,
-{
-    /// Creates a new behavior builder.
-    #[allow(clippy::new_without_default)]
-    pub fn new() -> Self {
-        Self {
-            collectors: vec![],
-            executors: vec![],
-            strategies: vec![],
+#[async_trait::async_trait]
+impl StateMachine for Agent {
+    fn run_state(&mut self, state: State) {
+        match state {
+            State::Uninitialized => {
+                unimplemented!("This never gets called.")
+            }
+            State::Syncing => {
+                self.state = state;
+                trace!("Agent is syncing.");
+                let mut behavior_engines = self.behavior_engines.take().unwrap();
+                for engine in behavior_engines.iter_mut() {
+                    engine.run_state(state);
+                }
+                self.behavior_tasks =
+                    Some(join_all(behavior_engines.into_iter().map(|mut engine| {
+                        tokio::spawn(async move {
+                            engine.transition().await;
+                            engine
+                        })
+                    })));
+            }
+            State::Startup => {
+                trace!("Agent is starting up.");
+                self.state = state;
+                let mut behavior_engines = self.behavior_engines.take().unwrap();
+                for engine in behavior_engines.iter_mut() {
+                    engine.run_state(state);
+                }
+                self.behavior_tasks =
+                    Some(join_all(behavior_engines.into_iter().map(|mut engine| {
+                        tokio::spawn(async move {
+                            engine.transition().await;
+                            engine
+                        })
+                    })));
+            }
+            State::Processing => {
+                trace!("Agent is processing.");
+                self.state = state;
+                let mut behavior_engines = self.behavior_engines.take().unwrap();
+                for engine in behavior_engines.iter_mut() {
+                    engine.run_state(state);
+                }
+                self.behavior_tasks =
+                    Some(join_all(behavior_engines.into_iter().map(|mut engine| {
+                        tokio::spawn(async move {
+                            engine.transition().await;
+                            engine
+                        })
+                    })));
+            }
+            State::Stopped => {
+                todo!()
+            }
         }
     }
 
-    /// Adds a collector to the behavior.
-    pub fn add_collector(mut self, collector: impl Collector<E> + 'static) -> Self {
-        self.collectors.push(Box::new(collector));
-        self
-    }
-
-    /// Adds an executor to the behavior.
-    pub fn add_executor(mut self, executor: impl Executor<A> + 'static) -> Self {
-        self.executors.push(Box::new(executor));
-        self
-    }
-
-    /// Adds a strategy to the behavior.
-    pub fn add_strategy(mut self, strategy: impl Strategy<E, A> + 'static) -> Self {
-        self.strategies.push(Box::new(strategy));
-        self
-    }
-
-    /// Builds the behavior.
-    pub fn build(self) -> Engine<E, A> {
-        let mut engine = Engine::new();
-        for collector in self.collectors {
-            engine.add_collector(collector);
-        }
-        for executor in self.executors {
-            engine.add_executor(executor);
-        }
-        for strategy in self.strategies {
-            engine.add_strategy(strategy);
-        }
-        engine
+    async fn transition(&mut self) {
+        self.behavior_engines = Some(
+            self.behavior_tasks
+                .take()
+                .unwrap()
+                .await
+                .into_iter()
+                .map(|res| res.unwrap())
+                .collect::<Vec<_>>(),
+        );
     }
 }
 
 #[cfg(test)]
 mod tests {
     use arbiter_bindings::bindings::arbiter_token::ArbiterToken;
-    use arbiter_core::{environment::builder::EnvironmentBuilder, middleware::RevmMiddleware};
-    use artemis_core::{
-        collectors::log_collector::LogCollector,
-        executors::mempool_executor::{MempoolExecutor, SubmitTxToMempool},
-    };
     use ethers::types::U256;
 
     use super::*;
-
+    use crate::messager::Message;
     #[ignore]
-    #[tokio::test]
-    async fn test_agent() {
-        // Startup
-        let environment = EnvironmentBuilder::new().build();
-        let client = RevmMiddleware::new(&environment, None).unwrap();
+    #[tokio::test(flavor = "multi_thread", worker_threads = 2)]
+    async fn streaming() {
+        std::env::set_var("RUST_LOG", "trace");
+        tracing_subscriber::fmt::init();
+
+        let mut world = World::new("world");
+        let messager = world.messager.clone();
+        println!(
+            "Receiver count: {:?}",
+            messager.broadcast_sender.receiver_count()
+        );
+
+        let agent = world.create_agent("agent");
+
         let arb = ArbiterToken::deploy(
-            client.clone(),
-            ("Arbiter Token".to_string(), "ARB".to_string(), 18),
+            agent.client.clone(),
+            ("ArbiterToken".to_string(), "ARB".to_string(), 18u8),
         )
         .unwrap()
         .send()
         .await
         .unwrap();
 
-        // Build the agent
-        let mut agent = Agent::new("test");
-        let behavior = BehaviorBuilder::new()
-            .add_collector(LogCollector::new(
-                client.clone(),
-                arb.transfer_filter().filter,
-            ))
-            .add_executor(MempoolExecutor::new(client.clone()))
-            .build();
-        agent.add_behavior(behavior);
+        agent.add_event(arb.events());
+        let address = agent.client.address();
+        let mut streamer = agent.start_event_stream();
 
-        let tx = arb.mint(client.address(), U256::from(1)).tx;
-        let _submit_tx = SubmitTxToMempool {
-            tx,
-            gas_bid_info: None,
-        };
+        for _ in 0..5 {
+            messager
+                .send(Message {
+                    from: "me".to_string(),
+                    to: messager::To::All,
+                    data: "hello".to_string(),
+                })
+                .await;
+            arb.approve(address, U256::from(1))
+                .send()
+                .await
+                .unwrap()
+                .await
+                .unwrap();
+        }
+
+        while let Some(msg) = streamer.next().await {
+            println!("Printing message in test: {:?}", msg);
+        }
     }
 }

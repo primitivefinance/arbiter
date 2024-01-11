@@ -20,15 +20,17 @@
 
 use std::{
     collections::BTreeMap, fmt::Debug, io::BufWriter, marker::PhantomData, mem::transmute,
-    sync::Arc,
+    pin::Pin, sync::Arc,
 };
 
 use ethers::{
     abi::RawLog,
     contract::{builders::Event, EthLogDecode},
+    core::k256::sha2::{Digest, Sha256},
     providers::Middleware,
     types::{Filter, FilteredParams},
 };
+use futures_util::Stream;
 use polars::{
     io::parquet::ParquetWriter,
     prelude::{CsvWriter, DataFrame, NamedFrom, SerWriter},
@@ -43,7 +45,7 @@ use crate::{
     middleware::{cast::revm_logs_to_ethers_logs, errors::RevmMiddlewareError, RevmMiddleware},
 };
 
-type FilterDecoder =
+pub(crate) type FilterDecoder =
     BTreeMap<String, (FilteredParams, Box<dyn Fn(&RawLog) -> String + Send + Sync>)>;
 /// `EventLogger` is a struct that logs events from the Ethereum network.
 ///
@@ -149,6 +151,25 @@ impl EventLogger {
         debug!("`EventLogger` now provided with event labeled: {:?}", name);
         self
     }
+
+    /// Adds an event to the `EventLogger` and generates a unique ID for the
+    /// event since we don't need to name events that are solely streamed and
+    /// not stored.
+    pub fn add_stream<D: EthLogDecode + Debug + Serialize + 'static>(
+        self,
+        event: Event<Arc<RevmMiddleware>, RevmMiddleware, D>,
+    ) -> Self {
+        let mut hasher = Sha256::new();
+        hasher.update(
+            serde_json::to_string(&event.filter)
+                .map_err(RevmMiddlewareError::Json)
+                .unwrap(),
+        );
+        let hash = hasher.finalize();
+        let id = hex::encode(hash);
+        self.add(event, id)
+    }
+
     /// Sets the directory for the `EventLogger`.
     ///
     /// # Arguments
@@ -342,6 +363,35 @@ impl EventLogger {
         });
         Ok(())
     }
+
+    /// Returns a stream of the serialized events.
+    pub fn stream(self) -> Pin<Box<dyn Stream<Item = String> + Send + 'static>> {
+        let receiver = self.receiver.clone().unwrap();
+
+        let stream = async_stream::stream! {
+            while let Ok(broadcast) = receiver.recv() {
+                match broadcast {
+                    Broadcast::StopSignal => {
+                        trace!("`EventLogger` has seen a stop signal");
+                        break;
+                    }
+                    Broadcast::Event(event) => {
+                        trace!("`EventLogger` received an event");
+                        let ethers_logs = revm_logs_to_ethers_logs(event);
+                        for log in ethers_logs {
+                            for (_id, (filter, decoder)) in self.decoder.iter() {
+                                if filter.filter_address(&log) && filter.filter_topics(&log) {
+                                   yield decoder(&log.clone().into());
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        };
+
+        Box::pin(stream)
+    }
 }
 
 fn flatten_to_data_frame(events: BTreeMap<String, BTreeMap<String, Vec<Value>>>) -> DataFrame {
@@ -361,17 +411,14 @@ fn flatten_to_data_frame(events: BTreeMap<String, BTreeMap<String, Vec<Value>>>)
     }
 
     // 2. Convert the vectors into a DataFrame
-    let df = DataFrame::new(vec![
+    DataFrame::new(vec![
         Series::new("contract_name", contract_names),
         Series::new("event_name", event_names),
         Series::new("event_value", event_values),
     ])
-    .unwrap();
-    println!("{:?}", df);
-
-    df
+    .unwrap()
 }
-struct EventTransmuted<B, M, D> {
+pub(crate) struct EventTransmuted<B, M, D> {
     /// The event filter's state
     pub filter: Filter,
     pub(crate) provider: B,

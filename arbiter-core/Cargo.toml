@@ -20,13 +20,16 @@ hashbrown = "0.14.3"
 bytes = { version = "=1.5.0" }
 serde.workspace = true
 serde_json.workspace = true
+hex = { version = "=0.4.3", default-features = false }
 
 # Concurrency/async
 tokio.workspace = true
 async-trait.workspace = true
+async-stream.workspace = true
 crossbeam-channel.workspace = true
 futures-timer = { version = "=3.0.2" }
 futures-locks = { version = "=0.7.1" }
+
 
 # Randomness
 rand =  { version = "=0.8.5" }
@@ -47,10 +50,10 @@ polars = { version = "0.36.2", features = ["parquet", "csv", "json"] }
 [dev-dependencies]
 arbiter-derive = { path = "../arbiter-derive" }
 arbiter-bindings = { path = "../arbiter-bindings" }
-hex = { version = "=0.4.3", default-features = false }
 anyhow =  { version = "=1.0.79" }
 test-log =  { version = "=0.2.14" }
 tracing-test = "0.2.4"
+tracing-subscriber = "0.3.18"
 
 polars = "0.36.2"
 cargo_metadata = "0.18.1"
