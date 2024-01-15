@@ -44,7 +44,7 @@ async-stream = "0.3.5"
 arbiter-core.workspace = true
 
 # Command line and config
-clap = { version = "=4.4.14", features = ["derive"] }
+clap = { version = "=4.4.16", features = ["derive"] }
 serde.workspace = true
 serde_json.workspace = true
 config = { version = "=0.13.4" }
