@@ -65,7 +65,7 @@ thiserror.workspace = true
 # Dependencies for the test build and development
 [dev-dependencies]
 tokio.workspace = true
-assert_cmd = { version = "=2.0.12" }
+assert_cmd = { version = "=2.0.13" }
 rayon = { version = "1.8.0" }
 revm-primitives.workspace = true
 
