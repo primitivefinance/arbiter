@@ -91,7 +91,8 @@ You can run `arbiter init <simulation_name> --no-git` to remove the `.git` direc
 
 
 ### Bindings
-You can load or write your own smart contracts in the templates `contracts/` directory and begin writing your own simulations. 
+
+You can load or write your own smart contracts in the templates `arbiter-bindings/contracts/` directory and begin writing your own simulations. 
 Arbiter treats Rust smart-contract bindings as first-class citizens. The contract bindings are generated via Foundry's `forge` command. 
 `arbiter bind` wraps `forge` with some convenience features that will generate all your bindings to src/bindings as a rust module. 
 [Foundry](https://github.com/foundry-rs/foundry) power-users are welcome to use `forge` directly.
@@ -124,9 +125,10 @@ You can run `arbiter init <simulation_name> --no-git` to remove the `.git` direc
 ## Documentation
 
 To see the documentation for the Arbiter crates, please visit the following:
-- [`arbiter`](https://docs.rs/crate/arbiter/0.3.2/)
-- [`arbiter-core`](https://docs.rs/arbiter-core/0.5.1/arbiter_core/)
-- [`arbiter-derive`](https://docs.rs/arbiter-derive/0.1.0/arbiter_derive/)
+- [`arbiter`](https://docs.rs/crate/arbiter/)
+- [`arbiter-bindings`](https://docs.rs/crate/arbiter-bindings/)
+- [`arbiter-core`](https://docs.rs/arbiter-core/)
+- [`arbiter-derive`](https://docs.rs/arbiter-derive/)
 
 You will also find each of these on crates.io.
 
@@ -139,7 +141,7 @@ Preliminary benchmarks of the `RevmMiddleware` interface over `revm` against Anv
 
 to run the benchmarking code yourself, you can run:
 ```bash
-cargo bench --package arbiter-core -F contracts
+cargo bench --package arbiter-core
 ```
 
 bench from 10/24/23 arbiter-core v0.6.3
