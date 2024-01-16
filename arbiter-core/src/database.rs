@@ -4,11 +4,12 @@
 //! file.
 
 use std::{
+    collections::BTreeMap,
     convert::Infallible,
     fmt::Debug,
     fs,
     io::{self, Read, Write},
-    sync::{Arc, RwLock}, collections::BTreeMap,
+    sync::{Arc, RwLock},
 };
 
 use revm::{
@@ -16,7 +17,7 @@ use revm::{
     primitives::{AccountInfo, B256, U256},
     Database, DatabaseCommit,
 };
-use revm_primitives::{db::DatabaseRef, Bytecode, Bytes, Address, keccak256};
+use revm_primitives::{db::DatabaseRef, keccak256, Address, Bytecode, Bytes};
 use serde::{Deserialize, Serialize};
 use serde_json;
 
@@ -134,7 +135,8 @@ impl DatabaseCommit for ArbiterDB {
 /// [AnvilDump] models the schema of an [anvil](https://github.com/foundry-rs/foundry) state dump.
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct AnvilDump {
-    /// Mapping of account addresses to [AccountRecord]s stored in the dump file.
+    /// Mapping of account addresses to [AccountRecord]s stored in the dump
+    /// file.
     pub accounts: BTreeMap<Address, AccountRecord>,
 }
 
@@ -157,15 +159,21 @@ impl TryFrom<AnvilDump> for CacheDB<EmptyDB> {
     fn try_from(dump: AnvilDump) -> Result<Self, Self::Error> {
         let mut db = CacheDB::default();
 
-        dump.accounts.into_iter().try_for_each(|(address, account_record)| {
-            db.insert_account_info(address, AccountInfo {
-                balance: account_record.balance,
-                nonce: account_record.nonce,
-                code_hash: keccak256(account_record.code.as_ref()),
-                code: (!account_record.code.is_empty()).then(|| Bytecode::new_raw(account_record.code)),
-            });
-            db.replace_account_storage(address, account_record.storage)
-        })?;
+        dump.accounts
+            .into_iter()
+            .try_for_each(|(address, account_record)| {
+                db.insert_account_info(
+                    address,
+                    AccountInfo {
+                        balance: account_record.balance,
+                        nonce: account_record.nonce,
+                        code_hash: keccak256(account_record.code.as_ref()),
+                        code: (!account_record.code.is_empty())
+                            .then(|| Bytecode::new_raw(account_record.code)),
+                    },
+                );
+                db.replace_account_storage(address, account_record.storage)
+            })?;
 
         Ok(db)
     }
@@ -174,6 +182,7 @@ impl TryFrom<AnvilDump> for CacheDB<EmptyDB> {
 #[cfg(test)]
 mod tests {
     use revm_primitives::{address, bytes};
+
     use super::*;
 
     #[test]
@@ -212,19 +221,29 @@ mod tests {
         let dump: AnvilDump = serde_json::from_str(RAW_DUMP).unwrap();
         let mut db: CacheDB<EmptyDB> = dump.try_into().unwrap();
 
-        let account_a = db.load_account(address!("0000000000000000000000000000000000000000")).unwrap();
+        let account_a = db
+            .load_account(address!("0000000000000000000000000000000000000000"))
+            .unwrap();
         assert_eq!(account_a.info.nonce, 1234);
         assert_eq!(account_a.info.balance, U256::from(0xfacade));
         assert_eq!(account_a.info.code, None);
         assert_eq!(account_a.info.code_hash, keccak256(&[]));
 
-        let account_b = db.load_account(address!("0000000000000000000000000000000000000001")).unwrap();
+        let account_b = db
+            .load_account(address!("0000000000000000000000000000000000000001"))
+            .unwrap();
         let b_bytecode = bytes!("badc0de0");
         assert_eq!(account_b.info.nonce, 555);
         assert_eq!(account_b.info.balance, U256::from(0xc0ffee));
         assert_eq!(account_b.info.code_hash, keccak256(b_bytecode.as_ref()));
         assert_eq!(account_b.info.code, Some(Bytecode::new_raw(b_bytecode)));
-        assert_eq!(account_b.storage.get(&U256::ZERO), Some(&U256::from(0xdead)));
-        assert_eq!(account_b.storage.get(&U256::from(1)), Some(&U256::from(0xbabe)));
+        assert_eq!(
+            account_b.storage.get(&U256::ZERO),
+            Some(&U256::from(0xdead))
+        );
+        assert_eq!(
+            account_b.storage.get(&U256::from(1)),
+            Some(&U256::from(0xbabe))
+        );
     }
 }
