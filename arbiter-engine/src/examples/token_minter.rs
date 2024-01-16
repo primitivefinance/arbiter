@@ -269,7 +269,7 @@ async fn token_minter_simulation() {
         token_requester
             .with_behavior::<Message>(token_requester_behavior.clone())
             .with_behavior::<arbiter_token::TransferFilter>(token_requester_behavior)
-            // .with_event(transfer_event),
+            .with_event(transfer_event),
     );
 
     world.run().await;

@@ -10,6 +10,7 @@
 //   it owns a clone of the same messager.
 // * The worlds now are just going to be revm worlds. We can generalize this
 //   later.
+// * Can we give the world an address book??
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 //! The world module contains the core world abstraction for the Arbiter Engine.

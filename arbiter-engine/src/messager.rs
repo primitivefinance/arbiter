@@ -69,7 +69,7 @@ impl Messager {
 
     /// Returns a stream of messages that are either sent to [`To::All`] or to
     /// the agent via [`To::Agent(id)`].
-    pub fn stream(&self) -> Pin<Box<dyn Stream<Item = Message> + Send + '_>> {
+    pub fn stream(self) -> Pin<Box<dyn Stream<Item = Message> + Send + 'static>> {
         let mut receiver = self.broadcast_receiver.clone();
         let stream = async_stream::stream! {
             while let Ok(message) = receiver.recv().await {

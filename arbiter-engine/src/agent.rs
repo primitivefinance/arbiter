@@ -16,7 +16,7 @@
 
 //! The agent module contains the core agent abstraction for the Arbiter Engine.
 
-use std::{clone, fmt::Debug, pin::Pin, sync::Arc};
+use std::{fmt::Debug, pin::Pin, sync::Arc};
 
 use arbiter_core::{data_collection::EventLogger, middleware::RevmMiddleware};
 use ethers::contract::{EthLogDecode, Event};
@@ -184,7 +184,7 @@ impl StateMachine for Agent {
             State::Processing => {
                 debug!("Agent is processing.");
                 self.state = state;
-                let messager = Box::leak(Box::new(self.messager.clone())); // TODO: We shouldn't have to do box leak
+                let messager = self.messager.clone();
                 let message_stream = messager
                     .stream()
                     .map(|msg| serde_json::to_string(&msg).unwrap_or_else(|e| e.to_string()));
@@ -241,7 +241,6 @@ impl StateMachine for Agent {
     }
 }
 
-#[ignore = "This test should be adjusted or possibly removed as it isn't really testing anything now"]
 #[cfg(test)]
 mod tests {
     use arbiter_bindings::bindings::arbiter_token::ArbiterToken;
@@ -249,54 +248,83 @@ mod tests {
 
     use super::*;
     use crate::messager::Message;
-    #[ignore]
-    #[tokio::test(flavor = "multi_thread", worker_threads = 2)]
+    #[tokio::test(flavor = "multi_thread", worker_threads = 4)]
     async fn streaming() {
-        todo!()
-        // std::env::set_var("RUST_LOG", "trace");
-        // tracing_subscriber::fmt::init();
+        std::env::set_var("RUST_LOG", "trace");
+        tracing_subscriber::fmt::init();
 
-        // let mut world = World::new("world");
-        // let messager = world.messager.clone();
-        // println!(
-        //     "Receiver count: {:?}",
-        //     messager.broadcast_sender.receiver_count()
-        // );
+        let world = World::new("world");
+        let agent = Agent::new("agent", &world);
 
-        // let agent = Agent::new("agent", &world);
-        // // world.add_agent(agent); // DON'T NEED TO DO THIS IN THIS EXAMPLE?
+        let arb = ArbiterToken::deploy(
+            agent.client.clone(),
+            ("ArbiterToken".to_string(), "ARB".to_string(), 18u8),
+        )
+        .unwrap()
+        .send()
+        .await
+        .unwrap();
 
-        // let arb = ArbiterToken::deploy(
-        //     agent.client.clone(),
-        //     ("ArbiterToken".to_string(), "ARB".to_string(), 18u8),
-        // )
-        // .unwrap()
-        // .send()
-        // .await
-        // .unwrap();
+        let mut agent = agent.with_event(arb.events());
+        let address = agent.client.address();
 
-        // let agent = agent.with_event(arb.events());
-        // let address = agent.client.address();
-        // let mut streamer = agent.start_event_stream();
+        // THIS COUYLD BE A SINGLE FUNCTION AS IT IS IN THE AGENT::PROCESS, but it is
+        // annoyikng to do so.
+        let messager = agent.messager.clone();
+        let message_stream = messager
+            .clone()
+            .stream()
+            .map(|msg| serde_json::to_string(&msg).unwrap_or_else(|e| e.to_string()));
+        let eth_event_stream = agent.event_streamer.take().unwrap().stream();
 
-        // for _ in 0..5 {
-        //     messager
-        //         .send(Message {
-        //             from: "me".to_string(),
-        //             to: messager::To::All,
-        //             data: "hello".to_string(),
-        //         })
-        //         .await;
-        //     arb.approve(address, U256::from(1))
-        //         .send()
-        //         .await
-        //         .unwrap()
-        //         .await
-        //         .unwrap();
-        // }
+        let mut event_stream: Pin<Box<dyn Stream<Item = String> + Send + '_>> =
+            if let Some(event_stream) = eth_event_stream {
+                trace!("Merging event streams.");
+                Box::pin(futures::stream::select(event_stream, message_stream))
+            } else {
+                trace!("Agent only sees message stream.");
+                Box::pin(message_stream)
+            };
+        // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-        // while let Some(msg) = streamer.next().await {
-        //     println!("Printing message in test: {:?}", msg);
-        // }
+        for _ in 0..5 {
+            messager
+                .send(Message {
+                    from: "god".to_string(),
+                    to: messager::To::All,
+                    data: "hello".to_string(),
+                })
+                .await;
+            arb.approve(address, U256::from(1))
+                .send()
+                .await
+                .unwrap()
+                .await
+                .unwrap();
+        }
+        let mut idx = 0;
+        while let Some(msg) = event_stream.next().await {
+            println!("Printing message in test: {:?}", msg);
+            if idx % 2 == 1 {
+                assert_eq!(
+                    msg,
+                    serde_json::to_string(&Message {
+                        from: "god".to_string(),
+                        to: messager::To::All,
+                        data: "hello".to_string(),
+                    })
+                    .unwrap()
+                );
+            } else {
+                assert_eq!(
+                    msg,
+                    "{\"ApprovalFilter\":{\"owner\":\"0xe7a46f3d9f0e9b9c02f58f95e3bcee2db54050b0\",\"spender\":\"0xe7a46f3d9f0e9b9c02f58f95e3bcee2db54050b0\",\"amount\":\"0x1\"}}".to_string(),
+                );
+            }
+            idx += 1;
+            if idx == 10 {
+                break;
+            }
+        }
     }
 }
