@@ -365,7 +365,7 @@ impl EventLogger {
     }
 
     /// Returns a stream of the serialized events.
-    pub fn stream(self) -> Option<Pin<Box<dyn Stream<Item = String> + Send + 'static>>> {
+    pub fn stream(self) -> Option<impl Stream<Item = String> + Send> {
         if let Some(receiver) = self.receiver.clone() {
             let stream = async_stream::stream! {
                 while let Ok(broadcast) = receiver.recv() {
@@ -389,7 +389,7 @@ impl EventLogger {
                 }
             };
 
-            Some(Box::pin(stream))
+            Some(stream)
         } else {
             None
         }

@@ -217,7 +217,7 @@ mod tests {
     use ethers::types::U256;
 
     use super::*;
-    use crate::messager::Message;
+    use crate::messager::Message; // Add this import statement
 
     #[tokio::test(flavor = "multi_thread", worker_threads = 4)]
     async fn streaming() {
@@ -248,10 +248,15 @@ mod tests {
             .map(|msg| serde_json::to_string(&msg).unwrap_or_else(|e| e.to_string()));
         let eth_event_stream = agent.event_streamer.take().unwrap().stream();
 
+        // ...
+
         let mut event_stream: Pin<Box<dyn Stream<Item = String> + Send + '_>> =
             if let Some(event_stream) = eth_event_stream {
                 trace!("Merging event streams.");
-                Box::pin(futures::stream::select(message_stream, event_stream))
+                Box::pin(futures::stream::select_all(vec![
+                    message_stream,
+                    event_stream,
+                ]))
             } else {
                 trace!("Agent only sees message stream.");
                 Box::pin(message_stream)
