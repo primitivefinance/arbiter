@@ -39,7 +39,7 @@ pub struct Messager {
 
     pub(crate) broadcast_sender: BroadcastSender<Message>,
 
-    broadcast_receiver: BroadcastReceiver<Message>,
+    broadcast_receiver: Option<BroadcastReceiver<Message>>,
 }
 
 impl Messager {
@@ -52,7 +52,7 @@ impl Messager {
         let (broadcast_sender, broadcast_receiver) = broadcast(512);
         Self {
             broadcast_sender,
-            broadcast_receiver,
+            broadcast_receiver: Some(broadcast_receiver),
             id: None,
         }
     }
@@ -69,8 +69,8 @@ impl Messager {
 
     /// Returns a stream of messages that are either sent to [`To::All`] or to
     /// the agent via [`To::Agent(id)`].
-    pub fn stream(self) -> impl Stream<Item = Message> + Send {
-        let mut receiver = self.broadcast_receiver.clone();
+    pub fn stream(mut self) -> impl Stream<Item = Message> + Send {
+        let mut receiver = self.broadcast_receiver.take().unwrap();
         let stream = async_stream::stream! {
             while let Ok(message) = receiver.recv().await {
                 match &message.to {

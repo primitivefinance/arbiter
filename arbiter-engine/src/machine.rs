@@ -103,16 +103,6 @@ where
             phantom: std::marker::PhantomData,
         }
     }
-
-    pub(crate) async fn run(&mut self, state: State) {
-        self.state = state;
-        let mut behavior = self.behavior.take().unwrap();
-        let behavior_task = tokio::spawn(async move {
-            behavior.sync().await;
-            behavior
-        });
-        self.behavior = Some(behavior_task.await.unwrap());
-    }
 }
 
 #[async_trait::async_trait]
@@ -128,11 +118,23 @@ where
             }
             State::Syncing => {
                 trace!("Behavior is syncing.");
-                self.run(state).await;
+                self.state = state;
+                let mut behavior = self.behavior.take().unwrap();
+                let behavior_task = tokio::spawn(async move {
+                    behavior.sync().await;
+                    behavior
+                });
+                self.behavior = Some(behavior_task.await.unwrap());
             }
             State::Startup => {
                 trace!("Behavior is starting up.");
-                self.run(state).await;
+                self.state = state;
+                let mut behavior = self.behavior.take().unwrap();
+                let behavior_task = tokio::spawn(async move {
+                    behavior.startup().await;
+                    behavior
+                });
+                self.behavior = Some(behavior_task.await.unwrap());
             }
             State::Processing => {
                 trace!("Behavior is processing.");

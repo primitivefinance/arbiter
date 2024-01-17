@@ -237,7 +237,7 @@ impl Behavior<arbiter_token::TransferFilter> for TokenRequester {
 #[ignore]
 #[tokio::test(flavor = "multi_thread", worker_threads = 4)]
 async fn token_minter_simulation() {
-    std::env::set_var("RUST_LOG", "trace");
+    std::env::set_var("RUST_LOG", "arbiter_engine=trace");
     tracing_subscriber::fmt::init();
 
     let mut world = World::new("test_world");
@@ -269,7 +269,7 @@ async fn token_minter_simulation() {
         token_requester
             .with_behavior::<Message>(token_requester_behavior.clone())
             .with_behavior::<arbiter_token::TransferFilter>(token_requester_behavior)
-            // .with_event(transfer_event),
+            .with_event(transfer_event),
     );
 
     world.run().await;
