@@ -80,6 +80,8 @@ where
     /// The behavior the [`Engine`] runs.
     pub behavior: Option<B>,
 
+    pub state: State,
+
     /// The receiver of events that the [`Engine`] will process.
     /// The [`State::Processing`] stage will attempt a decode of the [`String`]s
     /// into the event type `<E>`.
@@ -97,9 +99,20 @@ where
     pub(crate) fn new(behavior: B, event_receiver: Receiver<String>) -> Self {
         Self {
             behavior: Some(behavior),
+            state: State::Uninitialized,
             event_receiver,
             phantom: std::marker::PhantomData,
         }
+    }
+
+    pub(crate) async fn run(&mut self, state: State) {
+        self.state = state;
+        let mut behavior = self.behavior.take().unwrap();
+        let behavior_task = tokio::spawn(async move {
+            behavior.sync().await;
+            behavior
+        });
+        self.behavior = Some(behavior_task.await.unwrap());
     }
 }
 
@@ -116,21 +129,11 @@ where
             }
             State::Syncing => {
                 trace!("Behavior is syncing.");
-                let mut behavior = self.behavior.take().unwrap();
-                let behavior_task = tokio::spawn(async move {
-                    behavior.sync().await;
-                    behavior
-                });
-                self.behavior = Some(behavior_task.await.unwrap());
+                self.run(state).await;
             }
             State::Startup => {
                 trace!("Behavior is starting up.");
-                let mut behavior = self.behavior.take().unwrap();
-                let behavior_task = tokio::spawn(async move {
-                    behavior.startup().await;
-                    behavior
-                });
-                self.behavior = Some(behavior_task.await.unwrap());
+                self.run(state).await;
             }
             State::Processing => {
                 trace!("Behavior is processing.");

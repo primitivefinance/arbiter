@@ -87,9 +87,6 @@ pub struct Agent {
     /// events.
     behavior_engines: Option<Vec<Box<dyn StateMachine>>>,
 
-    /// The tasks that represent the agent running a specific state transition.
-    behavior_tasks: Option<JoinAll<JoinHandle<Box<dyn StateMachine>>>>,
-
     /// The pipeline for yielding events from the centralized event streamer
     /// (for both messages and Ethereum events) to agents.
     distributor: (
@@ -114,7 +111,6 @@ impl Agent {
             event_streamer: Some(EventLogger::builder()),
             behavior_engines: None,
             distributor,
-            behavior_tasks: None,
             broadcast_task: None,
         }
     }
@@ -143,6 +139,24 @@ impl Agent {
         };
         self
     }
+
+    pub(crate) async fn run(&mut self, state: State) {
+        self.state = state;
+        let behavior_engines = self.behavior_engines.take().unwrap();
+        let behavior_tasks = join_all(behavior_engines.into_iter().map(|mut engine| {
+            tokio::spawn(async move {
+                engine.run_state(state).await;
+                engine
+            })
+        }));
+        self.behavior_engines = Some(
+            behavior_tasks
+                .await
+                .into_iter()
+                .map(|res| res.unwrap())
+                .collect::<Vec<_>>(),
+        );
+    }
 }
 
 #[async_trait::async_trait]
@@ -154,46 +168,12 @@ impl StateMachine for Agent {
                 unimplemented!("This never gets called.")
             }
             State::Syncing => {
-                self.state = state;
                 debug!("Agent is syncing.");
-                let behavior_engines = self.behavior_engines.take().unwrap();
-                self.behavior_tasks =
-                    Some(join_all(behavior_engines.into_iter().map(|mut engine| {
-                        tokio::spawn(async move {
-                            engine.run_state(state).await;
-                            engine
-                        })
-                    })));
-                self.behavior_engines = Some(
-                    self.behavior_tasks
-                        .take()
-                        .unwrap()
-                        .await
-                        .into_iter()
-                        .map(|res| res.unwrap())
-                        .collect::<Vec<_>>(),
-                );
+                self.run(state).await;
             }
             State::Startup => {
                 debug!("Agent is starting up.");
-                self.state = state;
-                let behavior_engines = self.behavior_engines.take().unwrap();
-                self.behavior_tasks =
-                    Some(join_all(behavior_engines.into_iter().map(|mut engine| {
-                        tokio::spawn(async move {
-                            engine.run_state(state).await;
-                            engine
-                        })
-                    })));
-                self.behavior_engines = Some(
-                    self.behavior_tasks
-                        .take()
-                        .unwrap()
-                        .await
-                        .into_iter()
-                        .map(|res| res.unwrap())
-                        .collect::<Vec<_>>(),
-                );
+                self.run(state).await;
             }
             State::Processing => {
                 debug!("Agent is processing.");
@@ -222,23 +202,7 @@ impl StateMachine for Agent {
                     }
                     event_stream
                 }));
-                let behavior_engines = self.behavior_engines.take().unwrap();
-                self.behavior_tasks =
-                    Some(join_all(behavior_engines.into_iter().map(|mut engine| {
-                        tokio::spawn(async move {
-                            engine.run_state(state).await;
-                            engine
-                        })
-                    })));
-                self.behavior_engines = Some(
-                    self.behavior_tasks
-                        .take()
-                        .unwrap()
-                        .await
-                        .into_iter()
-                        .map(|res| res.unwrap())
-                        .collect::<Vec<_>>(),
-                );
+                self.run(state).await;
             }
             State::Stopped => {
                 todo!()
