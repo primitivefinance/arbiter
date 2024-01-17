@@ -25,7 +25,10 @@ use ethers::contract::{EthLogDecode, Event};
 use futures::stream::{Stream, StreamExt};
 use futures_util::future::join_all;
 use serde::de::DeserializeOwned;
-use tokio::task::JoinHandle;
+use tokio::{
+    sync::broadcast::{channel, Receiver, Sender},
+    task::JoinHandle,
+};
 
 use super::*;
 use crate::{
@@ -74,7 +77,7 @@ pub struct Agent {
 
     /// The messager the agent uses to send and receive messages from other
     /// agents.
-    pub messager: Messager,
+    pub messager: Option<Messager>,
 
     /// The client the agent uses to interact with the blockchain.
     pub client: Arc<RevmMiddleware>,
@@ -89,10 +92,7 @@ pub struct Agent {
 
     /// The pipeline for yielding events from the centralized event streamer
     /// (for both messages and Ethereum events) to agents.
-    distributor: (
-        async_broadcast::Sender<String>,
-        async_broadcast::Receiver<String>,
-    ),
+    distributor: (Sender<String>, Receiver<String>),
 
     broadcast_task: Option<JoinHandle<Pin<Box<dyn Stream<Item = String> + Send>>>>,
 }
@@ -102,11 +102,11 @@ impl Agent {
     pub fn new(id: &str, world: &World) -> Self {
         let messager = world.messager.for_agent(id);
         let client = RevmMiddleware::new(&world.environment, Some(id)).unwrap();
-        let distributor = async_broadcast::broadcast(512);
+        let distributor = channel(512);
         Self {
             id: id.to_owned(),
             state: State::Uninitialized,
-            messager,
+            messager: Some(messager),
             client,
             event_streamer: Some(EventLogger::builder()),
             behavior_engines: None,
@@ -129,7 +129,7 @@ impl Agent {
         mut self,
         behavior: impl Behavior<E> + 'static,
     ) -> Self {
-        let event_receiver = self.distributor.0.new_receiver();
+        let event_receiver = self.distributor.0.subscribe();
 
         let engine = Engine::new(behavior, event_receiver);
         if let Some(engines) = &mut self.behavior_engines {
@@ -178,7 +178,7 @@ impl StateMachine for Agent {
             State::Processing => {
                 debug!("Agent is processing.");
                 self.state = state;
-                let messager = self.messager.clone();
+                let messager = self.messager.take().unwrap();
                 let message_stream = messager
                     .stream()
                     .map(|msg| serde_json::to_string(&msg).unwrap_or_else(|e| e.to_string()));
@@ -204,7 +204,7 @@ impl StateMachine for Agent {
                 self.broadcast_task = Some(tokio::spawn(async move {
                     while let Some(event) = event_stream.next().await {
                         println!("Broadcasting event through agent comms: {:?}", event);
-                        sender.broadcast(event).await.unwrap();
+                        sender.send(event).unwrap();
                     }
                     event_stream
                 }));
@@ -230,7 +230,7 @@ mod tests {
         std::env::set_var("RUST_LOG", "trace");
         tracing_subscriber::fmt::init();
 
-        let world = World::new("world");
+        let mut world = World::new("world");
         let agent = Agent::new("agent", &world);
 
         let arb = ArbiterToken::deploy(
@@ -247,9 +247,8 @@ mod tests {
 
         // THIS COUYLD BE A SINGLE FUNCTION AS IT IS IN THE AGENT::PROCESS, but it is
         // annoyikng to do so.
-        let messager = agent.messager.clone();
+        let messager = agent.messager.take().unwrap();
         let message_stream = messager
-            .clone()
             .stream()
             .map(|msg| serde_json::to_string(&msg).unwrap_or_else(|e| e.to_string()));
         let eth_event_stream = agent.event_streamer.take().unwrap().stream();
@@ -267,9 +266,10 @@ mod tests {
                 Box::pin(message_stream)
             };
 
+        let outside_messager = world.messager.join_with_id(None);
         let message_task = tokio::spawn(async move {
             for _ in 0..5 {
-                messager
+                outside_messager
                     .send(Message {
                         from: "god".to_string(),
                         to: messager::To::All,

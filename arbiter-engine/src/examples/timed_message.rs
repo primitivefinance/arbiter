@@ -50,7 +50,6 @@ impl Behavior<Message> for TimedMessage {
     }
 }
 
-#[ignore = "This is a work in progress and does not work and does not ever terminate."]
 #[tokio::test(flavor = "multi_thread", worker_threads = 4)]
 async fn echoer() {
     std::env::set_var("RUST_LOG", "trace");
@@ -63,11 +62,15 @@ async fn echoer() {
         delay: 1,
         receive_data: "Hello, world!".to_owned(),
         send_data: "Hello, world!".to_owned(),
-        messager: agent.messager.clone(),
+        messager: agent
+            .messager
+            .as_ref()
+            .unwrap()
+            .join_with_id(Some(AGENT_ID.to_owned())),
     };
     world.add_agent(agent.with_behavior(behavior));
 
-    let messager = world.messager.clone();
+    let messager = world.messager.join_with_id(None);
     let task = world.run();
 
     let message = Message {
@@ -80,7 +83,7 @@ async fn echoer() {
     task.await;
 }
 
-#[tokio::test(flavor = "multi_thread", worker_threads = 2)]
+#[tokio::test(flavor = "multi_thread", worker_threads = 4)]
 async fn ping_pong() {
     std::env::set_var("RUST_LOG", "trace");
     tracing_subscriber::fmt::init();
@@ -92,13 +95,21 @@ async fn ping_pong() {
         delay: 1,
         receive_data: "pong".to_owned(),
         send_data: "ping".to_owned(),
-        messager: agent.messager.clone(),
+        messager: agent
+            .messager
+            .as_ref()
+            .unwrap()
+            .join_with_id(Some(AGENT_ID.to_owned())),
     };
     let behavior_pong = TimedMessage {
         delay: 1,
         receive_data: "ping".to_owned(),
         send_data: "pong".to_owned(),
-        messager: agent.messager.clone(),
+        messager: agent
+            .messager
+            .as_ref()
+            .unwrap()
+            .join_with_id(Some(AGENT_ID.to_owned())),
     };
 
     world.add_agent(
@@ -107,7 +118,7 @@ async fn ping_pong() {
             .with_behavior(behavior_pong),
     );
 
-    let messager = world.messager.clone();
+    let messager = world.messager.join_with_id(None);
     let task = world.run();
 
     let init_message = Message {
@@ -120,7 +131,7 @@ async fn ping_pong() {
     task.await;
 }
 
-#[tokio::test(flavor = "multi_thread", worker_threads = 2)]
+#[tokio::test(flavor = "multi_thread", worker_threads = 4)]
 async fn ping_pong_two_agent() {
     std::env::set_var("RUST_LOG", "trace");
     tracing_subscriber::fmt::init();
@@ -132,7 +143,11 @@ async fn ping_pong_two_agent() {
         delay: 1,
         receive_data: "pong".to_owned(),
         send_data: "ping".to_owned(),
-        messager: agent_ping.messager.clone(),
+        messager: agent_ping
+            .messager
+            .as_ref()
+            .unwrap()
+            .join_with_id(Some("agent_ping".to_owned())),
     };
 
     let agent_pong = Agent::new("agent_pong", &world);
@@ -140,13 +155,17 @@ async fn ping_pong_two_agent() {
         delay: 1,
         receive_data: "ping".to_owned(),
         send_data: "pong".to_owned(),
-        messager: agent_pong.messager.clone(),
+        messager: agent_pong
+            .messager
+            .as_ref()
+            .unwrap()
+            .join_with_id(Some("agent_pong".to_owned())),
     };
 
     world.add_agent(agent_ping.with_behavior(behavior_ping));
     world.add_agent(agent_pong.with_behavior(behavior_pong));
 
-    let messager = world.messager.clone();
+    let messager = world.messager.join_with_id(None);
     let task = world.run();
 
     let init_message = Message {

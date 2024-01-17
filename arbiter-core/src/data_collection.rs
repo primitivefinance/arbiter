@@ -20,7 +20,7 @@
 
 use std::{
     collections::BTreeMap, fmt::Debug, io::BufWriter, marker::PhantomData, mem::transmute,
-    pin::Pin, sync::Arc,
+    sync::Arc,
 };
 
 use ethers::{
@@ -38,6 +38,10 @@ use polars::{
 };
 use serde::Serialize;
 use serde_json::Value;
+use tokio::{
+    sync::broadcast::{Receiver as BroadcastReceiver, Sender as BroadcastSender},
+    task::JoinHandle,
+};
 
 use super::*;
 use crate::{
@@ -63,8 +67,8 @@ pub(crate) type FilterDecoder =
 ///   traits, and has a static lifetime.
 pub struct EventLogger {
     decoder: FilterDecoder,
-    receiver: Option<crossbeam_channel::Receiver<Broadcast>>,
-    shutdown_sender: Option<crossbeam_channel::Sender<()>>,
+    receiver: Option<BroadcastReceiver<Broadcast>>,
+    // shutdown_sender: Option<crossbeam_channel::Sender<()>>,
     output_file_type: Option<OutputFileType>,
     directory: Option<String>,
     file_name: Option<String>,
@@ -103,7 +107,7 @@ impl EventLogger {
             file_name: None,
             decoder: BTreeMap::new(),
             receiver: None,
-            shutdown_sender: None,
+            // shutdown_sender: None,
             output_file_type: None,
             metadata: None,
         }
@@ -138,15 +142,7 @@ impl EventLogger {
         );
         let connection = middleware.provider().as_ref();
         if self.receiver.is_none() {
-            let (event_sender, event_receiver) = crossbeam_channel::unbounded::<Broadcast>();
-            let (shutdown_sender, shutdown_receiver) = crossbeam_channel::bounded::<()>(1);
-            connection
-                .event_broadcaster
-                .lock()
-                .unwrap()
-                .add_sender(event_sender, Some(shutdown_receiver));
-            self.receiver = Some(event_receiver);
-            self.shutdown_sender = Some(shutdown_sender);
+            self.receiver = Some(connection.event_sender.subscribe());
         }
         debug!("`EventLogger` now provided with event labeled: {:?}", name);
         self
@@ -253,15 +249,15 @@ impl EventLogger {
     ///
     /// This function will return an error if there is a problem creating the
     /// directories or files, or writing to the files.
-    pub fn run(self) -> Result<(), RevmMiddlewareError> {
-        let receiver = self.receiver.unwrap();
+    pub fn run(self) -> Result<JoinHandle<()>, RevmMiddlewareError> {
+        let mut receiver = self.receiver.unwrap();
         let dir = self.directory.unwrap_or("./data".into());
         let file_name = self.file_name.unwrap_or("output".into());
         let file_type = self.output_file_type.unwrap_or(OutputFileType::JSON);
         let metadata = self.metadata.clone();
-        std::thread::spawn(move || {
+        let task = tokio::spawn(async move {
             let mut events: BTreeMap<String, BTreeMap<String, Vec<Value>>> = BTreeMap::new();
-            while let Ok(broadcast) = receiver.recv() {
+            while let Ok(broadcast) = receiver.recv().await {
                 match broadcast {
                     Broadcast::StopSignal => {
                         debug!("`EventLogger` has seen a stop signal");
@@ -288,7 +284,6 @@ impl EventLogger {
                                 }
                                 let data = OutputData { events, metadata };
                                 serde_json::to_writer(writer, &data).expect("Unable to write data");
-                                self.shutdown_sender.unwrap().send(()).unwrap();
                             }
                             OutputFileType::CSV => {
                                 // Write the DataFrame to a CSV file
@@ -301,7 +296,6 @@ impl EventLogger {
                                 writer.finish(&mut df).unwrap_or_else(|_| {
                                     panic!("Error writing to csv file");
                                 });
-                                self.shutdown_sender.unwrap().send(()).unwrap();
                             }
                             OutputFileType::Parquet => {
                                 // Write the DataFrame to a parquet file
@@ -314,7 +308,6 @@ impl EventLogger {
                                 writer.finish(&mut df).unwrap_or_else(|_| {
                                     panic!("Error writing to parquet file");
                                 });
-                                self.shutdown_sender.unwrap().send(()).unwrap();
                             }
                         }
                         break;
@@ -361,14 +354,14 @@ impl EventLogger {
                 }
             }
         });
-        Ok(())
+        Ok(task)
     }
 
     /// Returns a stream of the serialized events.
-    pub fn stream(self) -> Option<impl Stream<Item = String> + Send> {
-        if let Some(receiver) = self.receiver.clone() {
+    pub fn stream(mut self) -> Option<impl Stream<Item = String> + Send> {
+        if let Some(mut receiver) = self.receiver.take() {
             let stream = async_stream::stream! {
-                while let Ok(broadcast) = receiver.recv() {
+                while let Ok(broadcast) = receiver.recv().await {
                     match broadcast {
                         Broadcast::StopSignal => {
                             trace!("`EventLogger` has seen a stop signal");

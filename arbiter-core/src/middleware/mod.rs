@@ -94,7 +94,7 @@ pub mod nonce_middleware;
 /// Use a seed like `Some("test_label")` for maintaining a
 /// consistent address across simulations and client labeling. Seeding is be
 /// useful for debugging and post-processing.
-#[derive(Debug, Clone)]
+#[derive(Debug)]
 pub struct RevmMiddleware {
     provider: Provider<Connection>,
     wallet: EOA,
@@ -222,7 +222,7 @@ impl RevmMiddleware {
             instruction_sender: Arc::downgrade(instruction_sender),
             outcome_sender,
             outcome_receiver: outcome_receiver.clone(),
-            event_broadcaster: Arc::clone(&environment.socket.event_broadcaster),
+            event_sender: environment.socket.event_broadcaster.clone(),
             filter_receivers: Arc::new(Mutex::new(HashMap::new())),
         };
         let provider = Provider::new(connection);
@@ -687,22 +687,11 @@ impl Middleware for RevmMiddleware {
         hasher.update(serde_json::to_string(&args).map_err(RevmMiddlewareError::Json)?);
         let hash = hasher.finalize();
         let id = ethers::types::U256::from(ethers::types::H256::from_slice(&hash).as_bytes());
-        let (event_sender, event_receiver) = crossbeam_channel::unbounded::<Broadcast>();
+        let event_receiver = self.provider().as_ref().event_sender.subscribe();
         let filter_receiver = FilterReceiver {
             filter,
-            receiver: event_receiver,
+            receiver: Some(event_receiver),
         };
-        self.provider()
-            .as_ref()
-            .event_broadcaster
-            .lock()
-            .map_err(|e| {
-                RevmMiddlewareError::EventBroadcaster(format!(
-                    "Failed to gain lock on the `Connection`'s `event_broadcaster` due to {:?} ",
-                    e
-                ))
-            })?
-            .add_sender(event_sender, None);
         self.provider()
             .as_ref()
             .filter_receivers

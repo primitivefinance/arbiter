@@ -45,7 +45,12 @@ use revm::{
 };
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
+use tokio::sync::{
+    broadcast::{channel, Sender as BroadcastSender},
+    oneshot,
+};
 
+use self::data_collection::EventLogger;
 use super::*;
 #[cfg_attr(doc, doc(hidden))]
 #[cfg_attr(doc, allow(unused_imports))]
@@ -83,10 +88,6 @@ pub(crate) type OutcomeSender = Sender<Result<Outcome, EnvironmentError>>;
 /// Alias for the receiver of the channel for transmitting [`RevmResult`]
 /// emitted from transactions.
 pub(crate) type OutcomeReceiver = Receiver<Result<Outcome, EnvironmentError>>;
-
-/// Alias for the sender used in the [`EventBroadcaster`] that transmits
-/// contract events via [`Log`].
-pub(crate) type EventSender = Sender<Broadcast>;
 
 /// Alias for the receiver used in the [`EventBroadcaster`] that accepts
 /// shutdown signals from child processes.
@@ -162,10 +163,11 @@ impl Environment {
         db: Option<CacheDB<EmptyDB>>,
     ) -> Self {
         let (instruction_sender, instruction_receiver) = unbounded();
+        let (event_broadcaster, _) = channel(512);
         let socket = Socket {
             instruction_sender: Arc::new(instruction_sender),
             instruction_receiver,
-            event_broadcaster: Arc::new(Mutex::new(EventBroadcaster::new())),
+            event_broadcaster,
         };
         let db = db.map(|db| ArbiterDB(Arc::new(RwLock::new(db))));
 
@@ -540,15 +542,13 @@ impl Environment {
 
                         // update transaction count for sender
 
-                        let event_broadcaster = event_broadcaster
-                            .lock()
-                            .map_err(|e| EnvironmentError::Communication(e.to_string()))?;
                         let receipt_data = ReceiptData {
                             block_number,
                             transaction_index: transaction_index.into(),
                             cumulative_gas_per_block,
                         };
-                        event_broadcaster.broadcast(Some(execution_result.logs()), false)?;
+                        let res = event_broadcaster.send(Broadcast::Event(execution_result.logs()));
+                        println!("Result: {:?}", res);
                         outcome_sender
                             .send(Ok(Outcome::TransactionCompleted(
                                 execution_result,
@@ -649,10 +649,10 @@ impl Environment {
                             .map_err(|e| EnvironmentError::Communication(e.to_string()))?;
                     }
                     Instruction::Stop(outcome_sender) => {
+                        event_broadcaster.send(Broadcast::StopSignal).unwrap();
                         outcome_sender
                             .send(Ok(Outcome::StopCompleted(evm.db.unwrap())))
                             .map_err(|e| EnvironmentError::Communication(e.to_string()))?;
-                        event_broadcaster.lock().unwrap().broadcast(None, true)?;
                         break;
                     }
                 }
@@ -718,7 +718,7 @@ impl Environment {
 pub(crate) struct Socket {
     pub(crate) instruction_sender: Arc<InstructionSender>,
     pub(crate) instruction_receiver: InstructionReceiver,
-    pub(crate) event_broadcaster: Arc<Mutex<EventBroadcaster>>,
+    pub(crate) event_broadcaster: BroadcastSender<Broadcast>,
 }
 
 /// Enum representing the types of broadcasts that can be sent.
@@ -729,64 +729,12 @@ pub(crate) struct Socket {
 /// Variants:
 /// * `StopSignal`: Represents a signal to stop the event logger process.
 /// * `Event(Vec<Log>)`: Represents a broadcast of a vector of Ethereum logs.
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug)]
 pub enum Broadcast {
     /// Represents a signal to stop the event logger process.
     StopSignal,
     /// Represents a broadcast of a vector of Ethereum logs.
     Event(Vec<Log>),
-}
-
-/// Responsible for broadcasting Ethereum logs to subscribers.
-///
-/// Maintains a list of senders to which logs are sent whenever they are
-/// produced by the EVM.
-#[derive(Clone, Debug)]
-pub(crate) struct EventBroadcaster(Vec<(EventSender, Option<ShutDownReceiver>)>);
-
-impl EventBroadcaster {
-    /// Called only when creating a new [`Environment`]
-    fn new() -> Self {
-        Self(vec![])
-    }
-
-    /// Called from [`RevmMiddleware`] implementation when setting up a new
-    /// `FilterWatcher` as each watcher will need their own sender
-    pub(crate) fn add_sender(
-        &mut self,
-        sender: EventSender,
-        shutdown_receiver: Option<ShutDownReceiver>,
-    ) {
-        debug!("Sender added for `EventBroadcaster`");
-        self.0.push((sender, shutdown_receiver));
-    }
-
-    /// Loop through each sender and send  `Vec<Log>` emitted from a transaction
-    /// downstream to any and all receivers
-    fn broadcast(&self, logs: Option<Vec<Log>>, stop_signal: bool) -> Result<(), EnvironmentError> {
-        if stop_signal {
-            for (sender, receiver) in &self.0 {
-                sender.send(Broadcast::StopSignal)?;
-                debug!("Broadcasted stop signal to listener");
-                if let Some(receiver) = receiver {
-                    receiver
-                        .recv()
-                        .map_err(|_| EnvironmentError::ShutDownReceiverError)?;
-                    debug!("Blocked on shutdown receiver signal");
-                }
-            }
-            return Ok(());
-        } else {
-            if logs.is_none() {
-                unreachable!();
-            }
-            for (sender, _) in &self.0 {
-                sender.send(Broadcast::Event(logs.clone().unwrap()))?;
-                trace!("Broadcasting event to all listeners")
-            }
-        }
-        Ok(())
-    }
 }
 
 /// Convert a U256 to a U64, discarding the higher bits if the number is larger

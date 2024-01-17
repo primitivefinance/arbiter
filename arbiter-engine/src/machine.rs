@@ -3,8 +3,8 @@
 
 use std::fmt::Debug;
 
-use async_broadcast::Receiver;
 use serde::de::DeserializeOwned;
+use tokio::sync::broadcast::Receiver;
 
 use super::*;
 
@@ -84,7 +84,7 @@ where
     /// The receiver of events that the [`Engine`] will process.
     /// The [`State::Processing`] stage will attempt a decode of the [`String`]s
     /// into the event type `<E>`.
-    event_receiver: Receiver<String>,
+    event_receiver: Option<Receiver<String>>,
 
     phantom: std::marker::PhantomData<E>,
 }
@@ -99,7 +99,7 @@ where
         Self {
             behavior: Some(behavior),
             state: State::Uninitialized,
-            event_receiver,
+            event_receiver: Some(event_receiver),
             phantom: std::marker::PhantomData,
         }
     }
@@ -139,7 +139,7 @@ where
             State::Processing => {
                 trace!("Behavior is processing.");
                 let mut behavior = self.behavior.take().unwrap();
-                let mut receiver = self.event_receiver.clone(); // TODO Could use Option::take() if we don't want to clone.
+                let mut receiver = self.event_receiver.take().unwrap();
                 let behavior_task = tokio::spawn(async move {
                     while let Ok(event) = receiver.recv().await {
                         println!("Event received: {:?}", event);
