@@ -23,7 +23,7 @@ use std::{fmt::Debug, pin::Pin, sync::Arc};
 use arbiter_core::{data_collection::EventLogger, middleware::RevmMiddleware};
 use ethers::contract::{EthLogDecode, Event};
 use futures::stream::{Stream, StreamExt};
-use futures_util::future::{join_all, JoinAll};
+use futures_util::future::join_all;
 use serde::de::DeserializeOwned;
 use tokio::task::JoinHandle;
 
@@ -188,7 +188,13 @@ impl StateMachine for Agent {
                 let mut event_stream: Pin<Box<dyn Stream<Item = String> + Send + '_>> =
                     if let Some(event_stream) = eth_event_stream {
                         trace!("Merging event streams.");
-                        Box::pin(futures::stream::select(event_stream, message_stream))
+                        // Convert the individual streams into a Vec
+                        let all_streams = vec![
+                            Box::pin(message_stream) as Pin<Box<dyn Stream<Item = String> + Send>>,
+                            Box::pin(event_stream),
+                        ];
+                        // Use select_all to combine them
+                        Box::pin(futures::stream::select_all(all_streams))
                     } else {
                         trace!("Agent only sees message stream.");
                         Box::pin(message_stream)
@@ -217,7 +223,7 @@ mod tests {
     use ethers::types::U256;
 
     use super::*;
-    use crate::messager::Message; // Add this import statement
+    use crate::messager::Message;
 
     #[tokio::test(flavor = "multi_thread", worker_threads = 4)]
     async fn streaming() {
@@ -248,37 +254,18 @@ mod tests {
             .map(|msg| serde_json::to_string(&msg).unwrap_or_else(|e| e.to_string()));
         let eth_event_stream = agent.event_streamer.take().unwrap().stream();
 
-        // ...
-
         let mut event_stream: Pin<Box<dyn Stream<Item = String> + Send + '_>> =
             if let Some(event_stream) = eth_event_stream {
                 trace!("Merging event streams.");
-                Box::pin(futures::stream::select_all(vec![
-                    message_stream,
-                    event_stream,
-                ]))
+                let all_streams = vec![
+                    Box::pin(message_stream) as Pin<Box<dyn Stream<Item = String> + Send>>,
+                    Box::pin(event_stream),
+                ];
+                Box::pin(futures::stream::select_all(all_streams))
             } else {
                 trace!("Agent only sees message stream.");
                 Box::pin(message_stream)
             };
-        // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-        // for _ in 0..5 {
-        //     messager
-        //         .send(Message {
-        //             from: "god".to_string(),
-        //             to: messager::To::All,
-        //             data: "hello".to_string(),
-        //         })
-        //         .await;
-        //     std::thread::sleep(std::time::Duration::from_secs(1));
-        //     arb.approve(address, U256::from(1))
-        //         .send()
-        //         .await
-        //         .unwrap()
-        //         .await
-        //         .unwrap();
-        // }
 
         let message_task = tokio::spawn(async move {
             for _ in 0..5 {
@@ -304,7 +291,6 @@ mod tests {
             }
         });
 
-        // let mut idx = 0;
         let mut event_idx = 0;
         let mut message_idx = 0;
         let print_task = tokio::spawn(async move {
@@ -317,28 +303,6 @@ mod tests {
                     message_idx += 1;
                     println!("Message idx: {}", message_idx);
                 }
-                // if idx % 2 == 1 {
-                //     assert_eq!(
-                //         msg,
-                //         serde_json::to_string(&Message {
-                //             from: "god".to_string(),
-                //             to: messager::To::All,
-                //             data: "hello".to_string(),
-                //         })
-                //         .unwrap()
-                //     );
-                // } else {
-                //     assert_eq!(
-                //         msg,
-                //         "{\"ApprovalFilter\":{\"owner\":\"
-                // 0xe7a46f3d9f0e9b9c02f58f95e3bcee2db54050b0\",\"spender\":\"
-                // 0xe7a46f3d9f0e9b9c02f58f95e3bcee2db54050b0\",\"amount\":\"
-                // 0x1\" }}".to_string(),     );
-                // }
-                // idx += 1;
-                // if idx == 10 {
-                //     break;
-                // }
             }
         });
         join_all(vec![message_task, eth_event_task, print_task]).await;
