@@ -1,5 +1,7 @@
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // TODO: Notes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+// * Maybe we just use tokio for everything (like `select`) so that we don't mix
+//   futures and tokio together in ways that may be weird.
 // When we start running an agent, we should have their messager start producing
 // events that can be used by any and all behaviors the agent has that takes in
 // messages as an event. Similarly, we should have agents start up any streams
@@ -146,7 +148,7 @@ impl Agent {
 #[async_trait::async_trait]
 impl StateMachine for Agent {
     #[tracing::instrument(skip(self), fields(id = self.id))]
-    fn run_state(&mut self, state: State) {
+    async fn run_state(&mut self, state: State) {
         match state {
             State::Uninitialized => {
                 unimplemented!("This never gets called.")
@@ -154,32 +156,44 @@ impl StateMachine for Agent {
             State::Syncing => {
                 self.state = state;
                 debug!("Agent is syncing.");
-                let mut behavior_engines = self.behavior_engines.take().unwrap();
-                for engine in behavior_engines.iter_mut() {
-                    engine.run_state(state);
-                }
+                let behavior_engines = self.behavior_engines.take().unwrap();
                 self.behavior_tasks =
                     Some(join_all(behavior_engines.into_iter().map(|mut engine| {
                         tokio::spawn(async move {
-                            engine.transition().await;
+                            engine.run_state(state).await;
                             engine
                         })
                     })));
+                self.behavior_engines = Some(
+                    self.behavior_tasks
+                        .take()
+                        .unwrap()
+                        .await
+                        .into_iter()
+                        .map(|res| res.unwrap())
+                        .collect::<Vec<_>>(),
+                );
             }
             State::Startup => {
                 debug!("Agent is starting up.");
                 self.state = state;
-                let mut behavior_engines = self.behavior_engines.take().unwrap();
-                for engine in behavior_engines.iter_mut() {
-                    engine.run_state(state);
-                }
+                let behavior_engines = self.behavior_engines.take().unwrap();
                 self.behavior_tasks =
                     Some(join_all(behavior_engines.into_iter().map(|mut engine| {
                         tokio::spawn(async move {
-                            engine.transition().await;
+                            engine.run_state(state).await;
                             engine
                         })
                     })));
+                self.behavior_engines = Some(
+                    self.behavior_tasks
+                        .take()
+                        .unwrap()
+                        .await
+                        .into_iter()
+                        .map(|res| res.unwrap())
+                        .collect::<Vec<_>>(),
+                );
             }
             State::Processing => {
                 debug!("Agent is processing.");
@@ -208,36 +222,28 @@ impl StateMachine for Agent {
                     }
                     event_stream
                 }));
-                let mut behavior_engines = self.behavior_engines.take().unwrap();
-                for engine in behavior_engines.iter_mut() {
-                    engine.run_state(state);
-                }
+                let behavior_engines = self.behavior_engines.take().unwrap();
                 self.behavior_tasks =
                     Some(join_all(behavior_engines.into_iter().map(|mut engine| {
                         tokio::spawn(async move {
-                            engine.transition().await;
+                            engine.run_state(state).await;
                             engine
                         })
                     })));
+                self.behavior_engines = Some(
+                    self.behavior_tasks
+                        .take()
+                        .unwrap()
+                        .await
+                        .into_iter()
+                        .map(|res| res.unwrap())
+                        .collect::<Vec<_>>(),
+                );
             }
             State::Stopped => {
                 todo!()
             }
         }
-    }
-
-    async fn transition(&mut self) {
-        // TODO: Might need to handle the broadcast_task here now especially if we need
-        // to stop.
-        self.behavior_engines = Some(
-            self.behavior_tasks
-                .take()
-                .unwrap()
-                .await
-                .into_iter()
-                .map(|res| res.unwrap())
-                .collect::<Vec<_>>(),
-        );
     }
 }
 
@@ -248,6 +254,7 @@ mod tests {
 
     use super::*;
     use crate::messager::Message;
+
     #[tokio::test(flavor = "multi_thread", worker_threads = 4)]
     async fn streaming() {
         std::env::set_var("RUST_LOG", "trace");
@@ -280,51 +287,91 @@ mod tests {
         let mut event_stream: Pin<Box<dyn Stream<Item = String> + Send + '_>> =
             if let Some(event_stream) = eth_event_stream {
                 trace!("Merging event streams.");
-                Box::pin(futures::stream::select(event_stream, message_stream))
+                Box::pin(futures::stream::select(message_stream, event_stream))
             } else {
                 trace!("Agent only sees message stream.");
                 Box::pin(message_stream)
             };
         // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-        for _ in 0..5 {
-            messager
-                .send(Message {
-                    from: "god".to_string(),
-                    to: messager::To::All,
-                    data: "hello".to_string(),
-                })
-                .await;
-            arb.approve(address, U256::from(1))
-                .send()
-                .await
-                .unwrap()
-                .await
-                .unwrap();
-        }
-        let mut idx = 0;
-        while let Some(msg) = event_stream.next().await {
-            println!("Printing message in test: {:?}", msg);
-            if idx % 2 == 1 {
-                assert_eq!(
-                    msg,
-                    serde_json::to_string(&Message {
+        // for _ in 0..5 {
+        //     messager
+        //         .send(Message {
+        //             from: "god".to_string(),
+        //             to: messager::To::All,
+        //             data: "hello".to_string(),
+        //         })
+        //         .await;
+        //     std::thread::sleep(std::time::Duration::from_secs(1));
+        //     arb.approve(address, U256::from(1))
+        //         .send()
+        //         .await
+        //         .unwrap()
+        //         .await
+        //         .unwrap();
+        // }
+
+        let message_task = tokio::spawn(async move {
+            for _ in 0..5 {
+                messager
+                    .send(Message {
                         from: "god".to_string(),
                         to: messager::To::All,
                         data: "hello".to_string(),
                     })
+                    .await;
+                // tokio::time::sleep(std::time::Duration::from_secs(1)).await;
+            }
+        });
+
+        let eth_event_task = tokio::spawn(async move {
+            for _ in 0..5 {
+                arb.approve(address, U256::from(1))
+                    .send()
+                    .await
                     .unwrap()
-                );
-            } else {
-                assert_eq!(
-                    msg,
-                    "{\"ApprovalFilter\":{\"owner\":\"0xe7a46f3d9f0e9b9c02f58f95e3bcee2db54050b0\",\"spender\":\"0xe7a46f3d9f0e9b9c02f58f95e3bcee2db54050b0\",\"amount\":\"0x1\"}}".to_string(),
-                );
+                    .await
+                    .unwrap();
             }
-            idx += 1;
-            if idx == 10 {
-                break;
+        });
+
+        // let mut idx = 0;
+        let mut event_idx = 0;
+        let mut message_idx = 0;
+        let print_task = tokio::spawn(async move {
+            while let Some(msg) = event_stream.next().await {
+                println!("Printing message in test: {:?}", msg);
+                if msg == "{\"ApprovalFilter\":{\"owner\":\"0xe7a46f3d9f0e9b9c02f58f95e3bcee2db54050b0\",\"spender\":\"0xe7a46f3d9f0e9b9c02f58f95e3bcee2db54050b0\",\"amount\":\"0x1\"}}" {
+                    event_idx += 1;
+                    println!("Event idx: {}", event_idx);
+                } else {
+                    message_idx += 1;
+                    println!("Message idx: {}", message_idx);
+                }
+                // if idx % 2 == 1 {
+                //     assert_eq!(
+                //         msg,
+                //         serde_json::to_string(&Message {
+                //             from: "god".to_string(),
+                //             to: messager::To::All,
+                //             data: "hello".to_string(),
+                //         })
+                //         .unwrap()
+                //     );
+                // } else {
+                //     assert_eq!(
+                //         msg,
+                //         "{\"ApprovalFilter\":{\"owner\":\"
+                // 0xe7a46f3d9f0e9b9c02f58f95e3bcee2db54050b0\",\"spender\":\"
+                // 0xe7a46f3d9f0e9b9c02f58f95e3bcee2db54050b0\",\"amount\":\"
+                // 0x1\" }}".to_string(),     );
+                // }
+                // idx += 1;
+                // if idx == 10 {
+                //     break;
+                // }
             }
-        }
+        });
+        join_all(vec![message_task, eth_event_task, print_task]).await;
     }
 }

@@ -62,8 +62,7 @@ pub trait Behavior<E>: Send + Sync + 'static {
 
 #[async_trait::async_trait]
 pub(crate) trait StateMachine: Send + Sync + 'static {
-    fn run_state(&mut self, state: State);
-    async fn transition(&mut self);
+    async fn run_state(&mut self, state: State);
 }
 
 /// The idea of the [`Engine`] is that it drives the [`Behavior`] of a
@@ -80,10 +79,6 @@ where
 {
     /// The behavior the [`Engine`] runs.
     pub behavior: Option<B>,
-
-    /// When the state of the [`Engine`] is modified, the tasks will be run (and
-    /// therefore `move`d) concurrently and stored here.
-    behavior_task: Option<JoinHandle<B>>,
 
     /// The receiver of events that the [`Engine`] will process.
     /// The [`State::Processing`] stage will attempt a decode of the [`String`]s
@@ -102,7 +97,6 @@ where
     pub(crate) fn new(behavior: B, event_receiver: Receiver<String>) -> Self {
         Self {
             behavior: Some(behavior),
-            behavior_task: None,
             event_receiver,
             phantom: std::marker::PhantomData,
         }
@@ -115,7 +109,7 @@ where
     B: Behavior<E>,
     E: DeserializeOwned + Send + Sync + Debug + 'static,
 {
-    fn run_state(&mut self, state: State) {
+    async fn run_state(&mut self, state: State) {
         match state {
             State::Uninitialized => {
                 unimplemented!("This never gets called.")
@@ -123,24 +117,26 @@ where
             State::Syncing => {
                 trace!("Behavior is syncing.");
                 let mut behavior = self.behavior.take().unwrap();
-                self.behavior_task = Some(tokio::spawn(async move {
+                let behavior_task = tokio::spawn(async move {
                     behavior.sync().await;
                     behavior
-                }));
+                });
+                self.behavior = Some(behavior_task.await.unwrap());
             }
             State::Startup => {
                 trace!("Behavior is starting up.");
                 let mut behavior = self.behavior.take().unwrap();
-                self.behavior_task = Some(tokio::spawn(async move {
+                let behavior_task = tokio::spawn(async move {
                     behavior.startup().await;
                     behavior
-                }));
+                });
+                self.behavior = Some(behavior_task.await.unwrap());
             }
             State::Processing => {
                 trace!("Behavior is processing.");
                 let mut behavior = self.behavior.take().unwrap();
                 let mut receiver = self.event_receiver.clone(); // TODO Could use Option::take() if we don't want to clone.
-                self.behavior_task = Some(tokio::spawn(async move {
+                let behavior_task = tokio::spawn(async move {
                     while let Ok(event) = receiver.recv().await {
                         println!("Event received: {:?}", event);
                         let decoding_result = serde_json::from_str::<E>(&event);
@@ -155,19 +151,12 @@ where
                         }
                     }
                     behavior
-                }));
+                });
+                self.behavior = Some(behavior_task.await.unwrap());
             }
             State::Stopped => {
                 todo!()
             }
         }
-    }
-
-    /// Take the task and wait for it to finish. Then take the [`Behavior`] and
-    /// put it back into the engine.
-    async fn transition(&mut self) {
-        let behavior_task = self.behavior_task.take().unwrap();
-        let behavior = behavior_task.await.unwrap();
-        self.behavior = Some(behavior);
     }
 }

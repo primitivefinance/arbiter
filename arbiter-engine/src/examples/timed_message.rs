@@ -51,7 +51,7 @@ impl Behavior<Message> for TimedMessage {
 }
 
 #[ignore = "This is a work in progress and does not work and does not ever terminate."]
-#[tokio::test(flavor = "multi_thread", worker_threads = 2)]
+#[tokio::test(flavor = "multi_thread", worker_threads = 4)]
 async fn echoer() {
     std::env::set_var("RUST_LOG", "trace");
     tracing_subscriber::fmt::init();

@@ -57,6 +57,8 @@ pub struct World {
     /// The identifier of the world.
     pub id: String,
 
+    pub state: State,
+
     /// The agents in the world.
     pub agents: Option<HashMap<String, Agent>>,
 
@@ -76,6 +78,7 @@ impl World {
     pub fn new(id: &str) -> Self {
         Self {
             id: id.to_owned(),
+            state: State::Uninitialized,
             agents: Some(HashMap::new()),
             agent_tasks: None,
             environment: EnvironmentBuilder::new().build(),
@@ -91,92 +94,114 @@ impl World {
     }
 
     pub async fn run(&mut self) {
-        self.run_state(State::Syncing);
-        self.transition().await;
+        self.run_state(State::Syncing).await;
 
-        self.run_state(State::Startup);
-        self.transition().await;
+        self.run_state(State::Startup).await;
 
-        self.run_state(State::Processing);
-        self.transition().await;
+        self.run_state(State::Processing).await;
     }
 }
 
 #[async_trait::async_trait]
 impl StateMachine for World {
-    fn run_state(&mut self, state: State) {
+    async fn run_state(&mut self, state: State) {
         match state {
             State::Uninitialized => {
                 unimplemented!("This never gets called.")
             }
             State::Syncing => {
                 info!("World is syncing.");
-                let mut agents = self.agents.take().unwrap();
-                for agent in agents.values_mut() {
-                    agent.run_state(state);
-                }
+                self.state = state;
+                let agents = self.agents.take().unwrap();
                 self.agent_tasks = Some(join_all(agents.into_values().map(|mut agent| {
                     tokio::spawn(async move {
-                        agent.transition().await;
+                        agent.run_state(state).await;
                         agent
                     })
                 })));
+                self.agents = Some(
+                    self.agent_tasks
+                        .take()
+                        .unwrap()
+                        .await
+                        .into_iter()
+                        .map(|res| {
+                            let agent = res.unwrap();
+                            (agent.id.clone(), agent)
+                        })
+                        .collect::<HashMap<String, Agent>>(),
+                );
             }
             State::Startup => {
                 info!("World is starting up.");
-                let mut agents = self.agents.take().unwrap();
-                for agent in agents.values_mut() {
-                    agent.run_state(state);
-                }
+                self.state = state;
+                let agents = self.agents.take().unwrap();
                 self.agent_tasks = Some(join_all(agents.into_values().map(|mut agent| {
                     tokio::spawn(async move {
-                        agent.transition().await;
+                        agent.run_state(state).await;
                         agent
                     })
                 })));
+                self.agents = Some(
+                    self.agent_tasks
+                        .take()
+                        .unwrap()
+                        .await
+                        .into_iter()
+                        .map(|res| {
+                            let agent = res.unwrap();
+                            (agent.id.clone(), agent)
+                        })
+                        .collect::<HashMap<String, Agent>>(),
+                );
             }
             State::Processing => {
                 info!("World is processing.");
-                let mut agents = self.agents.take().unwrap();
-                for agent in agents.values_mut() {
-                    agent.run_state(state);
-                }
+                self.state = state;
+                let agents = self.agents.take().unwrap();
                 self.agent_tasks = Some(join_all(agents.into_values().map(|mut agent| {
                     tokio::spawn(async move {
-                        agent.transition().await;
+                        agent.run_state(state).await;
                         agent
                     })
                 })));
+                self.agents = Some(
+                    self.agent_tasks
+                        .take()
+                        .unwrap()
+                        .await
+                        .into_iter()
+                        .map(|res| {
+                            let agent = res.unwrap();
+                            (agent.id.clone(), agent)
+                        })
+                        .collect::<HashMap<String, Agent>>(),
+                );
             }
             State::Stopped => {
                 info!("World is starting up.");
-                let mut agents = self.agents.take().unwrap();
-                for agent in agents.values_mut() {
-                    agent.run_state(state);
-                }
+                self.state = state;
+                let agents = self.agents.take().unwrap();
                 self.agent_tasks = Some(join_all(agents.into_values().map(|mut agent| {
                     tokio::spawn(async move {
-                        agent.transition().await;
+                        agent.run_state(state).await;
                         agent
                     })
                 })));
+                self.agents = Some(
+                    self.agent_tasks
+                        .take()
+                        .unwrap()
+                        .await
+                        .into_iter()
+                        .map(|res| {
+                            let agent = res.unwrap();
+                            (agent.id.clone(), agent)
+                        })
+                        .collect::<HashMap<String, Agent>>(),
+                );
             }
         }
-    }
-
-    async fn transition(&mut self) {
-        self.agents = Some(
-            self.agent_tasks
-                .take()
-                .unwrap()
-                .await
-                .into_iter()
-                .map(|res| {
-                    let agent = res.unwrap();
-                    (agent.id.clone(), agent)
-                })
-                .collect::<HashMap<String, Agent>>(),
-        );
     }
 }
 
