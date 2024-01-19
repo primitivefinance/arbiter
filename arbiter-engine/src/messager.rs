@@ -88,6 +88,8 @@ impl Messager {
         stream
     }
 
+    /// Returns a [`Messager`] interface connected to the same instance but with
+    /// the `id` provided.
     pub fn join_with_id(&self, id: Option<String>) -> Messager {
         Messager {
             broadcast_sender: self.broadcast_sender.clone(),

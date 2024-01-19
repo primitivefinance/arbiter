@@ -4,14 +4,11 @@ use std::{
     fmt::Debug,
     pin::Pin,
     sync::{Arc, Weak},
-    task::Poll,
 };
 
-use futures_util::{stream, Stream};
+use futures_util::Stream;
 use serde_json::value::RawValue;
-use tokio::sync::broadcast::{
-    error::TryRecvError, Receiver as BroadcastReceiver, Sender as BroadcastSender,
-};
+use tokio::sync::broadcast::{Receiver as BroadcastReceiver, Sender as BroadcastSender};
 
 use super::{cast::revm_logs_to_ethers_logs, *};
 use crate::environment::{InstructionSender, OutcomeReceiver, OutcomeSender};

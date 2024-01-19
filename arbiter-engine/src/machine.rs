@@ -79,6 +79,7 @@ where
     /// The behavior the [`Engine`] runs.
     pub behavior: Option<B>,
 
+    /// The current state of the [`Engine`].
     pub state: State,
 
     /// The receiver of events that the [`Engine`] will process.

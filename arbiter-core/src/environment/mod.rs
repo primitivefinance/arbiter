@@ -45,12 +45,8 @@ use revm::{
 };
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
-use tokio::sync::{
-    broadcast::{channel, Sender as BroadcastSender},
-    oneshot,
-};
+use tokio::sync::broadcast::{channel, Sender as BroadcastSender};
 
-use self::data_collection::EventLogger;
 use super::*;
 #[cfg_attr(doc, doc(hidden))]
 #[cfg_attr(doc, allow(unused_imports))]
@@ -88,10 +84,6 @@ pub(crate) type OutcomeSender = Sender<Result<Outcome, EnvironmentError>>;
 /// Alias for the receiver of the channel for transmitting [`RevmResult`]
 /// emitted from transactions.
 pub(crate) type OutcomeReceiver = Receiver<Result<Outcome, EnvironmentError>>;
-
-/// Alias for the receiver used in the [`EventBroadcaster`] that accepts
-/// shutdown signals from child processes.
-pub(crate) type ShutDownReceiver = Receiver<()>;
 
 /// Represents a sandboxed EVM environment.
 ///
@@ -550,7 +542,9 @@ impl Environment {
                         match event_broadcaster.send(Broadcast::Event(execution_result.logs())) {
                             Ok(_) => {}
                             Err(_) => {
-                                warn!("Stop signal was not sent to any listeners. Are there any listeners?")
+                                warn!(
+                                    "Event was not sent to any listeners. Are there any listeners?"
+                                )
                             }
                         }
                         outcome_sender

@@ -57,6 +57,7 @@ pub struct World {
     /// The identifier of the world.
     pub id: String,
 
+    /// The state of the [`World`].
     pub state: State,
 
     /// The agents in the world.
@@ -93,6 +94,7 @@ impl World {
         agents.insert(id.to_owned(), agent);
     }
 
+    /// Runs the world through up to the [`State::Processing`] stage.
     pub async fn run(&mut self) {
         self.run_state(State::Syncing).await;
 

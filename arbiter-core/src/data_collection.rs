@@ -38,10 +38,7 @@ use polars::{
 };
 use serde::Serialize;
 use serde_json::Value;
-use tokio::{
-    sync::broadcast::{Receiver as BroadcastReceiver, Sender as BroadcastSender},
-    task::JoinHandle,
-};
+use tokio::{sync::broadcast::Receiver as BroadcastReceiver, task::JoinHandle};
 
 use super::*;
 use crate::{
