@@ -79,7 +79,7 @@ pub trait Behavior<E>: Send + Sync + 'static {
     /// Used to process events.
     /// This is where the agent can engage in its specific processing
     /// of events that can lead to actions being taken.
-    async fn process(&mut self, event: E);
+    async fn process(&mut self, event: E) -> Option<MachineHalt>;
 }
 
 #[async_trait::async_trait]
@@ -166,7 +166,12 @@ where
                         println!("Event received: {:?}", event);
                         let decoding_result = serde_json::from_str::<E>(&event);
                         match decoding_result {
-                            Ok(event) => behavior.process(event).await,
+                            Ok(event) => {
+                                let halt_option = behavior.process(event).await;
+                                if halt_option.is_some() {
+                                    break;
+                                }
+                            }
                             Err(_) => match serde_json::from_str::<MachineHalt>(&event) {
                                 Ok(_) => {
                                     warn!("Behavior received `MachineHalt` message. Breaking!");

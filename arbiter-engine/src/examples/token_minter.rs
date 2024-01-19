@@ -8,6 +8,7 @@ use ethers::{
 };
 use tracing::error;
 
+use self::machine::MachineHalt;
 use super::*;
 use crate::{
     agent::Agent,
@@ -111,7 +112,7 @@ self.messager.id.as_deref()))]
 
     #[tracing::instrument(skip(self), fields(id =
 self.messager.id.as_deref()))]
-    async fn process(&mut self, event: Message) {
+    async fn process(&mut self, event: Message) -> Option<MachineHalt> {
         if self.tokens.is_none() {
             error!(
                 "There were no tokens to deploy! You must add tokens to
@@ -152,6 +153,7 @@ the token admin before running the simulation."
                     .unwrap();
             }
         }
+        None
     }
 }
 
@@ -205,7 +207,7 @@ self.messager.id.as_deref()))]
 
     #[tracing::instrument(skip(self), fields(id =
 self.messager.id.as_deref()))]
-    async fn process(&mut self, event: Message) {
+    async fn process(&mut self, event: Message) -> Option<MachineHalt> {
         if let Ok(token_data) = serde_json::from_str::<TokenData>(&event.data) {
             trace!(
                 "Got
@@ -229,6 +231,7 @@ token: {:?}",
             };
             self.messager.send(message).await;
         }
+        None
     }
 }
 
@@ -236,7 +239,7 @@ token: {:?}",
 impl Behavior<arbiter_token::TransferFilter> for TokenRequester {
     #[tracing::instrument(skip(self), fields(id =
 self.messager.id.as_deref()))]
-    async fn process(&mut self, event: arbiter_token::TransferFilter) {
+    async fn process(&mut self, event: arbiter_token::TransferFilter) -> Option<MachineHalt> {
         trace!(
             "Got event for
 `TokenRequester` logger: {:?}",
@@ -254,6 +257,7 @@ self.messager.id.as_deref()))]
             .unwrap(),
         };
         self.messager.send(message).await;
+        None
     }
 }
 

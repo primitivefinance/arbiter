@@ -2,6 +2,7 @@
 
 const AGENT_ID: &str = "agent";
 
+use self::machine::MachineHalt;
 use super::*;
 use crate::{
     agent::Agent,
@@ -21,12 +22,9 @@ struct TimedMessage {
 
 #[async_trait::async_trait]
 impl Behavior<Message> for TimedMessage {
-    async fn process(&mut self, event: Message) {
+    async fn process(&mut self, event: Message) -> Option<MachineHalt> {
         trace!("Processing event.");
-        if self.count == self.max_count.unwrap_or(u64::MAX) {}
-        if event.data != self.receive_data {
-            return;
-        } else {
+        if event.data == self.receive_data {
             trace!("Event matches message. Sending a new message.");
             let message = Message {
                 from: self.messager.id.clone().unwrap(),
@@ -34,10 +32,15 @@ impl Behavior<Message> for TimedMessage {
                 data: self.send_data.clone(),
             };
             self.messager.send(message).await;
+            self.count += 1;
+        }
+        if self.count == self.max_count.unwrap_or(u64::MAX) {
+            return Some(MachineHalt);
         }
 
         tokio::time::sleep(std::time::Duration::from_secs(self.delay)).await;
         trace!("Processed event.");
+        None
     }
 
     async fn sync(&mut self) {
