@@ -69,7 +69,7 @@ impl Messager {
     /// the agent via [`To::Agent(id)`].
     pub fn stream(mut self) -> impl Stream<Item = Message> + Send {
         let mut receiver = self.broadcast_receiver.take().unwrap();
-        let stream = async_stream::stream! {
+        async_stream::stream! {
             while let Ok(message) = receiver.recv().await {
                 match &message.to {
                     To::All => {
@@ -84,8 +84,7 @@ impl Messager {
                     }
                 }
             }
-        };
-        stream
+        }
     }
 
     /// Returns a [`Messager`] interface connected to the same instance but with

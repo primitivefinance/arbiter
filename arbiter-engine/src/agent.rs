@@ -26,10 +26,11 @@ use futures::stream::{Stream, StreamExt};
 use futures_util::future::join_all;
 use serde::de::DeserializeOwned;
 use tokio::{
-    sync::broadcast::{channel, Receiver, Sender},
+    sync::broadcast::{channel, Receiver as BroadcastReceiver, Sender as BroadcastSender},
     task::JoinHandle,
 };
 
+use self::machine::MachineInstruction;
 use super::*;
 use crate::{
     machine::{Behavior, Engine, State, StateMachine},
@@ -92,7 +93,7 @@ pub struct Agent {
 
     /// The pipeline for yielding events from the centralized event streamer
     /// (for both messages and Ethereum events) to agents.
-    distributor: (Sender<String>, Receiver<String>),
+    pub(crate) distributor: (BroadcastSender<String>, BroadcastReceiver<String>),
 
     broadcast_task: Option<JoinHandle<Pin<Box<dyn Stream<Item = String> + Send>>>>,
 }
@@ -140,12 +141,11 @@ impl Agent {
         self
     }
 
-    pub(crate) async fn run(&mut self, state: State) {
-        self.state = state;
+    pub(crate) async fn run(&mut self, instruction: MachineInstruction) {
         let behavior_engines = self.behavior_engines.take().unwrap();
         let behavior_tasks = join_all(behavior_engines.into_iter().map(|mut engine| {
             tokio::spawn(async move {
-                engine.run_state(state).await;
+                engine.execute(instruction).await;
                 engine
             })
         }));
@@ -162,22 +162,20 @@ impl Agent {
 #[async_trait::async_trait]
 impl StateMachine for Agent {
     #[tracing::instrument(skip(self), fields(id = self.id))]
-    async fn run_state(&mut self, state: State) {
-        match state {
-            State::Uninitialized => {
-                unimplemented!("This never gets called.")
-            }
-            State::Syncing => {
+    async fn execute(&mut self, instruction: MachineInstruction) {
+        match instruction {
+            MachineInstruction::Sync => {
                 debug!("Agent is syncing.");
-                self.run(state).await;
+                self.state = State::Syncing;
+                self.run(instruction).await;
             }
-            State::Startup => {
+            MachineInstruction::Start => {
                 debug!("Agent is starting up.");
-                self.run(state).await;
+                self.run(instruction).await;
             }
-            State::Processing => {
+            MachineInstruction::Process => {
                 debug!("Agent is processing.");
-                self.state = state;
+                self.state = State::Processing;
                 let messager = self.messager.take().unwrap();
                 let message_stream = messager
                     .stream()
@@ -204,14 +202,16 @@ impl StateMachine for Agent {
                 self.broadcast_task = Some(tokio::spawn(async move {
                     while let Some(event) = event_stream.next().await {
                         println!("Broadcasting event through agent comms: {:?}", event);
-                        sender.send(event).unwrap();
+                        sender.send(event).unwrap(); // TODO: If this errors
+                                                     // out, we can exit the
+                                                     // task
                     }
                     event_stream
                 }));
-                self.run(state).await;
+                self.run(instruction).await;
             }
-            State::Stopped => {
-                todo!()
+            MachineInstruction::Stop => {
+                unreachable!("This is never explicitly called on an agent.")
             }
         }
     }
@@ -230,7 +230,7 @@ mod tests {
         std::env::set_var("RUST_LOG", "trace");
         tracing_subscriber::fmt::init();
 
-        let mut world = World::new("world");
+        let world = World::new("world");
         let agent = Agent::new("agent", &world);
 
         let arb = ArbiterToken::deploy(
@@ -245,8 +245,8 @@ mod tests {
         let mut agent = agent.with_event(arb.events());
         let address = agent.client.address();
 
-        // THIS COUYLD BE A SINGLE FUNCTION AS IT IS IN THE AGENT::PROCESS, but it is
-        // annoyikng to do so.
+        // TODO: (START BLOCK) It would be nice to get this block to be a single
+        // function that isn't copy and pasted from above.
         let messager = agent.messager.take().unwrap();
         let message_stream = messager
             .stream()
@@ -265,6 +265,7 @@ mod tests {
                 trace!("Agent only sees message stream.");
                 Box::pin(message_stream)
             };
+        // TODO: (END BLOCK)
 
         let outside_messager = world.messager.join_with_id(None);
         let message_task = tokio::spawn(async move {
@@ -276,12 +277,14 @@ mod tests {
                         data: "hello".to_string(),
                     })
                     .await;
-                // tokio::time::sleep(std::time::Duration::from_secs(1)).await;
             }
         });
 
         let eth_event_task = tokio::spawn(async move {
-            for _ in 0..5 {
+            for i in 0..5 {
+                if i == 0 {
+                    tokio::time::sleep(std::time::Duration::from_secs(1)).await;
+                }
                 arb.approve(address, U256::from(1))
                     .send()
                     .await
@@ -291,17 +294,18 @@ mod tests {
             }
         });
 
-        let mut event_idx = 0;
-        let mut message_idx = 0;
+        let mut idx = 0;
         let print_task = tokio::spawn(async move {
             while let Some(msg) = event_stream.next().await {
                 println!("Printing message in test: {:?}", msg);
-                if msg == "{\"ApprovalFilter\":{\"owner\":\"0xe7a46f3d9f0e9b9c02f58f95e3bcee2db54050b0\",\"spender\":\"0xe7a46f3d9f0e9b9c02f58f95e3bcee2db54050b0\",\"amount\":\"0x1\"}}" {
-                    event_idx += 1;
-                    println!("Event idx: {}", event_idx);
+                if idx < 5 {
+                    assert_eq!(msg, "{\"from\":\"god\",\"to\":\"All\",\"data\":\"hello\"}");
                 } else {
-                    message_idx += 1;
-                    println!("Message idx: {}", message_idx);
+                    assert_eq!(msg, "{\"ApprovalFilter\":{\"owner\":\"0xe7a46f3d9f0e9b9c02f58f95e3bcee2db54050b0\",\"spender\":\"0xe7a46f3d9f0e9b9c02f58f95e3bcee2db54050b0\",\"amount\":\"0x1\"}}");
+                }
+                idx += 1;
+                if idx == 10 {
+                    break;
                 }
             }
         });

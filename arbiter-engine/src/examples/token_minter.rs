@@ -9,7 +9,12 @@ use ethers::{
 use tracing::error;
 
 use super::*;
-use crate::{agent::Agent, machine::Behavior, messager::To, world::World};
+use crate::{
+    agent::Agent,
+    machine::{Behavior, MachineInstruction, StateMachine},
+    messager::To,
+    world::World,
+};
 
 const TOKEN_ADMIN_ID: &str = "token_admin";
 const REQUESTER_ID: &str = "requester";
@@ -310,4 +315,7 @@ async fn token_minter_simulation() {
     );
 
     world.run().await;
+
+    std::thread::sleep(std::time::Duration::from_secs(1));
+    world.stop().await;
 }

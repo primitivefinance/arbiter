@@ -17,9 +17,10 @@
 
 use arbiter_core::environment::{builder::EnvironmentBuilder, Environment};
 use futures_util::future::{join_all, JoinAll};
-use tokio::task::JoinHandle;
+use tokio::{sync::broadcast::Sender as BroadcastSender, task::JoinHandle};
 use tracing::info;
 
+use self::machine::{MachineHalt, MachineInstruction};
 use super::*;
 use crate::{
     agent::Agent,
@@ -63,15 +64,15 @@ pub struct World {
     /// The agents in the world.
     pub agents: Option<HashMap<String, Agent>>,
 
+    agent_processors: Option<JoinAll<JoinHandle<Agent>>>,
+
+    agent_distributors: Option<Vec<BroadcastSender<String>>>,
+
     /// The environment for the world.
     pub environment: Environment,
 
     /// The messaging layer for the world.
     pub messager: Messager,
-
-    /// Holds onto the tasks that represent the agent running a specific state
-    /// transition.
-    agent_tasks: Option<JoinAll<JoinHandle<Agent>>>,
 }
 
 impl World {
@@ -81,7 +82,8 @@ impl World {
             id: id.to_owned(),
             state: State::Uninitialized,
             agents: Some(HashMap::new()),
-            agent_tasks: None,
+            agent_processors: None,
+            agent_distributors: None,
             environment: EnvironmentBuilder::new().build(),
             messager: Messager::new(),
         }
@@ -96,35 +98,48 @@ impl World {
 
     /// Runs the world through up to the [`State::Processing`] stage.
     pub async fn run(&mut self) {
-        self.run_state(State::Syncing).await;
+        self.execute(MachineInstruction::Sync).await;
+        self.execute(MachineInstruction::Start).await;
+        self.execute(MachineInstruction::Process).await;
+    }
 
-        self.run_state(State::Startup).await;
-
-        self.run_state(State::Processing).await;
+    /// Stops the world by stopping all the behaviors that each of the agents is
+    /// running.
+    pub async fn stop(&mut self) {
+        self.execute(MachineInstruction::Stop).await;
     }
 }
 
+// TODO: Idea, when we enter the `State::Processing`, we should pass the task
+// into the struct. When we call `MachineInstruction::Stop` we should do message
+// passing that will kill the tasks so that they return. This will allow us to
+// do graceful shutdowns.
+
+// TODO: Worth explaining how the process stage is offloaded so it is
+// understandable.
+
+// Right now what we do is we send a HALT message via the agent's distributor
+// which means all behaviors should receive this now. If those behaviors all see
+// this HALT message and then exit their process, then the await should finish.
+// Actually we can probably not have to get the distributors up this high, but
+// let's work with this for now.
+
 #[async_trait::async_trait]
 impl StateMachine for World {
-    async fn run_state(&mut self, state: State) {
-        match state {
-            State::Uninitialized => {
-                unimplemented!("This never gets called.")
-            }
-            State::Syncing => {
+    async fn execute(&mut self, instruction: MachineInstruction) {
+        match instruction {
+            MachineInstruction::Sync => {
                 info!("World is syncing.");
-                self.state = state;
+                self.state = State::Syncing;
                 let agents = self.agents.take().unwrap();
-                self.agent_tasks = Some(join_all(agents.into_values().map(|mut agent| {
+                let agent_tasks = join_all(agents.into_values().map(|mut agent| {
                     tokio::spawn(async move {
-                        agent.run_state(state).await;
+                        agent.execute(instruction).await;
                         agent
                     })
-                })));
+                }));
                 self.agents = Some(
-                    self.agent_tasks
-                        .take()
-                        .unwrap()
+                    agent_tasks
                         .await
                         .into_iter()
                         .map(|res| {
@@ -134,20 +149,18 @@ impl StateMachine for World {
                         .collect::<HashMap<String, Agent>>(),
                 );
             }
-            State::Startup => {
+            MachineInstruction::Start => {
                 info!("World is starting up.");
-                self.state = state;
+                self.state = State::Starting;
                 let agents = self.agents.take().unwrap();
-                self.agent_tasks = Some(join_all(agents.into_values().map(|mut agent| {
+                let agent_tasks = join_all(agents.into_values().map(|mut agent| {
                     tokio::spawn(async move {
-                        agent.run_state(state).await;
+                        agent.execute(instruction).await;
                         agent
                     })
-                })));
+                }));
                 self.agents = Some(
-                    self.agent_tasks
-                        .take()
-                        .unwrap()
+                    agent_tasks
                         .await
                         .into_iter()
                         .map(|res| {
@@ -157,51 +170,26 @@ impl StateMachine for World {
                         .collect::<HashMap<String, Agent>>(),
                 );
             }
-            State::Processing => {
+            MachineInstruction::Process => {
                 info!("World is processing.");
-                self.state = state;
+                self.state = State::Processing;
                 let agents = self.agents.take().unwrap();
-                self.agent_tasks = Some(join_all(agents.into_values().map(|mut agent| {
+                let mut agent_distributors = vec![];
+                self.agent_processors = Some(join_all(agents.into_values().map(|mut agent| {
+                    agent_distributors.push(agent.distributor.0.clone());
                     tokio::spawn(async move {
-                        agent.run_state(state).await;
+                        agent.execute(instruction).await;
                         agent
                     })
                 })));
-                self.agents = Some(
-                    self.agent_tasks
-                        .take()
-                        .unwrap()
-                        .await
-                        .into_iter()
-                        .map(|res| {
-                            let agent = res.unwrap();
-                            (agent.id.clone(), agent)
-                        })
-                        .collect::<HashMap<String, Agent>>(),
-                );
+                self.agent_distributors = Some(agent_distributors);
             }
-            State::Stopped => {
-                info!("World is starting up.");
-                self.state = state;
-                let agents = self.agents.take().unwrap();
-                self.agent_tasks = Some(join_all(agents.into_values().map(|mut agent| {
-                    tokio::spawn(async move {
-                        agent.run_state(state).await;
-                        agent
-                    })
-                })));
-                self.agents = Some(
-                    self.agent_tasks
-                        .take()
-                        .unwrap()
-                        .await
-                        .into_iter()
-                        .map(|res| {
-                            let agent = res.unwrap();
-                            (agent.id.clone(), agent)
-                        })
-                        .collect::<HashMap<String, Agent>>(),
-                );
+            MachineInstruction::Stop => {
+                let halt = serde_json::to_string(&MachineHalt).unwrap();
+                for tx in self.agent_distributors.take().unwrap() {
+                    tx.send(halt.clone()).unwrap();
+                }
+                self.agent_processors.take().unwrap().await;
             }
         }
     }

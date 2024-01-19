@@ -8,8 +8,31 @@ use tokio::sync::broadcast::Receiver;
 
 use super::*;
 
+/// The instructions that can be sent to a [`StateMachine`].
+#[derive(Clone, Copy, Debug)]
+pub enum MachineInstruction {
+    /// Used to make a [`StateMachine`] sync with the world.
+    Sync,
+
+    /// Used to make a [`StateMachine`] start up.
+    Start,
+
+    /// Used to make a [`StateMachine`] process events.
+    /// This will offload the process into a task that can be halted by sending
+    /// a [`MachineHalt`] message from the [`Messager`]. For our purposes, the
+    /// [`crate::world::World`] will handle this.
+    Process,
+
+    /// Used to make a [`StateMachine`] stop. Only applicable for the
+    /// [`crate::world::World`] currently.
+    Stop,
+}
+
+#[derive(Clone, Copy, Debug, Serialize, Deserialize)]
+pub(crate) struct MachineHalt;
+
 /// The state used by any entity implementing [`StateMachine`].
-#[derive(Debug, Copy, Clone)]
+#[derive(Clone, Copy, Debug)]
 pub enum State {
     /// The entity is not yet running any process.
     /// This is the state adopted by the entity when it is first created.
@@ -25,7 +48,7 @@ pub enum State {
     /// This is where the entity can engage in its specific start up activities
     /// that it can do given the current state of the world.
     /// These are usually quick one-shot activities that are not repeated.
-    Startup,
+    Starting,
 
     /// The entity is processing.
     /// This is where the entity can engage in its specific processing
@@ -61,7 +84,7 @@ pub trait Behavior<E>: Send + Sync + 'static {
 
 #[async_trait::async_trait]
 pub(crate) trait StateMachine: Send + Sync + 'static {
-    async fn run_state(&mut self, state: State);
+    async fn execute(&mut self, instruction: MachineInstruction);
 }
 
 /// The idea of the [`Engine`] is that it drives the [`Behavior`] of a
@@ -112,14 +135,11 @@ where
     B: Behavior<E>,
     E: DeserializeOwned + Send + Sync + Debug + 'static,
 {
-    async fn run_state(&mut self, state: State) {
-        match state {
-            State::Uninitialized => {
-                unimplemented!("This never gets called.")
-            }
-            State::Syncing => {
+    async fn execute(&mut self, instruction: MachineInstruction) {
+        match instruction {
+            MachineInstruction::Sync => {
                 trace!("Behavior is syncing.");
-                self.state = state;
+                self.state = State::Syncing;
                 let mut behavior = self.behavior.take().unwrap();
                 let behavior_task = tokio::spawn(async move {
                     behavior.sync().await;
@@ -127,9 +147,9 @@ where
                 });
                 self.behavior = Some(behavior_task.await.unwrap());
             }
-            State::Startup => {
+            MachineInstruction::Start => {
                 trace!("Behavior is starting up.");
-                self.state = state;
+                self.state = State::Starting;
                 let mut behavior = self.behavior.take().unwrap();
                 let behavior_task = tokio::spawn(async move {
                     behavior.startup().await;
@@ -137,7 +157,7 @@ where
                 });
                 self.behavior = Some(behavior_task.await.unwrap());
             }
-            State::Processing => {
+            MachineInstruction::Process => {
                 trace!("Behavior is processing.");
                 let mut behavior = self.behavior.take().unwrap();
                 let mut receiver = self.event_receiver.take().unwrap();
@@ -147,20 +167,26 @@ where
                         let decoding_result = serde_json::from_str::<E>(&event);
                         match decoding_result {
                             Ok(event) => behavior.process(event).await,
-                            Err(_e) => {
-                                trace!(
-                                    "Event received by behavior that could not be deserialized."
-                                );
-                                continue;
-                            }
+                            Err(_) => match serde_json::from_str::<MachineHalt>(&event) {
+                                Ok(_) => {
+                                    warn!("Behavior received `MachineHalt` message. Breaking!");
+                                    break;
+                                }
+                                Err(_) => {
+                                    trace!(
+                                        "Event received by behavior that could not be deserialized."
+                                    );
+                                    continue;
+                                }
+                            },
                         }
                     }
                     behavior
                 });
                 self.behavior = Some(behavior_task.await.unwrap());
             }
-            State::Stopped => {
-                todo!()
+            MachineInstruction::Stop => {
+                unreachable!("This is never explicitly called on an engine.")
             }
         }
     }

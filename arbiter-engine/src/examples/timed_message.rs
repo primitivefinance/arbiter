@@ -15,12 +15,15 @@ struct TimedMessage {
     receive_data: String,
     send_data: String,
     messager: Messager,
+    count: u64,
+    max_count: Option<u64>,
 }
 
 #[async_trait::async_trait]
 impl Behavior<Message> for TimedMessage {
     async fn process(&mut self, event: Message) {
         trace!("Processing event.");
+        if self.count == self.max_count.unwrap_or(u64::MAX) {}
         if event.data != self.receive_data {
             return;
         } else {
@@ -67,10 +70,12 @@ async fn echoer() {
             .as_ref()
             .unwrap()
             .join_with_id(Some(AGENT_ID.to_owned())),
+        count: 0,
+        max_count: Some(5),
     };
     world.add_agent(agent.with_behavior(behavior));
 
-    let messager = world.messager.join_with_id(None);
+    let messager = world.messager.join_with_id(Some("god".to_owned()));
     let task = world.run();
 
     let message = Message {
@@ -79,7 +84,6 @@ async fn echoer() {
         data: "Hello, world!".to_owned(),
     };
     messager.send(message).await;
-
     task.await;
 }
 
@@ -100,6 +104,8 @@ async fn ping_pong() {
             .as_ref()
             .unwrap()
             .join_with_id(Some(AGENT_ID.to_owned())),
+        count: 0,
+        max_count: Some(5),
     };
     let behavior_pong = TimedMessage {
         delay: 1,
@@ -110,6 +116,8 @@ async fn ping_pong() {
             .as_ref()
             .unwrap()
             .join_with_id(Some(AGENT_ID.to_owned())),
+        count: 0,
+        max_count: Some(5),
     };
 
     world.add_agent(
@@ -118,7 +126,7 @@ async fn ping_pong() {
             .with_behavior(behavior_pong),
     );
 
-    let messager = world.messager.join_with_id(None);
+    let messager = world.messager.join_with_id(Some("god".to_owned()));
     let task = world.run();
 
     let init_message = Message {
@@ -148,6 +156,8 @@ async fn ping_pong_two_agent() {
             .as_ref()
             .unwrap()
             .join_with_id(Some("agent_ping".to_owned())),
+        count: 0,
+        max_count: Some(5),
     };
 
     let agent_pong = Agent::new("agent_pong", &world);
@@ -160,12 +170,14 @@ async fn ping_pong_two_agent() {
             .as_ref()
             .unwrap()
             .join_with_id(Some("agent_pong".to_owned())),
+        count: 0,
+        max_count: Some(5),
     };
 
     world.add_agent(agent_ping.with_behavior(behavior_ping));
     world.add_agent(agent_pong.with_behavior(behavior_pong));
 
-    let messager = world.messager.join_with_id(None);
+    let messager = world.messager.join_with_id(Some("god".to_owned()));
     let task = world.run();
 
     let init_message = Message {
