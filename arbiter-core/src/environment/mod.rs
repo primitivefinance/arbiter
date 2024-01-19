@@ -547,8 +547,12 @@ impl Environment {
                             transaction_index: transaction_index.into(),
                             cumulative_gas_per_block,
                         };
-                        let res = event_broadcaster.send(Broadcast::Event(execution_result.logs()));
-                        println!("Result: {:?}", res);
+                        match event_broadcaster.send(Broadcast::Event(execution_result.logs())) {
+                            Ok(_) => {}
+                            Err(_) => {
+                                warn!("Stop signal was not sent to any listeners. Are there any listeners?")
+                            }
+                        }
                         outcome_sender
                             .send(Ok(Outcome::TransactionCompleted(
                                 execution_result,
@@ -649,7 +653,12 @@ impl Environment {
                             .map_err(|e| EnvironmentError::Communication(e.to_string()))?;
                     }
                     Instruction::Stop(outcome_sender) => {
-                        event_broadcaster.send(Broadcast::StopSignal).unwrap();
+                        match event_broadcaster.send(Broadcast::StopSignal) {
+                            Ok(_) => {}
+                            Err(_) => {
+                                warn!("Stop signal was not sent to any listeners. Are there any listeners?")
+                            }
+                        }
                         outcome_sender
                             .send(Ok(Outcome::StopCompleted(evm.db.unwrap())))
                             .map_err(|e| EnvironmentError::Communication(e.to_string()))?;
