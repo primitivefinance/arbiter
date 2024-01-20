@@ -28,8 +28,10 @@ pub enum MachineInstruction {
     Stop,
 }
 
+/// The message that can be used in a [`StateMachine`] to halt its processing.
+/// Optionally returned by [`Behavior::process`] to close tasks.
 #[derive(Clone, Copy, Debug, Serialize, Deserialize)]
-pub(crate) struct MachineHalt;
+pub struct MachineHalt;
 
 /// The state used by any entity implementing [`StateMachine`].
 #[derive(Clone, Copy, Debug)]
@@ -163,7 +165,6 @@ where
                 let mut receiver = self.event_receiver.take().unwrap();
                 let behavior_task = tokio::spawn(async move {
                     while let Ok(event) = receiver.recv().await {
-                        println!("Event received: {:?}", event);
                         let decoding_result = serde_json::from_str::<E>(&event);
                         match decoding_result {
                             Ok(event) => {

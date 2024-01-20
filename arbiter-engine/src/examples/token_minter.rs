@@ -1,11 +1,13 @@
-use std::str::FromStr;
+use std::{str::FromStr, time::Duration};
 
 use anyhow::Context;
 use arbiter_bindings::bindings::arbiter_token;
+use arbiter_core::data_collection::EventLogger;
 use ethers::{
     abi::token,
     types::{transaction::request, Filter},
 };
+use tokio::time::timeout;
 use tracing::error;
 
 use self::machine::MachineHalt;
@@ -35,15 +37,26 @@ pub struct TokenAdmin {
     // explicitly, they should come from the Agent the behavior is given to.
     pub client: Arc<RevmMiddleware>,
     pub messager: Messager,
+
+    count: u64,
+
+    max_count: Option<u64>,
 }
 
 impl TokenAdmin {
-    pub fn new(client: Arc<RevmMiddleware>, messager: Messager) -> Self {
+    pub fn new(
+        client: Arc<RevmMiddleware>,
+        messager: Messager,
+        count: u64,
+        max_count: Option<u64>,
+    ) -> Self {
         Self {
             token_data: HashMap::new(),
             tokens: None,
             client,
             messager,
+            count,
+            max_count,
         }
     }
 
@@ -151,6 +164,11 @@ the token admin before running the simulation."
                     .unwrap()
                     .await
                     .unwrap();
+                self.count += 1;
+                if self.count == self.max_count.unwrap_or(u64::MAX) {
+                    warn!("Reached max count. Halting behavior.");
+                    return Some(MachineHalt);
+                }
             }
         }
         None
@@ -172,10 +190,19 @@ pub struct TokenRequester {
 
     /// The messaging layer for the token requester.
     pub messager: Messager,
+
+    pub count: u64,
+
+    pub max_count: Option<u64>,
 }
 
 impl TokenRequester {
-    pub fn new(client: Arc<RevmMiddleware>, messager: Messager) -> Self {
+    pub fn new(
+        client: Arc<RevmMiddleware>,
+        messager: Messager,
+        count: u64,
+        max_count: Option<u64>,
+    ) -> Self {
         Self {
             token_data: TokenData {
                 name: TOKEN_NAME.to_owned(),
@@ -186,6 +213,8 @@ impl TokenRequester {
             request_to: TOKEN_ADMIN_ID.to_owned(),
             client,
             messager,
+            count,
+            max_count,
         }
     }
 }
@@ -231,7 +260,7 @@ token: {:?}",
             };
             self.messager.send(message).await;
         }
-        None
+        Some(MachineHalt)
     }
 }
 
@@ -257,6 +286,11 @@ self.messager.id.as_deref()))]
             .unwrap(),
         };
         self.messager.send(message).await;
+        self.count += 1;
+        if self.count == self.max_count.unwrap_or(u64::MAX) {
+            warn!("Reached max count. Halting behavior.");
+            return Some(MachineHalt);
+        }
         None
     }
 }
@@ -264,8 +298,8 @@ self.messager.id.as_deref()))]
 #[ignore]
 #[tokio::test(flavor = "multi_thread", worker_threads = 4)]
 async fn token_minter_simulation() {
-    std::env::set_var("RUST_LOG", "trace");
-    tracing_subscriber::fmt::init();
+    // std::env::set_var("RUST_LOG", "trace");
+    // tracing_subscriber::fmt::init();
 
     let mut world = World::new("test_world");
 
@@ -278,6 +312,8 @@ async fn token_minter_simulation() {
             .as_ref()
             .unwrap()
             .join_with_id(Some(TOKEN_ADMIN_ID.to_owned())),
+        0,
+        Some(4),
     );
     token_admin_behavior.add_token(TokenData {
         name: TOKEN_NAME.to_owned(),
@@ -296,12 +332,14 @@ async fn token_minter_simulation() {
             .as_ref()
             .unwrap()
             .join_with_id(Some(REQUESTER_ID.to_owned())),
+        0,
+        Some(4),
     );
-    let transfer_event = ArbiterToken::new(
+    let arb = ArbiterToken::new(
         Address::from_str("0x240a76d4c8a7dafc6286db5fa6b589e8b21fc00f").unwrap(),
         token_requester.client.clone(),
-    )
-    .transfer_filter();
+    );
+    let transfer_event = arb.transfer_filter();
 
     let token_requester_behavior_again = TokenRequester::new(
         token_requester.client.clone(),
@@ -310,6 +348,8 @@ async fn token_minter_simulation() {
             .as_ref()
             .unwrap()
             .join_with_id(Some(REQUESTER_ID.to_owned())),
+        0,
+        Some(4),
     );
     world.add_agent(
         token_requester
@@ -318,8 +358,27 @@ async fn token_minter_simulation() {
             .with_event(transfer_event),
     );
 
+    let transfer_stream = EventLogger::builder()
+        .add_stream(arb.transfer_filter())
+        .stream()
+        .unwrap();
+    let mut stream = Box::pin(transfer_stream);
+    let mut idx = 0;
+
     world.run().await;
 
-    std::thread::sleep(std::time::Duration::from_secs(1));
-    world.stop().await;
+    loop {
+        match timeout(Duration::from_secs(1), stream.next()).await {
+            Ok(Some(event)) => {
+                println!("Event received in outside world: {:?}", event);
+                idx += 1;
+                if idx == 4 {
+                    break;
+                }
+            }
+            _ => {
+                panic!("Timeout reached. Test failed.");
+            }
+        }
+    }
 }

@@ -201,10 +201,7 @@ impl StateMachine for Agent {
                 let sender = self.distributor.0.clone();
                 self.broadcast_task = Some(tokio::spawn(async move {
                     while let Some(event) = event_stream.next().await {
-                        println!("Broadcasting event through agent comms: {:?}", event);
-                        sender.send(event).unwrap(); // TODO: If this errors
-                                                     // out, we can exit the
-                                                     // task
+                        sender.send(event).unwrap();
                     }
                     event_stream
                 }));
@@ -227,8 +224,8 @@ mod tests {
 
     #[tokio::test(flavor = "multi_thread", worker_threads = 4)]
     async fn streaming() {
-        std::env::set_var("RUST_LOG", "trace");
-        tracing_subscriber::fmt::init();
+        // std::env::set_var("RUST_LOG", "trace");
+        // tracing_subscriber::fmt::init();
 
         let world = World::new("world");
         let agent = Agent::new("agent", &world);

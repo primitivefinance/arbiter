@@ -16,8 +16,8 @@
 //! The world module contains the core world abstraction for the Arbiter Engine.
 
 use arbiter_core::environment::{builder::EnvironmentBuilder, Environment};
-use futures_util::future::{join_all, JoinAll};
-use tokio::{sync::broadcast::Sender as BroadcastSender, task::JoinHandle};
+use futures_util::future::join_all;
+use tokio::sync::broadcast::Sender as BroadcastSender;
 use tracing::info;
 
 use self::machine::{MachineHalt, MachineInstruction};
@@ -64,8 +64,6 @@ pub struct World {
     /// The agents in the world.
     pub agents: Option<HashMap<String, Agent>>,
 
-    agent_processors: Option<JoinAll<JoinHandle<Agent>>>,
-
     agent_distributors: Option<Vec<BroadcastSender<String>>>,
 
     /// The environment for the world.
@@ -82,7 +80,6 @@ impl World {
             id: id.to_owned(),
             state: State::Uninitialized,
             agents: Some(HashMap::new()),
-            agent_processors: None,
             agent_distributors: None,
             environment: EnvironmentBuilder::new().build(),
             messager: Messager::new(),
@@ -175,21 +172,30 @@ impl StateMachine for World {
                 self.state = State::Processing;
                 let agents = self.agents.take().unwrap();
                 let mut agent_distributors = vec![];
-                self.agent_processors = Some(join_all(agents.into_values().map(|mut agent| {
+                let agent_processors = join_all(agents.into_values().map(|mut agent| {
                     agent_distributors.push(agent.distributor.0.clone());
                     tokio::spawn(async move {
                         agent.execute(instruction).await;
                         agent
                     })
-                })));
+                }));
                 self.agent_distributors = Some(agent_distributors);
+                self.agents = Some(
+                    agent_processors
+                        .await
+                        .into_iter()
+                        .map(|res| {
+                            let agent = res.unwrap();
+                            (agent.id.clone(), agent)
+                        })
+                        .collect::<HashMap<String, Agent>>(),
+                );
             }
             MachineInstruction::Stop => {
                 let halt = serde_json::to_string(&MachineHalt).unwrap();
                 for tx in self.agent_distributors.take().unwrap() {
                     tx.send(halt.clone()).unwrap();
                 }
-                self.agent_processors.take().unwrap().await;
             }
         }
     }

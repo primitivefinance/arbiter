@@ -2,6 +2,10 @@
 
 const AGENT_ID: &str = "agent";
 
+use std::time::Duration;
+
+use tokio::time::timeout;
+
 use self::machine::MachineHalt;
 use super::*;
 use crate::{
@@ -35,6 +39,7 @@ impl Behavior<Message> for TimedMessage {
             self.count += 1;
         }
         if self.count == self.max_count.unwrap_or(u64::MAX) {
+            warn!("Reached max count. Halting behavior.");
             return Some(MachineHalt);
         }
 
@@ -58,8 +63,8 @@ impl Behavior<Message> for TimedMessage {
 
 #[tokio::test(flavor = "multi_thread", worker_threads = 4)]
 async fn echoer() {
-    std::env::set_var("RUST_LOG", "trace");
-    tracing_subscriber::fmt::init();
+    // std::env::set_var("RUST_LOG", "trace");
+    // tracing_subscriber::fmt::init();
 
     let mut world = World::new("world");
 
@@ -74,7 +79,7 @@ async fn echoer() {
             .unwrap()
             .join_with_id(Some(AGENT_ID.to_owned())),
         count: 0,
-        max_count: Some(5),
+        max_count: Some(2),
     };
     world.add_agent(agent.with_behavior(behavior));
 
@@ -88,12 +93,30 @@ async fn echoer() {
     };
     messager.send(message).await;
     task.await;
+
+    let mut stream = Box::pin(messager.stream());
+    let mut idx = 0;
+
+    loop {
+        match timeout(Duration::from_secs(1), stream.next()).await {
+            Ok(Some(event)) => {
+                println!("Event received in outside world: {:?}", event);
+                idx += 1;
+                if idx == 2 {
+                    break;
+                }
+            }
+            _ => {
+                panic!("Timeout reached. Test failed.");
+            }
+        }
+    }
 }
 
 #[tokio::test(flavor = "multi_thread", worker_threads = 4)]
 async fn ping_pong() {
-    std::env::set_var("RUST_LOG", "trace");
-    tracing_subscriber::fmt::init();
+    // std::env::set_var("RUST_LOG", "trace");
+    // tracing_subscriber::fmt::init();
 
     let mut world = World::new("world");
 
@@ -108,7 +131,7 @@ async fn ping_pong() {
             .unwrap()
             .join_with_id(Some(AGENT_ID.to_owned())),
         count: 0,
-        max_count: Some(5),
+        max_count: Some(2),
     };
     let behavior_pong = TimedMessage {
         delay: 1,
@@ -120,7 +143,7 @@ async fn ping_pong() {
             .unwrap()
             .join_with_id(Some(AGENT_ID.to_owned())),
         count: 0,
-        max_count: Some(5),
+        max_count: Some(2),
     };
 
     world.add_agent(
@@ -140,12 +163,30 @@ async fn ping_pong() {
     messager.send(init_message).await;
 
     task.await;
+
+    let mut stream = Box::pin(messager.stream());
+    let mut idx = 0;
+
+    loop {
+        match timeout(Duration::from_secs(1), stream.next()).await {
+            Ok(Some(event)) => {
+                println!("Event received in outside world: {:?}", event);
+                idx += 1;
+                if idx == 4 {
+                    break;
+                }
+            }
+            _ => {
+                panic!("Timeout reached. Test failed.");
+            }
+        }
+    }
 }
 
 #[tokio::test(flavor = "multi_thread", worker_threads = 4)]
 async fn ping_pong_two_agent() {
-    std::env::set_var("RUST_LOG", "trace");
-    tracing_subscriber::fmt::init();
+    // std::env::set_var("RUST_LOG", "trace");
+    // tracing_subscriber::fmt::init();
 
     let mut world = World::new("world");
 
@@ -160,7 +201,7 @@ async fn ping_pong_two_agent() {
             .unwrap()
             .join_with_id(Some("agent_ping".to_owned())),
         count: 0,
-        max_count: Some(5),
+        max_count: Some(2),
     };
 
     let agent_pong = Agent::new("agent_pong", &world);
@@ -174,7 +215,7 @@ async fn ping_pong_two_agent() {
             .unwrap()
             .join_with_id(Some("agent_pong".to_owned())),
         count: 0,
-        max_count: Some(5),
+        max_count: Some(2),
     };
 
     world.add_agent(agent_ping.with_behavior(behavior_ping));
@@ -192,4 +233,22 @@ async fn ping_pong_two_agent() {
     messager.send(init_message).await;
 
     task.await;
+
+    let mut stream = Box::pin(messager.stream());
+    let mut idx = 0;
+
+    loop {
+        match timeout(Duration::from_secs(1), stream.next()).await {
+            Ok(Some(event)) => {
+                println!("Event received in outside world: {:?}", event);
+                idx += 1;
+                if idx == 5 {
+                    break;
+                }
+            }
+            _ => {
+                panic!("Timeout reached. Test failed.");
+            }
+        }
+    }
 }

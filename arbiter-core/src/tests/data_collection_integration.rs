@@ -41,7 +41,7 @@ async fn generate_events(
 
 #[tokio::test]
 async fn data_capture() {
-    //  
+    //
     let (env, client) = startup_user_controlled().unwrap();
     let (arbx, arby, lex) = deploy_liquid_exchange(client.clone()).await.unwrap();
     println!("Deployed contracts");
