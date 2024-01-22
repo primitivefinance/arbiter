@@ -91,7 +91,8 @@ impl World {
         Self {
             id: id.to_owned(),
             agents: Some(HashMap::new()),
-            agent_tasks: None,
+            state: State::Uninitialized,
+            agent_distributors: None,
             environment,
             messager: Messager::new(),
         }
