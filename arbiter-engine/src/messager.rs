@@ -1,9 +1,7 @@
 //! The messager module contains the core messager layer for the Arbiter Engine.
 
-use std::pin::Pin;
-
-use async_broadcast::{broadcast, Receiver as BroadcastReceiver, Sender as BroadcastSender};
 use futures_util::Stream;
+use tokio::sync::broadcast::{channel, Receiver, Sender};
 
 use super::*;
 
@@ -32,14 +30,14 @@ pub enum To {
 }
 
 /// A messager that can be used to send messages between agents.
-#[derive(Clone, Debug)]
+#[derive(Debug)]
 pub struct Messager {
     /// The identifier of the entity that is using the messager.
     pub id: Option<String>,
 
-    pub(crate) broadcast_sender: BroadcastSender<Message>,
+    pub(crate) broadcast_sender: Sender<Message>,
 
-    broadcast_receiver: BroadcastReceiver<Message>,
+    broadcast_receiver: Option<Receiver<Message>>,
 }
 
 impl Messager {
@@ -49,10 +47,10 @@ impl Messager {
     /// Creates a new messager with the given capacity.
     #[allow(clippy::new_without_default)]
     pub fn new() -> Self {
-        let (broadcast_sender, broadcast_receiver) = broadcast(512);
+        let (broadcast_sender, broadcast_receiver) = channel(512);
         Self {
             broadcast_sender,
-            broadcast_receiver,
+            broadcast_receiver: Some(broadcast_receiver),
             id: None,
         }
     }
@@ -62,16 +60,16 @@ impl Messager {
     pub(crate) fn for_agent(&self, id: &str) -> Self {
         Self {
             broadcast_sender: self.broadcast_sender.clone(),
-            broadcast_receiver: self.broadcast_receiver.clone(),
+            broadcast_receiver: Some(self.broadcast_sender.subscribe()),
             id: Some(id.to_owned()),
         }
     }
 
     /// Returns a stream of messages that are either sent to [`To::All`] or to
     /// the agent via [`To::Agent(id)`].
-    pub fn stream(&self) -> Pin<Box<dyn Stream<Item = Message> + Send + '_>> {
-        let mut receiver = self.broadcast_receiver.clone();
-        let stream = async_stream::stream! {
+    pub fn stream(mut self) -> impl Stream<Item = Message> + Send {
+        let mut receiver = self.broadcast_receiver.take().unwrap();
+        async_stream::stream! {
             while let Ok(message) = receiver.recv().await {
                 match &message.to {
                     To::All => {
@@ -86,13 +84,22 @@ impl Messager {
                     }
                 }
             }
-        };
-        Box::pin(stream)
+        }
+    }
+
+    /// Returns a [`Messager`] interface connected to the same instance but with
+    /// the `id` provided.
+    pub fn join_with_id(&self, id: Option<String>) -> Messager {
+        Messager {
+            broadcast_sender: self.broadcast_sender.clone(),
+            broadcast_receiver: Some(self.broadcast_sender.subscribe()),
+            id,
+        }
     }
 
     /// Sends a message to the messager.
     pub async fn send(&self, message: Message) {
         trace!("Sending message via messager.");
-        self.broadcast_sender.broadcast(message).await.unwrap();
+        self.broadcast_sender.send(message).unwrap();
     }
 }
