@@ -74,7 +74,7 @@ pub struct World {
 }
 
 impl World {
-    /// Creates a new world with the given identifier and provider.
+    /// Creates a new [World] with the given identifier and provider.
     pub fn new(id: &str) -> Self {
         Self {
             id: id.to_owned(),
@@ -82,6 +82,17 @@ impl World {
             agents: Some(HashMap::new()),
             agent_distributors: None,
             environment: EnvironmentBuilder::new().build(),
+            messager: Messager::new(),
+        }
+    }
+
+    /// Creates a new [World] with the given identifier and provider.
+    pub fn new_with_env(id: &str, environment: Environment) -> Self {
+        Self {
+            id: id.to_owned(),
+            agents: Some(HashMap::new()),
+            agent_tasks: None,
+            environment,
             messager: Messager::new(),
         }
     }
