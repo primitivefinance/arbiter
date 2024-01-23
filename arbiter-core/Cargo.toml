@@ -1,6 +1,6 @@
 [package]
 name = "arbiter-core"
-version = "0.9.1"
+version = "0.10.0"
 edition = "2021"
 authors = ["Waylon Jepsen <waylonjepsen1@gmail.com>", "Colin Roberts <colin@autoparallel.xyz>"]
 description = "Allowing smart contract developers to do simulation driven development via an EVM emulator"
@@ -48,7 +48,7 @@ polars = { version = "0.36.2", features = ["parquet", "csv", "json"] }
 
 # Dependencies for the test build and development
 [dev-dependencies]
-arbiter-bindings = { version = "0.1.1", path = "../arbiter-bindings" }
+arbiter-bindings = { version = "0.1.2", path = "../arbiter-bindings" }
 anyhow =  { version = "=1.0.79" }
 test-log =  { version = "=0.2.14" }
 tracing-test = "0.2.4"
