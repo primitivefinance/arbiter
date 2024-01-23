@@ -34,8 +34,9 @@ use ethers::{
     },
     signers::{Signer, Wallet},
     types::{
-        transaction::eip2718::TypedTransaction, Address, BlockId, Bloom, Bytes, Filter,
-        FilteredParams, Log, NameOrAddress, Transaction, TransactionReceipt, U256 as eU256, U64,
+        transaction::{eip2718::TypedTransaction, eip712::Eip712},
+        Address, BlockId, Bloom, Bytes, Filter, FilteredParams, Log, NameOrAddress, Signature,
+        Transaction, TransactionReceipt, U256 as eU256, U64,
     },
 };
 use futures_timer::Delay;
@@ -101,6 +102,92 @@ pub struct RevmMiddleware {
     /// An optional label for the middleware instance
     #[allow(unused)]
     pub label: Option<String>,
+}
+
+#[async_trait::async_trait]
+impl Signer for RevmMiddleware {
+    type Error = RevmMiddlewareError;
+
+    async fn sign_message<S: Send + Sync + AsRef<[u8]>>(
+        &self,
+        message: S,
+    ) -> Result<Signature, Self::Error> {
+        match self.wallet {
+            EOA::Forked(_) => Err(RevmMiddlewareError::Signing(
+                "Cannot sign messages with a forked EOA!".to_string(),
+            )),
+            EOA::Wallet(ref wallet) => {
+                let message = message.as_ref();
+                let message_hash = ethers::utils::hash_message(message);
+                let signature = wallet
+                    .sign_message(message_hash)
+                    .await
+                    .map_err(|e| RevmMiddlewareError::Signing(format!("Signing error: {}", e)))?;
+                Ok(signature)
+            }
+        }
+    }
+
+    /// Signs the transaction
+    async fn sign_transaction(&self, message: &TypedTransaction) -> Result<Signature, Self::Error> {
+        match self.wallet {
+            EOA::Forked(_) => Err(RevmMiddlewareError::Signing(
+                "Cannot sign transactions with a forked EOA!".to_string(),
+            )),
+            EOA::Wallet(ref wallet) => {
+                let signature = wallet
+                    .sign_transaction(message)
+                    .await
+                    .map_err(|e| RevmMiddlewareError::Signing(format!("Signing error: {}", e)))?;
+                Ok(signature)
+            }
+        }
+    }
+
+    /// Encodes and signs the typed data according EIP-712.
+    /// Payload must implement Eip712 trait.
+    async fn sign_typed_data<T: Eip712 + Send + Sync>(
+        &self,
+        payload: &T,
+    ) -> Result<Signature, Self::Error> {
+        match self.wallet {
+            EOA::Forked(_) => Err(RevmMiddlewareError::Signing(
+                "Cannot sign typed data with a forked EOA!".to_string(),
+            )),
+            EOA::Wallet(ref wallet) => {
+                let signature = wallet
+                    .sign_typed_data(payload)
+                    .await
+                    .map_err(|e| RevmMiddlewareError::Signing(format!("Signing error: {}", e)))?;
+                Ok(signature)
+            }
+        }
+    }
+
+    /// Returns the signer's Ethereum Address
+    fn address(&self) -> Address {
+        match &self.wallet {
+            EOA::Forked(address) => *address,
+            EOA::Wallet(wallet) => wallet.address(),
+        }
+    }
+
+    /// Returns the signer's chain id
+    fn chain_id(&self) -> u64 {
+        0 // TODO: THIS MIGHT BE STUPID
+    }
+
+    /// Sets the signer's chain id
+    #[must_use]
+    fn with_chain_id<T: Into<u64>>(self, chain_id: T) -> Self {
+        match self.wallet {
+            EOA::Forked(_) => self,
+            EOA::Wallet(wallet) => Self {
+                wallet: EOA::Wallet(wallet.with_chain_id(chain_id)),
+                ..self
+            },
+        }
+    }
 }
 
 #[async_trait::async_trait]
