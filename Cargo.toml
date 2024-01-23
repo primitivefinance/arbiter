@@ -1,6 +1,6 @@
 [workspace]
 # List of crates included in this workspace
-members = [ "arbiter-bindings", "arbiter-core", "arbiter-derive", "arbiter-engine"]
+members = [ "arbiter-bindings", "arbiter-core", "arbiter-engine"]
 
 # List of crates excluded from this workspace
 exclude = ["benches"]
