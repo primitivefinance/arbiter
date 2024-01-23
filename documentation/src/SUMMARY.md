@@ -1,5 +1,5 @@
 # Summary
-
+[Arbiter](./index.md)
 - [Introduction](./introduction/introduction.md)
 - [Getting Started / Installation](./getting_started/getting_started.md)
   - [Setting up Simulations](./getting_started/setting_up_simulations.md)
