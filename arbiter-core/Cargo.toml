@@ -57,7 +57,7 @@ tracing-subscriber = "0.3.18"
 
 polars = "0.36.2"
 cargo_metadata = "0.18.1"
-chrono = "0.4.31"
+chrono = "0.4.32"
 futures =  { version = "=0.3.30" }
 
 assert_matches =  { version = "=1.5" }
