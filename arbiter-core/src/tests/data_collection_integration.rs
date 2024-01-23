@@ -19,7 +19,7 @@ async fn generate_events(
     lex: LiquidExchange<RevmMiddleware>,
     client: Arc<RevmMiddleware>,
 ) -> Result<(), RevmMiddlewareError> {
-    for _ in 0..5 {
+    for _ in 0..2 {
         arbx.approve(client.address(), U256::from(1))
             .send()
             .await
@@ -41,12 +41,13 @@ async fn generate_events(
 
 #[tokio::test]
 async fn data_capture() {
+    //
     let (env, client) = startup_user_controlled().unwrap();
     let (arbx, arby, lex) = deploy_liquid_exchange(client.clone()).await.unwrap();
     println!("Deployed contracts");
 
     // default_listener
-    EventLogger::builder()
+    let logger_task = EventLogger::builder()
         .add(arbx.events(), "arbx")
         .add(arby.events(), "arby")
         .add(lex.events(), "lex")
@@ -90,6 +91,8 @@ async fn data_capture() {
 
     let _ = env.stop();
 
+    logger_task.await.unwrap();
+    std::thread::sleep(std::time::Duration::from_secs(1));
     assert!(Path::new("./data/output.csv").exists());
     assert!(Path::new("./data/output.parquet").exists());
     assert!(Path::new("./data/output.json").exists());
@@ -98,26 +101,37 @@ async fn data_capture() {
 
 #[tokio::test]
 async fn data_stream() {
-    std::env::set_var("RUST_LOG", "trace");
-    tracing_subscriber::fmt::init();
+    // std::env::set_var("RUST_LOG", "trace");
+    // tracing_subscriber::fmt::init();
     let (env, client) = startup_user_controlled().unwrap();
     let (arbx, arby, lex) = deploy_liquid_exchange(client.clone()).await.unwrap();
-    println!("Deployed contracts");
+    println!(
+        "Deployed
+contracts"
+    );
 
     // default_listener
-    let streamer = EventLogger::builder()
-        .add_stream(arbx.events())
-        .add_stream(arby.events())
-        .add_stream(lex.events())
-        .stream();
+    let mut streamer = Box::pin(
+        EventLogger::builder()
+            .add_stream(arbx.events())
+            .add_stream(lex.events())
+            .stream()
+            .unwrap(),
+    );
 
     generate_events(arbx, arby, lex, client.clone())
         .await
         .unwrap_or_else(|e| {
             panic!("Error generating events: {}", e);
         });
-    panic!("This test is not complete");
-    let stream_buffer = streamer.enumerate().collect::<Vec<_>>().await;
-    println!("Buffer: {:?}", stream_buffer);
+    let mut idx = 0;
+    while let Some(item) = streamer.next().await {
+        println!("item: {}", item);
+        idx += 1;
+        if idx == 4 {
+            break;
+        }
+    }
     let _ = env.stop();
+    assert_eq!(idx, 4);
 }

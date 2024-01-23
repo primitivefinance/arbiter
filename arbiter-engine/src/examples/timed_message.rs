@@ -2,8 +2,14 @@
 
 const AGENT_ID: &str = "agent";
 
+use std::time::Duration;
+
+use tokio::time::timeout;
+
+use self::machine::MachineHalt;
 use super::*;
 use crate::{
+    agent::Agent,
     machine::{Behavior, Engine, State, StateMachine},
     messager::To,
     world::World,
@@ -11,22 +17,35 @@ use crate::{
 
 struct TimedMessage {
     delay: u64,
-    message: Message,
+    receive_data: String,
+    send_data: String,
+    messager: Messager,
+    count: u64,
+    max_count: Option<u64>,
 }
 
 #[async_trait::async_trait]
 impl Behavior<Message> for TimedMessage {
-    async fn process(&mut self, event: Message) {
+    async fn process(&mut self, event: Message) -> Option<MachineHalt> {
         trace!("Processing event.");
-        let message = Message {
-            from: "agent".to_owned(),
-            to: To::Agent("agent".to_owned()),
-            data: "Hello, world!".to_owned(),
-        };
+        if event.data == self.receive_data {
+            trace!("Event matches message. Sending a new message.");
+            let message = Message {
+                from: self.messager.id.clone().unwrap(),
+                to: To::All,
+                data: self.send_data.clone(),
+            };
+            self.messager.send(message).await;
+            self.count += 1;
+        }
+        if self.count == self.max_count.unwrap_or(u64::MAX) {
+            warn!("Reached max count. Halting behavior.");
+            return Some(MachineHalt);
+        }
 
         tokio::time::sleep(std::time::Duration::from_secs(self.delay)).await;
-        // TODO: send a message
         trace!("Processed event.");
+        None
     }
 
     async fn sync(&mut self) {
@@ -42,50 +61,194 @@ impl Behavior<Message> for TimedMessage {
     }
 }
 
-// // TODO: Can we combine the `world.run().await` through the `for task in
-// tasks // {task.await}` step to make this DEVX super easy TODO: Having
-// something like // an automatic impl of Start and Stop for all behaviors
-// would  be nice or load // that in as a default behavior of agents or
-// something.
-#[ignore = "This is a work in progress and does not work and does not ever terminate."]
-#[tokio::test(flavor = "multi_thread", worker_threads = 2)]
+#[tokio::test(flavor = "multi_thread", worker_threads = 4)]
 async fn echoer() {
-    std::env::set_var("RUST_LOG", "trace");
-    tracing_subscriber::fmt::init();
+    // std::env::set_var("RUST_LOG", "trace");
+    // tracing_subscriber::fmt::init();
 
     let mut world = World::new("world");
 
-    let agent = world.create_agent(AGENT_ID);
-
+    let agent = Agent::new(AGENT_ID, &world);
     let behavior = TimedMessage {
-        delay: 2,
-        message: Message {
-            from: "agent".to_owned(),
-            to: To::Agent("agent".to_owned()),
-            data: "Hello, world!".to_owned(),
-        },
+        delay: 1,
+        receive_data: "Hello, world!".to_owned(),
+        send_data: "Hello, world!".to_owned(),
+        messager: agent
+            .messager
+            .as_ref()
+            .unwrap()
+            .join_with_id(Some(AGENT_ID.to_owned())),
+        count: 0,
+        max_count: Some(2),
     };
-    agent.add_behavior(behavior);
+    world.add_agent(agent.with_behavior(behavior));
 
-    tracing::debug!("Starting world.");
-    let messager = world.messager.clone();
-    world.run_state(State::Syncing);
-    world.transition().await;
-
-    world.run_state(State::Startup);
-    world.transition().await;
-
-    world.run_state(State::Processing);
+    let messager = world.messager.join_with_id(Some("god".to_owned()));
+    let task = world.run();
 
     let message = Message {
-        from: "agent".to_owned(),
+        from: "god".to_owned(),
         to: To::Agent("agent".to_owned()),
-        data: "Start".to_owned(),
+        data: "Hello, world!".to_owned(),
     };
-    let send_result = messager.send(message).await;
-    tracing::debug!("Start message sent {:?}", send_result);
+    messager.send(message).await;
+    task.await;
 
-    tokio::time::sleep(std::time::Duration::from_secs(1)).await;
+    let mut stream = Box::pin(messager.stream());
+    let mut idx = 0;
 
-    world.transition().await;
+    loop {
+        match timeout(Duration::from_secs(1), stream.next()).await {
+            Ok(Some(event)) => {
+                println!("Event received in outside world: {:?}", event);
+                idx += 1;
+                if idx == 2 {
+                    break;
+                }
+            }
+            _ => {
+                panic!("Timeout reached. Test failed.");
+            }
+        }
+    }
+}
+
+#[tokio::test(flavor = "multi_thread", worker_threads = 4)]
+async fn ping_pong() {
+    // std::env::set_var("RUST_LOG", "trace");
+    // tracing_subscriber::fmt::init();
+
+    let mut world = World::new("world");
+
+    let agent = Agent::new(AGENT_ID, &world);
+    let behavior_ping = TimedMessage {
+        delay: 1,
+        receive_data: "pong".to_owned(),
+        send_data: "ping".to_owned(),
+        messager: agent
+            .messager
+            .as_ref()
+            .unwrap()
+            .join_with_id(Some(AGENT_ID.to_owned())),
+        count: 0,
+        max_count: Some(2),
+    };
+    let behavior_pong = TimedMessage {
+        delay: 1,
+        receive_data: "ping".to_owned(),
+        send_data: "pong".to_owned(),
+        messager: agent
+            .messager
+            .as_ref()
+            .unwrap()
+            .join_with_id(Some(AGENT_ID.to_owned())),
+        count: 0,
+        max_count: Some(2),
+    };
+
+    world.add_agent(
+        agent
+            .with_behavior(behavior_ping)
+            .with_behavior(behavior_pong),
+    );
+
+    let messager = world.messager.join_with_id(Some("god".to_owned()));
+    let task = world.run();
+
+    let init_message = Message {
+        from: "god".to_owned(),
+        to: To::Agent("agent".to_owned()),
+        data: "ping".to_owned(),
+    };
+    messager.send(init_message).await;
+
+    task.await;
+
+    let mut stream = Box::pin(messager.stream());
+    let mut idx = 0;
+
+    loop {
+        match timeout(Duration::from_secs(1), stream.next()).await {
+            Ok(Some(event)) => {
+                println!("Event received in outside world: {:?}", event);
+                idx += 1;
+                if idx == 4 {
+                    break;
+                }
+            }
+            _ => {
+                panic!("Timeout reached. Test failed.");
+            }
+        }
+    }
+}
+
+#[tokio::test(flavor = "multi_thread", worker_threads = 4)]
+async fn ping_pong_two_agent() {
+    // std::env::set_var("RUST_LOG", "trace");
+    // tracing_subscriber::fmt::init();
+
+    let mut world = World::new("world");
+
+    let agent_ping = Agent::new("agent_ping", &world);
+    let behavior_ping = TimedMessage {
+        delay: 1,
+        receive_data: "pong".to_owned(),
+        send_data: "ping".to_owned(),
+        messager: agent_ping
+            .messager
+            .as_ref()
+            .unwrap()
+            .join_with_id(Some("agent_ping".to_owned())),
+        count: 0,
+        max_count: Some(2),
+    };
+
+    let agent_pong = Agent::new("agent_pong", &world);
+    let behavior_pong = TimedMessage {
+        delay: 1,
+        receive_data: "ping".to_owned(),
+        send_data: "pong".to_owned(),
+        messager: agent_pong
+            .messager
+            .as_ref()
+            .unwrap()
+            .join_with_id(Some("agent_pong".to_owned())),
+        count: 0,
+        max_count: Some(2),
+    };
+
+    world.add_agent(agent_ping.with_behavior(behavior_ping));
+    world.add_agent(agent_pong.with_behavior(behavior_pong));
+
+    let messager = world.messager.join_with_id(Some("god".to_owned()));
+    let task = world.run();
+
+    let init_message = Message {
+        from: "god".to_owned(),
+        to: To::All,
+        data: "ping".to_owned(),
+    };
+
+    messager.send(init_message).await;
+
+    task.await;
+
+    let mut stream = Box::pin(messager.stream());
+    let mut idx = 0;
+
+    loop {
+        match timeout(Duration::from_secs(1), stream.next()).await {
+            Ok(Some(event)) => {
+                println!("Event received in outside world: {:?}", event);
+                idx += 1;
+                if idx == 5 {
+                    break;
+                }
+            }
+            _ => {
+                panic!("Timeout reached. Test failed.");
+            }
+        }
+    }
 }

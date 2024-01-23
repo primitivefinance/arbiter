@@ -1,5 +1,7 @@
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // TODO: Notes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+// * Maybe we just use tokio for everything (like `select`) so that we don't mix
+//   futures and tokio together in ways that may be weird.
 // When we start running an agent, we should have their messager start producing
 // events that can be used by any and all behaviors the agent has that takes in
 // messages as an event. Similarly, we should have agents start up any streams
@@ -21,10 +23,14 @@ use std::{fmt::Debug, pin::Pin, sync::Arc};
 use arbiter_core::{data_collection::EventLogger, middleware::RevmMiddleware};
 use ethers::contract::{EthLogDecode, Event};
 use futures::stream::{Stream, StreamExt};
-use futures_util::future::{join_all, JoinAll};
+use futures_util::future::join_all;
 use serde::de::DeserializeOwned;
-use tokio::task::JoinHandle;
+use tokio::{
+    sync::broadcast::{channel, Receiver as BroadcastReceiver, Sender as BroadcastSender},
+    task::JoinHandle,
+};
 
+use self::machine::MachineInstruction;
 use super::*;
 use crate::{
     machine::{Behavior, Engine, State, StateMachine},
@@ -72,7 +78,7 @@ pub struct Agent {
 
     /// The messager the agent uses to send and receive messages from other
     /// agents.
-    pub messager: Messager,
+    pub messager: Option<Messager>,
 
     /// The client the agent uses to interact with the blockchain.
     pub client: Arc<RevmMiddleware>,
@@ -85,140 +91,126 @@ pub struct Agent {
     /// events.
     behavior_engines: Option<Vec<Box<dyn StateMachine>>>,
 
-    /// The tasks that represent the agent running a specific state transition.
-    behavior_tasks: Option<JoinAll<JoinHandle<Box<dyn StateMachine>>>>,
-
     /// The pipeline for yielding events from the centralized event streamer
     /// (for both messages and Ethereum events) to agents.
-    distributor: (
-        async_broadcast::Sender<String>,
-        async_broadcast::Receiver<String>,
-    ),
+    pub(crate) distributor: (BroadcastSender<String>, BroadcastReceiver<String>),
+
+    broadcast_task: Option<JoinHandle<Pin<Box<dyn Stream<Item = String> + Send>>>>,
 }
 
 impl Agent {
     /// Produces a new agent with the given identifier.
-    pub(crate) fn connect(id: &str, world: &World) -> Self {
+    pub fn new(id: &str, world: &World) -> Self {
         let messager = world.messager.for_agent(id);
         let client = RevmMiddleware::new(&world.environment, Some(id)).unwrap();
-        let distributor = async_broadcast::broadcast(512);
+        let distributor = channel(512);
         Self {
             id: id.to_owned(),
             state: State::Uninitialized,
-            messager,
+            messager: Some(messager),
             client,
             event_streamer: Some(EventLogger::builder()),
             behavior_engines: None,
             distributor,
-            behavior_tasks: None,
+            broadcast_task: None,
         }
     }
 
     /// Adds an Ethereum event to the agent's event streamer.
-    pub fn add_event<D: EthLogDecode + Debug + Serialize + 'static>(
-        &mut self,
+    pub fn with_event<D: EthLogDecode + Debug + Serialize + 'static>(
+        mut self,
         event: Event<Arc<RevmMiddleware>, RevmMiddleware, D>,
-    ) {
+    ) -> Self {
         self.event_streamer = Some(self.event_streamer.take().unwrap().add_stream(event));
+        self
     }
 
     /// Adds a behavior to the agent that it will run.
-    pub fn add_behavior<E: DeserializeOwned + Send + Sync + Debug + 'static>(
-        &mut self,
+    pub fn with_behavior<E: DeserializeOwned + Send + Sync + Debug + 'static>(
+        mut self,
         behavior: impl Behavior<E> + 'static,
-    ) {
-        let event_receiver = self.distributor.0.new_receiver();
+    ) -> Self {
+        let event_receiver = self.distributor.0.subscribe();
 
         let engine = Engine::new(behavior, event_receiver);
         if let Some(engines) = &mut self.behavior_engines {
             engines.push(Box::new(engine));
         } else {
             self.behavior_engines = Some(vec![Box::new(engine)]);
-        }
+        };
+        self
     }
 
-    // TODO: This is unused for now, but we will use it in the future for the event
-    // pipelining.
-    #[allow(unused)]
-    pub(crate) fn start_event_stream(&mut self) -> Pin<Box<dyn Stream<Item = String> + Send + '_>> {
-        let event_stream = self.event_streamer.take().unwrap().stream();
-        let message_stream = self
-            .messager
-            .stream()
-            .map(|msg| serde_json::to_string(&msg).unwrap_or_else(|e| e.to_string()));
-
-        Box::pin(futures::stream::select(event_stream, message_stream))
-    }
-}
-
-#[async_trait::async_trait]
-impl StateMachine for Agent {
-    fn run_state(&mut self, state: State) {
-        match state {
-            State::Uninitialized => {
-                unimplemented!("This never gets called.")
-            }
-            State::Syncing => {
-                self.state = state;
-                trace!("Agent is syncing.");
-                let mut behavior_engines = self.behavior_engines.take().unwrap();
-                for engine in behavior_engines.iter_mut() {
-                    engine.run_state(state);
-                }
-                self.behavior_tasks =
-                    Some(join_all(behavior_engines.into_iter().map(|mut engine| {
-                        tokio::spawn(async move {
-                            engine.transition().await;
-                            engine
-                        })
-                    })));
-            }
-            State::Startup => {
-                trace!("Agent is starting up.");
-                self.state = state;
-                let mut behavior_engines = self.behavior_engines.take().unwrap();
-                for engine in behavior_engines.iter_mut() {
-                    engine.run_state(state);
-                }
-                self.behavior_tasks =
-                    Some(join_all(behavior_engines.into_iter().map(|mut engine| {
-                        tokio::spawn(async move {
-                            engine.transition().await;
-                            engine
-                        })
-                    })));
-            }
-            State::Processing => {
-                trace!("Agent is processing.");
-                self.state = state;
-                let mut behavior_engines = self.behavior_engines.take().unwrap();
-                for engine in behavior_engines.iter_mut() {
-                    engine.run_state(state);
-                }
-                self.behavior_tasks =
-                    Some(join_all(behavior_engines.into_iter().map(|mut engine| {
-                        tokio::spawn(async move {
-                            engine.transition().await;
-                            engine
-                        })
-                    })));
-            }
-            State::Stopped => {
-                todo!()
-            }
-        }
-    }
-
-    async fn transition(&mut self) {
+    pub(crate) async fn run(&mut self, instruction: MachineInstruction) {
+        let behavior_engines = self.behavior_engines.take().unwrap();
+        let behavior_tasks = join_all(behavior_engines.into_iter().map(|mut engine| {
+            tokio::spawn(async move {
+                engine.execute(instruction).await;
+                engine
+            })
+        }));
         self.behavior_engines = Some(
-            self.behavior_tasks
-                .take()
-                .unwrap()
+            behavior_tasks
                 .await
                 .into_iter()
                 .map(|res| res.unwrap())
                 .collect::<Vec<_>>(),
         );
+    }
+}
+
+#[async_trait::async_trait]
+impl StateMachine for Agent {
+    #[tracing::instrument(skip(self), fields(id = self.id))]
+    async fn execute(&mut self, instruction: MachineInstruction) {
+        match instruction {
+            MachineInstruction::Sync => {
+                debug!("Agent is syncing.");
+                self.state = State::Syncing;
+                self.run(instruction).await;
+            }
+            MachineInstruction::Start => {
+                debug!("Agent is starting up.");
+                self.run(instruction).await;
+            }
+            MachineInstruction::Process => {
+                debug!("Agent is processing.");
+                self.state = State::Processing;
+                let messager = self.messager.take().unwrap();
+                let message_stream = messager
+                    .stream()
+                    .map(|msg| serde_json::to_string(&msg).unwrap_or_else(|e| e.to_string()));
+
+                let eth_event_stream = self.event_streamer.take().unwrap().stream();
+
+                let mut event_stream: Pin<Box<dyn Stream<Item = String> + Send + '_>> =
+                    if let Some(event_stream) = eth_event_stream {
+                        trace!("Merging event streams.");
+                        // Convert the individual streams into a Vec
+                        let all_streams = vec![
+                            Box::pin(message_stream) as Pin<Box<dyn Stream<Item = String> + Send>>,
+                            Box::pin(event_stream),
+                        ];
+                        // Use select_all to combine them
+                        Box::pin(futures::stream::select_all(all_streams))
+                    } else {
+                        trace!("Agent only sees message stream.");
+                        Box::pin(message_stream)
+                    };
+
+                let sender = self.distributor.0.clone();
+                self.broadcast_task = Some(tokio::spawn(async move {
+                    while let Some(event) = event_stream.next().await {
+                        sender.send(event).unwrap();
+                    }
+                    event_stream
+                }));
+                self.run(instruction).await;
+            }
+            MachineInstruction::Stop => {
+                unreachable!("This is never explicitly called on an agent.")
+            }
+        }
     }
 }
 
@@ -229,20 +221,14 @@ mod tests {
 
     use super::*;
     use crate::messager::Message;
-    #[ignore]
-    #[tokio::test(flavor = "multi_thread", worker_threads = 2)]
+
+    #[tokio::test(flavor = "multi_thread", worker_threads = 4)]
     async fn streaming() {
-        std::env::set_var("RUST_LOG", "trace");
-        tracing_subscriber::fmt::init();
+        // std::env::set_var("RUST_LOG", "trace");
+        // tracing_subscriber::fmt::init();
 
-        let mut world = World::new("world");
-        let messager = world.messager.clone();
-        println!(
-            "Receiver count: {:?}",
-            messager.broadcast_sender.receiver_count()
-        );
-
-        let agent = world.create_agent("agent");
+        let world = World::new("world");
+        let agent = Agent::new("agent", &world);
 
         let arb = ArbiterToken::deploy(
             agent.client.clone(),
@@ -253,28 +239,73 @@ mod tests {
         .await
         .unwrap();
 
-        agent.add_event(arb.events());
+        let mut agent = agent.with_event(arb.events());
         let address = agent.client.address();
-        let mut streamer = agent.start_event_stream();
 
-        for _ in 0..5 {
-            messager
-                .send(Message {
-                    from: "me".to_string(),
-                    to: messager::To::All,
-                    data: "hello".to_string(),
-                })
-                .await;
-            arb.approve(address, U256::from(1))
-                .send()
-                .await
-                .unwrap()
-                .await
-                .unwrap();
-        }
+        // TODO: (START BLOCK) It would be nice to get this block to be a single
+        // function that isn't copy and pasted from above.
+        let messager = agent.messager.take().unwrap();
+        let message_stream = messager
+            .stream()
+            .map(|msg| serde_json::to_string(&msg).unwrap_or_else(|e| e.to_string()));
+        let eth_event_stream = agent.event_streamer.take().unwrap().stream();
 
-        while let Some(msg) = streamer.next().await {
-            println!("Printing message in test: {:?}", msg);
-        }
+        let mut event_stream: Pin<Box<dyn Stream<Item = String> + Send + '_>> =
+            if let Some(event_stream) = eth_event_stream {
+                trace!("Merging event streams.");
+                let all_streams = vec![
+                    Box::pin(message_stream) as Pin<Box<dyn Stream<Item = String> + Send>>,
+                    Box::pin(event_stream),
+                ];
+                Box::pin(futures::stream::select_all(all_streams))
+            } else {
+                trace!("Agent only sees message stream.");
+                Box::pin(message_stream)
+            };
+        // TODO: (END BLOCK)
+
+        let outside_messager = world.messager.join_with_id(None);
+        let message_task = tokio::spawn(async move {
+            for _ in 0..5 {
+                outside_messager
+                    .send(Message {
+                        from: "god".to_string(),
+                        to: messager::To::All,
+                        data: "hello".to_string(),
+                    })
+                    .await;
+            }
+        });
+
+        let eth_event_task = tokio::spawn(async move {
+            for i in 0..5 {
+                if i == 0 {
+                    tokio::time::sleep(std::time::Duration::from_secs(1)).await;
+                }
+                arb.approve(address, U256::from(1))
+                    .send()
+                    .await
+                    .unwrap()
+                    .await
+                    .unwrap();
+            }
+        });
+
+        let mut idx = 0;
+        let print_task = tokio::spawn(async move {
+            while let Some(msg) = event_stream.next().await {
+                println!("Printing message in test: {:?}", msg);
+                if idx < 5 {
+                    assert_eq!(msg, "{\"from\":\"god\",\"to\":\"All\",\"data\":\"hello\"}");
+                } else {
+                    assert_eq!(msg, "{\"ApprovalFilter\":{\"owner\":\"0xe7a46f3d9f0e9b9c02f58f95e3bcee2db54050b0\",\"spender\":\"0xe7a46f3d9f0e9b9c02f58f95e3bcee2db54050b0\",\"amount\":\"0x1\"}}");
+                }
+                idx += 1;
+                if idx == 10 {
+                    break;
+                }
+            }
+        });
+        join_all(vec![message_task, eth_event_task, print_task]).await;
     }
 }

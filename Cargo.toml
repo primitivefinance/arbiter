@@ -23,15 +23,15 @@ path = "bin/main.rs"
 [workspace.dependencies]
 arbiter-bindings = { version = "*", path = "./arbiter-bindings" }
 arbiter-core = { version = "*", path = "./arbiter-core" }
-ethers = { version = "2.0.10" }
+ethers = { version = "2.0.11" }
 serde = { version = "1.0.193", features = ["derive"] }
 serde_json = { version = "=1.0.108" }
-revm = { git = "https://github.com/bluealloy/revm.git", rev = "30bbcdf", features = [ "ethersdb", "std", "serde"] }
-revm-primitives = { git = "https://github.com/bluealloy/revm.git", rev = "30bbcdf" }
+revm = { git = "https://github.com/bluealloy/revm.git", features = [ "ethersdb", "std", "serde"], rev  = "30bbcdfe81446c9d1e9b37acc95f208943ddf858" }
+revm-primitives = { git = "https://github.com/bluealloy/revm.git", rev = "30bbcdfe81446c9d1e9b37acc95f208943ddf858" }
 thiserror = { version = "1.0.55" }
 syn = { version = "2.0.43" }
 quote = { version = "=1.0.33" }
-proc-macro2 = { version = "1.0.76" }
+proc-macro2 = { version = "1.0.78" }
 tokio = { version = "1.35.1", features = ["macros", "full"] }
 crossbeam-channel =  { version = "0.5.11" }
 futures-util =  { version = "=0.3.30" }
@@ -66,7 +66,7 @@ thiserror.workspace = true
 [dev-dependencies]
 tokio.workspace = true
 assert_cmd = { version = "=2.0.13" }
-rayon = { version = "1.8.1" }
+rayon = { version = "1.8.0" }
 revm-primitives.workspace = true
 
 # Release profile
