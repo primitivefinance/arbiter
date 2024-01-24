@@ -2,7 +2,7 @@
 **Arbiter** is a framework for stateful Ethereum smart-contract simulation. 
 The framework features an [`ethers-rs`](https://github.com/gakonst/ethers-rs) middleware built on top of [revm](https://github.com/bluealloy/revm) which allows the end user to interact with a sandboxed `revm` instance as if it were an Ethereum node. 
 This provides a familiar interface for interacting with the Ethereum Virtual Machine (EVM), but with unrivaled speed. 
-Furthermore, Arbiter provides containment and management for simulations. For a running list of vulnerabilities found with Arbiter, please see the [Vulnerability Corpus](./documentation/src/contributing/vulnerability_corpus.md).
+Furthermore, Arbiter provides containment and management for simulations. For a running list of vulnerabilities found with Arbiter, please see the [Vulnerability Corpus](contributing/vulnerability_corpus.md).
 
 ## Overview
 The Arbiter workspace has three crates:

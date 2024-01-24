@@ -62,3 +62,4 @@ jobs:
       # Build book
       - name: Build book
         run: mdbook build
+        continue-on-error: false
