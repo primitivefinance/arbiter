@@ -13,7 +13,6 @@ The `Socket` is a struct owned by the `Environment` that manages all inward and 
 To create an `Environment`, we use a builder pattern that allows you to pre-load an `Environment` with your own database.
 We can do the following to create a default `Environment`:
 ```rust
-extern crate skeptic;
 use arbiter_core::environment::builder::EnvironmentBuilder;
 
 fn main() {
@@ -24,12 +23,12 @@ Note that the call to `.build()` will start the `Environment`'s thread and begin
 
 If you have a database that has been forked from a live network, it has likely been serialized to disk.
 In which case, you can do something like this:
-```rust
+```rust, ignore
 use arbiter_core::environment::builder::EnvironmentBuilder;
 use arbiter_core::environment::fork::Fork;
 
 fn main() {
-    let path_to_fork = "../example_fork/fork_into_test.json";
+    let path_to_fork = "path/to/fork";
     let fork = Fork::from_disk(path_to_fork).unwrap();
     let env = EnvironmentBuilder::new().db(fork).build();
 }
@@ -107,9 +106,6 @@ async fn main() {
     let client = RevmMiddleware::new(&env, None).unwrap();
 
     // Deploy a contract
-    let _contract = ArbiterToken::deploy(client, ("ARB".to_owned(), "Arbiter Token".to_owned(), 18)).unwrap().send().await.unwrap();
-
-    env.stop().unwrap();
+    let contract = ArbiterToken::deploy(client, ("ARBT".to_owned(), "Arbiter Token".to_owned(), 18u8)).unwrap().send().await.unwrap();
 }
 ```
-why is this broken

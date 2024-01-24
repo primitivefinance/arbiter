@@ -11,6 +11,7 @@ on:
     branches: [main]
   merge_group:
 
+jobs:
   build:
     runs-on: ubuntu-latest
 
