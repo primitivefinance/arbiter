@@ -11,30 +11,6 @@ on:
     branches: [main]
   merge_group:
 
-jobs:
-  lint:
-    runs-on: ubuntu-latest
-    name: lint
-
-    steps:
-      - uses: actions/checkout@v3
-
-      # Install Rust
-      - name: Install Rust toolchain
-        uses: actions-rs/toolchain@v1
-        with:
-          toolchain: stable
-          override: true
-          components: rustfmt, clippy
-
-      # Install mdbook-linkcheck
-      - name: Install mdbook-linkcheck
-        run: cargo install mdbook-linkcheck
-
-      # Run linkcheck
-      - name: Run linkcheck
-        run: mdbook-linkcheck --standalone
-
   build:
     runs-on: ubuntu-latest
 
@@ -59,7 +35,16 @@ jobs:
       - name: Install mdbook-keeper
         run: cargo install mdbook-keeper --version "^0.4.0"
 
+      # Install mdbook-linkcheck
+      - name: Install mdbook-linkcheck
+        run: cargo install mdbook-linkcheck
+
+      # Install mdbook-katex
+      - name: Install mdbook-katex
+        run: cargo install mdbook-katex
+
       # Build book
       - name: Build book
-        run: mdbook build
-        continue-on-error: false
+        run: |
+          set -e
+          mdbook build
