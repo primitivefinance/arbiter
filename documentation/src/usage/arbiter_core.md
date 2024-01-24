@@ -6,7 +6,7 @@ The only notable differences are in the control you have over this `Environment`
 
 ## Environment
 The `Environment` owns a `revm` instance for processing EVM bytecode.
-To make the `Environment` performent and flexible, it runs on its own system thread and receives all communication via `Instruction`s sent to it via a `Sender<Instruction>`.
+To make the `Environment` performant and flexible, it runs on its own system thread and receives all communication via `Instruction`s sent to it via a `Sender<Instruction>`.
 The `Socket` is a struct owned by the `Environment` that manages all inward and outward communication with the `Environment`'s clients, such as the `Instruction` channel.
 
 ### Usage

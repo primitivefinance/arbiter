@@ -12,52 +12,30 @@ on:
   merge_group:
 
 jobs:
-  setup:
-    runs-on: ubuntu-latest
-    outputs:
-      mdbook-path: ${{ steps.mdbook-path.outputs.path }}
-      mdbook-template-path: ${{ steps.mdbook-template-path.outputs.path }}
-      mdbook-linkcheck-path: ${{ steps.mdbook-linkcheck-path.outputs.path }}
-
-    steps:
-      - uses: actions/checkout@v3
-
-      # Install Rust
-      - name: install rust toolchain
-        uses: actions-rs/toolchain@v1
-        with:
-          toolchain: stable
-          override: true
-          components: rustfmt, clippy
-
-      # Install mdbook
-      - name: install mdbook
-        run: cargo install mdbook --vers "^0.4.35"
-        continue-on-error: false
-
-      # Install mdbook-linkcheck
-      - name: install mdbook-linkcheck
-        run: cargo install mdbook-linkcheck
-        continue-on-error: false
-
-      # Install mdbook-keeper
-      - name: install mdbook-keeper
-        run: cargo install mdbook-keeper --version "^0.4.0"
-        continue-on-error: false
-
   lint:
-    needs: setup
     runs-on: ubuntu-latest
     name: lint
 
     steps:
       - uses: actions/checkout@v3
 
-      - name: run linkcheck
+      # Install Rust
+      - name: Install Rust toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          override: true
+          components: rustfmt, clippy
+
+      # Install mdbook-linkcheck
+      - name: Install mdbook-linkcheck
+        run: cargo install mdbook-linkcheck
+
+      # Run linkcheck
+      - name: Run linkcheck
         run: mdbook-linkcheck --standalone
 
   build:
-    needs: setup
     runs-on: ubuntu-latest
 
     steps:
@@ -65,5 +43,22 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: build book
+      # Install Rust
+      - name: Install Rust toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          override: true
+          components: rustfmt, clippy
+
+      # Install mdbook
+      - name: Install mdbook
+        run: cargo install mdbook --vers "^0.4.35"
+
+      # Install mdbook-keeper
+      - name: Install mdbook-keeper
+        run: cargo install mdbook-keeper --version "^0.4.0"
+
+      # Build book
+      - name: Build book
         run: mdbook build
