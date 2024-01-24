@@ -7,7 +7,9 @@
 # Usage
 - [Overview](./usage/index.md)
   - [Arbiter CLI](./usage/arbiter_cli.md)
-  - [Arbiter Core](./usage/arbiter_core.md)
+  - [Arbiter Core](./usage/arbiter_core/index.md)
+    - [Environment](./usage/arbiter_core/environment.md)
+    - [Middleware](./usage/arbiter_core/middleware.md)
   - [Arbiter Engine](./usage/arbiter_engine.md)
 - [Techniques](./usage/techniques/index.md)
   - [Stateful Testing](./usage/techniques/stateful_testing.md)
