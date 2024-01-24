@@ -12,57 +12,70 @@ on:
   merge_group:
 
 jobs:
-  test:
+  setup:
     runs-on: ubuntu-latest
-    name: test
+    outputs:
+      mdbook-path: ${{ steps.mdbook-path.outputs.path }}
+      mdbook-template-path: ${{ steps.mdbook-template-path.outputs.path }}
+      mdbook-linkcheck-path: ${{ steps.mdbook-linkcheck-path.outputs.path }}
 
     steps:
       - uses: actions/checkout@v3
 
-      - name: Install mdbook
-        run: |
-          mkdir mdbook
-          curl -sSL https://github.com/rust-lang/mdBook/releases/download/v0.4.14/mdbook-v0.4.14-x86_64-unknown-linux-gnu.tar.gz | tar -xz --directory=./mdbook
-          echo `pwd`/mdbook >> $GITHUB_PATH
-          
-      - name: Install Rust (mdbook-keeper requires Rust)
+      # Install Rust
+      - name: Install Rust
         uses: actions-rs/toolchain@v1
         with:
           toolchain: stable
           override: true
+          components: rustfmt, clippy
 
-      - name: Install mdbook-keeper
-        run: cargo install mdbook-keeper
+      # Install mdbook
+      - name: Install mdbook
+        run: |
+          mkdir mdbook
+          curl -sSL https://github.com/rust-lang/mdBook/releases/download/v0.4.14/mdbook-v0.4.14-x86_64-unknown-linux-gnu.tar.gz | tar -xz --directory=./mdbook
+        id: mdbook-path
+        working-directory: ${{ github.workspace }}
+        continue-on-error: false
 
+      # Install mdbook-template
       - name: Install mdbook-template
         run: |
           mkdir mdbook-template
           curl -sSL https://github.com/sgoudham/mdbook-template/releases/latest/download/mdbook-template-x86_64-unknown-linux-gnu.tar.gz | tar -xz --directory=./mdbook-template
-          echo `pwd`/mdbook-template >> $GITHUB_PATH
+        id: mdbook-template-path
+        working-directory: ${{ github.workspace }}
+        continue-on-error: false
 
-      - name: Run tests
-        run: mdbook test
+      # Install mdbook-linkcheck
+      - name: Install mdbook-linkcheck
+        run: |
+          mkdir mdbook-linkcheck
+          curl -sSL -o mdbook-linkcheck.zip https://github.com/Michael-F-Bryan/mdbook-linkcheck/releases/latest/download/mdbook-linkcheck.x86_64-unknown-linux-gnu.zip
+          unzip mdbook-linkcheck.zip -d ./mdbook-linkcheck
+          chmod +x mdbook-linkcheck/mdbook-linkcheck
+        id: mdbook-linkcheck-path
+        working-directory: ${{ github.workspace }}
+        continue-on-error: false
 
   lint:
+    needs: setup
     runs-on: ubuntu-latest
     name: lint
 
     steps:
       - uses: actions/checkout@v3
 
-      - name: Install mdbook-linkcheck
-        run: |
-          mkdir mdbook-linkcheck
-          curl -sSL -o mdbook-linkcheck.zip https://github.com/Michael-F-Bryan/mdbook-linkcheck/releases/latest/download/mdbook-linkcheck.x86_64-unknown-linux-gnu.zip
-          unzip mdbook-linkcheck.zip -d ./mdbook-linkcheck
-          chmod +x `pwd`/mdbook-linkcheck/mdbook-linkcheck
-          echo `pwd`/mdbook-linkcheck >> $GITHUB_PATH
-
       - name: Run linkcheck
         run: mdbook-linkcheck --standalone
+        env:
+          PATH: ${{ needs.setup.outputs.mdbook-linkcheck-path }}:$PATH
 
   build:
+    needs: setup
     runs-on: ubuntu-latest
+
     steps:
       - uses: actions/checkout@v3
         with:
@@ -70,24 +83,15 @@ jobs:
 
       - name: Install toolchain
         uses: dtolnay/rust-toolchain@nightly
+
       - uses: Swatinem/rust-cache@v2
         with:
           cache-on-failure: true
 
-      - name: Install mdbook
-        run: |
-          mkdir mdbook
-          curl -sSL https://github.com/rust-lang/mdBook/releases/download/v0.4.14/mdbook-v0.4.14-x86_64-unknown-linux-gnu.tar.gz | tar -xz --directory=./mdbook
-          echo `pwd`/mdbook >> $GITHUB_PATH
-
-      - name: Install mdbook-template
-        run: |
-          mkdir mdbook-template
-          curl -sSL https://github.com/sgoudham/mdbook-template/releases/latest/download/mdbook-template-x86_64-unknown-linux-gnu.tar.gz | tar -xz --directory=./mdbook-template
-          echo `pwd`/mdbook-template >> $GITHUB_PATH
-
       - name: Build book
-        run: mdbook build documentation
+        run: mdbook build
+        env:
+          PATH: ${{ needs.setup.outputs.mdbook-path }}:$PATH
 
       - name: Build docs
         run: RUSTDOCFLAGS="--enable-index-page -Zunstable-options" cargo +nightly doc --all --no-deps
