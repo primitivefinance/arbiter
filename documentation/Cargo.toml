@@ -5,3 +5,5 @@ edition = "2021"
 
 [dependencies]
 arbiter-core = { path = "../arbiter-core" }
+arbiter-bindings = { path = "../arbiter-bindings" }
+tokio.workspace = true

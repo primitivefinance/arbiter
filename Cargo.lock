@@ -300,6 +300,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "arbiter-documentation"
+version = "0.0.0"
+dependencies = [
+ "arbiter-bindings",
+ "arbiter-core",
+ "tokio",
+]
+
+[[package]]
 name = "arbiter-engine"
 version = "0.1.0"
 dependencies = [

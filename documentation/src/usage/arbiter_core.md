@@ -101,7 +101,7 @@ use arbiter_core::environment::builder::EnvironmentBuilder;
 use arbiter_bindings::bindings::arbiter_token::ArbiterToken;
 
 #[tokio::main]
-fn main() {
+async fn main() {
     let env = EnvironmentBuilder::new().build();
     let client = RevmMiddleware::new(&env, None);
 
