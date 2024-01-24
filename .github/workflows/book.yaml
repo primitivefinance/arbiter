@@ -24,6 +24,15 @@ jobs:
           mkdir mdbook
           curl -sSL https://github.com/rust-lang/mdBook/releases/download/v0.4.14/mdbook-v0.4.14-x86_64-unknown-linux-gnu.tar.gz | tar -xz --directory=./mdbook
           echo `pwd`/mdbook >> $GITHUB_PATH
+          
+      - name: Install Rust (mdbook-keeper requires Rust)
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          override: true
+
+      - name: Install mdbook-keeper
+        run: cargo install mdbook-keeper
 
       - name: Install mdbook-template
         run: |

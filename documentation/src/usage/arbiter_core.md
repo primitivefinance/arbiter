@@ -15,7 +15,9 @@ We can do the following to create a default `Environment`:
 ```rust
 use arbiter_core::environment::builder::EnvironmentBuilder;
 
-let env = EnvironmentBuilder::new().build();
+fn main() {
+    let env = EnvironmentBuilder::new().build();
+}
 ```
 Note that the call to `.build()` will start the `Environment`'s thread and begin processing `Instruction`s.
 
@@ -25,8 +27,11 @@ In which case, you can do something like this:
 use arbiter_core::environment::builder::EnvironmentBuilder;
 use arbiter_core::environment::fork::Fork;
 
-let fork = Fork::from_disk("path/to/forked/database").unwrap();
-let env = EnvironmentBuilder::new().db(fork).build();
+fn main() {
+    let path_to_fork = "../example_fork/fork_into_test.json";
+    let fork = Fork::from_disk(path_to_fork).unwrap();
+    let env = EnvironmentBuilder::new().db(fork).build();
+}
 ```
 This will create an `Environment` that has been forked from the database at the given path and is ready to receive `Instruction`s.
 
@@ -72,3 +77,34 @@ This type is unable to sign as it is effectively impossible to recover the signi
 Fortunately, for almost every usecase of `RevmMiddleware`, you will not need to sign transactions, so this distinction does not matter.
 
 ### Usage
+
+To create a `RevmMiddleware` that is associated with an account in the `Environment`'s world state, we can do the following:
+```rust
+use arbiter_core::middleware::RevmMiddleware;
+use arbiter_core::environment::builder::EnvironmentBuilder;
+
+fn main() {
+    let env = EnvironmentBuilder::new().build();
+
+    // Create a client for the above `Environment` with an ID
+    let id = "alice";
+    let alice = RevmMiddleware::new(&env, Some(id));
+
+    // Create a client without an ID
+    let client = RevmMiddleware::new(&env, None);
+}
+```
+These created clients can then get access to making calls and transactions to contracts deployed into the `Environment`'s world state. We can do the following:
+```rust
+use arbiter_core::middleware::RevmMiddleware;
+use arbiter_core::environment::builder::EnvironmentBuilder;
+use arbiter_bindings::bindings::arbiter_token::ArbiterToken;
+
+#[tokio::main]
+fn main() {
+    let env = EnvironmentBuilder::new().build();
+    let client = RevmMiddleware::new(&env, None);
+
+    // Deploy a contract
+    let contract = ArbiterToken::deploy(&client, ("ARB", "Arbiter Token", 18)).send().await.unwrap().await.unwrap();
+}

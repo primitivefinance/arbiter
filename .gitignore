@@ -21,3 +21,5 @@ book
 
 arbiter-core/data
 example_fork/test.json
+
+doctest_cache/

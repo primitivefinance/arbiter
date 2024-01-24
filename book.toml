@@ -27,6 +27,11 @@ include-src = false
 block-delimiter = { left = "$$", right = "$$" }
 inline-delimiter = { left = "$", right = "$" }
 
+[preprocessor.keeper]
+command = "mdbook-keeper"
+manifest_dir = "."
+externs = ["arbiter_core", "arbiter_bindings", "tokio"]
+
 [output.linkcheck]
 optional = true
 follow-web-links = true
