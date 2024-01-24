@@ -13,6 +13,7 @@ The `Socket` is a struct owned by the `Environment` that manages all inward and 
 To create an `Environment`, we use a builder pattern that allows you to pre-load an `Environment` with your own database.
 We can do the following to create a default `Environment`:
 ```rust
+extern crate skeptic;
 use arbiter_core::environment::builder::EnvironmentBuilder;
 
 fn main() {
@@ -103,8 +104,12 @@ use arbiter_bindings::bindings::arbiter_token::ArbiterToken;
 #[tokio::main]
 async fn main() {
     let env = EnvironmentBuilder::new().build();
-    let client = RevmMiddleware::new(&env, None);
+    let client = RevmMiddleware::new(&env, None).unwrap();
 
     // Deploy a contract
-    let contract = ArbiterToken::deploy(client, ("ARB".to_owned(), "Arbiter Token".to_owned(), 18)).unwrap().send().await.unwrap();
+    let _contract = ArbiterToken::deploy(client, ("ARB".to_owned(), "Arbiter Token".to_owned(), 18)).unwrap().send().await.unwrap();
+
+    env.stop().unwrap();
 }
+```
+why is this broken

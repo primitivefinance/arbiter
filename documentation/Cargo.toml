@@ -1,9 +1,14 @@
 [package]
-name = "arbiter-documentation"
+name = "documentation"
 version = "0.0.0"
 edition = "2021"
+build = "build.rs"
 
-[dependencies]
+[build-dependencies]
+skeptic = "0.13.7"
+
+[dev-dependencies]
+skeptic = "0.13.7"
 arbiter-core = { path = "../arbiter-core" }
 arbiter-bindings = { path = "../arbiter-bindings" }
 tokio.workspace = true
