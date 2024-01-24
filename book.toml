@@ -29,7 +29,7 @@ inline-delimiter = { left = "$", right = "$" }
 
 [preprocessor.keeper]
 command = "mdbook-keeper"
-manifest_dir = "."
+manifest_dir = "./documentation/"
 externs = ["arbiter_core", "arbiter_bindings", "tokio"]
 
 [output.linkcheck]
