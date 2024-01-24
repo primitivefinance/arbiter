@@ -8,12 +8,11 @@
 ![Telegram badge](https://img.shields.io/endpoint?color=neon&logo=telegram&label=chat&style=flat-square&url=https%3A%2F%2Ftg.sumanjay.workers.dev%2Farbiter_rs)
 [![Twitter Badge](https://badgen.net/badge/icon/twitter?icon=twitter&label)](https://twitter.com/primitivefi)
 
+## Overview
 **Arbiter** is a framework for stateful Ethereum smart-contract simulation. 
 The framework features an [`ethers-rs`](https://github.com/gakonst/ethers-rs) middleware built on top of [revm](https://github.com/bluealloy/revm) which allows the end user to interact with a sandboxed `revm` instance as if it were an Ethereum node. 
 This provides a familiar interface for interacting with the Ethereum Virtual Machine (EVM), but with unrivaled speed. 
 Furthermore, Arbiter provides containment and management for simulations. For a running list of vulnerabilities found with Arbiter, please see the [Vulnerability Corpus](./documentation/src/contributing/vulnerability_corpus.md).
-
-## Overview
 
 The Arbiter workspace has three crates:
 - `arbiter`: The binary crate that exposes a command line interface for initializing simulations via a templated repository and generating contract bindings needed for the simulation.
@@ -22,6 +21,9 @@ The Arbiter workspace has three crates:
 
 The purpose of Arbiter is to provide a toolset to construct arbitrary agents (defined in Rust, by smart contracts, or even other foreign function interfaces) and have these agents interact with an Ethereum-like environment of your design. 
 All contract bytecode is run directly using a blazing-fast EVM instance `revm` (which is used in live RPC nodes such as [`reth`](https://github.com/paradigmxyz/reth)) so that your contracts are tested in the exact same type of environment that they are deployed in.
+
+## Docs
+Here you can find the [Arbiter docs](https://primitivefinance.github.io/arbiter/)
 
 ## Motivation 
 
