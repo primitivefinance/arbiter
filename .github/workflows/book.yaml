@@ -11,6 +11,7 @@ on:
     branches: [main]
   merge_group:
 
+jobs:
   build:
     runs-on: ubuntu-latest
 
@@ -44,7 +45,7 @@ on:
         run: cargo install mdbook-katex
 
       # Build book
-      - name: Build book
+      - name: build book
         run: |
           set -e
           mdbook build
