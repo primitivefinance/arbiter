@@ -47,7 +47,7 @@ impl Fork {
         // Read the file
         let mut cwd = env::current_dir().unwrap();
         cwd.push(path);
-        info!("Reading db from: {:?}", cwd);
+        print!("Reading db from: {:?}", cwd);
         let data = fs::read_to_string(cwd).unwrap();
 
         // Deserialize the JSON data to your OutputData type
