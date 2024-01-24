@@ -2,7 +2,6 @@
 
 mod contracts;
 mod data_collection_integration;
-mod derives;
 mod environment_integration;
 mod middleware_integration;
 

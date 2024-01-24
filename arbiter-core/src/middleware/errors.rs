@@ -69,6 +69,10 @@ pub enum RevmMiddlewareError {
         /// Provides the amount of gas used by the transaction.
         gas_used: u64,
     },
+
+    /// There was an error with a signature.
+    #[error("signature error! due to: {0}")]
+    Signing(String),
 }
 
 impl MiddlewareError for RevmMiddlewareError {
