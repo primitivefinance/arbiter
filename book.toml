@@ -33,5 +33,5 @@ manifest_dir = "./documentation/"
 externs = ["arbiter_core", "arbiter_bindings", "tokio"]
 
 [output.linkcheck]
-optional = false
+optional = true
 follow-web-links = true

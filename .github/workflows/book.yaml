@@ -37,9 +37,7 @@ jobs:
 
       # Build book
       - name: build book
-        run: |
-          set -e
-          mdbook build
+        run: mdbook build
 
   lint:
     runs-on: ubuntu-latest

@@ -106,6 +106,6 @@ async fn main() {
     let client = RevmMiddleware::new(&env, None).unwrap();
 
     // Deploy a contract
-    let contract = ArbiterToken::deploy(client, ("ARBT".to_owned(), "Arbiter Token".to_owned(), 18u8)).unwrap().send().await.unwrap();
+    let contract = ArbidterToken::deploy(client, ("ARBT".to_owned(), "Arbiter Token".to_owned(), 18u8)).unwrap().send().await.unwrap();
 }
 ```
