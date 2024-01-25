@@ -18,7 +18,7 @@ Fortunately, for almost every usecase of `RevmMiddleware`, you will not need to 
 To create a `RevmMiddleware` that is associated with an account in the `Environment`'s world state, we can do the following:
 ```rust
 use arbiter_core::middleware::RevmMiddleware;
-use arbiter_core::environment::builder::EnvironmentBuilder;
+use arbiter_core::environment::EnvironmentBuilder;
 
 fn main() {
     let env = EnvironmentBuilder::new().build();
@@ -34,7 +34,7 @@ fn main() {
 These created clients can then get access to making calls and transactions to contracts deployed into the `Environment`'s world state. We can do the following:
 ```rust
 use arbiter_core::middleware::RevmMiddleware;
-use arbiter_core::environment::builder::EnvironmentBuilder;
+use arbiter_core::environment::EnvironmentBuilder;
 use arbiter_bindings::bindings::arbiter_token::ArbiterToken;
 
 #[tokio::main]

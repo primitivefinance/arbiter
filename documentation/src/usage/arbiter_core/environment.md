@@ -7,7 +7,7 @@ The `Socket` is a struct owned by the `Environment` that manages all inward and 
 To create an `Environment`, we use a builder pattern that allows you to pre-load an `Environment` with your own database.
 We can do the following to create a default `Environment`:
 ```rust
-use arbiter_core::environment::builder::EnvironmentBuilder;
+use arbiter_core::environment::EnvironmentBuilder;
 
 fn main() {
     let env = EnvironmentBuilder::new().build();
@@ -18,13 +18,13 @@ Note that the call to `.build()` will start the `Environment`'s thread and begin
 If you have a database that has been forked from a live network, it has likely been serialized to disk.
 In which case, you can do something like this:
 ```rust, ignore
-use arbiter_core::environment::builder::EnvironmentBuilder;
+use arbiter_core::environment::EnvironmentBuilder;
 use arbiter_core::environment::fork::Fork;
 
 fn main() {
     let path_to_fork = "path/to/fork";
     let fork = Fork::from_disk(path_to_fork).unwrap();
-    let env = EnvironmentBuilder::new().db(fork).build();
+    let env = EnvironmentBuilder::new().with_db(fork).build();
 }
 ```
 This will create an `Environment` that has been forked from the database at the given path and is ready to receive `Instruction`s.
