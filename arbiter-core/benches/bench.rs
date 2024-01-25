@@ -11,7 +11,7 @@ use arbiter_bindings::bindings::{
     arbiter_token::{self, ArbiterToken},
 };
 use arbiter_core::{
-    environment::{builder::EnvironmentBuilder, Environment},
+    environment::{Environment, EnvironmentBuilder},
     middleware::RevmMiddleware,
 };
 use ethers::{
