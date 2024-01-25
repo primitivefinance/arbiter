@@ -27,12 +27,6 @@ use crate::{
     middleware::*,
 };
 
-pub const TEST_BLOCK_RATE: f64 = 2.0;
-pub const TEST_BLOCK_TIME: u32 = 12;
-pub const TEST_ENV_SEED: u64 = 1;
-pub const TEST_GAS_PRICE: u128 = 100;
-pub const TEST_GAS_MULTIPLIER: f64 = 2.0;
-
 pub const TEST_ARG_NAME: &str = "ArbiterToken";
 pub const TEST_ARG_SYMBOL: &str = "ARBT";
 pub const TEST_ARG_DECIMALS: u8 = 18;
