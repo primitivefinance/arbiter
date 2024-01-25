@@ -65,26 +65,6 @@ pub enum EnvironmentError {
     #[error("conversion error! the source error is: {0}")]
     Conversion(String),
 
-    /// [`EnvironmentError::NotUserControlledGasSettings`] is thrown when the
-    /// [`Environment`] is not in a [`GasSettings::UserControlled`] state and
-    /// an attempt is made to externally change the gas price.
-    #[error("error in the environment! attempted to set a gas price when the `GasSettings` is not `GasSettings::UserControlled`")]
-    NotUserControlledGasSettings,
-
-    /// [`EnvironmentError::NotUserControlledBlockSettings`] is thrown when
-    /// the [`Environment`] is in a [`BlockSettings::RandomlySampled`] state and
-    /// an attempt is made to externally change the block number and timestamp.
-    #[error("error in the environment! attempted to externally change block number and timestamp when `BlockSettings` is not `BlockSettings::UserControlled`.")]
-    NotUserControlledBlockSettings,
-
-    /// [`EnvironmentError::NotRandomlySampledBlockSettings`] is thrown when
-    /// the [`Environment`] is **not** in a [`BlockSettings::RandomlySampled`]
-    /// state and an attempt is made to set the gas price via a multiplier.
-    /// That is, the user has chosen [`GasSettings::RandomlySampled`] without
-    /// [`BlockSettings::RandomlySampled`].
-    #[error("error in the environment! attempted to set a gas price via a multiplier when the `BlockSettings` is not `BlockSettings::RandomlySampled`.")]
-    NotRandomlySampledBlockSettings,
-
     /// [`EnvironmentError::ShutDownReceiverError`] is thrown when a malformed
     /// shutdown receiver is sent to the event broadcaster. This error could
     /// occur due to an invalid shutdown receiver.
