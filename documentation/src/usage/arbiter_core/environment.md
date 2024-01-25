@@ -29,6 +29,19 @@ fn main() {
 ```
 This will create an `Environment` that has been forked from the database at the given path and is ready to receive `Instruction`s.
 
+`Environment` supports more customization for the `gas_limit` and `contract_size_limit` of the `revm` instance. 
+You can do the following:
+```rust
+use arbiter_core::environment::EnvironmentBuilder;
+
+fn main() {
+    let env = EnvironmentBuilder::new()
+        .with_gas_limit(revm::primitives::U256::from(12_345_678))
+        .with_contract_size_limit(111_111)
+        .build();
+}
+```
+
 ## Instructions
 `Instruction`s have been added to over time, but at the moment we allow for the following:
 - `Instruction::AddAccount`: Add an account to the `Environment`'s world state. This is usually called by the `RevmMiddleware` when a new client is created.
