@@ -29,4 +29,4 @@ inline-delimiter = { left = "$", right = "$" }
 
 [output.linkcheck]
 optional = true
-follow-web-links = true
+follow-web-links = false
