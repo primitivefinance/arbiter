@@ -83,9 +83,6 @@ impl Behavior<Message> for TimedMessage {
 
 #[tokio::test(flavor = "multi_thread", worker_threads = 4)]
 async fn echoer() {
-    std::env::set_var("RUST_LOG", "trace");
-    tracing_subscriber::fmt::init();
-
     let mut world = World::new("world");
 
     let agent = Agent::new(AGENT_ID, &world);
@@ -129,9 +126,6 @@ async fn echoer() {
 
 #[tokio::test(flavor = "multi_thread", worker_threads = 4)]
 async fn ping_pong() {
-    // std::env::set_var("RUST_LOG", "trace");
-    // tracing_subscriber::fmt::init();
-
     let mut world = World::new("world");
 
     let agent = Agent::new(AGENT_ID, &world);
@@ -176,9 +170,6 @@ async fn ping_pong() {
 
 #[tokio::test(flavor = "multi_thread", worker_threads = 4)]
 async fn ping_pong_two_agent() {
-    // std::env::set_var("RUST_LOG", "trace");
-    // tracing_subscriber::fmt::init();
-
     let mut world = World::new("world");
 
     let agent_ping = Agent::new("agent_ping", &world);

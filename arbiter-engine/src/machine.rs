@@ -6,7 +6,10 @@
 // and messager and then the user can decide if it wants to use those in their
 // behavior.
 
-// Could typestate pattern help here at all?
+// Could typestate pattern help here at all? Sync could produce a `Synced` state
+// behavior that can then not have options for client and messager. Then the
+// user can decide if they want to use those in their behavior and get a bit
+// simpler UX.
 
 use std::{fmt::Debug, sync::Arc};
 
