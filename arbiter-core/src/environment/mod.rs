@@ -164,6 +164,7 @@ pub struct EnvironmentParameters {
 /// This builder allows for the configuration of an [`Environment`] before it is
 /// instantiated. It provides methods for setting the label, gas limit, contract
 /// size limit, and a database for the [`Environment`].
+#[derive(Clone)]
 pub struct EnvironmentBuilder {
     parameters: EnvironmentParameters,
     db: Option<ArbiterDB>,
