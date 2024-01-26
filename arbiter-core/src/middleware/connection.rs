@@ -99,24 +99,29 @@ impl JsonRpcClient for Connection {
                                 .to_string(),
                         ))?;
                 let mut logs = vec![];
-                let filtered_params = FilteredParams::new(Some(filter_receiver.filter.clone()));
-                if let Some(receiver) = filter_receiver.receiver.as_mut() {
-                    if let Ok(broadcast) = receiver.try_recv() {
-                        match broadcast {
-                            Broadcast::Event(received_logs) => {
-                                let ethers_logs = revm_logs_to_ethers_logs(received_logs);
-                                for log in ethers_logs {
-                                    if filtered_params.filter_address(&log)
-                                        && filtered_params.filter_topics(&log)
-                                    {
-                                        logs.push(log);
+                if let FilterType::Log(filter) = filter_receiver.filter.clone() {
+                    let filtered_params = FilteredParams::new(Some(filter));
+                    if let Some(receiver) = filter_receiver.receiver.as_mut() {
+                        if let Ok(broadcast) = receiver.try_recv() {
+                            match broadcast {
+                                Broadcast::Event(received_logs) => {
+                                    let ethers_logs = revm_logs_to_ethers_logs(received_logs);
+                                    for log in ethers_logs {
+                                        if filtered_params.filter_address(&log)
+                                            && filtered_params.filter_topics(&log)
+                                        {
+                                            logs.push(log);
+                                        }
                                     }
                                 }
-                            }
-                            Broadcast::StopSignal => {
-                                return Err(ProviderError::CustomError(
-                                    "The `EventBroadcaster` has stopped!".to_string(),
-                                ));
+                                Broadcast::StopSignal => {
+                                    return Err(ProviderError::CustomError(
+                                        "The `EventBroadcaster` has stopped!".to_string(),
+                                    ));
+                                }
+                                Broadcast::Block(_) => {
+                                    // Do nothing
+                                }
                             }
                         }
                     }
@@ -154,14 +159,16 @@ impl PubsubClient for Connection {
 
         let mut receiver = filter_receiver.receiver.take().unwrap();
         let stream = async_stream::stream! {
-                    while let Ok(broadcast) = receiver.recv().await {
+            let filter_type = filter_receiver.filter;
+            match filter_type {
+                    FilterType::Log(filter) => {while let Ok(broadcast) = receiver.recv().await {
                         match broadcast {
                             Broadcast::StopSignal => {
                                 break;
                             }
                         Broadcast::Event(logs) => {
                             let filtered_params =
-                                FilteredParams::new(Some(filter_receiver.filter.clone()));
+                                FilteredParams::new(Some(filter.clone()));
                             let ethers_logs = revm_logs_to_ethers_logs(logs);
                             // Return the first log that matches the filter, if any
                             for log in ethers_logs {
@@ -186,7 +193,36 @@ impl PubsubClient for Connection {
                                 }
                             }
 
+                        },
+                        Broadcast::Block(_) => { continue;}
+
+                }}},
+                FilterType::Block => {
+                    while let Ok(broadcast) = receiver.recv().await{
+                        match broadcast {
+                            Broadcast::StopSignal => {
+                                break;
+                            }
+                            Broadcast::Event(_) => { continue; }
+                            Broadcast::Block(block) => {
+                                let raw_block = match serde_json::to_string(&block) {
+                                    Ok(block) => block,
+                                    Err(e) => {
+                                        eprintln!("Error serializing block: {}", e);
+                                        continue;
+                                    }
+                                };
+                                let raw_block = match RawValue::from_string(raw_block) {
+                                    Ok(block) => block,
+                                    Err(e) => {
+                                        eprintln!("Error creating RawValue: {}", e);
+                                        continue;
+                                    }
+                                };
+                                yield raw_block;
+                            }
                         }
+                    }
                 }
             }
         };
@@ -215,9 +251,15 @@ impl PubsubClient for Connection {
 pub(crate) struct FilterReceiver {
     /// The filter definition used for this receiver.
     /// Comes from the `ethers-rs` crate.
-    pub(crate) filter: Filter,
+    pub(crate) filter: FilterType,
 
     /// The receiver for the channel that receives logs from the broadcaster.
     /// These are filtered upon reception.
     pub(crate) receiver: Option<BroadcastReceiver<Broadcast>>,
+}
+
+#[derive(Clone, Debug)]
+pub(crate) enum FilterType {
+    Block,
+    Log(Filter),
 }

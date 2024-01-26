@@ -773,7 +773,7 @@ impl Middleware for RevmMiddleware {
         let id = ethers::types::U256::from(ethers::types::H256::from_slice(&hash).as_bytes());
         let event_receiver = self.provider().as_ref().event_sender.subscribe();
         let filter_receiver = FilterReceiver {
-            filter,
+            filter: FilterType::Log(filter),
             receiver: Some(event_receiver),
         };
         self.provider()
@@ -1012,6 +1012,30 @@ impl Middleware for RevmMiddleware {
 
     async fn get_chainid(&self) -> Result<ethers::types::U256, Self::Error> {
         Ok(ethers::types::U256::zero())
+    }
+
+    // TODO: This is NOT the correct implementation of this function. It is a hack.
+    // Beware.
+    async fn subscribe_blocks(
+        &self,
+    ) -> Result<
+        SubscriptionStream<'_, Self::Provider, ethers::types::Block<ethers::types::H256>>,
+        Self::Error,
+    >
+    where
+        <Self as Middleware>::Provider: PubsubClient,
+    {
+        let connection = self.provider.as_ref();
+        let event_receiver = connection.event_sender.subscribe();
+        connection.filter_receivers.lock().unwrap().insert(
+            ethers::types::U256::zero(),
+            FilterReceiver {
+                filter: FilterType::Block,
+                receiver: Some(event_receiver),
+            },
+        );
+        SubscriptionStream::new(ethers::types::U256::zero(), self.provider())
+            .map_err(RevmMiddlewareError::Provider)
     }
 }
 

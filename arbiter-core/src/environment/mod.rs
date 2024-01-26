@@ -35,7 +35,10 @@ use std::{
 };
 
 use crossbeam_channel::{bounded, unbounded, Receiver, Sender};
-use ethers::core::types::U64;
+use ethers::{
+    core::types::U64,
+    types::{Block, H256},
+};
 use revm::{
     db::{CacheDB, EmptyDB},
     primitives::{
@@ -714,8 +717,11 @@ pub(crate) struct Socket {
 pub enum Broadcast {
     /// Represents a signal to stop the event logger process.
     StopSignal,
+
     /// Represents a broadcast of a vector of Ethereum logs.
     Event(Vec<Log>),
+
+    Block(Block<H256>),
 }
 
 /// Convert a U256 to a U64, discarding the higher bits if the number is larger

@@ -348,6 +348,7 @@ impl EventLogger {
                             }
                         }
                     }
+                    Broadcast::Block(_) => continue,
                 }
             }
         });
@@ -375,6 +376,7 @@ impl EventLogger {
                                 }
                             }
                         }
+                        Broadcast::Block(_) => continue,
                     }
                 }
             };
