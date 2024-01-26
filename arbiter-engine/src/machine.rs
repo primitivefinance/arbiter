@@ -1,18 +1,25 @@
 //! The [`StateMachine`] trait, [`Behavior`] trait, and the [`Engine`] that runs
 //! [`Behavior`]s.
 
-use std::fmt::Debug;
+// TODO: Notes
+// I think we should have the `sync` stage of the behavior receive the client
+// and messager and then the user can decide if it wants to use those in their
+// behavior.
 
+use std::{fmt::Debug, sync::Arc};
+
+use arbiter_core::middleware::RevmMiddleware;
 use serde::de::DeserializeOwned;
 use tokio::sync::broadcast::Receiver;
 
+use self::messager::Messager;
 use super::*;
 
 /// The instructions that can be sent to a [`StateMachine`].
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Debug)]
 pub enum MachineInstruction {
     /// Used to make a [`StateMachine`] sync with the world.
-    Sync,
+    Sync(Option<Messager>, Option<Arc<RevmMiddleware>>),
 
     /// Used to make a [`StateMachine`] start up.
     Start,
@@ -71,7 +78,7 @@ pub enum State {
 pub trait Behavior<E>: Send + Sync + 'static {
     /// Used to bring the agent back up to date with the latest state of the
     /// world. This could be used if the world was stopped and later restarted.
-    async fn sync(&mut self) {}
+    async fn sync(&mut self, messager: Messager, client: Arc<RevmMiddleware>) {}
 
     /// Used to start the agent.
     /// This is where the agent can engage in its specific start up activities
@@ -144,7 +151,7 @@ where
                 self.state = State::Syncing;
                 let mut behavior = self.behavior.take().unwrap();
                 let behavior_task = tokio::spawn(async move {
-                    behavior.sync().await;
+                    behavior.sync(messager, client).await;
                     behavior
                 });
                 self.behavior = Some(behavior_task.await.unwrap());
