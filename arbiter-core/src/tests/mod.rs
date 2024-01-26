@@ -24,15 +24,8 @@ use futures::StreamExt;
 
 use crate::{
     environment::{cheatcodes::*, *},
-    math::*,
     middleware::*,
 };
-
-pub const TEST_BLOCK_RATE: f64 = 2.0;
-pub const TEST_BLOCK_TIME: u32 = 12;
-pub const TEST_ENV_SEED: u64 = 1;
-pub const TEST_GAS_PRICE: u128 = 100;
-pub const TEST_GAS_MULTIPLIER: f64 = 2.0;
 
 pub const TEST_ARG_NAME: &str = "ArbiterToken";
 pub const TEST_ARG_SYMBOL: &str = "ARBT";
@@ -55,31 +48,8 @@ pub const ARBITER_TOKEN_Y_DECIMALS: u8 = 18;
 
 pub const LIQUID_EXCHANGE_PRICE: f64 = 420.69;
 
-fn startup_randomly_sampled() -> Result<(Environment, Arc<RevmMiddleware>)> {
-    let env = builder::EnvironmentBuilder::new()
-        .block_settings(builder::BlockSettings::RandomlySampled {
-            block_rate: TEST_BLOCK_RATE,
-            block_time: TEST_BLOCK_TIME,
-            seed: TEST_ENV_SEED,
-        })
-        .gas_settings(builder::GasSettings::RandomlySampled {
-            multiplier: TEST_GAS_MULTIPLIER,
-        })
-        .build();
-    let client = RevmMiddleware::new(&env, Some(TEST_SIGNER_SEED_AND_LABEL))?;
-    Ok((env, client))
-}
-
-fn startup_user_controlled() -> Result<(Environment, Arc<RevmMiddleware>)> {
-    let env = builder::EnvironmentBuilder::new().build();
-    let client = RevmMiddleware::new(&env, Some(TEST_SIGNER_SEED_AND_LABEL))?;
-    Ok((env, client))
-}
-
-fn startup_constant_gas() -> Result<(Environment, Arc<RevmMiddleware>)> {
-    let env = builder::EnvironmentBuilder::new()
-        .gas_settings(builder::GasSettings::Constant(TEST_GAS_PRICE))
-        .build();
+fn startup() -> Result<(Environment, Arc<RevmMiddleware>)> {
+    let env = EnvironmentBuilder::new().build();
     let client = RevmMiddleware::new(&env, Some(TEST_SIGNER_SEED_AND_LABEL))?;
     Ok((env, client))
 }

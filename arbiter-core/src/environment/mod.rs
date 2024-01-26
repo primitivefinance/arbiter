@@ -30,7 +30,7 @@
 use std::{
     convert::Infallible,
     fmt::Debug,
-    sync::{Arc, Mutex, RwLock},
+    sync::{Arc, RwLock},
     thread::{self, JoinHandle},
 };
 
@@ -48,11 +48,11 @@ use thiserror::Error;
 use tokio::sync::broadcast::{channel, Sender as BroadcastSender};
 
 use super::*;
+use crate::database::ArbiterDB;
 #[cfg_attr(doc, doc(hidden))]
 #[cfg_attr(doc, allow(unused_imports))]
 #[cfg(doc)]
 use crate::middleware::RevmMiddleware;
-use crate::{database::ArbiterDB, math::SeededPoisson};
 
 pub mod cheatcodes;
 use cheatcodes::*;
@@ -64,9 +64,6 @@ pub mod errors;
 use errors::*;
 
 pub mod fork;
-
-pub mod builder;
-use builder::*;
 
 #[cfg(test)]
 pub(crate) mod tests;
@@ -115,7 +112,7 @@ pub(crate) type OutcomeReceiver = Receiver<Result<Outcome, EnvironmentError>>;
 /// and being able to move time forward for contracts that depend explicitly on
 /// time.
 pub struct Environment {
-    /// The parameters used to define the [`Environment`].
+    /// The label used to define the [`Environment`].
     pub parameters: EnvironmentParameters,
 
     /// The [`EVM`] that is used as an execution environment and database for
@@ -146,14 +143,79 @@ impl Debug for Environment {
     }
 }
 
+/// Parameters necessary for creating or modifying an [`Environment`].
+#[derive(Clone, Debug, Default, Deserialize, Serialize)]
+pub struct EnvironmentParameters {
+    /// The label used to define the [`Environment`].
+    pub label: Option<String>,
+
+    /// The gas limit for the blocks in the [`Environment`].
+    pub gas_limit: Option<U256>,
+
+    /// The contract size limit for the [`Environment`].
+    pub contract_size_limit: Option<usize>,
+}
+
+/// A builder for creating an [`Environment`].
+///
+/// This builder allows for the configuration of an [`Environment`] before it is
+/// instantiated. It provides methods for setting the label, gas limit, contract
+/// size limit, and a database for the [`Environment`].
+pub struct EnvironmentBuilder {
+    parameters: EnvironmentParameters,
+    db: Option<ArbiterDB>,
+}
+
+impl Default for EnvironmentBuilder {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+impl EnvironmentBuilder {
+    /// Creates a new [`EnvironmentBuilder`] with default parameters that can be
+    /// used to build an [`Environment`].
+    pub fn new() -> Self {
+        Self {
+            parameters: EnvironmentParameters::default(),
+            db: None,
+        }
+    }
+
+    /// Builds and runs an [`Environment`] with the parameters set in the
+    /// [`EnvironmentBuilder`].
+    pub fn build(self) -> Environment {
+        Environment::create(self.parameters, self.db).run()
+    }
+
+    /// Sets the label for the [`Environment`].
+    pub fn with_label(mut self, label: impl Into<String>) -> Self {
+        self.parameters.label = Some(label.into());
+        self
+    }
+
+    /// Sets the gas limit for the [`Environment`].
+    pub fn with_gas_limit(mut self, gas_limit: U256) -> Self {
+        self.parameters.gas_limit = Some(gas_limit);
+        self
+    }
+
+    /// Sets the contract size limit for the [`Environment`].
+    pub fn with_contract_size_limit(mut self, contract_size_limit: usize) -> Self {
+        self.parameters.contract_size_limit = Some(contract_size_limit);
+        self
+    }
+
+    /// Sets the database for the [`Environment`]. This can come from a
+    /// [`fork::Fork`].
+    pub fn with_db(mut self, db: impl Into<CacheDB<EmptyDB>>) -> Self {
+        self.db = Some(ArbiterDB(Arc::new(RwLock::new(db.into()))));
+        self
+    }
+}
+
 impl Environment {
-    /// Privately accessible constructor function for creating an
-    /// [`Environment`]. This function should be accessed by the
-    /// [`Manager`].
-    pub(crate) fn new(
-        environment_parameters: EnvironmentParameters,
-        db: Option<CacheDB<EmptyDB>>,
-    ) -> Self {
+    fn create(parameters: EnvironmentParameters, db: Option<ArbiterDB>) -> Self {
         let (instruction_sender, instruction_receiver) = unbounded();
         let (event_broadcaster, _) = channel(512);
         let socket = Socket {
@@ -161,12 +223,11 @@ impl Environment {
             instruction_receiver,
             event_broadcaster,
         };
-        let db = db.map(|db| ArbiterDB(Arc::new(RwLock::new(db))));
 
         Self {
-            parameters: environment_parameters,
-            db,
             socket,
+            parameters,
+            db,
             handle: None,
         }
     }
@@ -174,10 +235,9 @@ impl Environment {
     /// The [`EVM`] will be
     /// offloaded onto a separate thread for processing.
     /// Calls, transactions, and events will enter/exit through the `Socket`.
-    pub(crate) fn run(&mut self) {
-        // Initialize the EVM used
+    fn run(mut self) -> Self {
+        // Initialize the EVM used with a DB.
         let mut evm = EVM::new();
-
         if self.db.is_some() {
             evm.database(self.db.as_ref().unwrap().clone());
         } else {
@@ -186,60 +246,23 @@ impl Environment {
             )))));
         };
 
-        // Choose extra large code size and gas limit
-        evm.env.cfg.limit_contract_code_size = Some(0x100000);
-        evm.env.block.gas_limit = U256::MAX;
-
-        // Pull clones of the relevant data prepare to send into a new thread
+        // Bring in parameters for the `Environment`.
         let label = self.parameters.label.clone();
+        evm.env.cfg.limit_contract_code_size =
+            Some(self.parameters.contract_size_limit.unwrap_or(0x100_000));
+        evm.env.block.gas_limit = self.parameters.gas_limit.unwrap_or(U256::MAX);
+
+        // Pull communication clones to move into a new thread.
         let instruction_receiver = self.socket.instruction_receiver.clone();
         let event_broadcaster = self.socket.event_broadcaster.clone();
-        let block_type = self.parameters.block_settings.clone();
-        let seeded_poisson = match block_type {
-            BlockSettings::RandomlySampled {
-                block_rate,
-                block_time,
-                seed,
-            } => Some(Arc::new(Mutex::new(SeededPoisson::new(
-                block_rate, block_time, seed,
-            )))),
-            BlockSettings::UserControlled => None,
-        };
-        let gas_settings = self.parameters.gas_settings.clone();
-        // let transaction_counts = self.transaction_counts.clone();
 
         // Move the EVM and its socket to a new thread and retrieve this handle
         let handle = thread::spawn(move || {
-            if let GasSettings::RandomlySampled { multiplier: _ } = gas_settings {
-                if seeded_poisson.is_none() {
-                    return Err(EnvironmentError::NotRandomlySampledBlockSettings);
-                }
-            }
-            // Get the first amount of transactions per block from the distribution and set
-            // the initial counter.
-            let mut transactions_per_block = seeded_poisson
-                .clone()
-                .map(|distribution| distribution.lock().unwrap().sample());
-            match gas_settings {
-                GasSettings::UserControlled => {
-                    evm.env.tx.gas_price = U256::from(0);
-                }
-                GasSettings::RandomlySampled { multiplier } => {
-                    let gas_price = (transactions_per_block
-                        .ok_or(EnvironmentError::NotRandomlySampledBlockSettings)?
-                        as f64)
-                        * multiplier;
-                    evm.env.tx.gas_price = U256::from(gas_price as u128);
-                }
-                GasSettings::Constant(gas_price) => {
-                    evm.env.tx.gas_price = U256::from(gas_price);
-                }
-            }
-            let mut transaction_index: usize = 0;
-            let mut cumulative_gas_per_block: U256 = U256::ZERO;
+            // Initialize counters that are returned on some receipts.
+            let mut transaction_index = U64::from(0_u64);
+            let mut cumulative_gas_per_block = U256::from(0);
 
-            // Loop over the reception of calls/transactions sent through the socket
-            // The outermost check is to find what the `Environment`'s state is in
+            // Loop over the instructions sent through the socket.
             while let Ok(instruction) = instruction_receiver.recv() {
                 trace!(
                     "Instruction {:?} received by environment labeled: {:?}",
@@ -285,26 +308,23 @@ impl Environment {
                         block_timestamp,
                         outcome_sender,
                     } => {
-                        if block_type != BlockSettings::UserControlled {
-                            outcome_sender
-                                .send(Err(EnvironmentError::NotUserControlledBlockSettings))
-                                .map_err(|e| EnvironmentError::Communication(e.to_string()))?;
-                        }
-                        // Update the block number and timestamp
-                        evm.env.block.number = block_number;
-                        evm.env.block.timestamp = block_timestamp;
-                        transaction_index = 0;
-                        cumulative_gas_per_block = U256::ZERO;
-
+                        // Return the old block data in a `ReceiptData`
                         let receipt_data = ReceiptData {
                             block_number: convert_uint_to_u64(evm.env.block.number).unwrap(),
-                            transaction_index: U64::from(0), /* replace with actual
-                                                              * value */
-                            cumulative_gas_per_block: U256::from(0),
+                            transaction_index,
+                            cumulative_gas_per_block,
                         };
                         outcome_sender
                             .send(Ok(Outcome::BlockUpdateCompleted(receipt_data)))
                             .map_err(|e| EnvironmentError::Communication(e.to_string()))?;
+
+                        // Update the block number and timestamp
+                        evm.env.block.number = block_number;
+                        evm.env.block.timestamp = block_timestamp;
+
+                        // Reset the counters.
+                        transaction_index = U64::from(0);
+                        cumulative_gas_per_block = U256::from(0);
                     }
                     Instruction::Cheatcode {
                         cheatcode,
@@ -485,11 +505,6 @@ impl Environment {
                         gas_price,
                         outcome_sender,
                     } => {
-                        if GasSettings::UserControlled != gas_settings {
-                            outcome_sender
-                                .send(Err(EnvironmentError::NotUserControlledGasSettings))
-                                .map_err(|e| EnvironmentError::Communication(e.to_string()))?;
-                        }
                         evm.env.tx.gas_price = U256::from_limbs(gas_price.0);
                         outcome_sender
                             .send(Ok(Outcome::SetGasPriceCompleted))
@@ -527,16 +542,11 @@ impl Environment {
                                     }
                                 }
                             };
-                        let block_number = convert_uint_to_u64(evm.env.block.number)?;
-
-                        // increment cumulative gas per block
                         cumulative_gas_per_block += U256::from(execution_result.clone().gas_used());
-
-                        // update transaction count for sender
-
+                        let block_number = convert_uint_to_u64(evm.env.block.number)?;
                         let receipt_data = ReceiptData {
                             block_number,
-                            transaction_index: transaction_index.into(),
+                            transaction_index,
                             cumulative_gas_per_block,
                         };
                         match event_broadcaster.send(Broadcast::Event(execution_result.logs())) {
@@ -553,41 +563,8 @@ impl Environment {
                                 receipt_data,
                             )))
                             .map_err(|e| EnvironmentError::Communication(e.to_string()))?;
-                        transaction_index += 1;
 
-                        // Check whether we need to increment the block number given the
-                        // amount of transactions
-                        // that have occurred on the current block and increment
-                        // if need be and draw a new sample from the `SeededPoisson`
-                        // distribution. Only do so if there is a distribution in the
-                        // first place.
-                        if transactions_per_block.is_some_and(|x| x == transaction_index) {
-                            transaction_index = 0;
-                            evm.env.block.number += U256::from(1);
-
-                            // This unwrap cannot fail.
-                            let seeded_poisson_clone = seeded_poisson.clone().unwrap();
-                            let mut seeded_poisson_lock = seeded_poisson_clone.lock().unwrap();
-
-                            evm.env.block.timestamp += U256::from(seeded_poisson_lock.time_step);
-                            transactions_per_block = loop {
-                                let sample = Some(seeded_poisson_lock.sample());
-
-                                if sample == Some(0) {
-                                    evm.env.block.number += U256::from(1);
-                                    continue;
-                                } else {
-                                    break sample;
-                                }
-                            };
-                            if let GasSettings::RandomlySampled { multiplier } = gas_settings {
-                                let gas_price = (transactions_per_block
-                                    .ok_or(EnvironmentError::NotRandomlySampledBlockSettings)?
-                                    as f64)
-                                    * multiplier;
-                                evm.env.tx.gas_price = U256::from(gas_price as u128);
-                            };
-                        }
+                        transaction_index += U64::from(1);
                     }
                     Instruction::Query {
                         environment_data,
@@ -663,6 +640,7 @@ impl Environment {
             Ok(())
         });
         self.handle = Some(handle);
+        self
     }
 
     /// Stops the execution of the environment.

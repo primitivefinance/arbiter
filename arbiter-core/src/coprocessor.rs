@@ -49,7 +49,7 @@ mod tests {
     use revm_primitives::{InvalidTransaction, U256};
 
     use super::*;
-    use crate::environment::builder::EnvironmentBuilder;
+    use crate::environment::EnvironmentBuilder;
 
     #[test]
     fn coprocessor() {

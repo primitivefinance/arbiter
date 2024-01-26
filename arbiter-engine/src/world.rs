@@ -15,7 +15,7 @@
 
 //! The world module contains the core world abstraction for the Arbiter Engine.
 
-use arbiter_core::environment::{builder::EnvironmentBuilder, Environment};
+use arbiter_core::environment::{Environment, EnvironmentBuilder};
 use futures_util::future::join_all;
 use tokio::sync::broadcast::Sender as BroadcastSender;
 use tracing::info;

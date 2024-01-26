@@ -83,7 +83,7 @@ pub mod nonce_middleware;
 /// // Import `Arc` if you need to create a client instance
 /// use std::sync::Arc;
 ///
-/// use arbiter_core::{environment::builder::EnvironmentBuilder, middleware::RevmMiddleware};
+/// use arbiter_core::{environment::EnvironmentBuilder, middleware::RevmMiddleware};
 ///
 /// // Create a new environment and run it
 /// let mut environment = EnvironmentBuilder::new().build();
@@ -242,7 +242,7 @@ impl RevmMiddleware {
     /// // Import `Arc` if you need to create a client instance
     /// use std::sync::Arc;
     ///
-    /// use arbiter_core::{environment::builder::EnvironmentBuilder, middleware::RevmMiddleware};
+    /// use arbiter_core::{environment::EnvironmentBuilder, middleware::RevmMiddleware};
     ///
     /// // Create a new environment and run it
     /// let mut environment = EnvironmentBuilder::new().build();
@@ -326,9 +326,6 @@ impl RevmMiddleware {
 
     /// Allows the user to update the block number and timestamp of the
     /// [`Environment`] to whatever they may choose at any time.
-    /// This can only be done when the [`Environment`] has
-    /// [`EnvironmentParameters`] `block_settings` field set to
-    /// [`BlockSettings::UserControlled`].
     pub fn update_block(
         &self,
         block_number: impl Into<ethers::types::U256>,

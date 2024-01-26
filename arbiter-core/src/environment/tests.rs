@@ -1,67 +1,24 @@
 use super::*;
-use crate::middleware::RevmMiddleware;
 
 pub(crate) const TEST_ENV_LABEL: &str = "test";
+const TEST_CONTRACT_SIZE_LIMIT: usize = 42069;
+const TEST_GAS_LIMIT: u64 = 1_333_333_333_337;
 
 #[test]
-fn auto_start_on_build() {
-    let environment = EnvironmentBuilder::new().build();
-    let _client = RevmMiddleware::new(&environment, Some(TEST_ENV_LABEL)).unwrap();
-}
-
-#[test]
-fn new_with_builder() {
-    let environment = EnvironmentBuilder::new().build();
-    assert_eq!(environment.parameters.label, None);
-}
-#[test]
-fn new_with_builder_custom_settings() {
+fn new_with_parameters() {
     let environment = EnvironmentBuilder::new()
-        .label(TEST_ENV_LABEL)
-        .block_settings(BlockSettings::RandomlySampled {
-            block_rate: 1.0,
-            block_time: 12,
-            seed: 1,
-        })
-        .gas_settings(GasSettings::RandomlySampled { multiplier: 1.0 })
-        .build();
+        .with_label(TEST_ENV_LABEL)
+        .with_contract_size_limit(TEST_CONTRACT_SIZE_LIMIT)
+        .with_gas_limit(U256::from(TEST_GAS_LIMIT));
     assert_eq!(environment.parameters.label, Some(TEST_ENV_LABEL.into()));
-}
-#[test]
-fn new_user_controlled() {
-    let params = EnvironmentParameters {
-        label: Some(TEST_ENV_LABEL.to_string()),
-        block_settings: BlockSettings::UserControlled,
-        gas_settings: GasSettings::UserControlled,
-    };
-    let environment = Environment::new(params, None);
-    assert_eq!(environment.parameters.label, Some(TEST_ENV_LABEL.into()));
-}
-
-#[test]
-fn new_randomly_sampled() {
-    let block_type = BlockSettings::RandomlySampled {
-        block_rate: 1.0,
-        block_time: 12,
-        seed: 1,
-    };
-    let params = EnvironmentParameters {
-        label: Some(TEST_ENV_LABEL.to_string()),
-        block_settings: block_type,
-        gas_settings: GasSettings::RandomlySampled { multiplier: 1.0 },
-    };
-    let environment = Environment::new(params, None);
-    assert_eq!(environment.parameters.label, Some(TEST_ENV_LABEL.into()));
-}
-
-#[test]
-fn run() {
-    let params = EnvironmentParameters {
-        label: Some(TEST_ENV_LABEL.to_string()),
-        block_settings: BlockSettings::UserControlled,
-        gas_settings: GasSettings::UserControlled,
-    };
-    Environment::new(params, None);
+    assert_eq!(
+        environment.parameters.contract_size_limit.unwrap(),
+        TEST_CONTRACT_SIZE_LIMIT
+    );
+    assert_eq!(
+        environment.parameters.gas_limit.unwrap(),
+        U256::from(TEST_GAS_LIMIT)
+    );
 }
 
 #[test]
