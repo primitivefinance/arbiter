@@ -6,6 +6,8 @@
 // and messager and then the user can decide if it wants to use those in their
 // behavior.
 
+// Could typestate pattern help here at all?
+
 use std::{fmt::Debug, sync::Arc};
 
 use arbiter_core::middleware::RevmMiddleware;
@@ -146,12 +148,12 @@ where
 {
     async fn execute(&mut self, instruction: MachineInstruction) {
         match instruction {
-            MachineInstruction::Sync => {
+            MachineInstruction::Sync(messager, client) => {
                 trace!("Behavior is syncing.");
                 self.state = State::Syncing;
                 let mut behavior = self.behavior.take().unwrap();
                 let behavior_task = tokio::spawn(async move {
-                    behavior.sync(messager, client).await;
+                    behavior.sync(messager.unwrap(), client.unwrap()).await;
                     behavior
                 });
                 self.behavior = Some(behavior_task.await.unwrap());

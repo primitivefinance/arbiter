@@ -144,8 +144,9 @@ impl Agent {
     pub(crate) async fn run(&mut self, instruction: MachineInstruction) {
         let behavior_engines = self.behavior_engines.take().unwrap();
         let behavior_tasks = join_all(behavior_engines.into_iter().map(|mut engine| {
+            let instruction_clone = instruction.clone();
             tokio::spawn(async move {
-                engine.execute(instruction).await;
+                engine.execute(instruction_clone).await;
                 engine
             })
         }));
@@ -164,10 +165,14 @@ impl StateMachine for Agent {
     #[tracing::instrument(skip(self), fields(id = self.id))]
     async fn execute(&mut self, instruction: MachineInstruction) {
         match instruction {
-            MachineInstruction::Sync => {
+            MachineInstruction::Sync(_, _) => {
                 debug!("Agent is syncing.");
                 self.state = State::Syncing;
-                self.run(instruction).await;
+                self.run(MachineInstruction::Sync(
+                    self.messager.clone(),
+                    Some(self.client.clone()),
+                ))
+                .await;
             }
             MachineInstruction::Start => {
                 debug!("Agent is starting up.");

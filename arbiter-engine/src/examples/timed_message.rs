@@ -19,23 +19,42 @@ struct TimedMessage {
     delay: u64,
     receive_data: String,
     send_data: String,
-    messager: Messager,
+    messager: Option<Messager>,
     count: u64,
     max_count: Option<u64>,
+}
+
+impl TimedMessage {
+    pub fn new(
+        delay: u64,
+        receive_data: String,
+        send_data: String,
+        max_count: Option<u64>,
+    ) -> Self {
+        Self {
+            delay,
+            receive_data,
+            send_data,
+            messager: None,
+            count: 0,
+            max_count,
+        }
+    }
 }
 
 #[async_trait::async_trait]
 impl Behavior<Message> for TimedMessage {
     async fn process(&mut self, event: Message) -> Option<MachineHalt> {
         trace!("Processing event.");
+        let messager = self.messager.as_ref().unwrap();
         if event.data == self.receive_data {
             trace!("Event matches message. Sending a new message.");
             let message = Message {
-                from: self.messager.id.clone().unwrap(),
+                from: messager.id.clone().unwrap(),
                 to: To::All,
                 data: self.send_data.clone(),
             };
-            self.messager.send(message).await;
+            messager.send(message).await;
             self.count += 1;
         }
         if self.count == self.max_count.unwrap_or(u64::MAX) {
@@ -48,8 +67,9 @@ impl Behavior<Message> for TimedMessage {
         None
     }
 
-    async fn sync(&mut self) {
+    async fn sync(&mut self, messager: Messager, _client: Arc<RevmMiddleware>) {
         trace!("Syncing state for `TimedMessage`.");
+        self.messager = Some(messager);
         tokio::time::sleep(std::time::Duration::from_secs(self.delay)).await;
         trace!("Synced state for `TimedMessage`.");
     }
@@ -63,24 +83,18 @@ impl Behavior<Message> for TimedMessage {
 
 #[tokio::test(flavor = "multi_thread", worker_threads = 4)]
 async fn echoer() {
-    // std::env::set_var("RUST_LOG", "trace");
-    // tracing_subscriber::fmt::init();
+    std::env::set_var("RUST_LOG", "trace");
+    tracing_subscriber::fmt::init();
 
     let mut world = World::new("world");
 
     let agent = Agent::new(AGENT_ID, &world);
-    let behavior = TimedMessage {
-        delay: 1,
-        receive_data: "Hello, world!".to_owned(),
-        send_data: "Hello, world!".to_owned(),
-        messager: agent
-            .messager
-            .as_ref()
-            .unwrap()
-            .join_with_id(Some(AGENT_ID.to_owned())),
-        count: 0,
-        max_count: Some(2),
-    };
+    let behavior = TimedMessage::new(
+        1,
+        "Hello, world!".to_owned(),
+        "Hello, world!".to_owned(),
+        Some(2),
+    );
     world.add_agent(agent.with_behavior(behavior));
 
     let messager = world.messager.join_with_id(Some("god".to_owned()));
@@ -121,31 +135,8 @@ async fn ping_pong() {
     let mut world = World::new("world");
 
     let agent = Agent::new(AGENT_ID, &world);
-    let behavior_ping = TimedMessage {
-        delay: 1,
-        receive_data: "pong".to_owned(),
-        send_data: "ping".to_owned(),
-        messager: agent
-            .messager
-            .as_ref()
-            .unwrap()
-            .join_with_id(Some(AGENT_ID.to_owned())),
-        count: 0,
-        max_count: Some(2),
-    };
-    let behavior_pong = TimedMessage {
-        delay: 1,
-        receive_data: "ping".to_owned(),
-        send_data: "pong".to_owned(),
-        messager: agent
-            .messager
-            .as_ref()
-            .unwrap()
-            .join_with_id(Some(AGENT_ID.to_owned())),
-        count: 0,
-        max_count: Some(2),
-    };
-
+    let behavior_ping = TimedMessage::new(1, "pong".to_owned(), "ping".to_owned(), Some(2));
+    let behavior_pong = TimedMessage::new(1, "ping".to_owned(), "pong".to_owned(), Some(2));
     world.add_agent(
         agent
             .with_behavior(behavior_ping)
@@ -191,32 +182,10 @@ async fn ping_pong_two_agent() {
     let mut world = World::new("world");
 
     let agent_ping = Agent::new("agent_ping", &world);
-    let behavior_ping = TimedMessage {
-        delay: 1,
-        receive_data: "pong".to_owned(),
-        send_data: "ping".to_owned(),
-        messager: agent_ping
-            .messager
-            .as_ref()
-            .unwrap()
-            .join_with_id(Some("agent_ping".to_owned())),
-        count: 0,
-        max_count: Some(2),
-    };
+    let behavior_ping = TimedMessage::new(1, "pong".to_owned(), "ping".to_owned(), Some(2));
 
     let agent_pong = Agent::new("agent_pong", &world);
-    let behavior_pong = TimedMessage {
-        delay: 1,
-        receive_data: "ping".to_owned(),
-        send_data: "pong".to_owned(),
-        messager: agent_pong
-            .messager
-            .as_ref()
-            .unwrap()
-            .join_with_id(Some("agent_pong".to_owned())),
-        count: 0,
-        max_count: Some(2),
-    };
+    let behavior_pong = TimedMessage::new(1, "ping".to_owned(), "pong".to_owned(), Some(2));
 
     world.add_agent(agent_ping.with_behavior(behavior_ping));
     world.add_agent(agent_pong.with_behavior(behavior_pong));
