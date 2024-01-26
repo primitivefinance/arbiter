@@ -328,6 +328,9 @@ impl Environment {
                         // Reset the counters.
                         transaction_index = U64::from(0);
                         cumulative_gas_per_block = U256::from(0);
+                        self.socket
+                            .event_broadcaster
+                            .send(Broadcast::Block(Block::default()));
                     }
                     Instruction::Cheatcode {
                         cheatcode,
