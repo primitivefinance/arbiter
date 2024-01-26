@@ -1010,16 +1010,8 @@ impl Middleware for RevmMiddleware {
         subscription
     }
 
-    async fn subscribe<T, R>(
-        &self,
-        _params: T,
-    ) -> Result<SubscriptionStream<'_, Self::Provider, R>, Self::Error>
-    where
-        T: Debug + Serialize + Send + Sync,
-        R: DeserializeOwned + Send + Sync,
-        <Self as Middleware>::Provider: PubsubClient,
-    {
-        todo!("This is not implemented yet, but `subscribe_logs` is.")
+    async fn get_chainid(&self) -> Result<ethers::types::U256, Self::Error> {
+        Ok(ethers::types::U256::zero())
     }
 }
 
