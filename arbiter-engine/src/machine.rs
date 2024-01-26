@@ -83,7 +83,7 @@ pub enum State {
 pub trait Behavior<E>: Send + Sync + 'static {
     /// Used to bring the agent back up to date with the latest state of the
     /// world. This could be used if the world was stopped and later restarted.
-    async fn sync(&mut self, messager: Messager, client: Arc<RevmMiddleware>) {}
+    async fn sync(&mut self, _messager: Messager, _client: Arc<RevmMiddleware>) {}
 
     /// Used to start the agent.
     /// This is where the agent can engage in its specific start up activities
