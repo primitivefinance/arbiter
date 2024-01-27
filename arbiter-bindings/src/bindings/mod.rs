@@ -5,6 +5,7 @@
 //! These files may be overwritten by the codegen system at any time.
 pub mod arbiter_math;
 pub mod arbiter_token;
+pub mod console;
 pub mod counter;
 pub mod liquid_exchange;
 pub mod weth;

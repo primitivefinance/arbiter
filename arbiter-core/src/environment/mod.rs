@@ -30,6 +30,7 @@
 use std::{
     convert::Infallible,
     fmt::Debug,
+    str::FromStr,
     sync::{Arc, RwLock},
     thread::{self, JoinHandle},
 };
@@ -43,6 +44,7 @@ use revm::{
     },
     EVM,
 };
+use revm_primitives::{Address, Bytecode, CreateScheme, FixedBytes, TransactTo};
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
 use tokio::sync::broadcast::{channel, Sender as BroadcastSender};
@@ -261,6 +263,38 @@ impl Environment {
             // Initialize counters that are returned on some receipts.
             let mut transaction_index = U64::from(0_u64);
             let mut cumulative_gas_per_block = U256::from(0);
+
+            // Deploy the console contract.
+            let bytes = arbiter_bindings::bindings::console::CONSOLE_BYTECODE.clone();
+            let bytes = revm_primitives::Bytes::from(bytes.0);
+
+            // let bytecode = Bytecode::new_raw(bytes.clone());
+            // let hash = bytecode.hash_slow();
+            // let db = evm.db.as_mut().unwrap();
+            // let mut account = revm::primitives::AccountInfo::new(U256::ZERO, 0, hash,
+            // bytecode); db.0.write().unwrap().insert_account_info(
+            //     Address::from_str("0x000000000000000000636F6e736F6c652e6c6f67").unwrap(),
+            //     account.clone(),
+            // );
+            // db.0.write().unwrap().insert_contract(&mut account);
+            let tx_env = TxEnv {
+                caller: Address::default(),
+                gas_limit: u64::MAX,
+                gas_price: U256::ZERO,
+                gas_priority_fee: None,
+                transact_to: TransactTo::Create(CreateScheme::Create),
+                value: U256::ZERO,
+                data: bytes,
+                chain_id: None,
+                nonce: None,
+                access_list: Vec::new(),
+                blob_hashes: Vec::new(),
+                max_fee_per_blob_gas: None,
+            };
+
+            evm.env.tx = tx_env;
+            let execution_result = evm.transact_commit().unwrap();
+            println!("execution result: {:#?}", execution_result);
 
             // Loop over the instructions sent through the socket.
             while let Ok(instruction) = instruction_receiver.recv() {
