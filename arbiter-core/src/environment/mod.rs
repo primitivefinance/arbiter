@@ -295,6 +295,24 @@ impl Environment {
             evm.env.tx = tx_env;
             let execution_result = evm.transact_commit().unwrap();
             println!("execution result: {:#?}", execution_result);
+            println!(
+                "DB AFTER START: {:#?}",
+                evm.db.as_ref().unwrap().0.read().unwrap()
+            );
+            let account = evm
+                .db
+                .as_mut()
+                .unwrap()
+                .0
+                .write()
+                .unwrap()
+                .accounts
+                .remove(&Address::from_str("0xbd770416a3345f91e4b34576cb804a576fa48eb1").unwrap())
+                .unwrap();
+            evm.db.as_mut().unwrap().0.write().unwrap().accounts.insert(
+                Address::from_str("0x000000000000000000636F6e736F6c652e6c6f67").unwrap(),
+                account,
+            );
 
             // Loop over the instructions sent through the socket.
             while let Ok(instruction) = instruction_receiver.recv() {
