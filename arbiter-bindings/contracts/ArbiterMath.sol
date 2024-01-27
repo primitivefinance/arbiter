@@ -2,7 +2,7 @@ pragma solidity ^0.8.17;
 import "solmate/utils/FixedPointMathLib.sol";
 import "solstat/Gaussian.sol";
 import "solstat/Invariant.sol";
-import "forge-std/Test.sol";
+import "forge-std/console2.sol";
 
 contract ArbiterMath {
     using FixedPointMathLib for int256;
@@ -10,7 +10,7 @@ contract ArbiterMath {
 
     function cdf(int256 input) public pure returns (int256 output) {
         output = Gaussian.cdf(input);
-        console.log("something");
+        console2.log(output);
     }
 
     function pdf(int256 input) public pure returns (int256 output) {

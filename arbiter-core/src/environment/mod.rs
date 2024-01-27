@@ -497,6 +497,7 @@ impl Environment {
                         evm.env.tx = tx_env;
 
                         let result = evm.transact_ref()?.result;
+                        println!("LOGS: {:?}", result.logs());
                         outcome_sender
                             .send(Ok(Outcome::CallCompleted(result)))
                             .map_err(|e| EnvironmentError::Communication(e.to_string()))?;
