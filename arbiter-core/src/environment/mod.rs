@@ -36,7 +36,7 @@ use std::{
 };
 
 use crossbeam_channel::{bounded, unbounded, Receiver, Sender};
-use ethers::core::types::U64;
+use ethers::{abi::AbiDecode, core::types::U64};
 use revm::{
     db::{CacheDB, EmptyDB},
     primitives::{
@@ -49,6 +49,7 @@ use serde::{Deserialize, Serialize};
 use thiserror::Error;
 use tokio::sync::broadcast::{channel, Sender as BroadcastSender};
 
+use self::console::ConsoleLogs;
 use super::*;
 use crate::database::ArbiterDB;
 #[cfg_attr(doc, doc(hidden))]
@@ -253,6 +254,7 @@ impl Environment {
         evm.env.cfg.limit_contract_code_size =
             Some(self.parameters.contract_size_limit.unwrap_or(0x100_000));
         evm.env.block.gas_limit = self.parameters.gas_limit.unwrap_or(U256::MAX);
+        let mut inspector = ConsoleLogs::default();
 
         // Pull communication clones to move into a new thread.
         let instruction_receiver = self.socket.instruction_receiver.clone();
@@ -263,56 +265,6 @@ impl Environment {
             // Initialize counters that are returned on some receipts.
             let mut transaction_index = U64::from(0_u64);
             let mut cumulative_gas_per_block = U256::from(0);
-
-            // Deploy the console contract.
-            let bytes = arbiter_bindings::bindings::console::CONSOLE_BYTECODE.clone();
-            let bytes = revm_primitives::Bytes::from(bytes.0);
-
-            // let bytecode = Bytecode::new_raw(bytes.clone());
-            // let hash = bytecode.hash_slow();
-            // let db = evm.db.as_mut().unwrap();
-            // let mut account = revm::primitives::AccountInfo::new(U256::ZERO, 0, hash,
-            // bytecode); db.0.write().unwrap().insert_account_info(
-            //     Address::from_str("0x000000000000000000636F6e736F6c652e6c6f67").unwrap(),
-            //     account.clone(),
-            // );
-            // db.0.write().unwrap().insert_contract(&mut account);
-            let tx_env = TxEnv {
-                caller: Address::default(),
-                gas_limit: u64::MAX,
-                gas_price: U256::ZERO,
-                gas_priority_fee: None,
-                transact_to: TransactTo::Create(CreateScheme::Create),
-                value: U256::ZERO,
-                data: bytes,
-                chain_id: None,
-                nonce: None,
-                access_list: Vec::new(),
-                blob_hashes: Vec::new(),
-                max_fee_per_blob_gas: None,
-            };
-
-            evm.env.tx = tx_env;
-            let execution_result = evm.transact_commit().unwrap();
-            println!("execution result: {:#?}", execution_result);
-            println!(
-                "DB AFTER START: {:#?}",
-                evm.db.as_ref().unwrap().0.read().unwrap()
-            );
-            let account = evm
-                .db
-                .as_mut()
-                .unwrap()
-                .0
-                .write()
-                .unwrap()
-                .accounts
-                .remove(&Address::from_str("0xbd770416a3345f91e4b34576cb804a576fa48eb1").unwrap())
-                .unwrap();
-            evm.db.as_mut().unwrap().0.write().unwrap().accounts.insert(
-                Address::from_str("0x000000000000000000636F6e736F6c652e6c6f67").unwrap(),
-                account,
-            );
 
             // Loop over the instructions sent through the socket.
             while let Ok(instruction) = instruction_receiver.recv() {
@@ -548,8 +500,12 @@ impl Environment {
                         // Set the tx_env and prepare to process it
                         evm.env.tx = tx_env;
 
-                        let result = evm.transact_ref()?.result;
-                        println!("LOGS: {:?}", result.logs());
+                        let result = evm.inspect_ref(&mut inspector)?.result;
+                        let logs = arbiter_bindings::console::HardhatConsoleCalls::decode(
+                            inspector.0[0].clone(),
+                        )
+                        .unwrap();
+                        println!("Logs: {:?}", logs);
                         outcome_sender
                             .send(Ok(Outcome::CallCompleted(result)))
                             .map_err(|e| EnvironmentError::Communication(e.to_string()))?;

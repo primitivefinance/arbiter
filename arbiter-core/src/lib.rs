@@ -31,6 +31,7 @@
 
 #![warn(missing_docs)]
 
+pub mod console;
 pub mod coprocessor;
 pub mod data_collection;
 pub mod database;
