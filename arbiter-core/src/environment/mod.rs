@@ -501,10 +501,9 @@ impl Environment {
                         evm.env.tx = tx_env;
 
                         let result = evm.inspect_ref(&mut inspector)?.result;
-                        let logs = arbiter_bindings::console::HardhatConsoleCalls::decode(
-                            inspector.0[0].clone(),
-                        )
-                        .unwrap();
+                        let logs =
+                            console::abi::HardhatConsoleCalls::decode(inspector.0[0].clone())
+                                .unwrap();
                         println!("Logs: {:?}", logs);
                         outcome_sender
                             .send(Ok(Outcome::CallCompleted(result)))
