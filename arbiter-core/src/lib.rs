@@ -36,6 +36,7 @@ pub mod coprocessor;
 pub mod data_collection;
 pub mod database;
 pub mod environment;
+pub mod inspector;
 pub mod middleware;
 #[cfg(test)]
 mod tests;

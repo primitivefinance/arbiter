@@ -16538,6 +16538,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(address,address,string)` and selector `0x007150be`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -16556,6 +16558,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(bool,uint256,uint256,address)` and selector `0x00dd87b9`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -16575,6 +16579,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(address,address,address)` and selector `0x018c84c2`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -16594,6 +16600,8 @@ pub mod hardhat_console {
     /// signature `log(uint256,address,address,string)` and selector
     /// `0x031c6f73`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -16613,6 +16621,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(string,address,bool,string)` and selector `0x0454c079`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -16632,6 +16642,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(uint256,bool,address,uint256)` and selector `0x078287f5`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -16651,6 +16663,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(bool,address,bool,uint256)` and selector `0x07831502`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -16670,6 +16684,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(bool,uint256,address)` and selector `0x088ef9d2`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -16688,6 +16704,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(uint256,address,address,bool)` and selector `0x091ffaf5`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -16707,6 +16725,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(address,bool,uint256,string)` and selector `0x0aa6cfad`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -16726,6 +16746,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(bool,bool,uint256,uint256)` and selector `0x0bb00eab`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -16745,6 +16767,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(bool,address,address,uint256)` and selector `0x0c66d1be`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -16765,6 +16789,8 @@ pub mod hardhat_console {
     /// signature `log(uint256,address,uint256,uint256)` and selector
     /// `0x0c9cd9c1`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -16784,6 +16810,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(string,address,uint256)` and selector `0x0d26b925`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -16803,6 +16831,8 @@ pub mod hardhat_console {
     /// signature `log(address,string,address,address)` and selector
     /// `0x0d36fa20`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -16822,6 +16852,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(address,string,address,bool)` and selector `0x0df12b76`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -16841,6 +16873,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(address,address,address,bool)` and selector `0x0e378994`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -16860,6 +16894,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(address,string,uint256,bool)` and selector `0x0ef7e050`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -16880,6 +16916,8 @@ pub mod hardhat_console {
     /// signature `log(address,uint256,address,uint256)` and selector
     /// `0x100f650e`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -16899,6 +16937,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(string,string,uint256,address)` and selector `0x1023f7b2`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -16918,6 +16958,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(bool,bool,address)` and selector `0x1078f68d`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -16936,6 +16978,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(bool,string,uint256)` and selector `0x1093ee11`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -16954,6 +16998,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(bool,string,address,string)` and selector `0x12d6c788`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -16973,6 +17019,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(bool,bool,uint256)` and selector `0x12f21602`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -16991,6 +17039,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(bool,address,uint256,address)` and selector `0x136b05dd`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -17010,6 +17060,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(bool,uint256,address,uint256)` and selector `0x1537dc87`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -17029,6 +17081,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(bool,string,uint256,address)` and selector `0x1596a1ce`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -17048,6 +17102,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(address,string,string,uint256)` and selector `0x159f8927`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -17068,6 +17124,8 @@ pub mod hardhat_console {
     /// signature `log(uint256,address,uint256,address)` and selector
     /// `0x15c127b5`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -17087,6 +17145,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(uint256,uint256,address,bool)` and selector `0x15cac476`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -17106,6 +17166,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(bool,string,bool,uint256)` and selector `0x1606a393`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -17125,6 +17187,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(bool,string,string,string)` and selector `0x1762e32a`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -17144,6 +17208,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(address,address,uint256)` and selector `0x17fe6185`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -17162,6 +17228,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(bool,address,bool)` and selector `0x18c9c746`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -17181,6 +17249,8 @@ pub mod hardhat_console {
     /// signature `log(uint256,uint256,uint256,uint256)` and selector
     /// `0x193fb800`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -17200,6 +17270,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(address,bool,string,address)` and selector `0x19fd4956`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -17219,6 +17291,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(bool,string,uint256,string)` and selector `0x1ad96de6`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -17238,6 +17312,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(bool,uint256,address,string)` and selector `0x1bb3b09a`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -17257,6 +17333,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(bool,address,bool,address)` and selector `0x1c41a336`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -17276,6 +17354,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(string,uint256,address)` and selector `0x1c7ec448`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -17294,6 +17374,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(uint256,bool)` and selector `0x1c9d7eb3`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -17311,6 +17393,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(bool,address,address,address)` and selector `0x1d14d001`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -17331,6 +17415,8 @@ pub mod hardhat_console {
     /// signature `log(address,uint256,address,string)` and selector
     /// `0x1da986ea`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -17351,6 +17437,8 @@ pub mod hardhat_console {
     /// signature `log(address,string,uint256,uint256)` and selector
     /// `0x1dc8e1b8`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -17370,6 +17458,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(bool,string,string,bool)` and selector `0x1e4b87e5`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -17389,6 +17479,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(uint256,bool,uint256)` and selector `0x20098014`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -17407,6 +17499,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(address,string,bool,address)` and selector `0x205871c2`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -17426,6 +17520,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(uint256,bool,bool)` and selector `0x20718650`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -17445,6 +17541,8 @@ pub mod hardhat_console {
     /// signature `log(address,uint256,uint256,address)` and selector
     /// `0x20e3984d`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -17464,6 +17562,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(address,bool,string)` and selector `0x212255cc`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -17482,6 +17582,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(uint256,string,string,string)` and selector `0x21ad0683`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -17501,6 +17603,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(address,address,string,string)` and selector `0x21bdaf25`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -17520,6 +17624,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(string,address,bool,address)` and selector `0x223603bd`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -17539,6 +17645,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(address,uint256,bool,uint256)` and selector `0x22f6b999`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -17558,6 +17666,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(string,address,string,string)` and selector `0x245986f2`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -17578,6 +17688,8 @@ pub mod hardhat_console {
     /// signature `log(uint256,address,address,address)` and selector
     /// `0x2488b414`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -17597,6 +17709,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(string,bool,string,uint256)` and selector `0x24f91465`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -17616,6 +17730,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(bool,bool,string)` and selector `0x2555fa46`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -17634,6 +17750,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(bool,uint256,address,address)` and selector `0x26f560a8`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -17653,6 +17771,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(uint256,uint256,string,string)` and selector `0x27d8afd2`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -17672,6 +17792,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(bool,string,uint256,uint256)` and selector `0x28863fcb`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -17691,6 +17813,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(bool,bool)` and selector `0x2a110e83`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -17708,6 +17832,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(bool,bool,bool,string)` and selector `0x2ae408d4`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -17727,6 +17853,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(bool,string,address,address)` and selector `0x2b2b18dc`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -17746,6 +17874,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(string,string,string,bool)` and selector `0x2c1754ed`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -17765,6 +17895,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(uint256,bool,string,uint256)` and selector `0x2c1d0746`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -17784,6 +17916,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(address)` and selector `0x2c2ecbc2`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -17800,6 +17934,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(address,address,bool,bool)` and selector `0x2cd4134a`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -17819,6 +17955,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(string,string,string)` and selector `0x2ced7cef`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -17837,6 +17975,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(string,bool,address,string)` and selector `0x2d8e33a4`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -17856,6 +17996,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(address,bool,address,string)` and selector `0x2dd778e6`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -17875,6 +18017,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(string,address)` and selector `0x319af333`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -17892,6 +18036,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(bool)` and selector `0x32458eed`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -17908,6 +18054,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(string,bool,address,address)` and selector `0x33e9dd1d`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -17928,6 +18076,8 @@ pub mod hardhat_console {
     /// signature `log(address,uint256,uint256,uint256)` and selector
     /// `0x34f0e636`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -17947,6 +18097,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(uint256,bool,address)` and selector `0x35085f7b`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -17965,6 +18117,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(string,uint256,bool,bool)` and selector `0x354c36d6`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -17984,6 +18138,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(address,string,string,bool)` and selector `0x35a5071f`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -18003,6 +18159,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(bool,uint256,uint256)` and selector `0x37103367`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -18021,6 +18179,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(bool,uint256,uint256,uint256)` and selector `0x374bb4b2`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -18040,6 +18200,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(uint256,string,uint256)` and selector `0x37aa7d4c`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -18058,6 +18220,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(address,bool,uint256,uint256)` and selector `0x386ff5f4`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -18077,6 +18241,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(address,address,bool,uint256)` and selector `0x3971e78c`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -18096,6 +18262,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(bool,uint256)` and selector `0x399174d3`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -18114,6 +18282,8 @@ pub mod hardhat_console {
     /// signature `log(uint256,string,uint256,address)` and selector
     /// `0x3b2279b4`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -18133,6 +18303,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(bool,bool,bool,bool)` and selector `0x3b2a5ce0`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -18152,6 +18324,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(address,uint256,bool,bool)` and selector `0x3bf5e537`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -18171,6 +18345,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(uint256,address,string,string)` and selector `0x3e128ca3`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -18190,6 +18366,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(string,address,bool,uint256)` and selector `0x3e9f866a`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -18209,6 +18387,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(string,bool,string,bool)` and selector `0x3f8a701d`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -18228,6 +18408,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(string,string,bool,bool)` and selector `0x40785869`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -18247,6 +18429,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(string)` and selector `0x41304fac`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -18264,6 +18448,8 @@ pub mod hardhat_console {
     /// signature `log(uint256,uint256,string,address)` and selector
     /// `0x42d21db7`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -18283,6 +18469,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(string,string,address,address)` and selector `0x439c7bef`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -18302,6 +18490,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(address,string,uint256,string)` and selector `0x448830a8`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -18321,6 +18511,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(uint256,bool,address,bool)` and selector `0x454d54a5`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -18341,6 +18533,8 @@ pub mod hardhat_console {
     /// signature `log(address,string,address,uint256)` and selector
     /// `0x457fe3cf`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -18360,6 +18554,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(bool,address,address,bool)` and selector `0x46600be0`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -18380,6 +18576,8 @@ pub mod hardhat_console {
     /// signature `log(uint256,address,string,uint256)` and selector
     /// `0x46826b5d`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -18399,6 +18597,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(address,bool,string,string)` and selector `0x475c5c33`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -18418,6 +18618,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(uint256,uint256,bool)` and selector `0x4766da72`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -18437,6 +18639,8 @@ pub mod hardhat_console {
     /// signature `log(address,uint256,address,address)` and selector
     /// `0x478d1c62`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -18456,6 +18660,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(bool,string,bool,string)` and selector `0x483d0416`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -18476,6 +18682,8 @@ pub mod hardhat_console {
     /// signature `log(address,uint256,uint256,string)` and selector
     /// `0x4a28c017`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -18495,6 +18703,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(bool,address,bool,string)` and selector `0x4a66cb34`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -18514,6 +18724,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(string,string)` and selector `0x4b5c4277`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -18531,6 +18743,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(bool,bool,address,uint256)` and selector `0x4c123d57`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -18550,6 +18764,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(uint256,string,bool)` and selector `0x4ceda75a`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -18569,6 +18785,8 @@ pub mod hardhat_console {
     /// signature `log(string,uint256,address,uint256)` and selector
     /// `0x4f04fdc6`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -18588,6 +18806,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(bool,bool,bool)` and selector `0x50709698`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -18606,6 +18826,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(address,bool,string,bool)` and selector `0x50ad461d`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -18625,6 +18847,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(address,string,bool,uint256)` and selector `0x515e38b6`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -18644,6 +18868,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log()` and selector `0x51973ec9`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -18658,6 +18884,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(bool,address,uint256,string)` and selector `0x51f09ff8`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -18677,6 +18905,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(bool,string,bool,address)` and selector `0x538e06ab`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -18696,6 +18926,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(bool,bool,uint256,address)` and selector `0x54a7a9a0`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -18716,6 +18948,8 @@ pub mod hardhat_console {
     /// signature `log(uint256,uint256,address,address)` and selector
     /// `0x56a5d1b1`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -18735,6 +18969,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(string,string,uint256)` and selector `0x5821efa1`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -18753,6 +18989,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(string,uint256,string)` and selector `0x5970e089`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -18772,6 +19010,8 @@ pub mod hardhat_console {
     /// signature `log(uint256,uint256,uint256,string)` and selector
     /// `0x59cfcbe3`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -18791,6 +19031,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(string,address,uint256,string)` and selector `0x5a477632`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -18810,6 +19052,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(uint256,address,uint256)` and selector `0x5a9b5ed5`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -18828,6 +19072,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(string,uint256,string,string)` and selector `0x5ab84e1f`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -18847,6 +19093,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(uint256,address,bool,uint256)` and selector `0x5abd992a`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -18867,6 +19115,8 @@ pub mod hardhat_console {
     /// signature `log(address,uint256,string,address)` and selector
     /// `0x5c430d47`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -18886,6 +19136,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(uint256,uint256,address)` and selector `0x5c96b331`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -18904,6 +19156,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(string,string,address,bool)` and selector `0x5ccd4e37`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -18923,6 +19177,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(address,string,string,string)` and selector `0x5d02c50b`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -18942,6 +19198,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(string,bool,address,uint256)` and selector `0x5d08bb05`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -18961,6 +19219,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(string,string,uint256,string)` and selector `0x5d1a971a`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -18981,6 +19241,8 @@ pub mod hardhat_console {
     /// signature `log(uint256,uint256,string,uint256)` and selector
     /// `0x5da297eb`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -19000,6 +19262,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(string,string,bool,string)` and selector `0x5e84b0ea`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -19020,6 +19284,8 @@ pub mod hardhat_console {
     /// signature `log(string,uint256,address,address)` and selector
     /// `0x5ea2b7ae`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -19039,6 +19305,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(string,address,string,bool)` and selector `0x5f15d28c`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -19058,6 +19326,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(address,string,bool,bool)` and selector `0x5f1d5c9f`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -19077,6 +19347,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(uint256,address,uint256,bool)` and selector `0x5f743a7c`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -19096,6 +19368,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(bool,address,uint256)` and selector `0x5f7b9afb`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -19115,6 +19389,8 @@ pub mod hardhat_console {
     /// signature `log(uint256,string,address,address)` and selector
     /// `0x6168ed61`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -19134,6 +19410,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(bool,bool,uint256,bool)` and selector `0x619e4d0e`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -19154,6 +19432,8 @@ pub mod hardhat_console {
     /// signature `log(address,string,uint256,address)` and selector
     /// `0x63183678`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -19173,6 +19453,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(uint256,address,string)` and selector `0x63cb41f9`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -19192,6 +19474,8 @@ pub mod hardhat_console {
     /// signature `log(string,address,uint256,address)` and selector
     /// `0x63fb8bc5`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -19211,6 +19495,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(uint256,string)` and selector `0x643fd0df`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -19228,6 +19514,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(string,bool,uint256,uint256)` and selector `0x64b5bb67`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -19247,6 +19535,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(address,bool,address,address)` and selector `0x660375dd`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -19267,6 +19557,8 @@ pub mod hardhat_console {
     /// signature `log(address,address,address,address)` and selector
     /// `0x665bf134`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -19286,6 +19578,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(address,uint256,uint256,bool)` and selector `0x66f1bc67`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -19305,6 +19599,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(address,uint256,bool)` and selector `0x678209a8`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -19323,6 +19619,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(address,string,uint256)` and selector `0x67dd6ff1`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -19341,6 +19639,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(uint256,bool,string,string)` and selector `0x68c8b8bd`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -19360,6 +19660,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(uint256,string,uint256,bool)` and selector `0x691a8f74`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -19379,6 +19681,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(uint256,address)` and selector `0x69276c86`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -19396,6 +19700,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(uint256,bool,bool,address)` and selector `0x69640b59`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -19415,6 +19721,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(bool,uint256,string,uint256)` and selector `0x6a1199e2`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -19434,6 +19742,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(bool,address,bool,bool)` and selector `0x6a9c478b`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -19453,6 +19763,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(bool,string,uint256,bool)` and selector `0x6b0e5d53`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -19473,6 +19785,8 @@ pub mod hardhat_console {
     /// signature `log(uint256,uint256,address,string)` and selector
     /// `0x6cde40b8`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -19492,6 +19806,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(bool,bool,string,string)` and selector `0x6d1e8751`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -19511,6 +19827,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(string,string,string,address)` and selector `0x6d572f44`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -19530,6 +19848,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(bool,bool,bool,uint256)` and selector `0x6d7045c1`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -19549,6 +19869,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(bool,string,address,bool)` and selector `0x6dd434ca`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -19568,6 +19890,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(address,address,string,bool)` and selector `0x6f1a594e`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -19587,6 +19911,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(bool,address,string,address)` and selector `0x6f7c603e`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -19606,6 +19932,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(string,bool,bool,address)` and selector `0x7190a529`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -19625,6 +19953,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(uint256,uint256,string)` and selector `0x71d04af2`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -19644,6 +19974,8 @@ pub mod hardhat_console {
     /// signature `log(uint256,address,address,uint256)` and selector
     /// `0x736efbb6`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -19663,6 +19995,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(string,bool,uint256,string)` and selector `0x742d6ee7`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -19682,6 +20016,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(uint256,bool,bool,uint256)` and selector `0x7464ce23`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -19701,6 +20037,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(address,string)` and selector `0x759f86bb`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -19718,6 +20056,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(address,bool)` and selector `0x75b605d3`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -19735,6 +20075,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(string,uint256,uint256,bool)` and selector `0x7626db92`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -19754,6 +20096,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(string,address,bool,bool)` and selector `0x79884c2b`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -19773,6 +20117,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(uint256,uint256,string,bool)` and selector `0x7af6ab25`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -19792,6 +20138,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(uint256,string,address)` and selector `0x7afac959`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -19810,6 +20158,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(address,uint256,address)` and selector `0x7bc0d848`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -19828,6 +20178,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(bool,string,string,uint256)` and selector `0x7be0c3eb`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -19847,6 +20199,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(bool,address,uint256,uint256)` and selector `0x7bf181a1`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -19866,6 +20220,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(string,uint256,string,address)` and selector `0x7c4632a4`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -19885,6 +20241,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(string,string,address,uint256)` and selector `0x7cc3c607`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -19904,6 +20262,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(string,uint256,string,bool)` and selector `0x7d24491d`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -19923,6 +20283,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(bool,bool,uint256,string)` and selector `0x7dd4d0e0`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -19942,6 +20304,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(bool,uint256,bool,uint256)` and selector `0x7f9bbca2`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -19961,6 +20325,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(string,address,address,string)` and selector `0x800a1c67`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -19980,6 +20346,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(address,bool,string,uint256)` and selector `0x80e6a20b`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -19999,6 +20367,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(string,uint256,address,bool)` and selector `0x82112a42`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -20019,6 +20389,8 @@ pub mod hardhat_console {
     /// signature `log(uint256,string,uint256,uint256)` and selector
     /// `0x82c25b74`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -20038,6 +20410,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(address,uint256)` and selector `0x8309e8a8`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -20055,6 +20429,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(string,bool,bool)` and selector `0x850b7ad6`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -20073,6 +20449,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(bool,address)` and selector `0x853c4849`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -20090,6 +20468,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(string,uint256,uint256,string)` and selector `0x854b3496`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -20109,6 +20489,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(uint256,bool,string)` and selector `0x85775021`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -20127,6 +20509,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(address,uint256,string,string)` and selector `0x88a8c406`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -20146,6 +20530,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(uint256,bool,uint256,address)` and selector `0x88cb6041`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -20166,6 +20552,8 @@ pub mod hardhat_console {
     /// signature `log(uint256,uint256,address,uint256)` and selector
     /// `0x88f6e4b2`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -20185,6 +20573,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(string,bool,bool,bool)` and selector `0x895af8c5`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -20204,6 +20594,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(string,bool,uint256,bool)` and selector `0x8af7cf8a`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -20223,6 +20615,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(bool,bool,bool,address)` and selector `0x8c329b1a`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -20242,6 +20636,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(address,bool,bool,uint256)` and selector `0x8c4e5de6`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -20262,6 +20658,8 @@ pub mod hardhat_console {
     /// signature `log(address,address,uint256,address)` and selector
     /// `0x8da6def5`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -20281,6 +20679,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(string,bool,bool,uint256)` and selector `0x8e3f78a9`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -20300,6 +20700,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(bool,uint256,uint256,string)` and selector `0x8e69fb5d`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -20319,6 +20721,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(string,string,string,uint256)` and selector `0x8eafb02b`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -20339,6 +20743,8 @@ pub mod hardhat_console {
     /// signature `log(string,address,address,uint256)` and selector
     /// `0x8ef3f399`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -20359,6 +20765,8 @@ pub mod hardhat_console {
     /// signature `log(address,address,string,address)` and selector
     /// `0x8f736d16`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -20378,6 +20786,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(bool,string)` and selector `0x8feac525`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -20395,6 +20805,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(uint256,string,address,bool)` and selector `0x90c30a56`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -20414,6 +20826,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(uint256,address,bool,string)` and selector `0x90fb06aa`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -20433,6 +20847,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(bool,uint256,bool,string)` and selector `0x9143dbb1`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -20452,6 +20868,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(uint256,bool,uint256,bool)` and selector `0x91a02e2a`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -20471,6 +20889,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(string,address,string,uint256)` and selector `0x91d1112e`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -20490,6 +20910,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(string,bool,address)` and selector `0x932bbb38`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -20508,6 +20930,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(string,bool,uint256,address)` and selector `0x935e09bf`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -20528,6 +20952,8 @@ pub mod hardhat_console {
     /// signature `log(address,address,address,uint256)` and selector
     /// `0x94250d77`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -20547,6 +20973,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(string,bool,address,bool)` and selector `0x958c28c6`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -20566,6 +20994,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(bool,string,address)` and selector `0x9591b953`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -20584,6 +21014,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(string,string,address)` and selector `0x95ed0195`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -20602,6 +21034,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(bool,string,string,address)` and selector `0x97d394d8`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -20621,6 +21055,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(uint256,uint256,bool,address)` and selector `0x9a816a83`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -20640,6 +21076,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(bool,uint256,bool,address)` and selector `0x9acd3616`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -20659,6 +21097,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(address,address,uint256,bool)` and selector `0x9b4254e2`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -20678,6 +21118,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(uint256,address,bool)` and selector `0x9b6ec042`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -20696,6 +21138,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(uint256,string,address,string)` and selector `0x9c3adfa1`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -20715,6 +21159,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(address,bool,uint256)` and selector `0x9c4f99fb`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -20734,6 +21180,8 @@ pub mod hardhat_console {
     /// signature `log(uint256,address,string,address)` and selector
     /// `0x9cba8fff`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -20753,6 +21201,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(string,bool,bool,string)` and selector `0x9d22d5dd`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -20772,6 +21222,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(address,address,bool,address)` and selector `0x9f1bc36e`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -20791,6 +21243,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(string,uint256,address,string)` and selector `0x9ffb2f93`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -20810,6 +21264,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(address,string,string,address)` and selector `0xa04e2f87`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -20829,6 +21285,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(bool,bool,address,string)` and selector `0xa0a47963`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -20848,6 +21306,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(address,uint256,address,bool)` and selector `0xa1bcc9b3`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -20867,6 +21327,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(uint256,bool,address,address)` and selector `0xa1ef4cbb`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -20886,6 +21348,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(address,uint256,string)` and selector `0xa1f2e8aa`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -20904,6 +21368,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(address,uint256,bool,address)` and selector `0xa31bfdcc`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -20923,6 +21389,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(uint256,uint256,bool,string)` and selector `0xa5b4fc99`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -20942,6 +21410,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(bool,string,address,uint256)` and selector `0xa5cada94`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -20961,6 +21431,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(address,bool,address,bool)` and selector `0xa6f50b0f`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -20980,6 +21452,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(bool,address,string,string)` and selector `0xa73c1db6`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -20999,6 +21473,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(address,bool,address,uint256)` and selector `0xa75c59de`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -21019,6 +21495,8 @@ pub mod hardhat_console {
     /// signature `log(string,uint256,uint256,uint256)` and selector
     /// `0xa7a87853`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -21038,6 +21516,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(string,bool,string,string)` and selector `0xa826caeb`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -21057,6 +21537,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(address,address,bool,string)` and selector `0xaa6540c8`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -21076,6 +21558,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(string,address,string,address)` and selector `0xaabc9a31`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -21095,6 +21579,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(uint256,uint256,bool,bool)` and selector `0xab085ae6`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -21114,6 +21600,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(string,uint256,bool,string)` and selector `0xabf73a98`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -21133,6 +21621,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(uint256,bool,address,string)` and selector `0xade052c7`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -21152,6 +21642,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(uint256,string,bool,address)` and selector `0xae2ec581`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -21171,6 +21663,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(uint256,string,string,uint256)` and selector `0xb028c9bd`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -21190,6 +21684,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(bool,string,string)` and selector `0xb076847f`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -21208,6 +21704,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(string,string,bool)` and selector `0xb0e0f9b5`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -21226,6 +21724,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(uint256,string,string)` and selector `0xb115611f`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -21244,6 +21744,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(uint256,string,string,bool)` and selector `0xb3a6b6bd`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -21263,6 +21765,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(bool,uint256,address,bool)` and selector `0xb4c314ff`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -21282,6 +21786,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(string,address,address,bool)` and selector `0xb59dbd60`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -21301,6 +21807,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(string,uint256)` and selector `0xb60e72cc`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -21318,6 +21826,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(address,uint256,uint256)` and selector `0xb69bcaf6`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -21336,6 +21846,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(uint256,bool,bool,bool)` and selector `0xb6f577a1`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -21355,6 +21867,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(uint256,string,uint256,string)` and selector `0xb7b914ca`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -21374,6 +21888,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(bool,bool,string,bool)` and selector `0xb857163a`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -21393,6 +21909,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(uint256,string,bool,bool)` and selector `0xba535d9c`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -21412,6 +21930,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(address,string,bool,string)` and selector `0xbc0b61fe`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -21431,6 +21951,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(uint256,address,address)` and selector `0xbcfd9be0`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -21450,6 +21972,8 @@ pub mod hardhat_console {
     /// signature `log(address,address,uint256,uint256)` and selector
     /// `0xbe553481`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -21469,6 +21993,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(bool,uint256,uint256,bool)` and selector `0xbe984353`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -21489,6 +22015,8 @@ pub mod hardhat_console {
     /// signature `log(address,uint256,string,uint256)` and selector
     /// `0xbf01f891`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -21508,6 +22036,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(bool,bool,address,bool)` and selector `0xc0a302d8`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -21527,6 +22057,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(bool,address,string,uint256)` and selector `0xc21f64c7`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -21546,6 +22078,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(string,string,bool,address)` and selector `0xc371c7db`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -21565,6 +22099,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(string,string,uint256,bool)` and selector `0xc3a8a654`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -21584,6 +22120,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(string,bool)` and selector `0xc3b55635`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -21601,6 +22139,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(bool,uint256,string)` and selector `0xc3fc3970`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -21619,6 +22159,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(address,bool,uint256,bool)` and selector `0xc4643e20`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -21638,6 +22180,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(uint256,uint256,uint256,bool)` and selector `0xc598d185`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -21657,6 +22201,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(address,uint256,bool,string)` and selector `0xc5ad85f9`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -21676,6 +22222,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(string,uint256,string,uint256)` and selector `0xc67ea9d1`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -21695,6 +22243,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(uint256,bool,uint256,uint256)` and selector `0xc6acc7a8`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -21714,6 +22264,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(string,address,bool)` and selector `0xc91d5ed4`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -21732,6 +22284,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(string,bool,uint256)` and selector `0xc95958d6`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -21750,6 +22304,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(string,uint256,uint256)` and selector `0xca47c4eb`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -21768,6 +22324,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(string,uint256,bool)` and selector `0xca7733b1`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -21786,6 +22344,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(address,bool,bool,bool)` and selector `0xcac43479`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -21805,6 +22365,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(uint256,address,string,bool)` and selector `0xcc32ab07`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -21824,6 +22386,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(address,bool,uint256,address)` and selector `0xccf790a1`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -21843,6 +22407,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(bool,uint256,bool,bool)` and selector `0xceb5f4d7`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -21862,6 +22428,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(uint256,string,bool,uint256)` and selector `0xcf009880`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -21881,6 +22449,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(address,string,bool)` and selector `0xcf020fb1`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -21899,6 +22469,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(address,uint256,string,bool)` and selector `0xcf18105c`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -21918,6 +22490,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(address,bool,bool,address)` and selector `0xcf394485`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -21937,6 +22511,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(uint256,uint256,uint256)` and selector `0xd1ed7a3c`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -21955,6 +22531,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(bool,address,address)` and selector `0xd2763667`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -21973,6 +22551,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(uint256,string,bool,string)` and selector `0xd2d423cd`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -21992,6 +22572,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(uint256,string,string,address)` and selector `0xd583c602`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -22011,6 +22593,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(bool,address,uint256,bool)` and selector `0xd6019f1c`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -22030,6 +22614,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(string,string,bool,uint256)` and selector `0xd6aefad2`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -22049,6 +22635,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(bool,address,address,string)` and selector `0xd812a167`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -22068,6 +22656,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(address,address)` and selector `0xdaf0d4aa`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -22085,6 +22675,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(bool,string,bool)` and selector `0xdbb4c247`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -22103,6 +22695,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(bool,string,bool,bool)` and selector `0xdc5e935b`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -22123,6 +22717,8 @@ pub mod hardhat_console {
     /// signature `log(uint256,address,uint256,string)` and selector
     /// `0xddb06521`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -22142,6 +22738,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(uint256,bool,bool,string)` and selector `0xdddb9561`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -22161,6 +22759,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(uint256,bool,uint256,string)` and selector `0xde03e774`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -22180,6 +22780,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(string,string,string,string)` and selector `0xde68f20a`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -22199,6 +22801,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(bool,address,string)` and selector `0xde9a9270`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -22217,6 +22821,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(address,bool,bool,string)` and selector `0xdfc4a2e8`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -22236,6 +22842,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(string,bool,string,address)` and selector `0xe0625b29`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -22255,6 +22863,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(string,uint256,bool,address)` and selector `0xe0e95b98`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -22274,6 +22884,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(string,address,string)` and selector `0xe0e9ad4f`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -22293,6 +22905,8 @@ pub mod hardhat_console {
     /// signature `log(string,uint256,uint256,address)` and selector
     /// `0xe21de278`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -22312,6 +22926,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(string,bool,string)` and selector `0xe298f47d`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -22330,6 +22946,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(bool,address,string,bool)` and selector `0xe2bfd60b`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -22349,6 +22967,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(uint256,address,bool,bool)` and selector `0xe351140f`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -22368,6 +22988,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(bool,bool,string,uint256)` and selector `0xe3a9ca2f`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -22387,6 +23009,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(string,uint256,bool,uint256)` and selector `0xe41b6f6f`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -22406,6 +23030,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(bool,uint256,string,bool)` and selector `0xe5e70b2b`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -22426,6 +23052,8 @@ pub mod hardhat_console {
     /// signature `log(uint256,string,address,uint256)` and selector
     /// `0xe8d3018d`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -22445,6 +23073,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(bool,uint256,bool)` and selector `0xe8defba9`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -22463,6 +23093,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(string,string,address,string)` and selector `0xeb1bff80`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -22482,6 +23114,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(uint256,uint256,bool,uint256)` and selector `0xeb7f6fd2`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -22501,6 +23135,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(address,bool,bool)` and selector `0xeb830c92`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -22519,6 +23155,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(uint256,bool,string,bool)` and selector `0xeb928d7f`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -22539,6 +23177,8 @@ pub mod hardhat_console {
     /// signature `log(string,address,address,address)` and selector
     /// `0xed8f28f6`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -22559,6 +23199,8 @@ pub mod hardhat_console {
     /// signature `log(address,address,string,uint256)` and selector
     /// `0xef1cefe7`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -22578,6 +23220,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(uint256,bool,string,address)` and selector `0xef529018`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -22597,6 +23241,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(uint256,address,bool,address)` and selector `0xef72c513`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -22616,6 +23262,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(address,string,address)` and selector `0xf08744e8`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -22634,6 +23282,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(address,bool,address)` and selector `0xf11699ed`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -22652,6 +23302,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(address,address,bool)` and selector `0xf2a66286`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -22670,6 +23322,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(string,string,uint256,uint256)` and selector `0xf45d7d2c`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -22689,6 +23343,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(bool,bool,address,address)` and selector `0xf4880ea4`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -22708,6 +23364,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(bool,uint256,string,string)` and selector `0xf5bc2249`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -22727,6 +23385,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(uint256,uint256)` and selector `0xf666715a`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -22744,6 +23404,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(address,string,address,string)` and selector `0xf7e36245`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -22764,6 +23426,8 @@ pub mod hardhat_console {
     /// signature `log(address,address,address,string)` and selector
     /// `0xf808da20`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -22783,6 +23447,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(uint256)` and selector `0xf82c50f1`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -22800,6 +23466,8 @@ pub mod hardhat_console {
     /// signature `log(string,address,uint256,uint256)` and selector
     /// `0xf8f51b1e`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -22819,6 +23487,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(bool,bool,string,address)` and selector `0xf9ad2b89`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -22839,6 +23509,8 @@ pub mod hardhat_console {
     /// signature `log(uint256,uint256,uint256,address)` and selector
     /// `0xfa8185af`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -22858,6 +23530,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(address,string,string)` and selector `0xfb772265`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -22876,6 +23550,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(string,address,uint256,bool)` and selector `0xfc4845f0`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -22895,6 +23571,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(string,address,address)` and selector `0xfcec75e0`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -22914,6 +23592,8 @@ pub mod hardhat_console {
     /// signature `log(address,address,uint256,string)` and selector
     /// `0xfdb4f990`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -22933,6 +23613,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(bool,uint256,string,address)` and selector `0xfedd1fff`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -22952,6 +23634,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(int256)` and selector `0x2d5b6cb9`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -22968,6 +23652,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `log` function with
     /// signature `log(string,int256)` and selector `0x3ca6268e`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -22985,6 +23671,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `logAddress` function
     /// with signature `logAddress(address)` and selector `0x5f91b0af`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -23001,6 +23689,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `logBool` function with
     /// signature `logBool(bool)` and selector `0xba7ab84e`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -23017,6 +23707,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `logBytes` function with
     /// signature `logBytes(bytes)` and selector `0xe17bf956`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -23033,6 +23725,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `logBytes1` function
     /// with signature `logBytes1(bytes1)` and selector `0x6f4171c9`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -23049,6 +23743,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `logBytes10` function
     /// with signature `logBytes10(bytes10)` and selector `0x9dc2a897`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -23065,6 +23761,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `logBytes11` function
     /// with signature `logBytes11(bytes11)` and selector `0xdc08b6a7`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -23081,6 +23779,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `logBytes12` function
     /// with signature `logBytes12(bytes12)` and selector `0x7656d6c7`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -23097,6 +23797,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `logBytes13` function
     /// with signature `logBytes13(bytes13)` and selector `0x34c1d81b`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -23113,6 +23815,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `logBytes14` function
     /// with signature `logBytes14(bytes14)` and selector `0x3ceaba65`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -23129,6 +23833,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `logBytes15` function
     /// with signature `logBytes15(bytes15)` and selector `0x591a3da2`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -23145,6 +23851,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `logBytes16` function
     /// with signature `logBytes16(bytes16)` and selector `0x1f8d7312`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -23161,6 +23869,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `logBytes17` function
     /// with signature `logBytes17(bytes17)` and selector `0xf89a532f`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -23177,6 +23887,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `logBytes18` function
     /// with signature `logBytes18(bytes18)` and selector `0xd8652642`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -23193,6 +23905,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `logBytes19` function
     /// with signature `logBytes19(bytes19)` and selector `0x00f56bc9`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -23209,6 +23923,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `logBytes2` function
     /// with signature `logBytes2(bytes2)` and selector `0x9b5e943e`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -23225,6 +23941,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `logBytes20` function
     /// with signature `logBytes20(bytes20)` and selector `0xecb8567e`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -23241,6 +23959,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `logBytes21` function
     /// with signature `logBytes21(bytes21)` and selector `0x3052c08f`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -23257,6 +23977,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `logBytes22` function
     /// with signature `logBytes22(bytes22)` and selector `0x807ab434`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -23273,6 +23995,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `logBytes23` function
     /// with signature `logBytes23(bytes23)` and selector `0x4979b037`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -23289,6 +24013,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `logBytes24` function
     /// with signature `logBytes24(bytes24)` and selector `0x0977aefc`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -23305,6 +24031,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `logBytes25` function
     /// with signature `logBytes25(bytes25)` and selector `0xaea9963f`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -23321,6 +24049,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `logBytes26` function
     /// with signature `logBytes26(bytes26)` and selector `0xd3635628`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -23337,6 +24067,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `logBytes27` function
     /// with signature `logBytes27(bytes27)` and selector `0xfc372f9f`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -23353,6 +24085,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `logBytes28` function
     /// with signature `logBytes28(bytes28)` and selector `0x382f9a34`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -23369,6 +24103,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `logBytes29` function
     /// with signature `logBytes29(bytes29)` and selector `0x7a187641`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -23385,6 +24121,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `logBytes3` function
     /// with signature `logBytes3(bytes3)` and selector `0x7782fa2d`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -23401,6 +24139,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `logBytes30` function
     /// with signature `logBytes30(bytes30)` and selector `0xc4340ef6`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -23417,6 +24157,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `logBytes31` function
     /// with signature `logBytes31(bytes31)` and selector `0x81fc8648`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -23433,6 +24175,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `logBytes32` function
     /// with signature `logBytes32(bytes32)` and selector `0x2d21d6f7`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -23449,6 +24193,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `logBytes4` function
     /// with signature `logBytes4(bytes4)` and selector `0xfba3ad39`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -23465,6 +24211,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `logBytes5` function
     /// with signature `logBytes5(bytes5)` and selector `0x5583be2e`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -23481,6 +24229,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `logBytes6` function
     /// with signature `logBytes6(bytes6)` and selector `0x4942adc6`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -23497,6 +24247,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `logBytes7` function
     /// with signature `logBytes7(bytes7)` and selector `0x4574afab`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -23513,6 +24265,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `logBytes8` function
     /// with signature `logBytes8(bytes8)` and selector `0x9902e47f`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -23529,6 +24283,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `logBytes9` function
     /// with signature `logBytes9(bytes9)` and selector `0x50a138df`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -23545,6 +24301,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `logInt` function with
     /// signature `logInt(int256)` and selector `0x6525b5f5`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -23561,6 +24319,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `logString` function
     /// with signature `logString(string)` and selector `0x0bb563d6`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -23577,6 +24337,8 @@ pub mod hardhat_console {
     /// Container type for all input parameters for the `logUint` function with
     /// signature `logUint(uint256)` and selector `0x9905b744`
     #[derive(
+        serde::Serialize,
+        serde::Deserialize,
         Clone,
         ::ethers::contract::EthCall,
         ::ethers::contract::EthDisplay,
@@ -23591,7 +24353,16 @@ pub mod hardhat_console {
         pub p_0: ::ethers::core::types::U256,
     }
     /// Container type for all of the contract's call
-    #[derive(Clone, ::ethers::contract::EthAbiType, Debug, PartialEq, Eq, Hash)]
+    #[derive(
+        serde::Serialize,
+        serde::Deserialize,
+        Clone,
+        ::ethers::contract::EthAbiType,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash,
+    )]
     pub enum HardhatConsoleCalls {
         Log23(Log23Call),
         Log87(Log87Call),

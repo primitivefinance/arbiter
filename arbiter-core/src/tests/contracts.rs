@@ -2,6 +2,8 @@ use super::*;
 
 #[tokio::test]
 async fn arbiter_math() {
+    std::env::set_var("RUST_LOG", "trace");
+    tracing_subscriber::fmt::init();
     let (_manager, client) = startup().unwrap();
     let arbiter_math = deploy_arbiter_math(client).await.unwrap();
 

@@ -10,7 +10,7 @@ contract ArbiterMath {
 
     function cdf(int256 input) public pure returns (int256 output) {
         output = Gaussian.cdf(input);
-        console2.log(output);
+        console2.log("The output is: ", output);
     }
 
     function pdf(int256 input) public pure returns (int256 output) {
