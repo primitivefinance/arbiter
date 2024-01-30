@@ -54,6 +54,7 @@ use crate::{
 /// 5. [`State::Stopped`]: The [`World`] is stopped. This is where the [`World`]
 /// can be stopped and state of the [`World`] and its [`Agent`]s can be
 /// offloaded and saved.
+#[derive(Debug)]
 pub struct World {
     /// The identifier of the world.
     pub id: String,

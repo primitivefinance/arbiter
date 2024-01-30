@@ -15,6 +15,7 @@ use crate::{
     world::World,
 };
 
+#[derive(Debug)]
 struct TimedMessage {
     delay: u64,
     receive_data: String,

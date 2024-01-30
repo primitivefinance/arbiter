@@ -98,6 +98,19 @@ pub struct Agent {
     broadcast_task: Option<JoinHandle<Pin<Box<dyn Stream<Item = String> + Send>>>>,
 }
 
+impl Debug for Agent {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("Agent")
+            .field("id", &self.id)
+            .field("state", &self.state)
+            .field("messager", &self.messager)
+            .field("client", &self.client)
+            .field("event_streamer", &self.event_streamer)
+            .field("behavior_engines", &self.behavior_engines)
+            .finish()
+    }
+}
+
 impl Agent {
     /// Produces a new agent with the given identifier.
     pub fn new(id: &str, world: &World) -> Self {

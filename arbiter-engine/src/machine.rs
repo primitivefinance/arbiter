@@ -80,7 +80,7 @@ pub enum State {
 /// The [`Behavior`] trait is the lowest level functionality that will be used
 /// by a [`StateMachine`]. This constitutes what each state transition will do.
 #[async_trait::async_trait]
-pub trait Behavior<E>: Send + Sync + 'static {
+pub trait Behavior<E>: Send + Sync + Debug + 'static {
     /// Used to bring the agent back up to date with the latest state of the
     /// world. This could be used if the world was stopped and later restarted.
     async fn sync(&mut self, _messager: Messager, _client: Arc<RevmMiddleware>) {}
@@ -97,7 +97,7 @@ pub trait Behavior<E>: Send + Sync + 'static {
 }
 
 #[async_trait::async_trait]
-pub(crate) trait StateMachine: Send + Sync + 'static {
+pub(crate) trait StateMachine: Send + Sync + Debug + 'static {
     async fn execute(&mut self, instruction: MachineInstruction);
 }
 
@@ -109,6 +109,7 @@ pub(crate) trait StateMachine: Send + Sync + 'static {
 /// generics can be collapsed into a `dyn` trait object so that, for example,
 /// [`agent::Agent`]s can own multiple [`Behavior`]s with different event `<E>`
 /// types.
+#[derive(Debug)]
 pub struct Engine<B, E>
 where
     B: Behavior<E>,

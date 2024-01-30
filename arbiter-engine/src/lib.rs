@@ -15,4 +15,5 @@ pub mod agent;
 pub mod examples;
 pub mod machine;
 pub mod messager;
+pub mod universe;
 pub mod world;
