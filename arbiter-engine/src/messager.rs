@@ -40,6 +40,16 @@ pub struct Messager {
     broadcast_receiver: Option<Receiver<Message>>,
 }
 
+impl Clone for Messager {
+    fn clone(&self) -> Self {
+        Self {
+            broadcast_sender: self.broadcast_sender.clone(),
+            broadcast_receiver: Some(self.broadcast_sender.subscribe()),
+            id: self.id.clone(),
+        }
+    }
+}
+
 impl Messager {
     // TODO: Allow for modulating the capacity of the messager.
     // TODO: It might be nice to have some kind of messaging header so that we can

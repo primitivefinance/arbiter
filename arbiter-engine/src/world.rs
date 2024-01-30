@@ -107,7 +107,7 @@ impl World {
 
     /// Runs the world through up to the [`State::Processing`] stage.
     pub async fn run(&mut self) {
-        self.execute(MachineInstruction::Sync).await;
+        self.execute(MachineInstruction::Sync(None, None)).await;
         self.execute(MachineInstruction::Start).await;
         self.execute(MachineInstruction::Process).await;
     }
@@ -137,13 +137,14 @@ impl World {
 impl StateMachine for World {
     async fn execute(&mut self, instruction: MachineInstruction) {
         match instruction {
-            MachineInstruction::Sync => {
+            MachineInstruction::Sync(_, _) => {
                 info!("World is syncing.");
                 self.state = State::Syncing;
                 let agents = self.agents.take().unwrap();
                 let agent_tasks = join_all(agents.into_values().map(|mut agent| {
+                    let instruction_clone = instruction.clone();
                     tokio::spawn(async move {
-                        agent.execute(instruction).await;
+                        agent.execute(instruction_clone).await;
                         agent
                     })
                 }));
@@ -163,8 +164,9 @@ impl StateMachine for World {
                 self.state = State::Starting;
                 let agents = self.agents.take().unwrap();
                 let agent_tasks = join_all(agents.into_values().map(|mut agent| {
+                    let instruction_clone = instruction.clone();
                     tokio::spawn(async move {
-                        agent.execute(instruction).await;
+                        agent.execute(instruction_clone).await;
                         agent
                     })
                 }));
@@ -186,8 +188,9 @@ impl StateMachine for World {
                 let mut agent_distributors = vec![];
                 let agent_processors = join_all(agents.into_values().map(|mut agent| {
                     agent_distributors.push(agent.distributor.0.clone());
+                    let instruction_clone = instruction.clone();
                     tokio::spawn(async move {
-                        agent.execute(instruction).await;
+                        agent.execute(instruction_clone).await;
                         agent
                     })
                 }));
