@@ -10,7 +10,8 @@ const CONSOLE_ADDRESS: Address = address!("000000000000000000636F6e736F6c652e6c6
 
 #[allow(clippy::all)]
 #[rustfmt::skip]
-pub mod abi;
+#[allow(missing_docs)]
+pub(crate) mod abi;
 
 /// An inspector that collects `console2.log`s during execution.
 #[derive(Debug, Clone, Default)]

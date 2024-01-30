@@ -1,10 +1,12 @@
+use std::fs::{self, File};
+
+use tracing_subscriber::{fmt, EnvFilter};
+
 use super::*;
 
 #[tokio::test]
 async fn arbiter_math() {
-    std::env::set_var("RUST_LOG", "trace");
-    tracing_subscriber::fmt::init();
-    let (_manager, client) = startup().unwrap();
+    let (_env, client) = startup().unwrap();
     let arbiter_math = deploy_arbiter_math(client).await.unwrap();
 
     // Test the cdf function
@@ -114,7 +116,7 @@ async fn arbiter_math() {
 // relevant ERC20 functions (e.g., transfer, approve, etc.).
 #[tokio::test]
 async fn token_mint_and_balance() {
-    let (_manager, client) = startup().unwrap();
+    let (_env, client) = startup().unwrap();
     let arbx = deploy_arbx(client.clone()).await.unwrap();
 
     // Mint some tokens to the client.
@@ -141,7 +143,7 @@ async fn token_mint_and_balance() {
 
 #[tokio::test]
 async fn liquid_exchange_swap() {
-    let (_manager, client) = startup().unwrap();
+    let (_env, client) = startup().unwrap();
     let (arbx, arby, liquid_exchange) = deploy_liquid_exchange(client.clone()).await.unwrap();
 
     // Mint tokens to the client then check balances.
@@ -283,7 +285,7 @@ async fn liquid_exchange_swap() {
 
 #[tokio::test]
 async fn price_simulation_oracle() {
-    let (_manager, client) = startup().unwrap();
+    let (_env, client) = startup().unwrap();
     let (.., liquid_exchange) = deploy_liquid_exchange(client.clone()).await.unwrap();
 
     let price_path = vec![
@@ -306,4 +308,39 @@ async fn price_simulation_oracle() {
         let new_price = liquid_exchange.price().call().await.unwrap();
         assert_eq!(new_price, wad_price);
     }
+}
+
+#[tokio::test]
+async fn can_log() {
+    std::env::set_var("RUST_LOG", "trace");
+    let file = File::create("test_logs.log").expect("Unable to create log file");
+
+    let subscriber = fmt()
+        .with_env_filter(EnvFilter::from_default_env())
+        .with_writer(file)
+        .finish();
+
+    tracing::subscriber::set_global_default(subscriber).expect("setting default subscriber failed");
+
+    // tracing_subscriber::fmt::init();
+    let env = EnvironmentBuilder::new().with_console_logs().build();
+    let client = RevmMiddleware::new(&env, None).unwrap();
+    let counter = arbiter_bindings::bindings::counter::Counter::deploy(client, ())
+        .unwrap()
+        .send()
+        .await
+        .unwrap();
+
+    // Call the `setNumber` function to emit a console log.
+    counter
+        .set_number(ethers::types::U256::from(42))
+        .send()
+        .await
+        .unwrap()
+        .await
+        .unwrap();
+
+    let parsed_file = fs::read_to_string("test_logs.log").expect("Unable to read log file");
+    assert!(parsed_file.contains("You set the number to: , 42"));
+    fs::remove_file("test_logs.log").expect("Unable to remove log file");
 }

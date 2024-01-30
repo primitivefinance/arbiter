@@ -7,7 +7,7 @@ use revm::{
 };
 use revm_primitives::Address;
 
-use crate::{console::ConsoleLogs, database::ArbiterDB};
+use crate::console::ConsoleLogs;
 
 #[derive(Debug, Clone)]
 pub struct ArbiterInspector {
@@ -17,10 +17,17 @@ pub struct ArbiterInspector {
 
 impl ArbiterInspector {
     pub fn new(console_log: bool, gas: bool) -> Self {
-        Self {
-            console_log: Some(ConsoleLogs::default()),
-            gas: Some(GasInspector::default()),
-        }
+        let console_log = if console_log {
+            Some(ConsoleLogs::default())
+        } else {
+            None
+        };
+        let gas = if gas {
+            Some(GasInspector::default())
+        } else {
+            None
+        };
+        Self { console_log, gas }
     }
 }
 

@@ -30,7 +30,6 @@
 use std::{
     convert::Infallible,
     fmt::Debug,
-    str::FromStr,
     sync::{Arc, RwLock},
     thread::{self, JoinHandle},
 };
@@ -44,13 +43,11 @@ use revm::{
     },
     EVM,
 };
-use revm_primitives::{Address, Bytecode, CreateScheme, FixedBytes, TransactTo};
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 use thiserror::Error;
 use tokio::sync::broadcast::{channel, Sender as BroadcastSender};
 
-use self::{console::ConsoleLogs, inspector::ArbiterInspector};
+use self::inspector::ArbiterInspector;
 use super::*;
 use crate::database::ArbiterDB;
 #[cfg_attr(doc, doc(hidden))]
