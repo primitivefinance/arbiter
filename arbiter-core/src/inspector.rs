@@ -1,3 +1,8 @@
+//! This module contains an extensible [`revm::Inspector`] called
+//! [`ArbiterInspector`]. It is currently configurable in order to allow
+//! for users to set configuration to see logs generated in Solidity contracts
+//! and or enforce gas payment.
+
 use std::ops::Range;
 
 use revm::{
@@ -9,13 +14,22 @@ use revm_primitives::Address;
 
 use crate::console::ConsoleLogs;
 
+/// An configurable [`revm::Inspector`] that collects information about the
+/// execution of the [`Interpreter`]. Depending on whether which or both
+/// features are enabled, it collects information about the gas used by each
+/// opcode and the `console2.log`s emitted during execution. It ensures gas
+/// payments are made when `gas` is enabled.
 #[derive(Debug, Clone)]
 pub struct ArbiterInspector {
+    /// Whether to collect `console2.log`s.
     pub console_log: Option<ConsoleLogs>,
+
+    /// Whether to collect gas usage information.
     pub gas: Option<GasInspector>,
 }
 
 impl ArbiterInspector {
+    /// Create a new [`ArbiterInspector`] with the given configuration.
     pub fn new(console_log: bool, gas: bool) -> Self {
         let console_log = if console_log {
             Some(ConsoleLogs::default())

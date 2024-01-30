@@ -223,11 +223,15 @@ impl EnvironmentBuilder {
         self
     }
 
+    /// Enables inner contract logs to be printed to the console as `trace`
+    /// level logs prepended with "Console logs: ".
     pub fn with_console_logs(mut self) -> Self {
         self.parameters.console_logs = true;
         self
     }
 
+    /// Turns on gas payments for transactions so that the [`EVM`] will
+    /// automatically pay for gas and revert if balance is not met by sender.
     pub fn with_pay_gas(mut self) -> Self {
         self.parameters.pay_gas = true;
         self
