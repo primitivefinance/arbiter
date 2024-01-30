@@ -4,8 +4,8 @@
 use std::collections::HashMap;
 
 use anyhow::Result;
-use futures_util::future::{join, join_all, JoinAll};
-use tokio::task::{spawn, JoinError, JoinHandle};
+use futures_util::future::join_all;
+use tokio::task::{spawn, JoinError};
 
 use crate::world::World;
 
@@ -20,6 +20,7 @@ pub struct Universe {
 }
 
 impl Universe {
+    /// Creates a new [`Universe`].
     pub fn new() -> Self {
         Self {
             worlds: Some(HashMap::new()),
@@ -27,12 +28,14 @@ impl Universe {
         }
     }
 
+    /// Adds a [`World`] to the [`Universe`].
     pub fn add_world(&mut self, world: World) {
         if let Some(worlds) = self.worlds.as_mut() {
             worlds.insert(world.id.clone(), world);
         }
     }
 
+    /// Runs all of the [`World`]s in the [`Universe`] in parallel.
     pub async fn run_worlds(&mut self) -> Result<()> {
         if self.is_online() {
             return Err(anyhow::anyhow!("Universe is already running."));
@@ -45,6 +48,7 @@ impl Universe {
         Ok(())
     }
 
+    /// Returns `true` if the [`Universe`] is running.
     pub fn is_online(&self) -> bool {
         self.world_tasks.is_some()
     }
