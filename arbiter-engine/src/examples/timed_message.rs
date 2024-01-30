@@ -16,13 +16,14 @@ use crate::{
 };
 
 #[derive(Debug)]
-struct TimedMessage {
+pub(crate) struct TimedMessage {
     delay: u64,
     receive_data: String,
     send_data: String,
     messager: Option<Messager>,
     count: u64,
     max_count: Option<u64>,
+    start_message: Option<String>,
 }
 
 impl TimedMessage {
@@ -31,6 +32,7 @@ impl TimedMessage {
         receive_data: String,
         send_data: String,
         max_count: Option<u64>,
+        start_message: Option<String>,
     ) -> Self {
         Self {
             delay,
@@ -39,6 +41,7 @@ impl TimedMessage {
             messager: None,
             count: 0,
             max_count,
+            start_message,
         }
     }
 }
@@ -77,6 +80,14 @@ impl Behavior<Message> for TimedMessage {
 
     async fn startup(&mut self) {
         trace!("Starting up `TimedMessage`.");
+        if let Some(start_message) = &self.start_message {
+            let message = Message {
+                from: self.messager.as_ref().unwrap().id.clone().unwrap(),
+                to: To::All,
+                data: start_message.clone(),
+            };
+            self.messager.as_ref().unwrap().send(message).await;
+        }
         tokio::time::sleep(std::time::Duration::from_secs(self.delay)).await;
         trace!("Started up `TimedMessage`.");
     }
@@ -92,6 +103,7 @@ async fn echoer() {
         "Hello, world!".to_owned(),
         "Hello, world!".to_owned(),
         Some(2),
+        None,
     );
     world.add_agent(agent.with_behavior(behavior));
 
@@ -130,8 +142,8 @@ async fn ping_pong() {
     let mut world = World::new("world");
 
     let agent = Agent::new(AGENT_ID, &world);
-    let behavior_ping = TimedMessage::new(1, "pong".to_owned(), "ping".to_owned(), Some(2));
-    let behavior_pong = TimedMessage::new(1, "ping".to_owned(), "pong".to_owned(), Some(2));
+    let behavior_ping = TimedMessage::new(1, "pong".to_owned(), "ping".to_owned(), Some(2), None);
+    let behavior_pong = TimedMessage::new(1, "ping".to_owned(), "pong".to_owned(), Some(2), None);
     world.add_agent(
         agent
             .with_behavior(behavior_ping)
@@ -174,10 +186,10 @@ async fn ping_pong_two_agent() {
     let mut world = World::new("world");
 
     let agent_ping = Agent::new("agent_ping", &world);
-    let behavior_ping = TimedMessage::new(1, "pong".to_owned(), "ping".to_owned(), Some(2));
+    let behavior_ping = TimedMessage::new(1, "pong".to_owned(), "ping".to_owned(), Some(2), None);
 
     let agent_pong = Agent::new("agent_pong", &world);
-    let behavior_pong = TimedMessage::new(1, "ping".to_owned(), "pong".to_owned(), Some(2));
+    let behavior_pong = TimedMessage::new(1, "ping".to_owned(), "pong".to_owned(), Some(2), None);
 
     world.add_agent(agent_ping.with_behavior(behavior_ping));
     world.add_agent(agent_pong.with_behavior(behavior_pong));

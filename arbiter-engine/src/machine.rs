@@ -46,7 +46,7 @@ pub enum MachineInstruction {
 pub struct MachineHalt;
 
 /// The state used by any entity implementing [`StateMachine`].
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum State {
     /// The entity is not yet running any process.
     /// This is the state adopted by the entity when it is first created.

@@ -107,10 +107,11 @@ impl World {
     }
 
     /// Runs the world through up to the [`State::Processing`] stage.
-    pub async fn run(&mut self) {
+    pub async fn run(mut self) -> Self {
         self.execute(MachineInstruction::Sync(None, None)).await;
         self.execute(MachineInstruction::Start).await;
         self.execute(MachineInstruction::Process).await;
+        self
     }
 
     /// Stops the world by stopping all the behaviors that each of the agents is

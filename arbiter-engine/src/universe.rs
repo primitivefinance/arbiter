@@ -3,7 +3,9 @@
 
 use std::collections::HashMap;
 
-use anyhow::anyhow;
+use anyhow::Result;
+use futures_util::future::{join, join_all, JoinAll};
+use tokio::task::{spawn, JoinError, JoinHandle};
 
 use crate::world::World;
 
@@ -14,7 +16,7 @@ use crate::world::World;
 #[derive(Debug, Default)]
 pub struct Universe {
     worlds: Option<HashMap<String, World>>,
-    world_tasks: Option<HashMap<String, tokio::task::JoinHandle<()>>>,
+    world_tasks: Option<Vec<Result<World, JoinError>>>,
 }
 
 impl Universe {
@@ -31,47 +33,122 @@ impl Universe {
         }
     }
 
-    pub fn run_worlds(&mut self) {
-        let mut tasks = HashMap::new();
-        for (id, mut world) in self.worlds.take().unwrap().drain() {
-            tasks.insert(id, tokio::spawn(async move { world.run().await }));
+    pub async fn run_worlds(&mut self) -> Result<()> {
+        if self.is_online() {
+            return Err(anyhow::anyhow!("Universe is already running."));
         }
-        self.world_tasks = Some(tasks);
+        let mut tasks = Vec::new();
+        for (_, world) in self.worlds.take().unwrap().drain() {
+            tasks.push(spawn(async move { world.run().await }));
+        }
+        self.world_tasks = Some(join_all(tasks.into_iter()).await);
+        Ok(())
     }
 
     pub fn is_online(&self) -> bool {
-        self.worlds.is_none() && self.world_tasks.is_some()
-    }
-
-    pub fn is_complete(&self, id: &str) -> anyhow::Result<bool> {
-        if self.is_online() {
-            let world_task = self
-                .world_tasks
-                .as_ref()
-                .unwrap()
-                .get(id)
-                .ok_or(anyhow!("World not found."))?;
-            Ok(world_task.is_finished())
-        } else {
-            Err(anyhow!("Universe is not online."))
-        }
+        self.world_tasks.is_some()
     }
 }
 
 #[cfg(test)]
 mod tests {
+    use std::fs::{read_to_string, remove_file, File};
+
+    use tracing_subscriber::{fmt, EnvFilter};
+
     use super::*;
+    use crate::{agent::Agent, examples::timed_message::*, machine::State};
 
     #[tokio::test]
     async fn run_universe() {
         let mut universe = Universe::new();
         let world = World::new("test");
         universe.add_world(world);
-        universe.run_worlds();
-        assert!(universe.is_online());
-        assert!(!universe.is_complete("test").unwrap());
+        universe.run_worlds().await.unwrap();
+        let world = universe.world_tasks.unwrap().remove(0).unwrap();
+        assert_eq!(world.state, State::Processing);
+    }
 
-        let task = universe.world_tasks.unwrap().remove("test").unwrap();
-        task.await.unwrap();
+    #[tokio::test]
+    #[should_panic(expected = "Universe is already running.")]
+    async fn cant_run_twice() {
+        let mut universe = Universe::new();
+        let world1 = World::new("test");
+        universe.add_world(world1);
+        universe.run_worlds().await.unwrap();
+        universe.run_worlds().await.unwrap();
+    }
+
+    #[tokio::test]
+    async fn run_parallel() {
+        std::env::set_var("RUST_LOG", "trace");
+        let file = File::create("test_logs_engine.log").expect("Unable to create log file");
+
+        let subscriber = fmt()
+            .with_env_filter(EnvFilter::from_default_env())
+            .with_writer(file)
+            .finish();
+
+        tracing::subscriber::set_global_default(subscriber)
+            .expect("setting default subscriber failed");
+
+        let mut world1 = World::new("test1");
+        let agent1 = Agent::new("agent1", &world1);
+        let behavior1 = TimedMessage::new(
+            1,
+            "echo".to_owned(),
+            "echo".to_owned(),
+            Some(5),
+            Some("echo".to_owned()),
+        );
+        world1.add_agent(agent1.with_behavior(behavior1));
+
+        let mut world2 = World::new("test2");
+        let agent2 = Agent::new("agent2", &world2);
+        let behavior2 = TimedMessage::new(
+            1,
+            "echo".to_owned(),
+            "echo".to_owned(),
+            Some(5),
+            Some("echo".to_owned()),
+        );
+        world2.add_agent(agent2.with_behavior(behavior2));
+
+        let mut universe = Universe::new();
+        universe.add_world(world1);
+        universe.add_world(world2);
+
+        universe.run_worlds().await.unwrap();
+
+        let parsed_file = read_to_string("test_logs_engine.log").expect("Unable to read log file");
+
+        // Define the line to check (excluding the timestamp)
+        let line_to_check = "World is syncing.";
+
+        // Assert that the lines appear consecutively
+        assert!(
+            lines_appear_consecutively(&parsed_file, line_to_check),
+            "The lines do not appear consecutively"
+        );
+        remove_file("test_logs_engine.log").expect("Unable to remove log file");
+    }
+
+    fn lines_appear_consecutively(file_contents: &str, line_to_check: &str) -> bool {
+        let mut lines = file_contents.lines();
+
+        while let Some(line) = lines.next() {
+            if line.contains(line_to_check) {
+                println!("Found line: {}", line);
+                // Check if the next line also contains the line_to_check
+                if let Some(next_line) = lines.next() {
+                    if next_line.contains(line_to_check) {
+                        println!("Found next line: {}", next_line);
+                        return true;
+                    }
+                }
+            }
+        }
+
+        false
     }
 }
