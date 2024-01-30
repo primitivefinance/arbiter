@@ -36,6 +36,7 @@ impl Universe {
         for (id, mut world) in self.worlds.take().unwrap().drain() {
             tasks.insert(id, tokio::spawn(async move { world.run().await }));
         }
+        self.world_tasks = Some(tasks);
     }
 
     pub fn is_online(&self) -> bool {
@@ -54,5 +55,23 @@ impl Universe {
         } else {
             Err(anyhow!("Universe is not online."))
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[tokio::test]
+    async fn run_universe() {
+        let mut universe = Universe::new();
+        let world = World::new("test");
+        universe.add_world(world);
+        universe.run_worlds();
+        assert!(universe.is_online());
+        assert!(!universe.is_complete("test").unwrap());
+
+        let task = universe.world_tasks.unwrap().remove("test").unwrap();
+        task.await.unwrap();
     }
 }
