@@ -35,7 +35,7 @@ use std::{
 };
 
 use crossbeam_channel::{bounded, unbounded, Receiver, Sender};
-use ethers::core::types::U64;
+use ethers::{abi::AbiDecode, core::types::U64};
 use revm::{
     db::{CacheDB, EmptyDB},
     primitives::{
@@ -47,6 +47,7 @@ use serde::{Deserialize, Serialize};
 use thiserror::Error;
 use tokio::sync::broadcast::{channel, Sender as BroadcastSender};
 
+use self::inspector::ArbiterInspector;
 use super::*;
 use crate::database::ArbiterDB;
 #[cfg_attr(doc, doc(hidden))]
@@ -119,6 +120,8 @@ pub struct Environment {
     /// calls and transactions.
     pub(crate) db: Option<ArbiterDB>,
 
+    inspector: Option<ArbiterInspector>,
+
     /// This gives a means of letting the "outside world" connect to the
     /// [`Environment`] so that users (or agents) may send and receive data from
     /// the [`EVM`].
@@ -154,6 +157,13 @@ pub struct EnvironmentParameters {
 
     /// The contract size limit for the [`Environment`].
     pub contract_size_limit: Option<usize>,
+
+    /// Enables inner contract logs to be printed to the console.
+    pub console_logs: bool,
+
+    /// Allows for turning off any gas payments for transactions so no inspector
+    /// is needed.
+    pub pay_gas: bool,
 }
 
 /// A builder for creating an [`Environment`].
@@ -212,6 +222,20 @@ impl EnvironmentBuilder {
         self.db = Some(ArbiterDB(Arc::new(RwLock::new(db.into()))));
         self
     }
+
+    /// Enables inner contract logs to be printed to the console as `trace`
+    /// level logs prepended with "Console logs: ".
+    pub fn with_console_logs(mut self) -> Self {
+        self.parameters.console_logs = true;
+        self
+    }
+
+    /// Turns on gas payments for transactions so that the [`EVM`] will
+    /// automatically pay for gas and revert if balance is not met by sender.
+    pub fn with_pay_gas(mut self) -> Self {
+        self.parameters.pay_gas = true;
+        self
+    }
 }
 
 impl Environment {
@@ -224,8 +248,18 @@ impl Environment {
             event_broadcaster,
         };
 
+        let inspector = if parameters.console_logs || parameters.pay_gas {
+            Some(ArbiterInspector::new(
+                parameters.console_logs,
+                parameters.pay_gas,
+            ))
+        } else {
+            Some(ArbiterInspector::new(false, false))
+        };
+
         Self {
             socket,
+            inspector,
             parameters,
             db,
             handle: None,
@@ -251,6 +285,7 @@ impl Environment {
         evm.env.cfg.limit_contract_code_size =
             Some(self.parameters.contract_size_limit.unwrap_or(0x100_000));
         evm.env.block.gas_limit = self.parameters.gas_limit.unwrap_or(U256::MAX);
+        let mut inspector = self.inspector.take().unwrap();
 
         // Pull communication clones to move into a new thread.
         let instruction_receiver = self.socket.instruction_receiver.clone();
@@ -488,7 +523,8 @@ impl Environment {
                             }
                         }
                     },
-                    // A `Call` is not state changing and will not create events.
+                    // A `Call` is not state changing and will not create events but will create
+                    // console logs.
                     Instruction::Call {
                         tx_env,
                         outcome_sender,
@@ -496,7 +532,19 @@ impl Environment {
                         // Set the tx_env and prepare to process it
                         evm.env.tx = tx_env;
 
-                        let result = evm.transact_ref()?.result;
+                        let result = evm.inspect_ref(&mut inspector)?.result;
+
+                        if let Some(inspector) = &mut inspector.console_log {
+                            inspector.0.drain(..).for_each(|log| {
+                                trace!(
+                                    "Console logs: {:?}",
+                                    console::abi::HardhatConsoleCalls::decode(log)
+                                        .unwrap()
+                                        .to_string()
+                                )
+                            });
+                        };
+
                         outcome_sender
                             .send(Ok(Outcome::CallCompleted(result)))
                             .map_err(|e| EnvironmentError::Communication(e.to_string()))?;
@@ -519,29 +567,40 @@ impl Environment {
                         // Set the tx_env and prepare to process it
                         evm.env.tx = tx_env;
 
-                        let execution_result =
-                            match evm.inspect_commit(revm::inspectors::GasInspector::default()) {
-                                Ok(result) => result,
-                                Err(e) => {
-                                    if let EVMError::Transaction(invalid_transaction) = e {
-                                        outcome_sender
-                                            .send(Err(EnvironmentError::Transaction(
-                                                invalid_transaction,
-                                            )))
-                                            .map_err(|e| {
-                                                EnvironmentError::Communication(e.to_string())
-                                            })?;
-                                        continue;
-                                    } else {
-                                        outcome_sender
-                                            .send(Err(EnvironmentError::Execution(e)))
-                                            .map_err(|e| {
-                                                EnvironmentError::Communication(e.to_string())
-                                            })?;
-                                        continue;
-                                    }
+                        let execution_result = match evm.inspect_commit(&mut inspector) {
+                            Ok(result) => {
+                                if let Some(inspector) = &mut inspector.console_log {
+                                    inspector.0.drain(..).for_each(|log| {
+                                        trace!(
+                                            "Console logs: {:?}",
+                                            console::abi::HardhatConsoleCalls::decode(log)
+                                                .unwrap()
+                                                .to_string()
+                                        )
+                                    });
+                                };
+                                result
+                            }
+                            Err(e) => {
+                                if let EVMError::Transaction(invalid_transaction) = e {
+                                    outcome_sender
+                                        .send(Err(EnvironmentError::Transaction(
+                                            invalid_transaction,
+                                        )))
+                                        .map_err(|e| {
+                                            EnvironmentError::Communication(e.to_string())
+                                        })?;
+                                    continue;
+                                } else {
+                                    outcome_sender
+                                        .send(Err(EnvironmentError::Execution(e)))
+                                        .map_err(|e| {
+                                            EnvironmentError::Communication(e.to_string())
+                                        })?;
+                                    continue;
                                 }
-                            };
+                            }
+                        };
                         cumulative_gas_per_block += U256::from(execution_result.clone().gas_used());
                         let block_number = convert_uint_to_u64(evm.env.block.number)?;
                         let receipt_data = ReceiptData {

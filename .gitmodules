@@ -7,3 +7,6 @@
 [submodule "arbiter-bindings/lib/solstat"]
 	path = arbiter-bindings/lib/solstat
 	url = https://github.com/primitivefinance/solstat
+[submodule "arbiter-bindings/lib/ds-test"]
+	path = arbiter-bindings/lib/ds-test
+	url = https://github.com/dapphub/ds-test
