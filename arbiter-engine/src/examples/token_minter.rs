@@ -192,12 +192,7 @@ pub struct TokenRequester {
 }
 
 impl TokenRequester {
-    pub fn new(
-        client: Arc<RevmMiddleware>,
-        messager: Messager,
-        count: u64,
-        max_count: Option<u64>,
-    ) -> Self {
+    pub fn new(count: u64, max_count: Option<u64>) -> Self {
         Self {
             token_data: TokenData {
                 name: TOKEN_NAME.to_owned(),
@@ -264,7 +259,8 @@ token: {:?}",
         Some(MachineHalt)
     }
 }
-
+// world.run() -> sync state -> iterate over agents, `execute` each agent -> agent sync state ->
+// iterate over behaviors -> behavior sync state
 #[async_trait::async_trait]
 impl Behavior<arbiter_token::TransferFilter> for TokenRequester {
     async fn sync(&mut self, messager: Messager, client: Arc<RevmMiddleware>) {
@@ -301,13 +297,15 @@ impl Behavior<arbiter_token::TransferFilter> for TokenRequester {
     }
 }
 
-#[ignore]
 #[tokio::test(flavor = "multi_thread", worker_threads = 4)]
 async fn token_minter_simulation() {
+    // 3. have a method on world to update mutable map of addresses
     let mut world = World::new("test_world");
+    //self.contracts: HashMap<String, ContrantInstance>
 
     // Create the token admin agent
-    let token_admin = Agent::new(TOKEN_ADMIN_ID, &world);
+    // 1. use agent builder struct to get rid of reference to world
+    let token_admin = Agent::builder(TOKEN_ADMIN_ID).unwrap();
     let mut token_admin_behavior = TokenAdmin::new(0, Some(4));
     token_admin_behavior.add_token(TokenData {
         name: TOKEN_NAME.to_owned(),
@@ -318,33 +316,17 @@ async fn token_minter_simulation() {
     world.add_agent(token_admin.with_behavior(token_admin_behavior));
 
     // Create the token requester agent
-    let token_requester = Agent::new(REQUESTER_ID, &world);
-    let token_requester_behavior = TokenRequester::new(
-        token_requester.client.clone(),
-        token_requester
-            .messager
-            .as_ref()
-            .unwrap()
-            .join_with_id(Some(REQUESTER_ID.to_owned())),
-        0,
-        Some(4),
-    );
+    let token_requester = Agent::builder(REQUESTER_ID).unwrap();
+    let token_requester_behavior = TokenRequester::new(0, Some(4));
+    // 2. appropriately handle event driven behaviors
+    /*
     let arb = ArbiterToken::new(
         Address::from_str("0x240a76d4c8a7dafc6286db5fa6b589e8b21fc00f").unwrap(),
         token_requester.client.clone(),
     );
     let transfer_event = arb.transfer_filter();
 
-    let token_requester_behavior_again = TokenRequester::new(
-        token_requester.client.clone(),
-        token_requester
-            .messager
-            .as_ref()
-            .unwrap()
-            .join_with_id(Some(REQUESTER_ID.to_owned())),
-        0,
-        Some(4),
-    );
+    let token_requester_behavior_again = TokenRequester::new(0, Some(4));
     world.add_agent(
         token_requester
             .with_behavior::<Message>(token_requester_behavior)
@@ -375,4 +357,5 @@ async fn token_minter_simulation() {
             }
         }
     }
+    */
 }
