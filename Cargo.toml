@@ -23,7 +23,7 @@ path = "bin/main.rs"
 [workspace.dependencies]
 arbiter-bindings = { version = "*", path = "./arbiter-bindings" }
 arbiter-core = { version = "*", path = "./arbiter-core" }
-ethers = { version = "2.0.11" }
+ethers = { version = "2.0.13" }
 serde = { version = "1.0.193", features = ["derive"] }
 serde_json = { version = "=1.0.108" }
 revm = { git = "https://github.com/bluealloy/revm.git", features = [ "ethersdb", "std", "serde"], rev  = "30bbcdfe81446c9d1e9b37acc95f208943ddf858" }
