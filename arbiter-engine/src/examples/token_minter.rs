@@ -33,10 +33,9 @@ pub struct TokenAdmin {
 
     pub tokens: Option<HashMap<String, ArbiterToken<RevmMiddleware>>>,
 
-    // TODO: We should not have to have a client or a messager put here
-    // explicitly, they should come from the Agent the behavior is given to.
-    pub client: Arc<RevmMiddleware>,
-    pub messager: Messager,
+    pub client: Option<Arc<RevmMiddleware>>,
+
+    pub messager: Option<Messager>,
 
     count: u64,
 
@@ -44,17 +43,12 @@ pub struct TokenAdmin {
 }
 
 impl TokenAdmin {
-    pub fn new(
-        client: Arc<RevmMiddleware>,
-        messager: Messager,
-        count: u64,
-        max_count: Option<u64>,
-    ) -> Self {
+    pub fn new(count: u64, max_count: Option<u64>) -> Self {
         Self {
             token_data: HashMap::new(),
             tokens: None,
-            client,
-            messager,
+            client: None,
+            messager: None,
             count,
             max_count,
         }
@@ -99,12 +93,11 @@ pub struct MintRequest {
 
 #[async_trait::async_trait]
 impl Behavior<Message> for TokenAdmin {
-    #[tracing::instrument(skip(self), fields(id =
-self.messager.id.as_deref()))]
-    async fn sync(&mut self) {
+    #[tracing::instrument(skip(self), fields(id = messager.id.as_deref()))]
+    async fn sync(&mut self, messager: Messager, client: Arc<RevmMiddleware>) {
         for token_data in self.token_data.values_mut() {
             let token = ArbiterToken::deploy(
-                self.client.clone(),
+                client.clone(),
                 (
                     token_data.name.clone(),
                     token_data.symbol.clone(),
@@ -121,10 +114,11 @@ self.messager.id.as_deref()))]
                 .insert(token_data.name.clone(), token.clone());
             debug!("Deployed token: {:?}", token);
         }
+        self.messager = Some(messager);
+        self.client = Some(client);
     }
 
-    #[tracing::instrument(skip(self), fields(id =
-self.messager.id.as_deref()))]
+    #[tracing::instrument(skip(self), fields(id = self.messager.as_ref().unwrap().id.as_deref()))]
     async fn process(&mut self, event: Message) -> Option<MachineHalt> {
         if self.tokens.is_none() {
             error!(
@@ -135,6 +129,7 @@ the token admin before running the simulation."
 
         let query: TokenAdminQuery = serde_json::from_str(&event.data).unwrap();
         trace!("Got query: {:?}", query);
+        let messager = self.messager.as_ref().unwrap();
         match query {
             TokenAdminQuery::AddressOf(token_name) => {
                 trace!(
@@ -143,11 +138,11 @@ the token admin before running the simulation."
                 );
                 let token_data = self.token_data.get(&token_name).unwrap();
                 let message = Message {
-                    from: self.messager.id.clone().unwrap(),
+                    from: messager.id.clone().unwrap(),
                     to: To::Agent(event.from.clone()), // Reply back to sender
                     data: serde_json::to_string(token_data).unwrap(),
                 };
-                self.messager.send(message).await;
+                messager.send(message).await;
             }
             TokenAdminQuery::MintRequest(mint_request) => {
                 trace!("Minting tokens: {:?}", mint_request);
@@ -186,10 +181,10 @@ pub struct TokenRequester {
     pub request_to: String,
 
     /// Client to have an address to receive token mint to and check balance
-    pub client: Arc<RevmMiddleware>,
+    pub client: Option<Arc<RevmMiddleware>>,
 
     /// The messaging layer for the token requester.
-    pub messager: Messager,
+    pub messager: Option<Messager>,
 
     pub count: u64,
 
@@ -211,8 +206,8 @@ impl TokenRequester {
                 address: None,
             },
             request_to: TOKEN_ADMIN_ID.to_owned(),
-            client,
-            messager,
+            client: None,
+            messager: None,
             count,
             max_count,
         }
@@ -221,23 +216,29 @@ impl TokenRequester {
 
 #[async_trait::async_trait]
 impl Behavior<Message> for TokenRequester {
-    #[tracing::instrument(skip(self), fields(id =
-self.messager.id.as_deref()))]
+    #[tracing::instrument(skip(self), fields(id = messager.id.as_deref()))]
+    async fn sync(&mut self, messager: Messager, client: Arc<RevmMiddleware>) {
+        self.messager = Some(messager);
+        self.client = Some(client);
+    }
+
+    #[tracing::instrument(skip(self), fields(id = self.messager.as_ref().unwrap().id.as_deref()))]
     async fn startup(&mut self) {
+        let messager = self.messager.as_ref().unwrap();
         trace!("Requesting address of token: {:?}", self.token_data.name);
         let message = Message {
-            from: self.messager.id.clone().unwrap(),
+            from: messager.id.clone().unwrap(),
             to: To::Agent(self.request_to.clone()),
             data: serde_json::to_string(&TokenAdminQuery::AddressOf(self.token_data.name.clone()))
                 .unwrap(),
         };
-        self.messager.send(message).await;
+        messager.send(message).await;
     }
 
-    #[tracing::instrument(skip(self), fields(id =
-self.messager.id.as_deref()))]
+    #[tracing::instrument(skip(self), fields(id = self.messager.as_ref().unwrap().id.as_deref()))]
     async fn process(&mut self, event: Message) -> Option<MachineHalt> {
         if let Ok(token_data) = serde_json::from_str::<TokenData>(&event.data) {
+            let messager = self.messager.as_ref().unwrap();
             trace!(
                 "Got
 token data: {:?}",
@@ -249,16 +250,16 @@ token: {:?}",
                 self.token_data.name
             );
             let message = Message {
-                from: self.messager.id.clone().unwrap(),
+                from: messager.id.clone().unwrap(),
                 to: To::Agent(self.request_to.clone()),
                 data: serde_json::to_string(&TokenAdminQuery::MintRequest(MintRequest {
                     token: self.token_data.name.clone(),
-                    mint_to: self.client.address(),
+                    mint_to: self.client.as_ref().unwrap().address(),
                     mint_amount: 1,
                 }))
                 .unwrap(),
             };
-            self.messager.send(message).await;
+            messager.send(message).await;
         }
         Some(MachineHalt)
     }
@@ -266,9 +267,14 @@ token: {:?}",
 
 #[async_trait::async_trait]
 impl Behavior<arbiter_token::TransferFilter> for TokenRequester {
-    #[tracing::instrument(skip(self), fields(id =
-self.messager.id.as_deref()))]
+    async fn sync(&mut self, messager: Messager, client: Arc<RevmMiddleware>) {
+        self.client = Some(client);
+        self.messager = Some(messager);
+    }
+
+    #[tracing::instrument(skip(self), fields(id = self.messager.as_ref().unwrap().id.as_deref()))]
     async fn process(&mut self, event: arbiter_token::TransferFilter) -> Option<MachineHalt> {
+        let messager = self.messager.as_ref().unwrap();
         trace!(
             "Got event for
 `TokenRequester` logger: {:?}",
@@ -276,16 +282,16 @@ self.messager.id.as_deref()))]
         );
         std::thread::sleep(std::time::Duration::from_secs(1));
         let message = Message {
-            from: self.messager.id.clone().unwrap(),
+            from: messager.id.clone().unwrap(),
             to: To::Agent(self.request_to.clone()),
             data: serde_json::to_string(&TokenAdminQuery::MintRequest(MintRequest {
                 token: self.token_data.name.clone(),
-                mint_to: self.client.address(),
+                mint_to: self.client.as_ref().unwrap().address(),
                 mint_amount: 1,
             }))
             .unwrap(),
         };
-        self.messager.send(message).await;
+        messager.send(message).await;
         self.count += 1;
         if self.count == self.max_count.unwrap_or(u64::MAX) {
             warn!("Reached max count. Halting behavior.");
@@ -298,23 +304,11 @@ self.messager.id.as_deref()))]
 #[ignore]
 #[tokio::test(flavor = "multi_thread", worker_threads = 4)]
 async fn token_minter_simulation() {
-    // std::env::set_var("RUST_LOG", "trace");
-    // tracing_subscriber::fmt::init();
-
     let mut world = World::new("test_world");
 
     // Create the token admin agent
     let token_admin = Agent::new(TOKEN_ADMIN_ID, &world);
-    let mut token_admin_behavior = TokenAdmin::new(
-        token_admin.client.clone(),
-        token_admin
-            .messager
-            .as_ref()
-            .unwrap()
-            .join_with_id(Some(TOKEN_ADMIN_ID.to_owned())),
-        0,
-        Some(4),
-    );
+    let mut token_admin_behavior = TokenAdmin::new(0, Some(4));
     token_admin_behavior.add_token(TokenData {
         name: TOKEN_NAME.to_owned(),
         symbol: TOKEN_SYMBOL.to_owned(),
