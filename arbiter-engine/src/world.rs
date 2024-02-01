@@ -18,6 +18,7 @@
 use arbiter_core::{environment::Environment, middleware::RevmMiddleware};
 use ethers::core::k256::sha2::digest::Mac;
 use futures_util::future::join_all;
+use tokio::{spawn, task::JoinSet};
 use tracing::info;
 
 use self::{agent::AgentBuilder, machine::MachineInstruction};
@@ -83,40 +84,33 @@ impl World {
         }
     }
 
-    /// Creates a new [World] with the given identifier and provider.
-    pub fn new_with_env(id: &str, environment: Environment) -> Self {
-        Self {
-            id: id.to_owned(),
-            agents: Some(HashMap::new()),
-            state: State::Uninitialized,
-            environment,
-            messager: Messager::new(),
-        }
-    }
-
     /// Adds an agent to the world.
     pub fn add_agent(&mut self, agent_builder: AgentBuilder) {
         let id = agent_builder.id.clone();
-        let messager = self.messager.for_agent(&id);
         let client = RevmMiddleware::new(&self.environment, Some(&id)).unwrap();
-        let agent = agent_builder.build(messager, client).unwrap();
+        let messager = self.messager.for_agent(&id);
+        let agent = agent_builder.build(client, messager).unwrap();
         let agents = self.agents.as_mut().unwrap();
         agents.insert(id.to_owned(), agent);
     }
 
-    // TODO: We shouldn't have to call `execute(process)`
     /// Runs the world through up to the [`State::Processing`] stage.
     pub async fn run(&mut self) {
-        for agent in self.agents.take().unwrap().values_mut() {
+        let mut tasks = vec![];
+        // TODO: This unwrap should be checked.
+        let agents = self.agents.take().unwrap();
+        for (_, mut agent) in agents {
             for mut engine in agent.behavior_engines.drain(..) {
-                engine
-                    .execute(MachineInstruction::Start(
-                        agent.client.clone(),
-                        agent.messager.clone(),
-                    ))
-                    .await;
+                let client = agent.client.clone();
+                let messager = agent.messager.clone();
+                tasks.push(spawn(async move {
+                    engine
+                        .execute(MachineInstruction::Start(client, messager))
+                        .await
+                }));
             }
         }
+        join_all(tasks).await;
     }
 }
 

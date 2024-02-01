@@ -142,6 +142,8 @@ where
                 let (stream, behavior) = behavior_task.await.unwrap();
                 self.event_stream = Some(stream);
                 self.behavior = Some(behavior);
+                // TODO: This feels weird but I think it works properly?
+                self.execute(MachineInstruction::Process).await;
             }
             MachineInstruction::Process => {
                 trace!("Behavior is processing.");

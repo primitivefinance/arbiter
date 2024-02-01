@@ -85,10 +85,6 @@ pub struct Agent {
     /// The client the agent uses to interact with the blockchain.
     pub client: Arc<RevmMiddleware>,
 
-    /// The generalized event streamer for the agent that can stream a JSON
-    /// `String`of any Ethereum event that can be decoded by behaviors.
-    pub event_streamer: Option<EventLogger>,
-
     /// The engines/behaviors that the agent uses to sync, startup, and process
     /// events.
     pub(crate) behavior_engines: Vec<Box<dyn StateMachine>>,
@@ -162,8 +158,8 @@ impl AgentBuilder {
     /// Produces a new agent with the given identifier.
     pub fn build(
         self,
-        messager: Messager,
         client: Arc<RevmMiddleware>,
+        messager: Messager,
     ) -> Result<Agent, AgentBuildError> {
         match self.behavior_engines {
             Some(engines) => Ok(Agent {
@@ -171,7 +167,6 @@ impl AgentBuilder {
                 state: State::Uninitialized,
                 messager,
                 client,
-                event_streamer: Some(EventLogger::builder()),
                 behavior_engines: engines,
             }),
             None => Err(AgentBuildError::MissingBehaviorEngines),

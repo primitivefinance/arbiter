@@ -80,7 +80,6 @@ impl Behavior<Message> for TimedMessage {
         trace!("Starting up `TimedMessage`.");
         self.messager = Some(messager.clone());
         tokio::time::sleep(std::time::Duration::from_secs(self.delay)).await;
-        trace!("Started `TimedMessage`.");
         if let Some(startup_message) = &self.startup_message {
             messager
                 .clone()
@@ -91,6 +90,7 @@ impl Behavior<Message> for TimedMessage {
                 })
                 .await;
         }
+        trace!("Started `TimedMessage`.");
         return Box::pin(messager.stream());
     }
 }
