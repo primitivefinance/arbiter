@@ -86,7 +86,7 @@ pub mod nonce_middleware;
 /// use arbiter_core::{environment::EnvironmentBuilder, middleware::RevmMiddleware};
 ///
 /// // Create a new environment and run it
-/// let mut environment = EnvironmentBuilder::new().build();
+/// let mut environment = Environment::builder().build();
 ///
 /// // Retrieve the environment to create a new middleware instance
 /// let middleware = RevmMiddleware::new(&environment, Some("test_label"));
@@ -245,7 +245,7 @@ impl RevmMiddleware {
     /// use arbiter_core::{environment::EnvironmentBuilder, middleware::RevmMiddleware};
     ///
     /// // Create a new environment and run it
-    /// let mut environment = EnvironmentBuilder::new().build();
+    /// let mut environment = Environment::builder().build();
     ///
     /// // Retrieve the environment to create a new middleware instance
     /// let client = RevmMiddleware::new(&environment, Some("test_label"));

@@ -176,22 +176,7 @@ pub struct EnvironmentBuilder {
     db: Option<ArbiterDB>,
 }
 
-impl Default for EnvironmentBuilder {
-    fn default() -> Self {
-        Self::new()
-    }
-}
-
 impl EnvironmentBuilder {
-    /// Creates a new [`EnvironmentBuilder`] with default parameters that can be
-    /// used to build an [`Environment`].
-    pub fn new() -> Self {
-        Self {
-            parameters: EnvironmentParameters::default(),
-            db: None,
-        }
-    }
-
     /// Builds and runs an [`Environment`] with the parameters set in the
     /// [`EnvironmentBuilder`].
     pub fn build(self) -> Environment {
@@ -239,6 +224,15 @@ impl EnvironmentBuilder {
 }
 
 impl Environment {
+    /// Creates a new [`EnvironmentBuilder`] with default parameters that can be
+    /// used to build an [`Environment`].
+    pub fn builder() -> EnvironmentBuilder {
+        EnvironmentBuilder {
+            parameters: EnvironmentParameters::default(),
+            db: None,
+        }
+    }
+
     fn create(parameters: EnvironmentParameters, db: Option<ArbiterDB>) -> Self {
         let (instruction_sender, instruction_receiver) = unbounded();
         let (event_broadcaster, _) = channel(512);

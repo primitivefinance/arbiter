@@ -49,7 +49,7 @@ pub const ARBITER_TOKEN_Y_DECIMALS: u8 = 18;
 pub const LIQUID_EXCHANGE_PRICE: f64 = 420.69;
 
 fn startup() -> Result<(Environment, Arc<RevmMiddleware>)> {
-    let env = EnvironmentBuilder::new().build();
+    let env = Environment::builder().build();
     let client = RevmMiddleware::new(&env, Some(TEST_SIGNER_SEED_AND_LABEL))?;
     Ok((env, client))
 }

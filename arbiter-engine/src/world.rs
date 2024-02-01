@@ -87,7 +87,7 @@ impl World {
             state: State::Uninitialized,
             agents: Some(HashMap::new()),
             agent_distributors: None,
-            environment: EnvironmentBuilder::new().build(),
+            environment: Environment::builder().build(),
             messager: Messager::new(),
         }
     }
