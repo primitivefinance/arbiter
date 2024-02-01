@@ -147,10 +147,8 @@ where
                 trace!("Behavior is processing.");
                 let mut behavior = self.behavior.take().unwrap();
                 let mut stream = self.event_stream.take().unwrap();
-                println!("STREAM IS GOING INTO BEHAVIOR.");
                 let behavior_task = tokio::spawn(async move {
                     while let Some(event) = stream.next().await {
-                        println!("GOT AN EVENT: {:?}", event);
                         let halt_option = behavior.process(event).await;
                         if halt_option.is_some() {
                             break;
