@@ -68,8 +68,8 @@ use crate::{
 /// 5. [`State::Stopped`]: The [`Agent`] is stopped. This is where the [`Agent`]
 /// can be stopped and state of the [`World`] and its [`Agent`]s can be
 /// offloaded and saved.
-// todo(matt): use builder pattern where we just have the agent builder implement deserialize with
-// just behavior_engines
+// todo(matt): use builder pattern where we just have the agent builder
+// implement deserialize with just behavior_engines
 //
 // #[derive(Serialize, Deserialize)]
 // pub struct AgentBuilder {
@@ -284,85 +284,87 @@ mod tests {
 
         let world = World::new("world");
         let agent = Agent::builder("agent").unwrap();
-        /*
-
-        let arb = ArbiterToken::deploy(
-            agent.client.clone(),
-            ("ArbiterToken".to_string(), "ARB".to_string(), 18u8),
-        )
-        .unwrap()
-        .send()
-        .await
-        .unwrap();
-
-        let mut agent = agent.with_event(arb.events());
-        let address = agent.client.address();
-
+        // let arb = ArbiterToken::deploy(
+        // agent.client.clone(),
+        // ("ArbiterToken".to_string(), "ARB".to_string(), 18u8),
+        // )
+        // .unwrap()
+        // .send()
+        // .await
+        // .unwrap();
+        //
+        // let mut agent = agent.with_event(arb.events());
+        // let address = agent.client.address();
+        //
         // TODO: (START BLOCK) It would be nice to get this block to be a single
         // function that isn't copy and pasted from above.
-        let messager = agent.messager.take().unwrap();
-        let message_stream = messager
-            .stream()
-            .map(|msg| serde_json::to_string(&msg).unwrap_or_else(|e| e.to_string()));
-        let eth_event_stream = agent.event_streamer.take().unwrap().stream();
-
-        let mut event_stream: Pin<Box<dyn Stream<Item = String> + Send + '_>> =
-            if let Some(event_stream) = eth_event_stream {
-                trace!("Merging event streams.");
-                let all_streams = vec![
-                    Box::pin(message_stream) as Pin<Box<dyn Stream<Item = String> + Send>>,
-                    Box::pin(event_stream),
-                ];
-                Box::pin(futures::stream::select_all(all_streams))
-            } else {
-                trace!("Agent only sees message stream.");
-                Box::pin(message_stream)
-            };
+        // let messager = agent.messager.take().unwrap();
+        // let message_stream = messager
+        // .stream()
+        // .map(|msg| serde_json::to_string(&msg).unwrap_or_else(|e|
+        // e.to_string())); let eth_event_stream =
+        // agent.event_streamer.take().unwrap().stream();
+        //
+        // let mut event_stream: Pin<Box<dyn Stream<Item = String> + Send + '_>>
+        // = if let Some(event_stream) = eth_event_stream {
+        // trace!("Merging event streams.");
+        // let all_streams = vec![
+        // Box::pin(message_stream) as Pin<Box<dyn Stream<Item = String> +
+        // Send>>, Box::pin(event_stream),
+        // ];
+        // Box::pin(futures::stream::select_all(all_streams))
+        // } else {
+        // trace!("Agent only sees message stream.");
+        // Box::pin(message_stream)
+        // };
         // TODO: (END BLOCK)
-
-        let outside_messager = world.messager.join_with_id(None);
-        let message_task = tokio::spawn(async move {
-            for _ in 0..5 {
-                outside_messager
-                    .send(Message {
-                        from: "god".to_string(),
-                        to: messager::To::All,
-                        data: "hello".to_string(),
-                    })
-                    .await;
-            }
-        });
-
-        let eth_event_task = tokio::spawn(async move {
-            for i in 0..5 {
-                if i == 0 {
-                    tokio::time::sleep(std::time::Duration::from_secs(1)).await;
-                }
-                arb.approve(address, U256::from(1))
-                    .send()
-                    .await
-                    .unwrap()
-                    .await
-                    .unwrap();
-            }
-        });
-
-        let mut idx = 0;
-        let print_task = tokio::spawn(async move {
-            while let Some(msg) = event_stream.next().await {
-                println!("Printing message in test: {:?}", msg);
-                if idx < 5 {
-                    assert_eq!(msg, "{\"from\":\"god\",\"to\":\"All\",\"data\":\"hello\"}");
-                } else {
-                    assert_eq!(msg, "{\"ApprovalFilter\":{\"owner\":\"0xe7a46f3d9f0e9b9c02f58f95e3bcee2db54050b0\",\"spender\":\"0xe7a46f3d9f0e9b9c02f58f95e3bcee2db54050b0\",\"amount\":\"0x1\"}}");
-                }
-                idx += 1;
-                if idx == 10 {
-                    break;
-                }
-            }
-        });
-        join_all(vec![message_task, eth_event_task, print_task]).await;
-        */
+        //
+        // let outside_messager = world.messager.join_with_id(None);
+        // let message_task = tokio::spawn(async move {
+        // for _ in 0..5 {
+        // outside_messager
+        // .send(Message {
+        // from: "god".to_string(),
+        // to: messager::To::All,
+        // data: "hello".to_string(),
+        // })
+        // .await;
+        // }
+        // });
+        //
+        // let eth_event_task = tokio::spawn(async move {
+        // for i in 0..5 {
+        // if i == 0 {
+        // tokio::time::sleep(std::time::Duration::from_secs(1)).await;
+        // }
+        // arb.approve(address, U256::from(1))
+        // .send()
+        // .await
+        // .unwrap()
+        // .await
+        // .unwrap();
+        // }
+        // });
+        //
+        // let mut idx = 0;
+        // let print_task = tokio::spawn(async move {
+        // while let Some(msg) = event_stream.next().await {
+        // println!("Printing message in test: {:?}", msg);
+        // if idx < 5 {
+        // assert_eq!(msg,
+        // "{\"from\":\"god\",\"to\":\"All\",\"data\":\"hello\"}");
+        // } else {
+        // assert_eq!(msg,
+        // "{\"ApprovalFilter\":{\"owner\":\"
+        // 0xe7a46f3d9f0e9b9c02f58f95e3bcee2db54050b0\",\"spender\":\"
+        // 0xe7a46f3d9f0e9b9c02f58f95e3bcee2db54050b0\",\"amount\":\"0x1\"}}");
+        // }
+        // idx += 1;
+        // if idx == 10 {
+        // break;
+        // }
+        // }
+        // });
+        // join_all(vec![message_task, eth_event_task, print_task]).await;
     }
 }
