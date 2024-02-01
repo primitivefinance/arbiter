@@ -83,7 +83,7 @@ pub mod nonce_middleware;
 /// // Import `Arc` if you need to create a client instance
 /// use std::sync::Arc;
 ///
-/// use arbiter_core::{environment::EnvironmentBuilder, middleware::RevmMiddleware};
+/// use arbiter_core::{environment::Environment, middleware::RevmMiddleware};
 ///
 /// // Create a new environment and run it
 /// let mut environment = Environment::builder().build();
@@ -242,7 +242,7 @@ impl RevmMiddleware {
     /// // Import `Arc` if you need to create a client instance
     /// use std::sync::Arc;
     ///
-    /// use arbiter_core::{environment::EnvironmentBuilder, middleware::RevmMiddleware};
+    /// use arbiter_core::{environment::Environment, middleware::RevmMiddleware};
     ///
     /// // Create a new environment and run it
     /// let mut environment = Environment::builder().build();
