@@ -41,6 +41,7 @@ pub struct TokenAdmin {
     count: u64,
 
     max_count: Option<u64>,
+
     startup_message: Option<String>,
 }
 
@@ -220,8 +221,7 @@ impl TokenRequester {
 
 #[async_trait::async_trait]
 impl Behavior<TransferFilter> for TokenRequester {
-    #[tracing::instrument(skip(self), fields(id =
- self.messager.as_ref().unwrap().id.as_deref()))]
+    #[tracing::instrument(skip(self), fields(id = messager.id.as_deref()))]
     async fn startup(
         &mut self,
         client: Arc<RevmMiddleware>,
@@ -308,7 +308,6 @@ async fn token_minter_simulation() {
     world.add_agent(token_requester.with_behavior(token_requester_behavior));
 
     // Create the token admin agent
-    /*
     let token_admin = Agent::builder(TOKEN_ADMIN_ID).unwrap();
     let mut token_admin_behavior = TokenAdmin::new(Some(4));
     token_admin_behavior.add_token(TokenData {
@@ -318,13 +317,12 @@ async fn token_minter_simulation() {
         address: None,
     });
     world.add_agent(token_admin.with_behavior(token_admin_behavior));
-    */
 
     world.run().await;
     // 2. appropriately handle event driven behaviors
     // let arb = ArbiterToken::new(
-    // Address::from_str("0x240a76d4c8a7dafc6286db5fa6b589e8b21fc00f").unwrap(),     // token_requester.client.clone(),
-    // );
+    // Address::from_str("0x240a76d4c8a7dafc6286db5fa6b589e8b21fc00f").unwrap(),
+    // // token_requester.client.clone(), );
     // let transfer_event = arb.transfer_filter();
     //
     // let token_requester_behavior_again = TokenRequester::new(0, Some(4));
