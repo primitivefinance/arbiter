@@ -16,6 +16,7 @@
 //! The world module contains the core world abstraction for the Arbiter Engine.
 
 use arbiter_core::{environment::Environment, middleware::RevmMiddleware};
+use ethers::core::k256::sha2::digest::Mac;
 use futures_util::future::join_all;
 use tracing::info;
 
@@ -103,60 +104,17 @@ impl World {
         agents.insert(id.to_owned(), agent);
     }
 
+    // TODO: We shouldn't have to call `execute(process)`
     /// Runs the world through up to the [`State::Processing`] stage.
     pub async fn run(&mut self) {
-        self.execute(MachineInstruction::Start(None, None)).await;
-        self.execute(MachineInstruction::Process).await;
-    }
-}
-
-#[async_trait::async_trait]
-impl StateMachine for World {
-    async fn execute(&mut self, instruction: MachineInstruction) {
-        match instruction {
-            MachineInstruction::Start(_, _) => {
-                info!("World is starting.");
-                self.state = State::Starting;
-                let agents = self.agents.take().unwrap();
-                let agent_tasks = join_all(agents.into_values().map(|mut agent| {
-                    let instruction_clone = instruction.clone();
-                    tokio::spawn(async move {
-                        agent.execute(instruction_clone).await;
-                        agent
-                    })
-                }));
-                self.agents = Some(
-                    agent_tasks
-                        .await
-                        .into_iter()
-                        .map(|res| {
-                            let agent = res.unwrap();
-                            (agent.id.clone(), agent)
-                        })
-                        .collect::<HashMap<String, Agent>>(),
-                );
-            }
-            MachineInstruction::Process => {
-                info!("World is processing.");
-                self.state = State::Processing;
-                let agents = self.agents.take().unwrap();
-                let agent_processors = join_all(agents.into_values().map(|mut agent| {
-                    let instruction_clone = instruction.clone();
-                    tokio::spawn(async move {
-                        agent.execute(instruction_clone).await;
-                        agent
-                    })
-                }));
-                self.agents = Some(
-                    agent_processors
-                        .await
-                        .into_iter()
-                        .map(|res| {
-                            let agent = res.unwrap();
-                            (agent.id.clone(), agent)
-                        })
-                        .collect::<HashMap<String, Agent>>(),
-                );
+        for agent in self.agents.take().unwrap().values_mut() {
+            for mut engine in agent.behavior_engines.drain(..) {
+                engine
+                    .execute(MachineInstruction::Start(
+                        agent.client.clone(),
+                        agent.messager.clone(),
+                    ))
+                    .await;
             }
         }
     }

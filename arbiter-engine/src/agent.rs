@@ -80,7 +80,7 @@ pub struct Agent {
 
     /// The messager the agent uses to send and receive messages from other
     /// agents.
-    pub messager: Option<Messager>,
+    pub messager: Messager,
 
     /// The client the agent uses to interact with the blockchain.
     pub client: Arc<RevmMiddleware>,
@@ -91,7 +91,7 @@ pub struct Agent {
 
     /// The engines/behaviors that the agent uses to sync, startup, and process
     /// events.
-    behavior_engines: Vec<Box<dyn StateMachine>>,
+    pub(crate) behavior_engines: Vec<Box<dyn StateMachine>>,
 }
 
 impl Agent {
@@ -169,35 +169,12 @@ impl AgentBuilder {
             Some(engines) => Ok(Agent {
                 id: self.id,
                 state: State::Uninitialized,
-                messager: Some(messager),
+                messager,
                 client,
                 event_streamer: Some(EventLogger::builder()),
                 behavior_engines: engines,
             }),
             None => Err(AgentBuildError::MissingBehaviorEngines),
-        }
-    }
-}
-
-#[async_trait::async_trait]
-impl StateMachine for Agent {
-    #[tracing::instrument(skip(self), fields(id = self.id))]
-    async fn execute(&mut self, instruction: MachineInstruction) {
-        match instruction {
-            MachineInstruction::Start(_, _) => {
-                debug!("Agent is starting.");
-                self.state = State::Starting;
-                self.run(MachineInstruction::Start(
-                    Some(self.client.clone()),
-                    self.messager.clone(),
-                ))
-                .await;
-            }
-            MachineInstruction::Process => {
-                debug!("Agent is processing.");
-                self.state = State::Processing;
-                self.run(instruction).await;
-            }
         }
     }
 }

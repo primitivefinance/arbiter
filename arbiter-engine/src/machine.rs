@@ -21,7 +21,7 @@ use super::*;
 #[derive(Clone, Debug)]
 pub enum MachineInstruction {
     /// Used to make a [`StateMachine`] start up.
-    Start(Option<Arc<RevmMiddleware>>, Option<Messager>),
+    Start(Arc<RevmMiddleware>, Messager),
 
     /// Used to make a [`StateMachine`] process events.
     /// This will offload the process into a task that can be halted by sending
@@ -136,7 +136,7 @@ where
                 self.state = State::Starting;
                 let mut behavior = self.behavior.take().unwrap();
                 let behavior_task = tokio::spawn(async move {
-                    let stream = behavior.startup(client.unwrap(), messager.unwrap()).await;
+                    let stream = behavior.startup(client, messager).await;
                     (stream, behavior)
                 });
                 let (stream, behavior) = behavior_task.await.unwrap();
