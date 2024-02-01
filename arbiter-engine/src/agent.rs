@@ -98,21 +98,6 @@ impl Agent {
             behavior_engines: None,
         })
     }
-
-    pub(crate) async fn run(&mut self, instruction: MachineInstruction) {
-        let behavior_tasks = join_all(self.behavior_engines.drain(..).map(|mut engine| {
-            let instruction_clone = instruction.clone();
-            tokio::spawn(async move {
-                engine.execute(instruction_clone).await;
-                engine
-            })
-        }));
-        self.behavior_engines = behavior_tasks
-            .await
-            .into_iter()
-            .map(|res| res.unwrap())
-            .collect::<Vec<_>>();
-    }
 }
 
 /// enum representing the possible error states encountered by the agent builder

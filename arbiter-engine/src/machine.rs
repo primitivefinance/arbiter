@@ -136,7 +136,10 @@ where
                 self.state = State::Starting;
                 let mut behavior = self.behavior.take().unwrap();
                 let behavior_task = tokio::spawn(async move {
+                    let id = messager.id.clone();
+                    debug!("starting up stream for {:?}!", id);
                     let stream = behavior.startup(client, messager).await;
+                    debug!("startup complete for {:?}!", id);
                     (stream, behavior)
                 });
                 let (stream, behavior) = behavior_task.await.unwrap();

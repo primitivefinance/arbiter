@@ -75,6 +75,15 @@ impl Messager {
         }
     }
 
+    pub async fn get_next(&mut self) -> Message {
+        self.broadcast_receiver
+            .as_mut()
+            .unwrap()
+            .recv()
+            .await
+            .unwrap()
+    }
+
     /// Returns a stream of messages that are either sent to [`To::All`] or to
     /// the agent via [`To::Agent(id)`].
     pub fn stream(mut self) -> impl Stream<Item = Message> + Send {
