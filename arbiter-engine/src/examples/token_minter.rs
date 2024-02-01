@@ -150,7 +150,7 @@ impl Behavior<Message> for TokenAdmin {
                 let message = Message {
                     from: messager.id.clone().unwrap(),
                     to: To::Agent(event.from.clone()), // Reply back to sender
-                    data: serde_json::to_string(token_data).unwrap(),
+                    data: serde_json::to_string(&token_data.address).unwrap(),
                 };
                 messager.send(message).await;
             }
@@ -225,32 +225,22 @@ impl Behavior<TransferFilter> for TokenRequester {
     async fn startup(
         &mut self,
         client: Arc<RevmMiddleware>,
-        messager: Messager,
+        mut messager: Messager,
     ) -> Pin<Box<dyn Stream<Item = TransferFilter> + Send + Sync>> {
         debug!("inside of token requester startup!");
-        self.messager = Some(messager.clone());
-        self.client = Some(client.clone());
-
-        let messager = self.messager.as_mut().unwrap();
-
         let message = Message {
             from: messager.id.clone().unwrap(),
             to: To::Agent(self.request_to.clone()),
             data: serde_json::to_string(&TokenAdminQuery::AddressOf(self.token_data.name.clone()))
                 .unwrap(),
         };
-        let token_address = messager.get_next().await.data;
-        let token = ArbiterToken::new(Address::from_str(&token_address).unwrap(), client.clone());
-        let name = token.name().call().await.unwrap();
-        let symbol = token.symbol().call().await.unwrap();
-        let decimals = token.decimals().call().await.unwrap();
+        messager.send(message).await;
 
-        self.token_data = TokenData {
-            name,
-            symbol,
-            decimals,
-            address: Some(token.address()),
-        };
+        let message = messager.get_next().await;
+        let token_address = serde_json::from_str::<Address>(&message.data).unwrap();
+        let token = ArbiterToken::new(token_address, client.clone());
+
+        self.token_data.address = Some(token_address);
 
         let mint_data = serde_json::to_string(&TokenAdminQuery::MintRequest(MintRequest {
             token: token.name().call().await.unwrap(),
@@ -266,6 +256,9 @@ impl Behavior<TransferFilter> for TokenRequester {
         };
 
         messager.send(mint_request).await;
+
+        self.messager = Some(messager.clone());
+        self.client = Some(client.clone());
 
         return Box::pin(
             EventLogger::builder()

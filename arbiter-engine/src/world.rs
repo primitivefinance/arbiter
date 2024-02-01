@@ -15,6 +15,8 @@
 
 //! The world module contains the core world abstraction for the Arbiter Engine.
 
+use std::collections::VecDeque;
+
 use arbiter_core::{environment::Environment, middleware::RevmMiddleware};
 use ethers::core::k256::sha2::digest::Mac;
 use futures_util::future::join_all;
@@ -99,10 +101,16 @@ impl World {
         let mut tasks = vec![];
         // TODO: This unwrap should be checked.
         let agents = self.agents.take().unwrap();
+        let mut messagers = VecDeque::new();
+        for (_, agent) in agents.iter() {
+            for _ in &agent.behavior_engines {
+                messagers.push_back(agent.messager.clone());
+            }
+        }
         for (_, mut agent) in agents {
             for mut engine in agent.behavior_engines.drain(..) {
                 let client = agent.client.clone();
-                let messager = agent.messager.clone();
+                let messager = messagers.pop_front().unwrap();
                 tasks.push(spawn(async move {
                     engine
                         .execute(MachineInstruction::Start(client, messager))

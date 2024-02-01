@@ -76,12 +76,22 @@ impl Messager {
     }
 
     pub async fn get_next(&mut self) -> Message {
-        self.broadcast_receiver
-            .as_mut()
-            .unwrap()
-            .recv()
-            .await
-            .unwrap()
+        while let Ok(message) = self.broadcast_receiver.as_mut().unwrap().recv().await {
+            match &message.to {
+                To::All => {
+                    return message;
+                }
+                To::Agent(id) => {
+                    if let Some(self_id) = &self.id {
+                        if id == self_id {
+                            return message;
+                        }
+                    }
+                    continue;
+                }
+            }
+        }
+        unreachable!()
     }
 
     /// Returns a stream of messages that are either sent to [`To::All`] or to
