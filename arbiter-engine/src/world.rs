@@ -15,12 +15,18 @@
 
 //! The world module contains the core world abstraction for the Arbiter Engine.
 
-use arbiter_core::environment::{Environment, EnvironmentBuilder};
+use arbiter_core::{
+    environment::{Environment, EnvironmentBuilder},
+    middleware::RevmMiddleware,
+};
 use futures_util::future::join_all;
 use tokio::sync::broadcast::Sender as BroadcastSender;
 use tracing::info;
 
-use self::machine::{MachineHalt, MachineInstruction};
+use self::{
+    agent::AgentBuilder,
+    machine::{MachineHalt, MachineInstruction},
+};
 use super::*;
 use crate::{
     agent::Agent,
@@ -81,7 +87,7 @@ impl World {
             state: State::Uninitialized,
             agents: Some(HashMap::new()),
             agent_distributors: None,
-            environment: EnvironmentBuilder::new().build(),
+            environment: Environment::builder().build(),
             messager: Messager::new(),
         }
     }
@@ -99,8 +105,11 @@ impl World {
     }
 
     /// Adds an agent to the world.
-    pub fn add_agent(&mut self, agent: Agent) {
-        let id = agent.id.clone();
+    pub fn add_agent(&mut self, agent_builder: AgentBuilder) {
+        let id = agent_builder.id.clone();
+        let messager = self.messager.for_agent(&id);
+        let client = RevmMiddleware::new(&self.environment, Some(&id)).unwrap();
+        let agent = agent_builder.build(messager, client).unwrap();
         let agents = self.agents.as_mut().unwrap();
         agents.insert(id.to_owned(), agent);
     }

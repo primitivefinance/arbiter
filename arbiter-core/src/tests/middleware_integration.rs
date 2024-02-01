@@ -516,7 +516,7 @@ fn simulation_signer() -> Result<()> {
 
 #[test]
 fn multiple_signer_addresses() {
-    let environment = EnvironmentBuilder::new().build();
+    let environment = Environment::builder().build();
     let client_1 = RevmMiddleware::new(&environment, Some("0")).unwrap();
     let client_2 = RevmMiddleware::new(&environment, Some("1")).unwrap();
     assert_ne!(client_1.address(), client_2.address());
@@ -524,7 +524,7 @@ fn multiple_signer_addresses() {
 
 #[test]
 fn signer_collision() {
-    let environment = EnvironmentBuilder::new().build();
+    let environment = Environment::builder().build();
     RevmMiddleware::new(&environment, Some("0")).unwrap();
     assert!(RevmMiddleware::new(&environment, Some("0")).is_err());
 }

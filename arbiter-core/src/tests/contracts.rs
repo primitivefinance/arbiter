@@ -323,7 +323,7 @@ async fn can_log() {
     tracing::subscriber::set_global_default(subscriber).expect("setting default subscriber failed");
 
     // tracing_subscriber::fmt::init();
-    let env = EnvironmentBuilder::new().with_console_logs().build();
+    let env = Environment::builder().with_console_logs().build();
     let client = RevmMiddleware::new(&env, None).unwrap();
     let counter = arbiter_bindings::bindings::counter::Counter::deploy(client, ())
         .unwrap()

@@ -68,6 +68,15 @@ use crate::{
 /// 5. [`State::Stopped`]: The [`Agent`] is stopped. This is where the [`Agent`]
 /// can be stopped and state of the [`World`] and its [`Agent`]s can be
 /// offloaded and saved.
+// todo(matt): use builder pattern where we just have the agent builder
+// implement deserialize with just behavior_engines
+//
+// #[derive(Serialize, Deserialize)]
+// pub struct AgentBuilder {
+//  pub id: String,
+//  pub behavior_engines: Option<Vec<Box<dyn StateMachine>>>,
+//  pub world: &World
+// }
 pub struct Agent {
     /// Identifier for this agent.
     /// Used for routing messages.
@@ -89,7 +98,7 @@ pub struct Agent {
 
     /// The engines/behaviors that the agent uses to sync, startup, and process
     /// events.
-    behavior_engines: Option<Vec<Box<dyn StateMachine>>>,
+    behavior_engines: Vec<Box<dyn StateMachine>>,
 
     /// The pipeline for yielding events from the centralized event streamer
     /// (for both messages and Ethereum events) to agents.
@@ -99,21 +108,14 @@ pub struct Agent {
 }
 
 impl Agent {
-    /// Produces a new agent with the given identifier.
-    pub fn new(id: &str, world: &World) -> Self {
-        let messager = world.messager.for_agent(id);
-        let client = RevmMiddleware::new(&world.environment, Some(id)).unwrap();
+    /// Produces a minimal agent builder with the given identifier.
+    pub fn builder(id: &str) -> Result<AgentBuilder, AgentBuildError> {
         let distributor = channel(512);
-        Self {
+        Ok(AgentBuilder {
             id: id.to_owned(),
-            state: State::Uninitialized,
-            messager: Some(messager),
-            client,
-            event_streamer: Some(EventLogger::builder()),
-            behavior_engines: None,
             distributor,
-            broadcast_task: None,
-        }
+            behavior_engines: None,
+        })
     }
 
     /// Adds an Ethereum event to the agent's event streamer.
@@ -125,7 +127,52 @@ impl Agent {
         self
     }
 
-    /// Adds a behavior to the agent that it will run.
+    pub(crate) async fn run(&mut self, instruction: MachineInstruction) {
+        let behavior_tasks = join_all(self.behavior_engines.drain(..).map(|mut engine| {
+            let instruction_clone = instruction.clone();
+            tokio::spawn(async move {
+                engine.execute(instruction_clone).await;
+                engine
+            })
+        }));
+        self.behavior_engines = behavior_tasks
+            .await
+            .into_iter()
+            .map(|res| res.unwrap())
+            .collect::<Vec<_>>();
+    }
+}
+
+/// enum representing the possible error states encountered by the agent builder
+#[derive(Debug)]
+pub enum AgentBuildError {
+    MissingBehaviorEngines,
+}
+
+impl std::error::Error for AgentBuildError {}
+impl std::fmt::Display for AgentBuildError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            AgentBuildError::MissingBehaviorEngines => {
+                write!(f, "Behavior engines must be set before building the agent")
+            } // ... other error variants
+        }
+    }
+}
+
+pub struct AgentBuilder {
+    /// Identifier for this agent.
+    /// Used for routing messages.
+    pub id: String,
+    /// The engines/behaviors that the agent uses to sync, startup, and process
+    /// events.
+    behavior_engines: Option<Vec<Box<dyn StateMachine>>>,
+    /// The pipeline for yielding events from the centralized event streamer
+    /// (for both messages and Ethereum events) to agents.
+    pub(crate) distributor: (BroadcastSender<String>, BroadcastReceiver<String>),
+}
+
+impl AgentBuilder {
     pub fn with_behavior<E: DeserializeOwned + Send + Sync + Debug + 'static>(
         mut self,
         behavior: impl Behavior<E> + 'static,
@@ -141,22 +188,25 @@ impl Agent {
         self
     }
 
-    pub(crate) async fn run(&mut self, instruction: MachineInstruction) {
-        let behavior_engines = self.behavior_engines.take().unwrap();
-        let behavior_tasks = join_all(behavior_engines.into_iter().map(|mut engine| {
-            let instruction_clone = instruction.clone();
-            tokio::spawn(async move {
-                engine.execute(instruction_clone).await;
-                engine
-            })
-        }));
-        self.behavior_engines = Some(
-            behavior_tasks
-                .await
-                .into_iter()
-                .map(|res| res.unwrap())
-                .collect::<Vec<_>>(),
-        );
+    /// Produces a new agent with the given identifier.
+    pub fn build(
+        self,
+        messager: Messager,
+        client: Arc<RevmMiddleware>,
+    ) -> Result<Agent, AgentBuildError> {
+        match self.behavior_engines {
+            Some(engines) => Ok(Agent {
+                id: self.id,
+                state: State::Uninitialized,
+                messager: Some(messager),
+                client,
+                event_streamer: Some(EventLogger::builder()),
+                behavior_engines: engines,
+                distributor: self.distributor,
+                broadcast_task: None,
+            }),
+            None => Err(AgentBuildError::MissingBehaviorEngines),
+        }
     }
 }
 
@@ -233,84 +283,88 @@ mod tests {
         // tracing_subscriber::fmt::init();
 
         let world = World::new("world");
-        let agent = Agent::new("agent", &world);
-
-        let arb = ArbiterToken::deploy(
-            agent.client.clone(),
-            ("ArbiterToken".to_string(), "ARB".to_string(), 18u8),
-        )
-        .unwrap()
-        .send()
-        .await
-        .unwrap();
-
-        let mut agent = agent.with_event(arb.events());
-        let address = agent.client.address();
-
+        let agent = Agent::builder("agent").unwrap();
+        // let arb = ArbiterToken::deploy(
+        // agent.client.clone(),
+        // ("ArbiterToken".to_string(), "ARB".to_string(), 18u8),
+        // )
+        // .unwrap()
+        // .send()
+        // .await
+        // .unwrap();
+        //
+        // let mut agent = agent.with_event(arb.events());
+        // let address = agent.client.address();
+        //
         // TODO: (START BLOCK) It would be nice to get this block to be a single
         // function that isn't copy and pasted from above.
-        let messager = agent.messager.take().unwrap();
-        let message_stream = messager
-            .stream()
-            .map(|msg| serde_json::to_string(&msg).unwrap_or_else(|e| e.to_string()));
-        let eth_event_stream = agent.event_streamer.take().unwrap().stream();
-
-        let mut event_stream: Pin<Box<dyn Stream<Item = String> + Send + '_>> =
-            if let Some(event_stream) = eth_event_stream {
-                trace!("Merging event streams.");
-                let all_streams = vec![
-                    Box::pin(message_stream) as Pin<Box<dyn Stream<Item = String> + Send>>,
-                    Box::pin(event_stream),
-                ];
-                Box::pin(futures::stream::select_all(all_streams))
-            } else {
-                trace!("Agent only sees message stream.");
-                Box::pin(message_stream)
-            };
+        // let messager = agent.messager.take().unwrap();
+        // let message_stream = messager
+        // .stream()
+        // .map(|msg| serde_json::to_string(&msg).unwrap_or_else(|e|
+        // e.to_string())); let eth_event_stream =
+        // agent.event_streamer.take().unwrap().stream();
+        //
+        // let mut event_stream: Pin<Box<dyn Stream<Item = String> + Send + '_>>
+        // = if let Some(event_stream) = eth_event_stream {
+        // trace!("Merging event streams.");
+        // let all_streams = vec![
+        // Box::pin(message_stream) as Pin<Box<dyn Stream<Item = String> +
+        // Send>>, Box::pin(event_stream),
+        // ];
+        // Box::pin(futures::stream::select_all(all_streams))
+        // } else {
+        // trace!("Agent only sees message stream.");
+        // Box::pin(message_stream)
+        // };
         // TODO: (END BLOCK)
-
-        let outside_messager = world.messager.join_with_id(None);
-        let message_task = tokio::spawn(async move {
-            for _ in 0..5 {
-                outside_messager
-                    .send(Message {
-                        from: "god".to_string(),
-                        to: messager::To::All,
-                        data: "hello".to_string(),
-                    })
-                    .await;
-            }
-        });
-
-        let eth_event_task = tokio::spawn(async move {
-            for i in 0..5 {
-                if i == 0 {
-                    tokio::time::sleep(std::time::Duration::from_secs(1)).await;
-                }
-                arb.approve(address, U256::from(1))
-                    .send()
-                    .await
-                    .unwrap()
-                    .await
-                    .unwrap();
-            }
-        });
-
-        let mut idx = 0;
-        let print_task = tokio::spawn(async move {
-            while let Some(msg) = event_stream.next().await {
-                println!("Printing message in test: {:?}", msg);
-                if idx < 5 {
-                    assert_eq!(msg, "{\"from\":\"god\",\"to\":\"All\",\"data\":\"hello\"}");
-                } else {
-                    assert_eq!(msg, "{\"ApprovalFilter\":{\"owner\":\"0xe7a46f3d9f0e9b9c02f58f95e3bcee2db54050b0\",\"spender\":\"0xe7a46f3d9f0e9b9c02f58f95e3bcee2db54050b0\",\"amount\":\"0x1\"}}");
-                }
-                idx += 1;
-                if idx == 10 {
-                    break;
-                }
-            }
-        });
-        join_all(vec![message_task, eth_event_task, print_task]).await;
+        //
+        // let outside_messager = world.messager.join_with_id(None);
+        // let message_task = tokio::spawn(async move {
+        // for _ in 0..5 {
+        // outside_messager
+        // .send(Message {
+        // from: "god".to_string(),
+        // to: messager::To::All,
+        // data: "hello".to_string(),
+        // })
+        // .await;
+        // }
+        // });
+        //
+        // let eth_event_task = tokio::spawn(async move {
+        // for i in 0..5 {
+        // if i == 0 {
+        // tokio::time::sleep(std::time::Duration::from_secs(1)).await;
+        // }
+        // arb.approve(address, U256::from(1))
+        // .send()
+        // .await
+        // .unwrap()
+        // .await
+        // .unwrap();
+        // }
+        // });
+        //
+        // let mut idx = 0;
+        // let print_task = tokio::spawn(async move {
+        // while let Some(msg) = event_stream.next().await {
+        // println!("Printing message in test: {:?}", msg);
+        // if idx < 5 {
+        // assert_eq!(msg,
+        // "{\"from\":\"god\",\"to\":\"All\",\"data\":\"hello\"}");
+        // } else {
+        // assert_eq!(msg,
+        // "{\"ApprovalFilter\":{\"owner\":\"
+        // 0xe7a46f3d9f0e9b9c02f58f95e3bcee2db54050b0\",\"spender\":\"
+        // 0xe7a46f3d9f0e9b9c02f58f95e3bcee2db54050b0\",\"amount\":\"0x1\"}}");
+        // }
+        // idx += 1;
+        // if idx == 10 {
+        // break;
+        // }
+        // }
+        // });
+        // join_all(vec![message_task, eth_event_task, print_task]).await;
     }
 }

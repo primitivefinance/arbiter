@@ -178,7 +178,7 @@ async fn anvil_startup() -> Result<(
 }
 
 fn arbiter_startup() -> Result<(Environment, Arc<RevmMiddleware>)> {
-    let environment = EnvironmentBuilder::new().build();
+    let environment = Environment::builder().build();
 
     let client = RevmMiddleware::new(&environment, Some("name"))?;
     Ok((environment, client))

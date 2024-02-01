@@ -85,7 +85,7 @@ impl Behavior<Message> for TimedMessage {
 async fn echoer() {
     let mut world = World::new("world");
 
-    let agent = Agent::new(AGENT_ID, &world);
+    let agent = Agent::builder(AGENT_ID).unwrap();
     let behavior = TimedMessage::new(
         1,
         "Hello, world!".to_owned(),
@@ -128,7 +128,7 @@ async fn echoer() {
 async fn ping_pong() {
     let mut world = World::new("world");
 
-    let agent = Agent::new(AGENT_ID, &world);
+    let agent = Agent::builder(AGENT_ID).unwrap();
     let behavior_ping = TimedMessage::new(1, "pong".to_owned(), "ping".to_owned(), Some(2));
     let behavior_pong = TimedMessage::new(1, "ping".to_owned(), "pong".to_owned(), Some(2));
     world.add_agent(
@@ -172,14 +172,17 @@ async fn ping_pong() {
 async fn ping_pong_two_agent() {
     let mut world = World::new("world");
 
-    let agent_ping = Agent::new("agent_ping", &world);
     let behavior_ping = TimedMessage::new(1, "pong".to_owned(), "ping".to_owned(), Some(2));
-
-    let agent_pong = Agent::new("agent_pong", &world);
     let behavior_pong = TimedMessage::new(1, "ping".to_owned(), "pong".to_owned(), Some(2));
+    let agent_ping = Agent::builder("agent_ping")
+        .unwrap()
+        .with_behavior(behavior_ping);
+    let agent_pong = Agent::builder("agent_pong")
+        .unwrap()
+        .with_behavior(behavior_pong);
 
-    world.add_agent(agent_ping.with_behavior(behavior_ping));
-    world.add_agent(agent_pong.with_behavior(behavior_pong));
+    world.add_agent(agent_ping);
+    world.add_agent(agent_pong);
 
     let messager = world.messager.join_with_id(Some("god".to_owned()));
     let task = world.run();
