@@ -18,24 +18,17 @@
 
 //! The agent module contains the core agent abstraction for the Arbiter Engine.
 
-use std::{fmt::Debug, pin::Pin, sync::Arc};
+use std::{fmt::Debug, sync::Arc};
 
 use arbiter_core::{data_collection::EventLogger, middleware::RevmMiddleware};
-use ethers::contract::{EthLogDecode, Event};
-use futures::stream::{Stream, StreamExt};
 use futures_util::future::join_all;
 use serde::de::DeserializeOwned;
-use tokio::{
-    sync::broadcast::{channel, Receiver as BroadcastReceiver, Sender as BroadcastSender},
-    task::JoinHandle,
-};
 
 use self::machine::MachineInstruction;
 use super::*;
 use crate::{
     machine::{Behavior, Engine, State, StateMachine},
     messager::Messager,
-    world::World,
 };
 
 // TODO: For the time being, these agents are just meant to be for arbiter
@@ -99,32 +92,15 @@ pub struct Agent {
     /// The engines/behaviors that the agent uses to sync, startup, and process
     /// events.
     behavior_engines: Vec<Box<dyn StateMachine>>,
-
-    /// The pipeline for yielding events from the centralized event streamer
-    /// (for both messages and Ethereum events) to agents.
-    pub(crate) distributor: (BroadcastSender<String>, BroadcastReceiver<String>),
-
-    broadcast_task: Option<JoinHandle<Pin<Box<dyn Stream<Item = String> + Send>>>>,
 }
 
 impl Agent {
     /// Produces a minimal agent builder with the given identifier.
     pub fn builder(id: &str) -> Result<AgentBuilder, AgentBuildError> {
-        let distributor = channel(512);
         Ok(AgentBuilder {
             id: id.to_owned(),
-            distributor,
             behavior_engines: None,
         })
-    }
-
-    /// Adds an Ethereum event to the agent's event streamer.
-    pub fn with_event<D: EthLogDecode + Debug + Serialize + 'static>(
-        mut self,
-        event: Event<Arc<RevmMiddleware>, RevmMiddleware, D>,
-    ) -> Self {
-        self.event_streamer = Some(self.event_streamer.take().unwrap().add_stream(event));
-        self
     }
 
     pub(crate) async fn run(&mut self, instruction: MachineInstruction) {
@@ -167,9 +143,6 @@ pub struct AgentBuilder {
     /// The engines/behaviors that the agent uses to sync, startup, and process
     /// events.
     behavior_engines: Option<Vec<Box<dyn StateMachine>>>,
-    /// The pipeline for yielding events from the centralized event streamer
-    /// (for both messages and Ethereum events) to agents.
-    pub(crate) distributor: (BroadcastSender<String>, BroadcastReceiver<String>),
 }
 
 impl AgentBuilder {
@@ -177,9 +150,7 @@ impl AgentBuilder {
         mut self,
         behavior: impl Behavior<E> + 'static,
     ) -> Self {
-        let event_receiver = self.distributor.0.subscribe();
-
-        let engine = Engine::new(behavior, event_receiver);
+        let engine = Engine::new(behavior);
         if let Some(engines) = &mut self.behavior_engines {
             engines.push(Box::new(engine));
         } else {
@@ -202,8 +173,6 @@ impl AgentBuilder {
                 client,
                 event_streamer: Some(EventLogger::builder()),
                 behavior_engines: engines,
-                distributor: self.distributor,
-                broadcast_task: None,
             }),
             None => Err(AgentBuildError::MissingBehaviorEngines),
         }
@@ -216,7 +185,7 @@ impl StateMachine for Agent {
     async fn execute(&mut self, instruction: MachineInstruction) {
         match instruction {
             MachineInstruction::Start(_, _) => {
-                debug!("Agent is syncing.");
+                debug!("Agent is starting.");
                 self.state = State::Starting;
                 self.run(MachineInstruction::Start(
                     Some(self.client.clone()),
@@ -227,35 +196,6 @@ impl StateMachine for Agent {
             MachineInstruction::Process => {
                 debug!("Agent is processing.");
                 self.state = State::Processing;
-                let messager = self.messager.take().unwrap();
-                let message_stream = messager
-                    .stream()
-                    .map(|msg| serde_json::to_string(&msg).unwrap_or_else(|e| e.to_string()));
-
-                let eth_event_stream = self.event_streamer.take().unwrap().stream();
-
-                let mut event_stream: Pin<Box<dyn Stream<Item = String> + Send + '_>> =
-                    if let Some(event_stream) = eth_event_stream {
-                        trace!("Merging event streams.");
-                        // Convert the individual streams into a Vec
-                        let all_streams = vec![
-                            Box::pin(message_stream) as Pin<Box<dyn Stream<Item = String> + Send>>,
-                            Box::pin(event_stream),
-                        ];
-                        // Use select_all to combine them
-                        Box::pin(futures::stream::select_all(all_streams))
-                    } else {
-                        trace!("Agent only sees message stream.");
-                        Box::pin(message_stream)
-                    };
-
-                let sender = self.distributor.0.clone();
-                self.broadcast_task = Some(tokio::spawn(async move {
-                    while let Some(event) = event_stream.next().await {
-                        sender.send(event).unwrap();
-                    }
-                    event_stream
-                }));
                 self.run(instruction).await;
             }
         }
@@ -268,7 +208,7 @@ mod tests {
     use ethers::types::U256;
 
     use super::*;
-    use crate::messager::Message;
+    use crate::{messager::Message, world::World};
 
     #[tokio::test(flavor = "multi_thread", worker_threads = 4)]
     async fn streaming() {

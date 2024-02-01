@@ -15,18 +15,11 @@
 
 //! The world module contains the core world abstraction for the Arbiter Engine.
 
-use arbiter_core::{
-    environment::{Environment, EnvironmentBuilder},
-    middleware::RevmMiddleware,
-};
+use arbiter_core::{environment::Environment, middleware::RevmMiddleware};
 use futures_util::future::join_all;
-use tokio::sync::broadcast::Sender as BroadcastSender;
 use tracing::info;
 
-use self::{
-    agent::AgentBuilder,
-    machine::{MachineHalt, MachineInstruction},
-};
+use self::{agent::AgentBuilder, machine::MachineInstruction};
 use super::*;
 use crate::{
     agent::Agent,
@@ -70,8 +63,6 @@ pub struct World {
     /// The agents in the world.
     pub agents: Option<HashMap<String, Agent>>,
 
-    agent_distributors: Option<Vec<BroadcastSender<String>>>,
-
     /// The environment for the world.
     pub environment: Environment,
 
@@ -86,7 +77,6 @@ impl World {
             id: id.to_owned(),
             state: State::Uninitialized,
             agents: Some(HashMap::new()),
-            agent_distributors: None,
             environment: Environment::builder().build(),
             messager: Messager::new(),
         }
@@ -98,7 +88,6 @@ impl World {
             id: id.to_owned(),
             agents: Some(HashMap::new()),
             state: State::Uninitialized,
-            agent_distributors: None,
             environment,
             messager: Messager::new(),
         }
@@ -121,26 +110,12 @@ impl World {
     }
 }
 
-// TODO: Idea, when we enter the `State::Processing`, we should pass the task
-// into the struct. When we call `MachineInstruction::Stop` we should do message
-// passing that will kill the tasks so that they return. This will allow us to
-// do graceful shutdowns.
-
-// TODO: Worth explaining how the process stage is offloaded so it is
-// understandable.
-
-// Right now what we do is we send a HALT message via the agent's distributor
-// which means all behaviors should receive this now. If those behaviors all see
-// this HALT message and then exit their process, then the await should finish.
-// Actually we can probably not have to get the distributors up this high, but
-// let's work with this for now.
-
 #[async_trait::async_trait]
 impl StateMachine for World {
     async fn execute(&mut self, instruction: MachineInstruction) {
         match instruction {
             MachineInstruction::Start(_, _) => {
-                info!("World is syncing.");
+                info!("World is starting.");
                 self.state = State::Starting;
                 let agents = self.agents.take().unwrap();
                 let agent_tasks = join_all(agents.into_values().map(|mut agent| {
@@ -165,16 +140,13 @@ impl StateMachine for World {
                 info!("World is processing.");
                 self.state = State::Processing;
                 let agents = self.agents.take().unwrap();
-                let mut agent_distributors = vec![];
                 let agent_processors = join_all(agents.into_values().map(|mut agent| {
-                    agent_distributors.push(agent.distributor.0.clone());
                     let instruction_clone = instruction.clone();
                     tokio::spawn(async move {
                         agent.execute(instruction_clone).await;
                         agent
                     })
                 }));
-                self.agent_distributors = Some(agent_distributors);
                 self.agents = Some(
                     agent_processors
                         .await

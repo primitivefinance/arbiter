@@ -74,16 +74,18 @@ impl Behavior<Message> for TimedMessage {
         _client: Arc<RevmMiddleware>,
         messager: Messager,
     ) -> Pin<Box<dyn Stream<Item = Message> + Send + Sync>> {
-        trace!("Syncing state for `TimedMessage`.");
+        trace!("Starting up `TimedMessage`.");
         self.messager = Some(messager.clone());
         tokio::time::sleep(std::time::Duration::from_secs(self.delay)).await;
-        trace!("Synced state for `TimedMessage`.");
+        trace!("Started `TimedMessage`.");
         return Box::pin(messager.stream());
     }
 }
 
 #[tokio::test(flavor = "multi_thread", worker_threads = 4)]
 async fn echoer() {
+    std::env::set_var("RUST_LOG", "trace");
+    tracing_subscriber::fmt::init();
     let mut world = World::new("world");
 
     let agent = Agent::builder(AGENT_ID).unwrap();
