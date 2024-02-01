@@ -2,8 +2,10 @@
 
 const AGENT_ID: &str = "agent";
 
-use std::time::Duration;
+use std::{pin::Pin, time::Duration};
 
+use ethers::types::BigEndianHash;
+use futures_util::Stream;
 use tokio::time::timeout;
 
 use self::machine::MachineHalt;
@@ -67,17 +69,16 @@ impl Behavior<Message> for TimedMessage {
         None
     }
 
-    async fn sync(&mut self, messager: Messager, _client: Arc<RevmMiddleware>) {
+    async fn startup(
+        &mut self,
+        _client: Arc<RevmMiddleware>,
+        messager: Messager,
+    ) -> Pin<Box<dyn Stream<Item = Message> + Send + Sync>> {
         trace!("Syncing state for `TimedMessage`.");
-        self.messager = Some(messager);
+        self.messager = Some(messager.clone());
         tokio::time::sleep(std::time::Duration::from_secs(self.delay)).await;
         trace!("Synced state for `TimedMessage`.");
-    }
-
-    async fn startup(&mut self) {
-        trace!("Starting up `TimedMessage`.");
-        tokio::time::sleep(std::time::Duration::from_secs(self.delay)).await;
-        trace!("Started up `TimedMessage`.");
+        return Box::pin(messager.stream());
     }
 }
 

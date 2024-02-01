@@ -215,18 +215,14 @@ impl StateMachine for Agent {
     #[tracing::instrument(skip(self), fields(id = self.id))]
     async fn execute(&mut self, instruction: MachineInstruction) {
         match instruction {
-            MachineInstruction::Sync(_, _) => {
+            MachineInstruction::Start(_, _) => {
                 debug!("Agent is syncing.");
-                self.state = State::Syncing;
-                self.run(MachineInstruction::Sync(
-                    self.messager.clone(),
+                self.state = State::Starting;
+                self.run(MachineInstruction::Start(
                     Some(self.client.clone()),
+                    self.messager.clone(),
                 ))
                 .await;
-            }
-            MachineInstruction::Start => {
-                debug!("Agent is starting up.");
-                self.run(instruction).await;
             }
             MachineInstruction::Process => {
                 debug!("Agent is processing.");
@@ -261,9 +257,6 @@ impl StateMachine for Agent {
                     event_stream
                 }));
                 self.run(instruction).await;
-            }
-            MachineInstruction::Stop => {
-                unreachable!("This is never explicitly called on an agent.")
             }
         }
     }
@@ -366,5 +359,6 @@ mod tests {
         // }
         // });
         // join_all(vec![message_task, eth_event_task, print_task]).await;
+        panic!()
     }
 }

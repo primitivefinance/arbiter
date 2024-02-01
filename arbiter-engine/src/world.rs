@@ -116,15 +116,8 @@ impl World {
 
     /// Runs the world through up to the [`State::Processing`] stage.
     pub async fn run(&mut self) {
-        self.execute(MachineInstruction::Sync(None, None)).await;
-        self.execute(MachineInstruction::Start).await;
+        self.execute(MachineInstruction::Start(None, None)).await;
         self.execute(MachineInstruction::Process).await;
-    }
-
-    /// Stops the world by stopping all the behaviors that each of the agents is
-    /// running.
-    pub async fn stop(&mut self) {
-        self.execute(MachineInstruction::Stop).await;
     }
 }
 
@@ -146,30 +139,8 @@ impl World {
 impl StateMachine for World {
     async fn execute(&mut self, instruction: MachineInstruction) {
         match instruction {
-            MachineInstruction::Sync(_, _) => {
+            MachineInstruction::Start(_, _) => {
                 info!("World is syncing.");
-                self.state = State::Syncing;
-                let agents = self.agents.take().unwrap();
-                let agent_tasks = join_all(agents.into_values().map(|mut agent| {
-                    let instruction_clone = instruction.clone();
-                    tokio::spawn(async move {
-                        agent.execute(instruction_clone).await;
-                        agent
-                    })
-                }));
-                self.agents = Some(
-                    agent_tasks
-                        .await
-                        .into_iter()
-                        .map(|res| {
-                            let agent = res.unwrap();
-                            (agent.id.clone(), agent)
-                        })
-                        .collect::<HashMap<String, Agent>>(),
-                );
-            }
-            MachineInstruction::Start => {
-                info!("World is starting up.");
                 self.state = State::Starting;
                 let agents = self.agents.take().unwrap();
                 let agent_tasks = join_all(agents.into_values().map(|mut agent| {
@@ -214,12 +185,6 @@ impl StateMachine for World {
                         })
                         .collect::<HashMap<String, Agent>>(),
                 );
-            }
-            MachineInstruction::Stop => {
-                let halt = serde_json::to_string(&MachineHalt).unwrap();
-                for tx in self.agent_distributors.take().unwrap() {
-                    tx.send(halt.clone()).unwrap();
-                }
             }
         }
     }

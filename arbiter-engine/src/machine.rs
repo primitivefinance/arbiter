@@ -2,18 +2,15 @@
 //! [`Behavior`]s.
 
 // TODO: Notes
-// I think we should have the `sync` stage of the behavior receive the client
-// and messager and then the user can decide if it wants to use those in their
-// behavior.
-
 // Could typestate pattern help here at all? Sync could produce a `Synced` state
 // behavior that can then not have options for client and messager. Then the
 // user can decide if they want to use those in their behavior and get a bit
 // simpler UX.
 
-use std::{fmt::Debug, sync::Arc};
+use std::{fmt::Debug, pin::Pin, sync::Arc};
 
 use arbiter_core::middleware::RevmMiddleware;
+use futures_util::{Stream, StreamExt};
 use serde::de::DeserializeOwned;
 use tokio::sync::broadcast::Receiver;
 
@@ -67,7 +64,11 @@ pub trait Behavior<E>: Send + Sync + 'static {
     /// Used to start the agent.
     /// This is where the agent can engage in its specific start up activities
     /// that it can do given the current state of the world.
-    async fn startup(&mut self, client: Arc<RevmMiddleware>, messager: Messager) {}
+    async fn startup(
+        &mut self,
+        client: Arc<RevmMiddleware>,
+        messager: Messager,
+    ) -> Pin<Box<dyn Stream<Item = E> + Send + Sync>>;
 
     /// Used to process events.
     /// This is where the agent can engage in its specific processing
@@ -101,7 +102,7 @@ where
     /// The receiver of events that the [`Engine`] will process.
     /// The [`State::Processing`] stage will attempt a decode of the [`String`]s
     /// into the event type `<E>`.
-    event_receiver: Option<Receiver<String>>,
+    event_stream: Option<Pin<Box<dyn Stream<Item = E> + Send + Sync>>>,
 
     phantom: std::marker::PhantomData<E>,
 }
@@ -116,7 +117,7 @@ where
         Self {
             behavior: Some(behavior),
             state: State::Uninitialized,
-            event_receiver: Some(event_receiver),
+            event_stream: None,
             phantom: std::marker::PhantomData,
         }
     }
@@ -131,46 +132,32 @@ where
     async fn execute(&mut self, instruction: MachineInstruction) {
         match instruction {
             MachineInstruction::Start(client, messager) => {
-                let mut behavior = self.behavior.take().unwrap();
                 trace!("Behavior is starting up.");
                 self.state = State::Starting;
                 let mut behavior = self.behavior.take().unwrap();
                 let behavior_task = tokio::spawn(async move {
-                    behavior.startup(client.unwrap(), messager.unwrap()).await;
-                    behavior
+                    let stream = behavior.startup(client.unwrap(), messager.unwrap()).await;
+                    (stream, behavior)
                 });
-                self.behavior = Some(behavior_task.await.unwrap());
+                let (stream, behavior) = behavior_task.await.unwrap();
+                self.event_stream = Some(stream);
+                self.behavior = Some(behavior);
             }
             MachineInstruction::Process => {
                 trace!("Behavior is processing.");
                 let mut behavior = self.behavior.take().unwrap();
-                let mut receiver = self.event_receiver.take().unwrap();
+                let mut stream = self.event_stream.take().unwrap();
                 let behavior_task = tokio::spawn(async move {
-                    while let Ok(event) = receiver.recv().await {
-                        let decoding_result = serde_json::from_str::<E>(&event);
-                        match decoding_result {
-                            Ok(event) => {
-                                let halt_option = behavior.process(event).await;
-                                if halt_option.is_some() {
-                                    break;
-                                }
-                            }
-                            Err(_) => match serde_json::from_str::<MachineHalt>(&event) {
-                                Ok(_) => {
-                                    warn!("Behavior received `MachineHalt` message. Breaking!");
-                                    break;
-                                }
-                                Err(_) => {
-                                    trace!(
-                                        "Event received by behavior that could not be deserialized."
-                                    );
-                                    continue;
-                                }
-                            },
+                    while let Some(event) = stream.next().await {
+                        let halt_option = behavior.process(event).await;
+                        if halt_option.is_some() {
+                            break;
                         }
                     }
                     behavior
                 });
+                // TODO: This could be removed as we probably don't need to have the behavior
+                // stored once its done.
                 self.behavior = Some(behavior_task.await.unwrap());
             }
         }
