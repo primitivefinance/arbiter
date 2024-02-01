@@ -10,9 +10,9 @@
 use std::{fmt::Debug, pin::Pin, sync::Arc};
 
 use arbiter_core::middleware::RevmMiddleware;
+use ethers::contract::{EthLogDecode, Event};
 use futures_util::{Stream, StreamExt};
 use serde::de::DeserializeOwned;
-use tokio::sync::broadcast::Receiver;
 
 use self::messager::Messager;
 use super::*;
