@@ -23,21 +23,14 @@ use super::*;
 /// The instructions that can be sent to a [`StateMachine`].
 #[derive(Clone, Debug)]
 pub enum MachineInstruction {
-    /// Used to make a [`StateMachine`] sync with the world.
-    Sync(Option<Messager>, Option<Arc<RevmMiddleware>>),
-
     /// Used to make a [`StateMachine`] start up.
-    Start,
+    Start(Option<Arc<RevmMiddleware>>, Option<Messager>),
 
     /// Used to make a [`StateMachine`] process events.
     /// This will offload the process into a task that can be halted by sending
     /// a [`MachineHalt`] message from the [`Messager`]. For our purposes, the
     /// [`crate::world::World`] will handle this.
     Process,
-
-    /// Used to make a [`StateMachine`] stop. Only applicable for the
-    /// [`crate::world::World`] currently.
-    Stop,
 }
 
 /// The message that can be used in a [`StateMachine`] to halt its processing.
@@ -52,12 +45,6 @@ pub enum State {
     /// This is the state adopted by the entity when it is first created.
     Uninitialized,
 
-    /// The entity is syncing with the world.
-    /// This can be used to bring the entity back up to date with the latest
-    /// state of the world. This could be used if the world was stopped and
-    /// later restarted.
-    Syncing,
-
     /// The entity is starting up.
     /// This is where the entity can engage in its specific start up activities
     /// that it can do given the current state of the world.
@@ -68,10 +55,6 @@ pub enum State {
     /// This is where the entity can engage in its specific processing
     /// of events that can lead to actions being taken.
     Processing,
-
-    /// The entity is stopped.
-    /// This is where state can be offloaded and saved if need be.
-    Stopped,
 }
 
 // NOTE: `async_trait::async_trait` is used throughout to make the trait object
@@ -81,14 +64,10 @@ pub enum State {
 /// by a [`StateMachine`]. This constitutes what each state transition will do.
 #[async_trait::async_trait]
 pub trait Behavior<E>: Send + Sync + 'static {
-    /// Used to bring the agent back up to date with the latest state of the
-    /// world. This could be used if the world was stopped and later restarted.
-    async fn sync(&mut self, _messager: Messager, _client: Arc<RevmMiddleware>) {}
-
     /// Used to start the agent.
     /// This is where the agent can engage in its specific start up activities
     /// that it can do given the current state of the world.
-    async fn startup(&mut self) {}
+    async fn startup(&mut self, client: Arc<RevmMiddleware>, messager: Messager) {}
 
     /// Used to process events.
     /// This is where the agent can engage in its specific processing
@@ -151,22 +130,13 @@ where
 {
     async fn execute(&mut self, instruction: MachineInstruction) {
         match instruction {
-            MachineInstruction::Sync(messager, client) => {
-                trace!("Behavior is syncing.");
-                self.state = State::Syncing;
+            MachineInstruction::Start(client, messager) => {
                 let mut behavior = self.behavior.take().unwrap();
-                let behavior_task = tokio::spawn(async move {
-                    behavior.sync(messager.unwrap(), client.unwrap()).await;
-                    behavior
-                });
-                self.behavior = Some(behavior_task.await.unwrap());
-            }
-            MachineInstruction::Start => {
                 trace!("Behavior is starting up.");
                 self.state = State::Starting;
                 let mut behavior = self.behavior.take().unwrap();
                 let behavior_task = tokio::spawn(async move {
-                    behavior.startup().await;
+                    behavior.startup(client.unwrap(), messager.unwrap()).await;
                     behavior
                 });
                 self.behavior = Some(behavior_task.await.unwrap());
@@ -202,9 +172,6 @@ where
                     behavior
                 });
                 self.behavior = Some(behavior_task.await.unwrap());
-            }
-            MachineInstruction::Stop => {
-                unreachable!("This is never explicitly called on an engine.")
             }
         }
     }
