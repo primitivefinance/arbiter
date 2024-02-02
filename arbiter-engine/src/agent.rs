@@ -7,7 +7,7 @@ use serde::de::DeserializeOwned;
 use thiserror::Error;
 
 use crate::{
-    machine::{Behavior, Engine, State, StateMachine},
+    machine::{Behavior, Engine, StateMachine},
     messager::Messager,
 };
 
@@ -26,9 +26,6 @@ pub struct Agent {
     /// Used for routing messages.
     pub id: String,
 
-    /// The status of the agent.
-    pub state: State,
-
     /// The messager the agent uses to send and receive messages from other
     /// agents.
     pub messager: Messager,
@@ -45,10 +42,8 @@ impl Debug for Agent {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("Agent")
             .field("id", &self.id)
-            .field("state", &self.state)
             .field("messager", &self.messager)
             .field("client", &self.client)
-            .field("event_streamer", &self.event_streamer)
             .field("behavior_engines", &self.behavior_engines)
             .finish()
     }
@@ -56,11 +51,11 @@ impl Debug for Agent {
 
 impl Agent {
     /// Produces a minimal agent builder with the given identifier.
-    pub fn builder(id: &str) -> Result<AgentBuilder, AgentBuildError> {
-        Ok(AgentBuilder {
+    pub fn builder(id: &str) -> AgentBuilder {
+        AgentBuilder {
             id: id.to_owned(),
             behavior_engines: None,
-        })
+        }
     }
 }
 
@@ -100,7 +95,6 @@ impl AgentBuilder {
         match self.behavior_engines {
             Some(engines) => Ok(Agent {
                 id: self.id,
-                state: State::Uninitialized,
                 messager,
                 client,
                 behavior_engines: engines,

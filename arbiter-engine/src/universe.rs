@@ -41,8 +41,12 @@ impl Universe {
             return Err(anyhow::anyhow!("Universe is already running."));
         }
         let mut tasks = Vec::new();
-        for (_, world) in self.worlds.take().unwrap().drain() {
-            tasks.push(spawn(async move { world.run().await }));
+        // TODO: These unwraps need to be checkdd a bit.
+        for (_, mut world) in self.worlds.take().unwrap().drain() {
+            tasks.push(spawn(async move {
+                world.run().await.unwrap();
+                world
+            }));
         }
         self.world_tasks = Some(join_all(tasks.into_iter()).await);
         Ok(())
@@ -61,7 +65,7 @@ mod tests {
     use tracing_subscriber::{fmt, EnvFilter};
 
     use super::*;
-    use crate::{agent::Agent, examples::timed_message::*, machine::State};
+    use crate::{agent::Agent, examples::timed_message::*};
 
     #[tokio::test]
     async fn run_universe() {
@@ -69,8 +73,7 @@ mod tests {
         let world = World::new("test");
         universe.add_world(world);
         universe.run_worlds().await.unwrap();
-        let world = universe.world_tasks.unwrap().remove(0).unwrap();
-        assert_eq!(world.state, State::Processing);
+        universe.world_tasks.unwrap().remove(0).unwrap();
     }
 
     #[tokio::test]
@@ -97,7 +100,7 @@ mod tests {
             .expect("setting default subscriber failed");
 
         let mut world1 = World::new("test1");
-        let agent1 = Agent::new("agent1", &world1);
+        let agent1 = Agent::builder("agent1");
         let behavior1 = TimedMessage::new(
             1,
             "echo".to_owned(),
@@ -108,7 +111,7 @@ mod tests {
         world1.add_agent(agent1.with_behavior(behavior1));
 
         let mut world2 = World::new("test2");
-        let agent2 = Agent::new("agent2", &world2);
+        let agent2 = Agent::builder("agent2");
         let behavior2 = TimedMessage::new(
             1,
             "echo".to_owned(),
@@ -127,14 +130,17 @@ mod tests {
         let parsed_file = read_to_string("test_logs_engine.log").expect("Unable to read log file");
 
         // Define the line to check (excluding the timestamp)
-        let line_to_check = "World is syncing.";
+        let line_to_check = "Behavior is starting up.";
 
         // Assert that the lines appear consecutively
         assert!(
             lines_appear_consecutively(&parsed_file, line_to_check),
             "The lines do not appear consecutively"
         );
-        remove_file("test_logs_engine.log").expect("Unable to remove log file");
+        remove_file("test_logs_engine.log").expect(
+            "Unable to remove log
+        file",
+        );
     }
 
     fn lines_appear_consecutively(file_contents: &str, line_to_check: &str) -> bool {

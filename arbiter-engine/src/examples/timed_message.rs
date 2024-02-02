@@ -17,7 +17,8 @@ use crate::{
     world::World,
 };
 
-struct TimedMessage {
+#[derive(Debug)]
+pub(crate) struct TimedMessage {
     delay: u64,
     receive_data: String,
     send_data: String,
@@ -99,7 +100,7 @@ impl Behavior<Message> for TimedMessage {
 async fn echoer() {
     let mut world = World::new("world");
 
-    let agent = Agent::builder(AGENT_ID).unwrap();
+    let agent = Agent::builder(AGENT_ID);
     let behavior = TimedMessage::new(
         1,
         "Hello, world!".to_owned(),
@@ -135,7 +136,7 @@ async fn echoer() {
 async fn ping_pong() {
     let mut world = World::new("world");
 
-    let agent = Agent::builder(AGENT_ID).unwrap();
+    let agent = Agent::builder(AGENT_ID);
     let behavior_ping = TimedMessage::new(
         1,
         "pong".to_owned(),
@@ -176,8 +177,8 @@ async fn ping_pong() {
 async fn ping_pong_two_agent() {
     let mut world = World::new("world");
 
-    let agent_ping = Agent::builder("agent_ping").unwrap();
-    let agent_pong = Agent::builder("agent_pong").unwrap();
+    let agent_ping = Agent::builder("agent_ping");
+    let agent_pong = Agent::builder("agent_pong");
 
     let behavior_ping = TimedMessage::new(
         1,

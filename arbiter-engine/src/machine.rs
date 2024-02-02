@@ -53,7 +53,7 @@ pub enum State {
 /// The [`Behavior`] trait is the lowest level functionality that will be used
 /// by a [`StateMachine`]. This constitutes what each state transition will do.
 #[async_trait::async_trait]
-pub trait Behavior<E>: Send + Sync + 'static {
+pub trait Behavior<E>: Send + Sync + Debug + 'static {
     /// Used to start the agent.
     /// This is where the agent can engage in its specific start up activities
     /// that it can do given the current state of the world.
@@ -70,7 +70,7 @@ pub trait Behavior<E>: Send + Sync + 'static {
 }
 
 #[async_trait::async_trait]
-pub(crate) trait StateMachine: Send + Sync + 'static {
+pub(crate) trait StateMachine: Send + Sync + Debug + 'static {
     async fn execute(&mut self, instruction: MachineInstruction);
 }
 
@@ -100,9 +100,22 @@ where
     phantom: std::marker::PhantomData<E>,
 }
 
-impl<B, E> Engine<B, E>
+impl<B, E> Debug for Engine<B, E>
 where
     B: Behavior<E>,
+    E: DeserializeOwned + Send + Sync + 'static,
+{
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("Engine")
+            .field("behavior", &self.behavior)
+            .field("state", &self.state)
+            .finish()
+    }
+}
+
+impl<B, E> Engine<B, E>
+where
+    B: Behavior<E> + Debug,
     E: DeserializeOwned + Send + Sync + 'static,
 {
     /// Creates a new [`Engine`] with the given [`Behavior`] and [`Receiver`].
@@ -119,7 +132,7 @@ where
 #[async_trait::async_trait]
 impl<B, E> StateMachine for Engine<B, E>
 where
-    B: Behavior<E>,
+    B: Behavior<E> + Debug,
     E: DeserializeOwned + Send + Sync + Debug + 'static,
 {
     async fn execute(&mut self, instruction: MachineInstruction) {

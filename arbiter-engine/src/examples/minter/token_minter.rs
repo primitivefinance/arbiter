@@ -14,7 +14,7 @@ async fn token_minter_simulation() {
     let client = RevmMiddleware::new(&world.environment, None).unwrap();
 
     // Create the token admin agent
-    let token_admin = Agent::builder(TOKEN_ADMIN_ID).unwrap();
+    let token_admin = Agent::builder(TOKEN_ADMIN_ID);
     let mut token_admin_behavior = TokenAdmin::new(Some(4));
     token_admin_behavior.add_token(TokenData {
         name: TOKEN_NAME.to_owned(),
@@ -23,7 +23,7 @@ async fn token_minter_simulation() {
         address: None,
     });
     // Create the token requester agent
-    let token_requester = Agent::builder(REQUESTER_ID).unwrap();
+    let token_requester = Agent::builder(REQUESTER_ID);
     let mut token_requester_behavior = TokenRequester::new(Some(4));
     world.add_agent(token_requester.with_behavior(token_requester_behavior));
 

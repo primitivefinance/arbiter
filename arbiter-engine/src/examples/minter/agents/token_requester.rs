@@ -3,7 +3,7 @@ use super::*;
 /// The token requester is responsible for requesting tokens from the token
 /// admin. This agents is purely for testing purposes as far as I can tell.
 #[derive(Debug)]
-pub struct TokenRequester {
+pub(crate) struct TokenRequester {
     /// The tokens that the token requester has requested.
     pub token_data: TokenData,
     /// The agent ID to request tokens to.
