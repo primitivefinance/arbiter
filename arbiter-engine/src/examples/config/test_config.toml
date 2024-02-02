@@ -1,0 +1,4 @@
+[ping]
+TimedMessage = { delay = 1.0, receive_data = "pong", send_data = "ping", count = 0, max_count = 10 }
+[pong]
+TimedMessage = { delay = 1.0, receive_data = "ping", send_data = "pong", max_count = 10 }
