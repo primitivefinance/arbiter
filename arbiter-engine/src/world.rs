@@ -88,13 +88,17 @@ impl World {
             panic!();
         }
 
-        let agents_map: HashMap<String, C> = toml::from_str(&contents).unwrap();
+        let agents_map: HashMap<String, Vec<C>> = toml::from_str(&contents).unwrap();
         println!("map: {:?}", agents_map);
 
         for (agent, behavior) in agents_map {
             let mut next_agent = Agent::builder(&agent);
-            let engine = behavior.create_state_machine();
-            next_agent = next_agent.with_engine(engine);
+            for behavior in behavior {
+                let engine = behavior.create_state_machine();
+                next_agent = next_agent.with_engine(engine);
+            }
+            // let engine = behavior.create_state_machine();
+            // next_agent = next_agent.with_engine(engine);
             self.add_agent(next_agent);
         }
     }
