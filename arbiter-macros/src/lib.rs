@@ -21,7 +21,7 @@ pub fn create_behavior_from_enum(input: TokenStream) -> TokenStream {
 
     let match_arms = enum_data.into_iter().map(|variant| {
         let variant_name = variant.ident;
-        let _inner_type = if let Fields::Unnamed(fields) = variant.fields {
+        let inner_type = if let Fields::Unnamed(fields) = variant.fields {
             fields.unnamed.first().unwrap().ty.clone()
         } else {
             panic!("Expected unnamed fields in enum variant");
