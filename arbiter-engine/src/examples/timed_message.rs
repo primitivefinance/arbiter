@@ -6,6 +6,7 @@ use std::{pin::Pin, time::Duration};
 
 use ethers::types::BigEndianHash;
 use futures_util::Stream;
+use serde::*;
 use tokio::time::timeout;
 
 use self::machine::MachineHalt;
@@ -17,12 +18,13 @@ use crate::{
     world::World,
 };
 
-#[derive(Debug)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub(crate) struct TimedMessage {
     delay: u64,
     receive_data: String,
     send_data: String,
     messager: Option<Messager>,
+    #[serde(default)]
     count: u64,
     max_count: Option<u64>,
     startup_message: Option<String>,

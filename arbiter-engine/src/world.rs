@@ -15,7 +15,7 @@
 
 //! The world module contains the core world abstraction for the Arbiter Engine.
 
-use std::collections::VecDeque;
+use std::{collections::VecDeque, path::PathBuf};
 
 use arbiter_core::{environment::Environment, middleware::RevmMiddleware};
 use futures_util::future::join_all;
@@ -50,6 +50,9 @@ pub struct World {
     pub messager: Messager,
 }
 
+use std::fs::File;
+use std::io::Read;
+use toml::Value;
 impl World {
     /// Creates a new [`World`] with the given identifier and provider.
     pub fn new(id: &str) -> Self {
@@ -58,6 +61,36 @@ impl World {
             agents: Some(HashMap::new()),
             environment: Environment::builder().build(),
             messager: Messager::new(),
+        }
+    }
+
+    // let my_world = build_with_config::<MyBehaviors>("my_filepath.toml");
+
+    pub fn build_with_config<C: Serialize + Deserialize<'static>>(&mut self, config_path: &str) {
+        let mut file = match File::open(&config_path) {
+            Ok(file) => file,
+            Err(_) => return,
+        };
+
+        let mut contents = String::new();
+        if let Err(_) = file.read_to_string(&mut contents) {
+            return;
+        }
+
+        let agents_map = toml::from_str::<HashMap<String, Vec<C>>>(&contents).unwrap();
+
+        let mut agents = vec![];
+
+        for agent in agents_map.keys().into_iter() {
+            let next_agent = Agent::builder(agent);
+            agents.push(next_agent);
+        }
+
+        for agent in agents {
+            for behavior in agents_map.get(&agent.id) {
+                agent.add_behavior(behavior);
+            }
+            self.add_agent(agent);
         }
     }
 

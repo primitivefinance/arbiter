@@ -70,7 +70,9 @@ pub trait Behavior<E>: Send + Sync + Debug + 'static {
 }
 
 #[async_trait::async_trait]
-pub(crate) trait StateMachine: Send + Sync + Debug + 'static {
+pub(crate) trait StateMachine:
+    Serialize + Deserialize<'static> + Send + Sync + Debug + 'static
+{
     async fn execute(&mut self, instruction: MachineInstruction);
 }
 
@@ -82,6 +84,7 @@ pub(crate) trait StateMachine: Send + Sync + Debug + 'static {
 /// generics can be collapsed into a `dyn` trait object so that, for example,
 /// [`agent::Agent`]s can own multiple [`Behavior`]s with different event `<E>`
 /// types.
+#[derive(Serialize, Deserialize)]
 pub struct Engine<B, E>
 where
     B: Behavior<E>,
@@ -132,8 +135,8 @@ where
 #[async_trait::async_trait]
 impl<B, E> StateMachine for Engine<B, E>
 where
-    B: Behavior<E> + Debug,
-    E: DeserializeOwned + Send + Sync + Debug + 'static,
+    B: Behavior<E> + Debug + Serialize + Deserialize<'static>,
+    E: DeserializeOwned + Serialize + Send + Sync + Debug + 'static,
 {
     async fn execute(&mut self, instruction: MachineInstruction) {
         match instruction {

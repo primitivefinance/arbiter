@@ -27,6 +27,7 @@ crossbeam-channel.workspace = true
 arbiter-core.workspace = true
 arbiter-bindings.workspace = true
 thiserror.workspace = true
+toml.workspace = true
 
 [dev-dependencies]
 arbiter-core.workspace = true

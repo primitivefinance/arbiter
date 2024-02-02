@@ -3,7 +3,7 @@
 use std::{fmt::Debug, sync::Arc};
 
 use arbiter_core::middleware::RevmMiddleware;
-use serde::de::DeserializeOwned;
+use serde::{de::DeserializeOwned, Deserialize, Serialize};
 use thiserror::Error;
 
 use crate::{
@@ -61,6 +61,7 @@ impl Agent {
 
 /// [`AgentBuilder`] represents the intermediate state of agent creation before
 /// it is converted into a full on [`Agent`]
+#[derive(Serialize, Deserialize)]
 pub struct AgentBuilder {
     /// Identifier for this agent.
     /// Used for routing messages.

@@ -12,5 +12,6 @@ use futures_util::{stream, StreamExt};
 
 use super::*;
 use crate::messager::{Message, Messager};
+pub(crate) mod config;
 pub(crate) mod minter;
 pub(crate) mod timed_message;
