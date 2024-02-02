@@ -23,6 +23,7 @@ pub(crate) struct TimedMessage {
     delay: u64,
     receive_data: String,
     send_data: String,
+    #[serde(skip)]
     messager: Option<Messager>,
     #[serde(default)]
     count: u64,
@@ -147,6 +148,7 @@ async fn ping_pong() {
         Some("ping".to_owned()),
     );
     let behavior_pong = TimedMessage::new(1, "ping".to_owned(), "pong".to_owned(), Some(2), None);
+
     world.add_agent(
         agent
             .with_behavior(behavior_ping)

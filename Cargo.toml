@@ -4,6 +4,7 @@ members = [
     "arbiter-bindings",
     "arbiter-core",
     "arbiter-engine",
+    "arbiter-macros",
     "documentation",
 ]
 
@@ -31,6 +32,8 @@ path = "bin/main.rs"
 [workspace.dependencies]
 arbiter-bindings = { version = "*", path = "./arbiter-bindings" }
 arbiter-core = { version = "*", path = "./arbiter-core" }
+arbiter-macros = { path = "./arbiter-macros" }
+arbiter-engine = { path = "./arbiter-engine" }
 ethers = { version = "2.0.13" }
 serde = { version = "1.0.193", features = ["derive"] }
 serde_json = { version = "=1.0.108" }
@@ -41,8 +44,7 @@ revm = { git = "https://github.com/bluealloy/revm.git", features = [
 ], rev = "30bbcdfe81446c9d1e9b37acc95f208943ddf858" }
 revm-primitives = { git = "https://github.com/bluealloy/revm.git", rev = "30bbcdfe81446c9d1e9b37acc95f208943ddf858" }
 thiserror = { version = "1.0.55" }
-syn = { version = "2.0.43" }
-quote = { version = "=1.0.33" }
+syn = { version = "2.0.48", features = ["full"] }
 proc-macro2 = { version = "1.0.78" }
 tokio = { version = "1.36.0", features = ["macros", "full"] }
 crossbeam-channel = { version = "0.5.11" }
@@ -69,7 +71,6 @@ syn.workspace = true
 Inflector = { version = "=0.11.4" }
 
 # Building files
-quote.workspace = true
 foundry-config = { version = "=0.2.0" }
 tempfile = { version = "3.9.0" }
 

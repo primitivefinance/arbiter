@@ -2,15 +2,17 @@ use super::*;
 
 /// The token requester is responsible for requesting tokens from the token
 /// admin. This agents is purely for testing purposes as far as I can tell.
-#[derive(Debug)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub(crate) struct TokenRequester {
     /// The tokens that the token requester has requested.
     pub token_data: TokenData,
     /// The agent ID to request tokens to.
     pub request_to: String,
     /// Client to have an address to receive token mint to and check balance
+    #[serde(skip)]
     pub client: Option<Arc<RevmMiddleware>>,
     /// The messaging layer for the token requester.
+    #[serde(skip)]
     pub messager: Option<Messager>,
     pub count: u64,
     pub max_count: Option<u64>,

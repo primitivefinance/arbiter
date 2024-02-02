@@ -2,7 +2,10 @@
 name = "arbiter-engine"
 version = "0.1.0"
 edition = "2021"
-authors = ["Waylon Jepsen <waylonjepsen1@gmail.com>", "Colin Roberts <colin@autoparallel.xyz>"]
+authors = [
+    "Waylon Jepsen <waylonjepsen1@gmail.com>",
+    "Colin Roberts <colin@autoparallel.xyz>",
+]
 description = "Allowing smart contract developers to do simulation driven development via an EVM emulator"
 license = "Apache-2.0"
 keywords = ["ethereum", "evm", "emulator", "testing", "smart-contracts"]
@@ -12,6 +15,7 @@ homepage = "https://github.com/primitivefinance/arbiter"
 repository = "https://github.com/primitivefinance/arbiter"
 
 [dependencies]
+arbiter-macros.workspace = true
 ethers.workspace = true
 futures-util.workspace = true
 async-trait.workspace = true
@@ -19,9 +23,9 @@ serde_json.workspace = true
 serde.workspace = true
 tokio.workspace = true
 async-stream.workspace = true
-anyhow =  { version = "=1.0.79" }
+anyhow = { version = "=1.0.79" }
 tracing.workspace = true
-tokio-stream = "0.1.14" 
+tokio-stream = "0.1.14"
 futures = "0.3.30"
 crossbeam-channel.workspace = true
 arbiter-core.workspace = true

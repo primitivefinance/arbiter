@@ -53,7 +53,7 @@ pub enum State {
 /// The [`Behavior`] trait is the lowest level functionality that will be used
 /// by a [`StateMachine`]. This constitutes what each state transition will do.
 #[async_trait::async_trait]
-pub trait Behavior<E>: Send + Sync + Debug + 'static {
+pub trait Behavior<E>: Serialize + DeserializeOwned + Send + Sync + Debug + 'static {
     /// Used to start the agent.
     /// This is where the agent can engage in its specific start up activities
     /// that it can do given the current state of the world.
@@ -69,10 +69,12 @@ pub trait Behavior<E>: Send + Sync + Debug + 'static {
     async fn process(&mut self, event: E) -> Option<MachineHalt>;
 }
 
+pub trait CreateStateMachine {
+    fn create_state_machine(self) -> Box<dyn StateMachine>;
+}
+
 #[async_trait::async_trait]
-pub(crate) trait StateMachine:
-    Serialize + Deserialize<'static> + Send + Sync + Debug + 'static
-{
+pub(crate) trait StateMachine: Send + Sync + Debug + 'static {
     async fn execute(&mut self, instruction: MachineInstruction);
 }
 
@@ -84,7 +86,6 @@ pub(crate) trait StateMachine:
 /// generics can be collapsed into a `dyn` trait object so that, for example,
 /// [`agent::Agent`]s can own multiple [`Behavior`]s with different event `<E>`
 /// types.
-#[derive(Serialize, Deserialize)]
 pub struct Engine<B, E>
 where
     B: Behavior<E>,
@@ -135,7 +136,7 @@ where
 #[async_trait::async_trait]
 impl<B, E> StateMachine for Engine<B, E>
 where
-    B: Behavior<E> + Debug + Serialize + Deserialize<'static>,
+    B: Behavior<E> + Debug + Serialize + DeserializeOwned,
     E: DeserializeOwned + Serialize + Send + Sync + Debug + 'static,
 {
     async fn execute(&mut self, instruction: MachineInstruction) {
@@ -146,7 +147,6 @@ where
                 let mut behavior = self.behavior.take().unwrap();
                 let behavior_task = tokio::spawn(async move {
                     let id = messager.id.clone();
-                    debug!("starting up stream for {:?}!", id);
                     let stream = behavior.startup(client, messager).await;
                     debug!("startup complete for {:?}!", id);
                     (stream, behavior)
@@ -158,7 +158,6 @@ where
                 self.execute(MachineInstruction::Process).await;
             }
             MachineInstruction::Process => {
-                trace!("Behavior is processing.");
                 let mut behavior = self.behavior.take().unwrap();
                 let mut stream = self.event_stream.take().unwrap();
                 let behavior_task = tokio::spawn(async move {

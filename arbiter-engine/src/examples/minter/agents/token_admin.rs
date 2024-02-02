@@ -1,11 +1,14 @@
 use super::*;
 
-#[derive(Debug)]
+#[derive(Deserialize, Serialize, Clone, Debug)]
 pub(crate) struct TokenAdmin {
     /// The identifier of the token admin.
     pub token_data: HashMap<String, TokenData>,
+    #[serde(skip)]
     pub tokens: Option<HashMap<String, ArbiterToken<RevmMiddleware>>>,
+    #[serde(skip)]
     pub client: Option<Arc<RevmMiddleware>>,
+    #[serde(skip)]
     pub messager: Option<Messager>,
     pub count: u64,
     pub max_count: Option<u64>,

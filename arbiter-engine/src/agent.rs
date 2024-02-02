@@ -61,7 +61,6 @@ impl Agent {
 
 /// [`AgentBuilder`] represents the intermediate state of agent creation before
 /// it is converted into a full on [`Agent`]
-#[derive(Serialize, Deserialize)]
 pub struct AgentBuilder {
     /// Identifier for this agent.
     /// Used for routing messages.
@@ -74,15 +73,24 @@ pub struct AgentBuilder {
 impl AgentBuilder {
     /// Appends a behavior onto an [`AgentBuilder`]. Behaviors are initialized
     /// when the agent builder is added to the [`crate::world::World`]
-    pub fn with_behavior<E: DeserializeOwned + Send + Sync + Debug + 'static>(
+    pub fn with_behavior<E: DeserializeOwned + Serialize + Send + Sync + Debug + 'static>(
         mut self,
-        behavior: impl Behavior<E> + 'static,
+        behavior: impl Behavior<E> + Serialize + DeserializeOwned + 'static,
     ) -> Self {
         let engine = Engine::new(behavior);
         if let Some(engines) = &mut self.behavior_engines {
             engines.push(Box::new(engine));
         } else {
             self.behavior_engines = Some(vec![Box::new(engine)]);
+        };
+        self
+    }
+
+    pub fn with_engine(mut self, engine: Box<dyn StateMachine>) -> Self {
+        if let Some(engines) = &mut self.behavior_engines {
+            engines.push(engine);
+        } else {
+            self.behavior_engines = Some(vec![engine]);
         };
         self
     }
