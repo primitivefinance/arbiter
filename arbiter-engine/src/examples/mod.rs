@@ -18,5 +18,5 @@ use futures_util::{stream, StreamExt};
 
 use super::*;
 use crate::messager::{Message, Messager};
+mod minter;
 mod timed_message;
-mod token_minter;

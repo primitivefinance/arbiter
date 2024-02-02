@@ -227,7 +227,7 @@ mod tests {
         assert_eq!(account_a.info.nonce, 1234);
         assert_eq!(account_a.info.balance, U256::from(0xfacade));
         assert_eq!(account_a.info.code, None);
-        assert_eq!(account_a.info.code_hash, keccak256(&[]));
+        assert_eq!(account_a.info.code_hash, keccak256([]));
 
         let account_b = db
             .load_account(address!("0000000000000000000000000000000000000001"))

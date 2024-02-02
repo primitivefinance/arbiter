@@ -2,8 +2,10 @@
 
 const AGENT_ID: &str = "agent";
 
-use std::time::Duration;
+use std::{pin::Pin, time::Duration};
 
+use ethers::types::BigEndianHash;
+use futures_util::Stream;
 use tokio::time::timeout;
 
 use self::machine::MachineHalt;
@@ -22,6 +24,7 @@ struct TimedMessage {
     messager: Option<Messager>,
     count: u64,
     max_count: Option<u64>,
+    startup_message: Option<String>,
 }
 
 impl TimedMessage {
@@ -30,6 +33,7 @@ impl TimedMessage {
         receive_data: String,
         send_data: String,
         max_count: Option<u64>,
+        startup_message: Option<String>,
     ) -> Self {
         Self {
             delay,
@@ -38,12 +42,35 @@ impl TimedMessage {
             messager: None,
             count: 0,
             max_count,
+            startup_message,
         }
     }
 }
 
 #[async_trait::async_trait]
 impl Behavior<Message> for TimedMessage {
+    async fn startup(
+        &mut self,
+        _client: Arc<RevmMiddleware>,
+        messager: Messager,
+    ) -> Pin<Box<dyn Stream<Item = Message> + Send + Sync>> {
+        trace!("Starting up `TimedMessage`.");
+        self.messager = Some(messager.clone());
+        tokio::time::sleep(std::time::Duration::from_secs(self.delay)).await;
+        if let Some(startup_message) = &self.startup_message {
+            messager
+                .clone()
+                .send(Message {
+                    from: messager.id.clone().unwrap(),
+                    to: To::All,
+                    data: startup_message.clone(),
+                })
+                .await;
+        }
+        trace!("Started `TimedMessage`.");
+        return Box::pin(messager.stream());
+    }
+
     async fn process(&mut self, event: Message) -> Option<MachineHalt> {
         trace!("Processing event.");
         let messager = self.messager.as_ref().unwrap();
@@ -66,19 +93,6 @@ impl Behavior<Message> for TimedMessage {
         trace!("Processed event.");
         None
     }
-
-    async fn sync(&mut self, messager: Messager, _client: Arc<RevmMiddleware>) {
-        trace!("Syncing state for `TimedMessage`.");
-        self.messager = Some(messager);
-        tokio::time::sleep(std::time::Duration::from_secs(self.delay)).await;
-        trace!("Synced state for `TimedMessage`.");
-    }
-
-    async fn startup(&mut self) {
-        trace!("Starting up `TimedMessage`.");
-        tokio::time::sleep(std::time::Duration::from_secs(self.delay)).await;
-        trace!("Started up `TimedMessage`.");
-    }
 }
 
 #[tokio::test(flavor = "multi_thread", worker_threads = 4)]
@@ -91,19 +105,12 @@ async fn echoer() {
         "Hello, world!".to_owned(),
         "Hello, world!".to_owned(),
         Some(2),
+        Some("Hello, world!".to_owned()),
     );
     world.add_agent(agent.with_behavior(behavior));
+    let messager = world.messager.for_agent("outside_world");
 
-    let messager = world.messager.join_with_id(Some("god".to_owned()));
-    let task = world.run();
-
-    let message = Message {
-        from: "god".to_owned(),
-        to: To::Agent("agent".to_owned()),
-        data: "Hello, world!".to_owned(),
-    };
-    messager.send(message).await;
-    task.await;
+    world.run().await;
 
     let mut stream = Box::pin(messager.stream());
     let mut idx = 0;
@@ -129,25 +136,22 @@ async fn ping_pong() {
     let mut world = World::new("world");
 
     let agent = Agent::builder(AGENT_ID).unwrap();
-    let behavior_ping = TimedMessage::new(1, "pong".to_owned(), "ping".to_owned(), Some(2));
-    let behavior_pong = TimedMessage::new(1, "ping".to_owned(), "pong".to_owned(), Some(2));
+    let behavior_ping = TimedMessage::new(
+        1,
+        "pong".to_owned(),
+        "ping".to_owned(),
+        Some(2),
+        Some("ping".to_owned()),
+    );
+    let behavior_pong = TimedMessage::new(1, "ping".to_owned(), "pong".to_owned(), Some(2), None);
     world.add_agent(
         agent
             .with_behavior(behavior_ping)
             .with_behavior(behavior_pong),
     );
 
-    let messager = world.messager.join_with_id(Some("god".to_owned()));
-    let task = world.run();
-
-    let init_message = Message {
-        from: "god".to_owned(),
-        to: To::Agent("agent".to_owned()),
-        data: "ping".to_owned(),
-    };
-    messager.send(init_message).await;
-
-    task.await;
+    let messager = world.messager.for_agent("outside_world");
+    world.run().await;
 
     let mut stream = Box::pin(messager.stream());
     let mut idx = 0;
@@ -172,30 +176,23 @@ async fn ping_pong() {
 async fn ping_pong_two_agent() {
     let mut world = World::new("world");
 
-    let behavior_ping = TimedMessage::new(1, "pong".to_owned(), "ping".to_owned(), Some(2));
-    let behavior_pong = TimedMessage::new(1, "ping".to_owned(), "pong".to_owned(), Some(2));
-    let agent_ping = Agent::builder("agent_ping")
-        .unwrap()
-        .with_behavior(behavior_ping);
-    let agent_pong = Agent::builder("agent_pong")
-        .unwrap()
-        .with_behavior(behavior_pong);
+    let agent_ping = Agent::builder("agent_ping").unwrap();
+    let agent_pong = Agent::builder("agent_pong").unwrap();
 
-    world.add_agent(agent_ping);
-    world.add_agent(agent_pong);
+    let behavior_ping = TimedMessage::new(
+        1,
+        "pong".to_owned(),
+        "ping".to_owned(),
+        Some(2),
+        Some("ping".to_owned()),
+    );
+    let behavior_pong = TimedMessage::new(1, "ping".to_owned(), "pong".to_owned(), Some(2), None);
 
-    let messager = world.messager.join_with_id(Some("god".to_owned()));
-    let task = world.run();
+    world.add_agent(agent_ping.with_behavior(behavior_ping));
+    world.add_agent(agent_pong.with_behavior(behavior_pong));
 
-    let init_message = Message {
-        from: "god".to_owned(),
-        to: To::All,
-        data: "ping".to_owned(),
-    };
-
-    messager.send(init_message).await;
-
-    task.await;
+    let messager = world.messager.for_agent("outside_world");
+    world.run().await;
 
     let mut stream = Box::pin(messager.stream());
     let mut idx = 0;
