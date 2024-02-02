@@ -11,7 +11,6 @@ use crate::{
 };
 
 #[derive(Serialize, Deserialize, Debug, Behaviors)]
-#[serde(tag = "type")]
 enum Behaviors {
     TimedMessage(TimedMessage),
 }

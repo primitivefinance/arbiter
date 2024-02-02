@@ -1,15 +1,8 @@
-[Bob]
-type = "TimedMessage"
-delay = 20
-receive_data = "Hey"
-send_data = "Hey there"
-count = 0
-max_count = 3
+[[Alice]]
+TimedMessage = { delay = 15, receive_data = "Hello", send_data = "Hi", count = 0, max_count = 2 }
 
-[Alice]
-type = "TimedMessage"
-delay = 10
-receive_data = "Hey"
-send_data = "..."
-count = 0
-max_count = 3
+[[Bob]]
+TimedMessage = { delay = 20, receive_data = "Hey", send_data = "Hey there", count = 0, max_count = 3 }
+
+[[Bob]]
+TimedMessage = { delay = 25, receive_data = "What's up", send_data = "Not much", count = 0, max_count = 5 }
