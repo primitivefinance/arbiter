@@ -49,11 +49,10 @@ mod tests {
     use revm_primitives::{InvalidTransaction, U256};
 
     use super::*;
-    use crate::environment::EnvironmentBuilder;
 
     #[test]
     fn coprocessor() {
-        let environment = EnvironmentBuilder::new().build();
+        let environment = Environment::builder().build();
         let mut coprocessor = Coprocessor::new(&environment);
         coprocessor.evm.env.tx.value = U256::from(100);
         let outcome = coprocessor.transact_ref();

@@ -1,21 +1,11 @@
 //! The [`StateMachine`] trait, [`Behavior`] trait, and the [`Engine`] that runs
 //! [`Behavior`]s.
 
-// TODO: Notes
-// I think we should have the `sync` stage of the behavior receive the client
-// and messager and then the user can decide if it wants to use those in their
-// behavior.
-
-// Could typestate pattern help here at all? Sync could produce a `Synced` state
-// behavior that can then not have options for client and messager. Then the
-// user can decide if they want to use those in their behavior and get a bit
-// simpler UX.
-
-use std::{fmt::Debug, sync::Arc};
+use std::{fmt::Debug, pin::Pin, sync::Arc};
 
 use arbiter_core::middleware::RevmMiddleware;
+use futures_util::{Stream, StreamExt};
 use serde::de::DeserializeOwned;
-use tokio::sync::broadcast::Receiver;
 
 use self::messager::Messager;
 use super::*;
@@ -23,21 +13,14 @@ use super::*;
 /// The instructions that can be sent to a [`StateMachine`].
 #[derive(Clone, Debug)]
 pub enum MachineInstruction {
-    /// Used to make a [`StateMachine`] sync with the world.
-    Sync(Option<Messager>, Option<Arc<RevmMiddleware>>),
-
     /// Used to make a [`StateMachine`] start up.
-    Start,
+    Start(Arc<RevmMiddleware>, Messager),
 
     /// Used to make a [`StateMachine`] process events.
     /// This will offload the process into a task that can be halted by sending
     /// a [`MachineHalt`] message from the [`Messager`]. For our purposes, the
     /// [`crate::world::World`] will handle this.
     Process,
-
-    /// Used to make a [`StateMachine`] stop. Only applicable for the
-    /// [`crate::world::World`] currently.
-    Stop,
 }
 
 /// The message that can be used in a [`StateMachine`] to halt its processing.
@@ -46,17 +29,11 @@ pub enum MachineInstruction {
 pub struct MachineHalt;
 
 /// The state used by any entity implementing [`StateMachine`].
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug)]
 pub enum State {
     /// The entity is not yet running any process.
     /// This is the state adopted by the entity when it is first created.
     Uninitialized,
-
-    /// The entity is syncing with the world.
-    /// This can be used to bring the entity back up to date with the latest
-    /// state of the world. This could be used if the world was stopped and
-    /// later restarted.
-    Syncing,
 
     /// The entity is starting up.
     /// This is where the entity can engage in its specific start up activities
@@ -68,10 +45,6 @@ pub enum State {
     /// This is where the entity can engage in its specific processing
     /// of events that can lead to actions being taken.
     Processing,
-
-    /// The entity is stopped.
-    /// This is where state can be offloaded and saved if need be.
-    Stopped,
 }
 
 // NOTE: `async_trait::async_trait` is used throughout to make the trait object
@@ -80,15 +53,15 @@ pub enum State {
 /// The [`Behavior`] trait is the lowest level functionality that will be used
 /// by a [`StateMachine`]. This constitutes what each state transition will do.
 #[async_trait::async_trait]
-pub trait Behavior<E>: Send + Sync + Debug + 'static {
-    /// Used to bring the agent back up to date with the latest state of the
-    /// world. This could be used if the world was stopped and later restarted.
-    async fn sync(&mut self, _messager: Messager, _client: Arc<RevmMiddleware>) {}
-
+pub trait Behavior<E>: Send + Sync + 'static {
     /// Used to start the agent.
     /// This is where the agent can engage in its specific start up activities
     /// that it can do given the current state of the world.
-    async fn startup(&mut self) {}
+    async fn startup(
+        &mut self,
+        client: Arc<RevmMiddleware>,
+        messager: Messager,
+    ) -> Pin<Box<dyn Stream<Item = E> + Send + Sync>>;
 
     /// Used to process events.
     /// This is where the agent can engage in its specific processing
@@ -97,7 +70,7 @@ pub trait Behavior<E>: Send + Sync + Debug + 'static {
 }
 
 #[async_trait::async_trait]
-pub(crate) trait StateMachine: Send + Sync + Debug + 'static {
+pub(crate) trait StateMachine: Send + Sync + 'static {
     async fn execute(&mut self, instruction: MachineInstruction);
 }
 
@@ -109,7 +82,6 @@ pub(crate) trait StateMachine: Send + Sync + Debug + 'static {
 /// generics can be collapsed into a `dyn` trait object so that, for example,
 /// [`agent::Agent`]s can own multiple [`Behavior`]s with different event `<E>`
 /// types.
-#[derive(Debug)]
 pub struct Engine<B, E>
 where
     B: Behavior<E>,
@@ -123,7 +95,7 @@ where
     /// The receiver of events that the [`Engine`] will process.
     /// The [`State::Processing`] stage will attempt a decode of the [`String`]s
     /// into the event type `<E>`.
-    event_receiver: Option<Receiver<String>>,
+    event_stream: Option<Pin<Box<dyn Stream<Item = E> + Send + Sync>>>,
 
     phantom: std::marker::PhantomData<E>,
 }
@@ -134,11 +106,11 @@ where
     E: DeserializeOwned + Send + Sync + 'static,
 {
     /// Creates a new [`Engine`] with the given [`Behavior`] and [`Receiver`].
-    pub(crate) fn new(behavior: B, event_receiver: Receiver<String>) -> Self {
+    pub(crate) fn new(behavior: B) -> Self {
         Self {
             behavior: Some(behavior),
             state: State::Uninitialized,
-            event_receiver: Some(event_receiver),
+            event_stream: None,
             phantom: std::marker::PhantomData,
         }
     }
@@ -152,60 +124,39 @@ where
 {
     async fn execute(&mut self, instruction: MachineInstruction) {
         match instruction {
-            MachineInstruction::Sync(messager, client) => {
-                trace!("Behavior is syncing.");
-                self.state = State::Syncing;
-                let mut behavior = self.behavior.take().unwrap();
-                let behavior_task = tokio::spawn(async move {
-                    behavior.sync(messager.unwrap(), client.unwrap()).await;
-                    behavior
-                });
-                self.behavior = Some(behavior_task.await.unwrap());
-            }
-            MachineInstruction::Start => {
+            MachineInstruction::Start(client, messager) => {
                 trace!("Behavior is starting up.");
                 self.state = State::Starting;
                 let mut behavior = self.behavior.take().unwrap();
                 let behavior_task = tokio::spawn(async move {
-                    behavior.startup().await;
-                    behavior
+                    let id = messager.id.clone();
+                    debug!("starting up stream for {:?}!", id);
+                    let stream = behavior.startup(client, messager).await;
+                    debug!("startup complete for {:?}!", id);
+                    (stream, behavior)
                 });
-                self.behavior = Some(behavior_task.await.unwrap());
+                let (stream, behavior) = behavior_task.await.unwrap();
+                self.event_stream = Some(stream);
+                self.behavior = Some(behavior);
+                // TODO: This feels weird but I think it works properly?
+                self.execute(MachineInstruction::Process).await;
             }
             MachineInstruction::Process => {
                 trace!("Behavior is processing.");
                 let mut behavior = self.behavior.take().unwrap();
-                let mut receiver = self.event_receiver.take().unwrap();
+                let mut stream = self.event_stream.take().unwrap();
                 let behavior_task = tokio::spawn(async move {
-                    while let Ok(event) = receiver.recv().await {
-                        let decoding_result = serde_json::from_str::<E>(&event);
-                        match decoding_result {
-                            Ok(event) => {
-                                let halt_option = behavior.process(event).await;
-                                if halt_option.is_some() {
-                                    break;
-                                }
-                            }
-                            Err(_) => match serde_json::from_str::<MachineHalt>(&event) {
-                                Ok(_) => {
-                                    warn!("Behavior received `MachineHalt` message. Breaking!");
-                                    break;
-                                }
-                                Err(_) => {
-                                    trace!(
-                                        "Event received by behavior that could not be deserialized."
-                                    );
-                                    continue;
-                                }
-                            },
+                    while let Some(event) = stream.next().await {
+                        let halt_option = behavior.process(event).await;
+                        if halt_option.is_some() {
+                            break;
                         }
                     }
                     behavior
                 });
+                // TODO: This could be removed as we probably don't need to have the behavior
+                // stored once its done.
                 self.behavior = Some(behavior_task.await.unwrap());
-            }
-            MachineInstruction::Stop => {
-                unreachable!("This is never explicitly called on an engine.")
             }
         }
     }

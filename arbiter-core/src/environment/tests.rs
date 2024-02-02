@@ -6,7 +6,7 @@ const TEST_GAS_LIMIT: u64 = 1_333_333_333_337;
 
 #[test]
 fn new_with_parameters() {
-    let environment = EnvironmentBuilder::new()
+    let environment = Environment::builder()
         .with_label(TEST_ENV_LABEL)
         .with_contract_size_limit(TEST_CONTRACT_SIZE_LIMIT)
         .with_gas_limit(U256::from(TEST_GAS_LIMIT));

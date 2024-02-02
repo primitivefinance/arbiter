@@ -1,5 +1,9 @@
 //! The messager module contains the core messager layer for the Arbiter Engine.
 
+// TODO: Allow for modulating the capacity of the messager.
+// TODO: It might be nice to have some kind of messaging header so that we can
+// pipe messages to agents and pipe messages across worlds.
+
 use futures_util::Stream;
 use tokio::sync::broadcast::{channel, Receiver, Sender};
 
@@ -51,9 +55,6 @@ impl Clone for Messager {
 }
 
 impl Messager {
-    // TODO: Allow for modulating the capacity of the messager.
-    // TODO: It might be nice to have some kind of messaging header so that we can
-    // pipe messages to agents and pipe messages across worlds.
     /// Creates a new messager with the given capacity.
     #[allow(clippy::new_without_default)]
     pub fn new() -> Self {
@@ -65,14 +66,35 @@ impl Messager {
         }
     }
 
-    // TODO: Okay if we do something kinda like this, then agents don't even need to
-    // filter the `to` field or set the `from` field. Let's give this a shot!
+    /// Returns a [`Messager`] interface connected to the same instance but with
+    /// the `id` provided.
     pub(crate) fn for_agent(&self, id: &str) -> Self {
         Self {
             broadcast_sender: self.broadcast_sender.clone(),
             broadcast_receiver: Some(self.broadcast_sender.subscribe()),
             id: Some(id.to_owned()),
         }
+    }
+
+    /// utility function for getting the next value from the broadcast_receiver
+    /// without streaming
+    pub async fn get_next(&mut self) -> Message {
+        while let Ok(message) = self.broadcast_receiver.as_mut().unwrap().recv().await {
+            match &message.to {
+                To::All => {
+                    return message;
+                }
+                To::Agent(id) => {
+                    if let Some(self_id) = &self.id {
+                        if id == self_id {
+                            return message;
+                        }
+                    }
+                    continue;
+                }
+            }
+        }
+        unreachable!()
     }
 
     /// Returns a stream of messages that are either sent to [`To::All`] or to
@@ -94,16 +116,6 @@ impl Messager {
                     }
                 }
             }
-        }
-    }
-
-    /// Returns a [`Messager`] interface connected to the same instance but with
-    /// the `id` provided.
-    pub fn join_with_id(&self, id: Option<String>) -> Messager {
-        Messager {
-            broadcast_sender: self.broadcast_sender.clone(),
-            broadcast_receiver: Some(self.broadcast_sender.subscribe()),
-            id,
         }
     }
 

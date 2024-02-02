@@ -85,7 +85,7 @@ async fn fork_into_arbiter() {
     let fork = Fork::from_disk("../example_fork/fork_into_test.json").unwrap();
 
     // Get the environment going
-    let environment = EnvironmentBuilder::new().with_db(fork.db).build();
+    let environment = Environment::builder().with_db(fork.db).build();
 
     // Create a client
     let client = RevmMiddleware::new(&environment, Some("name")).unwrap();
@@ -117,7 +117,7 @@ async fn middleware_from_forked_eo() {
     let fork = Fork::from_disk("../example_fork/fork_into_test.json").unwrap();
 
     // Get the environment going
-    let environment = EnvironmentBuilder::new().with_db(fork.db).build();
+    let environment = Environment::builder().with_db(fork.db).build();
 
     let vitalik_address = fork.eoa.get("vitalik").unwrap();
     let vitalik_as_a_client = RevmMiddleware::new_from_forked_eoa(&environment, *vitalik_address);
