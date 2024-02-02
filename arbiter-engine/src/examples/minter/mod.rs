@@ -1,7 +1,7 @@
 use super::*;
-pub mod agents;
-pub mod behaviors;
-pub mod token_minter;
+pub(crate) mod agents;
+pub(crate) mod behaviors;
+pub(crate) mod token_minter;
 
 use std::pin::Pin;
 
@@ -22,7 +22,7 @@ const TOKEN_SYMBOL: &str = "ARB";
 const TOKEN_DECIMALS: u8 = 18;
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
-pub struct TokenData {
+pub(crate) struct TokenData {
     pub name: String,
     pub symbol: String,
     pub decimals: u8,

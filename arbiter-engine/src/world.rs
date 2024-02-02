@@ -23,7 +23,7 @@ use tokio::spawn;
 
 use self::{agent::AgentBuilder, machine::MachineInstruction};
 use super::*;
-use crate::{agent::Agent, machine::State, messager::Messager};
+use crate::{agent::Agent, messager::Messager};
 
 /// A world is a collection of agents that use the same type of provider, e.g.,
 /// operate on the same blockchain or same `Environment`. The world is
@@ -35,12 +35,10 @@ use crate::{agent::Agent, machine::State, messager::Messager};
 /// [`AgentBuilder`]s and when it does so, it creates [`Agent`]s that are now
 /// connected to the world via a client ([`Arc<RevmMiddleware>`]) and a messager
 /// ([`Messager`]).
+#[derive(Debug)]
 pub struct World {
     /// The identifier of the world.
     pub id: String,
-
-    /// The state of the [`World`].
-    pub state: State,
 
     /// The agents in the world.
     pub agents: Option<HashMap<String, Agent>>,
@@ -53,11 +51,10 @@ pub struct World {
 }
 
 impl World {
-    /// Creates a new [World] with the given identifier and provider.
+    /// Creates a new [`World`] with the given identifier and provider.
     pub fn new(id: &str) -> Self {
         Self {
             id: id.to_owned(),
-            state: State::Uninitialized,
             agents: Some(HashMap::new()),
             environment: Environment::builder().build(),
             messager: Messager::new(),
@@ -74,7 +71,8 @@ impl World {
         agents.insert(id.to_owned(), agent);
     }
 
-    /// Runs the world through up to the [`State::Processing`] stage.
+    /// Runs all of the [`Agent`]s and their [`crate::machine::Behavior`]s in
+    /// the world in parallel.
     pub async fn run(&mut self) -> Result<()> {
         let mut tasks = vec![];
         let agents = self

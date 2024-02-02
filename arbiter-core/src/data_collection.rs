@@ -72,6 +72,18 @@ pub struct EventLogger {
     metadata: Option<Value>,
 }
 
+impl Debug for EventLogger {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("EventLogger")
+            .field("receiver", &self.receiver)
+            .field("output_file_type", &self.output_file_type)
+            .field("directory", &self.directory)
+            .field("file_name", &self.file_name)
+            .field("metadata", &self.metadata)
+            .finish()
+    }
+}
+
 /// `OutputFileType` is an enumeration that represents the different types of
 /// file formats that the `EventLogger` can output to.
 #[derive(Debug, Clone, Copy, Serialize)]
