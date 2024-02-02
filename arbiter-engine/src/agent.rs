@@ -4,12 +4,12 @@ use std::{fmt::Debug, sync::Arc};
 
 use arbiter_core::middleware::RevmMiddleware;
 use serde::de::DeserializeOwned;
+use thiserror::Error;
 
 use crate::{
     machine::{Behavior, Engine, State, StateMachine},
     messager::Messager,
 };
-use thiserror::Error;
 
 /// An agent is an entity capable of processing events and producing actions.
 /// These are the core actors in simulations or in onchain systems.
@@ -17,8 +17,10 @@ use thiserror::Error;
 /// dependency.
 ///
 /// # How it works
-/// When the [`World`] that owns the [`Agent`] is ran, it has each [`Agent`] run each of its [`Behavior`]s `startup()` methods.
-/// The [`Behavior`]s themselves will return a stream of events that then let the [`Behavior`] move into the `State::Processing` stage.
+/// When the [`World`] that owns the [`Agent`] is ran, it has each [`Agent`] run
+/// each of its [`Behavior`]s `startup()` methods. The [`Behavior`]s themselves
+/// will return a stream of events that then let the [`Behavior`] move into the
+/// `State::Processing` stage.
 pub struct Agent {
     /// Identifier for this agent.
     /// Used for routing messages.
@@ -49,7 +51,8 @@ impl Agent {
     }
 }
 
-/// [`AgentBuilder`] represents the intermediate state of agent creation before it is converted into a full on [`Agent`]
+/// [`AgentBuilder`] represents the intermediate state of agent creation before
+/// it is converted into a full on [`Agent`]
 pub struct AgentBuilder {
     /// Identifier for this agent.
     /// Used for routing messages.
@@ -60,7 +63,8 @@ pub struct AgentBuilder {
 }
 
 impl AgentBuilder {
-    /// Appends a behavior onto an [`AgentBuilder`]. Behaviors are initialized when the agent builder is added to the [`crate::world::World`]
+    /// Appends a behavior onto an [`AgentBuilder`]. Behaviors are initialized
+    /// when the agent builder is added to the [`crate::world::World`]
     pub fn with_behavior<E: DeserializeOwned + Send + Sync + Debug + 'static>(
         mut self,
         behavior: impl Behavior<E> + 'static,
@@ -96,7 +100,8 @@ impl AgentBuilder {
 /// enum representing the possible error states encountered by the agent builder
 #[derive(Debug, Error, Clone, PartialEq, Eq)]
 pub enum AgentBuildError {
-    /// Error representing the case where the agent is missing behavior engines; an agent has to have behaviors to be useful!
+    /// Error representing the case where the agent is missing behavior engines;
+    /// an agent has to have behaviors to be useful!
     #[error("Agent is missing behavior engines")]
     MissingBehaviorEngines,
 }

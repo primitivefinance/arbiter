@@ -1,5 +1,4 @@
 use self::examples::minter::agents::token_admin::TokenAdmin;
-
 use super::*;
 
 /// Used as an action to ask what tokens are available.

@@ -76,7 +76,8 @@ impl Messager {
         }
     }
 
-    /// utility function for getting the next value from the broadcast_receiver without streaming
+    /// utility function for getting the next value from the broadcast_receiver
+    /// without streaming
     pub async fn get_next(&mut self) -> Message {
         while let Ok(message) = self.broadcast_receiver.as_mut().unwrap().recv().await {
             match &message.to {

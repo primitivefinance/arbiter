@@ -3,15 +3,17 @@ pub mod agents;
 pub mod behaviors;
 pub mod token_minter;
 
+use std::pin::Pin;
+
+use futures_util::Stream;
+use tracing::error;
+
 use crate::{
     agent::Agent,
     machine::{Behavior, MachineHalt, MachineInstruction, StateMachine},
     messager::To,
     world::World,
 };
-use futures_util::Stream;
-use std::pin::Pin;
-use tracing::error;
 
 const TOKEN_ADMIN_ID: &str = "token_admin";
 const REQUESTER_ID: &str = "requester";

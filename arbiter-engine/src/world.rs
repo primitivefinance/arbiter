@@ -30,9 +30,11 @@ use crate::{agent::Agent, machine::State, messager::Messager};
 /// responsible for managing the agents and their state transitions.
 ///
 /// # How it works
-/// The [`World`] holds on to a collection of [`Agent`]s and can run them all concurrently when the
-/// [`run`] method is called. The [`World`] takes in [`AgentBuilder`]s and when it does so, it creates [`Agent`]s that are now
-/// connected to the world via a client ([`Arc<RevmMiddleware>`]) and a messager ([`Messager`]).
+/// The [`World`] holds on to a collection of [`Agent`]s and can run them all
+/// concurrently when the [`run`] method is called. The [`World`] takes in
+/// [`AgentBuilder`]s and when it does so, it creates [`Agent`]s that are now
+/// connected to the world via a client ([`Arc<RevmMiddleware>`]) and a messager
+/// ([`Messager`]).
 pub struct World {
     /// The identifier of the world.
     pub id: String,

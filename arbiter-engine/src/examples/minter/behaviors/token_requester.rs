@@ -1,8 +1,9 @@
-use self::examples::minter::agents::token_requester::TokenRequester;
-use super::*;
 use arbiter_bindings::bindings::arbiter_token::TransferFilter;
 use arbiter_core::data_collection::EventLogger;
 use token_admin::{MintRequest, TokenAdminQuery};
+
+use self::examples::minter::agents::token_requester::TokenRequester;
+use super::*;
 
 #[async_trait::async_trait]
 impl Behavior<TransferFilter> for TokenRequester {

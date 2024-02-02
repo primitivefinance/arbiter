@@ -1,10 +1,12 @@
-use super::*;
-use crate::world::World;
+use std::{str::FromStr, time::Duration};
+
 use agents::{token_admin::TokenAdmin, token_requester::TokenRequester};
 use arbiter_core::data_collection::EventLogger;
 use ethers::types::Address;
-use std::{str::FromStr, time::Duration};
 use tokio::time::timeout;
+
+use super::*;
+use crate::world::World;
 
 #[tokio::test(flavor = "multi_thread", worker_threads = 4)]
 async fn token_minter_simulation() {
