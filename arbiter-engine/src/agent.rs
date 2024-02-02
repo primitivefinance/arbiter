@@ -17,27 +17,8 @@ use thiserror::Error;
 /// dependency.
 ///
 /// # How it works
-/// The [`Agent`] works by implementing the [`StateMachine`] trait. When the
-/// [`World`] that owns the [`Agent`] is asked to enter into a new state, the
-/// [`World`] will ask each [`Agent`] it owns to run that state transition by
-/// calling [`StateMachine::run_state`]. All of the [`Agent`]s at once will then
-/// will be able to be asked to block and wait to finish their state transition
-/// by calling [`StateMachine::transition`]. Ultimately, the [`Agent`] will
-/// transition through the following states:
-/// 1. [`State::Uninitialized`]: The [`Agent`] has been created, but has not
-///   been started.
-/// 2. [`State::Syncing`]: The [`Agent`] is syncing with the world. This is
-///  where the [`Agent`] can be brought up to date with the latest state of the
-/// world. This could be used if the world was stopped and later restarted.
-/// 3. [`State::Startup`]: The [`Agent`] is starting up. This is where the
-/// [`Agent`] can be initialized and setup.
-/// 4. [`State::Processing`]: The [`Agent`] is processing. This is where the
-/// [`Agent`] can process events and produce actions. The [`State::Processing`]
-/// stage may run for a long time before all [`Agent`]s are finished processing.
-/// This is the main stage of the [`Agent`] that predominantly runs automation.
-/// 5. [`State::Stopped`]: The [`Agent`] is stopped. This is where the [`Agent`]
-/// can be stopped and state of the [`World`] and its [`Agent`]s can be
-/// offloaded and saved.
+/// When the [`World`] that owns the [`Agent`] is ran, it has each [`Agent`] run each of its [`Behavior`]s `startup()` methods.
+/// The [`Behavior`]s themselves will return a stream of events that then let the [`Behavior`] move into the `State::Processing` stage.
 pub struct Agent {
     /// Identifier for this agent.
     /// Used for routing messages.

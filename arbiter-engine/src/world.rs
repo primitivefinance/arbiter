@@ -30,27 +30,9 @@ use crate::{agent::Agent, machine::State, messager::Messager};
 /// responsible for managing the agents and their state transitions.
 ///
 /// # How it works
-/// The [`World`] works by implementing the [`StateMachine`] trait. When the
-/// [`World`] is asked to enter into a new state, it will ask each [`Agent`] it
-/// owns to run that state transition by calling [`StateMachine::run_state`].
-/// All of the [`Agent`]s at once will then be able to be asked to block and
-/// wait to finish their state transition by calling
-/// [`StateMachine::transition`]. Ultimately, the [`World`] will transition
-/// through the following states:
-/// 1. [`State::Uninitialized`]: The [`World`] has been created, but has not
-///   been started.
-/// 2. [`State::Syncing`]: The [`World`] is syncing with the agents. This is
-///  where the [`World`] can be brought up to date with the latest state of the
-/// agents. This could be used if the world was stopped and later restarted.
-/// 3. [`State::Startup`]: The [`World`] is starting up. This is where the
-/// [`World`] can be initialized and setup.
-/// 4. [`State::Processing`]: The [`World`] is processing. This is where the
-/// [`World`] can process events and produce actions. The [`State::Processing`]
-/// stage may run for a long time before all [`World`]s are finished processing.
-/// This is the main stage of the [`World`] that predominantly runs automation.
-/// 5. [`State::Stopped`]: The [`World`] is stopped. This is where the [`World`]
-/// can be stopped and state of the [`World`] and its [`Agent`]s can be
-/// offloaded and saved.
+/// The [`World`] holds on to a collection of [`Agent`]s and can run them all concurrently when the
+/// [`run`] method is called. The [`World`] takes in [`AgentBuilder`]s and when it does so, it creates [`Agent`]s that are now
+/// connected to the world via a client ([`Arc<RevmMiddleware>`]) and a messager ([`Messager`]).
 pub struct World {
     /// The identifier of the world.
     pub id: String,
@@ -91,10 +73,12 @@ impl World {
     }
 
     /// Runs the world through up to the [`State::Processing`] stage.
-    pub async fn run(&mut self) {
+    pub async fn run(&mut self) -> Result<()> {
         let mut tasks = vec![];
-        // TODO: This unwrap should be checked.
-        let agents = self.agents.take().unwrap();
+        let agents = self
+            .agents
+            .take()
+            .ok_or_else(|| anyhow!("No agents found! Has the world already been run?"))?;
         let mut messagers = VecDeque::new();
         for (_, agent) in agents.iter() {
             for _ in &agent.behavior_engines {
@@ -113,6 +97,7 @@ impl World {
             }
         }
         join_all(tasks).await;
+        Ok(())
     }
 }
 
