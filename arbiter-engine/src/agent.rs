@@ -1,38 +1,15 @@
-// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-// TODO: Notes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-// * Maybe we just use tokio for everything (like `select`) so that we don't mix
-//   futures and tokio together in ways that may be weird.
-// When we start running an agent, we should have their messager start producing
-// events that can be used by any and all behaviors the agent has that takes in
-// messages as an event. Similarly, we should have agents start up any streams
-// listeners that they need so those can also produce events. Those can then be
-// piped into the behaviors that need them. Can perhaps make behaviors come from
-// very specific events (e.g., specific contract events). This means each
-// behavior should be a consumer and perhaps the agent itself is the producer
-// (or at least relayer).
-// This means we should give agents some way to "start streams" that they can
-// then use to produce events.
-// Behaviors definitely need to be able to reference the agent's client and
-// messager so that they can send messages and interact with the blockchain.
-// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
 //! The agent module contains the core agent abstraction for the Arbiter Engine.
 
 use std::{fmt::Debug, sync::Arc};
 
-use arbiter_core::{data_collection::EventLogger, middleware::RevmMiddleware};
-use futures_util::future::join_all;
+use arbiter_core::middleware::RevmMiddleware;
 use serde::de::DeserializeOwned;
 
-use self::machine::MachineInstruction;
-use super::*;
 use crate::{
     machine::{Behavior, Engine, State, StateMachine},
     messager::Messager,
 };
-
-// TODO: For the time being, these agents are just meant to be for arbiter
-// instances. We can generalize later.
+use thiserror::Error;
 
 /// An agent is an entity capable of processing events and producing actions.
 /// These are the core actors in simulations or in onchain systems.
@@ -61,15 +38,6 @@ use crate::{
 /// 5. [`State::Stopped`]: The [`Agent`] is stopped. This is where the [`Agent`]
 /// can be stopped and state of the [`World`] and its [`Agent`]s can be
 /// offloaded and saved.
-// todo(matt): use builder pattern where we just have the agent builder
-// implement deserialize with just behavior_engines
-//
-// #[derive(Serialize, Deserialize)]
-// pub struct AgentBuilder {
-//  pub id: String,
-//  pub behavior_engines: Option<Vec<Box<dyn StateMachine>>>,
-//  pub world: &World
-// }
 pub struct Agent {
     /// Identifier for this agent.
     /// Used for routing messages.
@@ -100,23 +68,7 @@ impl Agent {
     }
 }
 
-/// enum representing the possible error states encountered by the agent builder
-#[derive(Debug)]
-pub enum AgentBuildError {
-    MissingBehaviorEngines,
-}
-
-impl std::error::Error for AgentBuildError {}
-impl std::fmt::Display for AgentBuildError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            AgentBuildError::MissingBehaviorEngines => {
-                write!(f, "Behavior engines must be set before building the agent")
-            } // ... other error variants
-        }
-    }
-}
-
+/// [`AgentBuilder`] represents the intermediate state of agent creation before it is converted into a full on [`Agent`]
 pub struct AgentBuilder {
     /// Identifier for this agent.
     /// Used for routing messages.
@@ -127,6 +79,7 @@ pub struct AgentBuilder {
 }
 
 impl AgentBuilder {
+    /// Appends a behavior onto an [`AgentBuilder`]. Behaviors are initialized when the agent builder is added to the [`crate::world::World`]
     pub fn with_behavior<E: DeserializeOwned + Send + Sync + Debug + 'static>(
         mut self,
         behavior: impl Behavior<E> + 'static,
@@ -140,7 +93,7 @@ impl AgentBuilder {
         self
     }
 
-    /// Produces a new agent with the given identifier.
+    /// Produces a new [`Agent`] with the given identifier.
     pub fn build(
         self,
         client: Arc<RevmMiddleware>,
@@ -159,103 +112,10 @@ impl AgentBuilder {
     }
 }
 
-#[cfg(test)]
-mod tests {
-    use arbiter_bindings::bindings::arbiter_token::ArbiterToken;
-    use ethers::types::U256;
-
-    use super::*;
-    use crate::{messager::Message, world::World};
-
-    #[tokio::test(flavor = "multi_thread", worker_threads = 4)]
-    async fn streaming() {
-        // std::env::set_var("RUST_LOG", "trace");
-        // tracing_subscriber::fmt::init();
-
-        let world = World::new("world");
-        let agent = Agent::builder("agent").unwrap();
-        // let arb = ArbiterToken::deploy(
-        // agent.client.clone(),
-        // ("ArbiterToken".to_string(), "ARB".to_string(), 18u8),
-        // )
-        // .unwrap()
-        // .send()
-        // .await
-        // .unwrap();
-        //
-        // let mut agent = agent.with_event(arb.events());
-        // let address = agent.client.address();
-        //
-        // TODO: (START BLOCK) It would be nice to get this block to be a single
-        // function that isn't copy and pasted from above.
-        // let messager = agent.messager.take().unwrap();
-        // let message_stream = messager
-        // .stream()
-        // .map(|msg| serde_json::to_string(&msg).unwrap_or_else(|e|
-        // e.to_string())); let eth_event_stream =
-        // agent.event_streamer.take().unwrap().stream();
-        //
-        // let mut event_stream: Pin<Box<dyn Stream<Item = String> + Send + '_>>
-        // = if let Some(event_stream) = eth_event_stream {
-        // trace!("Merging event streams.");
-        // let all_streams = vec![
-        // Box::pin(message_stream) as Pin<Box<dyn Stream<Item = String> +
-        // Send>>, Box::pin(event_stream),
-        // ];
-        // Box::pin(futures::stream::select_all(all_streams))
-        // } else {
-        // trace!("Agent only sees message stream.");
-        // Box::pin(message_stream)
-        // };
-        // TODO: (END BLOCK)
-        //
-        // let outside_messager = world.messager.join_with_id(None);
-        // let message_task = tokio::spawn(async move {
-        // for _ in 0..5 {
-        // outside_messager
-        // .send(Message {
-        // from: "god".to_string(),
-        // to: messager::To::All,
-        // data: "hello".to_string(),
-        // })
-        // .await;
-        // }
-        // });
-        //
-        // let eth_event_task = tokio::spawn(async move {
-        // for i in 0..5 {
-        // if i == 0 {
-        // tokio::time::sleep(std::time::Duration::from_secs(1)).await;
-        // }
-        // arb.approve(address, U256::from(1))
-        // .send()
-        // .await
-        // .unwrap()
-        // .await
-        // .unwrap();
-        // }
-        // });
-        //
-        // let mut idx = 0;
-        // let print_task = tokio::spawn(async move {
-        // while let Some(msg) = event_stream.next().await {
-        // println!("Printing message in test: {:?}", msg);
-        // if idx < 5 {
-        // assert_eq!(msg,
-        // "{\"from\":\"god\",\"to\":\"All\",\"data\":\"hello\"}");
-        // } else {
-        // assert_eq!(msg,
-        // "{\"ApprovalFilter\":{\"owner\":\"
-        // 0xe7a46f3d9f0e9b9c02f58f95e3bcee2db54050b0\",\"spender\":\"
-        // 0xe7a46f3d9f0e9b9c02f58f95e3bcee2db54050b0\",\"amount\":\"0x1\"}}");
-        // }
-        // idx += 1;
-        // if idx == 10 {
-        // break;
-        // }
-        // }
-        // });
-        // join_all(vec![message_task, eth_event_task, print_task]).await;
-        panic!()
-    }
+/// enum representing the possible error states encountered by the agent builder
+#[derive(Debug, Error, Clone, PartialEq, Eq)]
+pub enum AgentBuildError {
+    /// Error representing the case where the agent is missing behavior engines; an agent has to have behaviors to be useful!
+    #[error("Agent is missing behavior engines")]
+    MissingBehaviorEngines,
 }

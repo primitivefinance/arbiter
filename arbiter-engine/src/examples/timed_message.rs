@@ -97,8 +97,6 @@ impl Behavior<Message> for TimedMessage {
 
 #[tokio::test(flavor = "multi_thread", worker_threads = 4)]
 async fn echoer() {
-    std::env::set_var("RUST_LOG", "trace");
-    tracing_subscriber::fmt::init();
     let mut world = World::new("world");
 
     let agent = Agent::builder(AGENT_ID).unwrap();
@@ -110,7 +108,7 @@ async fn echoer() {
         Some("Hello, world!".to_owned()),
     );
     world.add_agent(agent.with_behavior(behavior));
-    let messager = world.messager.join_with_id(None);
+    let messager = world.messager.for_agent("outside_world");
 
     world.run().await;
 
@@ -152,7 +150,7 @@ async fn ping_pong() {
             .with_behavior(behavior_pong),
     );
 
-    let messager = world.messager.join_with_id(Some("god".to_owned()));
+    let messager = world.messager.for_agent("outside_world");
     world.run().await;
 
     let mut stream = Box::pin(messager.stream());
@@ -193,7 +191,7 @@ async fn ping_pong_two_agent() {
     world.add_agent(agent_ping.with_behavior(behavior_ping));
     world.add_agent(agent_pong.with_behavior(behavior_pong));
 
-    let messager = world.messager.join_with_id(Some("god".to_owned()));
+    let messager = world.messager.for_agent("outside_world");
     world.run().await;
 
     let mut stream = Box::pin(messager.stream());

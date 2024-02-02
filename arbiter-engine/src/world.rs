@@ -18,18 +18,12 @@
 use std::collections::VecDeque;
 
 use arbiter_core::{environment::Environment, middleware::RevmMiddleware};
-use ethers::core::k256::sha2::digest::Mac;
 use futures_util::future::join_all;
-use tokio::{spawn, task::JoinSet};
-use tracing::info;
+use tokio::spawn;
 
 use self::{agent::AgentBuilder, machine::MachineInstruction};
 use super::*;
-use crate::{
-    agent::Agent,
-    machine::{State, StateMachine},
-    messager::Messager,
-};
+use crate::{agent::Agent, machine::State, messager::Messager};
 
 /// A world is a collection of agents that use the same type of provider, e.g.,
 /// operate on the same blockchain or same `Environment`. The world is

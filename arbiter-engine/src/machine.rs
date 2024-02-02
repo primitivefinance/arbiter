@@ -1,16 +1,9 @@
 //! The [`StateMachine`] trait, [`Behavior`] trait, and the [`Engine`] that runs
 //! [`Behavior`]s.
 
-// TODO: Notes
-// Could typestate pattern help here at all? Sync could produce a `Synced` state
-// behavior that can then not have options for client and messager. Then the
-// user can decide if they want to use those in their behavior and get a bit
-// simpler UX.
-
 use std::{fmt::Debug, pin::Pin, sync::Arc};
 
 use arbiter_core::middleware::RevmMiddleware;
-use ethers::contract::{EthLogDecode, Event};
 use futures_util::{Stream, StreamExt};
 use serde::de::DeserializeOwned;
 
