@@ -47,7 +47,7 @@ arbiter-core.workspace = true
 clap = { version = "=4.4.18", features = ["derive"] }
 serde.workspace = true
 serde_json.workspace = true
-config = { version = "=0.13.4" }
+config = { version = "=0.14.0" }
 ethers.workspace = true
 revm.workspace = true
 toml = { version = "=0.8.9" }
