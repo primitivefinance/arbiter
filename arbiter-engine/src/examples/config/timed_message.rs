@@ -1,7 +1,12 @@
-// Any user of arbiter-engine has to build something like this on their own.
-#[derive(Serialize, Deserialize)]
-enum MyBehaviors {
-    Arbitrageur(Arbitreageur),
-    TokenAdmin(TokenAdmin),
-    LiquidityProvider(LiquidityProvider),
+use super::*;
+use crate::{examples::timed_message::TimedMessage, world::World};
+
+enum Behaviors {
+    TimedMessage(TimedMessage),
+}
+
+#[tokio::test(flavor = "multi_thread", worker_threads = 4)]
+async fn config_test() {
+    let mut world = World::new("world");
+    world.build_with_config("./test_config.toml").run().await;
 }
