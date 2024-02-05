@@ -97,8 +97,6 @@ impl World {
                 let engine = behavior.create_state_machine();
                 next_agent = next_agent.with_engine(engine);
             }
-            // let engine = behavior.create_state_machine();
-            // next_agent = next_agent.with_engine(engine);
             self.add_agent(next_agent);
         }
     }
