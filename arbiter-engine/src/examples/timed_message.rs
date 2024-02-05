@@ -18,6 +18,10 @@ use crate::{
     world::World,
 };
 
+fn default_max_count() -> Option<u64> {
+    Some(3)
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub(crate) struct TimedMessage {
     delay: u64,
@@ -27,6 +31,7 @@ pub(crate) struct TimedMessage {
     messager: Option<Messager>,
     #[serde(default)]
     count: u64,
+    #[serde(default = "default_max_count")]
     max_count: Option<u64>,
     startup_message: Option<String>,
 }
