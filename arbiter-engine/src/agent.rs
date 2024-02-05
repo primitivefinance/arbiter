@@ -66,12 +66,6 @@ impl Agent {
     ///
     /// Returns an [`AgentBuilder`] instance that can be used to configure and
     /// build an [`Agent`].
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// let agent_builder = Agent::builder("agent1");
-    /// ```
     pub fn builder(id: &str) -> AgentBuilder {
         AgentBuilder {
             id: id.to_owned(),

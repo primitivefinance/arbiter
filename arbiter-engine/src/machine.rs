@@ -88,25 +88,6 @@ pub trait Behavior<E>: Serialize + DeserializeOwned + Send + Sync + Debug + 'sta
 /// methods, enabling polymorphism where different types of state machines can
 /// be used interchangeably at runtime.
 ///
-/// # Examples
-///
-/// Imagine you have a `LightSwitch` type that you want to turn into a state
-/// machine. You would implement `CreateStateMachine` for `LightSwitch`,
-/// providing the logic to initialize the state machine in
-/// `create_state_machine` method.
-///
-/// ```
-/// struct LightSwitch {
-///     is_on: bool,
-/// }
-///
-/// impl CreateStateMachine for LightSwitch {
-///     fn create_state_machine(self) -> Box<dyn StateMachine> {
-///         Box::new(LightSwitchStateMachine::new(self.is_on))
-///     }
-/// }
-/// ```
-///
 /// # Returns
 ///
 /// - `Box<dyn StateMachine>`: A boxed state machine object that can be
@@ -132,21 +113,6 @@ pub trait CreateStateMachine {
 /// Implementers of this trait must be able to be sent across threads and shared
 /// among threads safely, hence the `Send`, `Sync`, and `'static` bounds. They
 /// should also support debugging through the `Debug` trait.
-///
-/// # Examples
-///
-/// Implementing the `StateMachine` trait for a custom type allows it to be
-/// used within the system's event-driven architecture, responding to
-/// instructions as part of its behavior.
-///
-/// ```
-/// #[async_trait::async_trait]
-/// impl StateMachine for MyCustomType {
-///     async fn execute(&mut self, instruction: MachineInstruction) {
-///         // Implementation of how the state machine reacts to instructions
-///     }
-/// }
-/// ```
 pub trait StateMachine: Send + Sync + Debug + 'static {
     /// Executes a given instruction asynchronously.
     ///
