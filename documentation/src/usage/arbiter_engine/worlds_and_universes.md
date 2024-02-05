@@ -58,7 +58,7 @@ fn setup_world(id: &str) -> World {
 
 fn main() {
     let world = setup_world("my_world");
-    world.run();
+    world.run().await;
 }
 ```
 If you wanted to extend this to use a `Universe`, you would simply create a `Universe` and add the `World` to it.
@@ -80,5 +80,6 @@ fn main() {
     let mut universe = Universe::new();
     universe.add_world(setup_world("my_world"));
     universe.add_world(setup_world("my_other_world"));
+    universe.run_worlds().await;
 }
 ```

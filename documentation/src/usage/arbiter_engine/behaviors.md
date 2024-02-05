@@ -36,7 +36,7 @@ use arbiter_engine::{
     messager::{Messager, To}, 
     EventStream};
 
-pub(crate) struct Replier {
+pub struct Replier {
     receive_data: String,
     send_data: String,
     max_count: u64,
