@@ -1,4 +1,4 @@
-use self::examples::minter::agents::token_admin::TokenAdmin;
+use self::{examples::minter::agents::token_admin::TokenAdmin, machine::EventStream};
 use super::*;
 
 /// Used as an action to ask what tokens are available.
@@ -31,7 +31,7 @@ impl Behavior<Message> for TokenAdmin {
         &mut self,
         client: Arc<RevmMiddleware>,
         messager: Messager,
-    ) -> Pin<Box<dyn Stream<Item = Message> + Send + Sync>> {
+    ) -> EventStream<Message> {
         self.messager = Some(messager.clone());
         self.client = Some(client.clone());
         for token_data in self.token_data.values_mut() {
@@ -76,12 +76,9 @@ impl Behavior<Message> for TokenAdmin {
                     token_name.clone()
                 );
                 let token_data = self.token_data.get(&token_name).unwrap();
-                let message = Message {
-                    from: messager.id.clone().unwrap(),
-                    to: To::Agent(event.from.clone()), // Reply back to sender
-                    data: serde_json::to_string(&token_data.address).unwrap(),
-                };
-                messager.send(message).await;
+                messager
+                    .send(To::Agent(event.from.clone()), token_data.address)
+                    .await;
             }
             TokenAdminQuery::MintRequest(mint_request) => {
                 trace!("Minting tokens: {:?}", mint_request);

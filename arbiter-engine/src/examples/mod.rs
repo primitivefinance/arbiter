@@ -1,8 +1,6 @@
 #![warn(missing_docs)]
 #![allow(unused)]
-
 //! The examples module contains example strategies.
-
 use std::{collections::HashMap, sync::Arc};
 
 use arbiter_bindings::bindings::arbiter_token::ArbiterToken;
@@ -11,6 +9,15 @@ use ethers::types::{transaction::eip2718::TypedTransaction, Address, Log, U256};
 use futures_util::{stream, StreamExt};
 
 use super::*;
-use crate::messager::{Message, Messager};
+use crate::{
+    agent::Agent,
+    machine::{
+        Behavior, CreateStateMachine, Engine, EventStream, MachineHalt, State, StateMachine,
+    },
+    messager::{Message, Messager, To},
+    world::World,
+};
+#[cfg(test)]
 pub(crate) mod minter;
+#[cfg(test)]
 pub(crate) mod timed_message;
