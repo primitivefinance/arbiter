@@ -68,29 +68,118 @@ pub trait Behavior<E>: Serialize + DeserializeOwned + Send + Sync + Debug + 'sta
     /// of events that can lead to actions being taken.
     async fn process(&mut self, event: E) -> Option<MachineHalt>;
 }
-
+/// A trait for creating a state machine.
+///
+/// This trait is intended to be implemented by types that can be converted into
+/// a state machine. A state machine, in this context, is an entity capable of
+/// executing a set of instructions or operations based on its current state and
+/// inputs it receives.
+///
+/// Implementors of this trait should provide the logic to initialize and return
+/// a new instance of a state machine, encapsulated within a `Box<dyn
+/// StateMachine>`. This allows for dynamic dispatch to the state machine's
+/// methods, enabling polymorphism where different types of state machines can
+/// be used interchangeably at runtime.
+///
+/// # Examples
+///
+/// Imagine you have a `LightSwitch` type that you want to turn into a state
+/// machine. You would implement `CreateStateMachine` for `LightSwitch`,
+/// providing the logic to initialize the state machine in
+/// `create_state_machine` method.
+///
+/// ```
+/// struct LightSwitch {
+///     is_on: bool,
+/// }
+///
+/// impl CreateStateMachine for LightSwitch {
+///     fn create_state_machine(self) -> Box<dyn StateMachine> {
+///         Box::new(LightSwitchStateMachine::new(self.is_on))
+///     }
+/// }
+/// ```
+///
+/// # Returns
+///
+/// - `Box<dyn StateMachine>`: A boxed state machine object that can be
+///   dynamically dispatched.
 pub trait CreateStateMachine {
+    /// Creates and returns a new state machine instance.
+    ///
+    /// This method consumes the implementor and returns a new instance of a
+    /// state machine encapsulated within a `Box<dyn StateMachine>`. The
+    /// specific type of the state machine returned can vary, allowing for
+    /// flexibility and reuse of the state machine logic across
+    /// different contexts.
     fn create_state_machine(self) -> Box<dyn StateMachine>;
 }
-
 #[async_trait::async_trait]
-pub(crate) trait StateMachine: Send + Sync + Debug + 'static {
+/// A trait defining the capabilities of a state machine within the system.
+///
+/// This trait is designed to be implemented by entities that can execute
+/// instructions based on their current state and inputs they receive. The
+/// execution of these instructions is asynchronous, allowing for non-blocking
+/// operations within the state machine's logic.
+///
+/// Implementors of this trait must be able to be sent across threads and shared
+/// among threads safely, hence the `Send`, `Sync`, and `'static` bounds. They
+/// should also support debugging through the `Debug` trait.
+///
+/// # Examples
+///
+/// Implementing the `StateMachine` trait for a custom type allows it to be
+/// used within the system's event-driven architecture, responding to
+/// instructions as part of its behavior.
+///
+/// ```
+/// #[async_trait::async_trait]
+/// impl StateMachine for MyCustomType {
+///     async fn execute(&mut self, instruction: MachineInstruction) {
+///         // Implementation of how the state machine reacts to instructions
+///     }
+/// }
+/// ```
+pub trait StateMachine: Send + Sync + Debug + 'static {
+    /// Executes a given instruction asynchronously.
+    ///
+    /// This method takes a mutable reference to self, allowing the state
+    /// machine to modify its state in response to the instruction. The
+    /// instruction to be executed is passed as an argument, encapsulating the
+    /// action to be performed by the state machine.
+    ///
+    /// # Parameters
+    ///
+    /// - `instruction`: The instruction that the state machine is to execute.
+    ///
+    /// # Returns
+    ///
+    /// This method does not return a value, but it may result in state changes
+    /// within the implementing type or the generation of further instructions
+    /// or events.
     async fn execute(&mut self, instruction: MachineInstruction);
 }
 
-/// The idea of the [`Engine`] is that it drives the [`Behavior`] of a
-/// [`StateMachine`]-based entity (like an [`agent::Agent`]).
-/// The [`Engine`] specifically wraps a [`Behavior`] and a [`Receiver`] of
-/// events into a cohesive unit that can listen to events and pass them onto the
-/// processor stage. Since the [`Engine`] is also a [`StateMachine`], its
-/// generics can be collapsed into a `dyn` trait object so that, for example,
-/// [`agent::Agent`]s can own multiple [`Behavior`]s with different event `<E>`
-/// types.
+/// The `Engine` struct represents the core logic unit of a state machine-based
+/// entity, such as an agent. It encapsulates a behavior and manages the flow
+/// of events to and from this behavior, effectively driving the entity's
+/// response to external stimuli.
+///
+/// The `Engine` is generic over a behavior type `B` and an event type `E`,
+/// allowing it to be used with a wide variety of behaviors and event sources.
+/// It is itself a state machine, capable of executing instructions that
+/// manipulate its behavior or react to events.
+///
+/// # Fields
+///
+/// - `behavior`: An optional behavior that the engine is currently managing.
+///   This is where the engine's logic is primarily executed in response to
+///   events.
 pub struct Engine<B, E>
 where
     B: Behavior<E>,
 {
-    /// The behavior the [`Engine`] runs.
+    /// The behavior the `Engine` runs.
     pub behavior: Option<B>,
 
     /// The current state of the [`Engine`].

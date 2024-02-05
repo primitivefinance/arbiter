@@ -15,20 +15,14 @@
 
 //! The world module contains the core world abstraction for the Arbiter Engine.
 
-use std::{
-    collections::VecDeque,
-    path::{Path, PathBuf},
-};
+use std::collections::VecDeque;
 
 use arbiter_core::{environment::Environment, middleware::RevmMiddleware};
 use futures_util::future::join_all;
 use serde::de::DeserializeOwned;
 use tokio::spawn;
 
-use self::{
-    agent::AgentBuilder,
-    machine::{Behavior, MachineInstruction},
-};
+use self::{agent::AgentBuilder, machine::MachineInstruction};
 use super::*;
 use crate::{agent::Agent, machine::CreateStateMachine, messager::Messager};
 
@@ -69,31 +63,73 @@ impl World {
         }
     }
 
+    /// Builds and adds agents to the world from a configuration file.
+    ///
+    /// This method reads a configuration file specified by `config_path`, which
+    /// should be a TOML file containing the definitions of agents and their
+    /// behaviors. Each agent is identified by a unique string key, and
+    /// associated with a list of behaviors. These behaviors are
+    /// deserialized into instances that implement the `CreateStateMachine`
+    /// trait, allowing them to be converted into state machines that define
+    /// the agent's behavior within the world.
+    ///
+    /// # Type Parameters
+    ///
+    /// - `C`: The type of the behavior component that each agent will be
+    ///   associated with.
+    /// This type must implement the `CreateStateMachine`, `Serialize`,
+    /// `DeserializeOwned`, and `std::fmt::Debug` traits.
+    ///
+    /// # Arguments
+    ///
+    /// - `config_path`: A string slice that holds the path to the configuration
+    ///   file
+    /// relative to the current working directory.
+    ///
+    /// # Panics
+    ///
+    /// This method will panic if:
+    /// - The current working directory cannot be determined.
+    /// - The configuration file specified by `config_path` cannot be opened.
+    /// - The configuration file cannot be read into a string.
+    /// - The contents of the configuration file cannot be deserialized into the
+    ///   expected
+    /// `HashMap<String, Vec<C>>` format.
+    ///
+    /// # Examples
+    ///
+    /// Assuming a TOML file named `agents_config.toml` exists in the current
+    /// working directory with the following content:
+    ///
+    /// ```toml
+    /// [[agent1]]
+    /// BehaviorTypeA = { ... } ,
+    /// [[agent1]]
+    /// BehaviorTypeB = { ... }
+    ///
+    /// [agent2]
+    /// BehaviorTypeC = { ... }
+    /// ```
     pub fn build_with_config<
         C: CreateStateMachine + Serialize + DeserializeOwned + std::fmt::Debug,
     >(
         &mut self,
         config_path: &str,
     ) {
-        let cwd = std::env::current_dir().unwrap();
+        let cwd = std::env::current_dir().expect("Failed to determine current working directory");
         let path = cwd.join(config_path);
-        println!("path: {:?}", path);
-        let mut file = match File::open(&path) {
-            Ok(file) => file,
-            Err(_) => panic!(),
-        };
+        let mut file = File::open(path).expect("Failed to open configuration file");
 
         let mut contents = String::new();
-        if let Err(_) = file.read_to_string(&mut contents) {
-            panic!();
-        }
+        file.read_to_string(&mut contents)
+            .expect("Failed to read configuration file to string");
 
-        let agents_map: HashMap<String, Vec<C>> = toml::from_str(&contents).unwrap();
-        println!("map: {:?}", agents_map);
+        let agents_map: HashMap<String, Vec<C>> =
+            toml::from_str(&contents).expect("Failed to deserialize configuration file");
 
-        for (agent, behavior) in agents_map {
+        for (agent, behaviors) in agents_map {
             let mut next_agent = Agent::builder(&agent);
-            for behavior in behavior {
+            for behavior in behaviors {
                 let engine = behavior.create_state_machine();
                 next_agent = next_agent.with_engine(engine);
             }

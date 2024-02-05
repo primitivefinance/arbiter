@@ -3,7 +3,7 @@
 use std::{fmt::Debug, sync::Arc};
 
 use arbiter_core::middleware::RevmMiddleware;
-use serde::{de::DeserializeOwned, Deserialize, Serialize};
+use serde::{de::DeserializeOwned, Serialize};
 use thiserror::Error;
 
 use crate::{
@@ -86,6 +86,24 @@ impl AgentBuilder {
         self
     }
 
+    /// Adds a state machine engine to the agent builder.
+    ///
+    /// This method allows for the addition of a custom state machine engine to
+    /// the agent's behavior engines. If the agent builder already has some
+    /// engines, the new engine is appended to the list. If no engines are
+    /// present, a new list is created with the provided engine as its first
+    /// element.
+    ///
+    /// # Parameters
+    ///
+    /// - `engine`: The state machine engine to be added to the agent builder.
+    ///   This engine must
+    /// implement the `StateMachine` trait and is expected to be provided as a
+    /// boxed trait object to allow for dynamic dispatch.
+    ///
+    /// # Returns
+    ///
+    /// Returns the `AgentBuilder` instance to allow for method chaining.
     pub fn with_engine(mut self, engine: Box<dyn StateMachine>) -> Self {
         if let Some(engines) = &mut self.behavior_engines {
             engines.push(engine);
@@ -94,7 +112,6 @@ impl AgentBuilder {
         };
         self
     }
-
     /// Produces a new [`Agent`] with the given identifier.
     pub fn build(
         self,
