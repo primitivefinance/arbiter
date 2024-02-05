@@ -75,7 +75,7 @@ pub trait Behavior<E>: Serialize + DeserializeOwned + Send + Sync + Debug + 'sta
 /// executing a set of instructions or operations based on its current state and
 /// inputs it receives.
 ///
-/// Implementors of this trait should provide the logic to initialize and return
+/// Implementers of this trait should provide the logic to initialize and return
 /// a new instance of a state machine, encapsulated within a `Box<dyn
 /// StateMachine>`. This allows for dynamic dispatch to the state machine's
 /// methods, enabling polymorphism where different types of state machines can
@@ -107,7 +107,7 @@ pub trait Behavior<E>: Serialize + DeserializeOwned + Send + Sync + Debug + 'sta
 pub trait CreateStateMachine {
     /// Creates and returns a new state machine instance.
     ///
-    /// This method consumes the implementor and returns a new instance of a
+    /// This method consumes the implementer and returns a new instance of a
     /// state machine encapsulated within a `Box<dyn StateMachine>`. The
     /// specific type of the state machine returned can vary, allowing for
     /// flexibility and reuse of the state machine logic across
@@ -122,7 +122,7 @@ pub trait CreateStateMachine {
 /// execution of these instructions is asynchronous, allowing for non-blocking
 /// operations within the state machine's logic.
 ///
-/// Implementors of this trait must be able to be sent across threads and shared
+/// Implementers of this trait must be able to be sent across threads and shared
 /// among threads safely, hence the `Send`, `Sync`, and `'static` bounds. They
 /// should also support debugging through the `Debug` trait.
 ///
