@@ -16,6 +16,10 @@ fn default_max_count() -> Option<u64> {
     Some(3)
 }
 
+fn default_max_count() -> Option<u64> {
+    Some(3)
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub(crate) struct TimedMessage {
     delay: u64,
