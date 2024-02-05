@@ -68,9 +68,6 @@ enum Behaviors {
 
 #[tokio::test(flavor = "multi_thread", worker_threads = 4)]
 async fn config_test() {
-    std::env::set_var("RUST_LOG", "trace");
-    tracing_subscriber::fmt::init();
-    tracing::info!("Starting config_test");
     let mut world = World::new("world");
     world.build_with_config::<Behaviors>("src/examples/minter/config.toml");
 
