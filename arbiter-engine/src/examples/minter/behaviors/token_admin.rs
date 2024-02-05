@@ -76,12 +76,9 @@ impl Behavior<Message> for TokenAdmin {
                     token_name.clone()
                 );
                 let token_data = self.token_data.get(&token_name).unwrap();
-                let message = Message {
-                    from: messager.id.clone().unwrap(),
-                    to: To::Agent(event.from.clone()), // Reply back to sender
-                    data: serde_json::to_string(&token_data.address).unwrap(),
-                };
-                messager.send(message).await;
+                messager
+                    .send(To::Agent(event.from.clone()), &token_data.address)
+                    .await;
             }
             TokenAdminQuery::MintRequest(mint_request) => {
                 trace!("Minting tokens: {:?}", mint_request);

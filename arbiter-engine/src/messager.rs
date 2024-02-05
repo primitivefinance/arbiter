@@ -4,9 +4,10 @@
 // TODO: It might be nice to have some kind of messaging header so that we can
 // pipe messages to agents and pipe messages across worlds.
 
-use futures_util::Stream;
+use serde::Serialize;
 use tokio::sync::broadcast::{channel, Receiver, Sender};
 
+use self::machine::EventStream;
 use super::*;
 
 /// A message that can be sent between agents.
@@ -99,9 +100,9 @@ impl Messager {
 
     /// Returns a stream of messages that are either sent to [`To::All`] or to
     /// the agent via [`To::Agent(id)`].
-    pub fn stream(mut self) -> impl Stream<Item = Message> + Send {
+    pub fn stream(mut self) -> EventStream<Message> {
         let mut receiver = self.broadcast_receiver.take().unwrap();
-        async_stream::stream! {
+        Box::pin(async_stream::stream! {
             while let Ok(message) = receiver.recv().await {
                 match &message.to {
                     To::All => {
@@ -116,12 +117,34 @@ impl Messager {
                     }
                 }
             }
-        }
+        })
     }
-
-    /// Sends a message to the messager.
-    pub async fn send(&self, message: Message) {
+    /// Asynchronously sends a message to a specified recipient.
+    ///
+    /// This method constructs a message with the provided data and sends it to
+    /// the specified recipient. The recipient can either be a single agent
+    /// or all agents, depending on the `to` parameter. The data is
+    /// serialized into a JSON string before being sent.
+    ///
+    /// # Type Parameters
+    ///
+    /// - `T`: The type that can be converted into a recipient specification
+    ///   (`To`).
+    /// - `S`: The type of the data being sent. Must implement `Serialize`.
+    ///
+    /// # Parameters
+    ///
+    /// - `to`: The recipient of the message. Can be an individual agent's ID or
+    ///   a broadcast to all agents.
+    /// - `data`: The data to be sent in the message. This data is serialized
+    ///   into JSON format.
+    pub async fn send<S: Serialize>(&self, to: To, data: S) {
         trace!("Sending message via messager.");
+        let message = Message {
+            from: self.id.clone().unwrap(),
+            to,
+            data: serde_json::to_string(&data).unwrap(),
+        };
         self.broadcast_sender.send(message).unwrap();
     }
 }

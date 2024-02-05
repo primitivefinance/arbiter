@@ -13,30 +13,25 @@ impl Behavior<TransferFilter> for TokenRequester {
         client: Arc<RevmMiddleware>,
         mut messager: Messager,
     ) -> EventStream<TransferFilter> {
-        let message = Message {
-            from: messager.id.clone().unwrap(),
-            to: To::Agent(self.request_to.clone()),
-            data: serde_json::to_string(&TokenAdminQuery::AddressOf(self.token_data.name.clone()))
-                .unwrap(),
-        };
-        messager.send(message).await;
+        messager
+            .send(
+                To::Agent(self.request_to.clone()),
+                &TokenAdminQuery::AddressOf(self.token_data.name.clone()),
+            )
+            .await;
         let message = messager.get_next().await;
         let token_address = serde_json::from_str::<Address>(&message.data).unwrap();
         let token = ArbiterToken::new(token_address, client.clone());
         self.token_data.address = Some(token_address);
 
-        let mint_data = serde_json::to_string(&TokenAdminQuery::MintRequest(MintRequest {
+        let mint_data = &TokenAdminQuery::MintRequest(MintRequest {
             token: self.token_data.name.clone(),
             mint_to: client.address(),
             mint_amount: 1,
-        }))
-        .unwrap();
-        let mint_request = Message {
-            from: messager.id.clone().unwrap(),
-            to: To::Agent(self.request_to.clone()),
-            data: mint_data,
-        };
-        messager.send(mint_request).await;
+        });
+        messager
+            .send(To::Agent(self.request_to.clone()), mint_data)
+            .await;
 
         self.messager = Some(messager.clone());
         self.client = Some(client.clone());
@@ -55,17 +50,14 @@ impl Behavior<TransferFilter> for TokenRequester {
         let messager = self.messager.as_ref().unwrap();
         while (self.count < self.max_count.unwrap()) {
             debug!("sending message from requester");
-            let message = Message {
-                from: messager.id.clone().unwrap(),
-                to: To::Agent(self.request_to.clone()),
-                data: serde_json::to_string(&TokenAdminQuery::MintRequest(MintRequest {
-                    token: self.token_data.name.clone(),
-                    mint_to: self.client.as_ref().unwrap().address(),
-                    mint_amount: 1,
-                }))
-                .unwrap(),
-            };
-            messager.send(message).await;
+            let mint_data = TokenAdminQuery::MintRequest(MintRequest {
+                token: self.token_data.name.clone(),
+                mint_to: self.client.as_ref().unwrap().address(),
+                mint_amount: 1,
+            });
+            messager
+                .send(To::Agent(self.request_to.clone()), mint_data)
+                .await;
             self.count += 1;
         }
         Some(MachineHalt)

@@ -57,44 +57,23 @@ impl Behavior<Message> for TimedMessage {
         _client: Arc<RevmMiddleware>,
         messager: Messager,
     ) -> EventStream<Message> {
-        trace!("Starting up `TimedMessage`.");
-        self.messager = Some(messager.clone());
-        tokio::time::sleep(std::time::Duration::from_secs(self.delay)).await;
         if let Some(startup_message) = &self.startup_message {
-            messager
-                .clone()
-                .send(Message {
-                    from: messager.id.clone().unwrap(),
-                    to: To::All,
-                    data: startup_message.clone(),
-                })
-                .await;
+            messager.send(To::All, startup_message).await;
         }
-        trace!("Started `TimedMessage`.");
-        return Box::pin(messager.stream());
+        self.messager = Some(messager.clone());
+        return messager.stream();
     }
 
     async fn process(&mut self, event: Message) -> Option<MachineHalt> {
-        trace!("Processing event.");
-        let messager = self.messager.as_ref().unwrap();
-        if event.data == self.receive_data {
-            trace!("Event matches message. Sending a new message.");
-            let message = Message {
-                from: messager.id.clone().unwrap(),
-                to: To::All,
-                data: self.send_data.clone(),
-            };
-            messager.send(message).await;
+        if event.data == serde_json::to_string(&self.receive_data).unwrap() {
+            let messager = self.messager.clone().unwrap();
+            messager.send(To::All, self.send_data.clone()).await;
             self.count += 1;
         }
         if self.count == self.max_count.unwrap_or(u64::MAX) {
-            warn!("Reached max count. Halting behavior.");
             return Some(MachineHalt);
         }
-
-        tokio::time::sleep(std::time::Duration::from_secs(self.delay)).await;
-        trace!("Processed event.");
-        None
+        return None;
     }
 }
 
