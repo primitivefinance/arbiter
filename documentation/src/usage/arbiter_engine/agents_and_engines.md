@@ -12,6 +12,16 @@ The latter will also require a `stream::select` type of operation to merge all t
 ## `struct Agent`
 The `Agent` struct is the primary struct that you will be working with.
 It contains an ID, a client (`Arc<RevmMiddleware>`) that provides means to send calls and transactions to an Arbiter `Environment`, and a `Messager`.
+It looks like this:
+```rust
+pub struct Agent {
+    pub id: String,
+    pub messager: Messager,
+    pub client: Arc<RevmMiddleware>,
+    pub(crate) behavior_engines: Vec<Box<dyn StateMachine>>,
+}
+```
+
 Your work will only be to define `Behavior`s and then add them to an `Agent` with the `Agent::with_behavior` method.
 
 The `Agent` is inactive until it is paired with a `World` and then it is ready to be run.
@@ -33,9 +43,16 @@ Let's create an `Agent` that has two `Behavior`s using the `Replier` behavior fr
 use arbiter_engine::agent::Agent;
 use crate::Replier;
 
-let ping_replier = Replier::new("ping", "pong", 5, None);
-let pong_replier = Replier::new("pong", "ping", 5, Some("ping"));
-let agent = Agent::new("my_agent")
-                .with_behavior(ping_replier)
-                .with_behavior(pong_replier);
+fn setup() {
+    let ping_replier = Replier::new("ping", "pong", 5, None);
+    let pong_replier = Replier::new("pong", "ping", 5, Some("ping"));
+    let agent = Agent::new("my_agent")
+                    .with_behavior(ping_replier)
+                    .with_behavior(pong_replier);
+}
+```
+In this example, we have created an `Agent` with two `Replier` behaviors.
+The `ping_replier` will reply to a message with "pong" and the `pong_replier` will reply to a message with "ping".
+Given that the `pong_replier` has a `startup_message` of "ping", it will send a message to everyone (including the "my_agent" itself who holds the `ping_replier` behavior) when it starts up.
+This will start a chain of messages that will continue in a "ping" "pong" fashion until the `max_count` is reached.
 ```
