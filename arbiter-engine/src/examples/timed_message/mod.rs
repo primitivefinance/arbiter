@@ -56,7 +56,7 @@ impl Behavior<Message> for TimedMessage {
         &mut self,
         _client: Arc<RevmMiddleware>,
         messager: Messager,
-    ) -> Pin<Box<dyn Stream<Item = Message> + Send + Sync>> {
+    ) -> EventStream<Message> {
         trace!("Starting up `TimedMessage`.");
         self.messager = Some(messager.clone());
         tokio::time::sleep(std::time::Duration::from_secs(self.delay)).await;

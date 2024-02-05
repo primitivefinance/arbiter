@@ -10,6 +10,17 @@ use serde::de::DeserializeOwned;
 use self::messager::Messager;
 use super::*;
 
+/// A type alias for a pinned, boxed stream of events.
+///
+/// This stream is capable of handling items of any type that implements the
+/// `Stream` trait, and it is both sendable across threads and synchronizable
+/// between threads.
+///
+/// # Type Parameters
+///
+/// * `E`: The type of the items in the stream.
+pub type EventStream<E> = Pin<Box<dyn Stream<Item = E> + Send + Sync>>;
+
 /// The instructions that can be sent to a [`StateMachine`].
 #[derive(Clone, Debug)]
 pub enum MachineInstruction {
@@ -57,11 +68,7 @@ pub trait Behavior<E>: Serialize + DeserializeOwned + Send + Sync + Debug + 'sta
     /// Used to start the agent.
     /// This is where the agent can engage in its specific start up activities
     /// that it can do given the current state of the world.
-    async fn startup(
-        &mut self,
-        client: Arc<RevmMiddleware>,
-        messager: Messager,
-    ) -> Pin<Box<dyn Stream<Item = E> + Send + Sync>>;
+    async fn startup(&mut self, client: Arc<RevmMiddleware>, messager: Messager) -> EventStream<E>;
 
     /// Used to process events.
     /// This is where the agent can engage in its specific processing
@@ -188,7 +195,7 @@ where
     /// The receiver of events that the [`Engine`] will process.
     /// The [`State::Processing`] stage will attempt a decode of the [`String`]s
     /// into the event type `<E>`.
-    event_stream: Option<Pin<Box<dyn Stream<Item = E> + Send + Sync>>>,
+    event_stream: Option<EventStream<E>>,
 
     phantom: std::marker::PhantomData<E>,
 }

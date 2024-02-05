@@ -1,4 +1,4 @@
-use self::examples::minter::agents::token_admin::TokenAdmin;
+use self::{examples::minter::agents::token_admin::TokenAdmin, machine::EventStream};
 use super::*;
 
 /// Used as an action to ask what tokens are available.
@@ -31,7 +31,7 @@ impl Behavior<Message> for TokenAdmin {
         &mut self,
         client: Arc<RevmMiddleware>,
         messager: Messager,
-    ) -> Pin<Box<dyn Stream<Item = Message> + Send + Sync>> {
+    ) -> EventStream<Message> {
         self.messager = Some(messager.clone());
         self.client = Some(client.clone());
         for token_data in self.token_data.values_mut() {

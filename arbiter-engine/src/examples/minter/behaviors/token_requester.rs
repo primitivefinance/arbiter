@@ -2,7 +2,7 @@ use arbiter_bindings::bindings::arbiter_token::TransferFilter;
 use arbiter_core::data_collection::EventLogger;
 use token_admin::{MintRequest, TokenAdminQuery};
 
-use self::examples::minter::agents::token_requester::TokenRequester;
+use self::{examples::minter::agents::token_requester::TokenRequester, machine::EventStream};
 use super::*;
 
 #[async_trait::async_trait]
@@ -12,7 +12,7 @@ impl Behavior<TransferFilter> for TokenRequester {
         &mut self,
         client: Arc<RevmMiddleware>,
         mut messager: Messager,
-    ) -> Pin<Box<dyn Stream<Item = TransferFilter> + Send + Sync>> {
+    ) -> EventStream<TransferFilter> {
         let message = Message {
             from: messager.id.clone().unwrap(),
             to: To::Agent(self.request_to.clone()),

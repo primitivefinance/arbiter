@@ -13,7 +13,9 @@ use futures_util::{stream, StreamExt};
 use super::*;
 use crate::{
     agent::Agent,
-    machine::{Behavior, CreateStateMachine, Engine, MachineHalt, State, StateMachine},
+    machine::{
+        Behavior, CreateStateMachine, Engine, EventStream, MachineHalt, State, StateMachine,
+    },
     messager::{Message, Messager, To},
     world::World,
 };
