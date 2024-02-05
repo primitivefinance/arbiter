@@ -1,2 +1,2 @@
 #[macro_use]
-pub(crate) mod timed_message;
+pub(crate) mod agents_with_config;
