@@ -15,7 +15,7 @@
     - [Agents and Engines](./usage/arbiter_engine/agents_and_engines.md)
     - [Worlds and Universes](./usage/arbiter_engine/worlds_and_universes.md)
     - [Configuration](./usage/arbiter_engine/configuration.md)
-  - [Arbiter macros](./usage/arbiter_macros.md)
+  - [Arbiter Macros](./usage/arbiter_macros.md)
 - [Techniques](./usage/techniques/index.md)
   - [Stateful Testing](./usage/techniques/stateful_testing.md)
   - [Anomaly Detection](./usage/techniques/anomaly_detection.md)  
