@@ -93,7 +93,7 @@ enum Behaviors {
 #[tokio::test(flavor = "multi_thread", worker_threads = 4)]
 async fn config_test() {
     let mut world = World::new("world");
-    world.build_with_config::<Behaviors>("src/examples/minter/config.toml");
+    world.from_config::<Behaviors>("src/examples/minter/config.toml");
 
     world.run().await;
 }

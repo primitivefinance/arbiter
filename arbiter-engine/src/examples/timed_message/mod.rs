@@ -204,7 +204,7 @@ enum Behaviors {
 #[tokio::test(flavor = "multi_thread", worker_threads = 4)]
 async fn config_test() {
     let mut world = World::new("world");
-    world.build_with_config::<Behaviors>("src/examples/timed_message/config.toml");
+    world.from_config::<Behaviors>("src/examples/timed_message/config.toml");
 
     world.run().await;
 }

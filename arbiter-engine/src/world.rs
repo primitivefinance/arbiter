@@ -110,7 +110,7 @@ impl World {
     /// [agent2]
     /// BehaviorTypeC = { ... }
     /// ```
-    pub fn build_with_config<C: CreateStateMachine + Serialize + DeserializeOwned + Debug>(
+    pub fn from_config<C: CreateStateMachine + Serialize + DeserializeOwned + Debug>(
         &mut self,
         config_path: &str,
     ) {
