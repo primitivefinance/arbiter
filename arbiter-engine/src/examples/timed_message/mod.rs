@@ -1,22 +1,16 @@
-#[cfg(test)]
+use super::*;
 
 const AGENT_ID: &str = "agent";
 
 use std::{pin::Pin, time::Duration};
 
+use arbiter_macros::Behaviors;
 use ethers::types::BigEndianHash;
 use futures_util::Stream;
 use serde::*;
 use tokio::time::timeout;
 
-use self::machine::MachineHalt;
 use super::*;
-use crate::{
-    agent::Agent,
-    machine::{Behavior, Engine, State, StateMachine},
-    messager::To,
-    world::World,
-};
 
 fn default_max_count() -> Option<u64> {
     Some(3)
@@ -221,4 +215,20 @@ async fn ping_pong_two_agent() {
             }
         }
     }
+}
+
+#[derive(Serialize, Deserialize, Debug, Behaviors)]
+enum Behaviors {
+    TimedMessage(TimedMessage),
+}
+
+#[tokio::test(flavor = "multi_thread", worker_threads = 4)]
+async fn config_test() {
+    std::env::set_var("RUST_LOG", "trace");
+    tracing_subscriber::fmt::init();
+    tracing::info!("Starting config_test");
+    let mut world = World::new("world");
+    world.build_with_config::<Behaviors>("src/examples/timed_message/config.toml");
+
+    world.run().await;
 }

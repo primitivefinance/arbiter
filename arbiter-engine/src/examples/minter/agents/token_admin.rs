@@ -10,9 +10,10 @@ pub(crate) struct TokenAdmin {
     pub client: Option<Arc<RevmMiddleware>>,
     #[serde(skip)]
     pub messager: Option<Messager>,
+    #[serde(default)]
     pub count: u64,
+    #[serde(default = "default_max_count")]
     pub max_count: Option<u64>,
-    startup_message: Option<String>,
 }
 
 impl TokenAdmin {
@@ -24,7 +25,6 @@ impl TokenAdmin {
             messager: None,
             count: 0,
             max_count,
-            startup_message: None,
         }
     }
 

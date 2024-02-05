@@ -14,7 +14,9 @@ pub(crate) struct TokenRequester {
     /// The messaging layer for the token requester.
     #[serde(skip)]
     pub messager: Option<Messager>,
+    #[serde(default)]
     pub count: u64,
+    #[serde(default = "default_max_count")]
     pub max_count: Option<u64>,
 }
 
