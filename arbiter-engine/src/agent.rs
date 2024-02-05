@@ -50,7 +50,28 @@ impl Debug for Agent {
 }
 
 impl Agent {
-    /// Produces a minimal agent builder with the given identifier.
+    /// Creates a new [`AgentBuilder`] instance with a specified identifier.
+    ///
+    /// This method initializes an [`AgentBuilder`] with the provided `id` and
+    /// sets the `behavior_engines` field to `None`. The returned
+    /// [`AgentBuilder`] can be further configured using its methods before
+    /// finalizing the creation of an [`Agent`].
+    ///
+    /// # Arguments
+    ///
+    /// * `id` - A string slice that holds the identifier for the agent being
+    ///   built.
+    ///
+    /// # Returns
+    ///
+    /// Returns an [`AgentBuilder`] instance that can be used to configure and
+    /// build an [`Agent`].
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// let agent_builder = Agent::builder("agent1");
+    /// ```
     pub fn builder(id: &str) -> AgentBuilder {
         AgentBuilder {
             id: id.to_owned(),
@@ -112,7 +133,40 @@ impl AgentBuilder {
         };
         self
     }
-    /// Produces a new [`Agent`] with the given identifier.
+
+    /// Constructs and returns a new [`Agent`] instance using the provided
+    /// `client` and `messager`.
+    ///
+    /// This method finalizes the building process of an [`Agent`] by taking
+    /// ownership of the builder, and attempting to construct an `Agent`
+    /// with the accumulated configurations and the provided `client` and
+    /// `messager`. The `client` is an [`Arc<RevmMiddleware>`] that represents
+    /// the connection to the blockchain or environment, and `messager` is a
+    /// communication layer for the agent.
+    ///
+    /// # Parameters
+    ///
+    /// - `client`: A shared [`Arc<RevmMiddleware>`] instance that provides the
+    ///   agent with access to the blockchain or environment.
+    /// - `messager`: A [`Messager`] instance for the agent to communicate with
+    ///   other agents or systems.
+    ///
+    /// # Returns
+    ///
+    /// Returns a `Result` that, on success, contains the newly created
+    /// [`Agent`] instance. On failure, it returns an
+    /// [`AgentBuildError::MissingBehaviorEngines`] error indicating that the
+    /// agent was attempted to be built without any behavior engines
+    /// configured.
+    ///
+    /// # Examples
+    ///
+    /// ```ignore
+    /// let agent_builder = AgentBuilder::new("agent_id");
+    /// let client = Arc::new(RevmMiddleware::new(...));
+    /// let messager = Messager::new(...);
+    /// let agent = agent_builder.build(client, messager).expect("Failed to build agent");
+    /// ```
     pub fn build(
         self,
         client: Arc<RevmMiddleware>,

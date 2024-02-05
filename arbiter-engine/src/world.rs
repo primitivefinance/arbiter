@@ -15,7 +15,7 @@
 
 //! The world module contains the core world abstraction for the Arbiter Engine.
 
-use std::collections::VecDeque;
+use std::{collections::VecDeque, fmt::Debug};
 
 use arbiter_core::{environment::Environment, middleware::RevmMiddleware};
 use futures_util::future::join_all;
@@ -78,7 +78,7 @@ impl World {
     /// - `C`: The type of the behavior component that each agent will be
     ///   associated with.
     /// This type must implement the `CreateStateMachine`, `Serialize`,
-    /// `DeserializeOwned`, and `std::fmt::Debug` traits.
+    /// `DeserializeOwned`, and `Debug` traits.
     ///
     /// # Arguments
     ///
@@ -110,9 +110,7 @@ impl World {
     /// [agent2]
     /// BehaviorTypeC = { ... }
     /// ```
-    pub fn build_with_config<
-        C: CreateStateMachine + Serialize + DeserializeOwned + std::fmt::Debug,
-    >(
+    pub fn build_with_config<C: CreateStateMachine + Serialize + DeserializeOwned + Debug>(
         &mut self,
         config_path: &str,
     ) {
@@ -137,30 +135,77 @@ impl World {
         }
     }
 
-    /// Adds an agent to the world.
+    /// Adds an agent, constructed from the provided `AgentBuilder`, to the
+    /// world.
+    ///
+    /// This method takes an `AgentBuilder` instance, extracts its identifier,
+    /// and uses it to create both a `RevmMiddleware` client and a
+    /// `Messager` specific to the agent. It then builds the `Agent` from
+    /// the `AgentBuilder` using these components. Finally, the newly
+    /// created `Agent` is inserted into the world's internal collection of
+    /// agents.
+    ///
+    /// # Panics
+    ///
+    /// This method will panic if:
+    /// - It fails to create a `RevmMiddleware` client for the agent.
+    /// - The `AgentBuilder` fails to build the `Agent`.
+    /// - The world's internal collection of agents is not initialized.
+    ///
+    /// # Examples
+    ///
+    /// Assuming you have an `AgentBuilder` instance named `agent_builder`:
+    ///
+    /// ```ignore
+    /// world.add_agent(agent_builder);
+    /// ```
+    ///
+    /// This will add the agent defined by `agent_builder` to the world.
     pub fn add_agent(&mut self, agent_builder: AgentBuilder) {
         let id = agent_builder.id.clone();
-        let client = RevmMiddleware::new(&self.environment, Some(&id)).unwrap();
+        let client = RevmMiddleware::new(&self.environment, Some(&id))
+            .expect("Failed to create RevmMiddleware client for agent");
         let messager = self.messager.for_agent(&id);
-        let agent = agent_builder.build(client, messager).unwrap();
-        let agents = self.agents.as_mut().unwrap();
+        let agent = agent_builder
+            .build(client, messager)
+            .expect("Failed to build agent from AgentBuilder");
+        let agents = self
+            .agents
+            .as_mut()
+            .expect("Agents collection not initialized");
         agents.insert(id.to_owned(), agent);
     }
 
-    /// Runs all of the [`Agent`]s and their [`crate::machine::Behavior`]s in
-    /// the world in parallel.
+    /// Executes all agents and their behaviors concurrently within the world.
+    ///
+    /// This method takes all the agents registered in the world and runs their
+    /// associated behaviors in parallel. Each agent's behaviors are
+    /// executed with their respective messaging and client context. This
+    /// method ensures that all agents and their behaviors are started
+    /// simultaneously, leveraging asynchronous execution to manage concurrent
+    /// operations.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if no agents are found in the world, possibly
+    /// indicating that the world has already been run or that no agents
+    /// were added prior to execution.
     pub async fn run(&mut self) -> Result<()> {
         let mut tasks = vec![];
+        // Retrieve the agents, erroring if none are found.
         let agents = self
             .agents
             .take()
             .ok_or_else(|| anyhow!("No agents found! Has the world already been run?"))?;
+        // Prepare a queue for messagers corresponding to each behavior engine.
         let mut messagers = VecDeque::new();
+        // Populate the messagers queue.
         for (_, agent) in agents.iter() {
             for _ in &agent.behavior_engines {
                 messagers.push_back(agent.messager.clone());
             }
         }
+        // For each agent, spawn a task for each of its behavior engines.
         for (_, mut agent) in agents {
             for mut engine in agent.behavior_engines.drain(..) {
                 let client = agent.client.clone();
@@ -172,6 +217,7 @@ impl World {
                 }));
             }
         }
+        // Await the completion of all tasks.
         join_all(tasks).await;
         Ok(())
     }
