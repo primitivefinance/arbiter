@@ -11,7 +11,7 @@
     - [Environment](./usage/arbiter_core/environment.md)
     - [Middleware](./usage/arbiter_core/middleware.md)
   - [Arbiter Engine](./usage/arbiter_engine/index.md)
-    - [Agents and Behaviors](./usage/arbiter_engine/agents_and_behaviors.md)
+    - [Behaviors](./usage/arbiter_engine/behaviors.md)
   - [Arbiter macros](./usage/arbiter_macros.md)
 - [Techniques](./usage/techniques/index.md)
   - [Stateful Testing](./usage/techniques/stateful_testing.md)

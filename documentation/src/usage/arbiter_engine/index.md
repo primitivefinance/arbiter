@@ -1,5 +1,5 @@
 # Arbiter Engine
-`arbiter-engine` is the primary entrypoint for using Arbiter.
+`arbiter-engine` provides the machinery to build agent based / event driven simulations and should be the primary entrypoint for using Arbiter.
 The goal of this crate is to abstract away the work required to set up agents, their behaviors, and the worlds they live in.
 At the moment, all interaction of agents is done through the `arbiter-core` crate and is meant to be for local simulations and it is not yet generalized for the case of live network automation.
 
