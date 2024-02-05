@@ -1,8 +1,6 @@
 #![warn(missing_docs)]
 #![allow(unused)]
-
 //! The examples module contains example strategies.
-
 use std::{collections::HashMap, sync::Arc};
 
 use arbiter_bindings::bindings::arbiter_token::ArbiterToken;

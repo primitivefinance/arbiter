@@ -24,7 +24,7 @@ impl Behavior<TransferFilter> for TokenRequester {
         let token = ArbiterToken::new(token_address, client.clone());
         self.token_data.address = Some(token_address);
 
-        let mint_data = &TokenAdminQuery::MintRequest(MintRequest {
+        let mint_data = TokenAdminQuery::MintRequest(MintRequest {
             token: self.token_data.name.clone(),
             mint_to: client.address(),
             mint_amount: 1,

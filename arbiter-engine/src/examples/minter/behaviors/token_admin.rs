@@ -77,7 +77,7 @@ impl Behavior<Message> for TokenAdmin {
                 );
                 let token_data = self.token_data.get(&token_name).unwrap();
                 messager
-                    .send(To::Agent(event.from.clone()), &token_data.address)
+                    .send(To::Agent(event.from.clone()), token_data.address)
                     .await;
             }
             TokenAdminQuery::MintRequest(mint_request) => {
