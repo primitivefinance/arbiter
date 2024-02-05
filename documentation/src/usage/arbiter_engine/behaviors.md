@@ -29,12 +29,18 @@ Otherwise you risk having a `Behavior` that is too complex and difficult to unde
 ### Example
 To see this in use, let's take a look at an example of a `Behavior` called `Replier` that replies to a message with a message of its own, and stops once it has replied a certain number of times.
 ```rust
-#[derive(Debug, Serialize, Deserialize)]
+use std::sync::Arc;
+use arbiter_core::middleware::RevmMiddleware;
+use arbiter_engine::{
+    machine::{Behavior, MachineHalt},
+    messager::{Messager, To}, 
+    EventStream};
+
 pub(crate) struct Replier {
     receive_data: String,
     send_data: String,
+    max_count: u64,
     startup_message: Option<String>,
-    max_count: Option<u64>,
     count: u64,
     messager: Option<Messager>,
 }
@@ -43,7 +49,7 @@ impl Replier {
     pub fn new(
         receive_data: String,
         send_data: String,
-        max_count: Option<u64>,
+        max_count: u64,
         startup_message: Option<String>,
     ) -> Self {
         Self {
@@ -75,7 +81,7 @@ impl Behavior<Message> for Replier {
             self.messager.unwrap().messager.send(To::All, send_data).await;
             self.count += 1;
         }
-        if self.count == self.max_count.unwrap_or(u64::MAX) {
+        if self.count == self.max_count {
             return Some(MachineHalt);
         }
         return None
