@@ -63,3 +63,4 @@ fn main()  {
     world.run().await;
 }
 ```
+At the moment, we do not configure `Universe`s from a configuration file, but this is a feature that is planned for the future.
