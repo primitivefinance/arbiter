@@ -2,7 +2,10 @@ use arbiter_bindings::bindings::arbiter_token::TransferFilter;
 use arbiter_core::data_collection::EventLogger;
 use token_admin::{MintRequest, TokenAdminQuery};
 
-use self::{examples::minter::agents::token_requester::TokenRequester, machine::EventStream};
+use self::{
+    errors::ArbiterEngineError, examples::minter::agents::token_requester::TokenRequester,
+    machine::EventStream,
+};
 use super::*;
 
 #[async_trait::async_trait]
@@ -12,7 +15,7 @@ impl Behavior<TransferFilter> for TokenRequester {
         &mut self,
         client: Arc<RevmMiddleware>,
         mut messager: Messager,
-    ) -> EventStream<TransferFilter> {
+    ) -> Result<EventStream<TransferFilter>, ArbiterEngineError> {
         messager
             .send(
                 To::Agent(self.request_to.clone()),
@@ -35,18 +38,18 @@ impl Behavior<TransferFilter> for TokenRequester {
 
         self.messager = Some(messager.clone());
         self.client = Some(client.clone());
-        return Box::pin(
+        Ok(Box::pin(
             EventLogger::builder()
                 .add_stream(token.transfer_filter())
                 .stream()
                 .unwrap()
                 .map(|value| serde_json::from_str(&value).unwrap()),
-        );
+        ))
     }
 
     #[tracing::instrument(skip(self), fields(id =
  self.messager.as_ref().unwrap().id.as_deref()))]
-    async fn process(&mut self, event: TransferFilter) -> Option<MachineHalt> {
+    async fn process(&mut self, event: TransferFilter) -> Result<ControlFlow, ArbiterEngineError> {
         let messager = self.messager.as_ref().unwrap();
         while (self.count < self.max_count.unwrap()) {
             debug!("sending message from requester");
@@ -60,6 +63,6 @@ impl Behavior<TransferFilter> for TokenRequester {
                 .await;
             self.count += 1;
         }
-        Some(MachineHalt)
+        Ok(ControlFlow::Halt)
     }
 }

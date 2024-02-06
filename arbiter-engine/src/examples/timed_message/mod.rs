@@ -16,10 +16,6 @@ fn default_max_count() -> Option<u64> {
     Some(3)
 }
 
-fn default_max_count() -> Option<u64> {
-    Some(3)
-}
-
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub(crate) struct TimedMessage {
     delay: u64,
@@ -60,24 +56,24 @@ impl Behavior<Message> for TimedMessage {
         &mut self,
         _client: Arc<RevmMiddleware>,
         messager: Messager,
-    ) -> EventStream<Message> {
+    ) -> Result<EventStream<Message>, ArbiterEngineError> {
         if let Some(startup_message) = &self.startup_message {
             messager.send(To::All, startup_message).await;
         }
         self.messager = Some(messager.clone());
-        return messager.stream();
+        Ok(messager.stream())
     }
 
-    async fn process(&mut self, event: Message) -> Option<MachineHalt> {
+    async fn process(&mut self, event: Message) -> Result<ControlFlow, ArbiterEngineError> {
         if event.data == serde_json::to_string(&self.receive_data).unwrap() {
             let messager = self.messager.clone().unwrap();
             messager.send(To::All, self.send_data.clone()).await;
             self.count += 1;
         }
         if self.count == self.max_count.unwrap_or(u64::MAX) {
-            return Some(MachineHalt);
+            return Ok(ControlFlow::Halt);
         }
-        return None;
+        Ok(ControlFlow::Continue)
     }
 }
 

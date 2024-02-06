@@ -113,6 +113,7 @@ impl World {
         for (agent, behaviors) in agents_map {
             let mut next_agent = Agent::builder(&agent);
             for behavior in behaviors {
+                println!("Behavior: {:?}", behavior);
                 let engine = behavior.create_state_machine();
                 next_agent = next_agent.with_engine(engine);
             }

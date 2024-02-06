@@ -105,7 +105,7 @@ impl AgentBuilder {
     /// # Returns
     ///
     /// Returns the `AgentBuilder` instance to allow for method chaining.
-    pub fn with_engine(mut self, engine: Box<dyn StateMachine>) -> Self {
+    pub(crate) fn with_engine(mut self, engine: Box<dyn StateMachine>) -> Self {
         if let Some(engines) = &mut self.behavior_engines {
             engines.push(engine);
         } else {

@@ -1,13 +1,10 @@
 //! The messager module contains the core messager layer for the Arbiter Engine.
 
-// TODO: Allow for modulating the capacity of the messager.
-// TODO: It might be nice to have some kind of messaging header so that we can
-// pipe messages to agents and pipe messages across worlds.
-
 use tokio::sync::broadcast::{channel, Receiver, Sender};
 
 use self::machine::EventStream;
 use super::*;
+use crate::errors::ArbiterEngineError;
 
 /// A message that can be sent between agents.
 #[derive(Clone, Debug, Deserialize, Serialize)]
@@ -78,16 +75,21 @@ impl Messager {
 
     /// utility function for getting the next value from the broadcast_receiver
     /// without streaming
-    pub async fn get_next(&mut self) -> Message {
+    pub async fn get_next(&mut self) -> Result<Message, ArbiterEngineError> {
+        if self.broadcast_receiver.is_none() {
+            return Err(ArbiterEngineError::MessagerError(
+                "Receiver has been taken! Are you already streaming?".to_owned(),
+            ));
+        }
         while let Ok(message) = self.broadcast_receiver.as_mut().unwrap().recv().await {
             match &message.to {
                 To::All => {
-                    return message;
+                    return Ok(message);
                 }
                 To::Agent(id) => {
                     if let Some(self_id) = &self.id {
                         if id == self_id {
-                            return message;
+                            return Ok(message);
                         }
                     }
                     continue;

@@ -157,7 +157,7 @@ pub trait StateMachine: Send + Sync + Debug + 'static {
 /// - `behavior`: An optional behavior that the engine is currently managing.
 ///   This is where the engine's logic is primarily executed in response to
 ///   events.
-pub struct Engine<B, E>
+pub(crate) struct Engine<B, E>
 where
     B: Behavior<E>,
 {
@@ -219,7 +219,7 @@ where
                     tokio::spawn(async move {
                         let id = messager.id.clone();
                         let stream = behavior.startup(client, messager).await?;
-                        debug!("startup complete for {:?}!", id);
+                        debug!("startup complete for behavior {:?}", id);
                         Ok((stream, behavior))
                     });
                 let (stream, behavior) = behavior_task.await??;
