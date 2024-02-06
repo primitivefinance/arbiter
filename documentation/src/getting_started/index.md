@@ -6,10 +6,17 @@ The crates (aside from `arbiter-engine` at the moment) are linked to their crate
 [dependencies]
 arbiter-core = "*" # You can specify a version here if you'd like
 arbiter-bindings = "*" # You can specify a version here if you'd like 
+arbiter-engine = "*" # You can specify a version here if you'd like
 ```
 
-## CLI Prerequisites
-Before installing Arbiter CLI, ensure that you have Rust installed. You can install and verify your Rust installation from the [official website](https://www.rust-lang.org/tools/install).
 
-The Arbiter CLI works alongside [Foundry](https://github.com/foundry-rs/foundry) and aims to provide a similar CLI interface of setting up and interacting with Arbiter projects. 
-Install Foundry from the [official website](https://getfoundry.sh/).
+# Auditing
+
+The current state of software auditing in the EVM is rapidly evolving. Competitive salaries are attracting top talent to firms like [Spearbit](https://spearbit.com/), [ChainSecurity](https://chainsecurity.com/), and [Trail of Bits](https://www.trailofbits.com/), while open security bounties and competitions like [Code Arena](https://code4rena.com/) are drawing in the best and brightest from around the world. Moreover, the rise of decentralized finance and the value at stake in these EVM-oriented systems have also caught the attention of a collection of black hats. 
+
+As competition in auditing intensifies, auditors will likely need to specialize to stay competitive. With its ability to model the EVM with a high degree of granularity, Arbiter is well-positioned to be leveraged by auditors to develop its tooling and methodologies to stay ahead of the curve.
+
+One such methodology is domain-specific fuzzing. Fuzzing is a testing technique that provides invalid, unexpected, or random data as input to a computer program. The program is then monitored for exceptions such as crashes, failing built-in code assertions, or potential memory leaks. Domain-specific fuzzing in the context of EVM system design involves modeling "normal" system behavior with agents and then playing with different parameters of the system to expose system fragility. 
+
+With its high degree of EVM modeling granularity, Arbiter is well-suited to support and enable domain-specific fuzzing. It can accurately simulate the behavior of the EVM under a wide range of conditions and inputs, providing auditors with a powerful tool for identifying and addressing potential vulnerabilities. Moreover, Arbiter is designed to be highly performant and fast, allowing for efficient and timely auditing processes. This speed and performance make it an even more valuable tool in the rapidly evolving world of software auditing.
+
