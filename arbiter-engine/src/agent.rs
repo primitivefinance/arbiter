@@ -1,12 +1,8 @@
 //! The agent module contains the core agent abstraction for the Arbiter Engine.
 
-use std::{fmt::Debug, sync::Arc};
-
-use arbiter_core::middleware::RevmMiddleware;
-use serde::{de::DeserializeOwned, Serialize};
-use thiserror::Error;
-
+use super::*;
 use crate::{
+    errors::ArbiterEngineError,
     machine::{Behavior, Engine, StateMachine},
     messager::Messager,
 };
@@ -21,6 +17,7 @@ use crate::{
 /// each of its [`Behavior`]s `startup()` methods. The [`Behavior`]s themselves
 /// will return a stream of events that then let the [`Behavior`] move into the
 /// `State::Processing` stage.
+#[derive(Debug)]
 pub struct Agent {
     /// Identifier for this agent.
     /// Used for routing messages.
@@ -36,17 +33,6 @@ pub struct Agent {
     /// The engines/behaviors that the agent uses to sync, startup, and process
     /// events.
     pub(crate) behavior_engines: Vec<Box<dyn StateMachine>>,
-}
-
-impl Debug for Agent {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("Agent")
-            .field("id", &self.id)
-            .field("messager", &self.messager)
-            .field("client", &self.client)
-            .field("behavior_engines", &self.behavior_engines)
-            .finish()
-    }
 }
 
 impl Agent {
@@ -165,7 +151,7 @@ impl AgentBuilder {
         self,
         client: Arc<RevmMiddleware>,
         messager: Messager,
-    ) -> Result<Agent, AgentBuildError> {
+    ) -> Result<Agent, ArbiterEngineError> {
         match self.behavior_engines {
             Some(engines) => Ok(Agent {
                 id: self.id,
@@ -173,16 +159,9 @@ impl AgentBuilder {
                 client,
                 behavior_engines: engines,
             }),
-            None => Err(AgentBuildError::MissingBehaviorEngines),
+            None => Err(ArbiterEngineError::AgentBuildError(
+                "Missing behavior engines".to_owned(),
+            )),
         }
     }
-}
-
-/// enum representing the possible error states encountered by the agent builder
-#[derive(Debug, Error, Clone, PartialEq, Eq)]
-pub enum AgentBuildError {
-    /// Error representing the case where the agent is missing behavior engines;
-    /// an agent has to have behaviors to be useful!
-    #[error("Agent is missing behavior engines")]
-    MissingBehaviorEngines,
 }

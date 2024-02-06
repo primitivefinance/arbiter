@@ -1,30 +1,15 @@
-// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-// TODO: Notes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-// * Probably should move labels to world instead of on the environment.
-// * One thing that is different about the Arbiter world is that give a bunch of
-//   different channels to communicate with the Environment's tx thread. This is
-//   different from a connection to a blockchain where you typically will just
-//   have a single HTTP/WS connection. What we want is some kind of way of
-//   having the world own a reference to a provider or something
-// * Can add a messager as an interconnect and have the manager give each world
-//   it owns a clone of the same messager.
-// * The worlds now are just going to be revm worlds. We can generalize this
-//   later.
-// * Can we give the world an address book??
-// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
 //! The world module contains the core world abstraction for the Arbiter Engine.
 
-use std::{collections::VecDeque, fmt::Debug};
+use std::collections::VecDeque;
 
-use arbiter_core::{environment::Environment, middleware::RevmMiddleware};
-use futures_util::future::join_all;
-use serde::de::DeserializeOwned;
-use tokio::spawn;
+use arbiter_core::environment::Environment;
 
-use self::{agent::AgentBuilder, machine::MachineInstruction};
 use super::*;
-use crate::{agent::Agent, machine::CreateStateMachine, messager::Messager};
+use crate::{
+    agent::{Agent, AgentBuilder},
+    machine::{CreateStateMachine, MachineInstruction},
+    messager::Messager,
+};
 
 /// A world is a collection of agents that use the same type of provider, e.g.,
 /// operate on the same blockchain or same `Environment`. The world is

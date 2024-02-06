@@ -4,7 +4,6 @@
 // TODO: It might be nice to have some kind of messaging header so that we can
 // pipe messages to agents and pipe messages across worlds.
 
-use serde::Serialize;
 use tokio::sync::broadcast::{channel, Receiver, Sender};
 
 use self::machine::EventStream;

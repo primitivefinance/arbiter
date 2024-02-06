@@ -1,12 +1,9 @@
 //! The [`universe`] module contains the [`Universe`] struct which is the
 //! primary interface for creating and running many `World`s in parallel.
 
-use std::collections::HashMap;
-
 use anyhow::Result;
-use futures_util::future::join_all;
-use tokio::task::{spawn, JoinError};
 
+use super::*;
 use crate::world::World;
 
 /// The [`Universe`] struct is the primary interface for creating and running
