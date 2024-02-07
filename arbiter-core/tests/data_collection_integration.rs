@@ -1,12 +1,10 @@
 use std::path::Path;
 
-use serde::Serialize;
-
-use super::*;
 use arbiter_core::{
     data_collection::{EventLogger, OutputFileType},
     errors::RevmMiddlewareError,
 };
+use serde::Serialize;
 
 #[derive(Serialize, Clone)]
 struct MockMetadata {

@@ -1,4 +1,5 @@
 use revm::primitives::{ExecutionResult, Output};
+use revm_primitives::SuccessReason;
 
 /// Unwraps the result of the EVM execution into a more structured `Success`
 /// type.
@@ -8,7 +9,7 @@ use super::*;
 #[derive(Debug)]
 pub struct Success {
     /// The reason for the success.
-    pub _reason: revm::primitives::Eval,
+    pub _reason: SuccessReason,
     /// The amount of gas used by the transaction.
     pub _gas_used: u64,
     /// The amount of gas refunded by the transaction.

@@ -34,25 +34,21 @@ arbiter-bindings = { version = "*", path = "./arbiter-bindings" }
 arbiter-core = { version = "*", path = "./arbiter-core" }
 arbiter-macros = { path = "./arbiter-macros" }
 arbiter-engine = { path = "./arbiter-engine" }
+revm = { version = "=4.0.0", features = ["ethersdb", "std", "serde"] }
+revm-primitives = "=2.0.0"
 ethers = { version = "2.0.13" }
 serde = { version = "1.0.193", features = ["derive"] }
-serde_json = { version = "=1.0.108" }
-revm = { git = "https://github.com/bluealloy/revm.git", features = [
-    "ethersdb",
-    "std",
-    "serde",
-], rev = "30bbcdfe81446c9d1e9b37acc95f208943ddf858" }
-revm-primitives = { git = "https://github.com/bluealloy/revm.git", rev = "30bbcdfe81446c9d1e9b37acc95f208943ddf858" }
+serde_json = { version = "1.0.113" }
 thiserror = { version = "1.0.55" }
 syn = { version = "2.0.48", features = ["full"] }
 proc-macro2 = { version = "1.0.78" }
 tokio = { version = "1.36.0", features = ["macros", "full"] }
 crossbeam-channel = { version = "0.5.11" }
-futures-util = { version = "=0.3.30" }
+futures-util = { version = "0.3.30" }
 async-trait = { version = "0.1.76" }
 tracing = "0.1.40"
 async-stream = "0.3.5"
-toml = { version = "=0.8.9" }
+toml = "0.8.10"
 
 # Dependencies for the release build
 [dependencies]

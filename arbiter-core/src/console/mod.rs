@@ -4,7 +4,7 @@
 use std::ops::Range;
 
 use revm::{
-    interpreter::{CallInputs, InterpreterResult},
+    interpreter::{CallInputs, CallOutcome, InterpreterResult},
     Database, EvmContext, Inspector,
 };
 use revm_primitives::{address, Address, Bytes};
@@ -24,9 +24,10 @@ impl<DB: Database> Inspector<DB> for ConsoleLogs {
     #[inline]
     fn call(
         &mut self,
-        _context: &mut EvmContext<'_, DB>,
+        _context: &mut EvmContext<DB>,
         call: &mut CallInputs,
-    ) -> Option<(InterpreterResult, Range<usize>)> {
+        _return_memory_offset: Range<usize>,
+    ) -> Option<CallOutcome> {
         if call.contract == CONSOLE_ADDRESS {
             self.0.push(call.input.clone());
         }

@@ -1,12 +1,10 @@
 use arbiter_bindings::bindings::arbiter_token::ApprovalFilter;
+// use super::;
+use arbiter_core::middleware::nonce_middleware::NonceManagerMiddleware;
 use ethers::{
     types::{transaction::eip2718::TypedTransaction, Log},
     utils::parse_ether,
 };
-
-// use super::;
-use arbiter_core::middleware::nonce_middleware::NonceManagerMiddleware;
-use super::*;
 
 #[tokio::test]
 async fn deploy() {

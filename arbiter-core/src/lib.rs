@@ -36,12 +36,14 @@ pub mod coprocessor;
 pub mod data_collection;
 pub mod database;
 pub mod environment;
-pub mod middleware;
 pub mod errors;
-
+pub mod middleware;
 
 use std::{collections::HashMap, fmt::Debug, sync::Arc};
 
-use revm::db::{CacheDB, EmptyDB};
+use revm::{
+    db::{CacheDB, EmptyDB},
+    Evm,
+};
 use serde::{Deserialize, Serialize};
 use tracing::{debug, error, info, trace, warn};

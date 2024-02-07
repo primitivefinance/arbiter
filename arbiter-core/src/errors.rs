@@ -7,7 +7,6 @@ use revm_primitives::{EVMError, InvalidTransaction};
 use thiserror::Error;
 
 use self::environment::Broadcast;
-
 use super::*;
 
 /// Errors that can occur when managing or interfacing with the Ethereum
@@ -143,7 +142,7 @@ pub enum RevmMiddlewareError {
     #[error("execution failed to succeed due to halt!\n reason is: {reason:?}\n gas used is: {gas_used}")]
     ExecutionHalt {
         /// Provides the reason for the halt.
-        reason: revm::primitives::Halt,
+        reason: revm::primitives::HaltReason,
 
         /// Provides the amount of gas used by the transaction.
         gas_used: u64,

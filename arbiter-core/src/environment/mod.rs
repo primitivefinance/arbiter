@@ -28,6 +28,7 @@
 //!   subscribers.
 
 use std::{
+    borrow::BorrowMut,
     sync::RwLock,
     thread::{self, JoinHandle},
 };
@@ -35,11 +36,10 @@ use std::{
 use crossbeam_channel::{bounded, unbounded, Receiver, Sender};
 use ethers::{abi::AbiDecode, core::types::U64};
 use revm::{
-    primitives::{
-        AccountInfo, EVMError, ExecutionResult, HashMap, Log, TxEnv, U256,
-    },
-    EVM,
+    inspector_handle_register,
+    primitives::{AccountInfo, EVMError, ExecutionResult, HashMap, Log, TxEnv, U256},
 };
+use revm_primitives::Env;
 use tokio::sync::broadcast::{channel, Sender as BroadcastSender};
 
 use super::*;
@@ -50,9 +50,8 @@ use crate::database::{inspector::ArbiterInspector, ArbiterDB};
 use crate::middleware::RevmMiddleware;
 
 pub(crate) mod instruction;
-use instruction::*;
-
 use errors::*;
+use instruction::*;
 
 /// Alias for the sender of the channel for transmitting transactions.
 pub(crate) type InstructionSender = Sender<Instruction>;
@@ -97,13 +96,14 @@ pub(crate) type OutcomeReceiver = Receiver<Result<Outcome, EnvironmentError>>;
 /// [`EVM`](https://github.com/bluealloy/revm/blob/main/crates/revm/src/evm.rs)
 /// and being able to move time forward for contracts that depend explicitly on
 /// time.
+#[derive(Debug)]
 pub struct Environment {
     /// The label used to define the [`Environment`].
     pub parameters: EnvironmentParameters,
 
     /// The [`EVM`] that is used as an execution environment and database for
     /// calls and transactions.
-    pub(crate) db: Option<ArbiterDB>,
+    pub(crate) db: ArbiterDB,
 
     inspector: Option<ArbiterInspector>,
 
@@ -118,18 +118,18 @@ pub struct Environment {
     pub(crate) handle: Option<JoinHandle<Result<(), EnvironmentError>>>,
 }
 
-/// Allow the end user to be able to access a debug printout for the
-/// [`Environment`]. Note that the [`EVM`] does not implement debug display,
-/// hence the implementation by hand here.
-impl Debug for Environment {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("Environment")
-            .field("parameters", &self.parameters)
-            .field("socket", &self.socket)
-            .field("handle", &self.handle)
-            .finish()
-    }
-}
+// /// Allow the end user to be able to access a debug printout for the
+// /// [`Environment`]. Note that the [`EVM`] does not implement debug display,
+// /// hence the implementation by hand here.
+// impl Debug for Environment {
+//     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+//         f.debug_struct("Environment")
+//             .field("parameters", &self.parameters)
+//             .field("socket", &self.socket)
+//             .field("handle", &self.handle)
+//             .finish()
+//     }
+// }
 
 /// Parameters necessary for creating or modifying an [`Environment`].
 #[derive(Clone, Debug, Default, Deserialize, Serialize)]
@@ -158,7 +158,7 @@ pub struct EnvironmentParameters {
 /// size limit, and a database for the [`Environment`].
 pub struct EnvironmentBuilder {
     parameters: EnvironmentParameters,
-    db: Option<ArbiterDB>,
+    db: ArbiterDB,
 }
 
 impl EnvironmentBuilder {
@@ -189,7 +189,7 @@ impl EnvironmentBuilder {
     /// Sets the database for the [`Environment`]. This can come from a
     /// [`fork::Fork`].
     pub fn with_db(mut self, db: impl Into<CacheDB<EmptyDB>>) -> Self {
-        self.db = Some(ArbiterDB(Arc::new(RwLock::new(db.into()))));
+        self.db = ArbiterDB(Arc::new(RwLock::new(db.into())));
         self
     }
 
@@ -214,11 +214,11 @@ impl Environment {
     pub fn builder() -> EnvironmentBuilder {
         EnvironmentBuilder {
             parameters: EnvironmentParameters::default(),
-            db: None,
+            db: ArbiterDB(Arc::new(RwLock::new(CacheDB::new(EmptyDB::new())))),
         }
     }
 
-    fn create(parameters: EnvironmentParameters, db: Option<ArbiterDB>) -> Self {
+    fn create(parameters: EnvironmentParameters, db: ArbiterDB) -> Self {
         let (instruction_sender, instruction_receiver) = unbounded();
         let (event_broadcaster, _) = channel(512);
         let socket = Socket {
@@ -249,21 +249,17 @@ impl Environment {
     /// offloaded onto a separate thread for processing.
     /// Calls, transactions, and events will enter/exit through the `Socket`.
     fn run(mut self) -> Self {
-        // Initialize the EVM used with a DB.
-        let mut evm = EVM::new();
-        if self.db.is_some() {
-            evm.database(self.db.as_ref().unwrap().clone());
-        } else {
-            evm.database(ArbiterDB(Arc::new(RwLock::new(CacheDB::new(
-                EmptyDB::new(),
-            )))));
-        };
-
         // Bring in parameters for the `Environment`.
         let label = self.parameters.label.clone();
-        evm.env.cfg.limit_contract_code_size =
-            Some(self.parameters.contract_size_limit.unwrap_or(0x100_000));
-        evm.env.block.gas_limit = self.parameters.gas_limit.unwrap_or(U256::MAX);
+
+        // Bring in the EVM db by cloning the interior Arc (lightweight).
+        let db = self.db.clone();
+
+        // Bring in the EVM ENV
+        let mut env = Env::default();
+        env.cfg.limit_contract_code_size = self.parameters.contract_size_limit;
+        env.block.gas_limit = self.parameters.gas_limit.unwrap_or(U256::MAX);
+        // Bring in the inspector
         let mut inspector = self.inspector.take().unwrap();
 
         // Pull communication clones to move into a new thread.
@@ -272,6 +268,14 @@ impl Environment {
 
         // Move the EVM and its socket to a new thread and retrieve this handle
         let handle = thread::spawn(move || {
+            // Create a new EVM builder
+            let mut evm = Evm::builder()
+                .with_db(db)
+                .with_env(Box::new(env))
+                .with_external_context(inspector)
+                .append_handler_register(inspector_handle_register)
+                .build();
+
             // Initialize counters that are returned on some receipts.
             let mut transaction_index = U64::from(0_u64);
             let mut cumulative_gas_per_block = U256::from(0);
@@ -288,7 +292,7 @@ impl Environment {
                         address,
                         outcome_sender,
                     } => {
-                        let db = evm.db.as_mut().unwrap();
+                        let db = &mut evm.context.evm.db;
                         let recast_address =
                             revm::primitives::Address::from(address.as_fixed_bytes());
                         let account = revm::db::DbAccount {
@@ -324,7 +328,7 @@ impl Environment {
                     } => {
                         // Return the old block data in a `ReceiptData`
                         let receipt_data = ReceiptData {
-                            block_number: convert_uint_to_u64(evm.env.block.number).unwrap(),
+                            block_number: convert_uint_to_u64(evm.block().number).unwrap(),
                             transaction_index,
                             cumulative_gas_per_block,
                         };
@@ -333,8 +337,8 @@ impl Environment {
                             .map_err(|e| EnvironmentError::Communication(e.to_string()))?;
 
                         // Update the block number and timestamp
-                        evm.env.block.number = block_number;
-                        evm.env.block.timestamp = block_timestamp;
+                        evm.block_mut().number = block_number;
+                        evm.block_mut().timestamp = block_timestamp;
 
                         // Reset the counters.
                         transaction_index = U64::from(0);
@@ -350,7 +354,7 @@ impl Environment {
                             block: _,
                         } => {
                             // Get the underlying database.
-                            let db = evm.db.as_mut().unwrap();
+                            let db = &mut evm.context.evm.db;
 
                             // Cast the ethers-rs cheatcode arguments into revm types.
                             let recast_address =
@@ -397,7 +401,7 @@ impl Environment {
                             value,
                         } => {
                             // Get the underlying database
-                            let db = evm.db.as_mut().unwrap();
+                            let db = &mut evm.context.evm.db;
 
                             // Cast the ethers-rs types passed in the cheatcode arguments into revm
                             // primitive types
@@ -433,7 +437,7 @@ impl Environment {
                             };
                         }
                         Cheatcodes::Deal { address, amount } => {
-                            let db = evm.db.as_mut().unwrap();
+                            let db = &mut evm.context.evm.db;
                             let recast_address =
                                 revm::primitives::Address::from(address.as_fixed_bytes());
                             match db.0.write().unwrap().accounts.get_mut(&recast_address) {
@@ -457,7 +461,7 @@ impl Environment {
                             };
                         }
                         Cheatcodes::Access { address } => {
-                            let db = evm.db.as_mut().unwrap();
+                            let db = &mut evm.context.evm.db;
                             let recast_address =
                                 revm::primitives::Address::from(address.as_fixed_bytes());
 
@@ -509,12 +513,13 @@ impl Environment {
                         outcome_sender,
                     } => {
                         // Set the tx_env and prepare to process it
-                        evm.env.tx = tx_env;
+                        *evm.tx_mut() = tx_env;
 
-                        let result = evm.inspect_ref(&mut inspector)?.result;
+                        // TODO: Is `transact()` the function we want?
+                        let result = evm.transact()?.result;
 
-                        if let Some(inspector) = &mut inspector.console_log {
-                            inspector.0.drain(..).for_each(|log| {
+                        if let Some(console_log) = &mut evm.context.external.console_log {
+                            console_log.0.drain(..).for_each(|log| {
                                 trace!(
                                     "Console logs: {:?}",
                                     console::abi::HardhatConsoleCalls::decode(log)
@@ -532,7 +537,7 @@ impl Environment {
                         gas_price,
                         outcome_sender,
                     } => {
-                        evm.env.tx.gas_price = U256::from_limbs(gas_price.0);
+                        evm.tx_mut().gas_price = U256::from_limbs(gas_price.0);
                         outcome_sender
                             .send(Ok(Outcome::SetGasPriceCompleted))
                             .map_err(|e| EnvironmentError::Communication(e.to_string()))?;
@@ -544,12 +549,12 @@ impl Environment {
                         outcome_sender,
                     } => {
                         // Set the tx_env and prepare to process it
-                        evm.env.tx = tx_env;
+                        *evm.tx_mut() = tx_env;
 
-                        let execution_result = match evm.inspect_commit(&mut inspector) {
+                        let execution_result = match evm.transact_commit() {
                             Ok(result) => {
-                                if let Some(inspector) = &mut inspector.console_log {
-                                    inspector.0.drain(..).for_each(|log| {
+                                if let Some(console_log) = &mut evm.context.external.console_log {
+                                    console_log.0.drain(..).for_each(|log| {
                                         trace!(
                                             "Console logs: {:?}",
                                             console::abi::HardhatConsoleCalls::decode(log)
@@ -581,7 +586,7 @@ impl Environment {
                             }
                         };
                         cumulative_gas_per_block += U256::from(execution_result.clone().gas_used());
-                        let block_number = convert_uint_to_u64(evm.env.block.number)?;
+                        let block_number = convert_uint_to_u64(evm.block().number)?;
                         let receipt_data = ReceiptData {
                             block_number,
                             transaction_index,
@@ -610,20 +615,20 @@ impl Environment {
                     } => {
                         let outcome = match environment_data {
                             EnvironmentData::BlockNumber => {
-                                Ok(Outcome::QueryReturn(evm.env.block.number.to_string()))
+                                Ok(Outcome::QueryReturn(evm.block().number.to_string()))
                             }
                             EnvironmentData::BlockTimestamp => {
-                                Ok(Outcome::QueryReturn(evm.env.block.timestamp.to_string()))
+                                Ok(Outcome::QueryReturn(evm.block().timestamp.to_string()))
                             }
                             EnvironmentData::GasPrice => {
-                                Ok(Outcome::QueryReturn(evm.env.tx.gas_price.to_string()))
+                                Ok(Outcome::QueryReturn(evm.tx().gas_price.to_string()))
                             }
                             EnvironmentData::Balance(address) => {
                                 // This unwrap should never fail.
-                                let db = evm.db().unwrap();
+                                let db = &mut evm.context.evm.db;
                                 match db
                                     .0
-                                    .write()
+                                    .read()
                                     .unwrap()
                                     .accounts
                                     .get::<revm::primitives::Address>(
@@ -639,10 +644,10 @@ impl Environment {
                             }
 
                             EnvironmentData::TransactionCount(address) => {
-                                let db = evm.db().unwrap();
+                                let db = &mut evm.context.evm.db;
                                 match db
                                     .0
-                                    .write()
+                                    .read()
                                     .unwrap()
                                     .accounts
                                     .get::<revm::primitives::Address>(
@@ -668,8 +673,9 @@ impl Environment {
                                 warn!("Stop signal was not sent to any listeners. Are there any listeners?")
                             }
                         }
+                        let (db, _) = evm.into_db_and_env_with_handler_cfg();
                         outcome_sender
-                            .send(Ok(Outcome::StopCompleted(evm.db.unwrap())))
+                            .send(Ok(Outcome::StopCompleted(db)))
                             .map_err(|e| EnvironmentError::Communication(e.to_string()))?;
                         break;
                     }

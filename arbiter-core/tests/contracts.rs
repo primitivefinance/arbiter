@@ -2,8 +2,6 @@ use std::fs::{self, File};
 
 use tracing_subscriber::{fmt, EnvFilter};
 
-use super::*;
-
 #[tokio::test]
 async fn arbiter_math() {
     let (_env, client) = startup().unwrap();

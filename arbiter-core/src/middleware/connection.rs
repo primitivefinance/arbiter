@@ -2,6 +2,7 @@
 use std::{pin::Pin, sync::Weak};
 
 use futures_util::Stream;
+use revm_primitives::LogData;
 use serde_json::value::RawValue;
 use tokio::sync::broadcast::{Receiver as BroadcastReceiver, Sender as BroadcastSender};
 
@@ -231,11 +232,12 @@ pub fn revm_logs_to_ethers_logs(
 ) -> Vec<ethers::core::types::Log> {
     let mut logs: Vec<ethers::core::types::Log> = vec![];
     for revm_log in revm_logs {
-        let topics = revm_log.topics.into_iter().map(recast_b256).collect();
+        let topics = revm_log.topics().iter().map(recast_b256).collect();
+        let data = ethers::core::types::Bytes::from(revm_log.data.data.0);
         let log = ethers::core::types::Log {
             address: ethers::core::types::H160::from(revm_log.address.into_array()),
             topics,
-            data: ethers::core::types::Bytes::from(revm_log.data.0),
+            data,
             block_hash: None,
             block_number: None,
             transaction_hash: None,
@@ -256,6 +258,6 @@ pub fn revm_logs_to_ethers_logs(
 /// # Returns
 /// * `H256` - Recasted H256.
 #[inline]
-pub fn recast_b256(input: revm::primitives::B256) -> ethers::types::H256 {
+pub fn recast_b256(input: &revm::primitives::B256) -> ethers::types::H256 {
     ethers::types::H256::from(input.0)
 }
