@@ -29,45 +29,32 @@
 
 use std::{
     convert::Infallible,
-    fmt::Debug,
-    sync::{Arc, RwLock},
+    sync::RwLock,
     thread::{self, JoinHandle},
 };
 
 use crossbeam_channel::{bounded, unbounded, Receiver, Sender};
 use ethers::{abi::AbiDecode, core::types::U64};
 use revm::{
-    db::{CacheDB, EmptyDB},
     primitives::{
         AccountInfo, EVMError, ExecutionResult, HashMap, InvalidTransaction, Log, TxEnv, U256,
     },
     EVM,
 };
-use serde::{Deserialize, Serialize};
-use thiserror::Error;
 use tokio::sync::broadcast::{channel, Sender as BroadcastSender};
 
-use self::inspector::ArbiterInspector;
 use super::*;
-use crate::database::ArbiterDB;
+use crate::database::{inspector::ArbiterInspector, ArbiterDB};
 #[cfg_attr(doc, doc(hidden))]
 #[cfg_attr(doc, allow(unused_imports))]
 #[cfg(doc)]
 use crate::middleware::RevmMiddleware;
-
-pub mod cheatcodes;
-use cheatcodes::*;
 
 pub(crate) mod instruction;
 use instruction::*;
 
 pub mod errors;
 use errors::*;
-
-pub mod fork;
-
-#[cfg(test)]
-pub(crate) mod tests;
 
 /// Alias for the sender of the channel for transmitting transactions.
 pub(crate) type InstructionSender = Sender<Instruction>;
@@ -785,5 +772,46 @@ fn convert_uint_to_u64(input: U256) -> Result<U64, EnvironmentError> {
         Err(_) => Err(EnvironmentError::Conversion(
             "U256 value is too large to fit into u64".to_string(),
         )),
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    pub(crate) const TEST_ENV_LABEL: &str = "test";
+    const TEST_CONTRACT_SIZE_LIMIT: usize = 42069;
+    const TEST_GAS_LIMIT: u64 = 1_333_333_333_337;
+
+    #[test]
+    fn new_with_parameters() {
+        let environment = Environment::builder()
+            .with_label(TEST_ENV_LABEL)
+            .with_contract_size_limit(TEST_CONTRACT_SIZE_LIMIT)
+            .with_gas_limit(U256::from(TEST_GAS_LIMIT));
+        assert_eq!(environment.parameters.label, Some(TEST_ENV_LABEL.into()));
+        assert_eq!(
+            environment.parameters.contract_size_limit.unwrap(),
+            TEST_CONTRACT_SIZE_LIMIT
+        );
+        assert_eq!(
+            environment.parameters.gas_limit.unwrap(),
+            U256::from(TEST_GAS_LIMIT)
+        );
+    }
+
+    #[test]
+    fn conversion() {
+        // Test with a value that fits in u64.
+        let input = U256::from(10000);
+        assert_eq!(convert_uint_to_u64(input).unwrap(), U64::from(10000));
+
+        // Test with a value that is exactly at the limit of u64.
+        let input = U256::from(u64::MAX);
+        assert_eq!(convert_uint_to_u64(input).unwrap(), U64::from(u64::MAX));
+
+        // Test with a value that exceeds the limit of u64.
+        let input = U256::from(u64::MAX) + U256::from(1);
+        assert!(convert_uint_to_u64(input).is_err());
     }
 }

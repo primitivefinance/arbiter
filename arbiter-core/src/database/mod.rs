@@ -13,13 +13,16 @@ use std::{
 };
 
 use revm::{
-    db::{CacheDB, EmptyDB},
     primitives::{AccountInfo, B256, U256},
     Database, DatabaseCommit,
 };
 use revm_primitives::{db::DatabaseRef, keccak256, Address, Bytecode, Bytes};
 use serde::{Deserialize, Serialize};
 use serde_json;
+
+use super::*;
+pub mod fork;
+pub mod inspector;
 
 /// A `ArbiterDB` is a wrapper around a `CacheDB` that is used to provide
 /// access to the `Environment`'s database to multiple `Coprocessors`.

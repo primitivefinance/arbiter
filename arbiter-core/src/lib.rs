@@ -36,9 +36,10 @@ pub mod coprocessor;
 pub mod data_collection;
 pub mod database;
 pub mod environment;
-pub mod inspector;
 pub mod middleware;
-#[cfg(test)]
-mod tests;
 
+use std::{collections::HashMap, fmt::Debug, sync::Arc};
+
+use revm::db::{CacheDB, EmptyDB};
+use serde::{Deserialize, Serialize};
 use tracing::{debug, error, info, trace, warn};

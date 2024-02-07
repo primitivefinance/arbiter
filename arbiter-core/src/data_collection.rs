@@ -18,10 +18,7 @@
 //! * `E` - Type that implements the `EthLogDecode`, `Debug`, `Serialize`
 //!   traits, and has a static lifetime.
 
-use std::{
-    collections::BTreeMap, fmt::Debug, io::BufWriter, marker::PhantomData, mem::transmute,
-    sync::Arc,
-};
+use std::{collections::BTreeMap, io::BufWriter, marker::PhantomData, mem::transmute};
 
 use ethers::{
     abi::RawLog,
@@ -43,7 +40,9 @@ use tokio::{sync::broadcast::Receiver as BroadcastReceiver, task::JoinHandle};
 use super::*;
 use crate::{
     environment::Broadcast,
-    middleware::{cast::revm_logs_to_ethers_logs, errors::RevmMiddlewareError, RevmMiddleware},
+    middleware::{
+        connection::revm_logs_to_ethers_logs, errors::RevmMiddlewareError, RevmMiddleware,
+    },
 };
 
 pub(crate) type FilterDecoder =

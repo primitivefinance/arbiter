@@ -10,14 +10,7 @@
 //! - `FilterReceiver`: Facilitates event watching based on certain filters.
 
 #![warn(missing_docs)]
-use std::{
-    collections::HashMap,
-    fmt::Debug,
-    future::Future,
-    pin::Pin,
-    sync::{Arc, Mutex},
-    time::Duration,
-};
+use std::{future::Future, pin::Pin, sync::Mutex, time::Duration};
 
 use ethers::{
     abi::ethereum_types::BloomInput,
@@ -43,12 +36,11 @@ use futures_timer::Delay;
 use futures_util::Stream;
 use rand::{rngs::StdRng, SeedableRng};
 use revm::primitives::{CreateScheme, Output, TransactTo, TxEnv, U256};
-use serde::{de::DeserializeOwned, Serialize};
+use serde::de::DeserializeOwned;
 use serde_json::value::RawValue;
-use thiserror::Error;
 
 use super::*;
-use crate::environment::{cheatcodes::*, instruction::*, Broadcast, Environment};
+use crate::environment::{instruction::*, Broadcast, Environment};
 
 /// Possible errors thrown by interacting with the revm middleware client.
 pub mod errors;
@@ -60,9 +52,6 @@ use transaction::*;
 
 pub mod connection;
 use connection::*;
-
-pub mod cast;
-use cast::*;
 
 pub mod nonce_middleware;
 /// A middleware structure that integrates with `revm`.
@@ -1062,4 +1051,15 @@ pub enum PendingTxState<'a> {
 
     /// Future has completed and should panic if polled again
     Completed,
+}
+
+// Certainly will go away with alloy-types
+/// Recast a B160 into an Address type
+/// # Arguments
+/// * `address` - B160 to recast. (B160)
+/// # Returns
+/// * `Address` - Recasted Address.
+#[inline]
+pub fn recast_address(address: revm::primitives::Address) -> Address {
+    Address::from(address.into_array())
 }

@@ -123,7 +123,7 @@ where
 /// Thrown when an error happens at the Nonce Manager
 pub enum NonceManagerError<M: Middleware> {
     /// Thrown when the internal middleware errors
-    #[error("{0}")]
+    #[error(transparent)]
     MiddlewareError(M::Error),
 }
 

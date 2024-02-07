@@ -1,5 +1,6 @@
-use super::*;
+use thiserror::Error;
 
+use super::*;
 /// Possible errors thrown by interacting with the revm middleware client.
 /// Errors that can occur while using the [`RevmMiddleware`].
 /// These errors are likely to be more common than other errors in

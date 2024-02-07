@@ -1,16 +1,11 @@
 //! Messengers/connections to the underlying EVM in the environment.
-use std::{
-    collections::HashMap,
-    fmt::Debug,
-    pin::Pin,
-    sync::{Arc, Weak},
-};
+use std::{pin::Pin, sync::Weak};
 
 use futures_util::Stream;
 use serde_json::value::RawValue;
 use tokio::sync::broadcast::{Receiver as BroadcastReceiver, Sender as BroadcastSender};
 
-use super::{cast::revm_logs_to_ethers_logs, *};
+use super::*;
 use crate::environment::{InstructionSender, OutcomeReceiver, OutcomeSender};
 
 /// Represents a connection to the EVM contained in the corresponding
@@ -220,4 +215,47 @@ pub(crate) struct FilterReceiver {
     /// The receiver for the channel that receives logs from the broadcaster.
     /// These are filtered upon reception.
     pub(crate) receiver: Option<BroadcastReceiver<Broadcast>>,
+}
+
+// TODO: The logs below could have the block number, transaction index, and
+// maybe other fields populated.
+
+/// Converts logs from the Revm format to the Ethers format.
+///
+/// This function iterates over a list of logs as they appear in the `revm` and
+/// converts each log entry to the corresponding format used by the `ethers-rs`
+/// library.
+#[inline]
+pub fn revm_logs_to_ethers_logs(
+    revm_logs: Vec<revm::primitives::Log>,
+) -> Vec<ethers::core::types::Log> {
+    let mut logs: Vec<ethers::core::types::Log> = vec![];
+    for revm_log in revm_logs {
+        let topics = revm_log.topics.into_iter().map(recast_b256).collect();
+        let log = ethers::core::types::Log {
+            address: ethers::core::types::H160::from(revm_log.address.into_array()),
+            topics,
+            data: ethers::core::types::Bytes::from(revm_log.data.0),
+            block_hash: None,
+            block_number: None,
+            transaction_hash: None,
+            transaction_index: None,
+            log_index: None,
+            transaction_log_index: None,
+            log_type: None,
+            removed: None,
+        };
+        logs.push(log);
+    }
+    logs
+}
+
+/// Recast a B256 into an H256 type
+/// # Arguments
+/// * `input` - B256 to recast. (B256)
+/// # Returns
+/// * `H256` - Recasted H256.
+#[inline]
+pub fn recast_b256(input: revm::primitives::B256) -> ethers::types::H256 {
+    ethers::types::H256::from(input.0)
 }

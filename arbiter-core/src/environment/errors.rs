@@ -1,5 +1,6 @@
 //! Errors that can occur when managing or interfacing with Arbiter's sandboxed
 //! Ethereum environment.
+use thiserror::Error;
 
 use super::*;
 
@@ -19,7 +20,7 @@ pub enum EnvironmentError {
     /// throws an error in execution. To be clear, this is not a contract
     /// revert or halt, this is likely an error in `revm`. Please report
     /// this type of error.
-    #[error("execution error! the source error is: {0:?}")]
+    #[error(transparent)]
     Execution(#[from] EVMError<Infallible>),
 
     /// [`EnvironmentError::Transaction`] is thrown when a transaction fails
@@ -53,7 +54,7 @@ pub enum EnvironmentError {
     /// [`EnvironmentError::Broadcast`] is thrown when the
     /// [`EventBroadcaster`] fails to broadcast events. This should be
     /// rare (if not impossible). If this is thrown, please report this error!
-    #[error("error broadcasting! the source error is: {0}")]
+    #[error(transparent)]
     Broadcast(#[from] crossbeam_channel::SendError<Broadcast>),
 
     /// [`EnvironmentError::Conversion`] is thrown when a type fails to
