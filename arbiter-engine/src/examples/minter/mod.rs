@@ -36,7 +36,7 @@ pub(crate) struct TokenData {
 #[tokio::test(flavor = "multi_thread", worker_threads = 4)]
 async fn token_minter_simulation() {
     let mut world = World::new("test_world");
-    let client = RevmMiddleware::new(&world.environment, None).unwrap();
+    let client = ArbiterMiddleware::new(&world.environment, None).unwrap();
 
     // Create the token admin agent
     let token_admin = Agent::builder(TOKEN_ADMIN_ID);

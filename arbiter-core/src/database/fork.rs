@@ -4,7 +4,7 @@
 //! that the [`Environment`] can be initialized with a forked database and the
 //! end-user still has access to the relevant metadata.
 
-use std::{collections::HashMap, env, fs};
+use std::{env, fs};
 
 use ethers::types::Address;
 
@@ -43,7 +43,7 @@ pub struct Fork {
 
 impl Fork {
     /// Creates a new [`Fork`] from serialized [`DiskData`] stored on disk.
-    pub fn from_disk(path: &str) -> Result<Self, crate::errors::EnvironmentError> {
+    pub fn from_disk(path: &str) -> Result<Self, ArbiterCoreError> {
         // Read the file
         let mut cwd = env::current_dir().unwrap();
         cwd.push(path);

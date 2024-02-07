@@ -3,7 +3,7 @@
 
 use std::{fmt::Debug, pin::Pin, sync::Arc};
 
-use arbiter_core::middleware::RevmMiddleware;
+use arbiter_core::middleware::ArbiterMiddleware;
 use futures_util::{Stream, StreamExt};
 use serde::de::DeserializeOwned;
 
@@ -25,7 +25,7 @@ pub type EventStream<E> = Pin<Box<dyn Stream<Item = E> + Send + Sync>>;
 #[derive(Clone, Debug)]
 pub enum MachineInstruction {
     /// Used to make a [`StateMachine`] start up.
-    Start(Arc<RevmMiddleware>, Messager),
+    Start(Arc<ArbiterMiddleware>, Messager),
 
     /// Used to make a [`StateMachine`] process events.
     /// This will offload the process into a task that can be halted by sending
@@ -68,7 +68,11 @@ pub trait Behavior<E>: Serialize + DeserializeOwned + Send + Sync + Debug + 'sta
     /// Used to start the agent.
     /// This is where the agent can engage in its specific start up activities
     /// that it can do given the current state of the world.
-    async fn startup(&mut self, client: Arc<RevmMiddleware>, messager: Messager) -> EventStream<E>;
+    async fn startup(
+        &mut self,
+        client: Arc<ArbiterMiddleware>,
+        messager: Messager,
+    ) -> EventStream<E>;
 
     /// Used to process events.
     /// This is where the agent can engage in its specific processing

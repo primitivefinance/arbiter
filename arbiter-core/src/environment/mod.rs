@@ -28,7 +28,6 @@
 //!   subscribers.
 
 use std::{
-    borrow::BorrowMut,
     sync::RwLock,
     thread::{self, JoinHandle},
 };
@@ -37,20 +36,19 @@ use crossbeam_channel::{bounded, unbounded, Receiver, Sender};
 use ethers::{abi::AbiDecode, core::types::U64};
 use revm::{
     inspector_handle_register,
-    primitives::{AccountInfo, EVMError, ExecutionResult, HashMap, Log, TxEnv, U256},
+    primitives::{AccountInfo, ExecutionResult, HashMap, Log, TxEnv, U256},
 };
 use revm_primitives::Env;
 use tokio::sync::broadcast::{channel, Sender as BroadcastSender};
 
 use super::*;
-use crate::database::{inspector::ArbiterInspector, ArbiterDB};
+use crate::database::inspector::ArbiterInspector;
 #[cfg_attr(doc, doc(hidden))]
 #[cfg_attr(doc, allow(unused_imports))]
 #[cfg(doc)]
-use crate::middleware::RevmMiddleware;
+use crate::middleware::ArbiterMiddleware;
 
 pub(crate) mod instruction;
-use errors::*;
 use instruction::*;
 
 /// Alias for the sender of the channel for transmitting transactions.
@@ -61,11 +59,11 @@ pub(crate) type InstructionReceiver = Receiver<Instruction>;
 
 /// Alias for the sender of the channel for transmitting [`RevmResult`] emitted
 /// from transactions.
-pub(crate) type OutcomeSender = Sender<Result<Outcome, EnvironmentError>>;
+pub(crate) type OutcomeSender = Sender<Result<Outcome, ArbiterCoreError>>;
 
 /// Alias for the receiver of the channel for transmitting [`RevmResult`]
 /// emitted from transactions.
-pub(crate) type OutcomeReceiver = Receiver<Result<Outcome, EnvironmentError>>;
+pub(crate) type OutcomeReceiver = Receiver<Result<Outcome, ArbiterCoreError>>;
 
 /// Represents a sandboxed EVM environment.
 ///
@@ -115,7 +113,7 @@ pub struct Environment {
     /// [`JoinHandle`] for the thread in which the [`EVM`] is running.
     /// Used for assuring that the environment is stopped properly or for
     /// performing any blocking action the end user needs.
-    pub(crate) handle: Option<JoinHandle<Result<(), EnvironmentError>>>,
+    pub(crate) handle: Option<JoinHandle<Result<(), ArbiterCoreError>>>,
 }
 
 // /// Allow the end user to be able to access a debug printout for the
@@ -292,7 +290,6 @@ impl Environment {
                         address,
                         outcome_sender,
                     } => {
-                        let db = &mut evm.context.evm.db;
                         let recast_address =
                             revm::primitives::Address::from(address.as_fixed_bytes());
                         let account = revm::db::DbAccount {
@@ -300,6 +297,7 @@ impl Environment {
                             account_state: revm::db::AccountState::None,
                             storage: HashMap::new(),
                         };
+                        let db = &mut evm.context.evm.db;
                         match db
                             .0
                             .write()
@@ -307,17 +305,9 @@ impl Environment {
                             .accounts
                             .insert(recast_address, account)
                         {
-                            None => {
-                                outcome_sender
-                                    .send(Ok(Outcome::AddAccountCompleted))
-                                    .map_err(|e| EnvironmentError::Communication(e.to_string()))?;
-                            }
+                            None => outcome_sender.send(Ok(Outcome::AddAccountCompleted))?,
                             Some(_) => {
-                                outcome_sender
-                                    .send(Err(EnvironmentError::Account(
-                                        "Account already exists!".to_string(),
-                                    )))
-                                    .map_err(|e| EnvironmentError::Communication(e.to_string()))?;
+                                outcome_sender.send(Err(ArbiterCoreError::AccountCreationError))?;
                             }
                         }
                     }
@@ -332,9 +322,7 @@ impl Environment {
                             transaction_index,
                             cumulative_gas_per_block,
                         };
-                        outcome_sender
-                            .send(Ok(Outcome::BlockUpdateCompleted(receipt_data)))
-                            .map_err(|e| EnvironmentError::Communication(e.to_string()))?;
+                        outcome_sender.send(Ok(Outcome::BlockUpdateCompleted(receipt_data)))?;
 
                         // Update the block number and timestamp
                         evm.block_mut().number = block_number;
@@ -376,22 +364,13 @@ impl Environment {
 
                                     // Sends the revm::primitives::U256 storage value back to the
                                     // sender via CheatcodeReturn(revm::primitives::U256).
-                                    outcome_sender
-                                        .send(Ok(Outcome::CheatcodeReturn(
-                                            CheatcodesReturn::Load { value },
-                                        )))
-                                        .map_err(|e| {
-                                            EnvironmentError::Communication(e.to_string())
-                                        })?;
+                                    outcome_sender.send(Ok(Outcome::CheatcodeReturn(
+                                        CheatcodesReturn::Load { value },
+                                    )))?;
                                 }
                                 None => {
                                     outcome_sender
-                                        .send(Err(EnvironmentError::Account(
-                                            "Account is missing!".to_string(),
-                                        )))
-                                        .map_err(|e| {
-                                            EnvironmentError::Communication(e.to_string())
-                                        })?;
+                                        .send(Err(ArbiterCoreError::AccountDoesNotExistError))?;
                                 }
                             };
                         }
@@ -419,20 +398,13 @@ impl Environment {
                                         .storage
                                         .insert(recast_key.into(), recast_value.into());
 
-                                    outcome_sender
-                                        .send(Ok(Outcome::CheatcodeReturn(CheatcodesReturn::Store)))
-                                        .map_err(|e| {
-                                            EnvironmentError::Communication(e.to_string())
-                                        })?;
+                                    outcome_sender.send(Ok(Outcome::CheatcodeReturn(
+                                        CheatcodesReturn::Store,
+                                    )))?;
                                 }
                                 None => {
                                     outcome_sender
-                                        .send(Err(EnvironmentError::Account(
-                                            "Account is missing!".to_string(),
-                                        )))
-                                        .map_err(|e| {
-                                            EnvironmentError::Communication(e.to_string())
-                                        })?;
+                                        .send(Err(ArbiterCoreError::AccountDoesNotExistError))?;
                                 }
                             };
                         }
@@ -443,20 +415,13 @@ impl Environment {
                             match db.0.write().unwrap().accounts.get_mut(&recast_address) {
                                 Some(account) => {
                                     account.info.balance += U256::from_limbs(amount.0);
-                                    outcome_sender
-                                        .send(Ok(Outcome::CheatcodeReturn(CheatcodesReturn::Deal)))
-                                        .map_err(|e| {
-                                            EnvironmentError::Communication(e.to_string())
-                                        })?;
+                                    outcome_sender.send(Ok(Outcome::CheatcodeReturn(
+                                        CheatcodesReturn::Deal,
+                                    )))?;
                                 }
                                 None => {
                                     outcome_sender
-                                        .send(Err(EnvironmentError::Account(
-                                            "Account is missing!".to_string(),
-                                        )))
-                                        .map_err(|e| {
-                                            EnvironmentError::Communication(e.to_string())
-                                        })?;
+                                        .send(Err(ArbiterCoreError::AccountDoesNotExistError))?;
                                 }
                             };
                         }
@@ -488,20 +453,11 @@ impl Environment {
                                         storage: account.storage.clone(),
                                     };
 
-                                    outcome_sender
-                                        .send(Ok(Outcome::CheatcodeReturn(account)))
-                                        .map_err(|e| {
-                                            EnvironmentError::Communication(e.to_string())
-                                        })?;
+                                    outcome_sender.send(Ok(Outcome::CheatcodeReturn(account)))?;
                                 }
                                 None => {
                                     outcome_sender
-                                        .send(Err(EnvironmentError::Account(
-                                            "Account is missing!".to_string(),
-                                        )))
-                                        .map_err(|e| {
-                                            EnvironmentError::Communication(e.to_string())
-                                        })?;
+                                        .send(Err(ArbiterCoreError::AccountDoesNotExistError))?;
                                 }
                             }
                         }
@@ -529,18 +485,14 @@ impl Environment {
                             });
                         };
 
-                        outcome_sender
-                            .send(Ok(Outcome::CallCompleted(result)))
-                            .map_err(|e| EnvironmentError::Communication(e.to_string()))?;
+                        outcome_sender.send(Ok(Outcome::CallCompleted(result)))?;
                     }
                     Instruction::SetGasPrice {
                         gas_price,
                         outcome_sender,
                     } => {
                         evm.tx_mut().gas_price = U256::from_limbs(gas_price.0);
-                        outcome_sender
-                            .send(Ok(Outcome::SetGasPriceCompleted))
-                            .map_err(|e| EnvironmentError::Communication(e.to_string()))?;
+                        outcome_sender.send(Ok(Outcome::SetGasPriceCompleted))?;
                     }
 
                     // A `Transaction` is state changing and will create events.
@@ -566,23 +518,29 @@ impl Environment {
                                 result
                             }
                             Err(e) => {
-                                if let EVMError::Transaction(invalid_transaction) = e {
-                                    outcome_sender
-                                        .send(Err(EnvironmentError::Transaction(
-                                            invalid_transaction,
-                                        )))
-                                        .map_err(|e| {
-                                            EnvironmentError::Communication(e.to_string())
-                                        })?;
-                                    continue;
-                                } else {
-                                    outcome_sender
-                                        .send(Err(EnvironmentError::Execution(e)))
-                                        .map_err(|e| {
-                                            EnvironmentError::Communication(e.to_string())
-                                        })?;
-                                    continue;
-                                }
+                                outcome_sender.send(Err(ArbiterCoreError::EVMError(e)))?;
+                                continue;
+                                // if let EVMError::Transaction(invalid_transaction) = e {
+                                //     outcome_sender
+                                //         .send(Err(EnvironmentError::Transaction(
+                                //             invalid_transaction,
+                                //         )))
+                                //         .map_err(|e| {
+                                //
+                                // EnvironmentError::Communication(e.
+                                // to_string())
+                                //         })?;
+                                //     continue;
+                                // } else {
+                                //     outcome_sender
+                                //         .send(Err(EnvironmentError::Execution(e)))
+                                //         .map_err(|e| {
+                                //
+                                // EnvironmentError::Communication(e.
+                                // to_string())
+                                //         })?;
+                                //     continue;
+                                // }
                             }
                         };
                         cumulative_gas_per_block += U256::from(execution_result.clone().gas_used());
@@ -600,12 +558,10 @@ impl Environment {
                                 )
                             }
                         }
-                        outcome_sender
-                            .send(Ok(Outcome::TransactionCompleted(
-                                execution_result,
-                                receipt_data,
-                            )))
-                            .map_err(|e| EnvironmentError::Communication(e.to_string()))?;
+                        outcome_sender.send(Ok(Outcome::TransactionCompleted(
+                            execution_result,
+                            receipt_data,
+                        )))?;
 
                         transaction_index += U64::from(1);
                     }
@@ -637,9 +593,7 @@ impl Environment {
                                     Some(account) => {
                                         Ok(Outcome::QueryReturn(account.info.balance.to_string()))
                                     }
-                                    None => Err(EnvironmentError::Account(
-                                        "Account is missing!".to_string(),
-                                    )),
+                                    None => Err(ArbiterCoreError::AccountDoesNotExistError),
                                 }
                             }
 
@@ -656,15 +610,11 @@ impl Environment {
                                     Some(account) => {
                                         Ok(Outcome::QueryReturn(account.info.nonce.to_string()))
                                     }
-                                    None => Err(EnvironmentError::Account(
-                                        "Account is missing!".to_string(),
-                                    )),
+                                    None => Err(ArbiterCoreError::AccountDoesNotExistError),
                                 }
                             }
                         };
-                        outcome_sender
-                            .send(outcome)
-                            .map_err(|e| EnvironmentError::Communication(e.to_string()))?;
+                        outcome_sender.send(outcome)?;
                     }
                     Instruction::Stop(outcome_sender) => {
                         match event_broadcaster.send(Broadcast::StopSignal) {
@@ -674,9 +624,7 @@ impl Environment {
                             }
                         }
                         let (db, _) = evm.into_db_and_env_with_handler_cfg();
-                        outcome_sender
-                            .send(Ok(Outcome::StopCompleted(db)))
-                            .map_err(|e| EnvironmentError::Communication(e.to_string()))?;
+                        outcome_sender.send(Ok(Outcome::StopCompleted(db)))?;
                         break;
                     }
                 }
@@ -696,24 +644,16 @@ impl Environment {
     ///   stopped.
     /// * `Err(EnvironmentError::Stop(String))` if the environment is in an
     ///   invalid state.
-    pub fn stop(mut self) -> Result<Option<ArbiterDB>, EnvironmentError> {
+    pub fn stop(mut self) -> Result<Option<ArbiterDB>, ArbiterCoreError> {
         let (outcome_sender, outcome_receiver) = bounded(1);
         self.socket
             .instruction_sender
-            .send(Instruction::Stop(outcome_sender))
-            .map_err(|e| {
-                EnvironmentError::Stop(format!(
-                    "Stop request failed to send due to {:?}.\nIs the environment already stopped?",
-                    e
-                ))
-            })?;
-        let outcome = outcome_receiver
-            .recv()
-            .map_err(|e| EnvironmentError::Communication(e.to_string()))??;
+            .send(Instruction::Stop(outcome_sender))?;
+        let outcome = outcome_receiver.recv()??;
 
         let db = match outcome {
             Outcome::StopCompleted(stopped_db) => Some(stopped_db),
-            _ => return Err(EnvironmentError::Stop("Failed to stop environment!".into())),
+            _ => return Err(ArbiterCoreError::StopError),
         };
 
         if let Some(label) = &self.parameters.label {
@@ -722,15 +662,11 @@ impl Environment {
             warn!("Stopped environment with no label.");
         }
         drop(self.socket.instruction_sender);
-        self.handle
+        let thing = self
+            .handle
             .take()
-            .ok_or(EnvironmentError::Stop(
-                "failed to join the environment handle!".to_owned(),
-            ))?
-            .join()
-            .map_err(|_| {
-                EnvironmentError::Stop("Failed to join environment handle.".to_owned())
-            })??;
+            .ok_or(ArbiterCoreError::StopError)?
+            .join();
         Ok(db)
     }
 }
@@ -769,13 +705,11 @@ pub enum Broadcast {
 /// * `Ok(U64)` - The converted U64.
 /// Used for block number which is a U64.
 #[inline]
-fn convert_uint_to_u64(input: U256) -> Result<U64, EnvironmentError> {
+fn convert_uint_to_u64(input: U256) -> Result<U64, ArbiterCoreError> {
     let as_str = input.to_string();
     match as_str.parse::<u64>() {
         Ok(val) => Ok(val.into()),
-        Err(_) => Err(EnvironmentError::Conversion(
-            "U256 value is too large to fit into u64".to_string(),
-        )),
+        Err(e) => Err(e)?,
     }
 }
 

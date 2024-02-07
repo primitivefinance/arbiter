@@ -38,13 +38,7 @@ use serde_json::Value;
 use tokio::{sync::broadcast::Receiver as BroadcastReceiver, task::JoinHandle};
 
 use super::*;
-use crate::{
-    environment::Broadcast,
-    errors::RevmMiddlewareError,
-    middleware::{
-        connection::revm_logs_to_ethers_logs, RevmMiddleware,
-    }
-};
+use crate::middleware::{connection::revm_logs_to_ethers_logs, ArbiterMiddleware};
 
 pub(crate) type FilterDecoder =
     BTreeMap<String, (FilteredParams, Box<dyn Fn(&RawLog) -> String + Send + Sync>)>;
@@ -134,13 +128,13 @@ impl EventLogger {
     /// The `EventLogger` instance with the added event.
     pub fn add<S: Into<String>, D: EthLogDecode + Debug + Serialize + 'static>(
         mut self,
-        event: Event<Arc<RevmMiddleware>, RevmMiddleware, D>,
+        event: Event<Arc<ArbiterMiddleware>, ArbiterMiddleware, D>,
         name: S,
     ) -> Self {
         let name = name.into();
         // Grab the connection from the client and add a new event sender so that we
         // have a distinct channel to now receive events over
-        let event_transmuted: EventTransmuted<Arc<RevmMiddleware>, RevmMiddleware, D> =
+        let event_transmuted: EventTransmuted<Arc<ArbiterMiddleware>, ArbiterMiddleware, D> =
             unsafe { transmute(event) };
         let middleware = event_transmuted.provider.clone();
         let decoder = |x: &_| serde_json::to_string(&D::decode_log(x).unwrap()).unwrap();
@@ -162,14 +156,10 @@ impl EventLogger {
     /// not stored.
     pub fn add_stream<D: EthLogDecode + Debug + Serialize + 'static>(
         self,
-        event: Event<Arc<RevmMiddleware>, RevmMiddleware, D>,
+        event: Event<Arc<ArbiterMiddleware>, ArbiterMiddleware, D>,
     ) -> Self {
         let mut hasher = Sha256::new();
-        hasher.update(
-            serde_json::to_string(&event.filter)
-                .map_err(RevmMiddlewareError::Json)
-                .unwrap(),
-        );
+        hasher.update(serde_json::to_string(&event.filter).unwrap());
         let hash = hasher.finalize();
         let id = hex::encode(hash);
         self.add(event, id)
@@ -258,7 +248,7 @@ impl EventLogger {
     ///
     /// This function will return an error if there is a problem creating the
     /// directories or files, or writing to the files.
-    pub fn run(self) -> Result<JoinHandle<()>, RevmMiddlewareError> {
+    pub fn run(self) -> Result<JoinHandle<()>, ArbiterCoreError> {
         let mut receiver = self.receiver.unwrap();
         let dir = self.directory.unwrap_or("./data".into());
         let file_name = self.file_name.unwrap_or("output".into());

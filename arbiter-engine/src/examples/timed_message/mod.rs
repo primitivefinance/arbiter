@@ -54,7 +54,7 @@ impl TimedMessage {
 impl Behavior<Message> for TimedMessage {
     async fn startup(
         &mut self,
-        _client: Arc<RevmMiddleware>,
+        _client: Arc<ArbiterMiddleware>,
         messager: Messager,
     ) -> EventStream<Message> {
         if let Some(startup_message) = &self.startup_message {

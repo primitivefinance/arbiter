@@ -7,7 +7,7 @@ use std::convert::Infallible;
 use revm_primitives::{EVMError, ResultAndState};
 
 use super::*;
-use crate::{database::ArbiterDB, environment::Environment};
+use crate::environment::Environment;
 
 // TODO: I have not tested that the coprocessor actually maintains state parity
 // with the environment. At the moment, it is only able to be constructed and

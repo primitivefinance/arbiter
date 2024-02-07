@@ -39,7 +39,7 @@ pub mod environment;
 pub mod errors;
 pub mod middleware;
 
-use std::{collections::HashMap, fmt::Debug, sync::Arc};
+use std::{collections::HashMap, convert::Infallible, fmt::Debug, sync::Arc};
 
 use revm::{
     db::{CacheDB, EmptyDB},
@@ -47,3 +47,5 @@ use revm::{
 };
 use serde::{Deserialize, Serialize};
 use tracing::{debug, error, info, trace, warn};
+
+use crate::{database::ArbiterDB, environment::Broadcast, errors::ArbiterCoreError};

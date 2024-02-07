@@ -12,7 +12,7 @@ use arbiter_bindings::bindings::{
 };
 use arbiter_core::{
     environment::{Environment, EnvironmentBuilder},
-    middleware::RevmMiddleware,
+    middleware::ArbiterMiddleware,
 };
 use ethers::{
     core::{k256::ecdsa::SigningKey, utils::Anvil},
@@ -177,10 +177,10 @@ async fn anvil_startup() -> Result<(
     Ok((client, anvil))
 }
 
-fn arbiter_startup() -> Result<(Environment, Arc<RevmMiddleware>)> {
+fn arbiter_startup() -> Result<(Environment, Arc<ArbiterMiddleware>)> {
     let environment = Environment::builder().build();
 
-    let client = RevmMiddleware::new(&environment, Some("name"))?;
+    let client = ArbiterMiddleware::new(&environment, Some("name"))?;
     Ok((environment, client))
 }
 
