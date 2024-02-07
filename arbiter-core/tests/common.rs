@@ -1,10 +1,3 @@
-#![allow(missing_docs)]
-
-mod contracts;
-mod data_collection_integration;
-mod environment_integration;
-mod middleware_integration;
-
 use std::{str::FromStr, sync::Arc};
 
 use anyhow::Result;

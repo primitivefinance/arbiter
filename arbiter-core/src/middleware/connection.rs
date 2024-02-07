@@ -1,10 +1,5 @@
 //! Messengers/connections to the underlying EVM in the environment.
-use std::{pin::Pin, sync::Weak};
-
-use futures_util::Stream;
-use revm_primitives::LogData;
-use serde_json::value::RawValue;
-use tokio::sync::broadcast::{Receiver as BroadcastReceiver, Sender as BroadcastSender};
+use std::sync::Weak;
 
 use super::*;
 use crate::environment::{InstructionSender, OutcomeReceiver, OutcomeSender};
@@ -227,9 +222,7 @@ pub(crate) struct FilterReceiver {
 /// converts each log entry to the corresponding format used by the `ethers-rs`
 /// library.
 #[inline]
-pub fn revm_logs_to_ethers_logs(
-    revm_logs: Vec<revm::primitives::Log>,
-) -> Vec<ethers::core::types::Log> {
+pub fn revm_logs_to_ethers_logs(revm_logs: Vec<Log>) -> Vec<eLog> {
     let mut logs: Vec<ethers::core::types::Log> = vec![];
     for revm_log in revm_logs {
         let topics = revm_log.topics().iter().map(recast_b256).collect();

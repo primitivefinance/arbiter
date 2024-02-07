@@ -3,14 +3,12 @@
 //! for users to set configuration to see logs generated in Solidity contracts
 //! and or enforce gas payment.
 
-use std::ops::Range;
-
 use revm::{
     inspectors::GasInspector,
-    interpreter::{CallInputs, CallOutcome, CreateInputs, CreateOutcome, Interpreter},
-    Database, EvmContext, Inspector,
+    interpreter::{CreateInputs, CreateOutcome, Interpreter},
 };
 
+use super::*;
 use crate::console::ConsoleLogs;
 
 /// An configurable [`revm::Inspector`] that collects information about the

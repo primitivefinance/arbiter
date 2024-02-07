@@ -1,6 +1,8 @@
 use arbiter_bindings::bindings::{self, weth::weth};
 use arbiter_core::database::fork::Fork;
 
+include!("common.rs");
+
 #[tokio::test]
 async fn receipt_data() {
     let (_environment, client) = startup().unwrap();
@@ -86,7 +88,7 @@ async fn fork_into_arbiter() {
     let environment = Environment::builder().with_db(fork.db).build();
 
     // Create a client
-    let client = RevmMiddleware::new(&environment, Some("name")).unwrap();
+    let client = ArbiterMiddleware::new(&environment, Some("name")).unwrap();
 
     // Deal with the weth contract
     let weth_meta = fork.contracts_meta.get("weth").unwrap();
@@ -118,7 +120,8 @@ async fn middleware_from_forked_eo() {
     let environment = Environment::builder().with_db(fork.db).build();
 
     let vitalik_address = fork.eoa.get("vitalik").unwrap();
-    let vitalik_as_a_client = RevmMiddleware::new_from_forked_eoa(&environment, *vitalik_address);
+    let vitalik_as_a_client =
+        ArbiterMiddleware::new_from_forked_eoa(&environment, *vitalik_address);
     assert!(vitalik_as_a_client.is_ok());
     let vitalik_as_a_client = vitalik_as_a_client.unwrap();
 

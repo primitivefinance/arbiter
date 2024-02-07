@@ -6,8 +6,6 @@
 
 use std::{env, fs};
 
-use ethers::types::Address;
-
 use super::*;
 
 /// A [`ContractMetadata`] is used to store the metadata of a contract that will
@@ -15,7 +13,7 @@ use super::*;
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct ContractMetadata {
     /// The address of the contract.
-    pub address: Address,
+    pub address: eAddress,
 
     /// The path to the contract artifacts.
     pub artifacts_path: String,
@@ -38,7 +36,7 @@ pub struct Fork {
     /// end-user.
     pub contracts_meta: HashMap<String, ContractMetadata>,
     /// The [`HashMap`] of [`Address`] that will be used by the end-user.
-    pub eoa: HashMap<String, ethers::types::H160>,
+    pub eoa: HashMap<String, eAddress>,
 }
 
 impl Fork {
@@ -66,8 +64,8 @@ impl Fork {
 
             // Insert storage data into the DB
             for (key_str, value_str) in storage_map {
-                let key = revm::primitives::U256::from_str_radix(&key_str, 10).unwrap();
-                let value = revm::primitives::U256::from_str_radix(&value_str, 10).unwrap();
+                let key = U256::from_str_radix(&key_str, 10).unwrap();
+                let value = U256::from_str_radix(&value_str, 10).unwrap();
 
                 db.insert_account_storage(address, key, value).unwrap();
             }
@@ -98,8 +96,8 @@ pub struct DiskData {
     pub meta: HashMap<String, ContractMetadata>,
 
     /// This is the raw data that will be loaded into the [`Fork`].
-    pub raw: HashMap<Address, (AccountInfo, Storage)>,
+    pub raw: HashMap<eAddress, (AccountInfo, Storage)>,
 
     /// This is the eoa data that will be loaded into the [`Fork`].
-    pub externally_owned_accounts: HashMap<String, Address>,
+    pub externally_owned_accounts: HashMap<String, eAddress>,
 }

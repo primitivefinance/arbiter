@@ -18,7 +18,7 @@
 //! * `E` - Type that implements the `EthLogDecode`, `Debug`, `Serialize`
 //!   traits, and has a static lifetime.
 
-use std::{collections::BTreeMap, io::BufWriter, marker::PhantomData, mem::transmute};
+use std::{io::BufWriter, marker::PhantomData, mem::transmute};
 
 use ethers::{
     abi::RawLog,

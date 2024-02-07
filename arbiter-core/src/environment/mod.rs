@@ -27,28 +27,24 @@
 //! - `EventBroadcaster`: Responsible for broadcasting Ethereum logs to
 //!   subscribers.
 
-use std::{
-    sync::RwLock,
-    thread::{self, JoinHandle},
-};
+use std::thread::{self, JoinHandle};
 
 use crossbeam_channel::{bounded, unbounded, Receiver, Sender};
-use ethers::{abi::AbiDecode, core::types::U64};
+use ethers::abi::AbiDecode;
 use revm::{
     inspector_handle_register,
-    primitives::{AccountInfo, ExecutionResult, HashMap, Log, TxEnv, U256},
+    primitives::{Env, HashMap},
 };
-use revm_primitives::Env;
-use tokio::sync::broadcast::{channel, Sender as BroadcastSender};
+use tokio::sync::broadcast::channel;
 
 use super::*;
-use crate::database::inspector::ArbiterInspector;
 #[cfg_attr(doc, doc(hidden))]
 #[cfg_attr(doc, allow(unused_imports))]
 #[cfg(doc)]
 use crate::middleware::ArbiterMiddleware;
+use crate::{console::abi::HardhatConsoleCalls, database::inspector::ArbiterInspector};
 
-pub(crate) mod instruction;
+pub mod instruction;
 use instruction::*;
 
 /// Alias for the sender of the channel for transmitting transactions.
@@ -478,9 +474,7 @@ impl Environment {
                             console_log.0.drain(..).for_each(|log| {
                                 trace!(
                                     "Console logs: {:?}",
-                                    console::abi::HardhatConsoleCalls::decode(log)
-                                        .unwrap()
-                                        .to_string()
+                                    HardhatConsoleCalls::decode(log).unwrap().to_string()
                                 )
                             });
                         };
@@ -509,9 +503,7 @@ impl Environment {
                                     console_log.0.drain(..).for_each(|log| {
                                         trace!(
                                             "Console logs: {:?}",
-                                            console::abi::HardhatConsoleCalls::decode(log)
-                                                .unwrap()
-                                                .to_string()
+                                            HardhatConsoleCalls::decode(log).unwrap().to_string()
                                         )
                                     });
                                 };

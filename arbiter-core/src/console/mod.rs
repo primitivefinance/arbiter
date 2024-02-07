@@ -1,13 +1,9 @@
 //! This module contains the backend for the `console2.log` Solidity function so
 //! that these logs can be read in Arbiter.
 
-use std::ops::Range;
+use revm_primitives::address;
 
-use revm::{
-    interpreter::{CallInputs, CallOutcome, InterpreterResult},
-    Database, EvmContext, Inspector,
-};
-use revm_primitives::{address, Address, Bytes};
+use super::*;
 
 const CONSOLE_ADDRESS: Address = address!("000000000000000000636F6e736F6c652e6c6f67");
 

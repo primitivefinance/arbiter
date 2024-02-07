@@ -1,5 +1,6 @@
 use std::fs::{self, File};
 
+include!("common.rs");
 use tracing_subscriber::{fmt, EnvFilter};
 
 #[tokio::test]
@@ -322,7 +323,7 @@ async fn can_log() {
 
     // tracing_subscriber::fmt::init();
     let env = Environment::builder().with_console_logs().build();
-    let client = RevmMiddleware::new(&env, None).unwrap();
+    let client = ArbiterMiddleware::new(&env, None).unwrap();
     let counter = arbiter_bindings::bindings::counter::Counter::deploy(client, ())
         .unwrap()
         .send()

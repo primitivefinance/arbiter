@@ -165,13 +165,13 @@ pub(crate) enum EnvironmentData {
 pub struct ReceiptData {
     /// `block_number` is the number of the block in which the transaction was
     /// included.
-    pub(crate) block_number: U64,
+    pub block_number: U64,
     /// `transaction_index` is the index position of the transaction in the
     /// block.
-    pub(crate) transaction_index: U64,
+    pub transaction_index: U64,
     /// [`cumulative_gas_per_block`] is the total amount of gas used in the
     /// block up until and including the transaction.
-    pub(crate) cumulative_gas_per_block: U256,
+    pub cumulative_gas_per_block: U256,
 }
 
 use revm_primitives::{AccountInfo, HashMap, U256};

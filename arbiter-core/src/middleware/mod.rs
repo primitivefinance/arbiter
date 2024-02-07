@@ -4,8 +4,8 @@
 //! for events.
 //!
 //! Main components:
-//! - [`RevmMiddleware`]: The core middleware implementation.
-//! - [`RevmMiddlewareError`]: Error type for the middleware.
+//! - [`ArbiterMiddleware`]: The core middleware implementation.
+//! - [`ArbiterMiddlewareError`]: Error type for the middleware.
 //! - [`Connection`]: Handles communication with the Ethereum VM.
 //! - `FilterReceiver`: Facilitates event watching based on certain filters.
 
@@ -28,15 +28,15 @@ use ethers::{
     signers::{Signer, Wallet},
     types::{
         transaction::{eip2718::TypedTransaction, eip712::Eip712},
-        Address, BlockId, Bloom, Bytes, Filter, FilteredParams, Log, NameOrAddress, Signature,
-        Transaction, TransactionReceipt, U256 as eU256, U64,
+        Address as eAddress, BlockId, Bloom, Bytes as eBytes, FilteredParams, Log as eLog,
+        NameOrAddress, Signature, Transaction, TransactionReceipt, TxHash as eTxHash, H256,
+        U256 as eU256,
     },
 };
 use futures_timer::Delay;
 use futures_util::Stream;
 use rand::{rngs::StdRng, SeedableRng};
-use revm::primitives::{CreateScheme, Output, TransactTo, TxEnv, U256};
-use revm_primitives::ExecutionResult;
+use revm::primitives::{CreateScheme, Output, TransactTo};
 use serde::de::DeserializeOwned;
 use serde_json::value::RawValue;
 
@@ -49,10 +49,10 @@ use connection::*;
 pub mod nonce_middleware;
 /// A middleware structure that integrates with `revm`.
 ///
-/// [`RevmMiddleware`] serves as a bridge between the application and `revm`'s
-/// execution environment, allowing for transaction sending, call execution, and
-/// other core functions. It uses a custom connection and error system tailored
-/// to Revm's specific needs.
+/// [`ArbiterMiddleware`] serves as a bridge between the application and
+/// `revm`'s execution environment, allowing for transaction sending, call
+/// execution, and other core functions. It uses a custom connection and error
+/// system tailored to Revm's specific needs.
 ///
 /// This allows for `revm` and the [`Environment`] built around it to be treated
 /// in much the same way as a live EVM blockchain can be addressed.
@@ -65,13 +65,13 @@ pub mod nonce_middleware;
 /// // Import `Arc` if you need to create a client instance
 /// use std::sync::Arc;
 ///
-/// use arbiter_core::{environment::Environment, middleware::RevmMiddleware};
+/// use arbiter_core::{environment::Environment, middleware::ArbiterMiddleware};
 ///
 /// // Create a new environment and run it
 /// let mut environment = Environment::builder().build();
 ///
 /// // Retrieve the environment to create a new middleware instance
-/// let middleware = RevmMiddleware::new(&environment, Some("test_label"));
+/// let middleware = ArbiterMiddleware::new(&environment, Some("test_label"));
 /// ```
 /// The client can now be used for transactions with the environment.
 /// Use a seed like `Some("test_label")` for maintaining a
@@ -86,7 +86,7 @@ pub struct ArbiterMiddleware {
     pub label: Option<String>,
 }
 
-#[async_trait::async_trait]
+#[async_trait]
 impl Signer for ArbiterMiddleware {
     type Error = ArbiterCoreError;
 
@@ -132,7 +132,7 @@ impl Signer for ArbiterMiddleware {
     }
 
     /// Returns the signer's Ethereum Address
-    fn address(&self) -> Address {
+    fn address(&self) -> eAddress {
         match &self.wallet {
             EOA::Forked(address) => *address,
             EOA::Wallet(wallet) => wallet.address(),
@@ -192,16 +192,16 @@ pub enum EOA {
     /// The [`Forked`] variant is used for the forked EOA,
     /// allowing us to treat them as mock accounts that we can still authorize
     /// transactions with that we would be unable to do on mainnet.
-    Forked(Address),
+    Forked(eAddress),
     /// The [`Wallet`] variant "real" in the sense that is has a valid private
     /// key from the provided seed
     Wallet(Wallet<SigningKey>),
 }
 
 impl ArbiterMiddleware {
-    /// Creates a new instance of `RevmMiddleware` with procedurally generated
-    /// signer/address if provided a seed/label and otherwise a random
-    /// signer if not.
+    /// Creates a new instance of `ArbiterMiddleware` with procedurally
+    /// generated signer/address if provided a seed/label and otherwise a
+    /// random signer if not.
     ///
     /// # Examples
     /// ```
@@ -209,16 +209,16 @@ impl ArbiterMiddleware {
     /// // Import `Arc` if you need to create a client instance
     /// use std::sync::Arc;
     ///
-    /// use arbiter_core::{environment::Environment, middleware::RevmMiddleware};
+    /// use arbiter_core::{environment::Environment, middleware::ArbiterMiddleware};
     ///
     /// // Create a new environment and run it
     /// let mut environment = Environment::builder().build();
     ///
     /// // Retrieve the environment to create a new middleware instance
-    /// let client = RevmMiddleware::new(&environment, Some("test_label"));
+    /// let client = ArbiterMiddleware::new(&environment, Some("test_label"));
     ///
     /// // We can create a middleware instance without a seed by doing the following
-    /// let no_seed_middleware = RevmMiddleware::new(&environment, None);
+    /// let no_seed_middleware = ArbiterMiddleware::new(&environment, None);
     /// ```
     /// Use a seed if you want to have a constant address across simulations as
     /// well as a label for a client. This can be useful for debugging.
@@ -249,7 +249,7 @@ impl ArbiterMiddleware {
 
         let provider = Provider::new(connection);
         info!(
-            "Created new `RevmMiddleware` instance attached to environment labeled:
+            "Created new `ArbiterMiddleware` instance attached to environment labeled:
         {:?}",
             environment.parameters.label
         );
@@ -261,10 +261,10 @@ impl ArbiterMiddleware {
     }
 
     // TODO: This needs to have the label retrieved from the fork config.
-    /// Creates a new instance of `RevmMiddleware` from a forked EOA.
+    /// Creates a new instance of `ArbiterMiddleware` from a forked EOA.
     pub fn new_from_forked_eoa(
         environment: &Environment,
-        forked_eoa: Address,
+        forked_eoa: eAddress,
     ) -> Result<Arc<Self>, ArbiterCoreError> {
         let instruction_sender = &Arc::clone(&environment.socket.instruction_sender);
         let (outcome_sender, outcome_receiver) = crossbeam_channel::unbounded();
@@ -278,7 +278,7 @@ impl ArbiterMiddleware {
         };
         let provider = Provider::new(connection);
         info!(
-            "Created new `RevmMiddleware` instance from a fork -- attached to environment labeled: {:?}",
+            "Created new `ArbiterMiddleware` instance from a fork -- attached to environment labeled: {:?}",
             environment.parameters.label
         );
         Ok(Arc::new(Self {
@@ -356,8 +356,8 @@ impl ArbiterMiddleware {
     }
 
     /// Returns the address of the wallet/signer given to a client.
-    /// Matches on the [`EOA`] variant of the [`RevmMiddleware`] struct.
-    pub fn address(&self) -> Address {
+    /// Matches on the [`EOA`] variant of the [`ArbiterMiddleware`] struct.
+    pub fn address(&self) -> eAddress {
         match &self.wallet {
             EOA::Forked(address) => *address,
             EOA::Wallet(wallet) => wallet.address(),
@@ -398,20 +398,20 @@ impl Middleware for ArbiterMiddleware {
     type Inner = Provider<Connection>;
 
     /// Returns a reference to the inner middleware of which there is none when
-    /// using [`RevmMiddleware`] so we relink to `Self`
+    /// using [`ArbiterMiddleware`] so we relink to `Self`
     fn inner(&self) -> &Self::Inner {
         &self.provider
     }
 
     /// Provides access to the associated Ethereum provider which is given by
-    /// the [`Provider<Connection>`] for [`RevmMiddleware`].
+    /// the [`Provider<Connection>`] for [`ArbiterMiddleware`].
     fn provider(&self) -> &Provider<Self::Provider> {
         &self.provider
     }
 
     /// Provides the default sender address for transactions, i.e., the address
     /// of the wallet/signer given to a client of the [`Environment`].
-    fn default_sender(&self) -> Option<Address> {
+    fn default_sender(&self) -> Option<eAddress> {
         Some(self.address())
     }
 
@@ -489,7 +489,7 @@ impl Middleware for ArbiterMiddleware {
                     output,
                 } => {
                     let logs = revm_logs_to_ethers_logs(logs);
-                    let to: Option<ethers::types::H160> = match tx_env.transact_to {
+                    let to: Option<eAddress> = match tx_env.transact_to {
                         TransactTo::Call(address) => Some(address.into_array().into()),
                         TransactTo::Create(_) => None,
                     };
@@ -506,7 +506,7 @@ impl Middleware for ArbiterMiddleware {
                     let mut block_hasher = Sha256::new();
                     block_hasher.update(receipt_data.block_number.to_string().as_bytes());
                     let block_hash = block_hasher.finalize();
-                    let block_hash = Some(ethers::types::H256::from_slice(&block_hash));
+                    let block_hash = Some(H256::from_slice(&block_hash));
 
                     match output {
                         Output::Create(_, address) => {
@@ -520,7 +520,7 @@ impl Middleware for ArbiterMiddleware {
                                 effective_gas_price: Some(
                                     tx_env.clone().gas_price.to_be_bytes().into(),
                                 ), // TODO
-                                transaction_hash: ethers::types::TxHash::from_slice(&hash),
+                                transaction_hash: eTxHash::from_slice(&hash),
                                 to,
                                 cumulative_gas_used: receipt_data
                                     .cumulative_gas_per_block
@@ -640,7 +640,7 @@ impl Middleware for ArbiterMiddleware {
         &self,
         tx: &TypedTransaction,
         _block: Option<BlockId>,
-    ) -> Result<Bytes, Self::Error> {
+    ) -> Result<eBytes, Self::Error> {
         trace!("Building call");
         let tx = tx.clone();
 
@@ -700,7 +700,7 @@ impl Middleware for ArbiterMiddleware {
                     logs,
                     output,
                 } => {
-                    return Ok(Bytes::from(output.data().to_vec()));
+                    return Ok(eBytes::from(output.data().to_vec()));
                 }
             }
         } else {
@@ -714,6 +714,7 @@ impl Middleware for ArbiterMiddleware {
     /// Currently, this method supports log filters. Other filters like
     /// `NewBlocks` and `PendingTransactions` are not yet implemented.
     async fn new_filter(&self, filter: FilterKind<'_>) -> Result<ethers::types::U256, Self::Error> {
+        let provider = self.provider.as_ref();
         let (_method, args) = match filter {
             FilterKind::NewBlocks => unimplemented!(
                 "Filtering via new `FilterKind::NewBlocks` has not been implemented yet!"
@@ -730,13 +731,12 @@ impl Middleware for ArbiterMiddleware {
         hasher.update(serde_json::to_string(&args)?);
         let hash = hasher.finalize();
         let id = ethers::types::U256::from(ethers::types::H256::from_slice(&hash).as_bytes());
-        let event_receiver = self.provider().as_ref().event_sender.subscribe();
+        let event_receiver = provider.event_sender.subscribe();
         let filter_receiver = FilterReceiver {
             filter,
             receiver: Some(event_receiver),
         };
-        self.provider()
-            .as_ref()
+        provider
             .filter_receivers
             .lock()
             .unwrap()
@@ -752,7 +752,7 @@ impl Middleware for ArbiterMiddleware {
     async fn watch<'b>(
         &'b self,
         filter: &Filter,
-    ) -> Result<FilterWatcher<'b, Self::Provider, Log>, Self::Error> {
+    ) -> Result<FilterWatcher<'b, Self::Provider, eLog>, Self::Error> {
         let id = self.new_filter(FilterKind::Logs(filter)).await?;
         Ok(FilterWatcher::new(id, self.provider()).interval(Duration::ZERO))
     }
@@ -918,7 +918,7 @@ impl Middleware for ArbiterMiddleware {
     async fn subscribe_logs<'a>(
         &'a self,
         filter: &Filter,
-    ) -> Result<SubscriptionStream<'a, Self::Provider, Log>, Self::Error>
+    ) -> Result<SubscriptionStream<'a, Self::Provider, eLog>, Self::Error>
     where
         <Self as Middleware>::Provider: PubsubClient,
     {
@@ -988,6 +988,6 @@ pub enum PendingTxState<'a> {
 /// # Returns
 /// * `Address` - Recasted Address.
 #[inline]
-pub fn recast_address(address: revm::primitives::Address) -> Address {
-    Address::from(address.into_array())
+pub fn recast_address(address: Address) -> eAddress {
+    eAddress::from(address.into_array())
 }
