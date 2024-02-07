@@ -22,7 +22,7 @@ use ethers::{
         ProviderError,
     },
     providers::{
-        FilterKind, FilterWatcher, JsonRpcClient, Middleware, MiddlewareError, PendingTransaction,
+        FilterKind, FilterWatcher, JsonRpcClient, Middleware, PendingTransaction,
         Provider, PubsubClient, SubscriptionStream,
     },
     signers::{Signer, Wallet},
