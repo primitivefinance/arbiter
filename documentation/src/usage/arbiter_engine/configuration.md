@@ -6,7 +6,7 @@ Let's take a look at how to do this.
 It is good practice to take your `Behavior`s and wrap them in an `enum` so that you can use them in a configuration file.
 For instance, let's say you have two struct `Maker` and `Taker` that implement `Behavior<E>` for their own `E`.
 Then you can make your `enum` like this:
-```rust
+```rust, ignore
 use arbiter_macros::Behaviors;
 
 #[derive(Behaviors)]
@@ -23,7 +23,7 @@ The macro solely requires that the `Behavior`s you have implement the `Behavior`
 Now that you have your `enum` of `Behavior`s, you can configure your `World` and the `Agent`s inside of it from configuration file.
 Since the `World` and your simulation is completely defined by the `Agent` `Behavior`s you make, all you need to do is specify your `Agent`s in the configuration file.
 For example, let's say we have the `Replier` behavior from before, so we have:
-```rust
+```rust, ignore
 #[derive(Behaviors)]
 pub enum Behaviors {
     Replier(Replier),
@@ -57,7 +57,7 @@ Replier = { send_data = "pong", receive_data = "ping", max_count = 5 }
 
 ## Loading the Configuration
 Once you have your configuration file located at `./path/to/config.toml`, you can load it and run your simulation like this:
-```rust
+```rust, ignore
 fn main()  {
     let world = World::from_config("./path/to/config.toml")?;
     world.run().await;
