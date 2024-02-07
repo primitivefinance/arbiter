@@ -61,7 +61,7 @@ impl Behavior<Message> for TimedMessage {
             messager.send(To::All, startup_message).await;
         }
         self.messager = Some(messager.clone());
-        Ok(messager.stream())
+        messager.stream()
     }
 
     async fn process(&mut self, event: Message) -> Result<ControlFlow, ArbiterEngineError> {
@@ -94,7 +94,7 @@ async fn echoer() {
 
     world.run().await;
 
-    let mut stream = Box::pin(messager.stream());
+    let mut stream = messager.stream().unwrap();
     let mut idx = 0;
 
     loop {
@@ -136,7 +136,7 @@ async fn ping_pong() {
     let messager = world.messager.for_agent("outside_world");
     world.run().await;
 
-    let mut stream = Box::pin(messager.stream());
+    let mut stream = messager.stream().unwrap();
     let mut idx = 0;
 
     loop {
@@ -177,7 +177,7 @@ async fn ping_pong_two_agent() {
     let messager = world.messager.for_agent("outside_world");
     world.run().await;
 
-    let mut stream = Box::pin(messager.stream());
+    let mut stream = messager.stream().unwrap();
     let mut idx = 0;
 
     loop {

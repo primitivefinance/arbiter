@@ -22,7 +22,7 @@ impl Behavior<TransferFilter> for TokenRequester {
                 &TokenAdminQuery::AddressOf(self.token_data.name.clone()),
             )
             .await;
-        let message = messager.get_next().await;
+        let message = messager.get_next().await.unwrap();
         let token_address = serde_json::from_str::<Address>(&message.data).unwrap();
         let token = ArbiterToken::new(token_address, client.clone());
         self.token_data.address = Some(token_address);

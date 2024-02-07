@@ -6,7 +6,6 @@ use std::pin::Pin;
 use futures_util::{Stream, StreamExt};
 use tokio::task::JoinHandle;
 
-use self::{errors::ArbiterEngineError, messager::Messager};
 use super::*;
 
 /// A type alias for a pinned, boxed stream of events.
@@ -162,10 +161,10 @@ where
     B: Behavior<E>,
 {
     /// The behavior the `Engine` runs.
-    pub behavior: Option<B>,
+    behavior: Option<B>,
 
     /// The current state of the [`Engine`].
-    pub state: State,
+    state: State,
 
     /// The receiver of events that the [`Engine`] will process.
     /// The [`State::Processing`] stage will attempt a decode of the [`String`]s
@@ -211,6 +210,8 @@ where
     E: DeserializeOwned + Serialize + Send + Sync + Debug + 'static,
 {
     async fn execute(&mut self, instruction: MachineInstruction) -> Result<(), ArbiterEngineError> {
+        // NOTE: The unwraps here are safe because the `Behavior` in an engine is only
+        // accessed here and it is private.
         match instruction {
             MachineInstruction::Start(client, messager) => {
                 self.state = State::Starting;
@@ -225,10 +226,11 @@ where
                 let (stream, behavior) = behavior_task.await??;
                 self.event_stream = Some(stream);
                 self.behavior = Some(behavior);
-                self.execute(MachineInstruction::Process).await;
+                self.execute(MachineInstruction::Process).await?;
                 Ok(())
             }
             MachineInstruction::Process => {
+                trace!("Behavior is starting up.");
                 let mut behavior = self.behavior.take().unwrap();
                 let mut stream = self.event_stream.take().unwrap();
                 let behavior_task: JoinHandle<Result<B, ArbiterEngineError>> =

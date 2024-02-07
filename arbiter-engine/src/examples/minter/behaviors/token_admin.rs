@@ -53,7 +53,7 @@ impl Behavior<Message> for TokenAdmin {
                 .get_or_insert_with(HashMap::new)
                 .insert(token_data.name.clone(), token.clone());
         }
-        Ok(Box::pin(messager.stream()))
+        messager.stream()
     }
 
     #[tracing::instrument(skip(self), fields(id =

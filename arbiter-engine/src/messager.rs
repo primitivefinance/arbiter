@@ -2,9 +2,8 @@
 
 use tokio::sync::broadcast::{channel, Receiver, Sender};
 
-use self::machine::EventStream;
 use super::*;
-use crate::errors::ArbiterEngineError;
+use crate::machine::EventStream;
 
 /// A message that can be sent between agents.
 #[derive(Clone, Debug, Deserialize, Serialize)]
@@ -151,13 +150,20 @@ impl Messager {
     ///   a broadcast to all agents.
     /// - `data`: The data to be sent in the message. This data is serialized
     ///   into JSON format.
-    pub async fn send<S: Serialize>(&self, to: To, data: S) {
+    pub async fn send<S: Serialize>(&self, to: To, data: S) -> Result<(), ArbiterEngineError> {
         trace!("Sending message via messager.");
-        let message = Message {
-            from: self.id.clone().unwrap(),
-            to,
-            data: serde_json::to_string(&data).unwrap(),
-        };
-        self.broadcast_sender.send(message).unwrap();
+        if let Some(id) = &self.id {
+            let message = Message {
+                from: id.clone(),
+                to,
+                data: serde_json::to_string(&data)?,
+            };
+            self.broadcast_sender.send(message)?;
+            Ok(())
+        } else {
+            Err(ArbiterEngineError::MessagerError(
+                "Messager has no ID! You must have an ID to send messages!".to_owned(),
+            ))
+        }
     }
 }
