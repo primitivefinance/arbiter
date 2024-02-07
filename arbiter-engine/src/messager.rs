@@ -76,12 +76,16 @@ impl Messager {
     /// utility function for getting the next value from the broadcast_receiver
     /// without streaming
     pub async fn get_next(&mut self) -> Result<Message, ArbiterEngineError> {
-        if self.broadcast_receiver.is_none() {
-            return Err(ArbiterEngineError::MessagerError(
-                "Receiver has been taken! Are you already streaming?".to_owned(),
-            ));
-        }
-        while let Ok(message) = self.broadcast_receiver.as_mut().unwrap().recv().await {
+        let mut receiver = match self.broadcast_receiver.take() {
+            Some(receiver) => receiver,
+            None => {
+                return Err(ArbiterEngineError::MessagerError(
+                    "Receiver has been taken! Are you already streaming on this messager?"
+                        .to_owned(),
+                ))
+            }
+        };
+        while let Ok(message) = receiver.recv().await {
             match &message.to {
                 To::All => {
                     return Ok(message);
@@ -101,9 +105,17 @@ impl Messager {
 
     /// Returns a stream of messages that are either sent to [`To::All`] or to
     /// the agent via [`To::Agent(id)`].
-    pub fn stream(mut self) -> EventStream<Message> {
-        let mut receiver = self.broadcast_receiver.take().unwrap();
-        Box::pin(async_stream::stream! {
+    pub fn stream(mut self) -> Result<EventStream<Message>, ArbiterEngineError> {
+        let mut receiver = match self.broadcast_receiver.take() {
+            Some(receiver) => receiver,
+            None => {
+                return Err(ArbiterEngineError::MessagerError(
+                    "Receiver has been taken! Are you already streaming on this messager?"
+                        .to_owned(),
+                ))
+            }
+        };
+        Ok(Box::pin(async_stream::stream! {
             while let Ok(message) = receiver.recv().await {
                 match &message.to {
                     To::All => {
@@ -118,7 +130,7 @@ impl Messager {
                     }
                 }
             }
-        })
+        }))
     }
     /// Asynchronously sends a message to a specified recipient.
     ///
