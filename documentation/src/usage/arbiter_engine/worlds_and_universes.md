@@ -56,7 +56,7 @@ fn setup_world(id: &str) -> World {
     world.add_agent(agent);
 }
 
-fn main() {
+async fn run() {
     let world = setup_world("my_world");
     world.run().await;
 }

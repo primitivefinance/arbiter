@@ -185,7 +185,7 @@ where
     E: DeserializeOwned + Send + Sync + 'static,
 {
     /// Creates a new [`Engine`] with the given [`Behavior`] and [`Receiver`].
-    pub(crate) fn new(behavior: B) -> Self {
+    pub fn new(behavior: B) -> Self {
         Self {
             behavior: Some(behavior),
             state: State::Uninitialized,
