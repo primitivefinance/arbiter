@@ -31,7 +31,7 @@ impl Behavior<Message> for TokenAdmin {
         &mut self,
         client: Arc<RevmMiddleware>,
         messager: Messager,
-    ) -> EventStream<Message> {
+    ) -> Result<EventStream<Message>, ArbiterEngineError> {
         self.messager = Some(messager.clone());
         self.client = Some(client.clone());
         for token_data in self.token_data.values_mut() {
@@ -53,12 +53,12 @@ impl Behavior<Message> for TokenAdmin {
                 .get_or_insert_with(HashMap::new)
                 .insert(token_data.name.clone(), token.clone());
         }
-        Box::pin(messager.stream())
+        messager.stream()
     }
 
     #[tracing::instrument(skip(self), fields(id =
  self.messager.as_ref().unwrap().id.as_deref()))]
-    async fn process(&mut self, event: Message) -> Option<MachineHalt> {
+    async fn process(&mut self, event: Message) -> Result<ControlFlow, ArbiterEngineError> {
         if self.tokens.is_none() {
             error!(
                 "There were no tokens to deploy! You must add tokens to
@@ -98,10 +98,10 @@ impl Behavior<Message> for TokenAdmin {
                 self.count += 1;
                 if self.count == self.max_count.unwrap_or(u64::MAX) {
                     warn!("Reached max count. Halting behavior.");
-                    return Some(MachineHalt);
+                    return Ok(ControlFlow::Halt);
                 }
             }
         }
-        None
+        Ok(ControlFlow::Continue)
     }
 }

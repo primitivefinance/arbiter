@@ -1,30 +1,14 @@
-// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-// TODO: Notes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-// * Probably should move labels to world instead of on the environment.
-// * One thing that is different about the Arbiter world is that give a bunch of
-//   different channels to communicate with the Environment's tx thread. This is
-//   different from a connection to a blockchain where you typically will just
-//   have a single HTTP/WS connection. What we want is some kind of way of
-//   having the world own a reference to a provider or something
-// * Can add a messager as an interconnect and have the manager give each world
-//   it owns a clone of the same messager.
-// * The worlds now are just going to be revm worlds. We can generalize this
-//   later.
-// * Can we give the world an address book??
-// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
 //! The world module contains the core world abstraction for the Arbiter Engine.
 
-use std::{collections::VecDeque, fmt::Debug};
+use std::collections::VecDeque;
 
-use arbiter_core::{environment::Environment, middleware::RevmMiddleware};
-use futures_util::future::join_all;
-use serde::de::DeserializeOwned;
-use tokio::spawn;
+use arbiter_core::environment::Environment;
 
-use self::{agent::AgentBuilder, machine::MachineInstruction};
 use super::*;
-use crate::{agent::Agent, machine::CreateStateMachine, messager::Messager};
+use crate::{
+    agent::{Agent, AgentBuilder},
+    machine::{CreateStateMachine, MachineInstruction},
+};
 
 /// A world is a collection of agents that use the same type of provider, e.g.,
 /// operate on the same blockchain or same `Environment`. The world is
@@ -113,26 +97,26 @@ impl World {
     pub fn from_config<C: CreateStateMachine + Serialize + DeserializeOwned + Debug>(
         &mut self,
         config_path: &str,
-    ) {
-        let cwd = std::env::current_dir().expect("Failed to determine current working directory");
+    ) -> Result<(), ArbiterEngineError> {
+        let cwd = std::env::current_dir()?;
         let path = cwd.join(config_path);
-        let mut file = File::open(path).expect("Failed to open configuration file");
+        let mut file = File::open(path)?;
 
         let mut contents = String::new();
-        file.read_to_string(&mut contents)
-            .expect("Failed to read configuration file to string");
+        file.read_to_string(&mut contents)?;
 
-        let agents_map: HashMap<String, Vec<C>> =
-            toml::from_str(&contents).expect("Failed to deserialize configuration file");
+        let agents_map: HashMap<String, Vec<C>> = toml::from_str(&contents)?;
 
         for (agent, behaviors) in agents_map {
             let mut next_agent = Agent::builder(&agent);
             for behavior in behaviors {
+                println!("Behavior: {:?}", behavior);
                 let engine = behavior.create_state_machine();
                 next_agent = next_agent.with_engine(engine);
             }
             self.add_agent(next_agent);
         }
+        Ok(())
     }
 
     /// Adds an agent, constructed from the provided `AgentBuilder`, to the
@@ -190,13 +174,16 @@ impl World {
     /// Returns an error if no agents are found in the world, possibly
     /// indicating that the world has already been run or that no agents
     /// were added prior to execution.
-    pub async fn run(&mut self) -> Result<()> {
+    pub async fn run(&mut self) -> Result<(), ArbiterEngineError> {
+        let agents = match self.agents.take() {
+            Some(agents) => agents,
+            None => {
+                return Err(ArbiterEngineError::WorldError(
+                    "No agents found. Has the world already been ran?".to_owned(),
+                ))
+            }
+        };
         let mut tasks = vec![];
-        // Retrieve the agents, erroring if none are found.
-        let agents = self
-            .agents
-            .take()
-            .ok_or_else(|| anyhow!("No agents found! Has the world already been run?"))?;
         // Prepare a queue for messagers corresponding to each behavior engine.
         let mut messagers = VecDeque::new();
         // Populate the messagers queue.
@@ -206,6 +193,7 @@ impl World {
             }
         }
         // For each agent, spawn a task for each of its behavior engines.
+        // Unwrap here is safe as we just built the dang thing.
         for (_, mut agent) in agents {
             for mut engine in agent.behavior_engines.drain(..) {
                 let client = agent.client.clone();
@@ -220,33 +208,5 @@ impl World {
         // Await the completion of all tasks.
         join_all(tasks).await;
         Ok(())
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use std::{str::FromStr, sync::Arc};
-
-    use arbiter_bindings::bindings::weth::WETH;
-    use ethers::{
-        providers::{Middleware, Provider, Ws},
-        types::Address,
-    };
-    use futures_util::StreamExt;
-
-    #[ignore = "This is unnecessary to run on CI currently."]
-    #[tokio::test]
-    async fn mainnet_ws() {
-        let ws_url = std::env::var("MAINNET_WS_URL").expect("MAINNET_WS_URL must be set");
-        let ws = Ws::connect(ws_url).await.unwrap();
-        let provider = Provider::new(ws);
-        let client = Arc::new(provider);
-        let weth = WETH::new(
-            Address::from_str("0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2").unwrap(),
-            client.clone(),
-        );
-        let filter = weth.approval_filter().filter;
-        let mut subscription = client.subscribe_logs(&filter).await.unwrap();
-        println!("next: {:?}", subscription.next().await);
     }
 }

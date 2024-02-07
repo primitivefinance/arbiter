@@ -13,7 +13,7 @@ The latter will also require a `stream::select` type of operation to merge all t
 The `Agent` struct is the primary struct that you will be working with.
 It contains an ID, a client (`Arc<RevmMiddleware>`) that provides means to send calls and transactions to an Arbiter `Environment`, and a `Messager`.
 It looks like this:
-```rust
+```rust, ignore
 pub struct Agent {
     pub id: String,
     pub messager: Messager,
@@ -39,7 +39,7 @@ This encapsulation also allows the `Agent` to hold onto `Behavior<E>` for variou
 
 ## Example
 Let's create an `Agent` that has two `Behavior`s using the `Replier` behavior from before.
-```rust
+```rust, ignore
 use arbiter_engine::agent::Agent;
 use crate::Replier;
 

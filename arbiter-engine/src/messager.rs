@@ -1,14 +1,9 @@
 //! The messager module contains the core messager layer for the Arbiter Engine.
 
-// TODO: Allow for modulating the capacity of the messager.
-// TODO: It might be nice to have some kind of messaging header so that we can
-// pipe messages to agents and pipe messages across worlds.
-
-use serde::Serialize;
 use tokio::sync::broadcast::{channel, Receiver, Sender};
 
-use self::machine::EventStream;
 use super::*;
+use crate::machine::EventStream;
 
 /// A message that can be sent between agents.
 #[derive(Clone, Debug, Deserialize, Serialize)]
@@ -79,16 +74,25 @@ impl Messager {
 
     /// utility function for getting the next value from the broadcast_receiver
     /// without streaming
-    pub async fn get_next(&mut self) -> Message {
-        while let Ok(message) = self.broadcast_receiver.as_mut().unwrap().recv().await {
+    pub async fn get_next(&mut self) -> Result<Message, ArbiterEngineError> {
+        let mut receiver = match self.broadcast_receiver.take() {
+            Some(receiver) => receiver,
+            None => {
+                return Err(ArbiterEngineError::MessagerError(
+                    "Receiver has been taken! Are you already streaming on this messager?"
+                        .to_owned(),
+                ))
+            }
+        };
+        while let Ok(message) = receiver.recv().await {
             match &message.to {
                 To::All => {
-                    return message;
+                    return Ok(message);
                 }
                 To::Agent(id) => {
                     if let Some(self_id) = &self.id {
                         if id == self_id {
-                            return message;
+                            return Ok(message);
                         }
                     }
                     continue;
@@ -100,9 +104,17 @@ impl Messager {
 
     /// Returns a stream of messages that are either sent to [`To::All`] or to
     /// the agent via [`To::Agent(id)`].
-    pub fn stream(mut self) -> EventStream<Message> {
-        let mut receiver = self.broadcast_receiver.take().unwrap();
-        Box::pin(async_stream::stream! {
+    pub fn stream(mut self) -> Result<EventStream<Message>, ArbiterEngineError> {
+        let mut receiver = match self.broadcast_receiver.take() {
+            Some(receiver) => receiver,
+            None => {
+                return Err(ArbiterEngineError::MessagerError(
+                    "Receiver has been taken! Are you already streaming on this messager?"
+                        .to_owned(),
+                ))
+            }
+        };
+        Ok(Box::pin(async_stream::stream! {
             while let Ok(message) = receiver.recv().await {
                 match &message.to {
                     To::All => {
@@ -117,7 +129,7 @@ impl Messager {
                     }
                 }
             }
-        })
+        }))
     }
     /// Asynchronously sends a message to a specified recipient.
     ///
@@ -138,13 +150,20 @@ impl Messager {
     ///   a broadcast to all agents.
     /// - `data`: The data to be sent in the message. This data is serialized
     ///   into JSON format.
-    pub async fn send<S: Serialize>(&self, to: To, data: S) {
+    pub async fn send<S: Serialize>(&self, to: To, data: S) -> Result<(), ArbiterEngineError> {
         trace!("Sending message via messager.");
-        let message = Message {
-            from: self.id.clone().unwrap(),
-            to,
-            data: serde_json::to_string(&data).unwrap(),
-        };
-        self.broadcast_sender.send(message).unwrap();
+        if let Some(id) = &self.id {
+            let message = Message {
+                from: id.clone(),
+                to,
+                data: serde_json::to_string(&data)?,
+            };
+            self.broadcast_sender.send(message)?;
+            Ok(())
+        } else {
+            Err(ArbiterEngineError::MessagerError(
+                "Messager has no ID! You must have an ID to send messages!".to_owned(),
+            ))
+        }
     }
 }
