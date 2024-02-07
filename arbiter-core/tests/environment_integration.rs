@@ -1,7 +1,6 @@
 use arbiter_bindings::bindings::{self, weth::weth};
-
+use arbiter_core::database::fork::Fork;
 use super::*;
-use crate::environment::fork::Fork;
 
 #[tokio::test]
 async fn receipt_data() {

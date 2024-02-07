@@ -28,7 +28,6 @@
 //!   subscribers.
 
 use std::{
-    convert::Infallible,
     sync::RwLock,
     thread::{self, JoinHandle},
 };
@@ -37,7 +36,7 @@ use crossbeam_channel::{bounded, unbounded, Receiver, Sender};
 use ethers::{abi::AbiDecode, core::types::U64};
 use revm::{
     primitives::{
-        AccountInfo, EVMError, ExecutionResult, HashMap, InvalidTransaction, Log, TxEnv, U256,
+        AccountInfo, EVMError, ExecutionResult, HashMap, Log, TxEnv, U256,
     },
     EVM,
 };
@@ -53,7 +52,6 @@ use crate::middleware::RevmMiddleware;
 pub(crate) mod instruction;
 use instruction::*;
 
-pub mod errors;
 use errors::*;
 
 /// Alias for the sender of the channel for transmitting transactions.

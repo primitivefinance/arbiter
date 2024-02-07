@@ -4,8 +4,9 @@ use ethers::{
     utils::parse_ether,
 };
 
+// use super::;
+use arbiter_core::middleware::nonce_middleware::NonceManagerMiddleware;
 use super::*;
-use crate::middleware::nonce_middleware::NonceManagerMiddleware;
 
 #[tokio::test]
 async fn deploy() {

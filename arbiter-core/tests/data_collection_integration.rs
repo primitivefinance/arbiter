@@ -3,9 +3,9 @@ use std::path::Path;
 use serde::Serialize;
 
 use super::*;
-use crate::{
+use arbiter_core::{
     data_collection::{EventLogger, OutputFileType},
-    middleware::errors::RevmMiddlewareError,
+    errors::RevmMiddlewareError,
 };
 
 #[derive(Serialize, Clone)]

@@ -43,7 +43,7 @@ pub struct Fork {
 
 impl Fork {
     /// Creates a new [`Fork`] from serialized [`DiskData`] stored on disk.
-    pub fn from_disk(path: &str) -> Result<Self, crate::environment::errors::EnvironmentError> {
+    pub fn from_disk(path: &str) -> Result<Self, crate::errors::EnvironmentError> {
         // Read the file
         let mut cwd = env::current_dir().unwrap();
         cwd.push(path);

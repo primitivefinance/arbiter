@@ -43,7 +43,7 @@ use super::*;
 use crate::environment::{instruction::*, Broadcast, Environment};
 
 /// Possible errors thrown by interacting with the revm middleware client.
-pub mod errors;
+// pub mod errors;
 use errors::*;
 
 /// Graceful handling of the [`ExecutionResult`] returned by the [`Environment`]

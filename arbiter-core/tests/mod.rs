@@ -21,11 +21,8 @@ use ethers::{
     utils::parse_ether,
 };
 use futures::StreamExt;
+use arbiter_core::{environment::Environment, middleware::RevmMiddleware};
 
-use crate::{
-    environment::{cheatcodes::*, *},
-    middleware::*,
-};
 
 pub const TEST_ARG_NAME: &str = "ArbiterToken";
 pub const TEST_ARG_SYMBOL: &str = "ARBT";
@@ -48,13 +45,13 @@ pub const ARBITER_TOKEN_Y_DECIMALS: u8 = 18;
 
 pub const LIQUID_EXCHANGE_PRICE: f64 = 420.69;
 
-fn startup() -> Result<(Environment, Arc<RevmMiddleware>)> {
+pub(crate) fn startup() -> Result<(Environment, Arc<RevmMiddleware>)> {
     let env = Environment::builder().build();
     let client = RevmMiddleware::new(&env, Some(TEST_SIGNER_SEED_AND_LABEL))?;
     Ok((env, client))
 }
 
-async fn deploy_arbx(client: Arc<RevmMiddleware>) -> Result<ArbiterToken<RevmMiddleware>> {
+pub(crate) async fn deploy_arbx(client: Arc<RevmMiddleware>) -> Result<ArbiterToken<RevmMiddleware>> {
     Ok(ArbiterToken::deploy(
         client,
         (
@@ -67,7 +64,7 @@ async fn deploy_arbx(client: Arc<RevmMiddleware>) -> Result<ArbiterToken<RevmMid
     .await?)
 }
 
-async fn deploy_arby(client: Arc<RevmMiddleware>) -> Result<ArbiterToken<RevmMiddleware>> {
+pub(crate) async fn deploy_arby(client: Arc<RevmMiddleware>) -> Result<ArbiterToken<RevmMiddleware>> {
     Ok(ArbiterToken::deploy(
         client,
         (
@@ -80,7 +77,7 @@ async fn deploy_arby(client: Arc<RevmMiddleware>) -> Result<ArbiterToken<RevmMid
     .await?)
 }
 
-async fn deploy_liquid_exchange(
+pub(crate) async fn deploy_liquid_exchange(
     client: Arc<RevmMiddleware>,
 ) -> Result<(
     ArbiterToken<RevmMiddleware>,
@@ -96,6 +93,6 @@ async fn deploy_liquid_exchange(
     Ok((arbx, arby, liquid_exchange))
 }
 
-async fn deploy_arbiter_math(client: Arc<RevmMiddleware>) -> Result<ArbiterMath<RevmMiddleware>> {
+pub(crate) async fn deploy_arbiter_math(client: Arc<RevmMiddleware>) -> Result<ArbiterMath<RevmMiddleware>> {
     Ok(ArbiterMath::deploy(client, ())?.send().await?)
 }

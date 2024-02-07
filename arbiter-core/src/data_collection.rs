@@ -40,9 +40,10 @@ use tokio::{sync::broadcast::Receiver as BroadcastReceiver, task::JoinHandle};
 use super::*;
 use crate::{
     environment::Broadcast,
+    errors::RevmMiddlewareError,
     middleware::{
-        connection::revm_logs_to_ethers_logs, errors::RevmMiddlewareError, RevmMiddleware,
-    },
+        connection::revm_logs_to_ethers_logs, RevmMiddleware,
+    }
 };
 
 pub(crate) type FilterDecoder =

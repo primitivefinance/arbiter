@@ -37,6 +37,8 @@ pub mod data_collection;
 pub mod database;
 pub mod environment;
 pub mod middleware;
+pub mod errors;
+
 
 use std::{collections::HashMap, fmt::Debug, sync::Arc};
 
