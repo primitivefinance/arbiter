@@ -17,7 +17,7 @@ To outline the design principles here:
 - `startup` is a method that initializes the `Behavior` and returns an `EventStream` that the `Behavior` will use for processing.
     - This method yields a client and messager from the `Agent` that owns the `Behavior`.
     In this method you should take the client and messager and store them in your struct if you will need them in the processing of events.
-    Note, you may not need both or even either!
+    Note, you may not need them!
 - `process` is a method that processes an event of type `E` and returns an `Option<MachineHalt>`. 
     - If `process` returns `Some(MachineHalt)`, then the `Behavior` will stop processing events completely.
 

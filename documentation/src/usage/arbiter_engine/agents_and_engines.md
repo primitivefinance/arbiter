@@ -4,7 +4,7 @@ The main idea here is that you can have an `Agent` that has as many `Behavior`s 
 This gives flexibility in how you want to design your `Agent`s and what emergent properties you want to observe.
 
 ## Design Principles
-It is up to you whether or not you prefer to have `Agent`s have multiple `Behavior`s or not or if you want them to have a single `Behavior` that processes all events.
+We designed the behaviors to be flexible. It is up to you whether or not you prefer to have `Agent`s have multiple `Behavior`s or not or if you want them to have a single `Behavior` that processes all events.
 For the former case, you will build `Behavior<E>` for different types `E` and place these inside of an `Agent`.
 For the latter, you will create an `enum` that wraps all the different types of events that you want to process and then implement `Behavior` on that `enum`.
 The latter will also require a `stream::select` type of operation to merge all the different event streams into one, though this is not difficult to do.
