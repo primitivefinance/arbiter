@@ -36,7 +36,7 @@ If you have a database that has been forked from a live network, it has likely b
 In which case, you can do something like this:
 ```rust, ignore
 use arbiter_core::environment::Environment;
-use arbiter_core::environment::fork::Fork;
+use arbiter_core::database::fork::Fork;
 
 fn main() {
     let path_to_fork = "path/to/fork";

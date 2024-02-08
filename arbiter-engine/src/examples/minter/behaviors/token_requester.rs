@@ -1,5 +1,8 @@
 use arbiter_bindings::bindings::arbiter_token::TransferFilter;
-use arbiter_core::data_collection::EventLogger;
+use arbiter_core::events::stream_event;
+use ethers::providers::SubscriptionStream;
+use futures::StreamExt;
+use futures_util::stream::Stream;
 use token_admin::{MintRequest, TokenAdminQuery};
 
 use self::{
@@ -38,13 +41,8 @@ impl Behavior<TransferFilter> for TokenRequester {
 
         self.messager = Some(messager.clone());
         self.client = Some(client.clone());
-        Ok(Box::pin(
-            EventLogger::builder()
-                .add_stream(token.transfer_filter())
-                .stream()
-                .unwrap()
-                .map(|value| serde_json::from_str(&value).unwrap()),
-        ))
+        let transfer_stream = stream_event(token.transfer_filter());
+        Ok(transfer_stream)
     }
 
     #[tracing::instrument(skip(self), fields(id =

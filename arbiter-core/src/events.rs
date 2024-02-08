@@ -18,7 +18,7 @@
 //! * `E` - Type that implements the `EthLogDecode`, `Debug`, `Serialize`
 //!   traits, and has a static lifetime.
 
-use std::{io::BufWriter, marker::PhantomData, mem::transmute};
+use std::{io::BufWriter, marker::PhantomData, mem::transmute, pin::Pin};
 
 use ethers::{
     abi::RawLog,
@@ -56,7 +56,7 @@ pub(crate) type FilterDecoder =
 ///   `Sync`, and has a static lifetime.
 /// * `E` - Type that implements the `EthLogDecode`, `Debug`, `Serialize`
 ///   traits, and has a static lifetime.
-pub struct EventLogger {
+pub struct Logger {
     decoder: FilterDecoder,
     receiver: Option<BroadcastReceiver<Broadcast>>,
     output_file_type: Option<OutputFileType>,
@@ -65,7 +65,7 @@ pub struct EventLogger {
     metadata: Option<Value>,
 }
 
-impl Debug for EventLogger {
+impl Debug for Logger {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("EventLogger")
             .field("receiver", &self.receiver)
@@ -95,7 +95,7 @@ pub enum OutputFileType {
     Parquet,
 }
 
-impl EventLogger {
+impl Logger {
     /// Constructs a new `EventLogger`.
     ///
     /// # Returns
@@ -125,7 +125,7 @@ impl EventLogger {
     /// # Returns
     ///
     /// The `EventLogger` instance with the added event.
-    pub fn add<S: Into<String>, D: EthLogDecode + Debug + Serialize + 'static>(
+    pub fn with_event<S: Into<String>, D: EthLogDecode + Debug + Serialize + 'static>(
         mut self,
         event: Event<Arc<ArbiterMiddleware>, ArbiterMiddleware, D>,
         name: S,
@@ -148,20 +148,6 @@ impl EventLogger {
         }
         debug!("`EventLogger` now provided with event labeled: {:?}", name);
         self
-    }
-
-    /// Adds an event to the `EventLogger` and generates a unique ID for the
-    /// event since we don't need to name events that are solely streamed and
-    /// not stored.
-    pub fn add_stream<D: EthLogDecode + Debug + Serialize + 'static>(
-        self,
-        event: Event<Arc<ArbiterMiddleware>, ArbiterMiddleware, D>,
-    ) -> Self {
-        let mut hasher = Sha256::new();
-        hasher.update(serde_json::to_string(&event.filter).unwrap());
-        let hash = hasher.finalize();
-        let id = hex::encode(hash);
-        self.add(event, id)
     }
 
     /// Sets the directory for the `EventLogger`.
@@ -354,37 +340,6 @@ impl EventLogger {
         });
         Ok(task)
     }
-
-    /// Returns a stream of the serialized events.
-    pub fn stream(mut self) -> Option<impl Stream<Item = String> + Send> {
-        if let Some(mut receiver) = self.receiver.take() {
-            let stream = async_stream::stream! {
-                while let Ok(broadcast) = receiver.recv().await {
-                    match broadcast {
-                        Broadcast::StopSignal => {
-                            trace!("`EventLogger` has seen a stop signal");
-                            break;
-                        }
-                        Broadcast::Event(event, receipt_data) => {
-                            trace!("`EventLogger` received an event");
-                            let ethers_logs = revm_logs_to_ethers_logs(event, &receipt_data);
-                            for log in ethers_logs {
-                                for (_id, (filter, decoder)) in self.decoder.iter() {
-                                    if filter.filter_address(&log) && filter.filter_topics(&log) {
-                                       yield decoder(&log.clone().into());
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            };
-
-            Some(stream)
-        } else {
-            None
-        }
-    }
 }
 
 fn flatten_to_data_frame(events: BTreeMap<String, BTreeMap<String, Vec<Value>>>) -> DataFrame {
@@ -418,4 +373,45 @@ pub(crate) struct EventTransmuted<B, M, D> {
     /// Stores the event datatype
     pub(crate) datatype: PhantomData<D>,
     pub(crate) _m: PhantomData<M>,
+}
+
+/// Adds an event to the `EventLogger` and generates a unique ID for the
+/// event since we don't need to name events that are solely streamed and
+/// not stored.
+pub fn stream_event<D: EthLogDecode + Debug + Serialize + 'static>(
+    event: Event<Arc<ArbiterMiddleware>, ArbiterMiddleware, D>,
+) -> Pin<Box<dyn Stream<Item = D> + Send + Sync>> {
+    let mut hasher = Sha256::new();
+    hasher.update(serde_json::to_string(&event.filter).unwrap());
+    let hash = hasher.finalize();
+    let id = hex::encode(hash);
+    let mut logger = Logger::builder().with_event(event, id);
+
+    if let Some(mut receiver) = logger.receiver.take() {
+        let stream = async_stream::stream! {
+            while let Ok(broadcast) = receiver.recv().await {
+                match broadcast {
+                    Broadcast::StopSignal => {
+                        trace!("`EventLogger` has seen a stop signal");
+                        break;
+                    }
+                    Broadcast::Event(event, receipt_data) => {
+                        trace!("`EventLogger` received an event");
+                        let ethers_logs = revm_logs_to_ethers_logs(event, &receipt_data);
+                        for log in &ethers_logs {
+                            for (_id, (filter, _)) in logger.decoder.iter() {
+                                if filter.filter_address(log) && filter.filter_topics(log) {
+                                    let raw_log = RawLog::from(log.clone());
+                                    yield D::decode_log(&raw_log).unwrap();
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        };
+        Box::pin(stream)
+    } else {
+        unreachable!()
+    }
 }

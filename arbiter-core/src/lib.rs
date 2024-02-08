@@ -31,10 +31,10 @@
 
 pub mod console;
 pub mod coprocessor;
-pub mod data_collection;
 pub mod database;
 pub mod environment;
 pub mod errors;
+pub mod events;
 pub mod middleware;
 
 use std::{

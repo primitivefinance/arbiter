@@ -4,7 +4,7 @@ pub(crate) mod behaviors;
 use std::{pin::Pin, str::FromStr, time::Duration};
 
 use agents::{token_admin::TokenAdmin, token_requester::TokenRequester};
-use arbiter_core::data_collection::EventLogger;
+use arbiter_core::events::stream_event;
 use arbiter_macros::Behaviors;
 use ethers::types::Address;
 use futures_util::Stream;
@@ -58,18 +58,13 @@ async fn token_minter_simulation() {
         Address::from_str("0x240a76d4c8a7dafc6286db5fa6b589e8b21fc00f").unwrap(),
         client.clone(),
     );
-    let transfer_event = arb.transfer_filter();
+    let mut transfer_stream = stream_event(arb.transfer_filter());
 
-    let transfer_stream = EventLogger::builder()
-        .add_stream(arb.transfer_filter())
-        .stream()
-        .unwrap();
-    let mut stream = Box::pin(transfer_stream);
     world.run().await;
     let mut idx = 0;
 
     loop {
-        match timeout(Duration::from_secs(1), stream.next()).await {
+        match timeout(Duration::from_secs(1), transfer_stream.next()).await {
             Ok(Some(event)) => {
                 println!("Event received in outside world: {:?}", event);
                 idx += 1;
