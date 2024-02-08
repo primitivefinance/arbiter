@@ -54,14 +54,13 @@ polars = { version = "0.37.0", features = ["parquet", "csv", "json"] }
 
 # Dependencies for the test build and development
 [dev-dependencies]
-# anyhow = { version = "=1.0.79" }
-# test-log = { version = "=0.2.14" }
-# tracing-test = "0.2.4"
 tracing-subscriber = "0.3.18"
+futures.workspace = true
 
+# For bench
 cargo_metadata = "0.18.1"
 chrono = "0.4.33"
-futures.workspace = true
+
 
 assert_matches = { version = "=1.5" }
 
