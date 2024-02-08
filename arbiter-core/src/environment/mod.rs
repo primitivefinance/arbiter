@@ -215,7 +215,7 @@ impl Environment {
         env.cfg.limit_contract_code_size = self.parameters.contract_size_limit;
         env.block.gas_limit = self.parameters.gas_limit.unwrap_or(U256::MAX);
         // Bring in the inspector
-        let mut inspector = self.inspector.take().unwrap();
+        let inspector = self.inspector.take().unwrap();
 
         // Pull communication clones to move into a new thread.
         let instruction_receiver = self.socket.instruction_receiver.clone();

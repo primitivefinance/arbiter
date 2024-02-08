@@ -1,3 +1,7 @@
+//! This module contains the `Instruction` and `Outcome` enums that are used to
+//! communicate instructions and their outcomes between the
+//! [`middleware::ArbiterMiddleware`] and the [`Environment`].
+
 use super::*;
 
 /// [`Instruction`]s that can be sent to the [`Environment`] via the

@@ -470,11 +470,10 @@ impl Middleware for ArbiterMiddleware {
                     return Err(ArbiterCoreError::ExecutionHalt { reason, gas_used });
                 }
                 ExecutionResult::Success {
-                    reason,
-                    gas_used,
-                    gas_refunded,
-                    logs,
                     output,
+                    gas_used,
+                    logs,
+                    ..
                 } => {
                     let logs = revm_logs_to_ethers_logs(logs);
                     let to: Option<eAddress> = match tx_env.transact_to {
