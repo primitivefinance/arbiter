@@ -28,13 +28,15 @@ pub const ARBITER_TOKEN_Y_DECIMALS: u8 = 18;
 
 pub const LIQUID_EXCHANGE_PRICE: f64 = 420.69;
 
-fn startup() -> Result<(Environment, Arc<ArbiterMiddleware>)> {
+pub fn startup() -> Result<(Environment, Arc<ArbiterMiddleware>)> {
     let env = Environment::builder().build();
     let client = ArbiterMiddleware::new(&env, Some(TEST_SIGNER_SEED_AND_LABEL))?;
     Ok((env, client))
 }
 
-async fn deploy_arbx(client: Arc<ArbiterMiddleware>) -> Result<ArbiterToken<ArbiterMiddleware>> {
+pub async fn deploy_arbx(
+    client: Arc<ArbiterMiddleware>,
+) -> Result<ArbiterToken<ArbiterMiddleware>> {
     Ok(ArbiterToken::deploy(
         client,
         (
@@ -47,7 +49,9 @@ async fn deploy_arbx(client: Arc<ArbiterMiddleware>) -> Result<ArbiterToken<Arbi
     .await?)
 }
 
-async fn deploy_arby(client: Arc<ArbiterMiddleware>) -> Result<ArbiterToken<ArbiterMiddleware>> {
+pub async fn deploy_arby(
+    client: Arc<ArbiterMiddleware>,
+) -> Result<ArbiterToken<ArbiterMiddleware>> {
     Ok(ArbiterToken::deploy(
         client,
         (
@@ -60,7 +64,7 @@ async fn deploy_arby(client: Arc<ArbiterMiddleware>) -> Result<ArbiterToken<Arbi
     .await?)
 }
 
-async fn deploy_liquid_exchange(
+pub async fn deploy_liquid_exchange(
     client: Arc<ArbiterMiddleware>,
 ) -> Result<(
     ArbiterToken<ArbiterMiddleware>,
@@ -76,7 +80,7 @@ async fn deploy_liquid_exchange(
     Ok((arbx, arby, liquid_exchange))
 }
 
-async fn deploy_arbiter_math(
+pub async fn deploy_arbiter_math(
     client: Arc<ArbiterMiddleware>,
 ) -> Result<ArbiterMath<ArbiterMiddleware>> {
     Ok(ArbiterMath::deploy(client, ())?.send().await?)

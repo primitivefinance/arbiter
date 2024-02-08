@@ -77,7 +77,7 @@ pub trait Behavior<E>: Serialize + DeserializeOwned + Send + Sync + Debug + 'sta
         &mut self,
         client: Arc<ArbiterMiddleware>,
         messager: Messager,
-    ) -> EventStream<E>;
+    ) -> Result<EventStream<E>, ArbiterEngineError>;
 
     /// Used to process events.
     /// This is where the agent can engage in its specific processing

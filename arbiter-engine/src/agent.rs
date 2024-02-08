@@ -4,8 +4,8 @@ use std::{fmt::Debug, sync::Arc};
 
 use arbiter_core::middleware::ArbiterMiddleware;
 use serde::{de::DeserializeOwned, Serialize};
-use thiserror::Error;
 
+use super::*;
 use crate::{
     machine::{Behavior, Engine, StateMachine},
     messager::Messager,
