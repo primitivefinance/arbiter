@@ -1,5 +1,5 @@
 use arbiter_bindings::bindings::arbiter_token::TransferFilter;
-use arbiter_core::data_collection::EventLogger;
+use arbiter_core::events::Logger;
 use token_admin::{MintRequest, TokenAdminQuery};
 
 use self::{
@@ -39,8 +39,8 @@ impl Behavior<TransferFilter> for TokenRequester {
         self.messager = Some(messager.clone());
         self.client = Some(client.clone());
         Ok(Box::pin(
-            EventLogger::builder()
-                .add_stream(token.transfer_filter())
+            Logger::builder()
+                .with_stream(token.transfer_filter())
                 .stream()
                 .unwrap()
                 .map(|value| serde_json::from_str(&value).unwrap()),

@@ -4,7 +4,7 @@ pub(crate) mod behaviors;
 use std::{pin::Pin, str::FromStr, time::Duration};
 
 use agents::{token_admin::TokenAdmin, token_requester::TokenRequester};
-use arbiter_core::data_collection::EventLogger;
+use arbiter_core::events::Logger;
 use arbiter_macros::Behaviors;
 use ethers::types::Address;
 use futures_util::Stream;
@@ -60,8 +60,8 @@ async fn token_minter_simulation() {
     );
     let transfer_event = arb.transfer_filter();
 
-    let transfer_stream = EventLogger::builder()
-        .add_stream(arb.transfer_filter())
+    let transfer_stream = Logger::builder()
+        .with_stream(arb.transfer_filter())
         .stream()
         .unwrap();
     let mut stream = Box::pin(transfer_stream);
