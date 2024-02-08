@@ -4,13 +4,14 @@ const AGENT_ID: &str = "agent";
 
 use std::{pin::Pin, time::Duration};
 
-use super::*;
 use anyhow::Result;
 use arbiter_macros::Behaviors;
 use ethers::types::BigEndianHash;
 use futures_util::Stream;
 use serde::*;
 use tokio::time::timeout;
+
+use super::*;
 
 fn default_max_count() -> Option<u64> {
     Some(3)
