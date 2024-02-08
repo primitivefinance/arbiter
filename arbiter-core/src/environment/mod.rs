@@ -1,31 +1,21 @@
-//! The `environment` module provides abstractions and functionality for
+//! The [`environment`] module provides abstractions and functionality for
 //! handling the Ethereum execution environment. This includes managing its
 //! state, interfacing with the EVM, and broadcasting events to subscribers.
+//! Other features include the ability to control block rate and gas settings
+//! and execute other database modifications from external agents.
 //!
 //! The key integration for the environment is the Rust EVM [`revm`](https://github.com/bluealloy/revm).
 //! This is an implementation of the EVM in Rust that we utilize for processing
 //! raw smart contract bytecode.
 //!
 //! Core structures:
-//! - `Environment`: Represents the Ethereum execution environment, allowing for
-//!   its management (e.g., starting, stopping) and interfacing with agents.
-//! - `EnvironmentParameters`: Parameters necessary for creating or modifying
-//!  an `Environment`.
-//!     - `BlockSettings`: Enum indicating how block numbers and timestamps are
-//!       moved forward.
-//!     - `GasSettings`: Enum indicating the type of gas settings that will be
-//!     used to make clients pay gas.
-//! - `Instruction`: Enum indicating the type of instruction that is being sent
+//! - [`Environment`]: Represents the Ethereum execution environment, allowing
+//!   for its management (e.g., starting, stopping) and interfacing with agents.
+//! - [`EnvironmentParameters`]: Parameters necessary for creating or modifying
+//!  an [`Environment`].
+//! - [`Instruction`]: Enum indicating the type of instruction that is being
+//!   sent
 //!  to the EVM.
-//! - `Outcome`: Enum indicating the type of outcome that is being sent back
-//!  from the EVM.
-//! - `EnvironmentError`: Enum indicating the type of error that can be thrown
-//!  by the EVM.
-//! - `State`: Enum indicating the current state of the environment.
-//! - `Socket`: Provides channels for communication between the EVM and the
-//!   outside world.
-//! - `EventBroadcaster`: Responsible for broadcasting Ethereum logs to
-//!   subscribers.
 
 use std::thread::{self, JoinHandle};
 
@@ -63,33 +53,17 @@ pub(crate) type OutcomeReceiver = Receiver<Result<Outcome, ArbiterCoreError>>;
 
 /// Represents a sandboxed EVM environment.
 ///
-/// ## Communication
-/// The dominant feature is the
-/// [`EVM`](https://github.com/bluealloy/revm/blob/main/crates/revm/src/evm.rs)
-///  and its connections to the "outside world".
-/// The Ethereum Virtual Machine
-/// ([`EVM`](https://github.com/bluealloy/revm/blob/main/crates/revm/src/evm.rs))
-/// which is a stack machine that processes raw smart contract bytecode and
-/// updates a local database of the worldstate of an Ethereum simulation.
-/// Note, the worldstate of the simulation Ethereum environment should not be
-/// confused with the [`State`] of the environment here! The [`Environment`]
-/// will route transactions sent over channels to the stack machine
-/// [`EVM`](https://github.com/bluealloy/revm/blob/main/crates/revm/src/evm.rs)
-/// to process smart contract interactions.
-/// It provides channels for sending transactions to the EVM and for
-/// receiving results or broadcasting events to any subscribers via the
-/// `Socket` field exposed only as `pub(crate)`.
-///
-///
-/// ## Controlling Block Rate
-/// The blocks for the [`Environment`] are chosen using a Poisson distribution
-/// via the [`SeededPoisson`] field. The idea is that we can choose a rate
-/// parameter, typically denoted by the Greek letter lambda, and set this to be
-/// the expected number of transactions per block while allowing blocks to be
-/// built with random size. This is useful in stepping forward the
-/// [`EVM`](https://github.com/bluealloy/revm/blob/main/crates/revm/src/evm.rs)
-/// and being able to move time forward for contracts that depend explicitly on
-/// time.
+/// ## Features
+/// * [`revm::Evm`] and its connections to the "outside world" (agents) via the
+/// [`Socket`] provide the [`Environment`] a means to route and execute
+/// transactions.
+/// * [`ArbiterDB`] is the database structure used that allows for read-only
+/// sharing of execution and write-only via the main thread. This can also be a
+/// database read in from disk storage via [`database::fork::Fork`].
+/// * [`ArbiterInspector`] is an that allows for the EVM to be able to display
+/// logs and properly handle gas payments.
+/// * [`EnvironmentParameters`] are used to set the gas limit, contract size
+/// limit, and label for the [`Environment`].
 #[derive(Debug)]
 pub struct Environment {
     /// The label used to define the [`Environment`].
@@ -112,20 +86,7 @@ pub struct Environment {
     pub(crate) handle: Option<JoinHandle<Result<(), ArbiterCoreError>>>,
 }
 
-// /// Allow the end user to be able to access a debug printout for the
-// /// [`Environment`]. Note that the [`EVM`] does not implement debug display,
-// /// hence the implementation by hand here.
-// impl Debug for Environment {
-//     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-//         f.debug_struct("Environment")
-//             .field("parameters", &self.parameters)
-//             .field("socket", &self.socket)
-//             .field("handle", &self.handle)
-//             .finish()
-//     }
-// }
-
-/// Parameters necessary for creating or modifying an [`Environment`].
+/// Parameters to create [`Environment`]s with different settings.
 #[derive(Clone, Debug, Default, Deserialize, Serialize)]
 pub struct EnvironmentParameters {
     /// The label used to define the [`Environment`].
@@ -239,9 +200,8 @@ impl Environment {
         }
     }
 
-    /// The [`EVM`] will be
-    /// offloaded onto a separate thread for processing.
-    /// Calls, transactions, and events will enter/exit through the `Socket`.
+    /// This starts the [`Environment`] thread to process any [`Instruction`]s
+    /// coming through the [`Socket`].
     fn run(mut self) -> Self {
         // Bring in parameters for the `Environment`.
         let label = self.parameters.label.clone();
@@ -321,8 +281,8 @@ impl Environment {
                         outcome_sender.send(Ok(Outcome::BlockUpdateCompleted(receipt_data)))?;
 
                         // Update the block number and timestamp
-                        evm.block_mut().number = block_number;
-                        evm.block_mut().timestamp = block_timestamp;
+                        evm.block_mut().number = U256::from_limbs(block_number.0);
+                        evm.block_mut().timestamp = U256::from_limbs(block_timestamp.0);
 
                         // Reset the counters.
                         transaction_index = U64::from(0);
@@ -512,27 +472,6 @@ impl Environment {
                             Err(e) => {
                                 outcome_sender.send(Err(ArbiterCoreError::EVMError(e)))?;
                                 continue;
-                                // if let EVMError::Transaction(invalid_transaction) = e {
-                                //     outcome_sender
-                                //         .send(Err(EnvironmentError::Transaction(
-                                //             invalid_transaction,
-                                //         )))
-                                //         .map_err(|e| {
-                                //
-                                // EnvironmentError::Communication(e.
-                                // to_string())
-                                //         })?;
-                                //     continue;
-                                // } else {
-                                //     outcome_sender
-                                //         .send(Err(EnvironmentError::Execution(e)))
-                                //         .map_err(|e| {
-                                //
-                                // EnvironmentError::Communication(e.
-                                // to_string())
-                                //         })?;
-                                //     continue;
-                                // }
                             }
                         };
                         cumulative_gas_per_block += U256::from(execution_result.clone().gas_used());
@@ -627,16 +566,9 @@ impl Environment {
         self
     }
 
-    /// Stops the execution of the environment.
-    /// This cannot be recovered from!
-    ///
-    /// # Returns
-    ///
-    /// * `Ok(())` if the environment was successfully stopped or was already
-    ///   stopped.
-    /// * `Err(EnvironmentError::Stop(String))` if the environment is in an
-    ///   invalid state.
-    pub fn stop(mut self) -> Result<Option<ArbiterDB>, ArbiterCoreError> {
+    /// Stops the execution of the environment and returns the [`ArbiterDB`] in
+    /// its final state.
+    pub fn stop(mut self) -> Result<ArbiterDB, ArbiterCoreError> {
         let (outcome_sender, outcome_receiver) = bounded(1);
         self.socket
             .instruction_sender
@@ -644,8 +576,8 @@ impl Environment {
         let outcome = outcome_receiver.recv()??;
 
         let db = match outcome {
-            Outcome::StopCompleted(stopped_db) => Some(stopped_db),
-            _ => return Err(ArbiterCoreError::StopError),
+            Outcome::StopCompleted(stopped_db) => stopped_db,
+            _ => unreachable!(),
         };
 
         if let Some(label) = &self.parameters.label {
@@ -654,11 +586,11 @@ impl Environment {
             warn!("Stopped environment with no label.");
         }
         drop(self.socket.instruction_sender);
-        let thing = self
-            .handle
+        self.handle
             .take()
-            .ok_or(ArbiterCoreError::StopError)?
-            .join();
+            .unwrap()
+            .join()
+            .map_err(|_| ArbiterCoreError::JoinError)??;
         Ok(db)
     }
 }

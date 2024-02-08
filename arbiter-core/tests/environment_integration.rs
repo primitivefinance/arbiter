@@ -145,6 +145,5 @@ async fn env_returns_db() {
     let (environment, client) = startup().unwrap();
     deploy_arbx(client).await.unwrap();
     let db = environment.stop().unwrap();
-    assert!(db.is_some());
-    assert!(!db.unwrap().0.read().unwrap().accounts.is_empty())
+    assert!(!db.0.read().unwrap().accounts.is_empty())
 }

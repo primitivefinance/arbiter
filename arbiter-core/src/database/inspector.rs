@@ -1,4 +1,4 @@
-//! This module contains an extensible [`revm::Inspector`] called
+//! This module contains an extensible [`Inspector`] called
 //! [`ArbiterInspector`]. It is currently configurable in order to allow
 //! for users to set configuration to see logs generated in Solidity contracts
 //! and or enforce gas payment.
@@ -11,7 +11,7 @@ use revm::{
 use super::*;
 use crate::console::ConsoleLogs;
 
-/// An configurable [`revm::Inspector`] that collects information about the
+/// An configurable [`Inspector`] that collects information about the
 /// execution of the [`Interpreter`]. Depending on whether which or both
 /// features are enabled, it collects information about the gas used by each
 /// opcode and the `console2.log`s emitted during execution. It ensures gas
@@ -76,7 +76,7 @@ impl<DB: Database> Inspector<DB> for ArbiterInspector {
         &mut self,
         context: &mut EvmContext<DB>,
         inputs: &CallInputs,
-        mut outcome: CallOutcome,
+        outcome: CallOutcome,
     ) -> CallOutcome {
         if let Some(gas) = &mut self.gas {
             gas.call_end(context, inputs, outcome)

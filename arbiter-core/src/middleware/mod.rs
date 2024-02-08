@@ -30,7 +30,6 @@ use ethers::{
         transaction::{eip2718::TypedTransaction, eip712::Eip712},
         Address as eAddress, BlockId, Bloom, Bytes as eBytes, FilteredParams, Log as eLog,
         NameOrAddress, Signature, Transaction, TransactionReceipt, TxHash as eTxHash, H256,
-        U256 as eU256,
     },
 };
 use futures_timer::Delay;
@@ -292,19 +291,17 @@ impl ArbiterMiddleware {
     /// [`Environment`] to whatever they may choose at any time.
     pub fn update_block(
         &self,
-        block_number: impl Into<ethers::types::U256>,
-        block_timestamp: impl Into<ethers::types::U256>,
+        block_number: impl Into<eU256>,
+        block_timestamp: impl Into<eU256>,
     ) -> Result<ReceiptData, ArbiterCoreError> {
-        let block_number: ethers::types::U256 = block_number.into();
-        let block_timestamp: ethers::types::U256 = block_timestamp.into();
         let provider = self.provider().as_ref();
         provider
             .instruction_sender
             .upgrade()
             .ok_or(ArbiterCoreError::UpgradeSenderError)?
             .send(Instruction::BlockUpdate {
-                block_number: revm_primitives::FixedBytes::<32>(block_number.into()).into(),
-                block_timestamp: revm_primitives::FixedBytes::<32>(block_timestamp.into()).into(),
+                block_number: block_number.into(),
+                block_timestamp: block_timestamp.into(),
                 outcome_sender: provider.outcome_sender.clone(),
             })?;
 
@@ -693,13 +690,7 @@ impl Middleware for ArbiterMiddleware {
                 ExecutionResult::Halt { reason, gas_used } => {
                     return Err(ArbiterCoreError::ExecutionHalt { reason, gas_used });
                 }
-                ExecutionResult::Success {
-                    reason,
-                    gas_used,
-                    gas_refunded,
-                    logs,
-                    output,
-                } => {
+                ExecutionResult::Success { output, .. } => {
                     return Ok(eBytes::from(output.data().to_vec()));
                 }
             }
@@ -713,7 +704,7 @@ impl Middleware for ArbiterMiddleware {
     ///
     /// Currently, this method supports log filters. Other filters like
     /// `NewBlocks` and `PendingTransactions` are not yet implemented.
-    async fn new_filter(&self, filter: FilterKind<'_>) -> Result<ethers::types::U256, Self::Error> {
+    async fn new_filter(&self, filter: FilterKind<'_>) -> Result<eU256, Self::Error> {
         let provider = self.provider.as_ref();
         let (_method, args) = match filter {
             FilterKind::NewBlocks => unimplemented!(

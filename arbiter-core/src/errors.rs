@@ -1,6 +1,8 @@
 //! Errors that can occur when managing or interfacing with Arbiter's sandboxed
 //! Ethereum environment.
 
+use std::any::Any;
+
 // use crossbeam_channel::SendError;
 use crossbeam_channel::{RecvError, SendError};
 use ethers::{
@@ -15,16 +17,11 @@ use super::*;
 
 #[derive(Error, Debug)]
 pub enum ArbiterCoreError {
-    // #[error(transparent)]
-    // SendError(#[from] crossbeam_channel::SendError<Result<Outcome, EVMError<Infallible>>>),
     #[error("Account already exists!")]
     AccountCreationError,
 
     #[error("Account doesn't exist!")]
     AccountDoesNotExistError,
-
-    #[error("Failed to stop the environment!")]
-    StopError,
 
     #[error("Can't sign with a forked EOA!")]
     ForkedEOASignError,
@@ -38,14 +35,15 @@ pub enum ArbiterCoreError {
     #[error("Invalid `get_balance()` request!")]
     InvalidQueryError,
 
+    #[error("Failed to join environment thread on stop!")]
+    JoinError,
+
     #[error("Execution failed with revert: {gas_used:?} gas used, {output:?}")]
     ExecutionRevert { gas_used: u64, output: Vec<u8> },
 
     #[error("Execution failed with halt: {reason:?}, {gas_used:?} gas used")]
     ExecutionHalt { reason: HaltReason, gas_used: u64 },
 
-    // #[error(transparent)]
-    // JoinError(#[from] std::thread::Result<()>),
     #[error(transparent)]
     ParseIntError(#[from] std::num::ParseIntError),
 

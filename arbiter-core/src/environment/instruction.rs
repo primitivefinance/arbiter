@@ -18,10 +18,10 @@ use super::*;
 #[derive(Debug, Clone)]
 pub(crate) enum Instruction {
     /// An `AddAccount` is used to add a default/unfunded account to the
-    /// [`EVM`].
+    /// [`Environment`].
     AddAccount {
         /// The address of the account to add to the [`EVM`].
-        address: ethers::types::Address,
+        address: eAddress,
 
         /// The sender used to to send the outcome of the account addition back
         /// to.
@@ -29,13 +29,13 @@ pub(crate) enum Instruction {
     },
 
     /// A `BlockUpdate` is used to update the block number and timestamp of the
-    /// [`EVM`].
+    /// [`Environment`].
     BlockUpdate {
         /// The block number to update the [`EVM`] to.
-        block_number: U256,
+        block_number: eU256,
 
         /// The block timestamp to update the [`EVM`] to.
-        block_timestamp: U256,
+        block_timestamp: eU256,
 
         /// The sender used to to send the outcome of the block update back to.
         outcome_sender: OutcomeSender,
@@ -73,7 +73,7 @@ pub(crate) enum Instruction {
     /// A `SetGasPrice` is used to set the gas price of the [`EVM`].
     SetGasPrice {
         /// The gas price to set the [`EVM`] to.
-        gas_price: ethers::types::U256,
+        gas_price: eU256,
 
         /// The sender used to to send the outcome of the gas price setting back
         /// to.

@@ -25,8 +25,8 @@ pub struct ContractMetadata {
 /// A [`Fork`] is used to store the data that will be loaded into an
 /// [`Environment`] and be used in `arbiter-core`. It is a wrapper around a
 /// [`CacheDB`] and a [`HashMap`] of [`ContractMetadata`] so that the
-/// [`Environment`] can be initialized with the data and the end-user still has
-/// access to the relevant metadata.
+/// [`environment::Environment`] can be initialized with the data and the
+/// end-user still has access to the relevant metadata.
 #[derive(Clone, Debug)]
 pub struct Fork {
     /// The [`CacheDB`] that will be loaded into the [`Environment`].
