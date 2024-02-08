@@ -594,3 +594,41 @@ async fn access() {
         }
     }
 }
+
+#[tokio::test]
+async fn stream_with_meta() {
+    let (environment, client) = startup();
+
+    let arbx = deploy_arbx(client.clone()).await;
+
+    let events = arbx.events();
+    let mut stream = events.stream_with_meta().await.unwrap();
+
+    for _ in 0..2 {
+        arbx.approve(client.address(), eU256::from(1))
+            .send()
+            .await
+            .unwrap()
+            .await
+            .unwrap();
+    }
+
+    client.update_block(1, 1);
+
+    arbx.approve(client.address(), eU256::from(1))
+        .send()
+        .await
+        .unwrap()
+        .await
+        .unwrap();
+    // Check we can get events on-the-fly
+    println!("stream next: {:?}", stream.next().await);
+    println!("stream next: {:?}", stream.next().await);
+    println!("stream next: {:?}", stream.next().await);
+    // assert!(next.is_some());
+
+    // // Check we accumulated all the events from the loop
+    // environment.stop().unwrap();
+    // let items: Vec<Log> = stream.collect().await;
+    // assert_eq!(items.len(), 4);
+}

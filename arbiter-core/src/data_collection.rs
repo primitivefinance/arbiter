@@ -310,9 +310,9 @@ impl EventLogger {
                         }
                         break;
                     }
-                    Broadcast::Event(event) => {
+                    Broadcast::Event(event, receipt_data) => {
                         trace!("`EventLogger` received an event");
-                        let ethers_logs = revm_logs_to_ethers_logs(event);
+                        let ethers_logs = revm_logs_to_ethers_logs(event, &receipt_data);
                         for log in ethers_logs {
                             for (contract_name, (filter, decoder)) in self.decoder.iter() {
                                 if filter.filter_address(&log) && filter.filter_topics(&log) {
@@ -365,9 +365,9 @@ impl EventLogger {
                             trace!("`EventLogger` has seen a stop signal");
                             break;
                         }
-                        Broadcast::Event(event) => {
+                        Broadcast::Event(event, receipt_data) => {
                             trace!("`EventLogger` received an event");
-                            let ethers_logs = revm_logs_to_ethers_logs(event);
+                            let ethers_logs = revm_logs_to_ethers_logs(event, &receipt_data);
                             for log in ethers_logs {
                                 for (_id, (filter, decoder)) in self.decoder.iter() {
                                     if filter.filter_address(&log) && filter.filter_topics(&log) {
