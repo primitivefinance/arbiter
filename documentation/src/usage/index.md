@@ -5,7 +5,7 @@ Arbiter is broken into a number of crates that provide different levels of abstr
 The `arbiter-core` crate is the core of the Arbiter.
 It contains the `Environment` struct which acts as an EVM sandbox and the `RevmMiddleware` which gives a convenient interface for interacting with contracts deployed into the `Environment`.
 Direct usage of `arbiter-core` will be minimized as much as possible as it is intended for developers to mostly pull from the `arbiter-engine` crate in the future. 
-This crate provides the interface for agents to interact with an in memeory evm. 
+This crate provides the interface for agents to interact with an in memory evm. 
 
 ## Arbiter Engine
 The `arbiter-engine` crate is the main interface for running simulations.

@@ -21,27 +21,3 @@ jobs:
 
       - name: test
         run: cargo test --workspace --all-features --exclude documentation
-        
-  codecov:
-    name: codecov
-    runs-on: ubuntu-latest
-
-    steps:
-      - uses: actions/checkout@v3
-
-      - name: install rust toolchain
-        uses: actions-rs/toolchain@v1
-        with:
-          toolchain: stable
-      
-      - name: install cargo-llvm-cov
-        uses: taiki-e/install-action@cargo-llvm-cov
-
-      - name: codecov
-        run: cargo llvm-cov --all-features --workspace  --exclude documentation --lcov --output-path lcov.info
-        
-      - name: Upload coverage reports to Codecov
-        uses: codecov/codecov-action@v3
-        with:
-          files: lcov.info
-          fail_ci_if_error: true
