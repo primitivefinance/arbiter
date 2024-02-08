@@ -1,0 +1,15 @@
+[package]
+name = "documentation"
+version = "0.0.0"
+edition = "2021"
+build = "build.rs"
+
+[build-dependencies]
+skeptic = "0.13.7"
+tokio.workspace = true
+
+[dev-dependencies]
+skeptic = "0.13.7"
+arbiter-core.workspace = true
+arbiter-bindings.workspace = true
+

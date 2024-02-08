@@ -1,3 +1,7 @@
+//! This module contains the `Instruction` and `Outcome` enums that are used to
+//! communicate instructions and their outcomes between the
+//! [`middleware::ArbiterMiddleware`] and the [`Environment`].
+
 use super::*;
 
 /// [`Instruction`]s that can be sent to the [`Environment`] via the
@@ -18,10 +22,10 @@ use super::*;
 #[derive(Debug, Clone)]
 pub(crate) enum Instruction {
     /// An `AddAccount` is used to add a default/unfunded account to the
-    /// [`EVM`].
+    /// [`Environment`].
     AddAccount {
         /// The address of the account to add to the [`EVM`].
-        address: ethers::types::Address,
+        address: eAddress,
 
         /// The sender used to to send the outcome of the account addition back
         /// to.
@@ -29,13 +33,13 @@ pub(crate) enum Instruction {
     },
 
     /// A `BlockUpdate` is used to update the block number and timestamp of the
-    /// [`EVM`].
+    /// [`Environment`].
     BlockUpdate {
         /// The block number to update the [`EVM`] to.
-        block_number: U256,
+        block_number: eU256,
 
         /// The block timestamp to update the [`EVM`] to.
-        block_timestamp: U256,
+        block_timestamp: eU256,
 
         /// The sender used to to send the outcome of the block update back to.
         outcome_sender: OutcomeSender,
@@ -73,7 +77,7 @@ pub(crate) enum Instruction {
     /// A `SetGasPrice` is used to set the gas price of the [`EVM`].
     SetGasPrice {
         /// The gas price to set the [`EVM`] to.
-        gas_price: ethers::types::U256,
+        gas_price: eU256,
 
         /// The sender used to to send the outcome of the gas price setting back
         /// to.
@@ -152,10 +156,11 @@ pub(crate) enum EnvironmentData {
     GasPrice,
 
     /// The query is for the balance of an account given by the inner `Address`.
-    Balance(ethers::types::Address),
+    Balance(eAddress),
 
+    // TODO: Rename this to `Nonce`?
     /// The query is for the nonce of an account given by the inner `Address`.
-    TransactionCount(ethers::types::Address),
+    TransactionCount(eAddress),
 }
 
 /// [`ReceiptData`] is a structure that holds the block number, transaction
@@ -164,11 +169,92 @@ pub(crate) enum EnvironmentData {
 pub struct ReceiptData {
     /// `block_number` is the number of the block in which the transaction was
     /// included.
-    pub(crate) block_number: U64,
+    pub block_number: U64,
     /// `transaction_index` is the index position of the transaction in the
     /// block.
-    pub(crate) transaction_index: U64,
-    /// [`cumulative_gas_per_block`] is the total amount of gas used in the
+    pub transaction_index: U64,
+    /// `cumulative_gas_per_block` is the total amount of gas used in the
     /// block up until and including the transaction.
-    pub(crate) cumulative_gas_per_block: U256,
+    pub cumulative_gas_per_block: eU256,
+}
+
+/// Cheatcodes are a direct way to access the underlying [`EVM`] environment and
+/// database.
+#[derive(Clone, Debug, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
+pub enum Cheatcodes {
+    /// A `Deal` is used to increase the balance of an account in the [`EVM`].
+    Deal {
+        /// The address of the account to increase the balance of.
+        address: eAddress,
+
+        /// The amount to increase the balance of the account by.
+        amount: eU256,
+    },
+    /// Fetches the value of a storage slot of an account.
+    Load {
+        /// The address of the account to fetch the storage slot from.
+        account: eAddress,
+        /// The storage slot to fetch.
+        key: H256,
+        /// The block to fetch the storage slot from.
+        /// todo: implement storage slots at blocks.
+        block: Option<ethers::types::BlockId>,
+    },
+    /// Overwrites a storage slot of an account.
+    /// TODO: for more complicated data types, like structs, there's more work
+    /// to do.
+    Store {
+        /// The address of the account to overwrite the storage slot of.
+        account: ethers::types::Address,
+        /// The storage slot to overwrite.
+        key: ethers::types::H256,
+        /// The value to overwrite the storage slot with.
+        value: ethers::types::H256,
+    },
+    /// Fetches the `DbAccount` account at the given address.
+    Access {
+        /// The address of the account to fetch.
+        address: ethers::types::Address,
+    },
+}
+
+/// Wrapper around [`AccountState`] that can be serialized and deserialized.
+#[derive(Debug, Clone, Default, Eq, PartialEq, serde::Serialize, serde::Deserialize)]
+pub enum AccountStateSerializable {
+    /// Before Spurious Dragon hardfork there was a difference between empty and
+    /// not existing. And we are flagging it here.
+    NotExisting,
+    /// EVM touched this account. For newer hardfork this means it can be
+    /// cleared/removed from state.
+    Touched,
+    /// EVM cleared storage of this account, mostly by selfdestruct, we don't
+    /// ask database for storage slots and assume they are U256::ZERO
+    StorageCleared,
+    /// EVM didn't interacted with this account
+    #[default]
+    None,
+}
+
+/// Return values of applying cheatcodes.
+#[derive(Clone, Debug, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
+pub enum CheatcodesReturn {
+    /// A `Load` returns the value of a storage slot of an account.
+    Load {
+        /// The value of the storage slot.
+        value: U256,
+    },
+    /// A `Store` returns nothing.
+    Store,
+    /// A `Deal` returns nothing.
+    Deal,
+    /// Gets the DbAccount associated with an address.
+    Access {
+        /// Basic account information like nonce, balance, code hash, bytcode.
+        info: AccountInfo,
+        /// todo: revm must be updated with serde deserialize, then `DbAccount`
+        /// can be used.
+        account_state: AccountStateSerializable,
+        /// Storage slots of the account.
+        storage: HashMap<U256, U256>,
+    },
 }

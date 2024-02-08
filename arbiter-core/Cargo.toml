@@ -2,7 +2,10 @@
 name = "arbiter-core"
 version = "0.10.0"
 edition = "2021"
-authors = ["Waylon Jepsen <waylonjepsen1@gmail.com>", "Colin Roberts <colin@autoparallel.xyz>"]
+authors = [
+    "Waylon Jepsen <waylonjepsen1@gmail.com>",
+    "Colin Roberts <colin@autoparallel.xyz>",
+]
 description = "Allowing smart contract developers to do simulation driven development via an EVM emulator"
 license = "Apache-2.0"
 keywords = ["ethereum", "evm", "emulator", "testing", "smart-contracts"]
@@ -10,7 +13,10 @@ readme = "../README.md"
 
 # Dependencies for the release build
 [dependencies]
+arbiter-bindings = { path = "../arbiter-bindings" }
+
 # Ethereum and EVM
+uint = "0.9.5"
 ethers.workspace = true
 revm.workspace = true
 revm-primitives.workspace = true
@@ -32,7 +38,7 @@ futures-locks = { version = "=0.7.1" }
 
 
 # Randomness
-rand =  { version = "=0.8.5" }
+rand = { version = "=0.8.5" }
 rand_distr = { version = "=0.4.3" }
 statrs = { version = "=0.16.0" }
 
@@ -56,10 +62,10 @@ tracing-subscriber = "0.3.18"
 
 polars = "0.36.2"
 cargo_metadata = "0.18.1"
-chrono = "0.4.32"
-futures =  { version = "=0.3.30" }
+chrono = "0.4.33"
+futures = { version = "=0.3.30" }
 
-assert_matches =  { version = "=1.5" }
+assert_matches = { version = "=1.5" }
 
 [[bench]]
 name = "bench"

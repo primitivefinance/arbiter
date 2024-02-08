@@ -1,45 +1,15 @@
-// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-// TODO: Notes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-// * Maybe we just use tokio for everything (like `select`) so that we don't mix
-//   futures and tokio together in ways that may be weird.
-// When we start running an agent, we should have their messager start producing
-// events that can be used by any and all behaviors the agent has that takes in
-// messages as an event. Similarly, we should have agents start up any streams
-// listeners that they need so those can also produce events. Those can then be
-// piped into the behaviors that need them. Can perhaps make behaviors come from
-// very specific events (e.g., specific contract events). This means each
-// behavior should be a consumer and perhaps the agent itself is the producer
-// (or at least relayer).
-// This means we should give agents some way to "start streams" that they can
-// then use to produce events.
-// Behaviors definitely need to be able to reference the agent's client and
-// messager so that they can send messages and interact with the blockchain.
-// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
 //! The agent module contains the core agent abstraction for the Arbiter Engine.
 
-use std::{fmt::Debug, pin::Pin, sync::Arc};
+use std::{fmt::Debug, sync::Arc};
 
-use arbiter_core::{data_collection::EventLogger, middleware::RevmMiddleware};
-use ethers::contract::{EthLogDecode, Event};
-use futures::stream::{Stream, StreamExt};
-use futures_util::future::join_all;
-use serde::de::DeserializeOwned;
-use tokio::{
-    sync::broadcast::{channel, Receiver as BroadcastReceiver, Sender as BroadcastSender},
-    task::JoinHandle,
-};
+use arbiter_core::middleware::ArbiterMiddleware;
+use serde::{de::DeserializeOwned, Serialize};
+use thiserror::Error;
 
-use self::machine::MachineInstruction;
-use super::*;
 use crate::{
-    machine::{Behavior, Engine, State, StateMachine},
+    machine::{Behavior, Engine, StateMachine},
     messager::Messager,
-    world::World,
 };
-
-// TODO: For the time being, these agents are just meant to be for arbiter
-// instances. We can generalize later.
 
 /// An agent is an entity capable of processing events and producing actions.
 /// These are the core actors in simulations or in onchain systems.
@@ -47,92 +17,72 @@ use crate::{
 /// dependency.
 ///
 /// # How it works
-/// The [`Agent`] works by implementing the [`StateMachine`] trait. When the
-/// [`World`] that owns the [`Agent`] is asked to enter into a new state, the
-/// [`World`] will ask each [`Agent`] it owns to run that state transition by
-/// calling [`StateMachine::run_state`]. All of the [`Agent`]s at once will then
-/// will be able to be asked to block and wait to finish their state transition
-/// by calling [`StateMachine::transition`]. Ultimately, the [`Agent`] will
-/// transition through the following states:
-/// 1. [`State::Uninitialized`]: The [`Agent`] has been created, but has not
-///   been started.
-/// 2. [`State::Syncing`]: The [`Agent`] is syncing with the world. This is
-///  where the [`Agent`] can be brought up to date with the latest state of the
-/// world. This could be used if the world was stopped and later restarted.
-/// 3. [`State::Startup`]: The [`Agent`] is starting up. This is where the
-/// [`Agent`] can be initialized and setup.
-/// 4. [`State::Processing`]: The [`Agent`] is processing. This is where the
-/// [`Agent`] can process events and produce actions. The [`State::Processing`]
-/// stage may run for a long time before all [`Agent`]s are finished processing.
-/// This is the main stage of the [`Agent`] that predominantly runs automation.
-/// 5. [`State::Stopped`]: The [`Agent`] is stopped. This is where the [`Agent`]
-/// can be stopped and state of the [`World`] and its [`Agent`]s can be
-/// offloaded and saved.
+/// When the [`World`] that owns the [`Agent`] is ran, it has each [`Agent`] run
+/// each of its [`Behavior`]s `startup()` methods. The [`Behavior`]s themselves
+/// will return a stream of events that then let the [`Behavior`] move into the
+/// `State::Processing` stage.
+#[derive(Debug)]
 pub struct Agent {
     /// Identifier for this agent.
     /// Used for routing messages.
     pub id: String,
 
-    /// The status of the agent.
-    pub state: State,
-
     /// The messager the agent uses to send and receive messages from other
     /// agents.
-    pub messager: Option<Messager>,
+    pub messager: Messager,
 
     /// The client the agent uses to interact with the blockchain.
-    pub client: Arc<RevmMiddleware>,
-
-    /// The generalized event streamer for the agent that can stream a JSON
-    /// `String`of any Ethereum event that can be decoded by behaviors.
-    pub event_streamer: Option<EventLogger>,
+    pub client: Arc<ArbiterMiddleware>,
 
     /// The engines/behaviors that the agent uses to sync, startup, and process
     /// events.
-    behavior_engines: Option<Vec<Box<dyn StateMachine>>>,
-
-    /// The pipeline for yielding events from the centralized event streamer
-    /// (for both messages and Ethereum events) to agents.
-    pub(crate) distributor: (BroadcastSender<String>, BroadcastReceiver<String>),
-
-    broadcast_task: Option<JoinHandle<Pin<Box<dyn Stream<Item = String> + Send>>>>,
+    pub(crate) behavior_engines: Vec<Box<dyn StateMachine>>,
 }
 
 impl Agent {
-    /// Produces a new agent with the given identifier.
-    pub fn new(id: &str, world: &World) -> Self {
-        let messager = world.messager.for_agent(id);
-        let client = RevmMiddleware::new(&world.environment, Some(id)).unwrap();
-        let distributor = channel(512);
-        Self {
+    /// Creates a new [`AgentBuilder`] instance with a specified identifier.
+    ///
+    /// This method initializes an [`AgentBuilder`] with the provided `id` and
+    /// sets the `behavior_engines` field to `None`. The returned
+    /// [`AgentBuilder`] can be further configured using its methods before
+    /// finalizing the creation of an [`Agent`].
+    ///
+    /// # Arguments
+    ///
+    /// * `id` - A string slice that holds the identifier for the agent being
+    ///   built.
+    ///
+    /// # Returns
+    ///
+    /// Returns an [`AgentBuilder`] instance that can be used to configure and
+    /// build an [`Agent`].
+    pub fn builder(id: &str) -> AgentBuilder {
+        AgentBuilder {
             id: id.to_owned(),
-            state: State::Uninitialized,
-            messager: Some(messager),
-            client,
-            event_streamer: Some(EventLogger::builder()),
             behavior_engines: None,
-            distributor,
-            broadcast_task: None,
         }
     }
+}
 
-    /// Adds an Ethereum event to the agent's event streamer.
-    pub fn with_event<D: EthLogDecode + Debug + Serialize + 'static>(
+/// [`AgentBuilder`] represents the intermediate state of agent creation before
+/// it is converted into a full on [`Agent`]
+pub struct AgentBuilder {
+    /// Identifier for this agent.
+    /// Used for routing messages.
+    pub id: String,
+    /// The engines/behaviors that the agent uses to sync, startup, and process
+    /// events.
+    behavior_engines: Option<Vec<Box<dyn StateMachine>>>,
+}
+
+impl AgentBuilder {
+    /// Appends a behavior onto an [`AgentBuilder`]. Behaviors are initialized
+    /// when the agent builder is added to the [`crate::world::World`]
+    pub fn with_behavior<E: DeserializeOwned + Serialize + Send + Sync + Debug + 'static>(
         mut self,
-        event: Event<Arc<RevmMiddleware>, RevmMiddleware, D>,
+        behavior: impl Behavior<E> + Serialize + DeserializeOwned + 'static,
     ) -> Self {
-        self.event_streamer = Some(self.event_streamer.take().unwrap().add_stream(event));
-        self
-    }
-
-    /// Adds a behavior to the agent that it will run.
-    pub fn with_behavior<E: DeserializeOwned + Send + Sync + Debug + 'static>(
-        mut self,
-        behavior: impl Behavior<E> + 'static,
-    ) -> Self {
-        let event_receiver = self.distributor.0.subscribe();
-
-        let engine = Engine::new(behavior, event_receiver);
+        let engine = Engine::new(behavior);
         if let Some(engines) = &mut self.behavior_engines {
             engines.push(Box::new(engine));
         } else {
@@ -141,171 +91,81 @@ impl Agent {
         self
     }
 
-    pub(crate) async fn run(&mut self, instruction: MachineInstruction) {
-        let behavior_engines = self.behavior_engines.take().unwrap();
-        let behavior_tasks = join_all(behavior_engines.into_iter().map(|mut engine| {
-            tokio::spawn(async move {
-                engine.execute(instruction).await;
-                engine
-            })
-        }));
-        self.behavior_engines = Some(
-            behavior_tasks
-                .await
-                .into_iter()
-                .map(|res| res.unwrap())
-                .collect::<Vec<_>>(),
-        );
+    /// Adds a state machine engine to the agent builder.
+    ///
+    /// This method allows for the addition of a custom state machine engine to
+    /// the agent's behavior engines. If the agent builder already has some
+    /// engines, the new engine is appended to the list. If no engines are
+    /// present, a new list is created with the provided engine as its first
+    /// element.
+    ///
+    /// # Parameters
+    ///
+    /// - `engine`: The state machine engine to be added to the agent builder.
+    ///   This engine must
+    /// implement the `StateMachine` trait and is expected to be provided as a
+    /// boxed trait object to allow for dynamic dispatch.
+    ///
+    /// # Returns
+    ///
+    /// Returns the `AgentBuilder` instance to allow for method chaining.
+    pub(crate) fn with_engine(mut self, engine: Box<dyn StateMachine>) -> Self {
+        if let Some(engines) = &mut self.behavior_engines {
+            engines.push(engine);
+        } else {
+            self.behavior_engines = Some(vec![engine]);
+        };
+        self
     }
-}
 
-#[async_trait::async_trait]
-impl StateMachine for Agent {
-    #[tracing::instrument(skip(self), fields(id = self.id))]
-    async fn execute(&mut self, instruction: MachineInstruction) {
-        match instruction {
-            MachineInstruction::Sync => {
-                debug!("Agent is syncing.");
-                self.state = State::Syncing;
-                self.run(instruction).await;
-            }
-            MachineInstruction::Start => {
-                debug!("Agent is starting up.");
-                self.run(instruction).await;
-            }
-            MachineInstruction::Process => {
-                debug!("Agent is processing.");
-                self.state = State::Processing;
-                let messager = self.messager.take().unwrap();
-                let message_stream = messager
-                    .stream()
-                    .map(|msg| serde_json::to_string(&msg).unwrap_or_else(|e| e.to_string()));
-
-                let eth_event_stream = self.event_streamer.take().unwrap().stream();
-
-                let mut event_stream: Pin<Box<dyn Stream<Item = String> + Send + '_>> =
-                    if let Some(event_stream) = eth_event_stream {
-                        trace!("Merging event streams.");
-                        // Convert the individual streams into a Vec
-                        let all_streams = vec![
-                            Box::pin(message_stream) as Pin<Box<dyn Stream<Item = String> + Send>>,
-                            Box::pin(event_stream),
-                        ];
-                        // Use select_all to combine them
-                        Box::pin(futures::stream::select_all(all_streams))
-                    } else {
-                        trace!("Agent only sees message stream.");
-                        Box::pin(message_stream)
-                    };
-
-                let sender = self.distributor.0.clone();
-                self.broadcast_task = Some(tokio::spawn(async move {
-                    while let Some(event) = event_stream.next().await {
-                        sender.send(event).unwrap();
-                    }
-                    event_stream
-                }));
-                self.run(instruction).await;
-            }
-            MachineInstruction::Stop => {
-                unreachable!("This is never explicitly called on an agent.")
-            }
+    /// Constructs and returns a new [`Agent`] instance using the provided
+    /// `client` and `messager`.
+    ///
+    /// This method finalizes the building process of an [`Agent`] by taking
+    /// ownership of the builder, and attempting to construct an `Agent`
+    /// with the accumulated configurations and the provided `client` and
+    /// `messager`. The `client` is an [`Arc<RevmMiddleware>`] that represents
+    /// the connection to the blockchain or environment, and `messager` is a
+    /// communication layer for the agent.
+    ///
+    /// # Parameters
+    ///
+    /// - `client`: A shared [`Arc<RevmMiddleware>`] instance that provides the
+    ///   agent with access to the blockchain or environment.
+    /// - `messager`: A [`Messager`] instance for the agent to communicate with
+    ///   other agents or systems.
+    ///
+    /// # Returns
+    ///
+    /// Returns a `Result` that, on success, contains the newly created
+    /// [`Agent`] instance. On failure, it returns an
+    /// [`AgentBuildError::MissingBehaviorEngines`] error indicating that the
+    /// agent was attempted to be built without any behavior engines
+    /// configured.
+    ///
+    /// # Examples
+    ///
+    /// ```ignore
+    /// let agent_builder = AgentBuilder::new("agent_id");
+    /// let client = Arc::new(RevmMiddleware::new(...));
+    /// let messager = Messager::new(...);
+    /// let agent = agent_builder.build(client, messager).expect("Failed to build agent");
+    /// ```
+    pub fn build(
+        self,
+        client: Arc<ArbiterMiddleware>,
+        messager: Messager,
+    ) -> Result<Agent, ArbiterEngineError> {
+        match self.behavior_engines {
+            Some(engines) => Ok(Agent {
+                id: self.id,
+                messager,
+                client,
+                behavior_engines: engines,
+            }),
+            None => Err(ArbiterEngineError::AgentBuildError(
+                "Missing behavior engines".to_owned(),
+            )),
         }
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use arbiter_bindings::bindings::arbiter_token::ArbiterToken;
-    use ethers::types::U256;
-
-    use super::*;
-    use crate::messager::Message;
-
-    #[tokio::test(flavor = "multi_thread", worker_threads = 4)]
-    async fn streaming() {
-        // std::env::set_var("RUST_LOG", "trace");
-        // tracing_subscriber::fmt::init();
-
-        let world = World::new("world");
-        let agent = Agent::new("agent", &world);
-
-        let arb = ArbiterToken::deploy(
-            agent.client.clone(),
-            ("ArbiterToken".to_string(), "ARB".to_string(), 18u8),
-        )
-        .unwrap()
-        .send()
-        .await
-        .unwrap();
-
-        let mut agent = agent.with_event(arb.events());
-        let address = agent.client.address();
-
-        // TODO: (START BLOCK) It would be nice to get this block to be a single
-        // function that isn't copy and pasted from above.
-        let messager = agent.messager.take().unwrap();
-        let message_stream = messager
-            .stream()
-            .map(|msg| serde_json::to_string(&msg).unwrap_or_else(|e| e.to_string()));
-        let eth_event_stream = agent.event_streamer.take().unwrap().stream();
-
-        let mut event_stream: Pin<Box<dyn Stream<Item = String> + Send + '_>> =
-            if let Some(event_stream) = eth_event_stream {
-                trace!("Merging event streams.");
-                let all_streams = vec![
-                    Box::pin(message_stream) as Pin<Box<dyn Stream<Item = String> + Send>>,
-                    Box::pin(event_stream),
-                ];
-                Box::pin(futures::stream::select_all(all_streams))
-            } else {
-                trace!("Agent only sees message stream.");
-                Box::pin(message_stream)
-            };
-        // TODO: (END BLOCK)
-
-        let outside_messager = world.messager.join_with_id(None);
-        let message_task = tokio::spawn(async move {
-            for _ in 0..5 {
-                outside_messager
-                    .send(Message {
-                        from: "god".to_string(),
-                        to: messager::To::All,
-                        data: "hello".to_string(),
-                    })
-                    .await;
-            }
-        });
-
-        let eth_event_task = tokio::spawn(async move {
-            for i in 0..5 {
-                if i == 0 {
-                    tokio::time::sleep(std::time::Duration::from_secs(1)).await;
-                }
-                arb.approve(address, U256::from(1))
-                    .send()
-                    .await
-                    .unwrap()
-                    .await
-                    .unwrap();
-            }
-        });
-
-        let mut idx = 0;
-        let print_task = tokio::spawn(async move {
-            while let Some(msg) = event_stream.next().await {
-                println!("Printing message in test: {:?}", msg);
-                if idx < 5 {
-                    assert_eq!(msg, "{\"from\":\"god\",\"to\":\"All\",\"data\":\"hello\"}");
-                } else {
-                    assert_eq!(msg, "{\"ApprovalFilter\":{\"owner\":\"0xe7a46f3d9f0e9b9c02f58f95e3bcee2db54050b0\",\"spender\":\"0xe7a46f3d9f0e9b9c02f58f95e3bcee2db54050b0\",\"amount\":\"0x1\"}}");
-                }
-                idx += 1;
-                if idx == 10 {
-                    break;
-                }
-            }
-        });
-        join_all(vec![message_task, eth_event_task, print_task]).await;
     }
 }

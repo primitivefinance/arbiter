@@ -1,0 +1,10 @@
+[package]
+name = "arbiter-macros"
+version = "0.1.0"
+
+[lib]
+proc-macro = true
+
+[dependencies]
+syn.workspace = true
+quote = "1.0.35"
