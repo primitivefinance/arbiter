@@ -13,40 +13,40 @@ readme = "../README.md"
 
 # Dependencies for the release build
 [dependencies]
-arbiter-bindings = { path = "../arbiter-bindings" }
+arbiter-bindings.workspace = true
 
 # Ethereum and EVM
-uint = "0.9.5"
 ethers.workspace = true
 revm.workspace = true
 revm-primitives.workspace = true
-hashbrown = "0.14.3"
+
 
 # Serialization
-bytes = { version = "=1.5.0" }
 serde.workspace = true
 serde_json.workspace = true
+
+# Types
+bytes = { version = "=1.5.0" }
 hex = { version = "=0.4.3", default-features = false }
+hashbrown = "0.14.3"
+uint = "0.9.5"
 
 # Concurrency/async
 tokio.workspace = true
+futures-util.workspace = true
 async-trait.workspace = true
 async-stream.workspace = true
 crossbeam-channel.workspace = true
 futures-timer = { version = "=3.0.2" }
 futures-locks = { version = "=0.7.1" }
 
-
 # Randomness
 rand = { version = "=0.8.5" }
-rand_distr = { version = "=0.4.3" }
-statrs = { version = "=0.16.0" }
 
 # Errors
 thiserror.workspace = true
 
 # Logging
-futures-util.workspace = true
 tracing.workspace = true
 
 # File types
@@ -54,15 +54,14 @@ polars = { version = "0.37.0", features = ["parquet", "csv", "json"] }
 
 # Dependencies for the test build and development
 [dev-dependencies]
-anyhow = { version = "=1.0.79" }
-test-log = { version = "=0.2.14" }
-tracing-test = "0.2.4"
+# anyhow = { version = "=1.0.79" }
+# test-log = { version = "=0.2.14" }
+# tracing-test = "0.2.4"
 tracing-subscriber = "0.3.18"
 
-polars = "0.37.0"
 cargo_metadata = "0.18.1"
 chrono = "0.4.33"
-futures = { version = "=0.3.30" }
+futures.workspace = true
 
 assert_matches = { version = "=1.5" }
 
