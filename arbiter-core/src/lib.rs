@@ -16,8 +16,6 @@
 //! without associated overheads like networking latency.
 //!
 //! Key Features:
-//! - **Manager Interface**: The main user entry-point that offers management of
-//!   different environments and agents.
 //! - **Environment Handling**: Detailed setup and control mechanisms for
 //!   running the Ethereum-like blockchain environment.
 //! - **Middleware Implementation**: Customized middleware to reduce overhead
