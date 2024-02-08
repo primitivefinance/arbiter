@@ -3,7 +3,7 @@
 use tokio::sync::broadcast::{channel, Receiver, Sender};
 
 use super::*;
-use crate::machine::BehaviorStream;
+use crate::machine::EventStream;
 
 /// A message that can be sent between agents.
 #[derive(Clone, Debug, Deserialize, Serialize)]
@@ -104,7 +104,7 @@ impl Messager {
 
     /// Returns a stream of messages that are either sent to [`To::All`] or to
     /// the agent via [`To::Agent(id)`].
-    pub fn stream(mut self) -> Result<BehaviorStream<Message>, ArbiterEngineError> {
+    pub fn stream(mut self) -> Result<EventStream<Message>, ArbiterEngineError> {
         let mut receiver = match self.broadcast_receiver.take() {
             Some(receiver) => receiver,
             None => {

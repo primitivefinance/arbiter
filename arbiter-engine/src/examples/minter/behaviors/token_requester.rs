@@ -1,16 +1,15 @@
 use arbiter_bindings::bindings::arbiter_token::TransferFilter;
 use arbiter_core::events::Logger;
+use ethers::providers::SubscriptionStream;
+use futures::StreamExt;
+use futures_util::stream::Stream;
 use token_admin::{MintRequest, TokenAdminQuery};
 
 use self::{
     errors::ArbiterEngineError, examples::minter::agents::token_requester::TokenRequester,
-    machine::BehaviorStream,
+    machine::EventStream,
 };
-
 use super::*;
-use ethers::providers::SubscriptionStream;
-use futures::StreamExt;
-use futures_util::stream::Stream;
 
 #[async_trait::async_trait]
 impl Behavior<TransferFilter> for TokenRequester {
@@ -19,7 +18,7 @@ impl Behavior<TransferFilter> for TokenRequester {
         &mut self,
         client: Arc<ArbiterMiddleware>,
         mut messager: Messager,
-    ) -> Result<BehaviorStream<TransferFilter>> {
+    ) -> Result<EventStream<TransferFilter>> {
         messager
             .send(
                 To::Agent(self.request_to.clone()),
@@ -42,10 +41,9 @@ impl Behavior<TransferFilter> for TokenRequester {
 
         self.messager = Some(messager.clone());
         self.client = Some(client.clone());
-        let transfer_event = token.approval_filter();
-        let stream = transfer_event.stream().await;
-        // println!("stream: {:?}", stream);
-        Err(anyhow::anyhow!("Not implemented"))
+        let transfer_stream =
+            arbiter_core::events::Logger::builder().stream_event(token.transfer_filter());
+        Ok(transfer_stream)
     }
 
     #[tracing::instrument(skip(self), fields(id =

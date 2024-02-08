@@ -19,7 +19,7 @@ use super::*;
 /// # Type Parameters
 ///
 /// * `E`: The type of the items in the stream.
-pub type BehaviorStream<E> = Pin<Box<dyn Stream<Item = E> + Send + Sync>>;
+pub type EventStream<E> = Pin<Box<dyn Stream<Item = E> + Send + Sync>>;
 
 /// The instructions that can be sent to a [`StateMachine`].
 #[derive(Clone, Debug)]
@@ -78,7 +78,7 @@ pub trait Behavior<E>: Serialize + DeserializeOwned + Send + Sync + Debug + 'sta
         &mut self,
         client: Arc<ArbiterMiddleware>,
         messager: Messager,
-    ) -> Result<BehaviorStream<E>>;
+    ) -> Result<EventStream<E>>;
 
     /// Used to process events.
     /// This is where the agent can engage in its specific processing
@@ -171,7 +171,7 @@ where
     /// The receiver of events that the [`Engine`] will process.
     /// The [`State::Processing`] stage will attempt a decode of the [`String`]s
     /// into the event type `<E>`.
-    event_stream: Option<BehaviorStream<E>>,
+    event_stream: Option<EventStream<E>>,
 
     phantom: std::marker::PhantomData<E>,
 }
@@ -218,7 +218,7 @@ where
             MachineInstruction::Start(client, messager) => {
                 self.state = State::Starting;
                 let mut behavior = self.behavior.take().unwrap();
-                let behavior_task: JoinHandle<Result<(BehaviorStream<E>, B)>> =
+                let behavior_task: JoinHandle<Result<(EventStream<E>, B)>> =
                     tokio::spawn(async move {
                         let id = messager.id.clone();
                         let stream = behavior.startup(client, messager).await?;

@@ -58,26 +58,26 @@ async fn token_minter_simulation() {
         Address::from_str("0x240a76d4c8a7dafc6286db5fa6b589e8b21fc00f").unwrap(),
         client.clone(),
     );
-    let transfer_event = arb.transfer_filter();
+    let mut transfer_stream =
+        arbiter_core::events::Logger::builder().stream_event(arb.transfer_filter());
 
-    let transfer_stream = transfer_event.stream().await;
     world.run().await;
     let mut idx = 0;
 
-    // loop {
-    //     match timeout(Duration::from_secs(1), transfer_stream.next()).await {
-    //         Ok(Some(event)) => {
-    //             println!("Event received in outside world: {:?}", event);
-    //             idx += 1;
-    //             if idx == 4 {
-    //                 break;
-    //             }
-    //         }
-    //         _ => {
-    //             panic!("Timeout reached. Test failed.");
-    //         }
-    //     }
-    // }
+    loop {
+        match timeout(Duration::from_secs(1), transfer_stream.next()).await {
+            Ok(Some(event)) => {
+                println!("Event received in outside world: {:?}", event);
+                idx += 1;
+                if idx == 4 {
+                    break;
+                }
+            }
+            _ => {
+                panic!("Timeout reached. Test failed.");
+            }
+        }
+    }
 }
 
 #[derive(Serialize, Deserialize, Debug, Behaviors)]

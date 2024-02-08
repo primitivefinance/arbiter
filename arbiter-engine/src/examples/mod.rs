@@ -13,7 +13,7 @@ use crate::{
     agent::Agent,
     errors::ArbiterEngineError,
     machine::{
-        Behavior, BehaviorStream, ControlFlow, CreateStateMachine, Engine, State, StateMachine,
+        Behavior, ControlFlow, CreateStateMachine, Engine, EventStream, State, StateMachine,
     },
     messager::{Message, Messager, To},
     world::World,

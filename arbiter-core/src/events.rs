@@ -344,15 +344,43 @@ impl Logger {
     /// Adds an event to the `EventLogger` and generates a unique ID for the
     /// event since we don't need to name events that are solely streamed and
     /// not stored.
-    pub fn with_stream<D: EthLogDecode + Debug + Serialize + 'static>(
-        self,
+    pub fn stream_event<D: EthLogDecode + Debug + Serialize + 'static>(
+        mut self,
         event: Event<Arc<ArbiterMiddleware>, ArbiterMiddleware, D>,
-    ) -> Self {
+    ) -> Pin<Box<dyn Stream<Item = D> + Send + Sync>> {
         let mut hasher = Sha256::new();
         hasher.update(serde_json::to_string(&event.filter).unwrap());
         let hash = hasher.finalize();
         let id = hex::encode(hash);
-        self.with_event(event, id)
+        self = self.with_event(event, id);
+
+        if let Some(mut receiver) = self.receiver.take() {
+            let stream = async_stream::stream! {
+                while let Ok(broadcast) = receiver.recv().await {
+                    match broadcast {
+                        Broadcast::StopSignal => {
+                            trace!("`EventLogger` has seen a stop signal");
+                            break;
+                        }
+                        Broadcast::Event(event, receipt_data) => {
+                            trace!("`EventLogger` received an event");
+                            let ethers_logs = revm_logs_to_ethers_logs(event, &receipt_data);
+                            for log in &ethers_logs {
+                                for (_id, (filter, _)) in self.decoder.iter() {
+                                    if filter.filter_address(log) && filter.filter_topics(log) {
+                                        let raw_log = RawLog::from(log.clone());
+                                        yield D::decode_log(&raw_log).unwrap();
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            };
+            Box::pin(stream)
+        } else {
+            unreachable!()
+        }
     }
 
     /// Returns a stream of the serialized events.
