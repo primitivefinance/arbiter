@@ -7,12 +7,11 @@
 
 use std::{collections::HashMap, fmt::Debug, sync::Arc};
 
+use crate::{errors::ArbiterEngineError, messager::Messager};
 use futures_util::future::join_all;
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
 use tokio::task::{spawn, JoinError};
 use tracing::{debug, trace, warn};
-
-use crate::{errors::ArbiterEngineError, messager::Messager};
 
 pub mod agent;
 pub mod errors;

@@ -31,7 +31,7 @@ impl Behavior<Message> for TokenAdmin {
         &mut self,
         client: Arc<ArbiterMiddleware>,
         messager: Messager,
-    ) -> Result<EventStream<Message>, ArbiterEngineError> {
+    ) -> Result<EventStream<Message>> {
         self.messager = Some(messager.clone());
         self.client = Some(client.clone());
         for token_data in self.token_data.values_mut() {
@@ -53,12 +53,12 @@ impl Behavior<Message> for TokenAdmin {
                 .get_or_insert_with(HashMap::new)
                 .insert(token_data.name.clone(), token.clone());
         }
-        messager.stream()
+        Ok(messager.stream()?)
     }
 
     #[tracing::instrument(skip(self), fields(id =
  self.messager.as_ref().unwrap().id.as_deref()))]
-    async fn process(&mut self, event: Message) -> Result<ControlFlow, ArbiterEngineError> {
+    async fn process(&mut self, event: Message) -> Result<ControlFlow> {
         if self.tokens.is_none() {
             error!(
                 "There were no tokens to deploy! You must add tokens to
