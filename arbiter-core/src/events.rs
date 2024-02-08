@@ -427,9 +427,9 @@ pub fn stream_event<D: EthLogDecode + Debug + Serialize + 'static>(
     hasher.update(serde_json::to_string(&event.filter).unwrap());
     let hash = hasher.finalize();
     let id = hex::encode(hash);
-    self = Logger::builder().with_event(event, id);
+    let mut logger = Logger::builder().with_event(event, id);
 
-    if let Some(mut receiver) = self.receiver.take() {
+    if let Some(mut receiver) = logger.receiver.take() {
         let stream = async_stream::stream! {
             while let Ok(broadcast) = receiver.recv().await {
                 match broadcast {
@@ -441,7 +441,7 @@ pub fn stream_event<D: EthLogDecode + Debug + Serialize + 'static>(
                         trace!("`EventLogger` received an event");
                         let ethers_logs = revm_logs_to_ethers_logs(event, &receipt_data);
                         for log in &ethers_logs {
-                            for (_id, (filter, _)) in self.decoder.iter() {
+                            for (_id, (filter, _)) in logger.decoder.iter() {
                                 if filter.filter_address(log) && filter.filter_topics(log) {
                                     let raw_log = RawLog::from(log.clone());
                                     yield D::decode_log(&raw_log).unwrap();
