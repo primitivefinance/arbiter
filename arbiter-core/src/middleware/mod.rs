@@ -459,6 +459,10 @@ impl Middleware for ArbiterMiddleware {
         let outcome = provider.outcome_receiver.recv()??;
 
         if let Outcome::TransactionCompleted(execution_result, receipt_data) = outcome {
+            let mut block_hasher = Sha256::new();
+            block_hasher.update(receipt_data.block_number.to_string().as_bytes());
+            let block_hash = block_hasher.finalize();
+            let block_hash = Some(H256::from_slice(&block_hash));
             match execution_result {
                 ExecutionResult::Revert { gas_used, output } => {
                     return Err(ArbiterCoreError::ExecutionRevert {
@@ -494,7 +498,7 @@ impl Middleware for ArbiterMiddleware {
                     match output {
                         Output::Create(_, address) => {
                             let tx_receipt = TransactionReceipt {
-                                block_hash: None,
+                                block_hash,
                                 block_number: Some(receipt_data.block_number),
                                 contract_address: Some(recast_address(address.unwrap())),
                                 logs: logs.clone(),
@@ -546,7 +550,7 @@ impl Middleware for ArbiterMiddleware {
                         }
                         Output::Call(_) => {
                             let tx_receipt = TransactionReceipt {
-                                block_hash: None,
+                                block_hash,
                                 block_number: Some(receipt_data.block_number),
                                 contract_address: None,
                                 logs: logs.clone(),
