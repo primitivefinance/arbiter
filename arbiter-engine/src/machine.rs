@@ -157,7 +157,7 @@ pub trait StateMachine: Send + Sync + Debug + 'static {
 /// - `behavior`: An optional behavior that the engine is currently managing.
 ///   This is where the engine's logic is primarily executed in response to
 ///   events.
-pub(crate) struct Engine<B, E>
+pub struct Engine<B, E>
 where
     B: Behavior<E>,
 {
