@@ -1,12 +1,7 @@
 //! The [`universe`] module contains the [`Universe`] struct which is the
 //! primary interface for creating and running many `World`s in parallel.
 
-use std::collections::HashMap;
-
-use anyhow::Result;
-use futures_util::future::join_all;
-use tokio::task::{spawn, JoinError};
-
+use super::*;
 use crate::world::World;
 
 /// The [`Universe`] struct is the primary interface for creating and running
@@ -36,12 +31,14 @@ impl Universe {
     }
 
     /// Runs all of the [`World`]s in the [`Universe`] in parallel.
-    pub async fn run_worlds(&mut self) -> Result<()> {
+    pub async fn run_worlds(&mut self) -> Result<(), ArbiterEngineError> {
         if self.is_online() {
-            return Err(anyhow::anyhow!("Universe is already running."));
+            return Err(ArbiterEngineError::UniverseError(
+                "Universe is already running.".to_owned(),
+            ));
         }
         let mut tasks = Vec::new();
-        // TODO: These unwraps need to be checkdd a bit.
+        // NOTE: Unwrap is safe because we checked if the universe is online.
         for (_, mut world) in self.worlds.take().unwrap().drain() {
             tasks.push(spawn(async move {
                 world.run().await.unwrap();

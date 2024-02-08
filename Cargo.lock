@@ -293,7 +293,6 @@ dependencies = [
 name = "arbiter-engine"
 version = "0.1.0"
 dependencies = [
- "anyhow",
  "arbiter-bindings",
  "arbiter-core",
  "arbiter-macros",

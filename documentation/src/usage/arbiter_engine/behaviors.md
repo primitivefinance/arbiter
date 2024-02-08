@@ -7,17 +7,17 @@ All you should be looking for is how to define your `Agent`s behaviors and what 
 ## `trait Behavior<E>`
 To define a `Behavior`, you need to implement the `Behavior` trait on a struct of your own design.
 The `Behavior` trait is defined as follows:
-```rust
+```rust, ignore
 pub trait Behavior<E> {
-    fn startup(&mut self, client: Arc<RevmMiddleware>, messager: Messager) -> EventStream<E>;
-    fn process(&mut self, event: E) -> Option<MachineHalt>;
+    fn startup(&mut self, client: Arc<RevmMiddleware>, messager: Messager) -> Result<EventStream<E>, ArbiterEngineError>;
+    fn process(&mut self, event: E) -> Result<ControlFlow, ArbiterEngineError>;
 }
 ```
 To outline the design principles here:
 - `startup` is a method that initializes the `Behavior` and returns an `EventStream` that the `Behavior` will use for processing.
     - This method yields a client and messager from the `Agent` that owns the `Behavior`.
     In this method you should take the client and messager and store them in your struct if you will need them in the processing of events.
-    Note, you may not need both or even either!
+    Note, you may not need them!
 - `process` is a method that processes an event of type `E` and returns an `Option<MachineHalt>`. 
     - If `process` returns `Some(MachineHalt)`, then the `Behavior` will stop processing events completely.
 
@@ -28,11 +28,11 @@ Otherwise you risk having a `Behavior` that is too complex and difficult to unde
 
 ### Example
 To see this in use, let's take a look at an example of a `Behavior` called `Replier` that replies to a message with a message of its own, and stops once it has replied a certain number of times.
-```rust
+```rust, ignore
 use std::sync::Arc;
 use arbiter_core::middleware::RevmMiddleware;
 use arbiter_engine::{
-    machine::{Behavior, MachineHalt},
+    machine::{Behavior, ControlFlow},
     messager::{Messager, To}, 
     EventStream};
 
@@ -68,23 +68,23 @@ impl Behavior<Message> for Replier {
         &mut self,
         client: Arc<RevmMiddleware>,
         messager: Messager,
-    ) -> EventStream<Message> {
+    ) -> Result<EventStream<Message>, ArbiterEngineError> {
         if let Some(startup_message) = &self.startup_message {
             messager.send(To::All, startup_message).await;
         }
         self.messager = Some(messager.clone());
-        return messager.stream();
+        messager.stream()
     }
 
-    async fn process(&mut self, event: Message) -> Option<MachineHalt> {
+    async fn process(&mut self, event: Message) -> Result<ControlFlow, ArbiterEngineError> {
         if event.data == self.receive_data {
             self.messager.unwrap().messager.send(To::All, send_data).await;
             self.count += 1;
         }
         if self.count == self.max_count {
-            return Some(MachineHalt);
+            return Ok(ControlFlow::Halt);
         }
-        return None
+        Ok(ControlFlow::Continue)
     }
 }
 ```

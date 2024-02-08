@@ -56,24 +56,24 @@ impl Behavior<Message> for TimedMessage {
         &mut self,
         _client: Arc<ArbiterMiddleware>,
         messager: Messager,
-    ) -> EventStream<Message> {
+    ) -> Result<EventStream<Message>, ArbiterEngineError> {
         if let Some(startup_message) = &self.startup_message {
             messager.send(To::All, startup_message).await;
         }
         self.messager = Some(messager.clone());
-        return messager.stream();
+        messager.stream()
     }
 
-    async fn process(&mut self, event: Message) -> Option<MachineHalt> {
+    async fn process(&mut self, event: Message) -> Result<ControlFlow, ArbiterEngineError> {
         if event.data == serde_json::to_string(&self.receive_data).unwrap() {
             let messager = self.messager.clone().unwrap();
             messager.send(To::All, self.send_data.clone()).await;
             self.count += 1;
         }
         if self.count == self.max_count.unwrap_or(u64::MAX) {
-            return Some(MachineHalt);
+            return Ok(ControlFlow::Halt);
         }
-        return None;
+        Ok(ControlFlow::Continue)
     }
 }
 
@@ -94,7 +94,7 @@ async fn echoer() {
 
     world.run().await;
 
-    let mut stream = Box::pin(messager.stream());
+    let mut stream = messager.stream().unwrap();
     let mut idx = 0;
 
     loop {
@@ -136,7 +136,7 @@ async fn ping_pong() {
     let messager = world.messager.for_agent("outside_world");
     world.run().await;
 
-    let mut stream = Box::pin(messager.stream());
+    let mut stream = messager.stream().unwrap();
     let mut idx = 0;
 
     loop {
@@ -177,7 +177,7 @@ async fn ping_pong_two_agent() {
     let messager = world.messager.for_agent("outside_world");
     world.run().await;
 
-    let mut stream = Box::pin(messager.stream());
+    let mut stream = messager.stream().unwrap();
     let mut idx = 0;
 
     loop {

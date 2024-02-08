@@ -10,7 +10,7 @@ The choice is yours.
 
 ## `struct Universe`
 The `Universe` struct looks like this:
-```rust
+```rust, ignore
 pub struct Universe {
     worlds: Option<HashMap<String, World>>,
     world_tasks: Option<Vec<Result<World, JoinError>>>,
@@ -24,7 +24,7 @@ The `Universe::run_worlds` currently iterates through the `World`s and starts th
 
 ## `struct World`
 The `World` struct looks like this:
-```rust
+```rust, ignore
 pub struct World {
     pub id: String,
     pub agents: Option<HashMap<String, Agent>>,
@@ -42,7 +42,7 @@ In future development, the `World` will be generic over your choice of `Provider
 
 ## Example
 Let's first do a quick example where we take a `World` and add an `Agent` to it.
-```rust
+```rust, ignore
 use arbiter_engine::{agent::Agent, world::World};
 use crate::Replier;
 
@@ -56,13 +56,13 @@ fn setup_world(id: &str) -> World {
     world.add_agent(agent);
 }
 
-fn main() {
+async fn run() {
     let world = setup_world("my_world");
     world.run().await;
 }
 ```
 If you wanted to extend this to use a `Universe`, you would simply create a `Universe` and add the `World` to it.
-```rust
+```rust, ignore
 use arbiter_engine::{agent::Agent, world::World};
 use crate::Replier;
 

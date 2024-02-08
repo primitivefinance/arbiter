@@ -14,7 +14,7 @@ use tracing::error;
 use super::*;
 use crate::{
     agent::Agent,
-    machine::{Behavior, MachineHalt, MachineInstruction, StateMachine},
+    machine::{Behavior, ControlFlow, MachineInstruction, StateMachine},
     messager::To,
     world::World,
 };
