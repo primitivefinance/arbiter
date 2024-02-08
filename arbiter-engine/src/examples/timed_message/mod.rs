@@ -4,6 +4,7 @@ const AGENT_ID: &str = "agent";
 
 use std::{pin::Pin, time::Duration};
 
+use anyhow::Result;
 use arbiter_macros::Behaviors;
 use ethers::types::BigEndianHash;
 use futures_util::Stream;
@@ -56,15 +57,15 @@ impl Behavior<Message> for TimedMessage {
         &mut self,
         _client: Arc<ArbiterMiddleware>,
         messager: Messager,
-    ) -> Result<EventStream<Message>, ArbiterEngineError> {
+    ) -> Result<EventStream<Message>> {
         if let Some(startup_message) = &self.startup_message {
             messager.send(To::All, startup_message).await;
         }
         self.messager = Some(messager.clone());
-        messager.stream()
+        Ok(messager.stream()?)
     }
 
-    async fn process(&mut self, event: Message) -> Result<ControlFlow, ArbiterEngineError> {
+    async fn process(&mut self, event: Message) -> Result<ControlFlow> {
         if event.data == serde_json::to_string(&self.receive_data).unwrap() {
             let messager = self.messager.clone().unwrap();
             messager.send(To::All, self.send_data.clone()).await;

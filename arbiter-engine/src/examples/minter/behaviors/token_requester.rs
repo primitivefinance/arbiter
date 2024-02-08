@@ -15,7 +15,7 @@ impl Behavior<TransferFilter> for TokenRequester {
         &mut self,
         client: Arc<ArbiterMiddleware>,
         mut messager: Messager,
-    ) -> Result<EventStream<TransferFilter>, ArbiterEngineError> {
+    ) -> Result<EventStream<TransferFilter>> {
         messager
             .send(
                 To::Agent(self.request_to.clone()),
@@ -49,7 +49,7 @@ impl Behavior<TransferFilter> for TokenRequester {
 
     #[tracing::instrument(skip(self), fields(id =
  self.messager.as_ref().unwrap().id.as_deref()))]
-    async fn process(&mut self, event: TransferFilter) -> Result<ControlFlow, ArbiterEngineError> {
+    async fn process(&mut self, event: TransferFilter) -> Result<ControlFlow> {
         let messager = self.messager.as_ref().unwrap();
         while (self.count < self.max_count.unwrap()) {
             debug!("sending message from requester");
