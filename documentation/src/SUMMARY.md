@@ -1,18 +1,19 @@
 # Summary
 [Arbiter](./index.md)
 - [Getting Started](./getting_started/index.md)
-  - [Installation](./getting_started/installation.md)
-  - [Setting up Simulations](./getting_started/setting_up_simulations.md)
-
 # Usage
 - [Overview](./usage/index.md)
-  - [Arbiter CLI](./usage/arbiter_cli.md)
   - [Arbiter Core](./usage/arbiter_core/index.md)
     - [Environment](./usage/arbiter_core/environment.md)
     - [Middleware](./usage/arbiter_core/middleware.md)
-  - [Arbiter Engine](./usage/arbiter_engine.md)
+  - [Arbiter Engine](./usage/arbiter_engine/index.md)
+    - [Behaviors](./usage/arbiter_engine/behaviors.md)
+    - [Agents and Engines](./usage/arbiter_engine/agents_and_engines.md)
+    - [Worlds and Universes](./usage/arbiter_engine/worlds_and_universes.md)
+    - [Configuration](./usage/arbiter_engine/configuration.md)
+  - [Arbiter CLI](./usage/arbiter_cli.md)
+  - [Arbiter Macros](./usage/arbiter_macros.md)
 - [Techniques](./usage/techniques/index.md)
-  - [Stateful Testing](./usage/techniques/stateful_testing.md)
   - [Anomaly Detection](./usage/techniques/anomaly_detection.md)  
   - [Measuring Risk](./usage/techniques/measuring_risk.md)
 # Engagement

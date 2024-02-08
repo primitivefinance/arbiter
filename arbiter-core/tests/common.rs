@@ -1,31 +1,11 @@
-#![allow(missing_docs)]
-
-mod contracts;
-mod data_collection_integration;
-mod environment_integration;
-mod middleware_integration;
-
-use std::{str::FromStr, sync::Arc};
+use std::sync::Arc;
 
 use anyhow::Result;
 use arbiter_bindings::bindings::{
     arbiter_math::ArbiterMath, arbiter_token::ArbiterToken, liquid_exchange::LiquidExchange,
 };
-use ethers::{
-    prelude::{
-        k256::sha2::{Digest, Sha256},
-        EthLogDecode, Middleware,
-    },
-    providers::ProviderError,
-    types::{Address, Filter, ValueOrArray, U256},
-    utils::parse_ether,
-};
-use futures::StreamExt;
-
-use crate::{
-    environment::{cheatcodes::*, *},
-    middleware::*,
-};
+use arbiter_core::{environment::Environment, middleware::ArbiterMiddleware};
+use ethers::utils::parse_ether;
 
 pub const TEST_ARG_NAME: &str = "ArbiterToken";
 pub const TEST_ARG_SYMBOL: &str = "ARBT";
@@ -48,13 +28,13 @@ pub const ARBITER_TOKEN_Y_DECIMALS: u8 = 18;
 
 pub const LIQUID_EXCHANGE_PRICE: f64 = 420.69;
 
-fn startup() -> Result<(Environment, Arc<RevmMiddleware>)> {
-    let env = EnvironmentBuilder::new().build();
-    let client = RevmMiddleware::new(&env, Some(TEST_SIGNER_SEED_AND_LABEL))?;
+fn startup() -> Result<(Environment, Arc<ArbiterMiddleware>)> {
+    let env = Environment::builder().build();
+    let client = ArbiterMiddleware::new(&env, Some(TEST_SIGNER_SEED_AND_LABEL))?;
     Ok((env, client))
 }
 
-async fn deploy_arbx(client: Arc<RevmMiddleware>) -> Result<ArbiterToken<RevmMiddleware>> {
+async fn deploy_arbx(client: Arc<ArbiterMiddleware>) -> Result<ArbiterToken<ArbiterMiddleware>> {
     Ok(ArbiterToken::deploy(
         client,
         (
@@ -67,7 +47,7 @@ async fn deploy_arbx(client: Arc<RevmMiddleware>) -> Result<ArbiterToken<RevmMid
     .await?)
 }
 
-async fn deploy_arby(client: Arc<RevmMiddleware>) -> Result<ArbiterToken<RevmMiddleware>> {
+async fn deploy_arby(client: Arc<ArbiterMiddleware>) -> Result<ArbiterToken<ArbiterMiddleware>> {
     Ok(ArbiterToken::deploy(
         client,
         (
@@ -81,11 +61,11 @@ async fn deploy_arby(client: Arc<RevmMiddleware>) -> Result<ArbiterToken<RevmMid
 }
 
 async fn deploy_liquid_exchange(
-    client: Arc<RevmMiddleware>,
+    client: Arc<ArbiterMiddleware>,
 ) -> Result<(
-    ArbiterToken<RevmMiddleware>,
-    ArbiterToken<RevmMiddleware>,
-    LiquidExchange<RevmMiddleware>,
+    ArbiterToken<ArbiterMiddleware>,
+    ArbiterToken<ArbiterMiddleware>,
+    LiquidExchange<ArbiterMiddleware>,
 )> {
     let arbx = deploy_arbx(client.clone()).await?;
     let arby = deploy_arby(client.clone()).await?;
@@ -96,6 +76,8 @@ async fn deploy_liquid_exchange(
     Ok((arbx, arby, liquid_exchange))
 }
 
-async fn deploy_arbiter_math(client: Arc<RevmMiddleware>) -> Result<ArbiterMath<RevmMiddleware>> {
+async fn deploy_arbiter_math(
+    client: Arc<ArbiterMiddleware>,
+) -> Result<ArbiterMath<ArbiterMiddleware>> {
     Ok(ArbiterMath::deploy(client, ())?.send().await?)
 }

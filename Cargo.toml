@@ -1,6 +1,12 @@
 [workspace]
 # List of crates included in this workspace
-members = [ "arbiter-bindings", "arbiter-core", "arbiter-engine", "documentation"]
+members = [
+    "arbiter-bindings",
+    "arbiter-core",
+    "arbiter-engine",
+    "arbiter-macros",
+    "documentation",
+]
 
 # List of crates excluded from this workspace
 exclude = ["benches"]
@@ -10,7 +16,10 @@ exclude = ["benches"]
 name = "arbiter"
 version = "0.4.13"
 edition = "2021"
-authors = ["Waylon Jepsen <waylonjepsen1@gmail.com>", "Colin Roberts <colin@autoparallel.xyz>"]
+authors = [
+    "Waylon Jepsen <waylonjepsen1@gmail.com>",
+    "Colin Roberts <colin@autoparallel.xyz>",
+]
 description = "Allowing smart contract developers to do simulation driven development via an EVM emulator"
 license = "Apache-2.0"
 keywords = ["ethereum", "evm", "emulator", "testing", "smart-contracts"]
@@ -23,21 +32,23 @@ path = "bin/main.rs"
 [workspace.dependencies]
 arbiter-bindings = { version = "*", path = "./arbiter-bindings" }
 arbiter-core = { version = "*", path = "./arbiter-core" }
-ethers = { version = "2.0.11" }
+arbiter-macros = { path = "./arbiter-macros" }
+arbiter-engine = { path = "./arbiter-engine" }
+revm = { version = "=4.0.0", features = ["ethersdb", "std", "serde"] }
+revm-primitives = "=2.0.0"
+ethers = { version = "2.0.13" }
 serde = { version = "1.0.193", features = ["derive"] }
-serde_json = { version = "=1.0.108" }
-revm = { git = "https://github.com/bluealloy/revm.git", features = [ "ethersdb", "std", "serde"], rev  = "30bbcdfe81446c9d1e9b37acc95f208943ddf858" }
-revm-primitives = { git = "https://github.com/bluealloy/revm.git", rev = "30bbcdfe81446c9d1e9b37acc95f208943ddf858" }
-thiserror = { version = "1.0.55" }
-syn = { version = "2.0.43" }
-quote = { version = "=1.0.33" }
+serde_json = { version = "1.0.113" }
+thiserror = { version = "1.0.56" }
+syn = { version = "2.0.48", features = ["full"] }
 proc-macro2 = { version = "1.0.78" }
-tokio = { version = "1.35.1", features = ["macros", "full"] }
-crossbeam-channel =  { version = "0.5.11" }
-futures-util =  { version = "=0.3.30" }
-async-trait =  { version = "0.1.76" }
+tokio = { version = "1.36.0", features = ["macros", "full"] }
+crossbeam-channel = { version = "0.5.11" }
+futures-util = { version = "0.3.30" }
+async-trait = { version = "0.1.77" }
 tracing = "0.1.40"
 async-stream = "0.3.5"
+toml = "0.8.10"
 
 # Dependencies for the release build
 [dependencies]
@@ -47,18 +58,17 @@ arbiter-core.workspace = true
 clap = { version = "=4.4.18", features = ["derive"] }
 serde.workspace = true
 serde_json.workspace = true
-config = { version = "=0.13.4" }
+config = { version = "=0.14.0" }
 ethers.workspace = true
 revm.workspace = true
-toml = { version = "=0.8.8" }
+toml.workspace = true
 proc-macro2.workspace = true
 syn.workspace = true
 Inflector = { version = "=0.11.4" }
 
 # Building files
-quote.workspace = true
 foundry-config = { version = "=0.2.0" }
-tempfile = { version = "3.9.0"}
+tempfile = { version = "3.10.0" }
 
 # Errors
 thiserror.workspace = true
@@ -76,5 +86,3 @@ lto = true
 # The Rust compiler splits your crate into multiple codegen units to parallelize (and thus speed up) compilation but at the cost of optimization. 
 # This setting tells the compiler to use only one codegen unit, which will slow down compilation but improve optimization.
 codegen-units = 1
-
-

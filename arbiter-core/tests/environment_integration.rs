@@ -1,7 +1,15 @@
-use arbiter_bindings::bindings::{self, weth::weth};
+use std::str::FromStr;
 
-use super::*;
-use crate::environment::fork::Fork;
+use arbiter_bindings::bindings::{self, weth::weth};
+use arbiter_core::database::fork::Fork;
+use ethers::{
+    prelude::{
+        k256::sha2::{Digest, Sha256},
+        Middleware,
+    },
+    types::{Address, U256 as eU256},
+};
+include!("common.rs");
 
 #[tokio::test]
 async fn receipt_data() {
@@ -33,7 +41,7 @@ async fn receipt_data() {
     assert_eq!(receipt.transaction_index, 1.into());
     assert_eq!(receipt.from, client.default_sender().unwrap());
 
-    let mut cumulative_gas = U256::from(0);
+    let mut cumulative_gas = eU256::from(0);
     assert!(receipt.cumulative_gas_used >= cumulative_gas);
     cumulative_gas += receipt.cumulative_gas_used;
 
@@ -85,10 +93,10 @@ async fn fork_into_arbiter() {
     let fork = Fork::from_disk("../example_fork/fork_into_test.json").unwrap();
 
     // Get the environment going
-    let environment = EnvironmentBuilder::new().with_db(fork.db).build();
+    let environment = Environment::builder().with_db(fork.db).build();
 
     // Create a client
-    let client = RevmMiddleware::new(&environment, Some("name")).unwrap();
+    let client = ArbiterMiddleware::new(&environment, Some("name")).unwrap();
 
     // Deal with the weth contract
     let weth_meta = fork.contracts_meta.get("weth").unwrap();
@@ -103,13 +111,13 @@ async fn fork_into_arbiter() {
         .call()
         .await
         .unwrap();
-    assert_eq!(balance, U256::from(34890707020710109111_u128));
+    assert_eq!(balance, eU256::from(34890707020710109111_u128));
 
     // eoa check
     let eoa = fork.eoa.get("vitalik").unwrap();
     let eth_balance = client.get_balance(*eoa, None).await.unwrap();
     // Check the balance of the eoa with the load cheatcode
-    assert_eq!(eth_balance, U256::from(934034962177715175765_u128));
+    assert_eq!(eth_balance, eU256::from(934034962177715175765_u128));
 }
 
 #[tokio::test]
@@ -117,10 +125,11 @@ async fn middleware_from_forked_eo() {
     let fork = Fork::from_disk("../example_fork/fork_into_test.json").unwrap();
 
     // Get the environment going
-    let environment = EnvironmentBuilder::new().with_db(fork.db).build();
+    let environment = Environment::builder().with_db(fork.db).build();
 
     let vitalik_address = fork.eoa.get("vitalik").unwrap();
-    let vitalik_as_a_client = RevmMiddleware::new_from_forked_eoa(&environment, *vitalik_address);
+    let vitalik_as_a_client =
+        ArbiterMiddleware::new_from_forked_eoa(&environment, *vitalik_address);
     assert!(vitalik_as_a_client.is_ok());
     let vitalik_as_a_client = vitalik_as_a_client.unwrap();
 
@@ -136,7 +145,7 @@ async fn middleware_from_forked_eo() {
         .get_balance(*vitalik_address, None)
         .await
         .unwrap();
-    assert_eq!(eth_balance, U256::from(934034962177715175765_u128));
+    assert_eq!(eth_balance, eU256::from(934034962177715175765_u128));
 }
 
 #[tokio::test]
@@ -144,6 +153,5 @@ async fn env_returns_db() {
     let (environment, client) = startup().unwrap();
     deploy_arbx(client).await.unwrap();
     let db = environment.stop().unwrap();
-    assert!(db.is_some());
-    assert!(!db.unwrap().0.read().unwrap().accounts.is_empty())
+    assert!(!db.0.read().unwrap().accounts.is_empty())
 }

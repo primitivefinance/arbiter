@@ -1,4 +1,4 @@
-use arbiter_core::environment::fork::Fork;
+use arbiter_core::database::fork::Fork;
 
 use super::*;
 

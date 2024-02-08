@@ -1,12 +1,13 @@
 use std::path::Path;
 
-use serde::Serialize;
-
-use super::*;
-use crate::{
+use arbiter_core::{
     data_collection::{EventLogger, OutputFileType},
-    middleware::errors::RevmMiddlewareError,
+    errors::ArbiterCoreError,
 };
+use ethers::types::U256 as eU256;
+use futures::StreamExt;
+use serde::Serialize;
+include!("common.rs");
 
 #[derive(Serialize, Clone)]
 struct MockMetadata {
@@ -14,23 +15,23 @@ struct MockMetadata {
 }
 
 async fn generate_events(
-    arbx: ArbiterToken<RevmMiddleware>,
-    arby: ArbiterToken<RevmMiddleware>,
-    lex: LiquidExchange<RevmMiddleware>,
-    client: Arc<RevmMiddleware>,
-) -> Result<(), RevmMiddlewareError> {
+    arbx: ArbiterToken<ArbiterMiddleware>,
+    arby: ArbiterToken<ArbiterMiddleware>,
+    lex: LiquidExchange<ArbiterMiddleware>,
+    client: Arc<ArbiterMiddleware>,
+) -> Result<(), ArbiterCoreError> {
     for _ in 0..2 {
-        arbx.approve(client.address(), U256::from(1))
+        arbx.approve(client.address(), eU256::from(1))
             .send()
             .await
             .unwrap()
             .await?;
-        arby.approve(client.address(), U256::from(1))
+        arby.approve(client.address(), eU256::from(1))
             .send()
             .await
             .unwrap()
             .await?;
-        lex.set_price(U256::from(10u128.pow(18)))
+        lex.set_price(eU256::from(10u128.pow(18)))
             .send()
             .await
             .unwrap()

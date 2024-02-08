@@ -1,11 +1,17 @@
-use arbiter_bindings::bindings::arbiter_token::ApprovalFilter;
-use ethers::{
-    types::{transaction::eip2718::TypedTransaction, Log},
-    utils::parse_ether,
-};
+use std::str::FromStr;
 
-use super::*;
-use crate::middleware::nonce_middleware::NonceManagerMiddleware;
+use arbiter_bindings::bindings::arbiter_token::ApprovalFilter;
+use arbiter_core::{
+    environment::instruction::{Cheatcodes, CheatcodesReturn},
+    middleware::nonce_middleware::NonceManagerMiddleware,
+};
+use ethers::{
+    prelude::{EthLogDecode, Middleware},
+    providers::ProviderError,
+    types::{transaction::eip2718::TypedTransaction, Address, Filter, Log, ValueOrArray},
+};
+use futures::StreamExt;
+include!("common.rs");
 
 #[tokio::test]
 async fn deploy() {
@@ -104,7 +110,11 @@ async fn filter_watcher() {
         .unwrap()
     );
     let approval_filter_output = ApprovalFilter::decode_log(&event.into()).unwrap();
-    println!("Decoded Log: {:#?}", approval_filter_output);
+    println!(
+        "Decoded
+Log: {:#?}",
+        approval_filter_output
+    );
     assert_eq!(
         approval_filter_output.owner,
         client.default_sender().unwrap()
@@ -142,7 +152,7 @@ async fn filter_address() {
     assert!(!address_watcher_event.data.is_empty());
     assert_eq!(default_watcher_event, address_watcher_event);
 
-    // Create a new token contract to check that the address watcher only gets
+    // Create a new token contract to check that the address watcher onlygets
     // events from the correct contract.
     // Check that only the default watcher gets
     // this event
@@ -175,9 +185,9 @@ async fn filter_address() {
 
     // check that the address_watcher has not received any events
     tokio::select! {
-        _ = address_watcher.next() => panic!("Event received unexpectedly!"),
-        _ = tokio::time::sleep(std::time::Duration::from_secs(1)) => println!("No event captured, as expected. This test passes."),
-    };
+            _ = address_watcher.next() => panic!("Event received unexpectedly!"),
+            _ = tokio::time::sleep(std::time::Duration::from_secs(1)) =>
+    println!("No event captured, as expected. This test passes."),     };
 }
 
 #[tokio::test]
@@ -214,9 +224,10 @@ async fn filter_topics() {
 
     // check that the approval_watcher has not received any events
     tokio::select! {
-        _ = approval_watcher.next() => panic!("Event received unexpectedly!"),
-        _ = tokio::time::sleep(std::time::Duration::from_secs(1)) => println!("No event captured, as expected. This test passes."),
-    };
+            _ = approval_watcher.next() => panic!("Event received
+    unexpectedly!"),         _ =
+    tokio::time::sleep(std::time::Duration::from_secs(1)) => println!("No event
+    captured, as expected. This test passes."),     };
 }
 
 #[tokio::test]
@@ -239,7 +250,7 @@ async fn block_update_receipt() {
     assert_eq!(receipt.block_number, 0.into());
     assert_eq!(
         receipt.cumulative_gas_per_block,
-        revm::primitives::U256::from_str_radix("e12e4", 16).unwrap()
+        ethers::types::U256::from_str_radix("e12e4", 16).unwrap()
     );
     assert_eq!(receipt.transaction_index, 2.into());
 }
@@ -456,13 +467,11 @@ async fn unimplemented_middleware_instruction() {
     let (_environment, client) = startup().unwrap();
 
     // This method is not implemented and likely never will, so it works to test
-    // what happens when we send an unimplemented instruction. We should get a
+    // what happens when we send an unimplemented instruction. We shouldget a
     // "this method is not yet implemented" error.
     let should_be_error = client.client_version().await;
     assert!(should_be_error.is_err());
-    if let crate::middleware::errors::RevmMiddlewareError::Provider(e) =
-        should_be_error.unwrap_err()
-    {
+    if let arbiter_core::errors::ArbiterCoreError::ProviderError(e) = should_be_error.unwrap_err() {
         assert_eq!(
             e.to_string(),
             ProviderError::CustomError(format!(
@@ -516,17 +525,17 @@ fn simulation_signer() -> Result<()> {
 
 #[test]
 fn multiple_signer_addresses() {
-    let environment = EnvironmentBuilder::new().build();
-    let client_1 = RevmMiddleware::new(&environment, Some("0")).unwrap();
-    let client_2 = RevmMiddleware::new(&environment, Some("1")).unwrap();
+    let environment = Environment::builder().build();
+    let client_1 = ArbiterMiddleware::new(&environment, Some("0")).unwrap();
+    let client_2 = ArbiterMiddleware::new(&environment, Some("1")).unwrap();
     assert_ne!(client_1.address(), client_2.address());
 }
 
 #[test]
 fn signer_collision() {
-    let environment = EnvironmentBuilder::new().build();
-    RevmMiddleware::new(&environment, Some("0")).unwrap();
-    assert!(RevmMiddleware::new(&environment, Some("0")).is_err());
+    let environment = Environment::builder().build();
+    ArbiterMiddleware::new(&environment, Some("0")).unwrap();
+    assert!(ArbiterMiddleware::new(&environment, Some("0")).is_err());
 }
 
 #[tokio::test]
@@ -564,7 +573,6 @@ async fn access() {
         .unwrap()
         .await
         .unwrap();
-
     let bal_after = arbiter_token.balance_of(to).call().await.unwrap();
     assert_eq!(bal_after, amount);
 

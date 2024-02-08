@@ -9,11 +9,7 @@
 //! - [`NonceManagerError`]: Error type for the middleware.
 use std::sync::atomic::{AtomicBool, AtomicU64, Ordering};
 
-use async_trait::async_trait;
-use ethers::{
-    providers::{Middleware, MiddlewareError, PendingTransaction},
-    types::transaction::eip2718::TypedTransaction,
-};
+use ethers::providers::MiddlewareError;
 use thiserror::Error;
 
 use super::*;
@@ -26,7 +22,7 @@ pub struct NonceManagerMiddleware<M> {
     init_guard: futures_locks::Mutex<()>,
     initialized: AtomicBool,
     nonce: AtomicU64,
-    address: Address,
+    address: eAddress,
 }
 
 impl<M> NonceManagerMiddleware<M>
@@ -35,7 +31,7 @@ where
 {
     /// Instantiates the nonce manager with a 0 nonce. The `address` should be
     /// the address which you'll be sending transactions from
-    pub fn new(inner: M, address: Address) -> Self {
+    pub fn new(inner: M, address: eAddress) -> Self {
         Self {
             inner,
             init_guard: Default::default(),
@@ -123,7 +119,7 @@ where
 /// Thrown when an error happens at the Nonce Manager
 pub enum NonceManagerError<M: Middleware> {
     /// Thrown when the internal middleware errors
-    #[error("{0}")]
+    #[error(transparent)]
     MiddlewareError(M::Error),
 }
 
