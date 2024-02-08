@@ -382,40 +382,6 @@ impl Logger {
             unreachable!()
         }
     }
-
-    /// Returns a stream of the serialized events.
-    pub fn stream<D: EthLogDecode + Debug + 'static>(
-        mut self,
-    ) -> Option<impl Stream<Item = D> + Send> {
-        if let Some(mut receiver) = self.receiver.take() {
-            let stream = async_stream::stream! {
-                while let Ok(broadcast) = receiver.recv().await {
-                    match broadcast {
-                        Broadcast::StopSignal => {
-                            trace!("`EventLogger` has seen a stop signal");
-                            break;
-                        }
-                        Broadcast::Event(event, receipt_data) => {
-                            trace!("`EventLogger` received an event");
-                            let ethers_logs = revm_logs_to_ethers_logs(event, &receipt_data);
-                            for log in &ethers_logs {
-                                for (_id, (filter, _)) in self.decoder.iter() {
-                                    if filter.filter_address(log) && filter.filter_topics(log) {
-                                        let raw_log = RawLog::from(log.clone());
-                                        yield D::decode_log(&raw_log).unwrap();
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            };
-
-            Some(stream)
-        } else {
-            None
-        }
-    }
 }
 
 fn flatten_to_data_frame(events: BTreeMap<String, BTreeMap<String, Vec<Value>>>) -> DataFrame {
@@ -449,4 +415,45 @@ pub(crate) struct EventTransmuted<B, M, D> {
     /// Stores the event datatype
     pub(crate) datatype: PhantomData<D>,
     pub(crate) _m: PhantomData<M>,
+}
+
+/// Adds an event to the `EventLogger` and generates a unique ID for the
+/// event since we don't need to name events that are solely streamed and
+/// not stored.
+pub fn stream_event<D: EthLogDecode + Debug + Serialize + 'static>(
+    event: Event<Arc<ArbiterMiddleware>, ArbiterMiddleware, D>,
+) -> Pin<Box<dyn Stream<Item = D> + Send + Sync>> {
+    let mut hasher = Sha256::new();
+    hasher.update(serde_json::to_string(&event.filter).unwrap());
+    let hash = hasher.finalize();
+    let id = hex::encode(hash);
+    self = Logger::builder().with_event(event, id);
+
+    if let Some(mut receiver) = self.receiver.take() {
+        let stream = async_stream::stream! {
+            while let Ok(broadcast) = receiver.recv().await {
+                match broadcast {
+                    Broadcast::StopSignal => {
+                        trace!("`EventLogger` has seen a stop signal");
+                        break;
+                    }
+                    Broadcast::Event(event, receipt_data) => {
+                        trace!("`EventLogger` received an event");
+                        let ethers_logs = revm_logs_to_ethers_logs(event, &receipt_data);
+                        for log in &ethers_logs {
+                            for (_id, (filter, _)) in self.decoder.iter() {
+                                if filter.filter_address(log) && filter.filter_topics(log) {
+                                    let raw_log = RawLog::from(log.clone());
+                                    yield D::decode_log(&raw_log).unwrap();
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        };
+        Box::pin(stream)
+    } else {
+        unreachable!()
+    }
 }
