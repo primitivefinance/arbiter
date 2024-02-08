@@ -498,7 +498,7 @@ impl Middleware for ArbiterMiddleware {
                     match output {
                         Output::Create(_, address) => {
                             let tx_receipt = TransactionReceipt {
-                                block_hash: None,
+                                block_hash,
                                 block_number: Some(receipt_data.block_number),
                                 contract_address: Some(recast_address(address.unwrap())),
                                 logs: logs.clone(),
@@ -550,7 +550,7 @@ impl Middleware for ArbiterMiddleware {
                         }
                         Output::Call(_) => {
                             let tx_receipt = TransactionReceipt {
-                                block_hash: None,
+                                block_hash,
                                 block_number: Some(receipt_data.block_number),
                                 contract_address: None,
                                 logs: logs.clone(),

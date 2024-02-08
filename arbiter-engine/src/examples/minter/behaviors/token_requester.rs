@@ -41,8 +41,7 @@ impl Behavior<TransferFilter> for TokenRequester {
 
         self.messager = Some(messager.clone());
         self.client = Some(client.clone());
-        let transfer_stream =
-            stream_event(token.transfer_filter());
+        let transfer_stream = stream_event(token.transfer_filter());
         Ok(transfer_stream)
     }
 
