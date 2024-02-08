@@ -6,6 +6,101 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.14](https://github.com/primitivefinance/arbiter/compare/arbiter-v0.4.13...arbiter-v0.4.14) - 2024-01-23
+
+### Added
+- `World::stop()` method
+- double agent test
+- stream into process
+- world/agent/behavior state machine
+- generic decoded event stream
+- database disk handling
+- run()
+- messaging layer + example starts
+- pubsub provider worlds
+
+### Fixed
+- fix error
+- `arbiter-core` tests
+- `Engine::run_state`
+- tests and test workflow
+
+### Other
+- Merge pull request [#811](https://github.com/primitivefinance/arbiter/pull/811) from primitivefinance/dependabot/cargo/chrono-0.4.32
+- Merge pull request [#804](https://github.com/primitivefinance/arbiter/pull/804) from primitivefinance/arbiter-core/impl-signer
+- Update README.md
+- rm `arbiter-derive`
+- Merge pull request [#807](https://github.com/primitivefinance/arbiter/pull/807) from primitivefinance/dependabot/cargo/clap-4.4.18
+- Merge pull request [#806](https://github.com/primitivefinance/arbiter/pull/806) from primitivefinance/dependabot/cargo/proc-macro2-1.0.78
+- *(deps)* bump proc-macro2 from 1.0.76 to 1.0.78
+- Merge branch 'main' into arbiter-engine/world-agent-behaviors
+- pin revm versions
+- calling it here
+- push up: test adjustment
+- make clippy happy
+- last push
+- push up
+- save
+- helper functions for `StateMachine`s
+- `StateMachine` trait
+- agent::streaming() passes
+- removing eth event leads to different behavior
+- test gets stuck
+- example ping pong
+- timed message
+- version finagle
+- chore spelling
+- chore version specification
+- Update Cargo.lock
+- clean up
+- mvp combo stream
+- compile errors gone
+- I am gutting things
+- lock the versions wtf
+- Update token_minter.rs
+- channel sometimes closes too soon
+- messager + transactor
+- leaving off here,
+- some ideas laid out
+- attempting messager refactor
+- Merge pull request [#782](https://github.com/primitivefinance/arbiter/pull/782) from primitivefinance/dependabot/cargo/clap-4.4.14
+- Merge pull request [#781](https://github.com/primitivefinance/arbiter/pull/781) from primitivefinance/dependabot/cargo/revm-30bbcdf
+- Merge pull request [#780](https://github.com/primitivefinance/arbiter/pull/780) from primitivefinance/dependabot/cargo/proc-macro2-1.0.76
+- *(deps)* bump proc-macro2 from 1.0.75 to 1.0.76
+- *(deps)* bump revm from `67331de` to `aff028e`
+- *(deps)* bump thiserror from 1.0.51 to 1.0.55
+- Merge pull request [#775](https://github.com/primitivefinance/arbiter/pull/775) from primitivefinance/dependabot/cargo/proc-macro2-1.0.75
+- Merge pull request [#774](https://github.com/primitivefinance/arbiter/pull/774) from primitivefinance/dependabot/cargo/clap-4.4.13
+- Merge pull request [#773](https://github.com/primitivefinance/arbiter/pull/773) from primitivefinance/dependabot/cargo/syn-2.0.43
+- *(deps)* bump syn from 2.0.42 to 2.0.43
+- Merge pull request [#770](https://github.com/primitivefinance/arbiter/pull/770) from primitivefinance/dependabot/cargo/tokio-1.35.1
+- Merge pull request [#771](https://github.com/primitivefinance/arbiter/pull/771) from primitivefinance/dependabot/cargo/futures-0.3.30
+- *(deps)* bump crossbeam-channel from 0.5.9 to 0.5.10
+- Merge branch 'main' into arbiter-core/db-backend
+- mod database and `coprocessor`
+- `arbiter-core` compiling
+- Merge branch 'main' into arbiter-core/db-backend
+- #[ignore] `test_agent()`
+- #[ignore] on `base_simulation()`
+- cleanup
+- replace `artemis-core`
+- cleanup
+- messager echo
+- *(deps)* bump tokio from 1.34.0 to 1.35.0
+- docs + cleanup
+- *(deps)* bump test-log from 0.2.13 to 0.2.14
+- fmt
+- Delete world.rs
+- Update Cargo.lock
+- Merge branch 'main' into arbiter-engine/init
+- dependencies
+- Update tests.rs
+- Update lint.yaml
+- Revert "Merge pull request [#725](https://github.com/primitivefinance/arbiter/pull/725) from quidproquoo/migrate-alloy"
+- *(deps)* bump clap from 4.4.10 to 4.4.11
+- minor
+- Merge branch 'main' into release-plz-2023-11-21T13-00-44Z
+
 ## [0.4.13](https://github.com/primitivefinance/arbiter/compare/arbiter-v0.4.12...arbiter-v0.4.13) - 2023-11-18
 
 ### Other

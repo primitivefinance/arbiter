@@ -6,6 +6,44 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.10.0](https://github.com/primitivefinance/arbiter/compare/arbiter-core-v0.9.1...arbiter-core-v0.10.0) - 2024-01-23
+
+### Added
+- stream into process
+- world/agent/behavior state machine
+- generic decoded event stream
+- database disk handling
+- messaging layer + example starts
+- pubsub provider worlds
+
+### Fixed
+- `arbiter-core` tests
+- tests and test workflow
+
+### Other
+- Merge pull request [#811](https://github.com/primitivefinance/arbiter/pull/811) from primitivefinance/dependabot/cargo/chrono-0.4.32
+- Merge pull request [#804](https://github.com/primitivefinance/arbiter/pull/804) from primitivefinance/arbiter-core/impl-signer
+- rm `arbiter-derive`
+- Merge branch 'main' into arbiter-engine/world-agent-behaviors
+- calling it here
+- make clippy happy
+- last push
+- save
+- version finagle
+- clean up
+- mvp combo stream
+- *(deps)* bump polars from 0.35.4 to 0.36.2
+- *(deps)* bump futures from 0.3.29 to 0.3.30
+- Merge branch 'main' into arbiter-core/db-backend
+- mod database and `coprocessor`
+- `arbiter-core` compiling
+- Merge branch 'main' into arbiter-core/db-backend
+- cleanup
+- messager echo
+- *(deps)* bump test-log from 0.2.13 to 0.2.14
+- dependencies
+- Revert "Merge pull request [#725](https://github.com/primitivefinance/arbiter/pull/725) from quidproquoo/migrate-alloy"
+
 ## [0.9.0](https://github.com/primitivefinance/arbiter/compare/arbiter-core-v0.8.0...arbiter-core-v0.9.0) - 2023-11-18
 
 ### Other
