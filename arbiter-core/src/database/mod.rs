@@ -1,30 +1,31 @@
-//! The `ArbiterDB` is a wrapper around a `CacheDB` that is used to provide
+//! The [`ArbiterDB`] is a wrapper around a `CacheDB` that is used to provide
 //! access to the `Environment`'s database to multiple `Coprocessors`.
 //! It is also used to be able to write out the `Environment` database to a
 //! file.
+//!
+//! Further, it gives the ability to be generated from a [`fork::Fork`] so that
+//! you can preload an [`environment::Environment`] with a specific state.
 
 use std::{
-    collections::BTreeMap,
-    convert::Infallible,
-    fmt::Debug,
     fs,
     io::{self, Read, Write},
-    sync::{Arc, RwLock},
 };
 
 use revm::{
-    db::{CacheDB, EmptyDB},
-    primitives::{AccountInfo, B256, U256},
-    Database, DatabaseCommit,
+    primitives::{db::DatabaseRef, keccak256, Bytecode, B256},
+    DatabaseCommit,
 };
-use revm_primitives::{db::DatabaseRef, keccak256, Address, Bytecode, Bytes};
-use serde::{Deserialize, Serialize};
 use serde_json;
 
-/// A `ArbiterDB` is a wrapper around a `CacheDB` that is used to provide
-/// access to the `Environment`'s database to multiple `Coprocessors`.
+use super::*;
+pub mod fork;
+pub mod inspector;
+
+/// A [`ArbiterDB`] is a wrapper around a [`CacheDB`] that is used to provide
+/// access to the [`environment::Environment`]'s database to multiple
+/// [`coprocessor::Coprocessor`]s.
 #[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct ArbiterDB(pub(crate) Arc<RwLock<CacheDB<EmptyDB>>>);
+pub struct ArbiterDB(pub Arc<RwLock<CacheDB<EmptyDB>>>);
 
 impl ArbiterDB {
     /// Create a new `ArbiterDB`.

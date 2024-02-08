@@ -1,73 +1,42 @@
-//! The `environment` module provides abstractions and functionality for
+//! The [`environment`] module provides abstractions and functionality for
 //! handling the Ethereum execution environment. This includes managing its
 //! state, interfacing with the EVM, and broadcasting events to subscribers.
+//! Other features include the ability to control block rate and gas settings
+//! and execute other database modifications from external agents.
 //!
 //! The key integration for the environment is the Rust EVM [`revm`](https://github.com/bluealloy/revm).
 //! This is an implementation of the EVM in Rust that we utilize for processing
 //! raw smart contract bytecode.
 //!
 //! Core structures:
-//! - `Environment`: Represents the Ethereum execution environment, allowing for
-//!   its management (e.g., starting, stopping) and interfacing with agents.
-//! - `EnvironmentParameters`: Parameters necessary for creating or modifying
-//!  an `Environment`.
-//!     - `BlockSettings`: Enum indicating how block numbers and timestamps are
-//!       moved forward.
-//!     - `GasSettings`: Enum indicating the type of gas settings that will be
-//!     used to make clients pay gas.
-//! - `Instruction`: Enum indicating the type of instruction that is being sent
+//! - [`Environment`]: Represents the Ethereum execution environment, allowing
+//!   for its management (e.g., starting, stopping) and interfacing with agents.
+//! - [`EnvironmentParameters`]: Parameters necessary for creating or modifying
+//!  an [`Environment`].
+//! - [`Instruction`]: Enum indicating the type of instruction that is being
+//!   sent
 //!  to the EVM.
-//! - `Outcome`: Enum indicating the type of outcome that is being sent back
-//!  from the EVM.
-//! - `EnvironmentError`: Enum indicating the type of error that can be thrown
-//!  by the EVM.
-//! - `State`: Enum indicating the current state of the environment.
-//! - `Socket`: Provides channels for communication between the EVM and the
-//!   outside world.
-//! - `EventBroadcaster`: Responsible for broadcasting Ethereum logs to
-//!   subscribers.
 
-use std::{
-    convert::Infallible,
-    fmt::Debug,
-    sync::{Arc, RwLock},
-    thread::{self, JoinHandle},
-};
+use std::thread::{self, JoinHandle};
 
 use crossbeam_channel::{bounded, unbounded, Receiver, Sender};
-use ethers::{abi::AbiDecode, core::types::U64};
+use ethers::abi::AbiDecode;
 use revm::{
-    db::{CacheDB, EmptyDB},
-    primitives::{
-        AccountInfo, EVMError, ExecutionResult, HashMap, InvalidTransaction, Log, TxEnv, U256,
-    },
-    EVM,
+    db::AccountState,
+    inspector_handle_register,
+    primitives::{Env, HashMap, B256},
 };
-use serde::{Deserialize, Serialize};
-use thiserror::Error;
-use tokio::sync::broadcast::{channel, Sender as BroadcastSender};
+use tokio::sync::broadcast::channel;
 
-use self::inspector::ArbiterInspector;
 use super::*;
-use crate::database::ArbiterDB;
 #[cfg_attr(doc, doc(hidden))]
 #[cfg_attr(doc, allow(unused_imports))]
 #[cfg(doc)]
-use crate::middleware::RevmMiddleware;
+use crate::middleware::ArbiterMiddleware;
+use crate::{console::abi::HardhatConsoleCalls, database::inspector::ArbiterInspector};
 
-pub mod cheatcodes;
-use cheatcodes::*;
-
-pub(crate) mod instruction;
+pub mod instruction;
 use instruction::*;
-
-pub mod errors;
-use errors::*;
-
-pub mod fork;
-
-#[cfg(test)]
-pub(crate) mod tests;
 
 /// Alias for the sender of the channel for transmitting transactions.
 pub(crate) type InstructionSender = Sender<Instruction>;
@@ -77,48 +46,33 @@ pub(crate) type InstructionReceiver = Receiver<Instruction>;
 
 /// Alias for the sender of the channel for transmitting [`RevmResult`] emitted
 /// from transactions.
-pub(crate) type OutcomeSender = Sender<Result<Outcome, EnvironmentError>>;
+pub(crate) type OutcomeSender = Sender<Result<Outcome, ArbiterCoreError>>;
 
 /// Alias for the receiver of the channel for transmitting [`RevmResult`]
 /// emitted from transactions.
-pub(crate) type OutcomeReceiver = Receiver<Result<Outcome, EnvironmentError>>;
+pub(crate) type OutcomeReceiver = Receiver<Result<Outcome, ArbiterCoreError>>;
 
 /// Represents a sandboxed EVM environment.
 ///
-/// ## Communication
-/// The dominant feature is the
-/// [`EVM`](https://github.com/bluealloy/revm/blob/main/crates/revm/src/evm.rs)
-///  and its connections to the "outside world".
-/// The Ethereum Virtual Machine
-/// ([`EVM`](https://github.com/bluealloy/revm/blob/main/crates/revm/src/evm.rs))
-/// which is a stack machine that processes raw smart contract bytecode and
-/// updates a local database of the worldstate of an Ethereum simulation.
-/// Note, the worldstate of the simulation Ethereum environment should not be
-/// confused with the [`State`] of the environment here! The [`Environment`]
-/// will route transactions sent over channels to the stack machine
-/// [`EVM`](https://github.com/bluealloy/revm/blob/main/crates/revm/src/evm.rs)
-/// to process smart contract interactions.
-/// It provides channels for sending transactions to the EVM and for
-/// receiving results or broadcasting events to any subscribers via the
-/// `Socket` field exposed only as `pub(crate)`.
-///
-///
-/// ## Controlling Block Rate
-/// The blocks for the [`Environment`] are chosen using a Poisson distribution
-/// via the [`SeededPoisson`] field. The idea is that we can choose a rate
-/// parameter, typically denoted by the Greek letter lambda, and set this to be
-/// the expected number of transactions per block while allowing blocks to be
-/// built with random size. This is useful in stepping forward the
-/// [`EVM`](https://github.com/bluealloy/revm/blob/main/crates/revm/src/evm.rs)
-/// and being able to move time forward for contracts that depend explicitly on
-/// time.
+/// ## Features
+/// * [`revm::Evm`] and its connections to the "outside world" (agents) via the
+/// [`Socket`] provide the [`Environment`] a means to route and execute
+/// transactions.
+/// * [`ArbiterDB`] is the database structure used that allows for read-only
+/// sharing of execution and write-only via the main thread. This can also be a
+/// database read in from disk storage via [`database::fork::Fork`].
+/// * [`ArbiterInspector`] is an that allows for the EVM to be able to display
+/// logs and properly handle gas payments.
+/// * [`EnvironmentParameters`] are used to set the gas limit, contract size
+/// limit, and label for the [`Environment`].
+#[derive(Debug)]
 pub struct Environment {
     /// The label used to define the [`Environment`].
     pub parameters: EnvironmentParameters,
 
     /// The [`EVM`] that is used as an execution environment and database for
     /// calls and transactions.
-    pub(crate) db: Option<ArbiterDB>,
+    pub(crate) db: ArbiterDB,
 
     inspector: Option<ArbiterInspector>,
 
@@ -130,23 +84,10 @@ pub struct Environment {
     /// [`JoinHandle`] for the thread in which the [`EVM`] is running.
     /// Used for assuring that the environment is stopped properly or for
     /// performing any blocking action the end user needs.
-    pub(crate) handle: Option<JoinHandle<Result<(), EnvironmentError>>>,
+    pub(crate) handle: Option<JoinHandle<Result<(), ArbiterCoreError>>>,
 }
 
-/// Allow the end user to be able to access a debug printout for the
-/// [`Environment`]. Note that the [`EVM`] does not implement debug display,
-/// hence the implementation by hand here.
-impl Debug for Environment {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("Environment")
-            .field("parameters", &self.parameters)
-            .field("socket", &self.socket)
-            .field("handle", &self.handle)
-            .finish()
-    }
-}
-
-/// Parameters necessary for creating or modifying an [`Environment`].
+/// Parameters to create [`Environment`]s with different settings.
 #[derive(Clone, Debug, Default, Deserialize, Serialize)]
 pub struct EnvironmentParameters {
     /// The label used to define the [`Environment`].
@@ -173,7 +114,7 @@ pub struct EnvironmentParameters {
 /// size limit, and a database for the [`Environment`].
 pub struct EnvironmentBuilder {
     parameters: EnvironmentParameters,
-    db: Option<ArbiterDB>,
+    db: ArbiterDB,
 }
 
 impl EnvironmentBuilder {
@@ -204,7 +145,7 @@ impl EnvironmentBuilder {
     /// Sets the database for the [`Environment`]. This can come from a
     /// [`fork::Fork`].
     pub fn with_db(mut self, db: impl Into<CacheDB<EmptyDB>>) -> Self {
-        self.db = Some(ArbiterDB(Arc::new(RwLock::new(db.into()))));
+        self.db = ArbiterDB(Arc::new(RwLock::new(db.into())));
         self
     }
 
@@ -229,11 +170,11 @@ impl Environment {
     pub fn builder() -> EnvironmentBuilder {
         EnvironmentBuilder {
             parameters: EnvironmentParameters::default(),
-            db: None,
+            db: ArbiterDB(Arc::new(RwLock::new(CacheDB::new(EmptyDB::new())))),
         }
     }
 
-    fn create(parameters: EnvironmentParameters, db: Option<ArbiterDB>) -> Self {
+    fn create(parameters: EnvironmentParameters, db: ArbiterDB) -> Self {
         let (instruction_sender, instruction_receiver) = unbounded();
         let (event_broadcaster, _) = channel(512);
         let socket = Socket {
@@ -260,26 +201,21 @@ impl Environment {
         }
     }
 
-    /// The [`EVM`] will be
-    /// offloaded onto a separate thread for processing.
-    /// Calls, transactions, and events will enter/exit through the `Socket`.
+    /// This starts the [`Environment`] thread to process any [`Instruction`]s
+    /// coming through the [`Socket`].
     fn run(mut self) -> Self {
-        // Initialize the EVM used with a DB.
-        let mut evm = EVM::new();
-        if self.db.is_some() {
-            evm.database(self.db.as_ref().unwrap().clone());
-        } else {
-            evm.database(ArbiterDB(Arc::new(RwLock::new(CacheDB::new(
-                EmptyDB::new(),
-            )))));
-        };
-
         // Bring in parameters for the `Environment`.
         let label = self.parameters.label.clone();
-        evm.env.cfg.limit_contract_code_size =
-            Some(self.parameters.contract_size_limit.unwrap_or(0x100_000));
-        evm.env.block.gas_limit = self.parameters.gas_limit.unwrap_or(U256::MAX);
-        let mut inspector = self.inspector.take().unwrap();
+
+        // Bring in the EVM db by cloning the interior Arc (lightweight).
+        let db = self.db.clone();
+
+        // Bring in the EVM ENV
+        let mut env = Env::default();
+        env.cfg.limit_contract_code_size = self.parameters.contract_size_limit;
+        env.block.gas_limit = self.parameters.gas_limit.unwrap_or(U256::MAX);
+        // Bring in the inspector
+        let inspector = self.inspector.take().unwrap();
 
         // Pull communication clones to move into a new thread.
         let instruction_receiver = self.socket.instruction_receiver.clone();
@@ -287,9 +223,17 @@ impl Environment {
 
         // Move the EVM and its socket to a new thread and retrieve this handle
         let handle = thread::spawn(move || {
+            // Create a new EVM builder
+            let mut evm = Evm::builder()
+                .with_db(db)
+                .with_env(Box::new(env))
+                .with_external_context(inspector)
+                .append_handler_register(inspector_handle_register)
+                .build();
+
             // Initialize counters that are returned on some receipts.
             let mut transaction_index = U64::from(0_u64);
-            let mut cumulative_gas_per_block = U256::from(0);
+            let mut cumulative_gas_per_block = eU256::from(0);
 
             // Loop over the instructions sent through the socket.
             while let Ok(instruction) = instruction_receiver.recv() {
@@ -303,14 +247,13 @@ impl Environment {
                         address,
                         outcome_sender,
                     } => {
-                        let db = evm.db.as_mut().unwrap();
-                        let recast_address =
-                            revm::primitives::Address::from(address.as_fixed_bytes());
+                        let recast_address = Address::from(address.as_fixed_bytes());
                         let account = revm::db::DbAccount {
                             info: AccountInfo::default(),
-                            account_state: revm::db::AccountState::None,
+                            account_state: AccountState::None,
                             storage: HashMap::new(),
                         };
+                        let db = &mut evm.context.evm.db;
                         match db
                             .0
                             .write()
@@ -318,17 +261,9 @@ impl Environment {
                             .accounts
                             .insert(recast_address, account)
                         {
-                            None => {
-                                outcome_sender
-                                    .send(Ok(Outcome::AddAccountCompleted))
-                                    .map_err(|e| EnvironmentError::Communication(e.to_string()))?;
-                            }
+                            None => outcome_sender.send(Ok(Outcome::AddAccountCompleted))?,
                             Some(_) => {
-                                outcome_sender
-                                    .send(Err(EnvironmentError::Account(
-                                        "Account already exists!".to_string(),
-                                    )))
-                                    .map_err(|e| EnvironmentError::Communication(e.to_string()))?;
+                                outcome_sender.send(Err(ArbiterCoreError::AccountCreationError))?;
                             }
                         }
                     }
@@ -339,21 +274,19 @@ impl Environment {
                     } => {
                         // Return the old block data in a `ReceiptData`
                         let receipt_data = ReceiptData {
-                            block_number: convert_uint_to_u64(evm.env.block.number).unwrap(),
+                            block_number: convert_uint_to_u64(evm.block().number).unwrap(),
                             transaction_index,
                             cumulative_gas_per_block,
                         };
-                        outcome_sender
-                            .send(Ok(Outcome::BlockUpdateCompleted(receipt_data)))
-                            .map_err(|e| EnvironmentError::Communication(e.to_string()))?;
+                        outcome_sender.send(Ok(Outcome::BlockUpdateCompleted(receipt_data)))?;
 
                         // Update the block number and timestamp
-                        evm.env.block.number = block_number;
-                        evm.env.block.timestamp = block_timestamp;
+                        evm.block_mut().number = U256::from_limbs(block_number.0);
+                        evm.block_mut().timestamp = U256::from_limbs(block_timestamp.0);
 
                         // Reset the counters.
                         transaction_index = U64::from(0);
-                        cumulative_gas_per_block = U256::from(0);
+                        cumulative_gas_per_block = eU256::from(0);
                     }
                     Instruction::Cheatcode {
                         cheatcode,
@@ -364,45 +297,27 @@ impl Environment {
                             key,
                             block: _,
                         } => {
-                            // Get the underlying database.
-                            let db = evm.db.as_mut().unwrap();
+                            let db = &mut evm.context.evm.db;
 
-                            // Cast the ethers-rs cheatcode arguments into revm types.
-                            let recast_address =
-                                revm::primitives::Address::from(account.as_fixed_bytes());
-                            let recast_key = revm::primitives::B256::from(key.as_fixed_bytes());
+                            let recast_address = Address::from(account.as_fixed_bytes());
+                            let recast_key = B256::from(key.as_fixed_bytes()).into();
 
                             // Get the account storage value at the key in the db.
                             match db.0.write().unwrap().accounts.get_mut(&recast_address) {
                                 Some(account) => {
                                     // Returns zero if the account is missing.
-                                    let value: revm::primitives::U256 = match account
-                                        .storage
-                                        .get::<revm::primitives::U256>(
-                                        &recast_key.into(),
-                                    ) {
+                                    let value: U256 = match account.storage.get::<U256>(&recast_key)
+                                    {
                                         Some(value) => *value,
-                                        None => revm::primitives::U256::ZERO,
+                                        None => U256::ZERO,
                                     };
-
-                                    // Sends the revm::primitives::U256 storage value back to the
-                                    // sender via CheatcodeReturn(revm::primitives::U256).
-                                    outcome_sender
-                                        .send(Ok(Outcome::CheatcodeReturn(
-                                            CheatcodesReturn::Load { value },
-                                        )))
-                                        .map_err(|e| {
-                                            EnvironmentError::Communication(e.to_string())
-                                        })?;
+                                    outcome_sender.send(Ok(Outcome::CheatcodeReturn(
+                                        CheatcodesReturn::Load { value },
+                                    )))?;
                                 }
                                 None => {
                                     outcome_sender
-                                        .send(Err(EnvironmentError::Account(
-                                            "Account is missing!".to_string(),
-                                        )))
-                                        .map_err(|e| {
-                                            EnvironmentError::Communication(e.to_string())
-                                        })?;
+                                        .send(Err(ArbiterCoreError::AccountDoesNotExistError))?;
                                 }
                             };
                         }
@@ -412,83 +327,59 @@ impl Environment {
                             value,
                         } => {
                             // Get the underlying database
-                            let db = evm.db.as_mut().unwrap();
+                            let db = &mut evm.context.evm.db;
 
-                            // Cast the ethers-rs types passed in the cheatcode arguments into revm
-                            // primitive types
-                            let recast_address =
-                                revm::primitives::Address::from(account.as_fixed_bytes());
-                            let recast_key = revm::primitives::B256::from(key.as_fixed_bytes());
-                            let recast_value = revm::primitives::B256::from(value.as_fixed_bytes());
+                            let recast_address = Address::from(account.as_fixed_bytes());
+                            let recast_key = B256::from(key.as_fixed_bytes());
+                            let recast_value = B256::from(value.as_fixed_bytes());
 
                             // Mutate the db by inserting the new key-value pair into the account's
-                            // storage and send the successful
-                            // CheatcodeCompleted outcome.
+                            // storage and send the successful CheatcodeCompleted outcome.
                             match db.0.write().unwrap().accounts.get_mut(&recast_address) {
                                 Some(account) => {
                                     account
                                         .storage
                                         .insert(recast_key.into(), recast_value.into());
 
-                                    outcome_sender
-                                        .send(Ok(Outcome::CheatcodeReturn(CheatcodesReturn::Store)))
-                                        .map_err(|e| {
-                                            EnvironmentError::Communication(e.to_string())
-                                        })?;
+                                    outcome_sender.send(Ok(Outcome::CheatcodeReturn(
+                                        CheatcodesReturn::Store,
+                                    )))?;
                                 }
                                 None => {
                                     outcome_sender
-                                        .send(Err(EnvironmentError::Account(
-                                            "Account is missing!".to_string(),
-                                        )))
-                                        .map_err(|e| {
-                                            EnvironmentError::Communication(e.to_string())
-                                        })?;
+                                        .send(Err(ArbiterCoreError::AccountDoesNotExistError))?;
                                 }
                             };
                         }
                         Cheatcodes::Deal { address, amount } => {
-                            let db = evm.db.as_mut().unwrap();
-                            let recast_address =
-                                revm::primitives::Address::from(address.as_fixed_bytes());
+                            let db = &mut evm.context.evm.db;
+                            let recast_address = Address::from(address.as_fixed_bytes());
                             match db.0.write().unwrap().accounts.get_mut(&recast_address) {
                                 Some(account) => {
                                     account.info.balance += U256::from_limbs(amount.0);
-                                    outcome_sender
-                                        .send(Ok(Outcome::CheatcodeReturn(CheatcodesReturn::Deal)))
-                                        .map_err(|e| {
-                                            EnvironmentError::Communication(e.to_string())
-                                        })?;
+                                    outcome_sender.send(Ok(Outcome::CheatcodeReturn(
+                                        CheatcodesReturn::Deal,
+                                    )))?;
                                 }
                                 None => {
                                     outcome_sender
-                                        .send(Err(EnvironmentError::Account(
-                                            "Account is missing!".to_string(),
-                                        )))
-                                        .map_err(|e| {
-                                            EnvironmentError::Communication(e.to_string())
-                                        })?;
+                                        .send(Err(ArbiterCoreError::AccountDoesNotExistError))?;
                                 }
                             };
                         }
                         Cheatcodes::Access { address } => {
-                            let db = evm.db.as_mut().unwrap();
-                            let recast_address =
-                                revm::primitives::Address::from(address.as_fixed_bytes());
+                            let db = &mut evm.context.evm.db;
+                            let recast_address = Address::from(address.as_fixed_bytes());
 
                             match db.0.write().unwrap().accounts.get(&recast_address) {
                                 Some(account) => {
                                     let account_state = match account.account_state {
-                                        revm::db::AccountState::None => {
-                                            AccountStateSerializable::None
-                                        }
-                                        revm::db::AccountState::Touched => {
-                                            AccountStateSerializable::Touched
-                                        }
-                                        revm::db::AccountState::StorageCleared => {
+                                        AccountState::None => AccountStateSerializable::None,
+                                        AccountState::Touched => AccountStateSerializable::Touched,
+                                        AccountState::StorageCleared => {
                                             AccountStateSerializable::StorageCleared
                                         }
-                                        revm::db::AccountState::NotExisting => {
+                                        AccountState::NotExisting => {
                                             AccountStateSerializable::NotExisting
                                         }
                                     };
@@ -499,20 +390,11 @@ impl Environment {
                                         storage: account.storage.clone(),
                                     };
 
-                                    outcome_sender
-                                        .send(Ok(Outcome::CheatcodeReturn(account)))
-                                        .map_err(|e| {
-                                            EnvironmentError::Communication(e.to_string())
-                                        })?;
+                                    outcome_sender.send(Ok(Outcome::CheatcodeReturn(account)))?;
                                 }
                                 None => {
                                     outcome_sender
-                                        .send(Err(EnvironmentError::Account(
-                                            "Account is missing!".to_string(),
-                                        )))
-                                        .map_err(|e| {
-                                            EnvironmentError::Communication(e.to_string())
-                                        })?;
+                                        .send(Err(ArbiterCoreError::AccountDoesNotExistError))?;
                                 }
                             }
                         }
@@ -524,33 +406,28 @@ impl Environment {
                         outcome_sender,
                     } => {
                         // Set the tx_env and prepare to process it
-                        evm.env.tx = tx_env;
+                        *evm.tx_mut() = tx_env;
 
-                        let result = evm.inspect_ref(&mut inspector)?.result;
+                        // TODO: Is `transact()` the function we want?
+                        let result = evm.transact()?.result;
 
-                        if let Some(inspector) = &mut inspector.console_log {
-                            inspector.0.drain(..).for_each(|log| {
+                        if let Some(console_log) = &mut evm.context.external.console_log {
+                            console_log.0.drain(..).for_each(|log| {
                                 trace!(
                                     "Console logs: {:?}",
-                                    console::abi::HardhatConsoleCalls::decode(log)
-                                        .unwrap()
-                                        .to_string()
+                                    HardhatConsoleCalls::decode(log).unwrap().to_string()
                                 )
                             });
                         };
 
-                        outcome_sender
-                            .send(Ok(Outcome::CallCompleted(result)))
-                            .map_err(|e| EnvironmentError::Communication(e.to_string()))?;
+                        outcome_sender.send(Ok(Outcome::CallCompleted(result)))?;
                     }
                     Instruction::SetGasPrice {
                         gas_price,
                         outcome_sender,
                     } => {
-                        evm.env.tx.gas_price = U256::from_limbs(gas_price.0);
-                        outcome_sender
-                            .send(Ok(Outcome::SetGasPriceCompleted))
-                            .map_err(|e| EnvironmentError::Communication(e.to_string()))?;
+                        evm.tx_mut().gas_price = U256::from_limbs(gas_price.0);
+                        outcome_sender.send(Ok(Outcome::SetGasPriceCompleted))?;
                     }
 
                     // A `Transaction` is state changing and will create events.
@@ -559,44 +436,28 @@ impl Environment {
                         outcome_sender,
                     } => {
                         // Set the tx_env and prepare to process it
-                        evm.env.tx = tx_env;
+                        *evm.tx_mut() = tx_env;
 
-                        let execution_result = match evm.inspect_commit(&mut inspector) {
+                        let execution_result = match evm.transact_commit() {
                             Ok(result) => {
-                                if let Some(inspector) = &mut inspector.console_log {
-                                    inspector.0.drain(..).for_each(|log| {
+                                if let Some(console_log) = &mut evm.context.external.console_log {
+                                    console_log.0.drain(..).for_each(|log| {
                                         trace!(
                                             "Console logs: {:?}",
-                                            console::abi::HardhatConsoleCalls::decode(log)
-                                                .unwrap()
-                                                .to_string()
+                                            HardhatConsoleCalls::decode(log).unwrap().to_string()
                                         )
                                     });
                                 };
                                 result
                             }
                             Err(e) => {
-                                if let EVMError::Transaction(invalid_transaction) = e {
-                                    outcome_sender
-                                        .send(Err(EnvironmentError::Transaction(
-                                            invalid_transaction,
-                                        )))
-                                        .map_err(|e| {
-                                            EnvironmentError::Communication(e.to_string())
-                                        })?;
-                                    continue;
-                                } else {
-                                    outcome_sender
-                                        .send(Err(EnvironmentError::Execution(e)))
-                                        .map_err(|e| {
-                                            EnvironmentError::Communication(e.to_string())
-                                        })?;
-                                    continue;
-                                }
+                                outcome_sender.send(Err(ArbiterCoreError::EVMError(e)))?;
+                                continue;
                             }
                         };
-                        cumulative_gas_per_block += U256::from(execution_result.clone().gas_used());
-                        let block_number = convert_uint_to_u64(evm.env.block.number)?;
+                        cumulative_gas_per_block +=
+                            eU256::from(execution_result.clone().gas_used());
+                        let block_number = convert_uint_to_u64(evm.block().number)?;
                         let receipt_data = ReceiptData {
                             block_number,
                             transaction_index,
@@ -610,12 +471,10 @@ impl Environment {
                                 )
                             }
                         }
-                        outcome_sender
-                            .send(Ok(Outcome::TransactionCompleted(
-                                execution_result,
-                                receipt_data,
-                            )))
-                            .map_err(|e| EnvironmentError::Communication(e.to_string()))?;
+                        outcome_sender.send(Ok(Outcome::TransactionCompleted(
+                            execution_result,
+                            receipt_data,
+                        )))?;
 
                         transaction_index += U64::from(1);
                     }
@@ -625,56 +484,48 @@ impl Environment {
                     } => {
                         let outcome = match environment_data {
                             EnvironmentData::BlockNumber => {
-                                Ok(Outcome::QueryReturn(evm.env.block.number.to_string()))
+                                Ok(Outcome::QueryReturn(evm.block().number.to_string()))
                             }
                             EnvironmentData::BlockTimestamp => {
-                                Ok(Outcome::QueryReturn(evm.env.block.timestamp.to_string()))
+                                Ok(Outcome::QueryReturn(evm.block().timestamp.to_string()))
                             }
                             EnvironmentData::GasPrice => {
-                                Ok(Outcome::QueryReturn(evm.env.tx.gas_price.to_string()))
+                                Ok(Outcome::QueryReturn(evm.tx().gas_price.to_string()))
                             }
                             EnvironmentData::Balance(address) => {
                                 // This unwrap should never fail.
-                                let db = evm.db().unwrap();
+                                let db = &mut evm.context.evm.db;
                                 match db
                                     .0
-                                    .write()
+                                    .read()
                                     .unwrap()
                                     .accounts
-                                    .get::<revm::primitives::Address>(
-                                        &address.as_fixed_bytes().into(),
-                                    ) {
+                                    .get::<Address>(&address.as_fixed_bytes().into())
+                                {
                                     Some(account) => {
                                         Ok(Outcome::QueryReturn(account.info.balance.to_string()))
                                     }
-                                    None => Err(EnvironmentError::Account(
-                                        "Account is missing!".to_string(),
-                                    )),
+                                    None => Err(ArbiterCoreError::AccountDoesNotExistError),
                                 }
                             }
 
                             EnvironmentData::TransactionCount(address) => {
-                                let db = evm.db().unwrap();
+                                let db = &mut evm.context.evm.db;
                                 match db
                                     .0
-                                    .write()
+                                    .read()
                                     .unwrap()
                                     .accounts
-                                    .get::<revm::primitives::Address>(
-                                        &address.as_fixed_bytes().into(),
-                                    ) {
+                                    .get::<Address>(&address.as_fixed_bytes().into())
+                                {
                                     Some(account) => {
                                         Ok(Outcome::QueryReturn(account.info.nonce.to_string()))
                                     }
-                                    None => Err(EnvironmentError::Account(
-                                        "Account is missing!".to_string(),
-                                    )),
+                                    None => Err(ArbiterCoreError::AccountDoesNotExistError),
                                 }
                             }
                         };
-                        outcome_sender
-                            .send(outcome)
-                            .map_err(|e| EnvironmentError::Communication(e.to_string()))?;
+                        outcome_sender.send(outcome)?;
                     }
                     Instruction::Stop(outcome_sender) => {
                         match event_broadcaster.send(Broadcast::StopSignal) {
@@ -683,9 +534,8 @@ impl Environment {
                                 warn!("Stop signal was not sent to any listeners. Are there any listeners?")
                             }
                         }
-                        outcome_sender
-                            .send(Ok(Outcome::StopCompleted(evm.db.unwrap())))
-                            .map_err(|e| EnvironmentError::Communication(e.to_string()))?;
+                        let (db, _) = evm.into_db_and_env_with_handler_cfg();
+                        outcome_sender.send(Ok(Outcome::StopCompleted(db)))?;
                         break;
                     }
                 }
@@ -696,33 +546,18 @@ impl Environment {
         self
     }
 
-    /// Stops the execution of the environment.
-    /// This cannot be recovered from!
-    ///
-    /// # Returns
-    ///
-    /// * `Ok(())` if the environment was successfully stopped or was already
-    ///   stopped.
-    /// * `Err(EnvironmentError::Stop(String))` if the environment is in an
-    ///   invalid state.
-    pub fn stop(mut self) -> Result<Option<ArbiterDB>, EnvironmentError> {
+    /// Stops the execution of the environment and returns the [`ArbiterDB`] in
+    /// its final state.
+    pub fn stop(mut self) -> Result<ArbiterDB, ArbiterCoreError> {
         let (outcome_sender, outcome_receiver) = bounded(1);
         self.socket
             .instruction_sender
-            .send(Instruction::Stop(outcome_sender))
-            .map_err(|e| {
-                EnvironmentError::Stop(format!(
-                    "Stop request failed to send due to {:?}.\nIs the environment already stopped?",
-                    e
-                ))
-            })?;
-        let outcome = outcome_receiver
-            .recv()
-            .map_err(|e| EnvironmentError::Communication(e.to_string()))??;
+            .send(Instruction::Stop(outcome_sender))?;
+        let outcome = outcome_receiver.recv()??;
 
         let db = match outcome {
-            Outcome::StopCompleted(stopped_db) => Some(stopped_db),
-            _ => return Err(EnvironmentError::Stop("Failed to stop environment!".into())),
+            Outcome::StopCompleted(stopped_db) => stopped_db,
+            _ => unreachable!(),
         };
 
         if let Some(label) = &self.parameters.label {
@@ -733,13 +568,9 @@ impl Environment {
         drop(self.socket.instruction_sender);
         self.handle
             .take()
-            .ok_or(EnvironmentError::Stop(
-                "failed to join the environment handle!".to_owned(),
-            ))?
+            .unwrap()
             .join()
-            .map_err(|_| {
-                EnvironmentError::Stop("Failed to join environment handle.".to_owned())
-            })??;
+            .map_err(|_| ArbiterCoreError::JoinError)??;
         Ok(db)
     }
 }
@@ -778,12 +609,51 @@ pub enum Broadcast {
 /// * `Ok(U64)` - The converted U64.
 /// Used for block number which is a U64.
 #[inline]
-fn convert_uint_to_u64(input: U256) -> Result<U64, EnvironmentError> {
+fn convert_uint_to_u64(input: U256) -> Result<U64, ArbiterCoreError> {
     let as_str = input.to_string();
     match as_str.parse::<u64>() {
         Ok(val) => Ok(val.into()),
-        Err(_) => Err(EnvironmentError::Conversion(
-            "U256 value is too large to fit into u64".to_string(),
-        )),
+        Err(e) => Err(e)?,
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    pub(crate) const TEST_ENV_LABEL: &str = "test";
+    const TEST_CONTRACT_SIZE_LIMIT: usize = 42069;
+    const TEST_GAS_LIMIT: u64 = 1_333_333_333_337;
+
+    #[test]
+    fn new_with_parameters() {
+        let environment = Environment::builder()
+            .with_label(TEST_ENV_LABEL)
+            .with_contract_size_limit(TEST_CONTRACT_SIZE_LIMIT)
+            .with_gas_limit(U256::from(TEST_GAS_LIMIT));
+        assert_eq!(environment.parameters.label, Some(TEST_ENV_LABEL.into()));
+        assert_eq!(
+            environment.parameters.contract_size_limit.unwrap(),
+            TEST_CONTRACT_SIZE_LIMIT
+        );
+        assert_eq!(
+            environment.parameters.gas_limit.unwrap(),
+            U256::from(TEST_GAS_LIMIT)
+        );
+    }
+
+    #[test]
+    fn conversion() {
+        // Test with a value that fits in u64.
+        let input = U256::from(10000);
+        assert_eq!(convert_uint_to_u64(input).unwrap(), U64::from(10000));
+
+        // Test with a value that is exactly at the limit of u64.
+        let input = U256::from(u64::MAX);
+        assert_eq!(convert_uint_to_u64(input).unwrap(), U64::from(u64::MAX));
+
+        // Test with a value that exceeds the limit of u64.
+        let input = U256::from(u64::MAX) + U256::from(1);
+        assert!(convert_uint_to_u64(input).is_err());
     }
 }

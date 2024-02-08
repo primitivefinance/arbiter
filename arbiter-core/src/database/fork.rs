@@ -4,9 +4,7 @@
 //! that the [`Environment`] can be initialized with a forked database and the
 //! end-user still has access to the relevant metadata.
 
-use std::{collections::HashMap, env, fs};
-
-use ethers::types::Address;
+use std::{env, fs};
 
 use super::*;
 
@@ -15,7 +13,7 @@ use super::*;
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct ContractMetadata {
     /// The address of the contract.
-    pub address: Address,
+    pub address: eAddress,
 
     /// The path to the contract artifacts.
     pub artifacts_path: String,
@@ -27,8 +25,8 @@ pub struct ContractMetadata {
 /// A [`Fork`] is used to store the data that will be loaded into an
 /// [`Environment`] and be used in `arbiter-core`. It is a wrapper around a
 /// [`CacheDB`] and a [`HashMap`] of [`ContractMetadata`] so that the
-/// [`Environment`] can be initialized with the data and the end-user still has
-/// access to the relevant metadata.
+/// [`environment::Environment`] can be initialized with the data and the
+/// end-user still has access to the relevant metadata.
 #[derive(Clone, Debug)]
 pub struct Fork {
     /// The [`CacheDB`] that will be loaded into the [`Environment`].
@@ -38,12 +36,12 @@ pub struct Fork {
     /// end-user.
     pub contracts_meta: HashMap<String, ContractMetadata>,
     /// The [`HashMap`] of [`Address`] that will be used by the end-user.
-    pub eoa: HashMap<String, ethers::types::H160>,
+    pub eoa: HashMap<String, eAddress>,
 }
 
 impl Fork {
     /// Creates a new [`Fork`] from serialized [`DiskData`] stored on disk.
-    pub fn from_disk(path: &str) -> Result<Self, EnvironmentError> {
+    pub fn from_disk(path: &str) -> Result<Self, ArbiterCoreError> {
         // Read the file
         let mut cwd = env::current_dir().unwrap();
         cwd.push(path);
@@ -66,8 +64,8 @@ impl Fork {
 
             // Insert storage data into the DB
             for (key_str, value_str) in storage_map {
-                let key = revm::primitives::U256::from_str_radix(&key_str, 10).unwrap();
-                let value = revm::primitives::U256::from_str_radix(&value_str, 10).unwrap();
+                let key = U256::from_str_radix(&key_str, 10).unwrap();
+                let value = U256::from_str_radix(&value_str, 10).unwrap();
 
                 db.insert_account_storage(address, key, value).unwrap();
             }
@@ -98,8 +96,8 @@ pub struct DiskData {
     pub meta: HashMap<String, ContractMetadata>,
 
     /// This is the raw data that will be loaded into the [`Fork`].
-    pub raw: HashMap<Address, (AccountInfo, Storage)>,
+    pub raw: HashMap<eAddress, (AccountInfo, Storage)>,
 
     /// This is the eoa data that will be loaded into the [`Fork`].
-    pub externally_owned_accounts: HashMap<String, Address>,
+    pub externally_owned_accounts: HashMap<String, eAddress>,
 }

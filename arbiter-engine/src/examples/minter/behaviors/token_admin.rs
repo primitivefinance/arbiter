@@ -29,7 +29,7 @@ impl Behavior<Message> for TokenAdmin {
     #[tracing::instrument(skip(self), fields(id = messager.id.as_deref()))]
     async fn startup(
         &mut self,
-        client: Arc<RevmMiddleware>,
+        client: Arc<ArbiterMiddleware>,
         messager: Messager,
     ) -> Result<EventStream<Message>, ArbiterEngineError> {
         self.messager = Some(messager.clone());

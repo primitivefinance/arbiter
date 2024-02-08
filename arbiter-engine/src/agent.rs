@@ -1,7 +1,15 @@
 //! The agent module contains the core agent abstraction for the Arbiter Engine.
 
-use super::*;
-use crate::machine::{Behavior, Engine, StateMachine};
+use std::{fmt::Debug, sync::Arc};
+
+use arbiter_core::middleware::ArbiterMiddleware;
+use serde::{de::DeserializeOwned, Serialize};
+use thiserror::Error;
+
+use crate::{
+    machine::{Behavior, Engine, StateMachine},
+    messager::Messager,
+};
 
 /// An agent is an entity capable of processing events and producing actions.
 /// These are the core actors in simulations or in onchain systems.
@@ -24,7 +32,7 @@ pub struct Agent {
     pub messager: Messager,
 
     /// The client the agent uses to interact with the blockchain.
-    pub client: Arc<RevmMiddleware>,
+    pub client: Arc<ArbiterMiddleware>,
 
     /// The engines/behaviors that the agent uses to sync, startup, and process
     /// events.
@@ -145,7 +153,7 @@ impl AgentBuilder {
     /// ```
     pub fn build(
         self,
-        client: Arc<RevmMiddleware>,
+        client: Arc<ArbiterMiddleware>,
         messager: Messager,
     ) -> Result<Agent, ArbiterEngineError> {
         match self.behavior_engines {

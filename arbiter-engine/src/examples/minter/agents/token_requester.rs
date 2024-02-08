@@ -10,7 +10,7 @@ pub(crate) struct TokenRequester {
     pub request_to: String,
     /// Client to have an address to receive token mint to and check balance
     #[serde(skip)]
-    pub client: Option<Arc<RevmMiddleware>>,
+    pub client: Option<Arc<ArbiterMiddleware>>,
     /// The messaging layer for the token requester.
     #[serde(skip)]
     pub messager: Option<Messager>,

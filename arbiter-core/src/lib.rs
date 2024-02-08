@@ -16,8 +16,6 @@
 //! without associated overheads like networking latency.
 //!
 //! Key Features:
-//! - **Manager Interface**: The main user entry-point that offers management of
-//!   different environments and agents.
 //! - **Environment Handling**: Detailed setup and control mechanisms for
 //!   running the Ethereum-like blockchain environment.
 //! - **Middleware Implementation**: Customized middleware to reduce overhead
@@ -36,9 +34,27 @@ pub mod coprocessor;
 pub mod data_collection;
 pub mod database;
 pub mod environment;
-pub mod inspector;
+pub mod errors;
 pub mod middleware;
-#[cfg(test)]
-mod tests;
 
+use std::{
+    collections::{BTreeMap, HashMap},
+    convert::Infallible,
+    fmt::Debug,
+    ops::Range,
+    sync::{Arc, RwLock},
+};
+
+use async_trait::async_trait;
+use ethers::types::{Address as eAddress, Filter, H256, U256 as eU256, U64};
+use revm::{
+    db::{CacheDB, EmptyDB},
+    interpreter::{CallInputs, CallOutcome},
+    primitives::{AccountInfo, Address, Bytes, ExecutionResult, Log, TxEnv, U256},
+    Database, Evm, EvmContext, Inspector,
+};
+use serde::{Deserialize, Serialize};
+use tokio::sync::broadcast::{Receiver as BroadcastReceiver, Sender as BroadcastSender};
 use tracing::{debug, error, info, trace, warn};
+
+use crate::{database::ArbiterDB, environment::Broadcast, errors::ArbiterCoreError};

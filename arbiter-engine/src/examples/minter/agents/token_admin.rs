@@ -5,9 +5,9 @@ pub(crate) struct TokenAdmin {
     /// The identifier of the token admin.
     pub token_data: HashMap<String, TokenData>,
     #[serde(skip)]
-    pub tokens: Option<HashMap<String, ArbiterToken<RevmMiddleware>>>,
+    pub tokens: Option<HashMap<String, ArbiterToken<ArbiterMiddleware>>>,
     #[serde(skip)]
-    pub client: Option<Arc<RevmMiddleware>>,
+    pub client: Option<Arc<ArbiterMiddleware>>,
     #[serde(skip)]
     pub messager: Option<Messager>,
     #[serde(default)]

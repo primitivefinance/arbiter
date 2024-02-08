@@ -2,7 +2,10 @@
 
 use std::collections::VecDeque;
 
-use arbiter_core::environment::Environment;
+use arbiter_core::{environment::Environment, middleware::ArbiterMiddleware};
+use futures_util::future::join_all;
+use serde::de::DeserializeOwned;
+use tokio::spawn;
 
 use super::*;
 use crate::{
@@ -147,7 +150,7 @@ impl World {
     /// This will add the agent defined by `agent_builder` to the world.
     pub fn add_agent(&mut self, agent_builder: AgentBuilder) {
         let id = agent_builder.id.clone();
-        let client = RevmMiddleware::new(&self.environment, Some(&id))
+        let client = ArbiterMiddleware::new(&self.environment, Some(&id))
             .expect("Failed to create RevmMiddleware client for agent");
         let messager = self.messager.for_agent(&id);
         let agent = agent_builder

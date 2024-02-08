@@ -13,7 +13,7 @@ impl Behavior<TransferFilter> for TokenRequester {
     #[tracing::instrument(skip(self), fields(id = messager.id.as_deref()))]
     async fn startup(
         &mut self,
-        client: Arc<RevmMiddleware>,
+        client: Arc<ArbiterMiddleware>,
         mut messager: Messager,
     ) -> Result<EventStream<TransferFilter>, ArbiterEngineError> {
         messager
