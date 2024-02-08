@@ -28,7 +28,7 @@ use ethers::{
     types::{
         transaction::{eip2718::TypedTransaction, eip712::Eip712},
         Address as eAddress, BlockId, Bloom, Bytes as eBytes, FilteredParams, Log as eLog,
-        NameOrAddress, Signature, Transaction, TransactionReceipt, TxHash as eTxHash,
+        NameOrAddress, Signature, Transaction, TransactionReceipt,
     },
 };
 use futures_timer::Delay;
@@ -459,10 +459,6 @@ impl Middleware for ArbiterMiddleware {
         let outcome = provider.outcome_receiver.recv()??;
 
         if let Outcome::TransactionCompleted(execution_result, receipt_data) = outcome {
-            let mut block_hasher = Sha256::new();
-            block_hasher.update(receipt_data.block_number.to_string().as_bytes());
-            let block_hash = block_hasher.finalize();
-            let block_hash = Some(H256::from_slice(&block_hash));
             match execution_result {
                 ExecutionResult::Revert { gas_used, output } => {
                     return Err(ArbiterCoreError::ExecutionRevert {
@@ -483,11 +479,6 @@ impl Middleware for ArbiterMiddleware {
                     // Note that this is technically not the correct construction on the tx hash
                     // but until we increment the nonce correctly this will do
                     let sender = self.address();
-                    let data = tx_env.clone().data;
-                    let mut hasher = Sha256::new();
-                    hasher.update(sender.as_bytes());
-                    hasher.update(data.as_ref());
-                    let hash = hasher.finalize();
 
                     let logs = revm_logs_to_ethers_logs(logs, &receipt_data);
                     let to: Option<eAddress> = match tx_env.transact_to {
@@ -498,7 +489,7 @@ impl Middleware for ArbiterMiddleware {
                     match output {
                         Output::Create(_, address) => {
                             let tx_receipt = TransactionReceipt {
-                                block_hash,
+                                block_hash: None,
                                 block_number: Some(receipt_data.block_number),
                                 contract_address: Some(recast_address(address.unwrap())),
                                 logs: logs.clone(),
@@ -507,7 +498,7 @@ impl Middleware for ArbiterMiddleware {
                                 effective_gas_price: Some(
                                     tx_env.clone().gas_price.to_be_bytes().into(),
                                 ),
-                                transaction_hash: eTxHash::from_slice(&hash),
+                                transaction_hash: H256::default(),
                                 to,
                                 cumulative_gas_used: receipt_data.cumulative_gas_per_block,
                                 status: Some(1.into()),
@@ -550,7 +541,7 @@ impl Middleware for ArbiterMiddleware {
                         }
                         Output::Call(_) => {
                             let tx_receipt = TransactionReceipt {
-                                block_hash,
+                                block_hash: None,
                                 block_number: Some(receipt_data.block_number),
                                 contract_address: None,
                                 logs: logs.clone(),
@@ -559,7 +550,7 @@ impl Middleware for ArbiterMiddleware {
                                 effective_gas_price: Some(
                                     tx_env.clone().gas_price.to_be_bytes().into(),
                                 ),
-                                transaction_hash: eTxHash::from_slice(&hash),
+                                transaction_hash: H256::default(),
                                 to,
                                 cumulative_gas_used: receipt_data.cumulative_gas_per_block,
                                 status: Some(1.into()),
@@ -582,8 +573,6 @@ impl Middleware for ArbiterMiddleware {
                                 ..Default::default()
                             };
 
-                            // TODO: Create the actual tx_hash
-                            // TODO: I'm not sure we need to set the confirmations.
                             let mut pending_tx = PendingTransaction::new(
                                 ethers::types::H256::zero(),
                                 self.provider(),

@@ -3,10 +3,7 @@ use std::str::FromStr;
 use arbiter_bindings::bindings::{self, weth::weth};
 use arbiter_core::database::fork::Fork;
 use ethers::{
-    prelude::{
-        k256::sha2::{Digest, Sha256},
-        Middleware,
-    },
+    prelude::Middleware,
     types::{Address, H256, U256 as eU256, U64},
 };
 include!("common.rs");
@@ -25,11 +22,6 @@ async fn receipt_data() {
         .unwrap();
 
     assert!(receipt.block_number.is_some());
-    let mut block_hasher = Sha256::new();
-    block_hasher.update(receipt.block_number.unwrap().to_string().as_bytes());
-    let block_hash = block_hasher.finalize();
-    let block_hash = Some(H256::from_slice(&block_hash));
-    assert_eq!(receipt.block_hash, block_hash); // panic here left side is none
     assert_eq!(receipt.status, Some(1.into()));
 
     assert!(receipt.contract_address.is_none());
