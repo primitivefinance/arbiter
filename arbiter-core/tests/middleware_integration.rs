@@ -1,10 +1,16 @@
+use std::str::FromStr;
+
 use arbiter_bindings::bindings::arbiter_token::ApprovalFilter;
 use arbiter_core::{
     environment::instruction::{Cheatcodes, CheatcodesReturn},
     middleware::nonce_middleware::NonceManagerMiddleware,
 };
-use ethers::types::{transaction::eip2718::TypedTransaction, Log};
-
+use ethers::{
+    prelude::{EthLogDecode, Middleware},
+    providers::ProviderError,
+    types::{transaction::eip2718::TypedTransaction, Address, Filter, Log, ValueOrArray},
+};
+use futures::StreamExt;
 include!("common.rs");
 
 #[tokio::test]
@@ -244,7 +250,7 @@ async fn block_update_receipt() {
     assert_eq!(receipt.block_number, 0.into());
     assert_eq!(
         receipt.cumulative_gas_per_block,
-        revm::primitives::U256::from_str_radix("e12e4", 16).unwrap()
+        ethers::types::U256::from_str_radix("e12e4", 16).unwrap()
     );
     assert_eq!(receipt.transaction_index, 2.into());
 }

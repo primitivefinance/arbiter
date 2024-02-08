@@ -152,11 +152,11 @@ pub(crate) enum EnvironmentData {
     GasPrice,
 
     /// The query is for the balance of an account given by the inner `Address`.
-    Balance(ethers::types::Address),
+    Balance(eAddress),
 
     // TODO: Rename this to `Nonce`?
     /// The query is for the nonce of an account given by the inner `Address`.
-    TransactionCount(ethers::types::Address),
+    TransactionCount(eAddress),
 }
 
 /// [`ReceiptData`] is a structure that holds the block number, transaction
@@ -169,12 +169,10 @@ pub struct ReceiptData {
     /// `transaction_index` is the index position of the transaction in the
     /// block.
     pub transaction_index: U64,
-    /// [`cumulative_gas_per_block`] is the total amount of gas used in the
+    /// `cumulative_gas_per_block` is the total amount of gas used in the
     /// block up until and including the transaction.
-    pub cumulative_gas_per_block: U256,
+    pub cumulative_gas_per_block: eU256,
 }
-
-use revm_primitives::{AccountInfo, HashMap, U256};
 
 /// Cheatcodes are a direct way to access the underlying [`EVM`] environment and
 /// database.
@@ -183,17 +181,17 @@ pub enum Cheatcodes {
     /// A `Deal` is used to increase the balance of an account in the [`EVM`].
     Deal {
         /// The address of the account to increase the balance of.
-        address: ethers::types::Address,
+        address: eAddress,
 
         /// The amount to increase the balance of the account by.
-        amount: ethers::types::U256,
+        amount: eU256,
     },
     /// Fetches the value of a storage slot of an account.
     Load {
         /// The address of the account to fetch the storage slot from.
-        account: ethers::types::Address,
+        account: eAddress,
         /// The storage slot to fetch.
-        key: ethers::types::H256,
+        key: H256,
         /// The block to fetch the storage slot from.
         /// todo: implement storage slots at blocks.
         block: Option<ethers::types::BlockId>,
@@ -239,7 +237,7 @@ pub enum CheatcodesReturn {
     /// A `Load` returns the value of a storage slot of an account.
     Load {
         /// The value of the storage slot.
-        value: revm::primitives::U256,
+        value: U256,
     },
     /// A `Store` returns nothing.
     Store,

@@ -1,6 +1,14 @@
+use std::str::FromStr;
+
 use arbiter_bindings::bindings::{self, weth::weth};
 use arbiter_core::database::fork::Fork;
-
+use ethers::{
+    prelude::{
+        k256::sha2::{Digest, Sha256},
+        Middleware,
+    },
+    types::{Address, U256 as eU256},
+};
 include!("common.rs");
 
 #[tokio::test]
@@ -33,7 +41,7 @@ async fn receipt_data() {
     assert_eq!(receipt.transaction_index, 1.into());
     assert_eq!(receipt.from, client.default_sender().unwrap());
 
-    let mut cumulative_gas = U256::from(0);
+    let mut cumulative_gas = eU256::from(0);
     assert!(receipt.cumulative_gas_used >= cumulative_gas);
     cumulative_gas += receipt.cumulative_gas_used;
 
@@ -103,13 +111,13 @@ async fn fork_into_arbiter() {
         .call()
         .await
         .unwrap();
-    assert_eq!(balance, U256::from(34890707020710109111_u128));
+    assert_eq!(balance, eU256::from(34890707020710109111_u128));
 
     // eoa check
     let eoa = fork.eoa.get("vitalik").unwrap();
     let eth_balance = client.get_balance(*eoa, None).await.unwrap();
     // Check the balance of the eoa with the load cheatcode
-    assert_eq!(eth_balance, U256::from(934034962177715175765_u128));
+    assert_eq!(eth_balance, eU256::from(934034962177715175765_u128));
 }
 
 #[tokio::test]
@@ -137,7 +145,7 @@ async fn middleware_from_forked_eo() {
         .get_balance(*vitalik_address, None)
         .await
         .unwrap();
-    assert_eq!(eth_balance, U256::from(934034962177715175765_u128));
+    assert_eq!(eth_balance, eU256::from(934034962177715175765_u128));
 }
 
 #[tokio::test]

@@ -22,8 +22,9 @@ use std::thread::{self, JoinHandle};
 use crossbeam_channel::{bounded, unbounded, Receiver, Sender};
 use ethers::abi::AbiDecode;
 use revm::{
+    db::AccountState,
     inspector_handle_register,
-    primitives::{Env, HashMap},
+    primitives::{Env, HashMap, B256},
 };
 use tokio::sync::broadcast::channel;
 
@@ -232,7 +233,7 @@ impl Environment {
 
             // Initialize counters that are returned on some receipts.
             let mut transaction_index = U64::from(0_u64);
-            let mut cumulative_gas_per_block = U256::from(0);
+            let mut cumulative_gas_per_block = eU256::from(0);
 
             // Loop over the instructions sent through the socket.
             while let Ok(instruction) = instruction_receiver.recv() {
@@ -246,11 +247,10 @@ impl Environment {
                         address,
                         outcome_sender,
                     } => {
-                        let recast_address =
-                            revm::primitives::Address::from(address.as_fixed_bytes());
+                        let recast_address = Address::from(address.as_fixed_bytes());
                         let account = revm::db::DbAccount {
                             info: AccountInfo::default(),
-                            account_state: revm::db::AccountState::None,
+                            account_state: AccountState::None,
                             storage: HashMap::new(),
                         };
                         let db = &mut evm.context.evm.db;
@@ -286,7 +286,7 @@ impl Environment {
 
                         // Reset the counters.
                         transaction_index = U64::from(0);
-                        cumulative_gas_per_block = U256::from(0);
+                        cumulative_gas_per_block = eU256::from(0);
                     }
                     Instruction::Cheatcode {
                         cheatcode,
@@ -297,29 +297,20 @@ impl Environment {
                             key,
                             block: _,
                         } => {
-                            // Get the underlying database.
                             let db = &mut evm.context.evm.db;
 
-                            // Cast the ethers-rs cheatcode arguments into revm types.
-                            let recast_address =
-                                revm::primitives::Address::from(account.as_fixed_bytes());
-                            let recast_key = revm::primitives::B256::from(key.as_fixed_bytes());
+                            let recast_address = Address::from(account.as_fixed_bytes());
+                            let recast_key = B256::from(key.as_fixed_bytes()).into();
 
                             // Get the account storage value at the key in the db.
                             match db.0.write().unwrap().accounts.get_mut(&recast_address) {
                                 Some(account) => {
                                     // Returns zero if the account is missing.
-                                    let value: revm::primitives::U256 = match account
-                                        .storage
-                                        .get::<revm::primitives::U256>(
-                                        &recast_key.into(),
-                                    ) {
+                                    let value: U256 = match account.storage.get::<U256>(&recast_key)
+                                    {
                                         Some(value) => *value,
-                                        None => revm::primitives::U256::ZERO,
+                                        None => U256::ZERO,
                                     };
-
-                                    // Sends the revm::primitives::U256 storage value back to the
-                                    // sender via CheatcodeReturn(revm::primitives::U256).
                                     outcome_sender.send(Ok(Outcome::CheatcodeReturn(
                                         CheatcodesReturn::Load { value },
                                     )))?;
@@ -338,16 +329,12 @@ impl Environment {
                             // Get the underlying database
                             let db = &mut evm.context.evm.db;
 
-                            // Cast the ethers-rs types passed in the cheatcode arguments into revm
-                            // primitive types
-                            let recast_address =
-                                revm::primitives::Address::from(account.as_fixed_bytes());
-                            let recast_key = revm::primitives::B256::from(key.as_fixed_bytes());
-                            let recast_value = revm::primitives::B256::from(value.as_fixed_bytes());
+                            let recast_address = Address::from(account.as_fixed_bytes());
+                            let recast_key = B256::from(key.as_fixed_bytes());
+                            let recast_value = B256::from(value.as_fixed_bytes());
 
                             // Mutate the db by inserting the new key-value pair into the account's
-                            // storage and send the successful
-                            // CheatcodeCompleted outcome.
+                            // storage and send the successful CheatcodeCompleted outcome.
                             match db.0.write().unwrap().accounts.get_mut(&recast_address) {
                                 Some(account) => {
                                     account
@@ -366,8 +353,7 @@ impl Environment {
                         }
                         Cheatcodes::Deal { address, amount } => {
                             let db = &mut evm.context.evm.db;
-                            let recast_address =
-                                revm::primitives::Address::from(address.as_fixed_bytes());
+                            let recast_address = Address::from(address.as_fixed_bytes());
                             match db.0.write().unwrap().accounts.get_mut(&recast_address) {
                                 Some(account) => {
                                     account.info.balance += U256::from_limbs(amount.0);
@@ -383,22 +369,17 @@ impl Environment {
                         }
                         Cheatcodes::Access { address } => {
                             let db = &mut evm.context.evm.db;
-                            let recast_address =
-                                revm::primitives::Address::from(address.as_fixed_bytes());
+                            let recast_address = Address::from(address.as_fixed_bytes());
 
                             match db.0.write().unwrap().accounts.get(&recast_address) {
                                 Some(account) => {
                                     let account_state = match account.account_state {
-                                        revm::db::AccountState::None => {
-                                            AccountStateSerializable::None
-                                        }
-                                        revm::db::AccountState::Touched => {
-                                            AccountStateSerializable::Touched
-                                        }
-                                        revm::db::AccountState::StorageCleared => {
+                                        AccountState::None => AccountStateSerializable::None,
+                                        AccountState::Touched => AccountStateSerializable::Touched,
+                                        AccountState::StorageCleared => {
                                             AccountStateSerializable::StorageCleared
                                         }
-                                        revm::db::AccountState::NotExisting => {
+                                        AccountState::NotExisting => {
                                             AccountStateSerializable::NotExisting
                                         }
                                     };
@@ -474,7 +455,8 @@ impl Environment {
                                 continue;
                             }
                         };
-                        cumulative_gas_per_block += U256::from(execution_result.clone().gas_used());
+                        cumulative_gas_per_block +=
+                            eU256::from(execution_result.clone().gas_used());
                         let block_number = convert_uint_to_u64(evm.block().number)?;
                         let receipt_data = ReceiptData {
                             block_number,
@@ -518,9 +500,8 @@ impl Environment {
                                     .read()
                                     .unwrap()
                                     .accounts
-                                    .get::<revm::primitives::Address>(
-                                        &address.as_fixed_bytes().into(),
-                                    ) {
+                                    .get::<Address>(&address.as_fixed_bytes().into())
+                                {
                                     Some(account) => {
                                         Ok(Outcome::QueryReturn(account.info.balance.to_string()))
                                     }
@@ -535,9 +516,8 @@ impl Environment {
                                     .read()
                                     .unwrap()
                                     .accounts
-                                    .get::<revm::primitives::Address>(
-                                        &address.as_fixed_bytes().into(),
-                                    ) {
+                                    .get::<Address>(&address.as_fixed_bytes().into())
+                                {
                                     Some(account) => {
                                         Ok(Outcome::QueryReturn(account.info.nonce.to_string()))
                                     }

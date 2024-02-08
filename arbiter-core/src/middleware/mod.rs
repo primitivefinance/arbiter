@@ -1,13 +1,12 @@
-//! The `middleware` module provides functionality to interact with
+//! The [`middleware`] module provides functionality to interact with
 //! Ethereum-like virtual machines. It achieves this by offering a middleware
 //! implementation for sending and reading transactions, as well as watching
 //! for events.
 //!
 //! Main components:
 //! - [`ArbiterMiddleware`]: The core middleware implementation.
-//! - [`ArbiterMiddlewareError`]: Error type for the middleware.
 //! - [`Connection`]: Handles communication with the Ethereum VM.
-//! - `FilterReceiver`: Facilitates event watching based on certain filters.
+//! - [`FilterReceiver`]: Facilitates event watching based on certain filters.
 
 #![warn(missing_docs)]
 use std::{future::Future, pin::Pin, sync::Mutex, time::Duration};
@@ -29,7 +28,7 @@ use ethers::{
     types::{
         transaction::{eip2718::TypedTransaction, eip712::Eip712},
         Address as eAddress, BlockId, Bloom, Bytes as eBytes, FilteredParams, Log as eLog,
-        NameOrAddress, Signature, Transaction, TransactionReceipt, TxHash as eTxHash, H256,
+        NameOrAddress, Signature, Transaction, TransactionReceipt, TxHash as eTxHash,
     },
 };
 use futures_timer::Delay;
@@ -49,21 +48,17 @@ pub mod nonce_middleware;
 /// A middleware structure that integrates with `revm`.
 ///
 /// [`ArbiterMiddleware`] serves as a bridge between the application and
-/// `revm`'s execution environment, allowing for transaction sending, call
+/// [`revm`]'s execution environment, allowing for transaction sending, call
 /// execution, and other core functions. It uses a custom connection and error
 /// system tailored to Revm's specific needs.
 ///
-/// This allows for `revm` and the [`Environment`] built around it to be treated
-/// in much the same way as a live EVM blockchain can be addressed.
+/// This allows for [`revm`] and the [`Environment`] built around it to be
+/// treated in much the same way as a live EVM blockchain can be addressed.
 ///
 /// # Examples
 ///
 /// Basic usage:
 /// ```
-/// // Get the necessary dependencies
-/// // Import `Arc` if you need to create a client instance
-/// use std::sync::Arc;
-///
 /// use arbiter_core::{environment::Environment, middleware::ArbiterMiddleware};
 ///
 /// // Create a new environment and run it
@@ -204,10 +199,6 @@ impl ArbiterMiddleware {
     ///
     /// # Examples
     /// ```
-    /// // Get the necessary dependencies
-    /// // Import `Arc` if you need to create a client instance
-    /// use std::sync::Arc;
-    ///
     /// use arbiter_core::{environment::Environment, middleware::ArbiterMiddleware};
     ///
     /// // Create a new environment and run it
@@ -516,13 +507,10 @@ impl Middleware for ArbiterMiddleware {
                                 gas_used: Some(gas_used.into()),
                                 effective_gas_price: Some(
                                     tx_env.clone().gas_price.to_be_bytes().into(),
-                                ), // TODO
+                                ),
                                 transaction_hash: eTxHash::from_slice(&hash),
                                 to,
-                                cumulative_gas_used: receipt_data
-                                    .cumulative_gas_per_block
-                                    .to_be_bytes() // TODO
-                                    .into(),
+                                cumulative_gas_used: receipt_data.cumulative_gas_per_block,
                                 status: Some(1.into()),
                                 root: None,
                                 logs_bloom: {
@@ -572,12 +560,9 @@ impl Middleware for ArbiterMiddleware {
                                 effective_gas_price: Some(
                                     tx_env.clone().gas_price.to_be_bytes().into(),
                                 ),
-                                transaction_hash: ethers::types::TxHash::from_slice(&hash),
+                                transaction_hash: eTxHash::from_slice(&hash),
                                 to,
-                                cumulative_gas_used: receipt_data
-                                    .cumulative_gas_per_block
-                                    .to_be_bytes()
-                                    .into(),
+                                cumulative_gas_used: receipt_data.cumulative_gas_per_block,
                                 status: Some(1.into()),
                                 root: None,
                                 logs_bloom: {

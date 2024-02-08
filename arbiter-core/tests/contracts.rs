@@ -1,7 +1,8 @@
 use std::fs::{self, File};
 
-include!("common.rs");
+use ethers::prelude::Middleware;
 use tracing_subscriber::{fmt, EnvFilter};
+include!("common.rs");
 
 #[tokio::test]
 async fn arbiter_math() {
@@ -313,15 +314,12 @@ async fn price_simulation_oracle() {
 async fn can_log() {
     std::env::set_var("RUST_LOG", "trace");
     let file = File::create("test_logs.log").expect("Unable to create log file");
-
     let subscriber = fmt()
         .with_env_filter(EnvFilter::from_default_env())
         .with_writer(file)
         .finish();
-
     tracing::subscriber::set_global_default(subscriber).expect("setting default subscriber failed");
 
-    // tracing_subscriber::fmt::init();
     let env = Environment::builder().with_console_logs().build();
     let client = ArbiterMiddleware::new(&env, None).unwrap();
     let counter = arbiter_bindings::bindings::counter::Counter::deploy(client, ())

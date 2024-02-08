@@ -59,7 +59,6 @@ pub(crate) type FilterDecoder =
 pub struct EventLogger {
     decoder: FilterDecoder,
     receiver: Option<BroadcastReceiver<Broadcast>>,
-    // shutdown_sender: Option<crossbeam_channel::Sender<()>>,
     output_file_type: Option<OutputFileType>,
     directory: Option<String>,
     file_name: Option<String>,
