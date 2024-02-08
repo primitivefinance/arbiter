@@ -3,6 +3,7 @@
 
 use std::pin::Pin;
 
+use anyhow::Result;
 use arbiter_core::middleware::ArbiterMiddleware;
 use futures_util::{Stream, StreamExt};
 use tokio::task::JoinHandle;
@@ -77,12 +78,12 @@ pub trait Behavior<E>: Serialize + DeserializeOwned + Send + Sync + Debug + 'sta
         &mut self,
         client: Arc<ArbiterMiddleware>,
         messager: Messager,
-    ) -> Result<EventStream<E>, ArbiterEngineError>;
+    ) -> Result<EventStream<E>>;
 
     /// Used to process events.
     /// This is where the agent can engage in its specific processing
     /// of events that can lead to actions being taken.
-    async fn process(&mut self, event: E) -> Result<ControlFlow, ArbiterEngineError>;
+    async fn process(&mut self, event: E) -> Result<ControlFlow>;
 }
 /// A trait for creating a state machine.
 ///
@@ -139,7 +140,7 @@ pub trait StateMachine: Send + Sync + Debug + 'static {
     /// This method does not return a value, but it may result in state changes
     /// within the implementing type or the generation of further instructions
     /// or events.
-    async fn execute(&mut self, instruction: MachineInstruction) -> Result<(), ArbiterEngineError>;
+    async fn execute(&mut self, instruction: MachineInstruction) -> Result<()>;
 }
 
 /// The `Engine` struct represents the core logic unit of a state machine-based
@@ -210,14 +211,14 @@ where
     B: Behavior<E> + Debug + Serialize + DeserializeOwned,
     E: DeserializeOwned + Serialize + Send + Sync + Debug + 'static,
 {
-    async fn execute(&mut self, instruction: MachineInstruction) -> Result<(), ArbiterEngineError> {
+    async fn execute(&mut self, instruction: MachineInstruction) -> Result<()> {
         // NOTE: The unwraps here are safe because the `Behavior` in an engine is only
         // accessed here and it is private.
         match instruction {
             MachineInstruction::Start(client, messager) => {
                 self.state = State::Starting;
                 let mut behavior = self.behavior.take().unwrap();
-                let behavior_task: JoinHandle<Result<(EventStream<E>, B), ArbiterEngineError>> =
+                let behavior_task: JoinHandle<Result<(EventStream<E>, B)>> =
                     tokio::spawn(async move {
                         let id = messager.id.clone();
                         let stream = behavior.startup(client, messager).await?;
@@ -234,18 +235,17 @@ where
                 trace!("Behavior is starting up.");
                 let mut behavior = self.behavior.take().unwrap();
                 let mut stream = self.event_stream.take().unwrap();
-                let behavior_task: JoinHandle<Result<B, ArbiterEngineError>> =
-                    tokio::spawn(async move {
-                        while let Some(event) = stream.next().await {
-                            match behavior.process(event).await? {
-                                ControlFlow::Halt => {
-                                    break;
-                                }
-                                ControlFlow::Continue => {}
+                let behavior_task: JoinHandle<Result<B>> = tokio::spawn(async move {
+                    while let Some(event) = stream.next().await {
+                        match behavior.process(event).await? {
+                            ControlFlow::Halt => {
+                                break;
                             }
+                            ControlFlow::Continue => {}
                         }
-                        Ok(behavior)
-                    });
+                    }
+                    Ok(behavior)
+                });
                 // TODO: We don't have to store the behavior again here, we could just discard
                 // it.
                 self.behavior = Some(behavior_task.await??);
