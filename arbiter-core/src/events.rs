@@ -18,15 +18,16 @@
 //! * `E` - Type that implements the `EthLogDecode`, `Debug`, `Serialize`
 //!   traits, and has a static lifetime.
 
-use std::{io::BufWriter, marker::PhantomData, mem::transmute};
+use std::{io::BufWriter, marker::PhantomData, mem::transmute, pin::Pin};
 
 use ethers::{
     abi::RawLog,
     contract::{builders::Event, EthLogDecode},
+    core::k256::sha2::{Digest, Sha256},
     providers::Middleware,
     types::{Filter, FilteredParams},
 };
-
+use futures_util::Stream;
 use polars::{
     io::parquet::ParquetWriter,
     prelude::{CsvWriter, DataFrame, NamedFrom, SerWriter},
@@ -338,6 +339,54 @@ impl Logger {
             }
         });
         Ok(task)
+    }
+
+    /// Adds an event to the `EventLogger` and generates a unique ID for the
+    /// event since we don't need to name events that are solely streamed and
+    /// not stored.
+    pub fn with_stream<D: EthLogDecode + Debug + Serialize + 'static>(
+        self,
+        event: Event<Arc<ArbiterMiddleware>, ArbiterMiddleware, D>,
+    ) -> Self {
+        let mut hasher = Sha256::new();
+        hasher.update(serde_json::to_string(&event.filter).unwrap());
+        let hash = hasher.finalize();
+        let id = hex::encode(hash);
+        self.with_event(event, id)
+    }
+
+    /// Returns a stream of the serialized events.
+    pub fn stream<D: EthLogDecode + Debug + 'static>(
+        mut self,
+    ) -> Option<impl Stream<Item = D> + Send> {
+        if let Some(mut receiver) = self.receiver.take() {
+            let stream = async_stream::stream! {
+                while let Ok(broadcast) = receiver.recv().await {
+                    match broadcast {
+                        Broadcast::StopSignal => {
+                            trace!("`EventLogger` has seen a stop signal");
+                            break;
+                        }
+                        Broadcast::Event(event, receipt_data) => {
+                            trace!("`EventLogger` received an event");
+                            let ethers_logs = revm_logs_to_ethers_logs(event, &receipt_data);
+                            for log in &ethers_logs {
+                                for (_id, (filter, _)) in self.decoder.iter() {
+                                    if filter.filter_address(log) && filter.filter_topics(log) {
+                                        let raw_log = RawLog::from(log.clone());
+                                        yield D::decode_log(&raw_log).unwrap();
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            };
+
+            Some(stream)
+        } else {
+            None
+        }
     }
 }
 
