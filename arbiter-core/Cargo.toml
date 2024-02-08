@@ -61,7 +61,6 @@ futures.workspace = true
 cargo_metadata = "0.18.1"
 chrono = "0.4.33"
 
-
 assert_matches = { version = "=1.5" }
 
 [[bench]]

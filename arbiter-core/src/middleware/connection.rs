@@ -94,8 +94,9 @@ impl JsonRpcClient for Connection {
                 if let Some(receiver) = filter_receiver.receiver.as_mut() {
                     if let Ok(broadcast) = receiver.try_recv() {
                         match broadcast {
-                            Broadcast::Event(received_logs) => {
-                                let ethers_logs = revm_logs_to_ethers_logs(received_logs);
+                            Broadcast::Event(received_logs, receipt_data) => {
+                                let ethers_logs =
+                                    revm_logs_to_ethers_logs(received_logs, &receipt_data);
                                 for log in ethers_logs {
                                     if filtered_params.filter_address(&log)
                                         && filtered_params.filter_topics(&log)
@@ -150,10 +151,10 @@ impl PubsubClient for Connection {
                             Broadcast::StopSignal => {
                                 break;
                             }
-                        Broadcast::Event(logs) => {
+                        Broadcast::Event(logs, receipt_data) => {
                             let filtered_params =
                                 FilteredParams::new(Some(filter_receiver.filter.clone()));
-                            let ethers_logs = revm_logs_to_ethers_logs(logs);
+                            let ethers_logs = revm_logs_to_ethers_logs(logs, &receipt_data);
                             // Return the first log that matches the filter, if any
                             for log in ethers_logs {
                                 if filtered_params.filter_address(&log)
@@ -214,7 +215,8 @@ pub(crate) struct FilterReceiver {
 }
 
 // TODO: The logs below could have the block number, transaction index, and
-// maybe other fields populated.
+// maybe other fields populated. Right now, some are defaulted and are not
+// correct!
 
 /// Converts logs from the Revm format to the Ethers format.
 ///
@@ -222,20 +224,20 @@ pub(crate) struct FilterReceiver {
 /// converts each log entry to the corresponding format used by the `ethers-rs`
 /// library.
 #[inline]
-pub fn revm_logs_to_ethers_logs(revm_logs: Vec<Log>) -> Vec<eLog> {
-    let mut logs: Vec<ethers::core::types::Log> = vec![];
+pub fn revm_logs_to_ethers_logs(revm_logs: Vec<Log>, receipt_data: &ReceiptData) -> Vec<eLog> {
+    let mut logs: Vec<eLog> = vec![];
     for revm_log in revm_logs {
         let topics = revm_log.topics().iter().map(recast_b256).collect();
-        let data = ethers::core::types::Bytes::from(revm_log.data.data.0);
-        let log = ethers::core::types::Log {
-            address: ethers::core::types::H160::from(revm_log.address.into_array()),
+        let data = eBytes::from(revm_log.data.data.0);
+        let log = eLog {
+            address: eAddress::from(revm_log.address.into_array()),
             topics,
             data,
-            block_hash: None,
-            block_number: None,
-            transaction_hash: None,
-            transaction_index: None,
-            log_index: None,
+            block_hash: Some(H256::default()),
+            block_number: Some(receipt_data.block_number),
+            transaction_hash: Some(H256::default()),
+            transaction_index: Some(receipt_data.transaction_index),
+            log_index: Some(eU256::from(0)),
             transaction_log_index: None,
             log_type: None,
             removed: None,

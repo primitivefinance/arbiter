@@ -463,7 +463,10 @@ impl Environment {
                             transaction_index,
                             cumulative_gas_per_block,
                         };
-                        match event_broadcaster.send(Broadcast::Event(execution_result.logs())) {
+                        match event_broadcaster.send(Broadcast::Event(
+                            execution_result.logs(),
+                            receipt_data.clone(),
+                        )) {
                             Ok(_) => {}
                             Err(_) => {
                                 warn!(
@@ -599,7 +602,7 @@ pub enum Broadcast {
     /// Represents a signal to stop the event logger process.
     StopSignal,
     /// Represents a broadcast of a vector of Ethereum logs.
-    Event(Vec<Log>),
+    Event(Vec<Log>, ReceiptData),
 }
 
 /// Convert a U256 to a U64, discarding the higher bits if the number is larger

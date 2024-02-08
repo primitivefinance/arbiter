@@ -459,6 +459,10 @@ impl Middleware for ArbiterMiddleware {
         let outcome = provider.outcome_receiver.recv()??;
 
         if let Outcome::TransactionCompleted(execution_result, receipt_data) = outcome {
+            let mut block_hasher = Sha256::new();
+            block_hasher.update(receipt_data.block_number.to_string().as_bytes());
+            let block_hash = block_hasher.finalize();
+            let block_hash = Some(H256::from_slice(&block_hash));
             match execution_result {
                 ExecutionResult::Revert { gas_used, output } => {
                     return Err(ArbiterCoreError::ExecutionRevert {
@@ -475,12 +479,7 @@ impl Middleware for ArbiterMiddleware {
                     logs,
                     ..
                 } => {
-                    let logs = revm_logs_to_ethers_logs(logs);
-                    let to: Option<eAddress> = match tx_env.transact_to {
-                        TransactTo::Call(address) => Some(address.into_array().into()),
-                        TransactTo::Create(_) => None,
-                    };
-
+                    // TODO: This is why we need the signer middleware
                     // Note that this is technically not the correct construction on the tx hash
                     // but until we increment the nonce correctly this will do
                     let sender = self.address();
@@ -490,10 +489,11 @@ impl Middleware for ArbiterMiddleware {
                     hasher.update(data.as_ref());
                     let hash = hasher.finalize();
 
-                    let mut block_hasher = Sha256::new();
-                    block_hasher.update(receipt_data.block_number.to_string().as_bytes());
-                    let block_hash = block_hasher.finalize();
-                    let block_hash = Some(H256::from_slice(&block_hash));
+                    let logs = revm_logs_to_ethers_logs(logs, &receipt_data);
+                    let to: Option<eAddress> = match tx_env.transact_to {
+                        TransactTo::Call(address) => Some(address.into_array().into()),
+                        TransactTo::Create(_) => None,
+                    };
 
                     match output {
                         Output::Create(_, address) => {

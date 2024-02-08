@@ -594,3 +594,34 @@ async fn access() {
         }
     }
 }
+
+#[tokio::test]
+async fn stream_with_meta() {
+    let (_environment, client) = startup();
+
+    let arbx = deploy_arbx(client.clone()).await;
+
+    let events = arbx.events();
+    let mut stream = events.stream_with_meta().await.unwrap();
+
+    for _ in 0..2 {
+        arbx.approve(client.address(), eU256::from(1))
+            .send()
+            .await
+            .unwrap()
+            .await
+            .unwrap();
+    }
+
+    client.update_block(1, 1).unwrap();
+
+    arbx.approve(client.address(), eU256::from(1))
+        .send()
+        .await
+        .unwrap()
+        .await
+        .unwrap();
+    assert_eq!(format!("{:?}", stream.next().await), "Some(Ok((ApprovalFilter(ApprovalFilter { owner: 0x2efdc9eecfee3a776209fcb8e9a83a6b221d74f5, spender: 0x2efdc9eecfee3a776209fcb8e9a83a6b221d74f5, amount: 1 }), LogMeta { address: 0x067ea9e44c76a2620f10b39a1b51d5124a299192, block_number: 0, block_hash: 0x0000000000000000000000000000000000000000000000000000000000000000, transaction_hash: 0x0000000000000000000000000000000000000000000000000000000000000000, transaction_index: 1, log_index: 0 })))");
+    assert_eq!(format!("{:?}", stream.next().await), "Some(Ok((ApprovalFilter(ApprovalFilter { owner: 0x2efdc9eecfee3a776209fcb8e9a83a6b221d74f5, spender: 0x2efdc9eecfee3a776209fcb8e9a83a6b221d74f5, amount: 1 }), LogMeta { address: 0x067ea9e44c76a2620f10b39a1b51d5124a299192, block_number: 0, block_hash: 0x0000000000000000000000000000000000000000000000000000000000000000, transaction_hash: 0x0000000000000000000000000000000000000000000000000000000000000000, transaction_index: 2, log_index: 0 })))");
+    assert_eq!(format!("{:?}", stream.next().await), "Some(Ok((ApprovalFilter(ApprovalFilter { owner: 0x2efdc9eecfee3a776209fcb8e9a83a6b221d74f5, spender: 0x2efdc9eecfee3a776209fcb8e9a83a6b221d74f5, amount: 1 }), LogMeta { address: 0x067ea9e44c76a2620f10b39a1b51d5124a299192, block_number: 1, block_hash: 0x0000000000000000000000000000000000000000000000000000000000000000, transaction_hash: 0x0000000000000000000000000000000000000000000000000000000000000000, transaction_index: 0, log_index: 0 })))");
+}
