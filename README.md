@@ -3,7 +3,6 @@
 > Expanding the EVM tooling ecosystem.
 
 ![Github Actions](https://github.com/primitivefinance/arbiter/workflows/test/badge.svg)
-[![Codecov badge](https://codecov.io/gh/primitivefinance/arbiter/branch/main/graph/badge.svg?token=UQ1SE0D9IN)](https://codecov.io/gh/primitivefinance/arbiter)
 ![Visitors badge](https://visitor-badge.laobi.icu/badge?page_id=arbiter)
 ![Telegram badge](https://img.shields.io/endpoint?color=neon&logo=telegram&label=chat&style=flat-square&url=https%3A%2F%2Ftg.sumanjay.workers.dev%2Farbiter_rs)
 [![Twitter Badge](https://badgen.net/badge/icon/twitter?icon=twitter&label)](https://twitter.com/primitivefi)
