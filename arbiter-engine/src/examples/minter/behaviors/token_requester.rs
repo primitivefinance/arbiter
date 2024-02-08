@@ -4,10 +4,13 @@ use token_admin::{MintRequest, TokenAdminQuery};
 
 use self::{
     errors::ArbiterEngineError, examples::minter::agents::token_requester::TokenRequester,
-    machine::EventStream,
+    machine::BehaviorStream,
 };
+
 use super::*;
+use ethers::providers::SubscriptionStream;
 use futures::StreamExt;
+use futures_util::stream::Stream;
 
 #[async_trait::async_trait]
 impl Behavior<TransferFilter> for TokenRequester {
@@ -16,7 +19,7 @@ impl Behavior<TransferFilter> for TokenRequester {
         &mut self,
         client: Arc<ArbiterMiddleware>,
         mut messager: Messager,
-    ) -> Result<EventStream<TransferFilter>> {
+    ) -> Result<BehaviorStream<TransferFilter>> {
         messager
             .send(
                 To::Agent(self.request_to.clone()),
@@ -39,7 +42,9 @@ impl Behavior<TransferFilter> for TokenRequester {
 
         self.messager = Some(messager.clone());
         self.client = Some(client.clone());
-        let stream = token.transfer_filter().stream();
+        let transfer_event = token.approval_filter();
+        let stream = transfer_event.stream().await;
+        // println!("stream: {:?}", stream);
         Err(anyhow::anyhow!("Not implemented"))
     }
 

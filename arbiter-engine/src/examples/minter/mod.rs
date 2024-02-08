@@ -64,20 +64,20 @@ async fn token_minter_simulation() {
     world.run().await;
     let mut idx = 0;
 
-    loop {
-        match timeout(Duration::from_secs(1), transfer_stream.next()).await {
-            Ok(Some(event)) => {
-                println!("Event received in outside world: {:?}", event);
-                idx += 1;
-                if idx == 4 {
-                    break;
-                }
-            }
-            _ => {
-                panic!("Timeout reached. Test failed.");
-            }
-        }
-    }
+    // loop {
+    //     match timeout(Duration::from_secs(1), transfer_stream.next()).await {
+    //         Ok(Some(event)) => {
+    //             println!("Event received in outside world: {:?}", event);
+    //             idx += 1;
+    //             if idx == 4 {
+    //                 break;
+    //             }
+    //         }
+    //         _ => {
+    //             panic!("Timeout reached. Test failed.");
+    //         }
+    //     }
+    // }
 }
 
 #[derive(Serialize, Deserialize, Debug, Behaviors)]

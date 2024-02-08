@@ -57,7 +57,7 @@ impl Behavior<Message> for TimedMessage {
         &mut self,
         _client: Arc<ArbiterMiddleware>,
         messager: Messager,
-    ) -> Result<EventStream<Message>> {
+    ) -> Result<BehaviorStream<Message>> {
         if let Some(startup_message) = &self.startup_message {
             messager.send(To::All, startup_message).await;
         }

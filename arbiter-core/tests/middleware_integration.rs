@@ -483,6 +483,8 @@ async fn pubsubclient() {
     let arbx = deploy_arbx(client.clone()).await;
 
     let filter = arbx.events().filter;
+    let events = arbx.events();
+    events.stream();
 
     let mut stream = client.subscribe_logs(&filter).await.unwrap();
 
