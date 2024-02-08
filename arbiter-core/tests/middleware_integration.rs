@@ -599,7 +599,7 @@ async fn access() {
 
 #[tokio::test]
 async fn stream_with_meta() {
-    let (_, client) = startup();
+    let (_environment, client) = startup();
 
     let arbx = deploy_arbx(client.clone()).await;
 

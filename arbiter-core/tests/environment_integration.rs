@@ -29,7 +29,7 @@ async fn receipt_data() {
     block_hasher.update(receipt.block_number.unwrap().to_string().as_bytes());
     let block_hash = block_hasher.finalize();
     let block_hash = Some(H256::from_slice(&block_hash));
-    assert_eq!(receipt.block_hash, block_hash);
+    assert_eq!(receipt.block_hash, block_hash); // panic here left side is none
     assert_eq!(receipt.status, Some(1.into()));
 
     assert!(receipt.contract_address.is_none());
