@@ -215,7 +215,8 @@ pub(crate) struct FilterReceiver {
 }
 
 // TODO: The logs below could have the block number, transaction index, and
-// maybe other fields populated. Right now, some are defaulted and are not correct!
+// maybe other fields populated. Right now, some are defaulted and are not
+// correct!
 
 /// Converts logs from the Revm format to the Ethers format.
 ///
