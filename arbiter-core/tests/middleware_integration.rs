@@ -8,71 +8,65 @@ use arbiter_core::{
 use ethers::{
     prelude::{EthLogDecode, Middleware},
     providers::ProviderError,
-    types::{transaction::eip2718::TypedTransaction, Address, Filter, Log, ValueOrArray},
+    types::{
+        transaction::eip2718::TypedTransaction, Address as eAddress, Bytes as eBytes, Filter, Log,
+        ValueOrArray, H256, U256 as eU256,
+    },
 };
 use futures::StreamExt;
 include!("common.rs");
 
 #[tokio::test]
 async fn deploy() {
-    let (_environment, client) = startup().unwrap();
-    let arbiter_token = deploy_arbx(client).await.unwrap();
+    let (_environment, client) = startup();
+    let arbiter_token = deploy_arbx(client).await;
     assert_eq!(
         arbiter_token.address(),
-        Address::from_str("0x067ea9e44c76a2620f10b39a1b51d5124a299192").unwrap()
+        eAddress::from_str("0x067ea9e44c76a2620f10b39a1b51d5124a299192").unwrap()
     );
 }
 
 #[tokio::test]
 async fn call() {
-    let (_environment, client) = startup().unwrap();
-    let arbiter_token = deploy_arbx(client).await.unwrap();
+    let (_environment, client) = startup();
+    let arbiter_token = deploy_arbx(client).await;
     let admin = arbiter_token.admin();
     let output = admin.call().await.unwrap();
     assert_eq!(
         output,
-        Address::from_str("0x2efdc9eecfee3a776209fcb8e9a83a6b221d74f5").unwrap()
+        eAddress::from_str("0x2efdc9eecfee3a776209fcb8e9a83a6b221d74f5").unwrap()
     );
 }
 
 #[tokio::test]
 async fn transact() {
-    let (_environment, client) = startup().unwrap();
-    let arbiter_token = deploy_arbx(client).await.unwrap();
+    let (_environment, client) = startup();
+    let arbiter_token = deploy_arbx(client).await;
     let mint = arbiter_token.mint(
-        Address::from_str(TEST_MINT_TO).unwrap(),
-        ethers::types::U256::from(TEST_MINT_AMOUNT),
+        eAddress::from_str(TEST_MINT_TO).unwrap(),
+        eU256::from(TEST_MINT_AMOUNT),
     );
     let receipt = mint.send().await.unwrap().await.unwrap().unwrap();
     assert_eq!(receipt.logs[0].address, arbiter_token.address());
     let topics = vec![
-        ethers::core::types::H256::from_str(
-            "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef",
-        )
-        .unwrap(),
-        ethers::core::types::H256::from_str(
-            "0x0000000000000000000000000000000000000000000000000000000000000000",
-        )
-        .unwrap(),
-        ethers::core::types::H256::from_str(
-            "0x000000000000000000000000f7e93cc543d97af6632c9b8864417379dba4bf15",
-        )
-        .unwrap(),
+        H256::from_str("0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef")
+            .unwrap(),
+        H256::from_str("0x0000000000000000000000000000000000000000000000000000000000000000")
+            .unwrap(),
+        H256::from_str("0x000000000000000000000000f7e93cc543d97af6632c9b8864417379dba4bf15")
+            .unwrap(),
     ];
     assert_eq!(receipt.logs[0].topics, topics);
     let bytes =
         hex::decode("0000000000000000000000000000000000000000000000000000000000000045").unwrap();
-    assert_eq!(
-        receipt.logs[0].data,
-        ethers::core::types::Bytes::from(bytes)
-    );
+    assert_eq!(receipt.logs[0].data, eBytes::from(bytes));
     println!("logs are: {:#?}", receipt.logs);
 }
 
 #[tokio::test]
 async fn filter_id() {
-    let (_environment, client) = startup().unwrap();
-    let arbiter_token = deploy_arbx(client.clone()).await.unwrap();
+    let (_environment, client) = startup();
+    let arbiter_token = deploy_arbx(client.clone()).await;
     let filter_watcher_1 = client.watch(&Filter::default()).await.unwrap();
     let filter_watcher_2 = client
         .watch(&Filter::new().address(arbiter_token.address()))
@@ -83,12 +77,12 @@ async fn filter_id() {
 
 #[tokio::test]
 async fn filter_watcher() {
-    let (_environment, client) = startup().unwrap();
-    let arbiter_token = deploy_arbx(client.clone()).await.unwrap();
+    let (_environment, client) = startup();
+    let arbiter_token = deploy_arbx(client.clone()).await;
     let mut filter_watcher = client.watch(&Filter::default()).await.unwrap();
     let approval = arbiter_token.approve(
         client.default_sender().unwrap(),
-        ethers::types::U256::from(TEST_APPROVAL_AMOUNT),
+        eU256::from(TEST_APPROVAL_AMOUNT),
     );
     approval.send().await.unwrap().await.unwrap();
     let event = filter_watcher.next().await.unwrap();
@@ -131,8 +125,8 @@ Log: {:#?}",
 
 #[tokio::test]
 async fn filter_address() {
-    let (_environment, client) = startup().unwrap();
-    let arbiter_token = deploy_arbx(client.clone()).await.unwrap();
+    let (_environment, client) = startup();
+    let arbiter_token = deploy_arbx(client.clone()).await;
 
     let mut default_watcher = client.watch(&Filter::default()).await.unwrap();
     let mut address_watcher = client
@@ -192,8 +186,8 @@ async fn filter_address() {
 
 #[tokio::test]
 async fn filter_topics() {
-    let (_environment, client) = startup().unwrap();
-    let arbiter_token = deploy_arbx(client.clone()).await.unwrap();
+    let (_environment, client) = startup();
+    let arbiter_token = deploy_arbx(client.clone()).await;
 
     let mut default_watcher = client.watch(&Filter::default()).await.unwrap();
     let mut approval_watcher = client
@@ -232,8 +226,8 @@ async fn filter_topics() {
 
 #[tokio::test]
 async fn block_update_receipt() {
-    let (_environment, client) = startup().unwrap();
-    let arbiter_token = deploy_arbx(client.clone()).await.unwrap();
+    let (_environment, client) = startup();
+    let arbiter_token = deploy_arbx(client.clone()).await;
     let receipt = arbiter_token
         .mint(client.default_sender().unwrap(), 1000u64.into())
         .send()
@@ -250,40 +244,40 @@ async fn block_update_receipt() {
     assert_eq!(receipt.block_number, 0.into());
     assert_eq!(
         receipt.cumulative_gas_per_block,
-        ethers::types::U256::from_str_radix("e12e4", 16).unwrap()
+        eU256::from_str_radix("e12e4", 16).unwrap()
     );
     assert_eq!(receipt.transaction_index, 2.into());
 }
 
 #[tokio::test]
 async fn get_block_number() {
-    let (_environment, client) = startup().unwrap();
+    let (_environment, client) = startup();
     let block_number = client.get_block_number().await.unwrap();
     assert_eq!(block_number.as_u64(), 0_u64)
 }
 
 #[tokio::test]
 async fn get_block_timestamp() {
-    let (_environment, client) = startup().unwrap();
+    let (_environment, client) = startup();
     let block_timestamp = client.get_block_timestamp().await.unwrap();
-    assert_eq!(block_timestamp, ethers::types::U256::from(1))
+    assert_eq!(block_timestamp, eU256::from(1))
 }
 
 #[tokio::test]
 async fn get_gas_price() {
     // User controlled should have 0 gas price initially
-    let (_environment, client) = startup().unwrap();
+    let (_environment, client) = startup();
     let gas_price = client.get_gas_price().await.unwrap();
-    assert_eq!(gas_price, ethers::types::U256::from(0));
+    assert_eq!(gas_price, eU256::from(0));
 }
 
 #[tokio::test]
 async fn deal() {
-    let (_environment, client) = startup().unwrap();
+    let (_environment, client) = startup();
     client
         .apply_cheatcode(Cheatcodes::Deal {
             address: client.default_sender().unwrap(),
-            amount: ethers::types::U256::from(1),
+            amount: eU256::from(1),
         })
         .await
         .unwrap();
@@ -293,43 +287,40 @@ async fn deal() {
 
 #[tokio::test]
 async fn deal_missing_account() {
-    let (_environment, client) = startup().unwrap();
+    let (_environment, client) = startup();
     client
         .apply_cheatcode(Cheatcodes::Deal {
             address: client.default_sender().unwrap(),
-            amount: ethers::types::U256::from(1),
+            amount: eU256::from(1),
         })
         .await
         .unwrap();
     let mut wrong_address = client.address().0;
     wrong_address[0] = wrong_address[0].wrapping_add(1);
-    let wrong_address = Address::from(wrong_address);
+    let wrong_address = eAddress::from(wrong_address);
     let balance = client.get_balance(wrong_address, None).await;
     assert!(balance.is_err());
 }
 
 #[tokio::test]
 async fn set_gas_price() {
-    let (_environment, client) = startup().unwrap();
-    assert_eq!(
-        client.get_gas_price().await.unwrap(),
-        ethers::types::U256::from(0)
-    );
-    let test_gas_price = ethers::types::U256::from(1337);
+    let (_environment, client) = startup();
+    assert_eq!(client.get_gas_price().await.unwrap(), eU256::from(0));
+    let test_gas_price = eU256::from(1337);
     client.set_gas_price(test_gas_price).await.unwrap();
     assert_eq!(client.get_gas_price().await.unwrap(), test_gas_price);
 }
 
 #[tokio::test]
 async fn get_transaction_count() {
-    let (_environment, client) = startup().unwrap();
+    let (_environment, client) = startup();
     let nonce = client
         .get_transaction_count(client.address(), Some(0.into()))
         .await
         .unwrap();
     assert_eq!(nonce.as_u64(), 0_u64);
 
-    let _arbiter_token = deploy_arbx(client.clone()).await.unwrap();
+    let _arbiter_token = deploy_arbx(client.clone()).await;
     let nonce_after_tx = client
         .get_transaction_count(client.address(), Some(0.into()))
         .await
@@ -339,7 +330,7 @@ async fn get_transaction_count() {
 
 #[tokio::test]
 async fn create_nonce_middleware() {
-    let (_environment, client) = startup().unwrap();
+    let (_environment, client) = startup();
     let nonce_middleware = NonceManagerMiddleware::new(client.clone(), client.address());
     let nonce = nonce_middleware.initialize_nonce(None).await.unwrap();
     assert_eq!(nonce, 0.into());
@@ -347,20 +338,20 @@ async fn create_nonce_middleware() {
 
 #[tokio::test]
 async fn next_nonce_middleware() {
-    let (_environment, client) = startup().unwrap();
+    let (_environment, client) = startup();
     let nonce_middleware = NonceManagerMiddleware::new(client.clone(), client.address());
 
     let next_nonce = nonce_middleware.next();
     assert_eq!(next_nonce, 0.into());
 
-    let _arbiter_token = deploy_arbx(client.clone()).await.unwrap();
+    let _arbiter_token = deploy_arbx(client.clone()).await;
     let next_nonce = nonce_middleware.next();
     assert_eq!(next_nonce.as_u64(), 1_u64);
 }
 
 #[tokio::test]
 async fn with_environment_nonce_middleware() {
-    let (_environment, client) = startup().unwrap();
+    let (_environment, client) = startup();
     let nonce_middleware = NonceManagerMiddleware::new(client.clone(), client.address());
 
     let nonce = nonce_middleware.initialize_nonce(None).await.unwrap();
@@ -369,7 +360,7 @@ async fn with_environment_nonce_middleware() {
 
 #[tokio::test]
 async fn inner_nonce_environment() {
-    let (_environment, client) = startup().unwrap();
+    let (_environment, client) = startup();
     let nonce_middleware = NonceManagerMiddleware::new(client.clone(), client.address());
 
     let inner = nonce_middleware.inner();
@@ -378,7 +369,7 @@ async fn inner_nonce_environment() {
 
 #[tokio::test]
 async fn fill_transaction() {
-    let (_environment, client) = startup().unwrap();
+    let (_environment, client) = startup();
     let mut tx = TypedTransaction::Eip1559(Default::default());
 
     assert!(tx.from().is_none());
@@ -390,7 +381,7 @@ async fn fill_transaction() {
 
 #[tokio::test]
 async fn fill_transaction_nonce_middleware() {
-    let (_environment, client) = startup().unwrap();
+    let (_environment, client) = startup();
     let nonce_middleware = NonceManagerMiddleware::new(client.clone(), client.address());
 
     let mut tx = TypedTransaction::Eip1559(Default::default());
@@ -405,7 +396,7 @@ async fn fill_transaction_nonce_middleware() {
 
 #[tokio::test]
 async fn send_nonce_middleware() {
-    let (_environment, client) = startup().unwrap();
+    let (_environment, client) = startup();
     let nonce_middleware = NonceManagerMiddleware::new(client.clone(), client.address());
     let tx = ArbiterToken::deploy(
         client,
@@ -433,20 +424,20 @@ async fn send_nonce_middleware() {
 
 #[tokio::test]
 async fn test_cheatcodes_store() {
-    let (_environment, client) = startup().unwrap();
+    let (_environment, client) = startup();
     // Get the initial storage and assert it is zero.
     let storage = client
-        .get_storage_at(client.address(), ethers::types::H256::zero(), None)
+        .get_storage_at(client.address(), H256::zero(), None)
         .await
         .unwrap();
-    assert_eq!(storage, ethers::types::H256::zero());
+    assert_eq!(storage, H256::zero());
 
     // Store a random value at the zero storage slot.
-    let random_value: ethers::types::H256 = ethers::types::H256::random();
+    let random_value: H256 = H256::random();
     client
         .apply_cheatcode(Cheatcodes::Store {
             account: client.address(),
-            key: ethers::types::H256::zero(),
+            key: H256::zero(),
             value: random_value,
         })
         .await
@@ -454,7 +445,7 @@ async fn test_cheatcodes_store() {
 
     // Get the account's storage after calling `store`.
     let storage = client
-        .get_storage_at(client.address(), ethers::types::H256::zero(), None)
+        .get_storage_at(client.address(), H256::zero(), None)
         .await
         .unwrap();
 
@@ -464,7 +455,7 @@ async fn test_cheatcodes_store() {
 
 #[tokio::test]
 async fn unimplemented_middleware_instruction() {
-    let (_environment, client) = startup().unwrap();
+    let (_environment, client) = startup();
 
     // This method is not implemented and likely never will, so it works to test
     // what happens when we send an unimplemented instruction. We shouldget a
@@ -487,16 +478,16 @@ async fn unimplemented_middleware_instruction() {
 
 #[tokio::test]
 async fn pubsubclient() {
-    let (environment, client) = startup().unwrap();
+    let (environment, client) = startup();
 
-    let arbx = deploy_arbx(client.clone()).await.unwrap();
+    let arbx = deploy_arbx(client.clone()).await;
 
     let filter = arbx.events().filter;
 
     let mut stream = client.subscribe_logs(&filter).await.unwrap();
 
     for _ in 0..5 {
-        arbx.approve(client.address(), ethers::types::U256::from(1))
+        arbx.approve(client.address(), eU256::from(1))
             .send()
             .await
             .unwrap()
@@ -514,13 +505,12 @@ async fn pubsubclient() {
 }
 
 #[test]
-fn simulation_signer() -> Result<()> {
-    let (_, client) = startup()?;
+fn simulation_signer() {
+    let (_, client) = startup();
     assert_eq!(
         client.address(),
-        Address::from_str("0x2efdc9eecfee3a776209fcb8e9a83a6b221d74f5").unwrap()
+        eAddress::from_str("0x2efdc9eecfee3a776209fcb8e9a83a6b221d74f5").unwrap()
     );
-    Ok(())
 }
 
 #[test]
@@ -540,11 +530,11 @@ fn signer_collision() {
 
 #[tokio::test]
 async fn access() {
-    let (_environment, client) = startup().unwrap();
-    let arbiter_token = deploy_arbx(client.clone()).await.unwrap();
+    let (_environment, client) = startup();
+    let arbiter_token = deploy_arbx(client.clone()).await;
     assert_eq!(
         arbiter_token.address(),
-        Address::from_str("0x067ea9e44c76a2620f10b39a1b51d5124a299192").unwrap()
+        eAddress::from_str("0x067ea9e44c76a2620f10b39a1b51d5124a299192").unwrap()
     );
 
     let acc_before = client
@@ -559,7 +549,7 @@ async fn access() {
     let total_supply = arbiter_token.total_supply().call().await.unwrap();
     assert_eq!(total_supply, 0.into());
 
-    let to: Address = Address::from_str(TEST_MINT_TO).unwrap();
+    let to = eAddress::from_str(TEST_MINT_TO).unwrap();
 
     let bal_before = arbiter_token.balance_of(to).call().await.unwrap();
     assert_eq!(bal_before, 0.into());

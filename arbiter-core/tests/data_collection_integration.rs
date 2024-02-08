@@ -43,8 +43,8 @@ async fn generate_events(
 #[tokio::test]
 async fn data_capture() {
     //
-    let (env, client) = startup().unwrap();
-    let (arbx, arby, lex) = deploy_liquid_exchange(client.clone()).await.unwrap();
+    let (env, client) = startup();
+    let (arbx, arby, lex) = deploy_liquid_exchange(client.clone()).await;
     println!("Deployed contracts");
 
     // default_listener
@@ -102,10 +102,8 @@ async fn data_capture() {
 
 #[tokio::test]
 async fn data_stream() {
-    // std::env::set_var("RUST_LOG", "trace");
-    // tracing_subscriber::fmt::init();
-    let (env, client) = startup().unwrap();
-    let (arbx, arby, lex) = deploy_liquid_exchange(client.clone()).await.unwrap();
+    let (env, client) = startup();
+    let (arbx, arby, lex) = deploy_liquid_exchange(client.clone()).await;
     println!(
         "Deployed
 contracts"

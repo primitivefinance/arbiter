@@ -7,7 +7,6 @@
 
 use std::{collections::HashMap, fmt::Debug, sync::Arc};
 
-use arbiter_core::middleware::RevmMiddleware;
 use futures_util::future::join_all;
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
 use tokio::task::{spawn, JoinError};

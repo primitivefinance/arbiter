@@ -7,14 +7,14 @@ use ethers::{
         k256::sha2::{Digest, Sha256},
         Middleware,
     },
-    types::{Address, U256 as eU256},
+    types::{Address, H256, U256 as eU256, U64},
 };
 include!("common.rs");
 
 #[tokio::test]
 async fn receipt_data() {
-    let (_environment, client) = startup().unwrap();
-    let arbiter_token = deploy_arbx(client.clone()).await.unwrap();
+    let (_environment, client) = startup();
+    let arbiter_token = deploy_arbx(client.clone()).await;
     let receipt: ethers::types::TransactionReceipt = arbiter_token
         .mint(client.default_sender().unwrap(), 1000u64.into())
         .send()
@@ -28,7 +28,7 @@ async fn receipt_data() {
     let mut block_hasher = Sha256::new();
     block_hasher.update(receipt.block_number.unwrap().to_string().as_bytes());
     let block_hash = block_hasher.finalize();
-    let block_hash = Some(ethers::types::H256::from_slice(&block_hash));
+    let block_hash = Some(H256::from_slice(&block_hash));
     assert_eq!(receipt.block_hash, block_hash);
     assert_eq!(receipt.status, Some(1.into()));
 
@@ -60,12 +60,12 @@ async fn receipt_data() {
 
 #[tokio::test]
 async fn user_update_block() {
-    let (_environment, client) = startup().unwrap();
+    let (_environment, client) = startup();
     let block_number = client.get_block_number().await.unwrap();
-    assert_eq!(block_number, ethers::types::U64::from(0));
+    assert_eq!(block_number, U64::from(0));
 
     let block_timestamp = client.get_block_timestamp().await.unwrap();
-    assert_eq!(block_timestamp, ethers::types::U256::from(1));
+    assert_eq!(block_timestamp, eU256::from(1));
 
     let new_block_number = 69;
     let new_block_timestamp = 420;
@@ -81,11 +81,12 @@ async fn user_update_block() {
     assert_eq!(block_timestamp, new_block_timestamp.into());
 }
 
+#[should_panic]
 #[tokio::test]
 async fn stop_environment() {
-    let (environment, client) = startup().unwrap();
+    let (environment, client) = startup();
     environment.stop().unwrap();
-    assert!(deploy_arbx(client).await.is_err());
+    deploy_arbx(client).await;
 }
 
 #[tokio::test]
@@ -150,8 +151,8 @@ async fn middleware_from_forked_eo() {
 
 #[tokio::test]
 async fn env_returns_db() {
-    let (environment, client) = startup().unwrap();
-    deploy_arbx(client).await.unwrap();
+    let (environment, client) = startup();
+    deploy_arbx(client).await;
     let db = environment.stop().unwrap();
     assert!(!db.0.read().unwrap().accounts.is_empty())
 }

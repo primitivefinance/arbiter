@@ -5,15 +5,11 @@ use std::{
     time::{Duration, Instant},
 };
 
-use anyhow::Result;
 use arbiter_bindings::bindings::{
     arbiter_math::ArbiterMath,
     arbiter_token::{self, ArbiterToken},
 };
-use arbiter_core::{
-    environment::{Environment, EnvironmentBuilder},
-    middleware::ArbiterMiddleware,
-};
+use arbiter_core::{environment::Environment, middleware::ArbiterMiddleware};
 use ethers::{
     core::{k256::ecdsa::SigningKey, utils::Anvil},
     middleware::SignerMiddleware,
@@ -40,7 +36,7 @@ struct BenchDurations {
 }
 
 #[tokio::main]
-async fn main() -> Result<()> {
+async fn main() {
     // Choose the benchmark group items by label.
     let group = ["anvil", "arbiter"];
     let mut results: HashMap<&str, HashMap<&str, Duration>> = HashMap::new();
@@ -57,14 +53,14 @@ async fn main() -> Result<()> {
         for index in 0..NUM_BENCH_ITERATIONS {
             durations.push(match item {
                 label @ "anvil" => {
-                    let (client, _anvil_instance) = anvil_startup().await?;
-                    let duration = bencher(client, label).await?;
+                    let (client, _anvil_instance) = anvil_startup().await;
+                    let duration = bencher(client, label).await;
                     drop(_anvil_instance);
                     duration
                 }
                 label @ "arbiter" => {
-                    let (_environment, client) = arbiter_startup()?;
-                    bencher(client, label).await?
+                    let (_environment, client) = arbiter_startup();
+                    bencher(client, label).await
                 }
                 _ => panic!("Invalid argument"),
             });
@@ -115,11 +111,9 @@ async fn main() -> Result<()> {
     }
     println!("Date: {}", chrono::Local::now().format("%Y-%m-%d"));
     println!("{}", df);
-
-    Ok(())
 }
 
-async fn bencher<M: Middleware + 'static>(client: Arc<M>, label: &str) -> Result<BenchDurations> {
+async fn bencher<M: Middleware + 'static>(client: Arc<M>, label: &str) -> BenchDurations {
     // Track the duration for each part of the benchmark.
     let mut total_deploy_duration = 0;
     let mut total_lookup_duration = 0;
@@ -128,37 +122,37 @@ async fn bencher<M: Middleware + 'static>(client: Arc<M>, label: &str) -> Result
 
     // Deploy `ArbiterMath` and `ArbiterToken` contracts and tally up how long this
     // takes.
-    let (arbiter_math, arbiter_token, deploy_duration) = deployments(client.clone(), label).await?;
+    let (arbiter_math, arbiter_token, deploy_duration) = deployments(client.clone(), label).await;
     total_deploy_duration += deploy_duration.as_micros();
 
     // Call `balance_of` `NUM_LOOP_STEPS` times on `ArbiterToken` and tally up how
     // long basic lookups take.
-    let lookup_duration = lookup(arbiter_token.clone(), label).await?;
+    let lookup_duration = lookup(arbiter_token.clone(), label).await;
     total_lookup_duration += lookup_duration.as_micros();
 
     // Call `cdf` `NUM_LOOP_STEPS` times on `ArbiterMath` and tally up how long this
     // takes.
-    let stateless_call_duration = stateless_call_loop(arbiter_math, label).await?;
+    let stateless_call_duration = stateless_call_loop(arbiter_math, label).await;
     total_stateless_call_duration += stateless_call_duration.as_micros();
 
     // Call `mint` `NUM_LOOP_STEPS` times on `ArbiterToken` and tally up how long
     // this takes.
     let statefull_call_duration =
-        stateful_call_loop(arbiter_token, client.default_sender().unwrap(), label).await?;
+        stateful_call_loop(arbiter_token, client.default_sender().unwrap(), label).await;
     total_stateful_call_duration += statefull_call_duration.as_micros();
 
-    Ok(BenchDurations {
+    BenchDurations {
         deploy: Duration::from_micros(total_deploy_duration as u64),
         lookup: Duration::from_micros(total_lookup_duration as u64),
         stateless_call: Duration::from_micros(total_stateless_call_duration as u64),
         stateful_call: Duration::from_micros(total_stateful_call_duration as u64),
-    })
+    }
 }
 
-async fn anvil_startup() -> Result<(
+async fn anvil_startup() -> (
     Arc<SignerMiddleware<Provider<Http>, Wallet<SigningKey>>>,
     AnvilInstance,
-)> {
+) {
     // Create an Anvil instance
     // No blocktime mines a new block for each tx, which is fastest.
     let anvil = Anvil::new().spawn();
@@ -174,78 +168,87 @@ async fn anvil_startup() -> Result<(
         wallet.with_chain_id(anvil.chain_id()),
     ));
 
-    Ok((client, anvil))
+    (client, anvil)
 }
 
-fn arbiter_startup() -> Result<(Environment, Arc<ArbiterMiddleware>)> {
+fn arbiter_startup() -> (Environment, Arc<ArbiterMiddleware>) {
     let environment = Environment::builder().build();
 
-    let client = ArbiterMiddleware::new(&environment, Some("name"))?;
-    Ok((environment, client))
+    let client = ArbiterMiddleware::new(&environment, Some("name")).unwrap();
+    (environment, client)
 }
 
 async fn deployments<M: Middleware + 'static>(
     client: Arc<M>,
     label: &str,
-) -> Result<(ArbiterMath<M>, ArbiterToken<M>, Duration)> {
+) -> (ArbiterMath<M>, ArbiterToken<M>, Duration) {
     let start = Instant::now();
-    let arbiter_math = ArbiterMath::deploy(client.clone(), ())?.send().await?;
+    let arbiter_math = ArbiterMath::deploy(client.clone(), ())
+        .unwrap()
+        .send()
+        .await
+        .unwrap();
     let arbiter_token = arbiter_token::ArbiterToken::deploy(
         client.clone(),
         ("Bench Token".to_string(), "BNCH".to_string(), 18_u8),
-    )?
+    )
+    .unwrap()
     .send()
-    .await?;
+    .await
+    .unwrap();
     let duration = start.elapsed();
     info!("Time elapsed in {} deployment is: {:?}", label, duration);
 
-    Ok((arbiter_math, arbiter_token, duration))
+    (arbiter_math, arbiter_token, duration)
 }
 
-async fn lookup<M: Middleware + 'static>(
-    arbiter_token: ArbiterToken<M>,
-    label: &str,
-) -> Result<Duration> {
+async fn lookup<M: Middleware + 'static>(arbiter_token: ArbiterToken<M>, label: &str) -> Duration {
     let address = arbiter_token.client().default_sender().unwrap();
     let start = Instant::now();
     for _ in 0..NUM_LOOP_STEPS {
-        arbiter_token.balance_of(address).call().await?;
+        arbiter_token.balance_of(address).call().await.unwrap();
     }
     let duration = start.elapsed();
     info!("Time elapsed in {} cdf loop is: {:?}", label, duration);
 
-    Ok(duration)
+    duration
 }
 
 async fn stateless_call_loop<M: Middleware + 'static>(
     arbiter_math: ArbiterMath<M>,
     label: &str,
-) -> Result<Duration> {
+) -> Duration {
     let iwad = I256::from(10_u128.pow(18));
     let start = Instant::now();
     for _ in 0..NUM_LOOP_STEPS {
-        arbiter_math.cdf(iwad).call().await?;
+        arbiter_math.cdf(iwad).call().await.unwrap();
     }
     let duration = start.elapsed();
     info!("Time elapsed in {} cdf loop is: {:?}", label, duration);
 
-    Ok(duration)
+    duration
 }
 
 async fn stateful_call_loop<M: Middleware + 'static>(
     arbiter_token: arbiter_token::ArbiterToken<M>,
     mint_address: Address,
     label: &str,
-) -> Result<Duration> {
+) -> Duration {
     let wad = U256::from(10_u128.pow(18));
     let start = Instant::now();
     for _ in 0..NUM_LOOP_STEPS {
-        arbiter_token.mint(mint_address, wad).send().await?.await?;
+        arbiter_token
+            .mint(mint_address, wad)
+            .send()
+            .await
+            .unwrap()
+            .await
+            .unwrap();
     }
     let duration = start.elapsed();
     info!("Time elapsed in {} mint loop is: {:?}", label, duration);
 
-    Ok(duration)
+    duration
 }
 
 fn create_dataframe(results: &HashMap<&str, HashMap<&str, Duration>>, group: &[&str]) -> DataFrame {
