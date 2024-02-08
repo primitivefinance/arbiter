@@ -50,7 +50,7 @@ futures-util.workspace = true
 tracing.workspace = true
 
 # File types
-polars = { version = "0.36.2", features = ["parquet", "csv", "json"] }
+polars = { version = "0.37.0", features = ["parquet", "csv", "json"] }
 
 # Dependencies for the test build and development
 [dev-dependencies]
@@ -59,7 +59,7 @@ test-log = { version = "=0.2.14" }
 tracing-test = "0.2.4"
 tracing-subscriber = "0.3.18"
 
-polars = "0.36.2"
+polars = "0.37.0"
 cargo_metadata = "0.18.1"
 chrono = "0.4.33"
 futures = { version = "=0.3.30" }
