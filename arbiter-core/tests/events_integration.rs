@@ -5,7 +5,6 @@ use arbiter_core::{
     events::{Logger, OutputFileType},
 };
 use ethers::types::U256 as eU256;
-use futures::StreamExt;
 use serde::Serialize;
 include!("common.rs");
 

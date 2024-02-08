@@ -23,11 +23,10 @@ use std::{io::BufWriter, marker::PhantomData, mem::transmute};
 use ethers::{
     abi::RawLog,
     contract::{builders::Event, EthLogDecode},
-    core::k256::sha2::{Digest, Sha256},
     providers::Middleware,
     types::{Filter, FilteredParams},
 };
-use futures_util::Stream;
+
 use polars::{
     io::parquet::ParquetWriter,
     prelude::{CsvWriter, DataFrame, NamedFrom, SerWriter},

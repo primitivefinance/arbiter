@@ -60,16 +60,12 @@ async fn token_minter_simulation() {
     );
     let transfer_event = arb.transfer_filter();
 
-    let transfer_stream = Logger::builder()
-        .with_stream(arb.transfer_filter())
-        .stream()
-        .unwrap();
-    let mut stream = Box::pin(transfer_stream);
+    let transfer_stream = transfer_event.stream().await;
     world.run().await;
     let mut idx = 0;
 
     loop {
-        match timeout(Duration::from_secs(1), stream.next()).await {
+        match timeout(Duration::from_secs(1), transfer_stream.next()).await {
             Ok(Some(event)) => {
                 println!("Event received in outside world: {:?}", event);
                 idx += 1;

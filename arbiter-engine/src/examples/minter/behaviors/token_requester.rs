@@ -7,6 +7,7 @@ use self::{
     machine::EventStream,
 };
 use super::*;
+use futures::StreamExt;
 
 #[async_trait::async_trait]
 impl Behavior<TransferFilter> for TokenRequester {
@@ -38,13 +39,8 @@ impl Behavior<TransferFilter> for TokenRequester {
 
         self.messager = Some(messager.clone());
         self.client = Some(client.clone());
-        Ok(Box::pin(
-            Logger::builder()
-                .with_stream(token.transfer_filter())
-                .stream()
-                .unwrap()
-                .map(|value| serde_json::from_str(&value).unwrap()),
-        ))
+        let stream = token.transfer_filter().stream();
+        Err(anyhow::anyhow!("Not implemented"))
     }
 
     #[tracing::instrument(skip(self), fields(id =
