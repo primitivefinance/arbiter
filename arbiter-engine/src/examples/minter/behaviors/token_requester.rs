@@ -1,5 +1,5 @@
 use arbiter_bindings::bindings::arbiter_token::TransferFilter;
-use arbiter_core::events::Logger;
+use arbiter_core::events::stream_event;
 use ethers::providers::SubscriptionStream;
 use futures::StreamExt;
 use futures_util::stream::Stream;
@@ -42,7 +42,7 @@ impl Behavior<TransferFilter> for TokenRequester {
         self.messager = Some(messager.clone());
         self.client = Some(client.clone());
         let transfer_stream =
-            arbiter_core::events::Logger::builder().stream_event(token.transfer_filter());
+            stream_event(token.transfer_filter());
         Ok(transfer_stream)
     }
 
