@@ -45,7 +45,7 @@ proc-macro2 = { version = "1.0.78" }
 tokio = { version = "1.36.0", features = ["macros", "full"] }
 crossbeam-channel = { version = "0.5.11" }
 futures-util = { version = "0.3.30" }
-async-trait = { version = "0.1.76" }
+async-trait = { version = "0.1.77" }
 tracing = "0.1.40"
 async-stream = "0.3.5"
 toml = "0.8.10"
