@@ -1,6 +1,15 @@
 [package]
 name = "arbiter-macros"
 version = "0.1.0"
+edition = "2021"
+authors = [
+    "Matt Czernik <matt@primitive.xyz>",
+    "Colin Roberts <colin@autoparallel.xyz>",
+]
+description = "Arbiter macros for Ethereum smart contract testing."
+license = "Apache-2.0"
+keywords = ["ethereum", "evm", "emulator", "testing", "smart-contracts"]
+readme = "../README.md"
 
 [lib]
 proc-macro = true

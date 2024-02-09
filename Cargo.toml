@@ -31,10 +31,9 @@ path = "bin/main.rs"
 
 [workspace.dependencies]
 # Local
-arbiter-bindings = { path = "./arbiter-bindings" }
-arbiter-core = { path = "./arbiter-core" }
-arbiter-macros = { path = "./arbiter-macros" }
-arbiter-engine = { path = "./arbiter-engine" }
+arbiter-bindings = "0.1.2"
+arbiter-core = "0.10.0"
+arbiter-macros = "0.1.0" 
 
 revm = { version = "=4.0.0", features = ["ethersdb", "std", "serde"] }
 revm-primitives = "=2.0.0"
