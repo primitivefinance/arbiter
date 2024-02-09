@@ -172,8 +172,6 @@ where
     /// The [`State::Processing`] stage will attempt a decode of the [`String`]s
     /// into the event type `<E>`.
     event_stream: Option<EventStream<E>>,
-
-    phantom: std::marker::PhantomData<E>,
 }
 
 impl<B, E> Debug for Engine<B, E>
@@ -200,7 +198,6 @@ where
             behavior: Some(behavior),
             state: State::Uninitialized,
             event_stream: None,
-            phantom: std::marker::PhantomData,
         }
     }
 }
