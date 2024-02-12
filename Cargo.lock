@@ -216,7 +216,7 @@ name = "arbiter"
 version = "0.4.14"
 dependencies = [
  "Inflector",
- "arbiter-core 0.10.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "arbiter-core",
  "assert_cmd",
  "clap",
  "config",
@@ -224,7 +224,7 @@ dependencies = [
  "foundry-config",
  "proc-macro2",
  "rayon",
- "revm 5.0.0",
+ "revm",
  "revm-primitives 2.0.0",
  "serde",
  "serde_json",
@@ -274,7 +274,7 @@ dependencies = [
  "hex",
  "polars",
  "rand",
- "revm 5.0.0",
+ "revm",
  "revm-primitives 2.0.0",
  "serde",
  "serde_json",
@@ -286,41 +286,12 @@ dependencies = [
 ]
 
 [[package]]
-name = "arbiter-core"
-version = "0.10.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d68b209635bd1ae186cb8d88faebe6b60afe39d189f72279b113e7ecd0b168db"
-dependencies = [
- "arbiter-bindings 0.1.2 (registry+https://github.com/rust-lang/crates.io-index)",
- "async-stream",
- "async-trait",
- "bytes",
- "crossbeam-channel",
- "ethers",
- "futures-locks",
- "futures-timer",
- "futures-util",
- "hashbrown 0.14.3",
- "hex",
- "polars",
- "rand",
- "revm 4.0.0",
- "revm-primitives 2.0.0",
- "serde",
- "serde_json",
- "thiserror",
- "tokio",
- "tracing",
- "uint",
-]
-
-[[package]]
 name = "arbiter-engine"
 version = "0.1.0"
 dependencies = [
  "anyhow",
  "arbiter-bindings 0.1.2 (registry+https://github.com/rust-lang/crates.io-index)",
- "arbiter-core 0.10.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "arbiter-core",
  "arbiter-macros 0.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "async-stream",
  "async-trait",
@@ -1449,7 +1420,7 @@ name = "documentation"
 version = "0.0.0"
 dependencies = [
  "arbiter-bindings 0.1.2 (registry+https://github.com/rust-lang/crates.io-index)",
- "arbiter-core 0.10.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "arbiter-core",
  "skeptic",
  "tokio",
 ]
@@ -4262,24 +4233,6 @@ dependencies = [
 
 [[package]]
 name = "revm"
-version = "4.0.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d7e55c6c96e1fd215dc981978602e6b5943b48509267060fb8e73714b44a47a8"
-dependencies = [
- "auto_impl",
- "cfg-if",
- "ethers-core",
- "ethers-providers",
- "futures",
- "revm-interpreter",
- "revm-precompile 3.0.0",
- "serde",
- "serde_json",
- "tokio",
-]
-
-[[package]]
-name = "revm"
 version = "5.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "266f86bdefa6dac07d92e2f5c37d7d183f2575b2f9e0ee9cba9402dfde912524"
@@ -4290,7 +4243,7 @@ dependencies = [
  "ethers-providers",
  "futures",
  "revm-interpreter",
- "revm-precompile 4.0.0",
+ "revm-precompile",
  "serde",
  "serde_json",
  "tokio",
@@ -4304,24 +4257,6 @@ checksum = "9a80b516cc706630e604e2fd47c281501d2fb222712be4328921361388b7d2df"
 dependencies = [
  "revm-primitives 2.0.0",
  "serde",
-]
-
-[[package]]
-name = "revm-precompile"
-version = "3.0.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "bdbf367d7a9515113bf9ab128b64ba80d6e0e238904fb66f8567765ae52b6699"
-dependencies = [
- "aurora-engine-modexp",
- "blst",
- "c-kzg",
- "k256",
- "once_cell",
- "revm-primitives 2.0.0",
- "ripemd",
- "secp256k1",
- "sha2",
- "substrate-bn",
 ]
 
 [[package]]
@@ -6094,9 +6029,9 @@ checksum = "dff9641d1cd4be8d1a070daf9e3773c5f67e78b4d9d42263020c057706765c04"
 
 [[package]]
 name = "winnow"
-version = "0.5.39"
+version = "0.5.40"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5389a154b01683d28c77f8f68f49dea75f0a4da32557a58f68ee51ebba472d29"
+checksum = "f593a95398737aeed53e489c785df13f3618e41dbcd6718c6addbf1395aa6876"
 dependencies = [
  "memchr",
 ]

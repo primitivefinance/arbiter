@@ -9,7 +9,7 @@ use ethers::{
     utils::{hex, keccak256},
 };
 use revm::{
-    db::{ethersdb::EthersDB, in_memory_db::InMemoryDB, EmptyDBTyped},
+    db::{ethersdb::EthersDB, in_memory_db::CacheDB, EmptyDB, EmptyDBTyped},
     Database,
 };
 use serde::Serialize;
@@ -60,10 +60,10 @@ impl ForkConfig {
     /// be fetched from the blockchain.
     /// Once all the `AccountInfo` for the contracts are fetched, we digest the
     /// contract artifacts to get the storage layout.
-    pub(crate) fn digest_config(&self) -> Result<InMemoryDB, ArbiterError> {
+    pub(crate) fn digest_config(&self) -> Result<CacheDB<EmptyDB>, ArbiterError> {
         // Spawn the `EthersDB` and the `CacheDB` we will write to.
         let ethers_db = &mut self.spawn_ethers_db()?;
-        let mut db = InMemoryDB::new(EmptyDBTyped::default());
+        let mut db = CacheDB::new(EmptyDBTyped::default());
         for contract_data in self.contracts_meta.values() {
             let address = contract_data.address;
             let info = ethers_db

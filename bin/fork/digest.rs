@@ -58,7 +58,7 @@ pub(crate) fn digest_artifacts(path: &str) -> Result<Artifacts, ArbiterError> {
 pub(crate) fn create_storage_layout(
     contract_data: &ContractMetadata,
     storage_layout: StorageLayout,
-    db: &mut InMemoryDB,
+    db: &mut CacheDB<EmptyDB>,
     ethers_db: &mut EthersDB<Provider<Http>>,
 ) -> Result<(), ArbiterError> {
     for storage_item in storage_layout.storage {
