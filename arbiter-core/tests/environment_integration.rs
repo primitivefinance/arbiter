@@ -4,7 +4,7 @@ use arbiter_bindings::bindings::{self, weth::weth};
 use arbiter_core::database::fork::Fork;
 use ethers::{
     prelude::Middleware,
-    types::{Address, H256, U256 as eU256, U64},
+    types::{Address, U256 as eU256, U64},
 };
 include!("common.rs");
 
