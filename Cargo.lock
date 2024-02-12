@@ -238,6 +238,8 @@ dependencies = [
 [[package]]
 name = "arbiter-bindings"
 version = "0.1.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "bdf77da1c3969de0f91f24a9999eeaea50060d6f0ead824819c3d9b50146654d"
 dependencies = [
  "ethers",
  "serde",
@@ -245,9 +247,7 @@ dependencies = [
 
 [[package]]
 name = "arbiter-bindings"
-version = "0.1.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "bdf77da1c3969de0f91f24a9999eeaea50060d6f0ead824819c3d9b50146654d"
+version = "0.1.3"
 dependencies = [
  "ethers",
  "serde",
@@ -257,7 +257,7 @@ dependencies = [
 name = "arbiter-core"
 version = "0.10.1"
 dependencies = [
- "arbiter-bindings 0.1.2 (registry+https://github.com/rust-lang/crates.io-index)",
+ "arbiter-bindings 0.1.2",
  "assert_matches",
  "async-stream",
  "async-trait",
@@ -287,10 +287,10 @@ dependencies = [
 
 [[package]]
 name = "arbiter-engine"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "anyhow",
- "arbiter-bindings 0.1.2 (registry+https://github.com/rust-lang/crates.io-index)",
+ "arbiter-bindings 0.1.2",
  "arbiter-core",
  "arbiter-macros 0.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "async-stream",
@@ -1417,9 +1417,9 @@ checksum = "fea41bba32d969b513997752735605054bc0dfa92b4c56bf1189f2e174be7a10"
 
 [[package]]
 name = "documentation"
-version = "0.0.0"
+version = "0.0.1"
 dependencies = [
- "arbiter-bindings 0.1.2 (registry+https://github.com/rust-lang/crates.io-index)",
+ "arbiter-bindings 0.1.2",
  "arbiter-core",
  "skeptic",
  "tokio",
