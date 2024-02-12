@@ -255,7 +255,7 @@ dependencies = [
 
 [[package]]
 name = "arbiter-core"
-version = "0.10.0"
+version = "0.10.1"
 dependencies = [
  "arbiter-bindings 0.1.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "assert_matches",
