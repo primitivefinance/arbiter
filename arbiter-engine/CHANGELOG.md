@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.1](https://github.com/primitivefinance/arbiter/compare/arbiter-engine-v0.1.0...arbiter-engine-v0.1.1) - 2024-02-12
+
+### Other
+- remove `PhantomData` ([#868](https://github.com/primitivefinance/arbiter/pull/868))
+
 ## [0.1.0](https://github.com/primitivefinance/arbiter/releases/tag/arbiter-engine-v0.1.0) - 2024-01-23
 
 ### Added
