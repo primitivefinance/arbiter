@@ -32,7 +32,7 @@ path = "bin/main.rs"
 [workspace.dependencies]
 # Local
 arbiter-bindings = "0.1.2"
-arbiter-core = { path = "arbiter-core" }
+arbiter-core = "0.10.1"
 arbiter-macros = "0.1.0"
 
 revm = { version = "5.0.0", features = ["ethersdb", "std", "serde"] }
