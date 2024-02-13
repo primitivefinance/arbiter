@@ -205,5 +205,6 @@ enum Behaviors {
 async fn config_test() {
     let mut world =
         World::from_config::<Behaviors>("src/examples/timed_message/config.toml").unwrap();
+    assert_eq!(world.id, "timed_message_world");
     world.run().await;
 }
