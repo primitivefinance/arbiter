@@ -5,6 +5,7 @@ use std::{collections::HashMap, sync::Arc};
 
 use arbiter_bindings::bindings::arbiter_token::ArbiterToken;
 use arbiter_core::middleware::ArbiterMiddleware;
+use arbiter_macros::Behaviors;
 use ethers::types::{transaction::eip2718::TypedTransaction, Address, Log, U256};
 use futures_util::{stream, StreamExt};
 

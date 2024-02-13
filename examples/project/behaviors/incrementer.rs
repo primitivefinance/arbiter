@@ -6,7 +6,7 @@ use arbiter_engine::{
     machine::{Behavior, ControlFlow, EventStream},
     messager::Messager,
 };
-use tracing::{debug, info, trace};
+use tracing::{debug, info};
 
 use super::*;
 use crate::bindings::modified_counter::{IncrementedFilter, ModifiedCounter};

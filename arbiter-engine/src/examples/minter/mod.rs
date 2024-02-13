@@ -5,7 +5,6 @@ use std::{pin::Pin, str::FromStr, time::Duration};
 
 use agents::{token_admin::TokenAdmin, token_requester::TokenRequester};
 use arbiter_core::events::stream_event;
-use arbiter_macros::Behaviors;
 use ethers::types::Address;
 use futures_util::Stream;
 use tokio::time::timeout;

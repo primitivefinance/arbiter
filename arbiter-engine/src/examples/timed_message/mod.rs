@@ -5,7 +5,6 @@ const AGENT_ID: &str = "agent";
 use std::{pin::Pin, time::Duration};
 
 use anyhow::Result;
-use arbiter_macros::Behaviors;
 use ethers::types::BigEndianHash;
 use futures_util::Stream;
 use serde::*;

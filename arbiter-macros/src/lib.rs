@@ -39,8 +39,6 @@ pub fn create_behavior_from_enum(input: TokenStream) -> TokenStream {
     });
 
     let expanded = quote! {
-        use arbiter_engine::machine::{Engine, StateMachine, CreateStateMachine};
-
         impl CreateStateMachine for #name {
             fn create_state_machine(self) -> Box<dyn StateMachine> {
                 match self {
