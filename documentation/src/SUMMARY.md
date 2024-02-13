@@ -1,6 +1,7 @@
 # Summary
 [Arbiter](./index.md)
 - [Getting Started](./getting_started/index.md)
+- [Examples](./getting_started/examples.md)
 # Usage
 - [Overview](./usage/index.md)
   - [Arbiter Core](./usage/arbiter_core/index.md)
