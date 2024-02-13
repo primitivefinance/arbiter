@@ -11,14 +11,16 @@
 **Arbiter** is a framework for stateful Ethereum smart-contract simulation. 
 The framework features an [`ethers-rs`](https://github.com/gakonst/ethers-rs) middleware built on top of [revm](https://github.com/bluealloy/revm) which allows the end user to interact with a sandboxed `revm` instance as if it were an Ethereum node. 
 This provides a familiar interface for interacting with the Ethereum Virtual Machine (EVM), but with unrivaled speed. 
-Furthermore, Arbiter provides containment and management for simulations. For a running list of vulnerabilities found with Arbiter, please see the [Vulnerability Corpus](./documentation/src/contributing/vulnerability_corpus.md).
+Furthermore, Arbiter provides containment and management for simulations. For a running list of vulnerabilities found with Arbiter, please see the [Vulnerability Corpus](https://primitivefinance.github.io/arbiter/vulnerability_corpus.html).
 
-The Arbiter workspace has three crates:
+The Arbiter workspace has five crates:
 - `arbiter`: The binary crate that exposes a command line interface for initializing simulations via a templated repository and generating contract bindings needed for the simulation.
-- `arbiter-core`: The lib crate that contains the core logic for the Arbiter framework including the `RevmMiddleware` discussed before, the `Environment` which envelopes simulations, and the `Manager` who controls a collection of environments.
-- `arbiter-engine`: The lib crate that provides abstractions for building simulations and more.
+- `arbiter-core`: The lib crate that contains the core logic for the Arbiter framework including the `ArbiterMiddleware` discussed before, and the `Environment` which envelopes simulations.
+- `arbiter-engine`: The lib crate that provides abstractions for building simulations, agents, and behaviors.
+- `arbiter-bindings`: The lib crate that contains the bindings for utility smart contracts that are used for testing and developement.
+- `arbiter-macros`: The lib crate that contains the macros used in the `arbiter-engine` crate.
 
-The purpose of Arbiter is to provide a toolset to construct arbitrary agents (defined in Rust, by smart contracts, or even other foreign function interfaces) and have these agents interact with an Ethereum-like environment of your design. 
+The purpose of Arbiter is to provide a toolset to construct arbitrary agents that interact with an Ethereum-like environment of your design. 
 All contract bytecode is run directly using a blazing-fast EVM instance `revm` (which is used in live RPC nodes such as [`reth`](https://github.com/paradigmxyz/reth)) so that your contracts are tested in the exact same type of environment that they are deployed in.
 
 ## Docs
@@ -129,16 +131,17 @@ To see the documentation for the Arbiter crates, please visit the following:
 - [`arbiter`](https://docs.rs/crate/arbiter/)
 - [`arbiter-bindings`](https://docs.rs/crate/arbiter-bindings/)
 - [`arbiter-core`](https://docs.rs/arbiter-core/)
-- [`arbiter-derive`](https://docs.rs/arbiter-derive/)
+- [`arbiter-macros`](https://docs.rs/arbiter-macros/)
+- [`arbiter-engine`](https://docs.rs/arbiter-engine/)
 
-You will also find each of these on crates.io.
+You will find each of these on crates.io.
 
 ## Benchmarks
 
-In `arbiter-core`, we have a a small benchmarking suite that compares the `RevmMiddleware` implementation over the `Environment` to the [Anvil](https://github.com/foundry-rs/foundry/tree/master/crates/anvil) local testnet chain implementation.
+In `arbiter-core`, we have a a small benchmarking suite that compares the `ArbiterMiddleware` implementation over the `Environment` to the [Anvil](https://github.com/foundry-rs/foundry/tree/master/crates/anvil) local testnet chain implementation.
 The biggest reasons why we chose to build Arbiter was to gain more control over the EVM environment and to have a more robust simulation framework, but we also wanted to gain in speed which is why we chose to build our own interface over `revm` as opposed to using Anvil (which does use `revm` under the hood). 
 For the following, Anvil was set to mine blocks for each transaction as opposed to setting an enforced block time and the `Environment` was set with a block rate of 10.0 (this was chosen somewhat arbitrarily as we will add in more block control in the future).
-Preliminary benchmarks of the `RevmMiddleware` interface over `revm` against Anvil are given in the following table.
+Preliminary benchmarks of the `ArbiterMiddleware` interface over `revm` against Anvil are given in the following table.
 
 to run the benchmarking code yourself, you can run:
 ```bash
@@ -146,21 +149,13 @@ cargo bench --package arbiter-core
 ```
 
 bench from 10/24/23 arbiter-core v0.6.3
-| Operation       |  RevmMiddleware |    Anvil     | Relative Difference |
+| Operation       |  ArbiterMiddleware |    Anvil     | Relative Difference |
 |-----------------|-----------------|--------------|---------------------|
 | Deploy          | 238.975µs       | 7712.436µs   | ~32.2729x           |
 | Lookup          | 565.617µs       | 17880.124µs  | ~31.6117x           |
 | Stateless Call  | 1402.524µs      | 10397.55µs   | ~7.413456x          |
 | Stateful Call   | 2043.88µs       | 154553.225µs | ~75.61756x          |
 
-
-bench from 06/??/23ish arbiter-core v0.4.??
-| Operation       |  RevmMiddleware |    Anvil     | Relative Difference |
-|-----------------|-----------------|--------------|---------------------|
-| Deploy          | 241.819µs       | 8.215446ms   | ~33.97x             |
-| Lookup          | 480.319µs       | 13.052063ms  | ~27.17x             |
-| Stateless Call  | 4.03235ms       | 10.238771ms  | ~2.53x              |
-| Stateful Call   | 843.296µs       | 153.102478ms | ~181.55x            |
 
 The above can be described by:
 - Deploy: Deploying a contract to the EVM. 
@@ -182,9 +177,9 @@ The benchmarking code can be found in the `arbiter-core/benches/` directory and 
 The above was achieved running `cargo bench --package arbiter-core` which will automatically run with the release profile.
 Times were achieved on an Apple Macbook Pro M1 Max with 8 performance and 2 efficiency cores, and with 32GB of RAM.
 
-Of course, the use cases of Anvil and the `RevmMiddleware` can be different. 
-Anvil represents a more realistic environment with networking and mining, while the `RevmMiddleware` is simpler environment with the bare essentials to running stateful simulations.
-Anvil also mines blocks for each transaction, while the `RevmMiddleware` does not.
+Of course, the use cases of Anvil and the `ArbiterMiddleware` can be different. 
+Anvil represents a more realistic environment with networking and mining, while the `ArbiterMiddleware` is simpler environment with the bare essentials to running stateful simulations.
+Anvil also mines blocks for each transaction, while the `ArbiterMiddleware` does not.
 We hope to improve our API to allow the end user to be able to interface with their own choice of EVM environment to suit what ever their needs may be!
 
 Please let us know if you find any issues with these benchmarks or if you have any suggestions on how to improve them!
