@@ -218,6 +218,7 @@ dependencies = [
  "Inflector",
  "arbiter-bindings",
  "arbiter-core",
+ "arbiter-engine",
  "arbiter-macros",
  "assert_cmd",
  "clap",

@@ -5,7 +5,7 @@ extern crate syn;
 use proc_macro::TokenStream;
 use quote::quote;
 use syn::parse::{Parse, ParseStream};
-use syn::{parse_macro_input, Ident, ItemFn, Lit, Result as ParseResult};
+use syn::{parse_macro_input, Ident, ItemFn, Lit, Result as ParseResult, Type};
 use syn::{Data, DataEnum, DeriveInput, Fields};
 
 #[proc_macro_derive(Behaviors)]
@@ -37,6 +37,7 @@ pub fn create_behavior_from_enum(input: TokenStream) -> TokenStream {
     });
 
     let expanded = quote! {
+        use arbiter_engine::machine::{Engine, StateMachine, CreateStateMachine};
 
         impl CreateStateMachine for #name {
             fn create_state_machine(self) -> Box<dyn StateMachine> {
@@ -54,12 +55,14 @@ pub fn create_behavior_from_enum(input: TokenStream) -> TokenStream {
 struct MacroArgs {
     name: String,
     about: String,
+    behaviors: Type,
 }
 
 impl Parse for MacroArgs {
     fn parse(input: ParseStream) -> ParseResult<Self> {
         let mut name = String::new();
         let mut about = String::new();
+        let mut behaviors: Option<Type> = None;
 
         while !input.is_empty() {
             let lookahead = input.lookahead1();
@@ -74,6 +77,10 @@ impl Parse for MacroArgs {
                     if let Lit::Str(lit_str) = input.parse()? {
                         about = lit_str.value();
                     }
+                } else if ident == "behaviors" {
+                    behaviors = Some(input.parse()?);
+                } else {
+                    return Err(lookahead.error());
                 }
             } else {
                 return Err(lookahead.error());
@@ -85,7 +92,13 @@ impl Parse for MacroArgs {
             }
         }
 
-        Ok(MacroArgs { name, about })
+        let behaviors = behaviors.ok_or_else(|| input.error("missing behaviors"))?;
+
+        Ok(MacroArgs {
+            name,
+            about,
+            behaviors,
+        })
     }
 }
 
@@ -96,6 +109,7 @@ pub fn main(attr: TokenStream, item: TokenStream) -> TokenStream {
 
     let name = args.name;
     let about = args.about;
+    let behaviors = args.behaviors;
 
     // Parse the input TokenStream for the function
     let _input_fn = parse_macro_input!(item as ItemFn);
@@ -142,8 +156,9 @@ pub fn main(attr: TokenStream, item: TokenStream) -> TokenStream {
 
             match &args.command {
                 Some(Commands::Simulate { config_path }) => {
-                    println!("Simulation with config: {}", config_path);
-                    // Placeholder for user's async code...
+                    println!("Simulating configuration: {}", config_path);
+                    let world = arbiter_engine::world::World::from_config::<behaviors>(config_path);
+                    world.run().await?;
                 },
                 None => {
                     // Handle displaying help message if no command is provided

@@ -31,7 +31,7 @@ path = "bin/main.rs"
 
 [[example]]
 name = "project"
-path = "examples/project.rs"
+path = "examples/project/main.rs"
 
 [workspace.dependencies]
 # Local
@@ -86,6 +86,7 @@ thiserror.workspace = true
 # Dependencies for the test build and development
 [dev-dependencies]
 arbiter-bindings.workspace = true
+arbiter-engine.workspace = true
 arbiter-macros.workspace = true
 revm-primitives.workspace = true
 rayon = { version = "1.8.0" }

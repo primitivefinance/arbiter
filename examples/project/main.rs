@@ -1,3 +1,5 @@
+mod behaviors;
+
 use behaviors::Behaviors;
 
 #[arbiter_macros::main(
