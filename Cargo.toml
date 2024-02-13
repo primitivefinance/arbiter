@@ -88,9 +88,14 @@ thiserror.workspace = true
 arbiter-bindings.workspace = true
 arbiter-macros.workspace = true
 revm-primitives.workspace = true
-tokio.workspace = true
-assert_cmd = { version = "=2.0.13" }
 rayon = { version = "1.8.0" }
+
+# Necessary for examples
+tokio.workspace = true
+tracing.workspace = true
+tracing-subscriber = "0.3.18"
+dotenv = "0.15.0"
+assert_cmd = { version = "=2.0.13" }
 
 
 # Release profile

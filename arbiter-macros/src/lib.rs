@@ -4,7 +4,9 @@ extern crate syn;
 
 use proc_macro::TokenStream;
 use quote::quote;
-use syn::{parse_macro_input, Data, DataEnum, DeriveInput, Fields, ItemFn};
+use syn::parse::{Parse, ParseStream};
+use syn::{parse_macro_input, Ident, ItemFn, Lit, Meta, Result as ParseResult};
+use syn::{Data, DataEnum, DeriveInput, Fields};
 
 #[proc_macro_derive(Behaviors)]
 pub fn create_behavior_from_enum(input: TokenStream) -> TokenStream {
@@ -48,32 +50,114 @@ pub fn create_behavior_from_enum(input: TokenStream) -> TokenStream {
     TokenStream::from(expanded)
 }
 
-#[proc_macro_attribute]
-pub fn main(_attr: TokenStream, item: TokenStream) -> TokenStream {
-    let input_fn = parse_macro_input!(item as ItemFn);
+use syn::{parse::Parser, Attribute, MetaNameValue};
 
-    // Ensure the function is named "main" if you want strict naming.
-    if input_fn.sig.ident != "main" {
-        return syn::Error::new_spanned(
-            input_fn.sig.ident,
-            "expected the function to be named `main`",
-        )
-        .to_compile_error()
-        .into();
+// Define a custom struct to parse our specific macro attributes
+struct MacroArgs {
+    name: String,
+    about: String,
+}
+
+impl Parse for MacroArgs {
+    fn parse(input: ParseStream) -> ParseResult<Self> {
+        let mut name = String::new();
+        let mut about = String::new();
+
+        while !input.is_empty() {
+            let lookahead = input.lookahead1();
+            if lookahead.peek(Ident) {
+                let ident: Ident = input.parse()?;
+                let _eq_token: syn::token::Eq = input.parse()?;
+                if ident == "name" {
+                    if let Lit::Str(lit_str) = input.parse()? {
+                        name = lit_str.value();
+                    }
+                } else if ident == "about" {
+                    if let Lit::Str(lit_str) = input.parse()? {
+                        about = lit_str.value();
+                    }
+                }
+            } else {
+                return Err(lookahead.error());
+            }
+
+            // Parse `,`
+            if !input.is_empty() {
+                let _: syn::token::Comma = input.parse()?;
+            }
+        }
+
+        Ok(MacroArgs { name, about })
     }
+}
 
-    // Generate CLI setup and the tokio::main attribute application
-    let output = quote! {
+#[proc_macro_attribute]
+pub fn main(attr: TokenStream, item: TokenStream) -> TokenStream {
+    // Parse the macro attributes
+    let args: MacroArgs = syn::parse(attr).expect("Failed to parse macro arguments");
+
+    let name = args.name;
+    let about = args.about;
+
+    // Parse the input TokenStream for the function
+    let _input_fn = parse_macro_input!(item as ItemFn);
+
+    // Generate the CLI and logging setup code with async and tokio::main
+    let expanded = quote! {
         #[tokio::main]
-        async fn main() {
-            // Basic CLI setup (you might want to expand this with actual argument parsing)
-            let args: Vec<String> = std::env::args().collect();
-            println!("Received arguments: {:?}", args);
+        async fn main() -> Result<(), Box<dyn std::error::Error>> {
+            use clap::{Parser, Subcommand, ArgAction};
+            use tracing::Level;
 
-            // Original function body execution
-            #input_fn
+            #[derive(Parser)]
+            #[clap(name = #name)]
+            #[clap(version = env!("CARGO_PKG_VERSION"))]
+            #[clap(about = #about, long_about = None)]
+            #[clap(author)]
+            struct Args {
+                #[command(subcommand)]
+                command: Option<Commands>,
+
+                #[clap(short, long, global = true, required = false, action = ArgAction::Count, value_parser = clap::value_parser!(u8))]
+                verbose: Option<u8>,
+            }
+
+            #[derive(Subcommand)]
+            enum Commands {
+                Simulate {
+                    #[clap(index = 1)]
+                    config_path: String,
+                },
+            }
+
+            dotenv::dotenv().ok();
+            let args = Args::parse();
+
+            let log_level = match args.verbose.unwrap_or(0) {
+                0 => Level::ERROR,
+                1 => Level::WARN,
+                2 => Level::INFO,
+                3 => Level::DEBUG,
+                _ => Level::TRACE,
+            };
+            tracing_subscriber::fmt().with_max_level(log_level).init();
+
+            match &args.command {
+                Some(Commands::Simulate { config_path }) => {
+                    println!("Simulation with config: {}", config_path);
+                    // Placeholder for user's async code...
+                },
+                None => {
+                    // Handle displaying help message if no command is provided
+                    Args::command().print_help()?;
+                    println!(); // Ensure newline after help output
+                },
+            }
+
+            Ok(())
         }
     };
 
-    output.into()
+    // Convert the generated code back into a TokenStream
+    TokenStream::from(expanded)
 }
