@@ -17,7 +17,7 @@ The Arbiter workspace has five crates:
 - `arbiter`: The binary crate that exposes a command line interface for initializing simulations via a templated repository and generating contract bindings needed for the simulation.
 - `arbiter-core`: The lib crate that contains the core logic for the Arbiter framework including the `ArbiterMiddleware` discussed before, and the `Environment` which envelopes simulations.
 - `arbiter-engine`: The lib crate that provides abstractions for building simulations, agents, and behaviors.
-- `arbiter-bindings`: The lib crate that contains the bindings for utility smart contracts that are used for testing and developement.
+- `arbiter-bindings`: The lib crate that contains the bindings for utility smart contracts that are used for testing and development.
 - `arbiter-macros`: The lib crate that contains the macros used in the `arbiter-engine` crate.
 
 The purpose of Arbiter is to provide a toolset to construct arbitrary agents that interact with an Ethereum-like environment of your design. 
