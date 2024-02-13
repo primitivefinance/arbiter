@@ -1,3 +1,5 @@
+id = "timed_message_world"
+
 [[ping]]
 TimedMessage = { delay = 1, send_data = "ping", receive_data = "pong", startup_message = "ping" }
 

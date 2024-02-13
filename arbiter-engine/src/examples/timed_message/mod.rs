@@ -203,8 +203,8 @@ enum Behaviors {
 
 #[tokio::test(flavor = "multi_thread", worker_threads = 4)]
 async fn config_test() {
-    let mut world = World::new("world");
-    world.from_config::<Behaviors>("src/examples/timed_message/config.toml");
-
+    let mut world =
+        World::from_config::<Behaviors>("src/examples/timed_message/config.toml").unwrap();
+    assert_eq!(world.id, "timed_message_world");
     world.run().await;
 }
