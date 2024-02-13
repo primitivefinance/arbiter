@@ -83,7 +83,7 @@ async fn stop_environment() {
 
 #[tokio::test]
 async fn fork_into_arbiter() {
-    let fork = Fork::from_disk("../example_fork/fork_into_test.json").unwrap();
+    let fork = Fork::from_disk("tests/fork.json").unwrap();
 
     // Get the environment going
     let environment = Environment::builder().with_db(fork.db).build();
@@ -115,7 +115,7 @@ async fn fork_into_arbiter() {
 
 #[tokio::test]
 async fn middleware_from_forked_eo() {
-    let fork = Fork::from_disk("../example_fork/fork_into_test.json").unwrap();
+    let fork = Fork::from_disk("tests/fork.json").unwrap();
 
     // Get the environment going
     let environment = Environment::builder().with_db(fork.db).build();

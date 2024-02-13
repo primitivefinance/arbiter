@@ -49,6 +49,9 @@ pub(crate) enum StorageType {
 
 pub(crate) fn digest_artifacts(path: &str) -> Result<Artifacts, ArbiterError> {
     // Read the file to a string
+    let mut cwd = env::current_dir().unwrap();
+    cwd.push(path);
+    println!("Reading artifacts from: {:?}", cwd);
     let data = fs::read_to_string(path)?;
     let json_data = serde_json::from_str(&data)?;
 

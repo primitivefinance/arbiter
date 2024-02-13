@@ -10,7 +10,7 @@ use std::{collections::HashMap, fmt::Debug, sync::Arc};
 use futures_util::future::join_all;
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
 use tokio::task::{spawn, JoinError};
-use tracing::{debug, trace, warn};
+use tracing::{debug, info, trace, warn};
 
 use crate::{errors::ArbiterEngineError, messager::Messager};
 
