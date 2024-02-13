@@ -5,7 +5,7 @@ extern crate syn;
 use proc_macro::TokenStream;
 use quote::quote;
 use syn::parse::{Parse, ParseStream};
-use syn::{parse_macro_input, Ident, ItemFn, Lit, Meta, Result as ParseResult};
+use syn::{parse_macro_input, Ident, ItemFn, Lit, Result as ParseResult};
 use syn::{Data, DataEnum, DeriveInput, Fields};
 
 #[proc_macro_derive(Behaviors)]
@@ -49,8 +49,6 @@ pub fn create_behavior_from_enum(input: TokenStream) -> TokenStream {
 
     TokenStream::from(expanded)
 }
-
-use syn::{parse::Parser, Attribute, MetaNameValue};
 
 // Define a custom struct to parse our specific macro attributes
 struct MacroArgs {
@@ -106,7 +104,7 @@ pub fn main(attr: TokenStream, item: TokenStream) -> TokenStream {
     let expanded = quote! {
         #[tokio::main]
         async fn main() -> Result<(), Box<dyn std::error::Error>> {
-            use clap::{Parser, Subcommand, ArgAction};
+            use clap::{Parser, Subcommand, ArgAction, CommandFactory};
             use tracing::Level;
 
             #[derive(Parser)]
