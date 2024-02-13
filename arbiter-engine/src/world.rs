@@ -103,6 +103,7 @@ impl World {
     ) -> Result<(), ArbiterEngineError> {
         let cwd = std::env::current_dir()?;
         let path = cwd.join(config_path);
+        info!("Reading from path: {:?}", path);
         let mut file = File::open(path)?;
 
         let mut contents = String::new();
@@ -113,7 +114,6 @@ impl World {
         for (agent, behaviors) in agents_map {
             let mut next_agent = Agent::builder(&agent);
             for behavior in behaviors {
-                println!("Behavior: {:?}", behavior);
                 let engine = behavior.create_state_machine();
                 next_agent = next_agent.with_engine(engine);
             }

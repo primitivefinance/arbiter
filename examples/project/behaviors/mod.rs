@@ -1,11 +1,11 @@
 use arbiter_macros::Behaviors;
 use serde::{Deserialize, Serialize};
 
-mod incrementer;
+pub mod incrementer;
 
 use incrementer::Incrementer;
 
-#[derive(Serialize, Deserialize, Behaviors)]
+#[derive(Debug, Serialize, Deserialize, Behaviors)]
 pub enum Behaviors {
     Incrementer(Incrementer),
 }

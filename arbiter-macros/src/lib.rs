@@ -4,9 +4,11 @@ extern crate syn;
 
 use proc_macro::TokenStream;
 use quote::quote;
-use syn::parse::{Parse, ParseStream};
-use syn::{parse_macro_input, Ident, ItemFn, Lit, Result as ParseResult, Type};
-use syn::{Data, DataEnum, DeriveInput, Fields};
+use syn::{
+    parse::{Parse, ParseStream},
+    parse_macro_input, Data, DataEnum, DeriveInput, Fields, Ident, ItemFn, Lit,
+    Result as ParseResult, Type,
+};
 
 #[proc_macro_derive(Behaviors)]
 pub fn create_behavior_from_enum(input: TokenStream) -> TokenStream {
@@ -117,9 +119,11 @@ pub fn main(attr: TokenStream, item: TokenStream) -> TokenStream {
     // Generate the CLI and logging setup code with async and tokio::main
     let expanded = quote! {
         #[tokio::main]
+        #[allow(unused_must_use)]
         async fn main() -> Result<(), Box<dyn std::error::Error>> {
             use clap::{Parser, Subcommand, ArgAction, CommandFactory};
             use tracing::Level;
+            use arbiter_engine::world::World;
 
             #[derive(Parser)]
             #[clap(name = #name)]
@@ -142,7 +146,6 @@ pub fn main(attr: TokenStream, item: TokenStream) -> TokenStream {
                 },
             }
 
-            dotenv::dotenv().ok();
             let args = Args::parse();
 
             let log_level = match args.verbose.unwrap_or(0) {

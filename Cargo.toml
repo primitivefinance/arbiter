@@ -60,6 +60,7 @@ proc-macro2 = { version = "1.0.78" }
 
 tracing = "0.1.40"
 thiserror = { version = "1.0.57" }
+anyhow = "1.0.79"
 
 # Dependencies for the release build of Arbiter bin
 [dependencies]
@@ -91,13 +92,13 @@ arbiter-macros.workspace = true
 revm-primitives.workspace = true
 serde.workspace = true
 async-trait.workspace = true
+anyhow.workspace = true
 rayon = { version = "1.8.0" }
 
 # Necessary for examples
 tokio.workspace = true
 tracing.workspace = true
 tracing-subscriber = "0.3.18"
-dotenv = "0.15.0"
 assert_cmd = { version = "=2.0.13" }
 
 

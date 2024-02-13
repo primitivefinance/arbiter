@@ -34,7 +34,7 @@ toml.workspace = true
 
 thiserror.workspace = true
 tracing.workspace = true
-anyhow = "1.0.79"
+anyhow.workspace = true
 
 crossbeam-channel.workspace = true
 

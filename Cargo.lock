@@ -216,6 +216,7 @@ name = "arbiter"
 version = "0.4.14"
 dependencies = [
  "Inflector",
+ "anyhow",
  "arbiter-bindings",
  "arbiter-core",
  "arbiter-engine",
@@ -224,7 +225,6 @@ dependencies = [
  "async-trait",
  "clap",
  "config",
- "dotenv",
  "ethers",
  "foundry-config",
  "proc-macro2",
@@ -1411,12 +1411,6 @@ dependencies = [
  "skeptic",
  "tokio",
 ]
-
-[[package]]
-name = "dotenv"
-version = "0.15.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "77c90badedccf4105eca100756a0b1289e191f6fcbdadd3cee1d2f614f97da8f"
 
 [[package]]
 name = "dunce"
