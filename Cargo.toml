@@ -29,11 +29,16 @@ keywords = ["ethereum", "evm", "emulator", "testing", "smart-contracts"]
 name = "arbiter"
 path = "bin/main.rs"
 
+[[example]]
+name = "project"
+path = "examples/project.rs"
+
 [workspace.dependencies]
 # Local
-arbiter-bindings = "0.1.2"
-arbiter-core = "0.10.1"
-arbiter-macros = "0.1.0"
+arbiter-bindings = { path = "arbiter-bindings" }
+arbiter-core = { path = "arbiter-core" }
+arbiter-engine = { path = "arbiter-engine" }
+arbiter-macros = { path = "arbiter-macros" }
 
 revm = { version = "5.0.0", features = ["ethersdb", "std", "serde"] }
 revm-primitives = "=2.0.0"
@@ -80,6 +85,8 @@ tempfile = { version = "3.10.0" }
 thiserror.workspace = true
 # Dependencies for the test build and development
 [dev-dependencies]
+arbiter-bindings.workspace = true
+arbiter-macros.workspace = true
 revm-primitives.workspace = true
 tokio.workspace = true
 assert_cmd = { version = "=2.0.13" }
