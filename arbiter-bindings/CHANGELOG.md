@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.4](https://github.com/primitivefinance/arbiter/compare/arbiter-bindings-v0.1.3...arbiter-bindings-v0.1.4) - 2024-02-13
+
+### Added
+- *(arbiter-macros)* `#[arbiter_macros::main]` and a project example ([#880](https://github.com/primitivefinance/arbiter/pull/880))
+
 ## [0.1.3](https://github.com/primitivefinance/arbiter/compare/arbiter-bindings-v0.1.2...arbiter-bindings-v0.1.3) - 2024-02-12
 
 ### Added
