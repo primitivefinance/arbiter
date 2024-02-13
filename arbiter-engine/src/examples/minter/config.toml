@@ -1,3 +1,6 @@
+# id for the world
+id = "minter_world"
+
 # top level id for the `TokenAdmin` agent
 [[admin]]
 # named struct and arguments for initializing the `TokenAdmin` agent

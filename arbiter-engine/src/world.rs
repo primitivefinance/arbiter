@@ -98,9 +98,8 @@ impl World {
     /// BehaviorTypeC = { ... }
     /// ```
     pub fn from_config<C: CreateStateMachine + Serialize + DeserializeOwned + Debug>(
-        &mut self,
         config_path: &str,
-    ) -> Result<(), ArbiterEngineError> {
+    ) -> Result<Self, ArbiterEngineError> {
         let cwd = std::env::current_dir()?;
         let path = cwd.join(config_path);
         info!("Reading from path: {:?}", path);
@@ -109,17 +108,26 @@ impl World {
         let mut contents = String::new();
         file.read_to_string(&mut contents)?;
 
-        let agents_map: HashMap<String, Vec<C>> = toml::from_str(&contents)?;
+        #[derive(Deserialize)]
+        struct Config<C> {
+            id: Option<String>,
+            #[serde(flatten)]
+            agents_map: HashMap<String, Vec<C>>,
+        }
 
-        for (agent, behaviors) in agents_map {
+        let config: Config<C> = toml::from_str(&contents)?;
+
+        let mut world = World::new(&config.id.unwrap_or_else(|| "world".to_owned()));
+
+        for (agent, behaviors) in config.agents_map {
             let mut next_agent = Agent::builder(&agent);
             for behavior in behaviors {
                 let engine = behavior.create_state_machine();
                 next_agent = next_agent.with_engine(engine);
             }
-            self.add_agent(next_agent);
+            world.add_agent(next_agent);
         }
-        Ok(())
+        Ok(world)
     }
 
     /// Adds an agent, constructed from the provided `AgentBuilder`, to the

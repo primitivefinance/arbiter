@@ -158,8 +158,7 @@ pub fn main(attr: TokenStream, item: TokenStream) -> TokenStream {
             match &args.command {
                 Some(Commands::Simulate { config_path }) => {
                     println!("Simulating configuration: {}", config_path);
-                    let mut world = World::new("world");
-                    world.from_config::<#behaviors>(config_path);
+                    let mut world = World::from_config::<#behaviors>(config_path)?;
                     world.run().await?;
                 },
                 None => {
