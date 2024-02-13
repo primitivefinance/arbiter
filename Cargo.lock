@@ -221,6 +221,7 @@ dependencies = [
  "arbiter-engine",
  "arbiter-macros",
  "assert_cmd",
+ "async-trait",
  "clap",
  "config",
  "dotenv",

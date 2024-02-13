@@ -1,7 +1,11 @@
 use arbiter_macros::Behaviors;
+use serde::{Deserialize, Serialize};
 
-#[derive(Behaviors)]
+mod incrementer;
+
+use incrementer::Incrementer;
+
+#[derive(Serialize, Deserialize, Behaviors)]
 pub enum Behaviors {
-    MyBehavior(MyBehavior),
-    MyBehavior2(MyBehavior2),
+    Incrementer(Incrementer),
 }

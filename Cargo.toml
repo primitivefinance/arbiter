@@ -89,6 +89,8 @@ arbiter-bindings.workspace = true
 arbiter-engine.workspace = true
 arbiter-macros.workspace = true
 revm-primitives.workspace = true
+serde.workspace = true
+async-trait.workspace = true
 rayon = { version = "1.8.0" }
 
 # Necessary for examples
