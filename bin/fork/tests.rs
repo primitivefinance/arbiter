@@ -2,11 +2,10 @@ use arbiter_core::database::fork::Fork;
 
 use super::*;
 
-const FORK_CONFIG_PATH: &str = "example_fork/weth_config.toml";
-const PATH_TO_DISK_STORAGE: &str = "example_fork/test.json";
+const FORK_CONFIG_PATH: &str = "examples/fork/weth_config.toml";
+const PATH_TO_DISK_STORAGE: &str = "examples/fork/test.json";
 
 #[test]
-#[ignore]
 fn create_forked_db() {
     let fork_config = ForkConfig::new(FORK_CONFIG_PATH).unwrap();
     let fork = fork_config.into_fork().unwrap();
@@ -14,7 +13,6 @@ fn create_forked_db() {
 }
 
 #[test]
-#[ignore]
 fn write_out() {
     let fork_config =
         ForkConfig::new(FORK_CONFIG_PATH).expect("WARNING: Failed to create ForkConfig");
@@ -29,7 +27,6 @@ fn write_out() {
 }
 
 #[test]
-#[ignore]
 fn read_in() {
     // First write out so we know the file exists.
     let fork_config = ForkConfig::new(FORK_CONFIG_PATH);
@@ -49,4 +46,5 @@ fn read_in() {
     // Use par_iter to parallelize the loop
     let forked_db = Fork::from_disk(PATH_TO_DISK_STORAGE);
     assert!(forked_db.is_ok());
+    fs::remove_file(PATH_TO_DISK_STORAGE).unwrap();
 }

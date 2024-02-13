@@ -36,6 +36,7 @@ impl ForkConfig {
     pub(crate) fn new(fork_config_path: &str) -> Result<Self, ConfigError> {
         let mut cwd = env::current_dir().unwrap();
         cwd.push(fork_config_path);
+        println!("Reading config from: {:?}", cwd.to_str().unwrap());
         let config = Config::builder()
             .add_source(config::File::with_name(
                 cwd.to_str()
@@ -107,7 +108,6 @@ impl ForkConfig {
     pub(crate) fn into_fork(self) -> Result<Fork, ArbiterError> {
         // Digest all of the contracts and their storage data listed in the fork config.
         let db = self.digest_config()?;
-
         Ok(Fork {
             db,
             contracts_meta: self.contracts_meta.clone(),
