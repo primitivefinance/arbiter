@@ -6,7 +6,6 @@ members = [
     "arbiter-engine",
     "arbiter-macros",
     "documentation",
-    "examples/arbiter-template",
 ]
 
 # List of crates excluded from this workspace
