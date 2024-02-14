@@ -21,7 +21,7 @@ jobs:
           components: rustfmt
 
       - name: cargo fmt
-        run: cargo +nightly fmt -- --workspace -- --check
+        run: cargo +nightly fmt -- --check
 
   clippy:
     name: clippy
