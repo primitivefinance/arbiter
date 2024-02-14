@@ -28,7 +28,6 @@ use crate::fork::ForkConfig;
 
 mod bind;
 mod fork;
-mod init;
 
 /// Represents command-line arguments passed to the `Arbiter` tool.
 #[derive(Parser)]
@@ -74,17 +73,7 @@ pub enum ArbiterError {
 enum Commands {
     /// Represents the `Bind` subcommand.
     Bind,
-
-    /// Represents the `Init` subcommand to initialize a simulation.
-    Init {
-        /// The name of the simulation to be initialized.
-        #[clap(index = 1)]
-        simulation_name: String,
-        /// Flag to indicate if git should be skipped.
-        #[clap(long)]
-        no_git: bool,
-    },
-
+    /// Represents the `Fork` subcommand.
     Fork {
         /// The name of the config file used to configure the fork.
         #[clap(index = 1)]
@@ -107,16 +96,6 @@ fn main() -> Result<(), ArbiterError> {
     let args = Args::parse();
 
     match &args.command {
-        Some(Commands::Init {
-            simulation_name,
-            no_git,
-        }) => {
-            println!("Initializing Arbiter project...");
-            init::init_project(simulation_name)?;
-            if *no_git {
-                init::remove_git()?;
-            }
-        }
         Some(Commands::Bind) => {
             println!("Generating bindings...");
             bind::forge_bind()?;
