@@ -260,10 +260,10 @@ version = "0.4.15"
 dependencies = [
  "Inflector",
  "anyhow",
- "arbiter-bindings 0.1.4",
- "arbiter-core 0.10.2",
- "arbiter-engine 0.2.0",
- "arbiter-macros 0.1.1",
+ "arbiter-bindings 0.1.4 (registry+https://github.com/rust-lang/crates.io-index)",
+ "arbiter-core 0.10.1",
+ "arbiter-engine 0.1.1",
+ "arbiter-macros 0.1.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "assert_cmd",
  "async-trait",
  "clap",
@@ -336,7 +336,7 @@ dependencies = [
 name = "arbiter-core"
 version = "0.10.2"
 dependencies = [
- "arbiter-bindings 0.1.4",
+ "arbiter-bindings 0.1.4 (registry+https://github.com/rust-lang/crates.io-index)",
  "assert_matches",
  "async-stream",
  "async-trait",
@@ -394,9 +394,9 @@ name = "arbiter-engine"
 version = "0.2.0"
 dependencies = [
  "anyhow",
- "arbiter-bindings 0.1.4",
- "arbiter-core 0.10.2",
- "arbiter-macros 0.1.1",
+ "arbiter-bindings 0.1.4 (registry+https://github.com/rust-lang/crates.io-index)",
+ "arbiter-core 0.10.1",
+ "arbiter-macros 0.1.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "async-stream",
  "async-trait",
  "crossbeam-channel",
@@ -1646,8 +1646,8 @@ checksum = "fea41bba32d969b513997752735605054bc0dfa92b4c56bf1189f2e174be7a10"
 name = "documentation"
 version = "0.0.1"
 dependencies = [
- "arbiter-bindings 0.1.4",
- "arbiter-core 0.10.2",
+ "arbiter-bindings 0.1.4 (registry+https://github.com/rust-lang/crates.io-index)",
+ "arbiter-core 0.10.1",
  "skeptic",
  "tokio",
 ]
