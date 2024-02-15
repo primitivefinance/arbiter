@@ -1,3 +1,5 @@
+use std::sync::Arc;
+
 use anyhow::Result;
 use arbiter_core::middleware::ArbiterMiddleware;
 use arbiter_engine::{
@@ -5,7 +7,6 @@ use arbiter_engine::{
     messager::{Message, Messager, To},
 };
 use serde::{Deserialize, Serialize};
-use std::sync::Arc;
 
 fn default_max_count() -> Option<u64> {
     Some(3)

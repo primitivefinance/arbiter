@@ -1,16 +1,14 @@
 const AGENT_ID: &str = "agent";
 
-use arbiter_macros::Behaviors;
-use futures_util::StreamExt;
+use std::time::Duration;
 
 use arbiter_engine::{
     agent::Agent,
     machine::{CreateStateMachine, Engine, StateMachine},
     world::World,
 };
-
-use std::time::Duration;
-
+use arbiter_macros::Behaviors;
+use futures_util::StreamExt;
 use tokio::time::timeout;
 include!("common.rs");
 
