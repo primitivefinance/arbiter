@@ -2,8 +2,8 @@
 authors = ["Arbiter Contributors"]
 language = "en"
 multilingual = false
-src = "documentation/src"
-title = "Arbiter"
+src = "docs/src"
+title = "Arbiter Documentation"
 
 
 [output.html]
