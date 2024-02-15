@@ -30,15 +30,15 @@ name = "arbiter"
 path = "bin/main.rs"
 
 [[example]]
-name = "project"
-path = "examples/project/main.rs"
+name = "template"
+path = "examples/arbiter-template/src/main.rs"
 
 [workspace.dependencies]
 # Local
-arbiter-bindings = { path = "arbiter-bindings" }
-arbiter-core = { path = "arbiter-core" }
-arbiter-engine = { path = "arbiter-engine" }
-arbiter-macros = { path = "arbiter-macros" }
+arbiter-bindings = "0.1.4"
+arbiter-core = "0.10.1"
+arbiter-engine = "0.2.0"
+arbiter-macros = "0.1.1"
 
 revm = { version = "5.0.0", features = ["ethersdb", "std", "serde"] }
 revm-primitives = "=2.0.0"
