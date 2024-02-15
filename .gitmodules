@@ -1,6 +1,3 @@
-[submodule "examples/arbiter-template"]
-	path = examples/arbiter-template
-	url = https://github.com/primitivefinance/arbiter-template
 [submodule "bindings/lib/forge-std"]
 	path = bindings/lib/forge-std
 	url = https://github.com/foundry-rs/forge-std

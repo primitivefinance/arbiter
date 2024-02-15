@@ -1,12 +1,6 @@
 [workspace]
 # List of crates included in this workspace
-members = [
-    "bindings",
-    "core",
-    "engine",
-    "macros",
-    "docs",
-]
+members = ["bindings", "core", "engine", "macros", "docs"]
 
 # List of crates excluded from this workspace
 exclude = ["benches"]
@@ -31,7 +25,7 @@ path = "bin/main.rs"
 
 [[example]]
 name = "project"
-path = "examples/project/main.rs"
+path = "examples/template/src/main.rs"
 
 [workspace.dependencies]
 # Local
