@@ -29,9 +29,9 @@ checksum = "f26201604c87b1e01bd3d98f8d5d9a8fcbb815e8cedb41ffccbeb4bf593a35fe"
 
 [[package]]
 name = "aes"
-version = "0.8.3"
+version = "0.8.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ac1f845298e95f983ff1944b728ae08b8cebab80d684f0a832ed0fc74dfa27e2"
+checksum = "b169f7a6d4742236a0a00c541b845991d0ac43e546831af1249753ab4c3aa3a0"
 dependencies = [
  "cfg-if",
  "cipher",
@@ -217,10 +217,10 @@ version = "0.4.15"
 dependencies = [
  "Inflector",
  "anyhow",
- "arbiter-bindings",
- "arbiter-core",
- "arbiter-engine",
- "arbiter-macros",
+ "arbiter-bindings 0.1.4 (registry+https://github.com/rust-lang/crates.io-index)",
+ "arbiter-core 0.10.1",
+ "arbiter-engine 0.2.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "arbiter-macros 0.1.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "assert_cmd",
  "async-trait",
  "clap",
@@ -251,10 +251,49 @@ dependencies = [
 ]
 
 [[package]]
+name = "arbiter-bindings"
+version = "0.1.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "6d0333ea5e6f32bef018cd4a035ff0241899947d8e0c87346c868ec5d4bb51fc"
+dependencies = [
+ "ethers",
+ "serde",
+]
+
+[[package]]
+name = "arbiter-core"
+version = "0.10.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "2864029729ccae7d474296d71b12ebc70c091562040a88b6d3fd3f52d8db6c7e"
+dependencies = [
+ "arbiter-bindings 0.1.4 (registry+https://github.com/rust-lang/crates.io-index)",
+ "async-stream",
+ "async-trait",
+ "bytes",
+ "crossbeam-channel",
+ "ethers",
+ "futures-locks",
+ "futures-timer",
+ "futures-util",
+ "hashbrown 0.14.3",
+ "hex",
+ "polars",
+ "rand",
+ "revm",
+ "revm-primitives 2.0.0",
+ "serde",
+ "serde_json",
+ "thiserror",
+ "tokio",
+ "tracing",
+ "uint",
+]
+
+[[package]]
 name = "arbiter-core"
 version = "0.10.2"
 dependencies = [
- "arbiter-bindings",
+ "arbiter-bindings 0.1.4 (registry+https://github.com/rust-lang/crates.io-index)",
  "assert_matches",
  "async-stream",
  "async-trait",
@@ -287,9 +326,9 @@ name = "arbiter-engine"
 version = "0.2.0"
 dependencies = [
  "anyhow",
- "arbiter-bindings",
- "arbiter-core",
- "arbiter-macros",
+ "arbiter-bindings 0.1.4 (registry+https://github.com/rust-lang/crates.io-index)",
+ "arbiter-core 0.10.1",
+ "arbiter-macros 0.1.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "async-stream",
  "async-trait",
  "crossbeam-channel",
@@ -308,8 +347,43 @@ dependencies = [
 ]
 
 [[package]]
+name = "arbiter-engine"
+version = "0.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "3fe11da508518e823bf75dd0e4c20fed24214c09f2458e7db933c9f6dbfd885e"
+dependencies = [
+ "anyhow",
+ "arbiter-bindings 0.1.4 (registry+https://github.com/rust-lang/crates.io-index)",
+ "arbiter-core 0.10.1",
+ "arbiter-macros 0.1.1 (registry+https://github.com/rust-lang/crates.io-index)",
+ "async-stream",
+ "async-trait",
+ "crossbeam-channel",
+ "ethers",
+ "futures",
+ "futures-util",
+ "serde",
+ "serde_json",
+ "thiserror",
+ "tokio",
+ "tokio-stream",
+ "toml 0.8.10",
+ "tracing",
+]
+
+[[package]]
 name = "arbiter-macros"
 version = "0.1.1"
+dependencies = [
+ "quote",
+ "syn 2.0.48",
+]
+
+[[package]]
+name = "arbiter-macros"
+version = "0.1.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a685a9ee2090c7113919cb78d9e87e294b4f65e22f43c5938c301b853b78e411"
 dependencies = [
  "quote",
  "syn 2.0.48",
@@ -1406,8 +1480,8 @@ checksum = "fea41bba32d969b513997752735605054bc0dfa92b4c56bf1189f2e174be7a10"
 name = "documentation"
 version = "0.0.1"
 dependencies = [
- "arbiter-bindings",
- "arbiter-core",
+ "arbiter-bindings 0.1.4 (registry+https://github.com/rust-lang/crates.io-index)",
+ "arbiter-core 0.10.1",
  "skeptic",
  "tokio",
 ]
@@ -2302,9 +2376,9 @@ checksum = "95505c38b4572b2d910cecb0281560f54b440a19336cbbcb27bf6ce6adc6f5a8"
 
 [[package]]
 name = "hermit-abi"
-version = "0.3.5"
+version = "0.3.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d0c62115964e08cb8039170eb33c1d0e2388a256930279edca206fff675f82c3"
+checksum = "bd5256b483761cd23699d0da46cc6fd2ee3be420bbe6d020ae4a091e70b7e9fd"
 
 [[package]]
 name = "hex"
@@ -3457,9 +3531,9 @@ dependencies = [
 
 [[package]]
 name = "pkg-config"
-version = "0.3.29"
+version = "0.3.30"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2900ede94e305130c13ddd391e0ab7cbaeb783945ae07a279c268cb05109c6cb"
+checksum = "d231b230927b5e4ad203db57bbcbee2802f6bce620b1e4a9024a07d94e2907ec"
 
 [[package]]
 name = "planus"
@@ -5365,7 +5439,7 @@ dependencies = [
  "serde",
  "serde_spanned",
  "toml_datetime",
- "toml_edit 0.22.4",
+ "toml_edit 0.22.5",
 ]
 
 [[package]]
@@ -5387,7 +5461,7 @@ dependencies = [
  "serde",
  "serde_spanned",
  "toml_datetime",
- "winnow",
+ "winnow 0.5.40",
 ]
 
 [[package]]
@@ -5398,7 +5472,7 @@ checksum = "70f427fce4d84c72b5b732388bf4a9f4531b53f74e2887e3ecb2481f68f66d81"
 dependencies = [
  "indexmap",
  "toml_datetime",
- "winnow",
+ "winnow 0.5.40",
 ]
 
 [[package]]
@@ -5409,20 +5483,20 @@ checksum = "6a8534fd7f78b5405e860340ad6575217ce99f38d4d5c8f2442cb5ecb50090e1"
 dependencies = [
  "indexmap",
  "toml_datetime",
- "winnow",
+ "winnow 0.5.40",
 ]
 
 [[package]]
 name = "toml_edit"
-version = "0.22.4"
+version = "0.22.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0c9ffdf896f8daaabf9b66ba8e77ea1ed5ed0f72821b398aba62352e95062951"
+checksum = "99e68c159e8f5ba8a28c4eb7b0c0c190d77bb479047ca713270048145a9ad28a"
 dependencies = [
  "indexmap",
  "serde",
  "serde_spanned",
  "toml_datetime",
- "winnow",
+ "winnow 0.6.1",
 ]
 
 [[package]]
@@ -6019,6 +6093,15 @@ name = "winnow"
 version = "0.5.40"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f593a95398737aeed53e489c785df13f3618e41dbcd6718c6addbf1395aa6876"
+dependencies = [
+ "memchr",
+]
+
+[[package]]
+name = "winnow"
+version = "0.6.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d90f4e0f530c4c69f62b80d839e9ef3855edc9cba471a160c4d692deed62b401"
 dependencies = [
  "memchr",
 ]

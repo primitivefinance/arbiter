@@ -18,6 +18,7 @@ jobs:
         with:
           toolchain: 1.75.0
           override: true
-
+      - name: git submodule update
+        run: git submodule update --init --recursive
       - name: test
         run: cargo test --workspace --all-features --exclude documentation
