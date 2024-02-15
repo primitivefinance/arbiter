@@ -1,5 +1,26 @@
-use self::{examples::minter::agents::token_admin::TokenAdmin, machine::EventStream};
+use std::collections::HashMap;
+
 use super::*;
+
+#[derive(Deserialize, Serialize, Clone, Debug)]
+pub(crate) struct TokenAdmin {
+    /// The identifier of the token admin.
+    pub token_data: HashMap<String, TokenData>,
+    #[serde(skip)]
+    pub tokens: Option<HashMap<String, ArbiterToken<ArbiterMiddleware>>>,
+    #[serde(skip)]
+    pub client: Option<Arc<ArbiterMiddleware>>,
+    #[serde(skip)]
+    pub messager: Option<Messager>,
+    #[serde(default)]
+    pub count: u64,
+    #[serde(default = "default_max_count")]
+    pub max_count: Option<u64>,
+}
+
+pub fn default_max_count() -> Option<u64> {
+    Some(3)
+}
 
 /// Used as an action to ask what tokens are available.
 #[derive(Clone, Debug, Deserialize, Serialize)]
@@ -18,7 +39,7 @@ pub struct MintRequest {
     pub token: String,
 
     /// The address to mint to.
-    pub mint_to: Address,
+    pub mint_to: eAddress,
 
     /// The amount to mint.
     pub mint_amount: u64,
@@ -78,7 +99,7 @@ impl Behavior<Message> for TokenAdmin {
                 let token_data = self.token_data.get(&token_name).unwrap();
                 messager
                     .send(To::Agent(event.from.clone()), token_data.address)
-                    .await;
+                    .await?;
             }
             TokenAdminQuery::MintRequest(mint_request) => {
                 trace!("Minting tokens: {:?}", mint_request);
@@ -89,7 +110,7 @@ impl Behavior<Message> for TokenAdmin {
                     .get(&mint_request.token)
                     .unwrap();
                 token
-                    .mint(mint_request.mint_to, U256::from(mint_request.mint_amount))
+                    .mint(mint_request.mint_to, eU256::from(mint_request.mint_amount))
                     .send()
                     .await
                     .unwrap()

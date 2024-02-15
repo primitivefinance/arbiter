@@ -27,6 +27,11 @@ path = "bin/main.rs"
 name = "project"
 path = "examples/template/src/main.rs"
 
+[[example]]
+name = "minter"
+path = "examples/minter/main.rs"
+
+
 [workspace.dependencies]
 # Arbiter local for development
 # arbiter-bindings = { path = "arbiter-bindings" }
