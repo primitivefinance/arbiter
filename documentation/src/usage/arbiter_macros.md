@@ -1,5 +1,11 @@
 # Arbiter macros
 `arbiter_macros` provides a set of macros to help with the use of `arbiter-engine` and `arbiter-core`.
-At the moment, we only have one proc macro: `#[derive(Behaviors)]`.
-This macro will generate an implementation of a `CreateStateMachine` trait for the `Behaviors` enum and ultimately save you from having to write a lot of boilerplate code.
-See the [Configuration](./arbiter_engine/configuration.md) page for more information on how to use this macro.
+Macros in Rust are powerful metaprogramming tools that allow for code generation, enabling developers to write code that writes other code. They are commonly used to reduce boilerplate by abstracting repetitive patterns, enforce compile-time checks or transformations, and extend the language's capabilities without modifying its syntax. Macros can be used for tasks like deriving traits automatically, creating domain-specific languages (DSLs), and implementing variadic functions. 
+
+## Procedural Macros
+
+> **`#[derive(Behaviors)]`**
+This Rust procedural macro automatically implements the [CreateStateMachine](https://github.com/primitivefinance/arbiter/blob/ffbbd146dc05f3e1088a9df5cf78452a1bef2212/macros/src/lib.rs#L68) trait for an enum, generating a [create_state_machine](https://github.com/primitivefinance/arbiter/blob/ffbbd146dc05f3e1088a9df5cf78452a1bef2212/macros/src/lib.rs#L26) method that matches each enum variant to a new state machine instance. It's designed for enums where each variant contains a single unnamed field representing state data. This macro simplifies the creation of state machines from enums, eliminating repetitive boilerplate code and enhancing code maintainability. It's particularly useful in systems where state management is central, such as in game development or complex application logic, enabling developers to focus on the state logic rather than the setup code.
+
+> **`#[derive(main)]`**.
+The [main](https://github.com/primitivefinance/arbiter/blob/ffbbd146dc05f3e1088a9df5cf78452a1bef2212/macros/src/lib.rs#L161) macro in `arbiter-macros/src/lib.rs` is designed to simplify the creation of CLI applications with async support by automatically generating a `main` function that sets up command-line parsing, logging, and async execution. It takes custom attributes to configure the application's metadata and uses the [clap](https://crates.io/crates/clap) crate for parsing CLI arguments and [tracing](https://crates.io/crates/tracing) for logging based on verbosity level. The macro expects a function annotated with it to define the application's behavior, particularly handling different CLI commands. This macro is useful because it abstracts away boilerplate code for CLI setup, allowing developers to focus on the unique logic of their applications.
