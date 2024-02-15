@@ -22,3 +22,7 @@ jobs:
         run: git submodule update --init --recursive
       - name: test
         run: cargo test --workspace --all-features
+      # - name: template example
+      #   run: cargo run --example minter simulate examples/minter/config.toml
+      # - name: minter example
+      #   run: cargo run --example minter simulate examples/minter/config.toml
