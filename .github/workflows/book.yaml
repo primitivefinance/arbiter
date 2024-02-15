@@ -77,4 +77,6 @@ jobs:
           override: true
       
       - name: test
-        run: cargo test --package documentation
+        run: |
+          cd docs
+          cargo test

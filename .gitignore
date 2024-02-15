@@ -23,3 +23,4 @@ arbiter-core/data
 example_fork/test.json
 
 doctest_cache/
+docs/target/*
