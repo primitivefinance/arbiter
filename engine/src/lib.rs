@@ -16,7 +16,6 @@ use crate::{errors::ArbiterEngineError, messager::Messager};
 
 pub mod agent;
 pub mod errors;
-pub mod examples;
 pub mod machine;
 pub mod messager;
 pub mod universe;
