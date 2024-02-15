@@ -1,12 +1,6 @@
 [workspace]
 # List of crates included in this workspace
-members = [
-    "arbiter-bindings",
-    "arbiter-core",
-    "arbiter-engine",
-    "arbiter-macros",
-    "documentation",
-]
+members = ["bindings", "core", "engine", "macros", "docs"]
 
 # List of crates excluded from this workspace
 exclude = ["benches"]
@@ -30,15 +24,15 @@ name = "arbiter"
 path = "bin/main.rs"
 
 [[example]]
-name = "template"
-path = "examples/arbiter-template/src/main.rs"
+name = "project"
+path = "examples/template/src/main.rs"
 
 [workspace.dependencies]
 # Local
-arbiter-bindings = "0.1.4"
-arbiter-core = "0.10.1"
-arbiter-engine = "0.2.0"
-arbiter-macros = "0.1.1"
+arbiter-bindings = { path = "bindings" }
+arbiter-core = { path = "core" }
+arbiter-engine = { path = "engine" }
+arbiter-macros = { path = "macros" }
 
 revm = { version = "5.0.0", features = ["ethersdb", "std", "serde"] }
 revm-primitives = "=2.0.0"
