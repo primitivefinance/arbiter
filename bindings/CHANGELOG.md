@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.5](https://github.com/primitivefinance/arbiter/compare/arbiter-bindings-v0.1.4...arbiter-bindings-v0.1.5) - 2024-02-15
+
+### Other
+- rename directories ([#889](https://github.com/primitivefinance/arbiter/pull/889))
+
 ## [0.1.4](https://github.com/primitivefinance/arbiter/compare/arbiter-bindings-v0.1.3...arbiter-bindings-v0.1.4) - 2024-02-13
 
 ### Added
