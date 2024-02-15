@@ -21,4 +21,4 @@ jobs:
       - name: git submodule update
         run: git submodule update --init --recursive
       - name: test
-        run: cargo test --workspace --all-features --exclude documentation
+        run: cargo test --workspace --all-features

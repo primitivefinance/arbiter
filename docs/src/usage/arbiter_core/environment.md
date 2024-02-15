@@ -53,7 +53,7 @@ use arbiter_core::environment::Environment;
 
 fn main() {
     let env = Environment::builder()
-        .with_gas_limit(revm::primitives::U256::from(12_345_678))
+        .with_gas_limit(revm_primitives::U256::from(12_345_678))
         .with_contract_size_limit(111_111)
         .build();
 }
