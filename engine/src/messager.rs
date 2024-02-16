@@ -64,7 +64,7 @@ impl Messager {
 
     /// Returns a [`Messager`] interface connected to the same instance but with
     /// the `id` provided.
-    pub(crate) fn for_agent(&self, id: &str) -> Self {
+    pub fn for_agent(&self, id: &str) -> Self {
         Self {
             broadcast_sender: self.broadcast_sender.clone(),
             broadcast_receiver: Some(self.broadcast_sender.subscribe()),
