@@ -6,6 +6,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.0](https://github.com/primitivefinance/arbiter/compare/arbiter-engine-v0.2.1...arbiter-engine-v0.3.0) - 2024-02-16
+
+### Added
+- *(engine)* optional stream for behaviors ([#899](https://github.com/primitivefinance/arbiter/pull/899))
+
+### Other
+- refactor engine tests and examples ([#895](https://github.com/primitivefinance/arbiter/pull/895))
+
 ## [0.2.1](https://github.com/primitivefinance/arbiter/compare/arbiter-engine-v0.2.0...arbiter-engine-v0.2.1) - 2024-02-15
 
 ### Other
