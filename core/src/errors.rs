@@ -7,7 +7,7 @@ use ethers::{
     providers::{MiddlewareError, ProviderError},
     signers::WalletError,
 };
-use revm_primitives::{EVMError, HaltReason};
+use revm::primitives::{EVMError, HaltReason};
 use thiserror::Error;
 
 use self::environment::instruction::{Instruction, Outcome};

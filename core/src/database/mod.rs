@@ -151,7 +151,7 @@ pub struct AccountRecord {
     /// The bytecode of the account. If empty, the account is an EOA.
     pub code: Bytes,
     /// The storage mapping of the account.
-    pub storage: revm_primitives::HashMap<U256, U256>,
+    pub storage: revm::primitives::HashMap<U256, U256>,
 }
 
 impl TryFrom<AnvilDump> for CacheDB<EmptyDB> {
@@ -182,7 +182,7 @@ impl TryFrom<AnvilDump> for CacheDB<EmptyDB> {
 
 #[cfg(test)]
 mod tests {
-    use revm_primitives::{address, bytes};
+    use revm::primitives::{address, bytes};
 
     use super::*;
 

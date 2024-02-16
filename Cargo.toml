@@ -46,7 +46,6 @@ arbiter-engine = "0.2.0"
 arbiter-macros = "0.1.1"
 
 revm = { version = "5.0.0", features = ["ethersdb", "std", "serde"] }
-revm-primitives = "=2.0.0"
 ethers = { version = "2.0.13" }
 
 serde = { version = "1.0.193", features = ["derive"] }
@@ -94,7 +93,6 @@ thiserror.workspace = true
 arbiter-bindings.workspace = true
 arbiter-engine.workspace = true
 arbiter-macros.workspace = true
-revm-primitives.workspace = true
 serde.workspace = true
 async-trait.workspace = true
 anyhow.workspace = true
@@ -114,3 +112,10 @@ lto = true
 # The Rust compiler splits your crate into multiple codegen units to parallelize (and thus speed up) compilation but at the cost of optimization. 
 # This setting tells the compiler to use only one codegen unit, which will slow down compilation but improve optimization.
 codegen-units = 1
+opt-level = 3
+
+
+[profile.bench]
+lto = true
+codegen-units = 1
+opt-level = 3

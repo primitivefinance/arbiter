@@ -39,7 +39,10 @@ use serde::de::DeserializeOwned;
 use serde_json::value::RawValue;
 
 use super::*;
-use crate::environment::{instruction::*, Broadcast, Environment};
+use crate::{
+    coprocessor::Coprocessor,
+    environment::{instruction::*, Broadcast, Environment},
+};
 
 pub mod connection;
 use connection::*;
@@ -257,15 +260,7 @@ impl ArbiterMiddleware {
         forked_eoa: eAddress,
     ) -> Result<Arc<Self>, ArbiterCoreError> {
         let instruction_sender = &Arc::clone(&environment.socket.instruction_sender);
-        let (outcome_sender, outcome_receiver) = crossbeam_channel::unbounded();
-
-        let connection = Connection {
-            instruction_sender: Arc::downgrade(instruction_sender),
-            outcome_sender,
-            outcome_receiver: outcome_receiver.clone(),
-            event_sender: environment.socket.event_broadcaster.clone(),
-            filter_receivers: Arc::new(Mutex::new(HashMap::new())),
-        };
+        let connection = Connection::from(environment);
         let provider = Provider::new(connection);
         info!(
             "Created new `ArbiterMiddleware` instance from a fork -- attached to environment labeled: {:?}",
@@ -433,7 +428,7 @@ impl Middleware for ArbiterMiddleware {
             gas_priority_fee: None,
             transact_to,
             value: U256::ZERO,
-            data: revm_primitives::Bytes(bytes::Bytes::from(
+            data: revm::primitives::Bytes(bytes::Bytes::from(
                 tx.data()
                     .ok_or(ArbiterCoreError::MissingDataError)?
                     .to_vec(),
@@ -628,7 +623,7 @@ impl Middleware for ArbiterMiddleware {
             gas_priority_fee: None,
             transact_to,
             value: U256::ZERO,
-            data: revm_primitives::Bytes(bytes::Bytes::from(
+            data: revm::primitives::Bytes(bytes::Bytes::from(
                 tx.data()
                     .ok_or(ArbiterCoreError::MissingDataError)?
                     .to_vec(),

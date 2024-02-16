@@ -18,8 +18,6 @@ arbiter-bindings.workspace = true
 # Ethereum and EVM
 ethers.workspace = true
 revm.workspace = true
-revm-primitives.workspace = true
-
 
 # Serialization
 serde.workspace = true
