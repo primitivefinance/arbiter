@@ -8,6 +8,12 @@ use arbiter_engine::{
 };
 use serde::{Deserialize, Serialize};
 
+#[allow(unused)]
+fn trace() {
+    std::env::set_var("RUST_LOG", "trace");
+    tracing_subscriber::fmt::init();
+}
+
 fn default_max_count() -> Option<u64> {
     Some(3)
 }
@@ -53,12 +59,12 @@ impl Behavior<Message> for TimedMessage {
         &mut self,
         _client: Arc<ArbiterMiddleware>,
         messager: Messager,
-    ) -> Result<EventStream<Message>> {
+    ) -> Result<Option<EventStream<Message>>> {
         if let Some(startup_message) = &self.startup_message {
             messager.send(To::All, startup_message).await?;
         }
         self.messager = Some(messager.clone());
-        Ok(messager.stream()?)
+        Ok(Some(messager.stream()?))
     }
 
     async fn process(&mut self, event: Message) -> Result<ControlFlow> {
