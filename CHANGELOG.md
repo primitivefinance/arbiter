@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.17](https://github.com/primitivefinance/arbiter/compare/arbiter-v0.4.16...arbiter-v0.4.17) - 2024-02-16
+
+### Added
+- *(engine)* optional stream for behaviors ([#899](https://github.com/primitivefinance/arbiter/pull/899))
+
 ## [0.4.16](https://github.com/primitivefinance/arbiter/compare/arbiter-v0.4.15...arbiter-v0.4.16) - 2024-02-15
 
 ### Other
