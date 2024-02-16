@@ -72,7 +72,7 @@ anyhow = "1.0.79"
 arbiter-core.workspace = true
 
 # Command line and config
-clap = { version = "4.5.0", features = ["derive"] }
+clap = { version = "4.5.1", features = ["derive"] }
 serde.workspace = true
 serde_json.workspace = true
 config = { version = "=0.14.0" }
