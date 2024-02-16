@@ -219,7 +219,7 @@ dependencies = [
  "anyhow",
  "arbiter-bindings 0.1.4",
  "arbiter-core 0.10.2 (registry+https://github.com/rust-lang/crates.io-index)",
- "arbiter-engine 0.2.0",
+ "arbiter-engine 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "arbiter-macros 0.1.1",
  "assert_cmd",
  "async-trait",
@@ -323,31 +323,6 @@ dependencies = [
 
 [[package]]
 name = "arbiter-engine"
-version = "0.2.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3fe11da508518e823bf75dd0e4c20fed24214c09f2458e7db933c9f6dbfd885e"
-dependencies = [
- "anyhow",
- "arbiter-bindings 0.1.4",
- "arbiter-core 0.10.2 (registry+https://github.com/rust-lang/crates.io-index)",
- "arbiter-macros 0.1.1",
- "async-stream",
- "async-trait",
- "crossbeam-channel",
- "ethers",
- "futures",
- "futures-util",
- "serde",
- "serde_json",
- "thiserror",
- "tokio",
- "tokio-stream",
- "toml 0.8.10",
- "tracing",
-]
-
-[[package]]
-name = "arbiter-engine"
 version = "0.3.0"
 dependencies = [
  "anyhow",
@@ -369,6 +344,31 @@ dependencies = [
  "tracing",
  "tracing-subscriber",
  "tracing-test",
+]
+
+[[package]]
+name = "arbiter-engine"
+version = "0.3.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ddc9898f9526886e1d16c677a95f257eb529c02232556925a59e1ec57e31b4d4"
+dependencies = [
+ "anyhow",
+ "arbiter-bindings 0.1.4",
+ "arbiter-core 0.10.2 (registry+https://github.com/rust-lang/crates.io-index)",
+ "arbiter-macros 0.1.1",
+ "async-stream",
+ "async-trait",
+ "crossbeam-channel",
+ "ethers",
+ "futures",
+ "futures-util",
+ "serde",
+ "serde_json",
+ "thiserror",
+ "tokio",
+ "tokio-stream",
+ "toml 0.8.10",
+ "tracing",
 ]
 
 [[package]]
