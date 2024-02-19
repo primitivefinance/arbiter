@@ -104,7 +104,7 @@ rayon = { version = "1.8.0" }
 tokio.workspace = true
 tracing.workspace = true
 tracing-subscriber = "0.3.18"
-assert_cmd = { version = "=2.0.13" }
+assert_cmd = { version = "=2.0.14" }
 
 
 # Release profile
