@@ -49,7 +49,7 @@ revm = { version = "5.0.0", features = ["ethersdb", "std", "serde"] }
 revm-primitives = "=2.0.0"
 ethers = { version = "2.0.13" }
 
-serde = { version = "1.0.193", features = ["derive"] }
+serde = { version = "1.0.197", features = ["derive"] }
 serde_json = { version = "1.0.114" }
 toml = "0.8.10"
 
