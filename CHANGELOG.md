@@ -6,6 +6,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.18](https://github.com/primitivefinance/arbiter/compare/arbiter-v0.4.17...arbiter-v0.4.18) - 2024-02-20
+
+### Other
+- *(deps)* bump serde from 1.0.196 to 1.0.197 ([#910](https://github.com/primitivefinance/arbiter/pull/910))
+- *(deps)* bump syn from 2.0.49 to 2.0.50 ([#908](https://github.com/primitivefinance/arbiter/pull/908))
+- *(deps)* bump serde_json from 1.0.113 to 1.0.114 ([#909](https://github.com/primitivefinance/arbiter/pull/909))
+- *(deps)* bump assert_cmd from 2.0.13 to 2.0.14 ([#907](https://github.com/primitivefinance/arbiter/pull/907))
+- *(deps)* bump anyhow from 1.0.79 to 1.0.80 ([#906](https://github.com/primitivefinance/arbiter/pull/906))
+- *(deps)* bump arbiter-engine from 0.2.0 to 0.3.0 ([#902](https://github.com/primitivefinance/arbiter/pull/902))
+- *(deps)* bump clap from 4.5.0 to 4.5.1 ([#903](https://github.com/primitivefinance/arbiter/pull/903))
+- *(deps)* bump syn from 2.0.48 to 2.0.49 ([#901](https://github.com/primitivefinance/arbiter/pull/901))
+- incorrect method ([#904](https://github.com/primitivefinance/arbiter/pull/904))
+
 ## [0.4.17](https://github.com/primitivefinance/arbiter/compare/arbiter-v0.4.16...arbiter-v0.4.17) - 2024-02-16
 
 ### Added
