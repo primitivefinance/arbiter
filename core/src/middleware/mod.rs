@@ -429,11 +429,11 @@ impl Middleware for ArbiterMiddleware {
         let tx_env = TxEnv {
             caller: self.address().to_fixed_bytes().into(),
             gas_limit: u64::MAX,
-            gas_price: revm::primitives::U256::from_limbs(self.get_gas_price().await?.0),
+            gas_price: U256::from_limbs(self.get_gas_price().await?.0),
             gas_priority_fee: None,
             transact_to,
             value: U256::ZERO,
-            data: revm_primitives::Bytes(bytes::Bytes::from(
+            data: revm::primitives::Bytes(bytes::Bytes::from(
                 tx.data()
                     .ok_or(ArbiterCoreError::MissingDataError)?
                     .to_vec(),
@@ -522,12 +522,10 @@ impl Middleware for ArbiterMiddleware {
                             };
 
                             // TODO: I'm not sure we need to set the confirmations.
-                            let mut pending_tx = PendingTransaction::new(
-                                ethers::types::H256::zero(),
-                                self.provider(),
-                            )
-                            .interval(Duration::ZERO)
-                            .confirmations(0);
+                            let mut pending_tx =
+                                PendingTransaction::new(H256::zero(), self.provider())
+                                    .interval(Duration::ZERO)
+                                    .confirmations(0);
 
                             let state_ptr: *mut PendingTxState =
                                 &mut pending_tx as *mut _ as *mut PendingTxState;
@@ -573,12 +571,10 @@ impl Middleware for ArbiterMiddleware {
                                 ..Default::default()
                             };
 
-                            let mut pending_tx = PendingTransaction::new(
-                                ethers::types::H256::zero(),
-                                self.provider(),
-                            )
-                            .interval(Duration::ZERO)
-                            .confirmations(0);
+                            let mut pending_tx =
+                                PendingTransaction::new(H256::zero(), self.provider())
+                                    .interval(Duration::ZERO)
+                                    .confirmations(0);
 
                             let state_ptr: *mut PendingTxState =
                                 &mut pending_tx as *mut _ as *mut PendingTxState;
@@ -628,7 +624,7 @@ impl Middleware for ArbiterMiddleware {
             gas_priority_fee: None,
             transact_to,
             value: U256::ZERO,
-            data: revm_primitives::Bytes(bytes::Bytes::from(
+            data: revm::primitives::Bytes(bytes::Bytes::from(
                 tx.data()
                     .ok_or(ArbiterCoreError::MissingDataError)?
                     .to_vec(),
@@ -721,7 +717,7 @@ impl Middleware for ArbiterMiddleware {
         Ok(FilterWatcher::new(id, self.provider()).interval(Duration::ZERO))
     }
 
-    async fn get_gas_price(&self) -> Result<ethers::types::U256, Self::Error> {
+    async fn get_gas_price(&self) -> Result<eU256, Self::Error> {
         let provider = self.provider.as_ref();
         provider
             .instruction_sender
@@ -733,9 +729,7 @@ impl Middleware for ArbiterMiddleware {
             })?;
 
         match provider.outcome_receiver.recv()?? {
-            Outcome::QueryReturn(outcome) => {
-                Ok(ethers::types::U256::from_str_radix(outcome.as_ref(), 10)?)
-            }
+            Outcome::QueryReturn(outcome) => Ok(eU256::from_str_radix(outcome.as_ref(), 10)?),
             _ => unreachable!(),
         }
     }
@@ -762,7 +756,7 @@ impl Middleware for ArbiterMiddleware {
         &self,
         from: T,
         block: Option<BlockId>,
-    ) -> Result<ethers::types::U256, Self::Error> {
+    ) -> Result<eU256, Self::Error> {
         if block.is_some() {
             return Err(ArbiterCoreError::InvalidQueryError);
         }
@@ -783,9 +777,7 @@ impl Middleware for ArbiterMiddleware {
             })?;
 
         match provider.outcome_receiver.recv()?? {
-            Outcome::QueryReturn(outcome) => {
-                Ok(ethers::types::U256::from_str_radix(outcome.as_ref(), 10)?)
-            }
+            Outcome::QueryReturn(outcome) => Ok(eU256::from_str_radix(outcome.as_ref(), 10)?),
             _ => unreachable!(),
         }
     }

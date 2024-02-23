@@ -1,6 +1,6 @@
 //! The world module contains the core world abstraction for the Arbiter Engine.
 
-use std::collections::VecDeque;
+use std::{collections::VecDeque, fs::File, io::Read};
 
 use arbiter_core::{environment::Environment, middleware::ArbiterMiddleware};
 use futures_util::future::join_all;
@@ -38,7 +38,6 @@ pub struct World {
     pub messager: Messager,
 }
 
-use std::{fs::File, io::Read};
 impl World {
     /// Creates a new [`World`] with the given identifier and provider.
     pub fn new(id: &str) -> Self {
@@ -48,6 +47,10 @@ impl World {
             environment: Environment::builder().build(),
             messager: Messager::new(),
         }
+    }
+
+    pub fn builder() -> WorldBuilder {
+        WorldBuilder::new()
     }
 
     /// Builds and adds agents to the world from a configuration file.
