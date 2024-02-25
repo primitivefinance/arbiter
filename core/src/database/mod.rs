@@ -24,8 +24,14 @@ pub mod inspector;
 /// A [`ArbiterDB`] is a wrapper around a [`CacheDB`] that is used to provide
 /// access to the [`environment::Environment`]'s database to multiple
 /// [`coprocessor::Coprocessor`]s.
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct ArbiterDB(pub Arc<RwLock<CacheDB<EmptyDB>>>);
+
+impl Clone for ArbiterDB {
+    fn clone(&self) -> Self {
+        Self(self.0.clone())
+    }
+}
 
 impl ArbiterDB {
     /// Create a new `ArbiterDB`.

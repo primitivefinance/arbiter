@@ -72,7 +72,9 @@ pub struct Environment {
 
     /// The [`EVM`] that is used as an execution environment and database for
     /// calls and transactions.
-    pub(crate) db: ArbiterDB,
+    pub(crate) tip_db: ArbiterDB,
+
+    pub global_db: Arc<RwLock<BTreeMap<U256, CacheDB<EmptyDB>>>>,
 
     inspector: Option<ArbiterInspector>,
 
@@ -196,7 +198,8 @@ impl Environment {
             socket,
             inspector,
             parameters,
-            db,
+            tip_db: db,
+            global_db: Arc::new(RwLock::new(BTreeMap::new())),
             handle: None,
         }
     }
@@ -208,7 +211,8 @@ impl Environment {
         let label = self.parameters.label.clone();
 
         // Bring in the EVM db by cloning the interior Arc (lightweight).
-        let db = self.db.clone();
+        let db = self.tip_db.clone();
+        let global_db = self.global_db.clone();
 
         // Bring in the EVM ENV
         let mut env = Env::default();
@@ -273,12 +277,20 @@ impl Environment {
                         outcome_sender,
                     } => {
                         // Return the old block data in a `ReceiptData`
+                        let old_block_number = evm.block().number;
                         let receipt_data = ReceiptData {
-                            block_number: convert_uint_to_u64(evm.block().number).unwrap(),
+                            block_number: convert_uint_to_u64(old_block_number).unwrap(),
                             transaction_index,
                             cumulative_gas_per_block,
                         };
-                        outcome_sender.send(Ok(Outcome::BlockUpdateCompleted(receipt_data)))?;
+
+                        let mut db = evm.context.evm.db.0.write().unwrap();
+                        global_db
+                            .write()
+                            .unwrap()
+                            .insert(old_block_number, db.clone());
+                        db.logs.clear();
+                        drop(db);
 
                         // Update the block number and timestamp
                         evm.block_mut().number = U256::from_limbs(block_number.0);
@@ -287,6 +299,9 @@ impl Environment {
                         // Reset the counters.
                         transaction_index = U64::from(0);
                         cumulative_gas_per_block = eU256::from(0);
+
+                        // Return the old block data in a `ReceiptData` after the block update.
+                        outcome_sender.send(Ok(Outcome::BlockUpdateCompleted(receipt_data)))?;
                     }
                     Instruction::Cheatcode {
                         cheatcode,
@@ -455,8 +470,7 @@ impl Environment {
                                 continue;
                             }
                         };
-                        cumulative_gas_per_block +=
-                            eU256::from(execution_result.clone().gas_used());
+                        cumulative_gas_per_block += eU256::from(execution_result.gas_used());
                         let block_number = convert_uint_to_u64(evm.block().number)?;
                         let receipt_data = ReceiptData {
                             block_number,

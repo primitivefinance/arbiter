@@ -21,7 +21,7 @@ pub struct Coprocessor<'a> {
 impl<'a> Coprocessor<'a> {
     /// Create a new `Coprocessor` with the given `Environment`.
     pub fn new(environment: &Environment) -> Self {
-        let db = environment.db.clone();
+        let db = environment.tip_db.clone();
         let evm = Evm::builder().with_db(db).build();
         Self { evm }
     }

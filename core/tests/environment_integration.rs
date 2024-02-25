@@ -148,3 +148,39 @@ async fn env_returns_db() {
     let db = environment.stop().unwrap();
     assert!(!db.0.read().unwrap().accounts.is_empty())
 }
+
+#[tokio::test]
+async fn block_logs() {
+    let (environment, client) = startup();
+    let global_db = environment.global_db.clone();
+
+    let arbiter_token = deploy_arbx(client.clone()).await;
+    arbiter_token
+        .mint(Address::zero(), eU256::from(1000))
+        .send()
+        .await
+        .unwrap()
+        .await
+        .unwrap();
+
+    println!("Global DB: {:?}\n", global_db.read().unwrap());
+
+    // UPDATE BLOCK
+    let new_block_number = 69;
+    let new_block_timestamp = 420;
+
+    client
+        .update_block(new_block_number, new_block_timestamp)
+        .unwrap();
+    println!("Global DB: {:?}\n", global_db.read().unwrap());
+
+    arbiter_token
+        .approve(Address::zero(), eU256::from(1000))
+        .send()
+        .await
+        .unwrap()
+        .await
+        .unwrap();
+    client.update_block(6969, 420420).unwrap();
+    println!("Global DB: {:?}\n", global_db.read().unwrap());
+}
