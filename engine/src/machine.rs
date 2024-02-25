@@ -7,6 +7,7 @@ use anyhow::Result;
 use arbiter_core::middleware::ArbiterMiddleware;
 use futures_util::{Stream, StreamExt};
 use tokio::task::JoinHandle;
+use tracing::error;
 
 use super::*;
 
@@ -216,15 +217,27 @@ where
     async fn execute(&mut self, instruction: MachineInstruction) -> Result<()> {
         // NOTE: The unwraps here are safe because the `Behavior` in an engine is only
         // accessed here and it is private.
+        let mut id: Option<String>;
         match instruction {
             MachineInstruction::Start(client, messager) => {
+                id = messager.id.clone();
+                let id_clone = id.clone();
                 self.state = State::Starting;
                 let mut behavior = self.behavior.take().unwrap();
                 let behavior_task: JoinHandle<Result<(Option<EventStream<E>>, B)>> =
                     tokio::spawn(async move {
-                        let id = messager.id.clone();
-                        let stream = behavior.startup(client, messager).await?;
-                        debug!("startup complete for behavior {:?}", id);
+                        let stream = match behavior.startup(client, messager).await {
+                            Ok(stream) => stream,
+                            Err(e) => {
+                                error!(
+                                    "startup failed for behavior {:?}: \n reason: {:?}",
+                                    id_clone, e
+                                );
+                                // Throw a panic as we cannot recover from this for now.
+                                panic!();
+                            }
+                        };
+                        debug!("startup complete for behavior {:?}", id_clone);
                         Ok((stream, behavior))
                     });
                 let (stream, behavior) = behavior_task.await??;
@@ -232,7 +245,12 @@ where
                     Some(stream) => {
                         self.event_stream = Some(stream);
                         self.behavior = Some(behavior);
-                        self.execute(MachineInstruction::Process).await?;
+                        match self.execute(MachineInstruction::Process).await {
+                            Ok(_) => {}
+                            Err(e) => {
+                                error!("process failed for behavior {:?}: \n reason: {:?}", id, e);
+                            }
+                        }
                         Ok(())
                     }
                     None => {
