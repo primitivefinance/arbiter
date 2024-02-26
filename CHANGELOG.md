@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.19](https://github.com/primitivefinance/arbiter/compare/arbiter-v0.4.18...arbiter-v0.4.19) - 2024-02-26
+
+### Added
+- `error!` output from behavior ([#913](https://github.com/primitivefinance/arbiter/pull/913))
+
 ## [0.4.18](https://github.com/primitivefinance/arbiter/compare/arbiter-v0.4.17...arbiter-v0.4.18) - 2024-02-20
 
 ### Other
