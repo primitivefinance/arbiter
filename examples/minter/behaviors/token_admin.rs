@@ -52,7 +52,7 @@ impl Behavior<Message> for TokenAdmin {
         &mut self,
         client: Arc<ArbiterMiddleware>,
         messager: Messager,
-    ) -> Result<EventStream<Message>> {
+    ) -> Result<Option<EventStream<Message>>> {
         self.messager = Some(messager.clone());
         self.client = Some(client.clone());
         for token_data in self.token_data.values_mut() {
@@ -74,7 +74,7 @@ impl Behavior<Message> for TokenAdmin {
                 .get_or_insert_with(HashMap::new)
                 .insert(token_data.name.clone(), token.clone());
         }
-        Ok(messager.stream()?)
+        Ok(Some(messager.stream()?))
     }
 
     #[tracing::instrument(skip(self), fields(id =

@@ -35,7 +35,7 @@ impl Behavior<TransferFilter> for TokenRequester {
         &mut self,
         client: Arc<ArbiterMiddleware>,
         mut messager: Messager,
-    ) -> Result<EventStream<TransferFilter>> {
+    ) -> Result<Option<EventStream<TransferFilter>>> {
         messager
             .send(
                 To::Agent(self.request_to.clone()),
@@ -59,7 +59,7 @@ impl Behavior<TransferFilter> for TokenRequester {
         self.messager = Some(messager.clone());
         self.client = Some(client.clone());
         let transfer_stream = stream_event(token.transfer_filter());
-        Ok(transfer_stream)
+        Ok(Some(transfer_stream))
     }
 
     #[tracing::instrument(skip(self), fields(id =
