@@ -217,7 +217,7 @@ where
     async fn execute(&mut self, instruction: MachineInstruction) -> Result<()> {
         // NOTE: The unwraps here are safe because the `Behavior` in an engine is only
         // accessed here and it is private.
-        let mut id: Option<String>;
+        let id: Option<String>;
         match instruction {
             MachineInstruction::Start(client, messager) => {
                 id = messager.id.clone();
