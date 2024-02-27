@@ -33,7 +33,10 @@ use super::*;
 #[cfg_attr(doc, allow(unused_imports))]
 #[cfg(doc)]
 use crate::middleware::ArbiterMiddleware;
-use crate::{console::abi::HardhatConsoleCalls, database::inspector::ArbiterInspector};
+use crate::{
+    console::abi::HardhatConsoleCalls, database::inspector::ArbiterInspector,
+    middleware::connection::revm_logs_to_ethers_logs,
+};
 
 pub mod instruction;
 use instruction::*;
@@ -72,9 +75,9 @@ pub struct Environment {
 
     /// The [`EVM`] that is used as an execution environment and database for
     /// calls and transactions.
-    pub(crate) tip_db: ArbiterDB,
+    pub(crate) db: ArbiterDB,
 
-    pub global_db: Arc<RwLock<BTreeMap<U256, CacheDB<EmptyDB>>>>,
+    pub(crate) log_storage: Arc<RwLock<BTreeMap<U256, Vec<eLog>>>>,
 
     inspector: Option<ArbiterInspector>,
 
@@ -198,8 +201,8 @@ impl Environment {
             socket,
             inspector,
             parameters,
-            tip_db: db,
-            global_db: Arc::new(RwLock::new(BTreeMap::new())),
+            db,
+            log_storage: Arc::new(RwLock::new(BTreeMap::new())),
             handle: None,
         }
     }
@@ -210,9 +213,9 @@ impl Environment {
         // Bring in parameters for the `Environment`.
         let label = self.parameters.label.clone();
 
-        // Bring in the EVM db by cloning the interior Arc (lightweight).
-        let db = self.tip_db.clone();
-        let global_db = self.global_db.clone();
+        // Bring in the EVM db and log storage by cloning the interior Arc (lightweight).
+        let db = self.db.clone();
+        let log_storage = self.log_storage.clone();
 
         // Bring in the EVM ENV
         let mut env = Env::default();
@@ -283,14 +286,6 @@ impl Environment {
                             transaction_index,
                             cumulative_gas_per_block,
                         };
-
-                        let mut db = evm.context.evm.db.0.write().unwrap();
-                        global_db
-                            .write()
-                            .unwrap()
-                            .insert(old_block_number, db.clone());
-                        db.logs.clear();
-                        drop(db);
 
                         // Update the block number and timestamp
                         evm.block_mut().number = U256::from_limbs(block_number.0);
@@ -423,7 +418,6 @@ impl Environment {
                         // Set the tx_env and prepare to process it
                         *evm.tx_mut() = tx_env;
 
-                        // TODO: Is `transact()` the function we want?
                         let result = evm.transact()?.result;
 
                         if let Some(console_log) = &mut evm.context.external.console_log {
@@ -477,6 +471,27 @@ impl Environment {
                             transaction_index,
                             cumulative_gas_per_block,
                         };
+
+                        // TODO: Don't unwrap this.
+                        let mut logs = log_storage.write().unwrap();
+                        match logs.get_mut(&evm.block().number) {
+                            Some(log_vec) => {
+                                log_vec.extend(revm_logs_to_ethers_logs(
+                                    execution_result.logs(),
+                                    &receipt_data,
+                                ));
+                            }
+                            None => {
+                                logs.insert(
+                                    evm.block().number,
+                                    revm_logs_to_ethers_logs(
+                                        execution_result.logs(),
+                                        &receipt_data,
+                                    ),
+                                );
+                            }
+                        }
+
                         match event_broadcaster.send(Broadcast::Event(
                             execution_result.logs(),
                             receipt_data.clone(),

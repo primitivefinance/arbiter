@@ -94,10 +94,4 @@ impl Inspector<ArbiterDB> for ArbiterInspector {
     ) -> CreateOutcome {
         outcome
     }
-
-    #[inline]
-    fn log(&mut self, context: &mut EvmContext<ArbiterDB>, log: &Log) {
-        let mut db = context.db.0.write().unwrap();
-        db.logs.push(log.clone());
-    }
 }

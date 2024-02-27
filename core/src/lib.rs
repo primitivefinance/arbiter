@@ -46,7 +46,7 @@ use std::{
 };
 
 use async_trait::async_trait;
-use ethers::types::{Address as eAddress, Filter, H256, U256 as eU256, U64};
+use ethers::types::{Address as eAddress, Filter, Log as eLog, H256, U256 as eU256, U64};
 use revm::{
     db::{CacheDB, EmptyDB},
     interpreter::{CallInputs, CallOutcome},
