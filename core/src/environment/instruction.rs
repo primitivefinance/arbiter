@@ -145,6 +145,7 @@ pub(crate) enum Outcome {
 /// Currently this may be the block number, block timestamp, gas price, or
 /// balance of an account.
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+#[allow(clippy::large_enum_variant)]
 pub(crate) enum EnvironmentData {
     /// The query is for the block number of the [`EVM`].
     BlockNumber,

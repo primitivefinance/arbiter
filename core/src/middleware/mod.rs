@@ -710,7 +710,25 @@ impl Middleware for ArbiterMiddleware {
     }
 
     async fn get_logs(&self, filter: &Filter) -> Result<Vec<eLog>, Self::Error> {
-        todo!()
+        let provider = self.provider.as_ref();
+        provider
+            .instruction_sender
+            .upgrade()
+            .ok_or(ArbiterCoreError::UpgradeSenderError)?
+            .send(Instruction::Query {
+                environment_data: EnvironmentData::Logs {
+                    filter: filter.clone(),
+                },
+                outcome_sender: provider.outcome_sender.clone(),
+            })?;
+        let outcome = provider.outcome_receiver.recv()??;
+        match outcome {
+            Outcome::QueryReturn(outcome) => {
+                let logs: Vec<eLog> = serde_json::from_str(outcome.as_ref())?;
+                Ok(logs)
+            }
+            _ => unreachable!(),
+        }
     }
 
     /// Starts watching for logs that match a specific filter.
