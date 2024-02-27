@@ -569,7 +569,7 @@ impl Environment {
                                 let to_block = U256::from(
                                     filter
                                         .block_option
-                                        .get_from_block()
+                                        .get_to_block()
                                         .ok_or(ArbiterCoreError::MissingDataError)?
                                         .as_number()
                                         .ok_or(ArbiterCoreError::MissingDataError)?
