@@ -540,7 +540,6 @@ impl Environment {
                                     None => Err(ArbiterCoreError::AccountDoesNotExistError),
                                 }
                             }
-
                             EnvironmentData::TransactionCount(address) => {
                                 let db = &mut evm.context.evm.db;
                                 match db
@@ -555,6 +554,36 @@ impl Environment {
                                     }
                                     None => Err(ArbiterCoreError::AccountDoesNotExistError),
                                 }
+                            }
+                            EnvironmentData::Logs { filter } => {
+                                let logs = log_storage.read().unwrap();
+                                let from_block = U256::from(
+                                    filter
+                                        .block_option
+                                        .get_from_block()
+                                        .ok_or(ArbiterCoreError::MissingDataError)?
+                                        .as_number()
+                                        .ok_or(ArbiterCoreError::MissingDataError)?
+                                        .0[0],
+                                );
+                                let to_block = U256::from(
+                                    filter
+                                        .block_option
+                                        .get_from_block()
+                                        .ok_or(ArbiterCoreError::MissingDataError)?
+                                        .as_number()
+                                        .ok_or(ArbiterCoreError::MissingDataError)?
+                                        .0[0],
+                                );
+                                let mut return_logs = Vec::new();
+                                logs.keys().for_each(|blocknum| {
+                                    if blocknum >= &from_block && blocknum <= &to_block {
+                                        return_logs.extend(logs.get(blocknum).cloned().unwrap());
+                                    }
+                                });
+                                Ok(Outcome::QueryReturn(
+                                    serde_json::to_string(&return_logs).unwrap(),
+                                ))
                             }
                         };
                         outcome_sender.send(outcome)?;
