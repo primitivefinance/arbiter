@@ -20,7 +20,7 @@
 use std::thread::{self, JoinHandle};
 
 use crossbeam_channel::{bounded, unbounded, Receiver, Sender};
-use ethers::abi::AbiDecode;
+use ethers::{abi::AbiDecode, types::ValueOrArray};
 use revm::{
     db::AccountState,
     inspector_handle_register,
@@ -580,6 +580,34 @@ impl Environment {
                                     if blocknum >= &from_block && blocknum <= &to_block {
                                         return_logs.extend(logs.get(blocknum).cloned().unwrap());
                                     }
+                                });
+                                return_logs.retain(|log| {
+                                    filter.topics.iter().any(|topic_option| match topic_option {
+                                        Some(topic_val_or_array) => match topic_val_or_array {
+                                            ValueOrArray::Value(topic) => match topic {
+                                                Some(topic) => log.topics.contains(topic),
+                                                None => true,
+                                            },
+                                            ValueOrArray::Array(topics) => {
+                                                topics.iter().any(|topic| match topic {
+                                                    Some(topic) => log.topics.contains(topic),
+                                                    None => true,
+                                                })
+                                            }
+                                        },
+                                        None => true,
+                                    })
+                                });
+                                return_logs.retain(|log| {
+                                    filter.address.iter().any(|address_value_or_array| {
+                                        match address_value_or_array {
+                                            ValueOrArray::Value(address) => &log.address == address,
+
+                                            ValueOrArray::Array(addresses) => {
+                                                addresses.iter().any(|addr| &log.address == addr)
+                                            }
+                                        }
+                                    })
                                 });
                                 Ok(Outcome::QueryReturn(
                                     serde_json::to_string(&return_logs).unwrap(),
