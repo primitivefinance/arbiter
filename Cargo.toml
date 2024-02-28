@@ -58,7 +58,7 @@ futures = "0.3.30"
 futures-util = { version = "0.3.30" }
 async-stream = "0.3.5"
 async-trait = { version = "0.1.77" }
-crossbeam-channel = { version = "0.5.11" }
+crossbeam-channel = { version = "0.5.12" }
 
 syn = { version = "2.0.52", features = ["full"] }
 proc-macro2 = { version = "1.0.78" }
