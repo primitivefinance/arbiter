@@ -145,20 +145,26 @@ impl EnvironmentBuilder {
         self
     }
 
-    /// Sets the state for the [`Environment`]. This can come from a saved state of a simulation
-    /// or a [`database::fork::Fork`].
+    /// Sets the state for the [`Environment`]. This can come from a saved state
+    /// of a simulation or a [`database::fork::Fork`].
     pub fn with_state(mut self, state: impl Into<CacheDB<EmptyDB>>) -> Self {
         self.db.state = Arc::new(RwLock::new(state.into()));
         self
     }
 
-    /// Sets the logs for the [`Environment`]. This can come from a saved state of a simulation and can be useful for doing analysis.
-    pub fn with_logs(mut self, logs: impl Into<BTreeMap<U256, Vec<eLog>>>) -> Self {
+    /// Sets the logs for the [`Environment`]. This can come from a saved state
+    /// of a simulation and can be useful for doing analysis.
+    pub fn with_logs(
+        mut self,
+        logs: impl Into<std::collections::HashMap<U256, Vec<eLog>>>,
+    ) -> Self {
         self.db.logs = Arc::new(RwLock::new(logs.into()));
         self
     }
 
-    /// Sets the entire database for the [`Environment`] including both the state and logs. This can come from the saved state of a simulation and can be useful for doing analysis.
+    /// Sets the entire database for the [`Environment`] including both the
+    /// state and logs. This can come from the saved state of a simulation and
+    /// can be useful for doing analysis.
     pub fn with_arbiter_db(mut self, db: ArbiterDB) -> Self {
         self.db = db;
         self
@@ -222,7 +228,8 @@ impl Environment {
         // Bring in parameters for the `Environment`.
         let label = self.parameters.label.clone();
 
-        // Bring in the EVM db and log storage by cloning the interior Arc (lightweight).
+        // Bring in the EVM db and log storage by cloning the interior Arc
+        // (lightweight).
         let db = self.db.clone();
 
         // Bring in the EVM ENV

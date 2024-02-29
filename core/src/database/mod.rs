@@ -24,16 +24,17 @@ pub mod inspector;
 /// A [`ArbiterDB`] is contains both a [`CacheDB`] that is used to provide
 /// state for the [`environment::Environment`]'s as well as for multiple
 /// [`coprocessor::Coprocessor`]s.
-/// The `logs` field is a [`BTreeMap`] to store [`ethers::types::Log`]s that can be queried from at any point.
+/// The `logs` field is a [`HashMap`] to store [`ethers::types::Log`]s that can
+/// be queried from at any point.
 #[derive(Debug, Serialize, Deserialize)]
 pub struct ArbiterDB {
-    /// The state of the `ArbiterDB`. This is a `CacheDB` that is used to provide
-    /// a db for the `Environment` to use.
+    /// The state of the `ArbiterDB`. This is a `CacheDB` that is used to
+    /// provide a db for the `Environment` to use.
     pub state: Arc<RwLock<CacheDB<EmptyDB>>>,
 
-    /// The logs of the `ArbiterDB`. This is a `BTreeMap` that is used to store
+    /// The logs of the `ArbiterDB`. This is a `HashMap` that is used to store
     /// logs that can be queried from at any point.
-    pub logs: Arc<RwLock<BTreeMap<U256, Vec<eLog>>>>,
+    pub logs: Arc<RwLock<HashMap<U256, Vec<eLog>>>>,
 }
 
 // Implement `Clone` by hand so we utilize the `Arc`'s `Clone` implementation.
@@ -51,7 +52,7 @@ impl ArbiterDB {
     pub fn new() -> Self {
         Self {
             state: Arc::new(RwLock::new(CacheDB::new(EmptyDB::new()))),
-            logs: Arc::new(RwLock::new(BTreeMap::new())),
+            logs: Arc::new(RwLock::new(HashMap::new())),
         }
     }
 
@@ -76,7 +77,7 @@ impl ArbiterDB {
         #[derive(Deserialize)]
         struct TempDB {
             state: Option<CacheDB<EmptyDB>>,
-            logs: Option<BTreeMap<U256, Vec<eLog>>>,
+            logs: Option<HashMap<U256, Vec<eLog>>>,
         }
         let temp_db: TempDB = serde_json::from_str(&contents)?;
         Ok(Self {
