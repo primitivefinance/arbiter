@@ -16,7 +16,11 @@ readme = "../README.md"
 arbiter-bindings.workspace = true
 
 # Ethereum and EVM
-ethers.workspace = true
+alloy = { git = "https://github.com/alloy-rs/alloy", branch = "main" }
+alloy-providers = { git = "https://github.com/alloy-rs/alloy", branch = "main" }
+alloy-transport = { git = "https://github.com/alloy-rs/alloy", branch = "main" }
+alloy-rpc-types = { git = "https://github.com/alloy-rs/alloy", branch = "main" }
+alloy-rpc-trace-types = { git = "https://github.com/alloy-rs/alloy", branch = "main" }
 revm.workspace = true
 revm-primitives.workspace = true
 

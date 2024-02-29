@@ -9,7 +9,6 @@ use revm::{
 };
 
 use super::*;
-use crate::console::ConsoleLogs;
 
 /// An configurable [`Inspector`] that collects information about the
 /// execution of the [`Interpreter`]. Depending on whether which or both
@@ -19,7 +18,7 @@ use crate::console::ConsoleLogs;
 #[derive(Debug, Clone)]
 pub struct ArbiterInspector {
     /// Whether to collect `console2.log`s.
-    pub console_log: Option<ConsoleLogs>,
+    // pub console_log: Option<ConsoleLogs>,
 
     /// Whether to collect gas usage information.
     pub gas: Option<GasInspector>,
@@ -28,17 +27,12 @@ pub struct ArbiterInspector {
 impl ArbiterInspector {
     /// Create a new [`ArbiterInspector`] with the given configuration.
     pub fn new(console_log: bool, gas: bool) -> Self {
-        let console_log = if console_log {
-            Some(ConsoleLogs::default())
-        } else {
-            None
-        };
         let gas = if gas {
             Some(GasInspector::default())
         } else {
             None
         };
-        Self { console_log, gas }
+        Self { gas }
     }
 }
 
@@ -57,19 +51,19 @@ impl Inspector<ArbiterDB> for ArbiterInspector {
         }
     }
 
-    #[inline]
-    fn call(
-        &mut self,
-        context: &mut EvmContext<ArbiterDB>,
-        inputs: &mut CallInputs,
-        return_memory_offset: Range<usize>,
-    ) -> Option<CallOutcome> {
-        if let Some(console_log) = &mut self.console_log {
-            console_log.call(context, inputs, return_memory_offset)
-        } else {
-            None
-        }
-    }
+    // #[inline]
+    // fn call(
+    //     &mut self,
+    //     context: &mut EvmContext<ArbiterDB>,
+    //     inputs: &mut CallInputs,
+    //     return_memory_offset: Range<usize>,
+    // ) -> Option<CallOutcome> {
+    //     if let Some(console_log) = &mut self.console_log {
+    //         console_log.call(context, inputs, return_memory_offset)
+    //     } else {
+    //         None
+    //     }
+    // }
 
     #[inline]
     fn call_end(
