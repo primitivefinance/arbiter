@@ -1,7 +1,7 @@
 //! This module contains the backend for the `console2.log` Solidity function so
 //! that these logs can be read in Arbiter.
 
-use revm_primitives::address;
+use revm::primitives::address;
 
 use super::*;
 
