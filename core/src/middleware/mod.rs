@@ -27,8 +27,8 @@ use ethers::{
     signers::{Signer, Wallet},
     types::{
         transaction::{eip2718::TypedTransaction, eip712::Eip712},
-        Address as eAddress, BlockId, Bloom, Bytes as eBytes, FilteredParams, Log as eLog,
-        NameOrAddress, Signature, Transaction, TransactionReceipt,
+        Address as eAddress, BlockId, Bloom, Bytes as eBytes, FilteredParams, NameOrAddress,
+        Signature, Transaction, TransactionReceipt,
     },
 };
 use futures_timer::Delay;
@@ -707,6 +707,28 @@ impl Middleware for ArbiterMiddleware {
             .insert(id, filter_receiver);
         debug!("Filter created with ID: {:?}", id);
         Ok(id)
+    }
+
+    async fn get_logs(&self, filter: &Filter) -> Result<Vec<eLog>, Self::Error> {
+        let provider = self.provider.as_ref();
+        provider
+            .instruction_sender
+            .upgrade()
+            .ok_or(ArbiterCoreError::UpgradeSenderError)?
+            .send(Instruction::Query {
+                environment_data: EnvironmentData::Logs {
+                    filter: filter.clone(),
+                },
+                outcome_sender: provider.outcome_sender.clone(),
+            })?;
+        let outcome = provider.outcome_receiver.recv()??;
+        match outcome {
+            Outcome::QueryReturn(outcome) => {
+                let logs: Vec<eLog> = serde_json::from_str(outcome.as_ref())?;
+                Ok(logs)
+            }
+            _ => unreachable!(),
+        }
     }
 
     /// Starts watching for logs that match a specific filter.

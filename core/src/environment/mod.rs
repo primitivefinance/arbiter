@@ -20,7 +20,7 @@
 use std::thread::{self, JoinHandle};
 
 use crossbeam_channel::{bounded, unbounded, Receiver, Sender};
-use ethers::abi::AbiDecode;
+use ethers::{abi::AbiDecode, types::ValueOrArray};
 use revm::{
     db::AccountState,
     inspector_handle_register,
@@ -33,7 +33,10 @@ use super::*;
 #[cfg_attr(doc, allow(unused_imports))]
 #[cfg(doc)]
 use crate::middleware::ArbiterMiddleware;
-use crate::{console::abi::HardhatConsoleCalls, database::inspector::ArbiterInspector};
+use crate::{
+    console::abi::HardhatConsoleCalls, database::inspector::ArbiterInspector,
+    middleware::connection::revm_logs_to_ethers_logs,
+};
 
 pub mod instruction;
 use instruction::*;
@@ -142,10 +145,28 @@ impl EnvironmentBuilder {
         self
     }
 
-    /// Sets the database for the [`Environment`]. This can come from a
-    /// [`fork::Fork`].
-    pub fn with_db(mut self, db: impl Into<CacheDB<EmptyDB>>) -> Self {
-        self.db = ArbiterDB(Arc::new(RwLock::new(db.into())));
+    /// Sets the state for the [`Environment`]. This can come from a saved state
+    /// of a simulation or a [`database::fork::Fork`].
+    pub fn with_state(mut self, state: impl Into<CacheDB<EmptyDB>>) -> Self {
+        self.db.state = Arc::new(RwLock::new(state.into()));
+        self
+    }
+
+    /// Sets the logs for the [`Environment`]. This can come from a saved state
+    /// of a simulation and can be useful for doing analysis.
+    pub fn with_logs(
+        mut self,
+        logs: impl Into<std::collections::HashMap<U256, Vec<eLog>>>,
+    ) -> Self {
+        self.db.logs = Arc::new(RwLock::new(logs.into()));
+        self
+    }
+
+    /// Sets the entire database for the [`Environment`] including both the
+    /// state and logs. This can come from the saved state of a simulation and
+    /// can be useful for doing analysis.
+    pub fn with_arbiter_db(mut self, db: ArbiterDB) -> Self {
+        self.db = db;
         self
     }
 
@@ -170,7 +191,7 @@ impl Environment {
     pub fn builder() -> EnvironmentBuilder {
         EnvironmentBuilder {
             parameters: EnvironmentParameters::default(),
-            db: ArbiterDB(Arc::new(RwLock::new(CacheDB::new(EmptyDB::new())))),
+            db: ArbiterDB::default(),
         }
     }
 
@@ -207,7 +228,8 @@ impl Environment {
         // Bring in parameters for the `Environment`.
         let label = self.parameters.label.clone();
 
-        // Bring in the EVM db by cloning the interior Arc (lightweight).
+        // Bring in the EVM db and log storage by cloning the interior Arc
+        // (lightweight).
         let db = self.db.clone();
 
         // Bring in the EVM ENV
@@ -225,7 +247,7 @@ impl Environment {
         let handle = thread::spawn(move || {
             // Create a new EVM builder
             let mut evm = Evm::builder()
-                .with_db(db)
+                .with_db(db.clone())
                 .with_env(Box::new(env))
                 .with_external_context(inspector)
                 .append_handler_register(inspector_handle_register)
@@ -253,14 +275,7 @@ impl Environment {
                             account_state: AccountState::None,
                             storage: HashMap::new(),
                         };
-                        let db = &mut evm.context.evm.db;
-                        match db
-                            .0
-                            .write()
-                            .unwrap()
-                            .accounts
-                            .insert(recast_address, account)
-                        {
+                        match db.state.write()?.accounts.insert(recast_address, account) {
                             None => outcome_sender.send(Ok(Outcome::AddAccountCompleted))?,
                             Some(_) => {
                                 outcome_sender.send(Err(ArbiterCoreError::AccountCreationError))?;
@@ -273,12 +288,12 @@ impl Environment {
                         outcome_sender,
                     } => {
                         // Return the old block data in a `ReceiptData`
+                        let old_block_number = evm.block().number;
                         let receipt_data = ReceiptData {
-                            block_number: convert_uint_to_u64(evm.block().number).unwrap(),
+                            block_number: convert_uint_to_u64(old_block_number)?,
                             transaction_index,
                             cumulative_gas_per_block,
                         };
-                        outcome_sender.send(Ok(Outcome::BlockUpdateCompleted(receipt_data)))?;
 
                         // Update the block number and timestamp
                         evm.block_mut().number = U256::from_limbs(block_number.0);
@@ -287,6 +302,9 @@ impl Environment {
                         // Reset the counters.
                         transaction_index = U64::from(0);
                         cumulative_gas_per_block = eU256::from(0);
+
+                        // Return the old block data in a `ReceiptData` after the block update.
+                        outcome_sender.send(Ok(Outcome::BlockUpdateCompleted(receipt_data)))?;
                     }
                     Instruction::Cheatcode {
                         cheatcode,
@@ -297,13 +315,11 @@ impl Environment {
                             key,
                             block: _,
                         } => {
-                            let db = &mut evm.context.evm.db;
-
                             let recast_address = Address::from(account.as_fixed_bytes());
                             let recast_key = B256::from(key.as_fixed_bytes()).into();
 
                             // Get the account storage value at the key in the db.
-                            match db.0.write().unwrap().accounts.get_mut(&recast_address) {
+                            match db.state.write()?.accounts.get_mut(&recast_address) {
                                 Some(account) => {
                                     // Returns zero if the account is missing.
                                     let value: U256 = match account.storage.get::<U256>(&recast_key)
@@ -326,16 +342,13 @@ impl Environment {
                             key,
                             value,
                         } => {
-                            // Get the underlying database
-                            let db = &mut evm.context.evm.db;
-
                             let recast_address = Address::from(account.as_fixed_bytes());
                             let recast_key = B256::from(key.as_fixed_bytes());
                             let recast_value = B256::from(value.as_fixed_bytes());
 
                             // Mutate the db by inserting the new key-value pair into the account's
                             // storage and send the successful CheatcodeCompleted outcome.
-                            match db.0.write().unwrap().accounts.get_mut(&recast_address) {
+                            match db.state.write()?.accounts.get_mut(&recast_address) {
                                 Some(account) => {
                                     account
                                         .storage
@@ -352,9 +365,8 @@ impl Environment {
                             };
                         }
                         Cheatcodes::Deal { address, amount } => {
-                            let db = &mut evm.context.evm.db;
                             let recast_address = Address::from(address.as_fixed_bytes());
-                            match db.0.write().unwrap().accounts.get_mut(&recast_address) {
+                            match db.state.write()?.accounts.get_mut(&recast_address) {
                                 Some(account) => {
                                     account.info.balance += U256::from_limbs(amount.0);
                                     outcome_sender.send(Ok(Outcome::CheatcodeReturn(
@@ -368,10 +380,8 @@ impl Environment {
                             };
                         }
                         Cheatcodes::Access { address } => {
-                            let db = &mut evm.context.evm.db;
                             let recast_address = Address::from(address.as_fixed_bytes());
-
-                            match db.0.write().unwrap().accounts.get(&recast_address) {
+                            match db.state.write()?.accounts.get(&recast_address) {
                                 Some(account) => {
                                     let account_state = match account.account_state {
                                         AccountState::None => AccountStateSerializable::None,
@@ -408,11 +418,12 @@ impl Environment {
                         // Set the tx_env and prepare to process it
                         *evm.tx_mut() = tx_env;
 
-                        // TODO: Is `transact()` the function we want?
                         let result = evm.transact()?.result;
 
                         if let Some(console_log) = &mut evm.context.external.console_log {
                             console_log.0.drain(..).for_each(|log| {
+                                // This unwrap is safe because the logs are guaranteed to be
+                                // `HardhatConsoleCalls` by the `ArbiterInspector`.
                                 trace!(
                                     "Console logs: {:?}",
                                     HardhatConsoleCalls::decode(log).unwrap().to_string()
@@ -442,6 +453,8 @@ impl Environment {
                             Ok(result) => {
                                 if let Some(console_log) = &mut evm.context.external.console_log {
                                     console_log.0.drain(..).for_each(|log| {
+                                        // This unwrap is safe because the logs are guaranteed to be
+                                        // `HardhatConsoleCalls` by the `ArbiterInspector`.
                                         trace!(
                                             "Console logs: {:?}",
                                             HardhatConsoleCalls::decode(log).unwrap().to_string()
@@ -455,14 +468,33 @@ impl Environment {
                                 continue;
                             }
                         };
-                        cumulative_gas_per_block +=
-                            eU256::from(execution_result.clone().gas_used());
+                        cumulative_gas_per_block += eU256::from(execution_result.gas_used());
                         let block_number = convert_uint_to_u64(evm.block().number)?;
                         let receipt_data = ReceiptData {
                             block_number,
                             transaction_index,
                             cumulative_gas_per_block,
                         };
+
+                        let mut logs = db.logs.write()?;
+                        match logs.get_mut(&evm.block().number) {
+                            Some(log_vec) => {
+                                log_vec.extend(revm_logs_to_ethers_logs(
+                                    execution_result.logs(),
+                                    &receipt_data,
+                                ));
+                            }
+                            None => {
+                                logs.insert(
+                                    evm.block().number,
+                                    revm_logs_to_ethers_logs(
+                                        execution_result.logs(),
+                                        &receipt_data,
+                                    ),
+                                );
+                            }
+                        }
+
                         match event_broadcaster.send(Broadcast::Event(
                             execution_result.logs(),
                             receipt_data.clone(),
@@ -496,10 +528,8 @@ impl Environment {
                                 Ok(Outcome::QueryReturn(evm.tx().gas_price.to_string()))
                             }
                             EnvironmentData::Balance(address) => {
-                                // This unwrap should never fail.
-                                let db = &mut evm.context.evm.db;
                                 match db
-                                    .0
+                                    .state
                                     .read()
                                     .unwrap()
                                     .accounts
@@ -511,11 +541,9 @@ impl Environment {
                                     None => Err(ArbiterCoreError::AccountDoesNotExistError),
                                 }
                             }
-
                             EnvironmentData::TransactionCount(address) => {
-                                let db = &mut evm.context.evm.db;
                                 match db
-                                    .0
+                                    .state
                                     .read()
                                     .unwrap()
                                     .accounts
@@ -527,6 +555,64 @@ impl Environment {
                                     None => Err(ArbiterCoreError::AccountDoesNotExistError),
                                 }
                             }
+                            EnvironmentData::Logs { filter } => {
+                                let logs = db.logs.read().unwrap();
+                                let from_block = U256::from(
+                                    filter
+                                        .block_option
+                                        .get_from_block()
+                                        .ok_or(ArbiterCoreError::MissingDataError)?
+                                        .as_number()
+                                        .ok_or(ArbiterCoreError::MissingDataError)?
+                                        .0[0],
+                                );
+                                let to_block = U256::from(
+                                    filter
+                                        .block_option
+                                        .get_to_block()
+                                        .ok_or(ArbiterCoreError::MissingDataError)?
+                                        .as_number()
+                                        .ok_or(ArbiterCoreError::MissingDataError)?
+                                        .0[0],
+                                );
+                                let mut return_logs = Vec::new();
+                                logs.keys().for_each(|blocknum| {
+                                    if blocknum >= &from_block && blocknum <= &to_block {
+                                        return_logs.extend(logs.get(blocknum).cloned().unwrap());
+                                    }
+                                });
+                                return_logs.retain(|log| {
+                                    filter.topics.iter().any(|topic_option| match topic_option {
+                                        Some(topic_val_or_array) => match topic_val_or_array {
+                                            ValueOrArray::Value(topic) => match topic {
+                                                Some(topic) => log.topics.contains(topic),
+                                                None => true,
+                                            },
+                                            ValueOrArray::Array(topics) => {
+                                                topics.iter().any(|topic| match topic {
+                                                    Some(topic) => log.topics.contains(topic),
+                                                    None => true,
+                                                })
+                                            }
+                                        },
+                                        None => true,
+                                    })
+                                });
+                                return_logs.retain(|log| {
+                                    filter.address.iter().any(|address_value_or_array| {
+                                        match address_value_or_array {
+                                            ValueOrArray::Value(address) => &log.address == address,
+
+                                            ValueOrArray::Array(addresses) => {
+                                                addresses.iter().any(|addr| &log.address == addr)
+                                            }
+                                        }
+                                    })
+                                });
+                                Ok(Outcome::QueryReturn(
+                                    serde_json::to_string(&return_logs).unwrap(),
+                                ))
+                            }
                         };
                         outcome_sender.send(outcome)?;
                     }
@@ -537,7 +623,6 @@ impl Environment {
                                 warn!("Stop signal was not sent to any listeners. Are there any listeners?")
                             }
                         }
-                        let (db, _) = evm.into_db_and_env_with_handler_cfg();
                         outcome_sender.send(Ok(Outcome::StopCompleted(db)))?;
                         break;
                     }

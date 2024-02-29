@@ -86,7 +86,7 @@ async fn fork_into_arbiter() {
     let fork = Fork::from_disk("tests/fork.json").unwrap();
 
     // Get the environment going
-    let environment = Environment::builder().with_db(fork.db).build();
+    let environment = Environment::builder().with_state(fork.db).build();
 
     // Create a client
     let client = ArbiterMiddleware::new(&environment, Some("name")).unwrap();
@@ -118,7 +118,7 @@ async fn middleware_from_forked_eo() {
     let fork = Fork::from_disk("tests/fork.json").unwrap();
 
     // Get the environment going
-    let environment = Environment::builder().with_db(fork.db).build();
+    let environment = Environment::builder().with_state(fork.db).build();
 
     let vitalik_address = fork.eoa.get("vitalik").unwrap();
     let vitalik_as_a_client =
@@ -146,5 +146,44 @@ async fn env_returns_db() {
     let (environment, client) = startup();
     deploy_arbx(client).await;
     let db = environment.stop().unwrap();
-    assert!(!db.0.read().unwrap().accounts.is_empty())
+    assert!(!db.state.read().unwrap().accounts.is_empty())
+}
+
+#[tokio::test]
+async fn block_logs() {
+    let (environment, client) = startup();
+
+    let arbiter_token = deploy_arbx(client.clone()).await;
+    arbiter_token
+        .mint(Address::zero(), eU256::from(1000))
+        .send()
+        .await
+        .unwrap()
+        .await
+        .unwrap();
+
+    let new_block_number = 69;
+    let new_block_timestamp = 420;
+
+    client
+        .update_block(new_block_number, new_block_timestamp)
+        .unwrap();
+
+    arbiter_token
+        .approve(Address::zero(), eU256::from(1000))
+        .send()
+        .await
+        .unwrap()
+        .await
+        .unwrap();
+    client.update_block(6969, 420420).unwrap();
+
+    let db = environment.stop().unwrap();
+    let logs = db.logs.read().unwrap();
+    println!("DB Logs: {:?}\n", logs);
+    assert_eq!(logs.get(&revm::primitives::U256::from(0)).unwrap().len(), 1);
+    assert_eq!(
+        logs.get(&revm::primitives::U256::from(69)).unwrap().len(),
+        1
+    );
 }

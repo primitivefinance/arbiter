@@ -21,19 +21,42 @@ use super::*;
 pub mod fork;
 pub mod inspector;
 
-/// A [`ArbiterDB`] is a wrapper around a [`CacheDB`] that is used to provide
-/// access to the [`environment::Environment`]'s database to multiple
+/// A [`ArbiterDB`] is contains both a [`CacheDB`] that is used to provide
+/// state for the [`environment::Environment`]'s as well as for multiple
 /// [`coprocessor::Coprocessor`]s.
-#[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct ArbiterDB(pub Arc<RwLock<CacheDB<EmptyDB>>>);
+/// The `logs` field is a [`HashMap`] to store [`ethers::types::Log`]s that can
+/// be queried from at any point.
+#[derive(Debug, Serialize, Deserialize)]
+pub struct ArbiterDB {
+    /// The state of the `ArbiterDB`. This is a `CacheDB` that is used to
+    /// provide a db for the `Environment` to use.
+    pub state: Arc<RwLock<CacheDB<EmptyDB>>>,
+
+    /// The logs of the `ArbiterDB`. This is a `HashMap` that is used to store
+    /// logs that can be queried from at any point.
+    pub logs: Arc<RwLock<HashMap<U256, Vec<eLog>>>>,
+}
+
+// Implement `Clone` by hand so we utilize the `Arc`'s `Clone` implementation.
+impl Clone for ArbiterDB {
+    fn clone(&self) -> Self {
+        Self {
+            state: self.state.clone(),
+            logs: self.logs.clone(),
+        }
+    }
+}
 
 impl ArbiterDB {
     /// Create a new `ArbiterDB`.
     pub fn new() -> Self {
-        Self(Arc::new(RwLock::new(CacheDB::new(EmptyDB::new()))))
+        Self {
+            state: Arc::new(RwLock::new(CacheDB::new(EmptyDB::new()))),
+            logs: Arc::new(RwLock::new(HashMap::new())),
+        }
     }
 
-    /// Write the `ArbiterDB` to a file at the given path.
+    /// Write the `ArbiterDB` to a file at the given path.``
     pub fn write_to_file(&self, path: &str) -> io::Result<()> {
         // Serialize the ArbiterDB
         let serialized = serde_json::to_string(self)?;
@@ -49,9 +72,18 @@ impl ArbiterDB {
         let mut file = fs::File::open(path)?;
         let mut contents = String::new();
         file.read_to_string(&mut contents)?;
+
         // Deserialize the content into ArbiterDB
-        let cache_db = serde_json::from_str(&contents)?;
-        Ok(Self(Arc::new(RwLock::new(cache_db))))
+        #[derive(Deserialize)]
+        struct TempDB {
+            state: Option<CacheDB<EmptyDB>>,
+            logs: Option<HashMap<U256, Vec<eLog>>>,
+        }
+        let temp_db: TempDB = serde_json::from_str(&contents)?;
+        Ok(Self {
+            state: Arc::new(RwLock::new(temp_db.state.unwrap_or_default())),
+            logs: Arc::new(RwLock::new(temp_db.logs.unwrap_or_default())),
+        })
     }
 }
 
@@ -77,11 +109,11 @@ impl Database for ArbiterDB {
         &mut self,
         address: revm::primitives::Address,
     ) -> Result<Option<AccountInfo>, Self::Error> {
-        self.0.write().unwrap().basic(address)
+        self.state.write().unwrap().basic(address)
     }
 
     fn code_by_hash(&mut self, code_hash: B256) -> Result<Bytecode, Self::Error> {
-        self.0.write().unwrap().code_by_hash(code_hash)
+        self.state.write().unwrap().code_by_hash(code_hash)
     }
 
     fn storage(
@@ -89,11 +121,11 @@ impl Database for ArbiterDB {
         address: revm::primitives::Address,
         index: U256,
     ) -> Result<U256, Self::Error> {
-        self.0.write().unwrap().storage(address, index)
+        self.state.write().unwrap().storage(address, index)
     }
 
     fn block_hash(&mut self, number: U256) -> Result<B256, Self::Error> {
-        self.0.write().unwrap().block_hash(number)
+        self.state.write().unwrap().block_hash(number)
     }
 }
 
@@ -104,11 +136,11 @@ impl DatabaseRef for ArbiterDB {
         &self,
         address: revm::primitives::Address,
     ) -> Result<Option<AccountInfo>, Self::Error> {
-        self.0.read().unwrap().basic_ref(address)
+        self.state.read().unwrap().basic_ref(address)
     }
 
     fn code_by_hash_ref(&self, code_hash: B256) -> Result<Bytecode, Self::Error> {
-        self.0.read().unwrap().code_by_hash_ref(code_hash)
+        self.state.read().unwrap().code_by_hash_ref(code_hash)
     }
 
     fn storage_ref(
@@ -116,11 +148,11 @@ impl DatabaseRef for ArbiterDB {
         address: revm::primitives::Address,
         index: U256,
     ) -> Result<U256, Self::Error> {
-        self.0.read().unwrap().storage_ref(address, index)
+        self.state.read().unwrap().storage_ref(address, index)
     }
 
     fn block_hash_ref(&self, number: U256) -> Result<B256, Self::Error> {
-        self.0.read().unwrap().block_hash_ref(number)
+        self.state.read().unwrap().block_hash_ref(number)
     }
 }
 
@@ -129,7 +161,7 @@ impl DatabaseCommit for ArbiterDB {
         &mut self,
         changes: hashbrown::HashMap<revm::primitives::Address, revm::primitives::Account>,
     ) {
-        self.0.write().unwrap().commit(changes)
+        self.state.write().unwrap().commit(changes)
     }
 }
 

@@ -1,6 +1,8 @@
 //! Errors that can occur when managing or interfacing with Arbiter's sandboxed
 //! Ethereum environment.
 
+use std::sync::{PoisonError, RwLockWriteGuard};
+
 // use crossbeam_channel::SendError;
 use crossbeam_channel::{RecvError, SendError};
 use ethers::{
@@ -101,11 +103,21 @@ pub enum ArbiterCoreError {
     /// Failed to reply to instruction.
     #[error("{0}")]
     ReplyError(String),
+
+    /// Failed to grab a lock.
+    #[error("{0}")]
+    RwLockError(String),
 }
 
 impl From<SendError<Result<Outcome, ArbiterCoreError>>> for ArbiterCoreError {
     fn from(e: SendError<Result<Outcome, ArbiterCoreError>>) -> Self {
         ArbiterCoreError::ReplyError(e.to_string())
+    }
+}
+
+impl<T> From<PoisonError<RwLockWriteGuard<'_, T>>> for ArbiterCoreError {
+    fn from(e: PoisonError<RwLockWriteGuard<'_, T>>) -> Self {
+        ArbiterCoreError::RwLockError(e.to_string())
     }
 }
 
