@@ -258,10 +258,7 @@ impl Environment {
                     label
                 );
                 match instruction {
-                    Instruction::AddAccount {
-                        address,
-                        outcome_sender,
-                    } => {
+                    Instruction::AddAccount { address, .. } => {
                         let recast_address = Address::from(address.as_fixed_bytes());
                         let account = revm::db::DbAccount {
                             info: AccountInfo::default(),
@@ -283,7 +280,7 @@ impl Environment {
                         // Return the old block data in a `ReceiptData`
                         let old_block_number = evm.block().number;
                         let receipt_data = ReceiptData {
-                            block_number: convert_uint_to_u64(old_block_number).unwrap(),
+                            block_number: convert_uint_to_u64(old_block_number)?,
                             transaction_index,
                             cumulative_gas_per_block,
                         };
@@ -312,7 +309,7 @@ impl Environment {
                             let recast_key = B256::from(key.as_fixed_bytes()).into();
 
                             // Get the account storage value at the key in the db.
-                            match db.state.write().unwrap().accounts.get_mut(&recast_address) {
+                            match db.state.write()?.accounts.get_mut(&recast_address) {
                                 Some(account) => {
                                     // Returns zero if the account is missing.
                                     let value: U256 = match account.storage.get::<U256>(&recast_key)
@@ -341,7 +338,7 @@ impl Environment {
 
                             // Mutate the db by inserting the new key-value pair into the account's
                             // storage and send the successful CheatcodeCompleted outcome.
-                            match db.state.write().unwrap().accounts.get_mut(&recast_address) {
+                            match db.state.write()?.accounts.get_mut(&recast_address) {
                                 Some(account) => {
                                     account
                                         .storage
@@ -359,7 +356,7 @@ impl Environment {
                         }
                         Cheatcodes::Deal { address, amount } => {
                             let recast_address = Address::from(address.as_fixed_bytes());
-                            match db.state.write().unwrap().accounts.get_mut(&recast_address) {
+                            match db.state.write()?.accounts.get_mut(&recast_address) {
                                 Some(account) => {
                                     account.info.balance += U256::from_limbs(amount.0);
                                     outcome_sender.send(Ok(Outcome::CheatcodeReturn(
@@ -374,7 +371,7 @@ impl Environment {
                         }
                         Cheatcodes::Access { address } => {
                             let recast_address = Address::from(address.as_fixed_bytes());
-                            match db.state.write().unwrap().accounts.get(&recast_address) {
+                            match db.state.write()?.accounts.get(&recast_address) {
                                 Some(account) => {
                                     let account_state = match account.account_state {
                                         AccountState::None => AccountStateSerializable::None,
@@ -415,6 +412,8 @@ impl Environment {
 
                         if let Some(console_log) = &mut evm.context.external.console_log {
                             console_log.0.drain(..).for_each(|log| {
+                                // This unwrap is safe because the logs are guaranteed to be
+                                // `HardhatConsoleCalls` by the `ArbiterInspector`.
                                 trace!(
                                     "Console logs: {:?}",
                                     HardhatConsoleCalls::decode(log).unwrap().to_string()
@@ -444,6 +443,8 @@ impl Environment {
                             Ok(result) => {
                                 if let Some(console_log) = &mut evm.context.external.console_log {
                                     console_log.0.drain(..).for_each(|log| {
+                                        // This unwrap is safe because the logs are guaranteed to be
+                                        // `HardhatConsoleCalls` by the `ArbiterInspector`.
                                         trace!(
                                             "Console logs: {:?}",
                                             HardhatConsoleCalls::decode(log).unwrap().to_string()
