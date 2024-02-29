@@ -2,7 +2,7 @@
 
 use std::collections::VecDeque;
 
-use arbiter_core::{environment::Environment, middleware::ArbiterMiddleware};
+use arbiter_core::{database::ArbiterDB, environment::Environment, middleware::ArbiterMiddleware};
 use futures_util::future::join_all;
 use serde::de::DeserializeOwned;
 use tokio::spawn;
@@ -32,7 +32,7 @@ pub struct World {
     pub agents: Option<HashMap<String, Agent>>,
 
     /// The environment for the world.
-    pub environment: Environment,
+    pub environment: Option<Environment>,
 
     /// The messaging layer for the world.
     pub messager: Messager,
@@ -45,7 +45,7 @@ impl World {
         Self {
             id: id.to_owned(),
             agents: Some(HashMap::new()),
-            environment: Environment::builder().build(),
+            environment: Some(Environment::builder().build()),
             messager: Messager::new(),
         }
     }
@@ -158,7 +158,7 @@ impl World {
     /// This will add the agent defined by `agent_builder` to the world.
     pub fn add_agent(&mut self, agent_builder: AgentBuilder) {
         let id = agent_builder.id.clone();
-        let client = ArbiterMiddleware::new(&self.environment, Some(&id))
+        let client = ArbiterMiddleware::new(self.environment.as_ref().unwrap(), Some(&id))
             .expect("Failed to create RevmMiddleware client for agent");
         let messager = self.messager.for_agent(&id);
         let agent = agent_builder
@@ -185,7 +185,7 @@ impl World {
     /// Returns an error if no agents are found in the world, possibly
     /// indicating that the world has already been run or that no agents
     /// were added prior to execution.
-    pub async fn run(&mut self) -> Result<(), ArbiterEngineError> {
+    pub async fn run(&mut self) -> Result<ArbiterDB, ArbiterEngineError> {
         let agents = match self.agents.take() {
             Some(agents) => agents,
             None => {
@@ -218,6 +218,8 @@ impl World {
         }
         // Await the completion of all tasks.
         join_all(tasks).await;
-        Ok(())
+
+        let db = self.environment.take().unwrap().stop()?;
+        Ok(db)
     }
 }
