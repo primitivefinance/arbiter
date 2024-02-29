@@ -219,7 +219,7 @@ dependencies = [
  "anyhow",
  "arbiter-bindings 0.1.6 (registry+https://github.com/rust-lang/crates.io-index)",
  "arbiter-core 0.10.3 (registry+https://github.com/rust-lang/crates.io-index)",
- "arbiter-engine 0.3.1 (registry+https://github.com/rust-lang/crates.io-index)",
+ "arbiter-engine 0.3.1",
  "arbiter-macros 0.1.3 (registry+https://github.com/rust-lang/crates.io-index)",
  "assert_cmd",
  "async-trait",
@@ -230,7 +230,6 @@ dependencies = [
  "proc-macro2",
  "rayon",
  "revm",
- "revm-primitives 2.0.0",
  "serde",
  "serde_json",
  "syn 2.0.52",
@@ -282,7 +281,6 @@ dependencies = [
  "polars",
  "rand",
  "revm",
- "revm-primitives 2.0.0",
  "serde",
  "serde_json",
  "thiserror",
@@ -323,31 +321,6 @@ dependencies = [
 
 [[package]]
 name = "arbiter-engine"
-version = "0.3.2"
-dependencies = [
- "anyhow",
- "arbiter-bindings 0.1.6 (registry+https://github.com/rust-lang/crates.io-index)",
- "arbiter-core 0.10.3 (registry+https://github.com/rust-lang/crates.io-index)",
- "arbiter-macros 0.1.3 (registry+https://github.com/rust-lang/crates.io-index)",
- "async-stream",
- "async-trait",
- "crossbeam-channel",
- "ethers",
- "futures",
- "futures-util",
- "serde",
- "serde_json",
- "thiserror",
- "tokio",
- "tokio-stream",
- "toml 0.8.10",
- "tracing",
- "tracing-subscriber",
- "tracing-test",
-]
-
-[[package]]
-name = "arbiter-engine"
 version = "0.3.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "0553d66d507f24b9a7f63b783e9a2a37edaa5d93bfc9f23a3587dfcd65c0c3a6"
@@ -369,6 +342,31 @@ dependencies = [
  "tokio-stream",
  "toml 0.8.10",
  "tracing",
+]
+
+[[package]]
+name = "arbiter-engine"
+version = "0.3.2"
+dependencies = [
+ "anyhow",
+ "arbiter-bindings 0.1.6 (registry+https://github.com/rust-lang/crates.io-index)",
+ "arbiter-core 0.10.3 (registry+https://github.com/rust-lang/crates.io-index)",
+ "arbiter-macros 0.1.3 (registry+https://github.com/rust-lang/crates.io-index)",
+ "async-stream",
+ "async-trait",
+ "crossbeam-channel",
+ "ethers",
+ "futures",
+ "futures-util",
+ "serde",
+ "serde_json",
+ "thiserror",
+ "tokio",
+ "tokio-stream",
+ "toml 0.8.10",
+ "tracing",
+ "tracing-subscriber",
+ "tracing-test",
 ]
 
 [[package]]

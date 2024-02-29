@@ -35,9 +35,9 @@ impl<'a> Coprocessor<'a> {
         Self { evm }
     }
 
-    // TODO: Should probably take in a TxEnv or something.
     /// Used as an entrypoint to process a call with the `Coprocessor`.
-    pub fn transact(&mut self) -> Result<ResultAndState, EVMError<Infallible>> {
+    pub fn transact(&mut self, tx_env: TxEnv) -> Result<ResultAndState, EVMError<Infallible>> {
+        *self.evm.tx_mut() = tx_env;
         self.evm.transact()
     }
 }
@@ -55,8 +55,11 @@ mod tests {
     fn coprocessor() {
         let environment = Environment::builder().build();
         let mut coprocessor = Coprocessor::new(&environment);
-        coprocessor.evm.tx_mut().value = U256::from(100);
-        let outcome = coprocessor.transact();
+        let tx_env = TxEnv {
+            value: U256::from(100),
+            ..Default::default()
+        };
+        let outcome = coprocessor.transact(tx_env);
         if let Err(EVMError::Transaction(InvalidTransaction::LackOfFundForMaxFee {
             fee,
             balance,
