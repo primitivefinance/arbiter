@@ -46,7 +46,7 @@ use crate::Replier;
 fn setup() {
     let ping_replier = Replier::new("ping", "pong", 5, None);
     let pong_replier = Replier::new("pong", "ping", 5, Some("ping"));
-    let agent = Agent::new("my_agent")
+    let agent = Agent::builder("my_agent")
                     .with_behavior(ping_replier)
                     .with_behavior(pong_replier);
 }

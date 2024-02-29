@@ -7,6 +7,7 @@ use anyhow::Result;
 use arbiter_core::middleware::ArbiterMiddleware;
 use futures_util::{Stream, StreamExt};
 use tokio::task::JoinHandle;
+use tracing::error;
 
 use super::*;
 
@@ -70,7 +71,9 @@ pub enum State {
 /// The [`Behavior`] trait is the lowest level functionality that will be used
 /// by a [`StateMachine`]. This constitutes what each state transition will do.
 #[async_trait::async_trait]
-pub trait Behavior<E>: Serialize + DeserializeOwned + Send + Sync + Debug + 'static {
+pub trait Behavior<E: Send + 'static>:
+    Serialize + DeserializeOwned + Send + Sync + Debug + 'static
+{
     /// Used to start the agent.
     /// This is where the agent can engage in its specific start up activities
     /// that it can do given the current state of the world.
@@ -78,12 +81,14 @@ pub trait Behavior<E>: Serialize + DeserializeOwned + Send + Sync + Debug + 'sta
         &mut self,
         client: Arc<ArbiterMiddleware>,
         messager: Messager,
-    ) -> Result<EventStream<E>>;
+    ) -> Result<Option<EventStream<E>>>;
 
     /// Used to process events.
     /// This is where the agent can engage in its specific processing
     /// of events that can lead to actions being taken.
-    async fn process(&mut self, event: E) -> Result<ControlFlow>;
+    async fn process(&mut self, _event: E) -> Result<ControlFlow> {
+        Ok(ControlFlow::Halt)
+    }
 }
 /// A trait for creating a state machine.
 ///
@@ -140,7 +145,7 @@ pub trait StateMachine: Send + Sync + Debug + 'static {
     /// This method does not return a value, but it may result in state changes
     /// within the implementing type or the generation of further instructions
     /// or events.
-    async fn execute(&mut self, instruction: MachineInstruction) -> Result<()>;
+    async fn execute(&mut self, _instruction: MachineInstruction) -> Result<()>;
 }
 
 /// The `Engine` struct represents the core logic unit of a state machine-based
@@ -161,6 +166,7 @@ pub trait StateMachine: Send + Sync + Debug + 'static {
 pub struct Engine<B, E>
 where
     B: Behavior<E>,
+    E: Send + 'static,
 {
     /// The behavior the `Engine` runs.
     behavior: Option<B>,
@@ -211,22 +217,47 @@ where
     async fn execute(&mut self, instruction: MachineInstruction) -> Result<()> {
         // NOTE: The unwraps here are safe because the `Behavior` in an engine is only
         // accessed here and it is private.
+        let id: Option<String>;
         match instruction {
             MachineInstruction::Start(client, messager) => {
+                id = messager.id.clone();
+                let id_clone = id.clone();
                 self.state = State::Starting;
                 let mut behavior = self.behavior.take().unwrap();
-                let behavior_task: JoinHandle<Result<(EventStream<E>, B)>> =
+                let behavior_task: JoinHandle<Result<(Option<EventStream<E>>, B)>> =
                     tokio::spawn(async move {
-                        let id = messager.id.clone();
-                        let stream = behavior.startup(client, messager).await?;
-                        debug!("startup complete for behavior {:?}", id);
+                        let stream = match behavior.startup(client, messager).await {
+                            Ok(stream) => stream,
+                            Err(e) => {
+                                error!(
+                                    "startup failed for behavior {:?}: \n reason: {:?}",
+                                    id_clone, e
+                                );
+                                // Throw a panic as we cannot recover from this for now.
+                                panic!();
+                            }
+                        };
+                        debug!("startup complete for behavior {:?}", id_clone);
                         Ok((stream, behavior))
                     });
                 let (stream, behavior) = behavior_task.await??;
-                self.event_stream = Some(stream);
-                self.behavior = Some(behavior);
-                self.execute(MachineInstruction::Process).await?;
-                Ok(())
+                match stream {
+                    Some(stream) => {
+                        self.event_stream = Some(stream);
+                        self.behavior = Some(behavior);
+                        match self.execute(MachineInstruction::Process).await {
+                            Ok(_) => {}
+                            Err(e) => {
+                                error!("process failed for behavior {:?}: \n reason: {:?}", id, e);
+                            }
+                        }
+                        Ok(())
+                    }
+                    None => {
+                        self.behavior = Some(behavior);
+                        Ok(())
+                    }
+                }
             }
             MachineInstruction::Process => {
                 trace!("Behavior is starting up.");

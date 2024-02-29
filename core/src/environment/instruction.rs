@@ -145,6 +145,7 @@ pub(crate) enum Outcome {
 /// Currently this may be the block number, block timestamp, gas price, or
 /// balance of an account.
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+#[allow(clippy::large_enum_variant)]
 pub(crate) enum EnvironmentData {
     /// The query is for the block number of the [`EVM`].
     BlockNumber,
@@ -161,6 +162,12 @@ pub(crate) enum EnvironmentData {
     // TODO: Rename this to `Nonce`?
     /// The query is for the nonce of an account given by the inner `Address`.
     TransactionCount(eAddress),
+
+    /// Query for logs in a range of blocks.
+    Logs {
+        /// The filter to use to query for logs
+        filter: Filter,
+    },
 }
 
 /// [`ReceiptData`] is a structure that holds the block number, transaction
