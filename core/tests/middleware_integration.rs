@@ -264,6 +264,16 @@ async fn get_block_timestamp() {
 }
 
 #[tokio::test]
+async fn update_block_timestamp() {
+    let (_environment, client) = startup();
+    let block_timestamp = client.get_block_timestamp().await.unwrap();
+    assert_eq!(block_timestamp, eU256::from(1));
+    client.update_block(1, 100).unwrap();
+    let block_timestamp = client.get_block_timestamp().await.unwrap();
+    assert_eq!(block_timestamp, eU256::from(100));
+}
+
+#[tokio::test]
 async fn get_gas_price() {
     // User controlled should have 0 gas price initially
     let (_environment, client) = startup();

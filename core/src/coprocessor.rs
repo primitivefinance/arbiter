@@ -32,7 +32,6 @@ impl<'a> Coprocessor<'a> {
             .with_external_context(inspector)
             .append_handler_register(inspector_handle_register)
             .build();
-        println!("Coprocessor timestamp: {:?}", evm.block().timestamp);
         Self { evm }
     }
 
