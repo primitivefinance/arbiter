@@ -258,7 +258,10 @@ impl Environment {
                     label
                 );
                 match instruction {
-                    Instruction::AddAccount { address, .. } => {
+                    Instruction::AddAccount {
+                        address,
+                        outcome_sender,
+                    } => {
                         let recast_address = Address::from(address.as_fixed_bytes());
                         let account = revm::db::DbAccount {
                             info: AccountInfo::default(),

@@ -104,6 +104,7 @@ pub enum ArbiterCoreError {
     #[error("{0}")]
     ReplyError(String),
 
+    /// Failed to grab a lock.
     #[error("{0}")]
     RwLockError(String),
 }
