@@ -41,7 +41,7 @@ impl From<&Environment> for Connection {
             outcome_receiver,
             event_sender: environment.socket.event_broadcaster.clone(),
             filter_receivers: Arc::new(Mutex::new(HashMap::new())),
-            coprocessor: Coprocessor::new(&environment),
+            coprocessor: Coprocessor::new(environment),
         }
     }
 }

@@ -19,7 +19,7 @@ use crate::environment::Environment;
 /// current state to make decisions.
 #[derive(Debug)]
 pub struct Coprocessor<'a> {
-    evm: Evm<'a, ArbiterInspector, ArbiterDB>,
+    pub(crate) evm: Evm<'a, ArbiterInspector, ArbiterDB>,
 }
 
 impl<'a> Coprocessor<'a> {
@@ -32,6 +32,7 @@ impl<'a> Coprocessor<'a> {
             .with_external_context(inspector)
             .append_handler_register(inspector_handle_register)
             .build();
+        println!("Coprocessor timestamp: {:?}", evm.block().timestamp);
         Self { evm }
     }
 

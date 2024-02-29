@@ -79,7 +79,6 @@ pub struct ArbiterMiddleware {
     provider: Provider<Connection>,
     wallet: EOA,
     /// An optional label for the middleware instance
-    #[allow(unused)]
     pub label: Option<String>,
 }
 
@@ -259,7 +258,6 @@ impl ArbiterMiddleware {
         environment: &Environment,
         forked_eoa: eAddress,
     ) -> Result<Arc<Self>, ArbiterCoreError> {
-        let instruction_sender = &Arc::clone(&environment.socket.instruction_sender);
         let connection = Connection::from(environment);
         let provider = Provider::new(connection);
         info!(
@@ -300,21 +298,9 @@ impl ArbiterMiddleware {
     /// Returns the timestamp of the current block.
     pub async fn get_block_timestamp(&self) -> Result<ethers::types::U256, ArbiterCoreError> {
         let provider = self.provider().as_ref();
-        provider
-            .instruction_sender
-            .upgrade()
-            .ok_or(ArbiterCoreError::UpgradeSenderError)?
-            .send(Instruction::Query {
-                environment_data: EnvironmentData::BlockTimestamp,
-                outcome_sender: provider.outcome_sender.clone(),
-            })?;
-
-        match provider.outcome_receiver.recv()?? {
-            Outcome::QueryReturn(outcome) => {
-                Ok(ethers::types::U256::from_str_radix(outcome.as_ref(), 10)?)
-            }
-            _ => unreachable!(),
-        }
+        Ok(eU256::from_little_endian(
+            &provider.coprocessor.evm.block().timestamp.as_le_bytes(),
+        ))
     }
 
     /// Sends a cheatcode instruction to the environment.
