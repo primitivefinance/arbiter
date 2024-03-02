@@ -3,16 +3,9 @@
 
 use std::sync::{PoisonError, RwLockWriteGuard};
 
-// use crossbeam_channel::SendError;
-use crossbeam_channel::{RecvError, SendError};
-use ethers::{
-    providers::{MiddlewareError, ProviderError},
-    signers::WalletError,
-};
-use revm_primitives::{EVMError, HaltReason};
+use revm::primitives::{EVMError, HaltReason};
 use thiserror::Error;
 
-use self::environment::instruction::{Instruction, Outcome};
 use super::*;
 
 /// The error type for `arbiter-core`.
@@ -72,26 +65,6 @@ pub enum ArbiterCoreError {
     #[error(transparent)]
     EVMError(#[from] EVMError<Infallible>),
 
-    /// Provider error.
-    #[error(transparent)]
-    ProviderError(#[from] ProviderError),
-
-    /// Wallet error.
-    #[error(transparent)]
-    WalletError(#[from] WalletError),
-
-    /// Send error.
-    #[error(transparent)]
-    SendError(
-        #[from]
-        #[allow(private_interfaces)]
-        SendError<Instruction>,
-    ),
-
-    /// Recv error.
-    #[error(transparent)]
-    RecvError(#[from] RecvError),
-
     /// Failed to parse integer from string.
     #[error(transparent)]
     FromStrRadixError(#[from] uint::FromStrRadixErr),
@@ -109,26 +82,8 @@ pub enum ArbiterCoreError {
     RwLockError(String),
 }
 
-impl From<SendError<Result<Outcome, ArbiterCoreError>>> for ArbiterCoreError {
-    fn from(e: SendError<Result<Outcome, ArbiterCoreError>>) -> Self {
-        ArbiterCoreError::ReplyError(e.to_string())
-    }
-}
-
 impl<T> From<PoisonError<RwLockWriteGuard<'_, T>>> for ArbiterCoreError {
     fn from(e: PoisonError<RwLockWriteGuard<'_, T>>) -> Self {
         ArbiterCoreError::RwLockError(e.to_string())
-    }
-}
-
-impl MiddlewareError for ArbiterCoreError {
-    type Inner = ProviderError;
-
-    fn from_err(e: Self::Inner) -> Self {
-        ArbiterCoreError::from(e)
-    }
-
-    fn as_inner(&self) -> Option<&Self::Inner> {
-        None
     }
 }

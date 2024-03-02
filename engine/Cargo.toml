@@ -19,7 +19,7 @@ arbiter-bindings.workspace = true
 arbiter-core.workspace = true
 arbiter-macros.workspace = true
 
-ethers.workspace = true
+ethers = "2.0.13"
 
 tokio.workspace = true
 tokio-stream = "0.1.14"

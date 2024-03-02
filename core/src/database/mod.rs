@@ -18,7 +18,6 @@ use revm::{
 use serde_json;
 
 use super::*;
-pub mod fork;
 pub mod inspector;
 
 /// A [`ArbiterDB`] is contains both a [`CacheDB`] that is used to provide
@@ -34,7 +33,7 @@ pub struct ArbiterDB {
 
     /// The logs of the `ArbiterDB`. This is a `HashMap` that is used to store
     /// logs that can be queried from at any point.
-    pub logs: Arc<RwLock<HashMap<U256, Vec<eLog>>>>,
+    pub logs: Arc<RwLock<HashMap<U256, Vec<Log>>>>,
 }
 
 // Implement `Clone` by hand so we utilize the `Arc`'s `Clone` implementation.
@@ -77,7 +76,7 @@ impl ArbiterDB {
         #[derive(Deserialize)]
         struct TempDB {
             state: Option<CacheDB<EmptyDB>>,
-            logs: Option<HashMap<U256, Vec<eLog>>>,
+            logs: Option<HashMap<U256, Vec<Log>>>,
         }
         let temp_db: TempDB = serde_json::from_str(&contents)?;
         Ok(Self {

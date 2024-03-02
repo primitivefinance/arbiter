@@ -29,12 +29,9 @@
 
 #![warn(missing_docs)]
 
-pub mod console;
-pub mod coprocessor;
 pub mod database;
 pub mod environment;
 pub mod errors;
-pub mod events;
 pub mod middleware;
 
 use std::{
@@ -46,7 +43,7 @@ use std::{
 };
 
 use async_trait::async_trait;
-use ethers::types::{Address as eAddress, Filter, Log as eLog, H256, U256 as eU256, U64};
+
 use revm::{
     db::{CacheDB, EmptyDB},
     interpreter::{CallInputs, CallOutcome},
@@ -57,4 +54,4 @@ use serde::{Deserialize, Serialize};
 use tokio::sync::broadcast::{Receiver as BroadcastReceiver, Sender as BroadcastSender};
 use tracing::{debug, error, info, trace, warn};
 
-use crate::{database::ArbiterDB, environment::Broadcast, errors::ArbiterCoreError};
+use crate::{database::ArbiterDB, environment::Event, errors::ArbiterCoreError};

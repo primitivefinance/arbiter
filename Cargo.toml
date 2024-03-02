@@ -34,20 +34,31 @@ path = "examples/minter/main.rs"
 
 [workspace.dependencies]
 # Arbiter local for development
-# arbiter-bindings = { path = "arbiter-bindings" }
-# arbiter-core = { path = "arbiter-core" }
-# arbiter-engine = { path = "arbiter-engine" }
-# arbiter-macros = { path = "arbiter-macros" }
+arbiter-bindings = { path = "bindings" }
+arbiter-core = { path = "core" }
+arbiter-engine = { path = "engine" }
+arbiter-macros = { path = "macros" }
 
 # Arbiter crates.io for release, these need to be used to do crate releases!
-arbiter-bindings = "0.1.4"
-arbiter-core = "0.10.2"
-arbiter-engine = "0.3.0"
-arbiter-macros = "0.1.1"
+# arbiter-bindings = "0.1.4"
+# arbiter-core = "0.10.2"
+# arbiter-engine = "0.3.0"
+# arbiter-macros = "0.1.1"
 
-revm = { version = "5.0.0", features = ["ethersdb", "std", "serde"] }
-revm-primitives = "=2.0.0"
-ethers = { version = "2.0.13" }
+# alloy = { git = "https://github.com/alloy-rs/alloy", branch = "main", features = [
+#     "sol-types",
+#     "json-abi",
+# ] }
+alloy-core = "0.6.4"
+alloy-json-abi = "0.6.4"
+alloy-sol-macro = { version = "0.6.4", features = ["json"] }
+alloy-sol-types = "0.6.4"
+alloy-providers = { git = "https://github.com/alloy-rs/alloy", branch = "main" }
+alloy-transport = { git = "https://github.com/alloy-rs/alloy", branch = "main" }
+alloy-rpc-types = { git = "https://github.com/alloy-rs/alloy", branch = "main" }
+alloy-rpc-trace-types = { git = "https://github.com/alloy-rs/alloy", branch = "main" }
+revm = { version = "6.1.0", features = ["ethersdb", "std", "serde"] }
+revm-primitives = "2.1.0"
 
 serde = { version = "1.0.197", features = ["derive"] }
 serde_json = { version = "1.0.114" }
@@ -76,7 +87,7 @@ clap = { version = "4.5.1", features = ["derive"] }
 serde.workspace = true
 serde_json.workspace = true
 config = { version = "=0.14.0" }
-ethers.workspace = true
+ethers = "2.0.13"
 revm.workspace = true
 toml.workspace = true
 proc-macro2.workspace = true
