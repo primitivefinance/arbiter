@@ -5,8 +5,8 @@ src = "contracts"
 
 remappings = [
   "/solstat=/lib/solstat/src",
-  "/solmate=/lib/solmate/src",
-  "/solmate-erc20=/lib/solmate-erc20/src",
+  "/solmate=/lib/solstat/lib/solmate/src",
+  "/solmate-erc20=/lib/solstat/lib/solmate-erc20/src",
   "forge-std/=lib/forge-std/src",
 ]
 
