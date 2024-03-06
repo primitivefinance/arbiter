@@ -98,7 +98,7 @@ revm-primitives.workspace = true
 serde.workspace = true
 async-trait.workspace = true
 anyhow.workspace = true
-rayon = { version = "1.8.0" }
+rayon = { version = "1.9.0" }
 
 # Necessary for examples
 tokio.workspace = true
