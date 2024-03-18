@@ -51,7 +51,7 @@ ethers = { version = "2.0.14" }
 
 serde = { version = "1.0.197", features = ["derive"] }
 serde_json = { version = "1.0.114" }
-toml = "0.8.10"
+toml = "0.8.12"
 
 tokio = { version = "1.36.0", features = ["macros", "full"] }
 futures = "0.3.30"
