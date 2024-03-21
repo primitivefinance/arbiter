@@ -6,6 +6,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.20](https://github.com/primitivefinance/arbiter/compare/arbiter-v0.4.19...arbiter-v0.4.20) - 2024-03-21
+
+### Added
+- environment logs ([#911](https://github.com/primitivefinance/arbiter/pull/911))
+
+### Other
+- Update README.md ([#936](https://github.com/primitivefinance/arbiter/pull/936))
+- *(deps)* bump ethers from 2.0.13 to 2.0.14 ([#931](https://github.com/primitivefinance/arbiter/pull/931))
+- *(deps)* bump clap from 4.5.1 to 4.5.2 ([#929](https://github.com/primitivefinance/arbiter/pull/929))
+- *(deps)* bump chrono from 0.4.34 to 0.4.35 ([#930](https://github.com/primitivefinance/arbiter/pull/930))
+- *(deps)* bump mio from 0.8.10 to 0.8.11 ([#926](https://github.com/primitivefinance/arbiter/pull/926))
+- *(deps)* bump crossbeam-channel from 0.5.11 to 0.5.12 ([#919](https://github.com/primitivefinance/arbiter/pull/919))
+- *(deps)* bump syn from 2.0.51 to 2.0.52 ([#920](https://github.com/primitivefinance/arbiter/pull/920))
+- *(deps)* bump tempfile from 3.10.0 to 3.10.1 ([#917](https://github.com/primitivefinance/arbiter/pull/917))
+- *(deps)* bump syn from 2.0.50 to 2.0.51 ([#915](https://github.com/primitivefinance/arbiter/pull/915))
+
 ## [0.4.19](https://github.com/primitivefinance/arbiter/compare/arbiter-v0.4.18...arbiter-v0.4.19) - 2024-02-26
 
 ### Added
