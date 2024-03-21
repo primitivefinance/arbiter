@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.7](https://github.com/primitivefinance/arbiter/compare/arbiter-bindings-v0.1.6...arbiter-bindings-v0.1.7) - 2024-03-21
+
+### Other
+- update Cargo.toml dependencies
+
 ## [0.1.6](https://github.com/primitivefinance/arbiter/compare/arbiter-bindings-v0.1.5...arbiter-bindings-v0.1.6) - 2024-02-20
 
 ### Other
