@@ -78,7 +78,7 @@ You'll be prompted to provide a project name, and the rest will be set up for yo
 ### Binary
 To install the Arbiter binary, run:
 ```bash
-cargo install Arbiter
+cargo install arbiter
 ```
 This will install the Arbiter binary on your machine. You can then run `arbiter --help` to see that Arbiter was correctly installed and see the help menu.
 
