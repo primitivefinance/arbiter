@@ -8,7 +8,7 @@ exclude = ["benches", "docs"]
 # Package configuration
 [package]
 name = "arbiter"
-version = "0.4.18"
+version = "0.4.19"
 edition = "2021"
 authors = [
     "Waylon Jepsen <waylonjepsen1@gmail.com>",
@@ -47,32 +47,32 @@ arbiter-macros = "0.1.1"
 
 revm = { version = "5.0.0", features = ["ethersdb", "std", "serde"] }
 revm-primitives = "=2.0.0"
-ethers = { version = "2.0.13" }
+ethers = { version = "2.0.14" }
 
 serde = { version = "1.0.197", features = ["derive"] }
 serde_json = { version = "1.0.114" }
-toml = "0.8.10"
+toml = "0.8.12"
 
 tokio = { version = "1.36.0", features = ["macros", "full"] }
 futures = "0.3.30"
 futures-util = { version = "0.3.30" }
 async-stream = "0.3.5"
 async-trait = { version = "0.1.77" }
-crossbeam-channel = { version = "0.5.11" }
+crossbeam-channel = { version = "0.5.12" }
 
-syn = { version = "2.0.50", features = ["full"] }
-proc-macro2 = { version = "1.0.78" }
+syn = { version = "2.0.52", features = ["full"] }
+proc-macro2 = { version = "1.0.79" }
 
 tracing = "0.1.40"
 thiserror = { version = "1.0.57" }
-anyhow = "1.0.80"
+anyhow = "1.0.81"
 
 # Dependencies for the release build of Arbiter bin
 [dependencies]
 arbiter-core.workspace = true
 
 # Command line and config
-clap = { version = "4.5.1", features = ["derive"] }
+clap = { version = "4.5.2", features = ["derive"] }
 serde.workspace = true
 serde_json.workspace = true
 config = { version = "=0.14.0" }
@@ -85,7 +85,7 @@ Inflector = { version = "=0.11.4" }
 
 # Building files
 foundry-config = { version = "=0.2.0" }
-tempfile = { version = "3.10.0" }
+tempfile = { version = "3.10.1" }
 
 # Errors
 thiserror.workspace = true
@@ -98,7 +98,7 @@ revm-primitives.workspace = true
 serde.workspace = true
 async-trait.workspace = true
 anyhow.workspace = true
-rayon = { version = "1.8.0" }
+rayon = { version = "1.10.0" }
 
 # Necessary for examples
 tokio.workspace = true
