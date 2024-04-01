@@ -47,7 +47,7 @@ arbiter-macros = "0.1.1"
 
 revm = { version = "5.0.0", features = ["ethersdb", "std", "serde"] }
 revm-primitives = "=2.0.0"
-ethers = { version = "2.0.13" }
+ethers = { version = "2.0.14" }
 
 serde = { version = "1.0.197", features = ["derive"] }
 serde_json = { version = "1.0.114" }
@@ -72,7 +72,7 @@ anyhow = "1.0.80"
 arbiter-core.workspace = true
 
 # Command line and config
-clap = { version = "4.5.1", features = ["derive"] }
+clap = { version = "4.5.2", features = ["derive"] }
 serde.workspace = true
 serde_json.workspace = true
 config = { version = "=0.14.0" }
