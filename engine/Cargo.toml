@@ -22,7 +22,7 @@ arbiter-macros.workspace = true
 ethers.workspace = true
 
 tokio.workspace = true
-tokio-stream = "0.1.14"
+tokio-stream = "0.1.15"
 futures.workspace = true
 futures-util.workspace = true
 async-trait.workspace = true
