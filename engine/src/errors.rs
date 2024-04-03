@@ -42,4 +42,8 @@ pub enum ArbiterEngineError {
     /// Error occurred in deserializing toml.
     #[error(transparent)]
     TomlError(#[from] toml::de::Error),
+
+    /// Error occurred within [`arbiter_core`].
+    #[error(transparent)]
+    ArbiterCoreError(#[from] arbiter_core::errors::ArbiterCoreError),
 }
