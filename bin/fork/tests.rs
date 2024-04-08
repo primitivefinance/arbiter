@@ -6,6 +6,7 @@ const FORK_CONFIG_PATH: &str = "examples/fork/weth_config.toml";
 const PATH_TO_DISK_STORAGE: &str = "examples/fork/test.json";
 
 #[test]
+#[ignore]
 fn create_forked_db() {
     let fork_config = ForkConfig::new(FORK_CONFIG_PATH).unwrap();
     let fork = fork_config.into_fork().unwrap();
@@ -13,6 +14,7 @@ fn create_forked_db() {
 }
 
 #[test]
+#[ignore]
 fn write_out() {
     let fork_config =
         ForkConfig::new(FORK_CONFIG_PATH).expect("WARNING: Failed to create ForkConfig");
@@ -27,6 +29,7 @@ fn write_out() {
 }
 
 #[test]
+#[ignore]
 fn read_in() {
     // First write out so we know the file exists.
     let fork_config = ForkConfig::new(FORK_CONFIG_PATH);

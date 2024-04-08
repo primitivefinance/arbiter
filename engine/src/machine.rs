@@ -46,23 +46,39 @@ pub enum ControlFlow {
     Continue,
 }
 
-/// The state used by any entity implementing [`StateMachine`].
-#[derive(Clone, Copy, Debug)]
-pub enum State {
-    /// The entity is not yet running any process.
-    /// This is the state adopted by the entity when it is first created.
-    Uninitialized,
+// /// The state used by any entity implementing [`StateMachine`].
+// #[derive(Clone, Copy, Debug)]
+// pub enum State {
+//     /// The entity is not yet running any process.
+//     /// This is the state adopted by the entity when it is first created.
+//     Uninitialized,
 
-    /// The entity is starting up.
-    /// This is where the entity can engage in its specific start up activities
-    /// that it can do given the current state of the world.
-    /// These are usually quick one-shot activities that are not repeated.
-    Starting,
+//     /// The entity is starting up.
+//     /// This is where the entity can engage in its specific start up activities
+//     /// that it can do given the current state of the world.
+//     /// These are usually quick one-shot activities that are not repeated.
+//     Starting,
 
-    /// The entity is processing.
-    /// This is where the entity can engage in its specific processing
-    /// of events that can lead to actions being taken.
-    Processing,
+//     /// The entity is processing.
+//     /// This is where the entity can engage in its specific processing
+//     /// of events that can lead to actions being taken.
+//     Processing,
+// }
+
+pub trait State {
+    type Data;
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Configuration {}
+impl State for Configuration {
+    type Data = ();
+}
+pub struct Processing<D> {
+    pub data: D,
+}
+impl<D> State for Processing<D> {
+    type Data = D;
 }
 
 // NOTE: `async_trait::async_trait` is used throughout to make the trait object
@@ -90,6 +106,23 @@ pub trait Behavior<E: Send + 'static>:
         Ok(ControlFlow::Halt)
     }
 }
+
+#[async_trait::async_trait]
+pub trait ConfigureAndStart<E>: DeserializeOwned {
+    async fn startup(
+        &mut self,
+        client: Arc<ArbiterMiddleware>,
+        messager: Messager,
+    ) -> Result<Option<(impl Processor<E>, EventStream<E>)>>
+    where
+        E: Send + Sync + 'static;
+}
+
+#[async_trait::async_trait]
+pub trait Processor<E: Send + 'static> {
+    async fn process(&mut self, event: E) -> Result<ControlFlow>;
+}
+
 /// A trait for creating a state machine.
 ///
 /// This trait is intended to be implemented by types that can be converted into
@@ -171,9 +204,6 @@ where
     /// The behavior the `Engine` runs.
     behavior: Option<B>,
 
-    /// The current state of the [`Engine`].
-    state: State,
-
     /// The receiver of events that the [`Engine`] will process.
     /// The [`State::Processing`] stage will attempt a decode of the [`String`]s
     /// into the event type `<E>`.
@@ -188,7 +218,7 @@ where
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("Engine")
             .field("behavior", &self.behavior)
-            .field("state", &self.state)
+            // .field("state", &self.state)
             .finish()
     }
 }
@@ -202,7 +232,6 @@ where
     pub fn new(behavior: B) -> Self {
         Self {
             behavior: Some(behavior),
-            state: State::Uninitialized,
             event_stream: None,
         }
     }
@@ -222,7 +251,7 @@ where
             MachineInstruction::Start(client, messager) => {
                 id = messager.id.clone();
                 let id_clone = id.clone();
-                self.state = State::Starting;
+                // self.state = State::Starting;
                 let mut behavior = self.behavior.take().unwrap();
                 let behavior_task: JoinHandle<Result<(Option<EventStream<E>>, B)>> =
                     tokio::spawn(async move {
