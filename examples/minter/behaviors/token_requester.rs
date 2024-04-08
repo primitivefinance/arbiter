@@ -9,6 +9,7 @@ use super::*;
 pub struct TokenRequesterData {
     pub messager: Messager,
     pub client: Arc<ArbiterMiddleware>,
+    pub stream: EventStream<TransferFilter>,
 }
 
 /// The token requester is responsible for requesting tokens from the token
@@ -30,26 +31,55 @@ pub fn default_max_count() -> Option<u64> {
     Some(3)
 }
 
-#[async_trait::async_trait]
-impl Processor<TransferFilter> for TokenRequester<Processing<TokenRequesterData>> {
-    async fn process(&mut self, event: TransferFilter) -> Result<ControlFlow> {
-        todo!()
-    }
-}
+// #[async_trait::async_trait]
+// impl Processor<TransferFilter> for TokenRequester<Processing<TokenRequesterData>> {
+//     async fn process(&mut self, event: TransferFilter) -> Result<ControlFlow> {
+//         todo!()
+//     }
+// }
 
 #[async_trait::async_trait]
-impl ConfigureAndStart<TransferFilter> for TokenRequester<Configuration> {
+impl Behavior<TransferFilter> for TokenRequester<Configuration> {
+    type Processor = TokenRequester<Processing<TokenRequesterData>>;
+
     async fn startup(
         &mut self,
         client: Arc<ArbiterMiddleware>,
-        messager: Messager,
-    ) -> Result<
-        Option<(
-            TokenRequester<Processing<TokenRequesterData>>,
-            EventStream<TransferFilter>,
-        )>,
-    > {
-        todo!()
+        mut messager: Messager,
+    ) -> Result<Option<Self::Processor>> {
+        messager
+            .send(
+                To::Agent(self.request_to.clone()),
+                &TokenAdminQuery::AddressOf(self.token_data.name.clone()),
+            )
+            .await?;
+        let message = messager.get_next().await.unwrap();
+        let token_address = serde_json::from_str::<eAddress>(&message.data).unwrap();
+        let token = ArbiterToken::new(token_address, client.clone());
+        self.token_data.address = Some(token_address);
+
+        let mint_data = TokenAdminQuery::MintRequest(MintRequest {
+            token: self.token_data.name.clone(),
+            mint_to: client.address(),
+            mint_amount: 1,
+        });
+        messager
+            .send(To::Agent(self.request_to.clone()), mint_data)
+            .await?;
+
+        let stream = stream_event(token.transfer_filter());
+        let data = TokenRequesterData {
+            messager: messager.clone(),
+            client,
+            stream,
+        };
+        Ok(Some(TokenRequester {
+            token_data: self.token_data.clone(),
+            request_to: self.request_to.clone(),
+            count: 0,
+            max_count: self.max_count,
+            started_data: Processing(data),
+        }))
     }
 }
 

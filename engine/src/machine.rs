@@ -90,6 +90,7 @@ impl<D> State for Processing<D> {
 pub trait Behavior<E: Send + 'static>:
     Serialize + DeserializeOwned + Send + Sync + Debug + 'static
 {
+    type Processor: Processor<E> + Send + Sync + 'static;
     /// Used to start the agent.
     /// This is where the agent can engage in its specific start up activities
     /// that it can do given the current state of the world.
@@ -97,26 +98,33 @@ pub trait Behavior<E: Send + 'static>:
         &mut self,
         client: Arc<ArbiterMiddleware>,
         messager: Messager,
-    ) -> Result<Option<EventStream<E>>>;
+    ) -> Result<Option<(Self::Processor, EventStream<E>)>>;
 
-    /// Used to process events.
-    /// This is where the agent can engage in its specific processing
-    /// of events that can lead to actions being taken.
-    async fn process(&mut self, _event: E) -> Result<ControlFlow> {
+    // /// Used to process events.
+    // /// This is where the agent can engage in its specific processing
+    // /// of events that can lead to actions being taken.
+    // async fn process(&mut self, _event: E) -> Result<ControlFlow> {
+    //     Ok(ControlFlow::Halt)
+    // }
+}
+
+#[async_trait::async_trait]
+impl Processor<()> for () {
+    async fn process(&mut self, _event: ()) -> Result<ControlFlow> {
         Ok(ControlFlow::Halt)
     }
 }
 
-#[async_trait::async_trait]
-pub trait ConfigureAndStart<E>: DeserializeOwned {
-    async fn startup(
-        &mut self,
-        client: Arc<ArbiterMiddleware>,
-        messager: Messager,
-    ) -> Result<Option<(impl Processor<E>, EventStream<E>)>>
-    where
-        E: Send + Sync + 'static;
-}
+// #[async_trait::async_trait]
+// pub trait ConfigureAndStart<E>: DeserializeOwned {
+//     async fn startup(
+//         &mut self,
+//         client: Arc<ArbiterMiddleware>,
+//         messager: Messager,
+//     ) -> Result<Option<(impl Processor<E>, EventStream<E>)>>
+//     where
+//         E: Send + Sync + 'static;
+// }
 
 #[async_trait::async_trait]
 pub trait Processor<E: Send + 'static> {
@@ -204,6 +212,8 @@ where
     /// The behavior the `Engine` runs.
     behavior: Option<B>,
 
+    processor: Option<<B as Behavior<E>>::Processor>,
+
     /// The receiver of events that the [`Engine`] will process.
     /// The [`State::Processing`] stage will attempt a decode of the [`String`]s
     /// into the event type `<E>`.
@@ -232,6 +242,7 @@ where
     pub fn new(behavior: B) -> Self {
         Self {
             behavior: Some(behavior),
+            processor: None,
             event_stream: None,
         }
     }
@@ -253,26 +264,34 @@ where
                 let id_clone = id.clone();
                 // self.state = State::Starting;
                 let mut behavior = self.behavior.take().unwrap();
-                let behavior_task: JoinHandle<Result<(Option<EventStream<E>>, B)>> =
-                    tokio::spawn(async move {
-                        let stream = match behavior.startup(client, messager).await {
-                            Ok(stream) => stream,
-                            Err(e) => {
-                                error!(
-                                    "startup failed for behavior {:?}: \n reason: {:?}",
-                                    id_clone, e
-                                );
-                                // Throw a panic as we cannot recover from this for now.
-                                panic!();
-                            }
-                        };
-                        debug!("startup complete for behavior {:?}", id_clone);
-                        Ok((stream, behavior))
-                    });
-                let (stream, behavior) = behavior_task.await??;
-                match stream {
-                    Some(stream) => {
-                        self.event_stream = Some(stream);
+                let behavior_task: JoinHandle<
+                    Result<(
+                        Option<(
+                            <B as Behavior<E>>::Processor,
+                            Pin<Box<dyn Stream<Item = E> + Send + Sync>>,
+                        )>,
+                        B,
+                    )>,
+                > = tokio::spawn(async move {
+                    let processor_and_stream = match behavior.startup(client, messager).await {
+                        Ok(processor_and_stream) => processor_and_stream,
+                        Err(e) => {
+                            error!(
+                                "startup failed for behavior {:?}: \n reason: {:?}",
+                                id_clone, e
+                            );
+                            // Throw a panic as we cannot recover from this for now.
+                            panic!();
+                        }
+                    };
+                    debug!("startup complete for behavior {:?}", id_clone);
+                    Ok((processor_and_stream, behavior))
+                });
+                let (option_processor_and_stream, behavior) = behavior_task.await??;
+                match option_processor_and_stream {
+                    Some(processor_and_stream) => {
+                        self.processor = Some(processor_and_stream.0);
+                        self.event_stream = Some(processor_and_stream.1);
                         self.behavior = Some(behavior);
                         match self.execute(MachineInstruction::Process).await {
                             Ok(_) => {}
@@ -290,22 +309,23 @@ where
             }
             MachineInstruction::Process => {
                 trace!("Behavior is starting up.");
-                let mut behavior = self.behavior.take().unwrap();
+                let mut processor = self.processor.take().unwrap();
                 let mut stream = self.event_stream.take().unwrap();
-                let behavior_task: JoinHandle<Result<B>> = tokio::spawn(async move {
-                    while let Some(event) = stream.next().await {
-                        match behavior.process(event).await? {
-                            ControlFlow::Halt => {
-                                break;
+                let processor_task: JoinHandle<Result<<B as Behavior<E>>::Processor>> =
+                    tokio::spawn(async move {
+                        while let Some(event) = stream.next().await {
+                            match processor.process(event).await? {
+                                ControlFlow::Halt => {
+                                    break;
+                                }
+                                ControlFlow::Continue => {}
                             }
-                            ControlFlow::Continue => {}
                         }
-                    }
-                    Ok(behavior)
-                });
+                        Ok(processor)
+                    });
                 // TODO: We don't have to store the behavior again here, we could just discard
                 // it.
-                self.behavior = Some(behavior_task.await??);
+                self.processor = Some(processor_task.await??);
                 Ok(())
             }
         }

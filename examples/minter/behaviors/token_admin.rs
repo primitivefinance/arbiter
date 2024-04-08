@@ -2,20 +2,22 @@ use std::collections::HashMap;
 
 use super::*;
 
+#[derive(Debug, Clone)]
+pub struct TokenAdminData {
+    pub messager: Messager,
+    pub client: Arc<ArbiterMiddleware>,
+    pub tokens: HashMap<String, ArbiterToken<ArbiterMiddleware>>,
+}
+
 #[derive(Deserialize, Serialize, Clone, Debug)]
-pub(crate) struct TokenAdmin {
+pub(crate) struct TokenAdmin<S: State> {
     /// The identifier of the token admin.
     pub token_data: HashMap<String, TokenData>,
-    #[serde(skip)]
-    pub tokens: Option<HashMap<String, ArbiterToken<ArbiterMiddleware>>>,
-    #[serde(skip)]
-    pub client: Option<Arc<ArbiterMiddleware>>,
-    #[serde(skip)]
-    pub messager: Option<Messager>,
     #[serde(default)]
     pub count: u64,
     #[serde(default = "default_max_count")]
     pub max_count: Option<u64>,
+    pub data: S::Data,
 }
 
 pub fn default_max_count() -> Option<u64> {
@@ -46,13 +48,15 @@ pub struct MintRequest {
 }
 
 #[async_trait::async_trait]
-impl Behavior<Message> for TokenAdmin {
+impl Behavior<Message> for TokenAdmin<Configuration> {
+    type Processor = TokenAdmin<Processing>;
+
     #[tracing::instrument(skip(self), fields(id = messager.id.as_deref()))]
     async fn startup(
         &mut self,
         client: Arc<ArbiterMiddleware>,
         messager: Messager,
-    ) -> Result<Option<EventStream<Message>>> {
+    ) -> Result<Self::Processor> {
         self.messager = Some(messager.clone());
         self.client = Some(client.clone());
         for token_data in self.token_data.values_mut() {
@@ -76,9 +80,10 @@ impl Behavior<Message> for TokenAdmin {
         }
         Ok(Some(messager.stream()?))
     }
+}
 
-    #[tracing::instrument(skip(self), fields(id =
- self.messager.as_ref().unwrap().id.as_deref()))]
+impl Processor<Message> for TokenAdmin<Processing> {
+    #[tracing::instrument(skip(self), fields(id = messager.id.as_deref()))]
     async fn process(&mut self, event: Message) -> Result<ControlFlow> {
         if self.tokens.is_none() {
             error!(
