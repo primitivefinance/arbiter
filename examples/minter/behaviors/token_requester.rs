@@ -31,7 +31,7 @@ pub fn default_max_count() -> Option<u64> {
 }
 
 #[async_trait::async_trait]
-impl Behavior<TransferFilter> for TokenRequester<Configuration> {
+impl Behavior<TransferFilter> for TokenRequester<Configuration<()>> {
     type Processor = TokenRequester<Processing<TokenRequesterData>>;
 
     async fn startup(

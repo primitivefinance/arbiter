@@ -3,7 +3,7 @@ id = "minter_world"
 
 # top level id for the `TokenAdmin` agent
 [[admin]]
-TokenAdmin = { max_count = 4, token_data = { "US Dollar Coin" = { name = "US Dollar Coin", symbol = "USDC", decimals = 18 } } }
+TokenAdmin = { max_count = 4, data = { token_data = { "US Dollar Coin" = { name = "US Dollar Coin", symbol = "USDC", decimals = 18 } } } }
 
 
 # named struct and arguments for initializing the `TokenAdmin` agent

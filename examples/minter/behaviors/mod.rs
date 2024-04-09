@@ -17,10 +17,12 @@ use ethers::types::{Address as eAddress, U256 as eU256};
 use serde::{Deserialize, Serialize};
 use tracing::{debug, error, trace, warn};
 
+use self::token_admin::TokenAdminConfig;
+
 #[derive(Behaviors, Debug, Clone, Serialize, Deserialize)]
 pub enum Behaviors {
-    TokenAdmin(token_admin::TokenAdmin<Configuration>),
-    TokenRequester(token_requester::TokenRequester<Configuration>),
+    TokenAdmin(token_admin::TokenAdmin<Configuration<TokenAdminConfig>>),
+    TokenRequester(token_requester::TokenRequester<Configuration<()>>),
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

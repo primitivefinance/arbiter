@@ -4,28 +4,24 @@ use arbiter_engine::machine::{Processing, Processor, State};
 
 use super::*;
 
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TokenAdminConfig {
+    pub token_data: HashMap<String, TokenData>,
+}
+
 #[derive(Debug, Clone)]
-pub struct TokenAdminData {
+pub struct TokenAdminProcessing {
     pub messager: Messager,
     pub client: Arc<ArbiterMiddleware>,
     pub tokens: HashMap<String, ArbiterToken<ArbiterMiddleware>>,
 }
 
-pub struct TokenAdminConfig {
-    pub token_data: HashMap<String, TokenData>,
-    pub count: u64,
-    pub max_count: Option<u64>,
-}
-
 #[derive(Deserialize, Serialize, Clone, Debug)]
 pub(crate) struct TokenAdmin<S: State> {
-    /// The identifier of the token admin.
-    pub token_data: HashMap<String, TokenData>,
     #[serde(default)]
     pub count: u64,
     #[serde(default = "default_max_count")]
     pub max_count: Option<u64>,
-    #[serde(default)]
     pub data: S::Data,
 }
 
@@ -57,8 +53,8 @@ pub struct MintRequest {
 }
 
 #[async_trait::async_trait]
-impl Behavior<Message> for TokenAdmin<Configuration> {
-    type Processor = TokenAdmin<Processing<TokenAdminData>>;
+impl Behavior<Message> for TokenAdmin<Configuration<TokenAdminConfig>> {
+    type Processor = TokenAdmin<Processing<TokenAdminProcessing>>;
 
     #[tracing::instrument(skip(self), fields(id = messager.id.as_deref()))]
     async fn startup(
@@ -66,17 +62,16 @@ impl Behavior<Message> for TokenAdmin<Configuration> {
         client: Arc<ArbiterMiddleware>,
         messager: Messager,
     ) -> Result<Option<(Self::Processor, EventStream<Message>)>> {
-        let mut processor = TokenAdmin::<Processing<TokenAdminData>> {
-            token_data: self.token_data.clone(),
+        let mut processor = TokenAdmin::<Processing<TokenAdminProcessing>> {
             count: self.count,
             max_count: self.max_count,
-            data: TokenAdminData {
+            data: TokenAdminProcessing {
                 messager: messager.clone(),
                 client: client.clone(),
                 tokens: HashMap::new(),
             },
         };
-        for token_data in self.token_data.values_mut() {
+        for token_data in self.data.token_data.values_mut() {
             let token = ArbiterToken::deploy(
                 client.clone(),
                 (
@@ -95,18 +90,13 @@ impl Behavior<Message> for TokenAdmin<Configuration> {
                 .data
                 .tokens
                 .insert(token_data.name.clone(), token.clone());
-            processor
-                .token_data
-                .get_mut(&token_data.name)
-                .unwrap()
-                .address = Some(token.address());
         }
         Ok(Some((processor, messager.stream()?)))
     }
 }
 
 #[async_trait::async_trait]
-impl Processor<Message> for TokenAdmin<Processing<TokenAdminData>> {
+impl Processor<Message> for TokenAdmin<Processing<TokenAdminProcessing>> {
     #[tracing::instrument(skip(self), fields(id = self.data.messager.id.as_deref()))]
     async fn process(&mut self, event: Message) -> Result<ControlFlow> {
         let query: TokenAdminQuery = serde_json::from_str(&event.data).unwrap();
@@ -117,11 +107,10 @@ impl Processor<Message> for TokenAdmin<Processing<TokenAdminData>> {
                     "Getting address of token with name: {:?}",
                     token_name.clone()
                 );
-                let token_data = self.token_data.get(&token_name).unwrap();
-                println!("Got the token data: {:?}", token_data);
+                let token_address = self.data.tokens.get(&token_name).unwrap().address();
                 self.data
                     .messager
-                    .send(To::Agent(event.from.clone()), token_data.address.unwrap())
+                    .send(To::Agent(event.from.clone()), token_address)
                     .await?;
             }
             TokenAdminQuery::MintRequest(mint_request) => {
