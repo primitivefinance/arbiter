@@ -11,6 +11,12 @@ pub struct TokenAdminData {
     pub tokens: HashMap<String, ArbiterToken<ArbiterMiddleware>>,
 }
 
+pub struct TokenAdminConfig {
+    pub token_data: HashMap<String, TokenData>,
+    pub count: u64,
+    pub max_count: Option<u64>,
+}
+
 #[derive(Deserialize, Serialize, Clone, Debug)]
 pub(crate) struct TokenAdmin<S: State> {
     /// The identifier of the token admin.

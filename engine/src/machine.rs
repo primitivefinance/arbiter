@@ -6,6 +6,7 @@ use std::pin::Pin;
 use anyhow::Result;
 use arbiter_core::middleware::ArbiterMiddleware;
 use futures_util::{Stream, StreamExt};
+use serde::Deserializer;
 use tokio::task::JoinHandle;
 use tracing::error;
 
@@ -46,33 +47,30 @@ pub enum ControlFlow {
     Continue,
 }
 
-// /// The state used by any entity implementing [`StateMachine`].
-// #[derive(Clone, Copy, Debug)]
-// pub enum State {
-//     /// The entity is not yet running any process.
-//     /// This is the state adopted by the entity when it is first created.
-//     Uninitialized,
-
-//     /// The entity is starting up.
-//     /// This is where the entity can engage in its specific start up activities
-//     /// that it can do given the current state of the world.
-//     /// These are usually quick one-shot activities that are not repeated.
-//     Starting,
-
-//     /// The entity is processing.
-//     /// This is where the entity can engage in its specific processing
-//     /// of events that can lead to actions being taken.
-//     Processing,
-// }
-
 pub trait State {
     type Data;
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Configuration {}
-impl State for Configuration {
-    type Data = ();
+#[derive(Debug, Clone, Serialize)]
+pub struct Configuration<D>
+where
+    D: Clone + Serialize + for<'de> Deserialize<'de>,
+{
+    pub data: D,
+}
+
+impl<'a, D> Deserialize<'a> for Configuration<D>
+where
+    D: Clone + Serialize + for<'de> Deserialize<'de>,
+{
+    fn deserialize<DE: Deserializer<'a>>(deserializer: DE) -> Result<Self, DE::Error> {
+        let data = D::deserialize(deserializer)?;
+        Ok(Configuration { data })
+    }
+}
+
+impl<D: Clone + Serialize + DeserializeOwned> State for Configuration<D> {
+    type Data = D;
 }
 pub struct Processing<D> {
     pub data: D,
