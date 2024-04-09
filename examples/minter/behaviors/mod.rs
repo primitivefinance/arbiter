@@ -19,8 +19,8 @@ use tracing::{debug, error, trace, warn};
 
 #[derive(Behaviors, Debug, Clone, Serialize, Deserialize)]
 pub enum Behaviors {
-    TokenAdmin(token_admin::TokenAdmin),
-    // TokenRequester(token_requester::TokenRequester<Configuration>),
+    TokenAdmin(token_admin::TokenAdmin<Configuration>),
+    TokenRequester(token_requester::TokenRequester<Configuration>),
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

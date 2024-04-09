@@ -91,21 +91,17 @@ pub trait Behavior<E: Send + 'static>:
     Serialize + DeserializeOwned + Send + Sync + Debug + 'static
 {
     type Processor: Processor<E> + Send + Sync + 'static;
-    /// Used to start the agent.
-    /// This is where the agent can engage in its specific start up activities
-    /// that it can do given the current state of the world.
+
     async fn startup(
         &mut self,
         client: Arc<ArbiterMiddleware>,
         messager: Messager,
     ) -> Result<Option<(Self::Processor, EventStream<E>)>>;
+}
 
-    // /// Used to process events.
-    // /// This is where the agent can engage in its specific processing
-    // /// of events that can lead to actions being taken.
-    // async fn process(&mut self, _event: E) -> Result<ControlFlow> {
-    //     Ok(ControlFlow::Halt)
-    // }
+#[async_trait::async_trait]
+pub trait Processor<E: Send + 'static> {
+    async fn process(&mut self, event: E) -> Result<ControlFlow>;
 }
 
 #[async_trait::async_trait]
@@ -125,11 +121,6 @@ impl Processor<()> for () {
 //     where
 //         E: Send + Sync + 'static;
 // }
-
-#[async_trait::async_trait]
-pub trait Processor<E: Send + 'static> {
-    async fn process(&mut self, event: E) -> Result<ControlFlow>;
-}
 
 /// A trait for creating a state machine.
 ///
@@ -308,12 +299,14 @@ where
                 }
             }
             MachineInstruction::Process => {
-                trace!("Behavior is starting up.");
+                debug!("Behavior is starting up.");
                 let mut processor = self.processor.take().unwrap();
                 let mut stream = self.event_stream.take().unwrap();
                 let processor_task: JoinHandle<Result<<B as Behavior<E>>::Processor>> =
                     tokio::spawn(async move {
+                        // debug!("About to start watching events in the task.");
                         while let Some(event) = stream.next().await {
+                            debug!("Received event: {:?}", event);
                             match processor.process(event).await? {
                                 ControlFlow::Halt => {
                                     break;
