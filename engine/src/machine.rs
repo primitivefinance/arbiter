@@ -69,7 +69,7 @@ where
     }
 }
 
-impl<D: Clone + Serialize + DeserializeOwned> State for Configuration<D> {
+impl<D: Clone + Serialize + for<'de> Deserialize<'de>> State for Configuration<D> {
     type Data = D;
 }
 pub struct Processing<D> {
