@@ -16,4 +16,4 @@ proc-macro = true
 
 [dependencies]
 syn.workspace = true
-quote = "1.0.35"
+quote = "1.0.36"
