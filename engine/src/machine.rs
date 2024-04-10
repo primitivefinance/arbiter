@@ -51,25 +51,12 @@ pub trait State {
     type Data;
 }
 
-#[derive(Debug, Clone, Serialize)]
-pub struct Configuration<D>
-where
-    D: Clone + Serialize + for<'de> Deserialize<'de>,
-{
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Configuration<D> {
     pub data: D,
 }
 
-impl<'a, D> Deserialize<'a> for Configuration<D>
-where
-    D: Clone + Serialize + for<'de> Deserialize<'de>,
-{
-    fn deserialize<DE: Deserializer<'a>>(deserializer: DE) -> Result<Self, DE::Error> {
-        let data = D::deserialize(deserializer)?;
-        Ok(Configuration { data })
-    }
-}
-
-impl<D: Clone + Serialize + for<'de> Deserialize<'de>> State for Configuration<D> {
+impl<D> State for Configuration<D> {
     type Data = D;
 }
 pub struct Processing<D> {
