@@ -17,9 +17,7 @@ pub(crate) struct TokenRequester<S: State> {
     pub data: S::Data,
 }
 
-pub trait Config:
-    std::fmt::Debug + Clone + Send + Sync + Serialize + DeserializeOwned + 'static
-{
+pub trait Config: std::fmt::Debug + Clone + Send + Sync + Serialize + 'static {
     fn max_count(&self) -> u64;
 }
 
@@ -42,7 +40,7 @@ pub struct TokenRequesterData {
 }
 
 #[async_trait::async_trait]
-impl<C: Config> Behavior<TransferFilter> for TokenRequester<Configuration<C>> {
+impl<C: Config + DeserializeOwned> Behavior<TransferFilter> for TokenRequester<Configuration<C>> {
     type Processor = TokenRequester<Processing<TokenRequesterData>>;
 
     async fn startup(
