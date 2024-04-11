@@ -39,6 +39,10 @@ pub fn create_behavior_from_enum(input: TokenStream) -> TokenStream {
     // Parse the input TokenStream into a DeriveInput object.
     let input = parse_macro_input!(input as DeriveInput);
 
+    // Fetch out the generics that may be attached to the enum we are deriving on.
+    let generics = input.generics;
+    let (impl_generics, type_generics, where_clause) = generics.split_for_impl();
+
     // Extract the identifier (name) of the enum.
     let name = input.ident;
 
@@ -72,7 +76,7 @@ pub fn create_behavior_from_enum(input: TokenStream) -> TokenStream {
     // Generate the full implementation of the `CreateStateMachine` trait for the
     // enum.
     let expanded = quote! {
-        impl CreateStateMachine for #name {
+        impl #impl_generics CreateStateMachine for #name #type_generics #where_clause {
             fn create_state_machine(self) -> Box<dyn StateMachine> {
                 match self {
                     #(#match_arms,)*

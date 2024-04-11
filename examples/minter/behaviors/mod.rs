@@ -20,7 +20,7 @@ use tracing::{debug, error, trace, warn};
 use self::{token_admin::TokenAdminConfig, token_requester::Config};
 
 #[derive(Behaviors, Debug, Clone, Serialize, Deserialize)]
-pub enum Behaviors<C: Config> {
+pub enum Behaviors<C: Config + Deserialize<'static>> {
     TokenAdmin(token_admin::TokenAdmin<Configuration<TokenAdminConfig>>),
     TokenRequester(token_requester::TokenRequester<Configuration<C>>),
 }

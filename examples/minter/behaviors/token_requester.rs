@@ -1,6 +1,9 @@
+use std::fmt::Debug;
+
 use arbiter_bindings::bindings::arbiter_token::TransferFilter;
 use arbiter_core::events::stream_event;
 use arbiter_engine::machine::{Processing, Processor, State};
+use serde::de::DeserializeOwned;
 use token_admin::{MintRequest, TokenAdminQuery};
 
 use super::*;
@@ -14,7 +17,9 @@ pub(crate) struct TokenRequester<S: State> {
     pub data: S::Data,
 }
 
-pub trait Config {
+pub trait Config:
+    std::fmt::Debug + Clone + Send + Sync + Serialize + DeserializeOwned + 'static
+{
     fn max_count(&self) -> u64;
 }
 
@@ -37,7 +42,7 @@ pub struct TokenRequesterData {
 }
 
 #[async_trait::async_trait]
-impl Behavior<TransferFilter> for TokenRequester<Configuration<TokenRequesterConfig>> {
+impl<C: Config> Behavior<TransferFilter> for TokenRequester<Configuration<C>> {
     type Processor = TokenRequester<Processing<TokenRequesterData>>;
 
     async fn startup(
