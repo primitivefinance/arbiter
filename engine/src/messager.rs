@@ -19,6 +19,12 @@ pub struct Message {
     pub data: String,
 }
 
+pub struct MessageDecoded<T: for<'de> Deserialize<'de>> {
+    pub from: String,
+    pub to: To,
+    pub data: T,
+}
+
 /// The recipient of the message.
 #[derive(Clone, Debug, Deserialize, Serialize, PartialEq, Eq)]
 pub enum To {
@@ -74,7 +80,9 @@ impl Messager {
 
     /// utility function for getting the next value from the broadcast_receiver
     /// without streaming
-    pub async fn get_next(&mut self) -> Result<Message, ArbiterEngineError> {
+    pub async fn get_next<T: for<'de> Deserialize<'de>>(
+        &mut self,
+    ) -> Result<MessageDecoded<T>, ArbiterEngineError> {
         let receiver =
             self.broadcast_receiver
                 .as_mut()
@@ -85,11 +93,21 @@ impl Messager {
         while let Ok(message) = receiver.recv().await {
             match &message.to {
                 To::All => {
+                    let message = MessageDecoded {
+                        from: message.from,
+                        to: message.to.clone(),
+                        data: serde_json::from_str(&message.data)?,
+                    };
                     return Ok(message);
                 }
                 To::Agent(id) => {
                     if let Some(self_id) = &self.id {
                         if id == self_id {
+                            let message = MessageDecoded {
+                                from: message.from,
+                                to: message.to.clone(),
+                                data: serde_json::from_str(&message.data)?,
+                            };
                             return Ok(message);
                         }
                     }
