@@ -75,15 +75,13 @@ impl Messager {
     /// utility function for getting the next value from the broadcast_receiver
     /// without streaming
     pub async fn get_next(&mut self) -> Result<Message, ArbiterEngineError> {
-        let mut receiver = match self.broadcast_receiver.take() {
-            Some(receiver) => receiver,
-            None => {
-                return Err(ArbiterEngineError::MessagerError(
+        let receiver =
+            self.broadcast_receiver
+                .as_mut()
+                .ok_or(ArbiterEngineError::MessagerError(
                     "Receiver has been taken! Are you already streaming on this messager?"
                         .to_owned(),
-                ))
-            }
-        };
+                ))?;
         while let Ok(message) = receiver.recv().await {
             match &message.to {
                 To::All => {
