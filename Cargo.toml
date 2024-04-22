@@ -64,7 +64,7 @@ syn = { version = "2.0.60", features = ["full"] }
 proc-macro2 = { version = "1.0.79" }
 
 tracing = "0.1.40"
-thiserror = { version = "1.0.58" }
+thiserror = { version = "1.0.59" }
 anyhow = "1.0.82"
 
 # Dependencies for the release build of Arbiter bin
