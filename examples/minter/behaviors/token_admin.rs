@@ -1,26 +1,18 @@
-use std::{borrow::Borrow, collections::HashMap};
+use std::collections::HashMap;
 
 use arbiter_engine::machine::{Processor, State};
-use ethers::providers::StreamExt;
 
 use super::*;
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, State)]
 pub struct Config {
     pub token_data: HashMap<String, TokenData>,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, State)]
 pub struct Processing {
     pub messager: Messager,
     pub tokens: HashMap<String, ArbiterToken<ArbiterMiddleware>>,
-}
-
-impl State for Config {
-    type Data = Self;
-}
-impl State for Processing {
-    type Data = Self;
 }
 
 #[derive(Deserialize, Serialize, Clone, Debug)]

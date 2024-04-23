@@ -10,7 +10,7 @@ use arbiter_engine::{
     machine::{Behavior, ControlFlow, CreateStateMachine, Engine, EventStream, StateMachine},
     messager::{Message, Messager, To},
 };
-use arbiter_macros::Behaviors;
+use arbiter_macros::{Behaviors, State};
 use ethers::types::{Address as eAddress, U256 as eU256};
 use serde::{Deserialize, Serialize};
 use tracing::{debug, trace, warn};

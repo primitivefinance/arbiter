@@ -16,25 +16,18 @@ pub(crate) struct TokenRequester<S: State> {
     pub data: S::Data,
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone, State)]
 pub struct Config {
     pub max_count: u64,
 }
 
+#[derive(State)]
 pub struct Processing {
     pub messager: Messager,
     pub client: Arc<ArbiterMiddleware>,
     pub token: ArbiterToken<ArbiterMiddleware>,
     pub count: u64,
     pub max_count: u64,
-}
-
-impl State for Config {
-    type Data = Self;
-}
-
-impl State for Processing {
-    type Data = Self;
 }
 
 #[async_trait::async_trait]

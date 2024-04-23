@@ -10,6 +10,24 @@ use syn::{
     Result as ParseResult, Type,
 };
 
+/// A procedural macro to derive the `State` trait for a struct.
+///
+/// This will automatically set the associated type `Data` to be the same as the
+/// `Self`.
+#[proc_macro_derive(State)]
+pub fn derive_state(input: TokenStream) -> TokenStream {
+    let input = parse_macro_input!(input as DeriveInput);
+    let name = &input.ident;
+
+    let expanded = quote! {
+        impl State for #name {
+            type Data = Self;
+        }
+    };
+
+    TokenStream::from(expanded)
+}
+
 /// A procedural macro to derive the `Behaviors` trait for enums.
 ///
 /// This macro generates an implementation of the `CreateStateMachine` trait for
