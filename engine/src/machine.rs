@@ -6,7 +6,6 @@ use std::pin::Pin;
 use anyhow::Result;
 use arbiter_core::middleware::ArbiterMiddleware;
 use futures_util::{Stream, StreamExt};
-use serde::Deserializer;
 use tokio::task::JoinHandle;
 use tracing::error;
 
@@ -51,31 +50,17 @@ pub trait State {
     type Data;
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Configuration<D> {
-    pub data: D,
-}
-
-impl<D> State for Configuration<D> {
-    type Data = D;
-}
-pub struct Processing<D> {
-    pub data: D,
-}
-impl<D> State for Processing<D> {
-    type Data = D;
-}
-
 // NOTE: `async_trait::async_trait` is used throughout to make the trait object
 // safe even though rust >=1.75 has async trait stabilized
 
 /// The [`Behavior`] trait is the lowest level functionality that will be used
 /// by a [`StateMachine`]. This constitutes what each state transition will do.
 #[async_trait::async_trait]
-pub trait Behavior<E: Send + 'static>:
-    Serialize + DeserializeOwned + Send + Sync + Debug + 'static
+pub trait Behavior<E>
+where
+    E: Send + 'static,
 {
-    type Processor: Processor<E> + Send + Sync + 'static;
+    type Processor: Processor<E> + Send;
 
     async fn startup(
         &mut self,
@@ -145,7 +130,7 @@ pub trait CreateStateMachine {
 /// Implementers of this trait must be able to be sent across threads and shared
 /// among threads safely, hence the `Send`, `Sync`, and `'static` bounds. They
 /// should also support debugging through the `Debug` trait.
-pub trait StateMachine: Send + Sync + Debug + 'static {
+pub trait StateMachine: Send + 'static {
     /// Executes a given instruction asynchronously.
     ///
     /// This method takes a mutable reference to self, allowing the state
@@ -196,23 +181,10 @@ where
     event_stream: Option<EventStream<E>>,
 }
 
-impl<B, E> Debug for Engine<B, E>
-where
-    B: Behavior<E>,
-    E: DeserializeOwned + Send + Sync + 'static,
-{
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("Engine")
-            .field("behavior", &self.behavior)
-            // .field("state", &self.state)
-            .finish()
-    }
-}
-
 impl<B, E> Engine<B, E>
 where
-    B: Behavior<E> + Debug,
-    E: DeserializeOwned + Send + Sync + 'static,
+    B: Behavior<E>,
+    E: Send + Debug,
 {
     /// Creates a new [`Engine`] with the given [`Behavior`] and [`Receiver`].
     pub fn new(behavior: B) -> Self {
@@ -227,8 +199,8 @@ where
 #[async_trait::async_trait]
 impl<B, E> StateMachine for Engine<B, E>
 where
-    B: Behavior<E> + Debug + Serialize + DeserializeOwned,
-    E: DeserializeOwned + Serialize + Send + Sync + Debug + 'static,
+    B: Behavior<E> + Send + 'static,
+    E: Send + Debug,
 {
     async fn execute(&mut self, instruction: MachineInstruction) -> Result<()> {
         // NOTE: The unwraps here are safe because the `Behavior` in an engine is only

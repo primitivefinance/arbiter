@@ -5,4 +5,4 @@ mod behaviors;
     about = "A simple token minter simulation",
     behaviors = behaviors::Behaviors<_>
 )]
-pub async fn main() {}
+pub fn main() {}

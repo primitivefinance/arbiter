@@ -19,9 +19,16 @@ pub struct Message {
     pub data: String,
 }
 
+/// A message with the data `T` already deserialized from a `String`
+/// representation.
 pub struct MessageDecoded<T: for<'de> Deserialize<'de>> {
+    /// The sender of the message.
     pub from: String,
+
+    /// The recipient of the message.
     pub to: To,
+
+    /// The data of the message deserialized.
     pub data: T,
 }
 
@@ -79,6 +86,7 @@ impl Messager {
     }
 
     /// utility function for getting the next value from the broadcast_receiver
+    /// and automatically attempting to deserialize into `T`
     /// without streaming
     pub async fn get_next<T: for<'de> Deserialize<'de>>(
         &mut self,
@@ -108,6 +116,34 @@ impl Messager {
                                 to: message.to.clone(),
                                 data: serde_json::from_str(&message.data)?,
                             };
+                            return Ok(message);
+                        }
+                    }
+                    continue;
+                }
+            }
+        }
+        unreachable!()
+    }
+
+    /// utility function for getting the next value from the broadcast_receiver
+    /// without streaming
+    pub async fn get_next_raw(&mut self) -> Result<Message, ArbiterEngineError> {
+        let receiver =
+            self.broadcast_receiver
+                .as_mut()
+                .ok_or(ArbiterEngineError::MessagerError(
+                    "Receiver has been taken! Are you already streaming on this messager?"
+                        .to_owned(),
+                ))?;
+        while let Ok(message) = receiver.recv().await {
+            match &message.to {
+                To::All => {
+                    return Ok(message);
+                }
+                To::Agent(id) => {
+                    if let Some(self_id) = &self.id {
+                        if id == self_id {
                             return Ok(message);
                         }
                     }

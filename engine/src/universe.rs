@@ -8,7 +8,7 @@ use crate::world::World;
 /// many `World`s in parallel. At the moment, is a wrapper around a
 /// [`HashMap`] of [`World`]s, but can be extended to handle generics inside of
 /// [`World`]s and crosstalk between [`World`]s.
-#[derive(Debug, Default)]
+#[derive(Default)]
 pub struct Universe {
     worlds: Option<HashMap<String, World>>,
     world_tasks: Option<Vec<Result<World, JoinError>>>,

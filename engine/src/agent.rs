@@ -1,15 +1,9 @@
 //! The agent module contains the core agent abstraction for the Arbiter Engine.
 
-use std::{fmt::Debug, sync::Arc};
-
 use arbiter_core::middleware::ArbiterMiddleware;
-use serde::{de::DeserializeOwned, Serialize};
 
 use super::*;
-use crate::{
-    machine::{Behavior, Engine, StateMachine},
-    messager::Messager,
-};
+use crate::machine::{Behavior, Engine, StateMachine};
 
 /// An agent is an entity capable of processing events and producing actions.
 /// These are the core actors in simulations or in onchain systems.
@@ -21,7 +15,6 @@ use crate::{
 /// each of its [`Behavior`]s `startup()` methods. The [`Behavior`]s themselves
 /// will return a stream of events that then let the [`Behavior`] move into the
 /// `State::Processing` stage.
-#[derive(Debug)]
 pub struct Agent {
     /// Identifier for this agent.
     /// Used for routing messages.
@@ -78,10 +71,11 @@ pub struct AgentBuilder {
 impl AgentBuilder {
     /// Appends a behavior onto an [`AgentBuilder`]. Behaviors are initialized
     /// when the agent builder is added to the [`crate::world::World`]
-    pub fn with_behavior<E: DeserializeOwned + Serialize + Send + Sync + Debug + 'static>(
-        mut self,
-        behavior: impl Behavior<E> + Serialize + DeserializeOwned + 'static,
-    ) -> Self {
+    pub fn with_behavior<B, E>(mut self, behavior: B) -> Self
+    where
+        B: Behavior<E> + Send + 'static,
+        E: Send + Debug + 'static,
+    {
         let engine = Engine::new(behavior);
         if let Some(engines) = &mut self.behavior_engines {
             engines.push(Box::new(engine));

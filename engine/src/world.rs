@@ -3,9 +3,6 @@
 use std::collections::VecDeque;
 
 use arbiter_core::{database::ArbiterDB, environment::Environment, middleware::ArbiterMiddleware};
-use futures_util::future::join_all;
-use serde::de::DeserializeOwned;
-use tokio::spawn;
 
 use super::*;
 use crate::{
@@ -23,7 +20,6 @@ use crate::{
 /// [`AgentBuilder`]s and when it does so, it creates [`Agent`]s that are now
 /// connected to the world via a client ([`Arc<RevmMiddleware>`]) and a messager
 /// ([`Messager`]).
-#[derive(Debug)]
 pub struct World {
     /// The identifier of the world.
     pub id: String,
@@ -114,6 +110,10 @@ impl World {
             #[serde(flatten)]
             agents_map: HashMap<String, Vec<C>>,
         }
+
+        // TODO: This needs to create like a `Vec<Value>` not a `Vec<C>` and we then
+        // need to have something like a `impl CreateStateMachine for Value` or
+        // `impl TryFrom<Value> for StateMachine` or something like this.
 
         let config: Config<C> = toml::from_str(&contents)?;
 
