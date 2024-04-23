@@ -1,19 +1,26 @@
-use std::collections::HashMap;
+use std::{borrow::Borrow, collections::HashMap};
 
-use arbiter_engine::machine::{Processing, Processor, State};
+use arbiter_engine::machine::{Processor, State};
+use ethers::providers::StreamExt;
 
 use super::*;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct TokenAdminConfig {
+pub struct Config {
     pub token_data: HashMap<String, TokenData>,
 }
 
 #[derive(Debug, Clone)]
-pub struct TokenAdminProcessing {
+pub struct Processing {
     pub messager: Messager,
-    pub client: Arc<ArbiterMiddleware>,
     pub tokens: HashMap<String, ArbiterToken<ArbiterMiddleware>>,
+}
+
+impl State for Config {
+    type Data = Self;
+}
+impl State for Processing {
+    type Data = Self;
 }
 
 #[derive(Deserialize, Serialize, Clone, Debug)]
@@ -53,21 +60,20 @@ pub struct MintRequest {
 }
 
 #[async_trait::async_trait]
-impl Behavior<Message> for TokenAdmin<Configuration<TokenAdminConfig>> {
-    type Processor = TokenAdmin<Processing<TokenAdminProcessing>>;
+impl Behavior<Message> for TokenAdmin<Config> {
+    type Processor = TokenAdmin<Processing>;
 
     #[tracing::instrument(skip(self), fields(id = messager.id.as_deref()))]
     async fn startup(
         &mut self,
         client: Arc<ArbiterMiddleware>,
         messager: Messager,
-    ) -> Result<Option<(Self::Processor, EventStream<Message>)>> {
-        let mut processor = TokenAdmin::<Processing<TokenAdminProcessing>> {
+    ) -> Result<Self::Processor> {
+        let mut processor = TokenAdmin::<Processing> {
             count: self.count,
             max_count: self.max_count,
-            data: TokenAdminProcessing {
-                messager: messager.clone(),
-                client: client.clone(),
+            data: Processing {
+                messager,
                 tokens: HashMap::new(),
             },
         };
@@ -91,12 +97,16 @@ impl Behavior<Message> for TokenAdmin<Configuration<TokenAdminConfig>> {
                 .tokens
                 .insert(token_data.name.clone(), token.clone());
         }
-        Ok(Some((processor, messager.stream()?)))
+        Ok(processor)
     }
 }
 
 #[async_trait::async_trait]
-impl Processor<Message> for TokenAdmin<Processing<TokenAdminProcessing>> {
+impl Processor<Message> for TokenAdmin<Processing> {
+    async fn get_stream(&mut self) -> Result<Option<EventStream<Message>>> {
+        Ok(Some(self.data.messager.stream()?))
+    }
+
     #[tracing::instrument(skip(self), fields(id = self.data.messager.id.as_deref()))]
     async fn process(&mut self, event: Message) -> Result<ControlFlow> {
         let query: TokenAdminQuery = serde_json::from_str(&event.data).unwrap();

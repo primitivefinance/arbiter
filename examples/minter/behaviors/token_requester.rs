@@ -2,8 +2,7 @@ use std::fmt::Debug;
 
 use arbiter_bindings::bindings::arbiter_token::TransferFilter;
 use arbiter_core::events::stream_event;
-use arbiter_engine::machine::{Processing, Processor, State};
-use serde::de::DeserializeOwned;
+use arbiter_engine::machine::{Processor, State};
 use token_admin::{MintRequest, TokenAdminQuery};
 
 use super::*;
@@ -17,43 +16,43 @@ pub(crate) struct TokenRequester<S: State> {
     pub data: S::Data,
 }
 
-pub trait Config: std::fmt::Debug + Clone + Send + Sync + Serialize + 'static {
-    fn max_count(&self) -> u64;
-}
-
 #[derive(Debug, Serialize, Deserialize, Clone)]
-pub struct TokenRequesterConfig {
+pub struct Config {
     pub max_count: u64,
 }
 
-impl Config for TokenRequesterConfig {
-    fn max_count(&self) -> u64 {
-        self.max_count
-    }
-}
-
-pub struct TokenRequesterData {
+pub struct Processing {
     pub messager: Messager,
     pub client: Arc<ArbiterMiddleware>,
+    pub token: ArbiterToken<ArbiterMiddleware>,
     pub count: u64,
     pub max_count: u64,
 }
 
+impl State for Config {
+    type Data = Self;
+}
+
+impl State for Processing {
+    type Data = Self;
+}
+
 #[async_trait::async_trait]
-impl<C: Config + DeserializeOwned> Behavior<TransferFilter> for TokenRequester<Configuration<C>> {
-    type Processor = TokenRequester<Processing<TokenRequesterData>>;
+impl Behavior<TransferFilter> for TokenRequester<Config> {
+    type Processor = TokenRequester<Processing>;
 
     async fn startup(
         &mut self,
         client: Arc<ArbiterMiddleware>,
         mut messager: Messager,
-    ) -> Result<Option<(Self::Processor, EventStream<TransferFilter>)>> {
+    ) -> Result<Self::Processor> {
         messager
             .send(
                 To::Agent(self.request_to.clone()),
                 TokenAdminQuery::AddressOf(self.token_data.name.clone()),
             )
             .await?;
+
         let token_address = messager.get_next::<eAddress>().await.unwrap().data;
         let token = ArbiterToken::new(token_address, client.clone());
         self.token_data.address = Some(token_address);
@@ -67,26 +66,27 @@ impl<C: Config + DeserializeOwned> Behavior<TransferFilter> for TokenRequester<C
             .send(To::Agent(self.request_to.clone()), mint_data)
             .await?;
 
-        let stream = stream_event(token.transfer_filter());
-        let data = TokenRequesterData {
+        let data = Processing {
             messager: messager.clone(),
+            token,
             client,
             count: 0,
-            max_count: self.data.max_count(),
+            max_count: self.data.max_count,
         };
-        Ok(Some((
-            TokenRequester {
-                token_data: self.token_data.clone(),
-                request_to: self.request_to.clone(),
-                data,
-            },
-            stream,
-        )))
+        Ok(TokenRequester::<Processing> {
+            token_data: self.token_data.clone(),
+            request_to: self.request_to.clone(),
+            data,
+        })
     }
 }
 
 #[async_trait::async_trait]
-impl Processor<TransferFilter> for TokenRequester<Processing<TokenRequesterData>> {
+impl Processor<TransferFilter> for TokenRequester<Processing> {
+    async fn get_stream(&mut self) -> Result<Option<EventStream<TransferFilter>>> {
+        Ok(Some(stream_event(self.data.token.transfer_filter())))
+    }
+
     async fn process(&mut self, _event: TransferFilter) -> Result<ControlFlow> {
         while self.data.count < self.data.max_count {
             debug!("sending message from requester");

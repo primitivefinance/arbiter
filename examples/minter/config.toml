@@ -10,4 +10,4 @@ TokenAdmin = { max_count = 4, data = { token_data = { "US Dollar Coin" = { name 
 # top level id for the `TokenRequester` agent
 [[requester]]
 # named struct and arguments for initializing the `TokenRequester` agent
-TokenRequester = { max_count = 3, request_to = "admin", token_data = { name = "US Dollar Coin", symbol = "USDC", decimals = 18 } }
+TokenRequester = { data = { max_count = 3 }, request_to = "admin", token_data = { name = "US Dollar Coin", symbol = "USDC", decimals = 18 } }

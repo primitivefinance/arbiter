@@ -156,7 +156,7 @@ impl Messager {
 
     /// Returns a stream of messages that are either sent to [`To::All`] or to
     /// the agent via [`To::Agent(id)`].
-    pub fn stream(mut self) -> Result<EventStream<Message>, ArbiterEngineError> {
+    pub fn stream(&mut self) -> Result<EventStream<Message>, ArbiterEngineError> {
         let mut receiver = match self.broadcast_receiver.take() {
             Some(receiver) => receiver,
             None => {
@@ -166,6 +166,7 @@ impl Messager {
                 ))
             }
         };
+        let self_id = self.id.clone();
         Ok(Box::pin(async_stream::stream! {
             while let Ok(message) = receiver.recv().await {
                 match &message.to {
@@ -173,7 +174,7 @@ impl Messager {
                         yield message;
                     }
                     To::Agent(id) => {
-                        if let Some(self_id) = &self.id {
+                        if let Some(self_id) = &self_id {
                             if id == self_id {
                                 yield message;
                             }

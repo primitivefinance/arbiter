@@ -185,6 +185,9 @@ where
     B: Behavior<E>,
     E: Send + 'static,
 {
+    /// The agent ID that owns the engine.
+    agent_id: Option<String>,
+
     /// The behavior the `Engine` runs.
     behavior: Option<B>,
 
@@ -204,6 +207,7 @@ where
     /// Creates a new [`Engine`] with the given [`Behavior`] and [`Receiver`].
     pub fn new(behavior: B) -> Self {
         Self {
+            agent_id: None,
             behavior: Some(behavior),
             processor: None,
             event_stream: None,
@@ -220,12 +224,10 @@ where
     async fn execute(&mut self, instruction: MachineInstruction) -> Result<()> {
         // NOTE: The unwraps here are safe because the `Behavior` in an engine is only
         // accessed here and it is private.
-        let id: Option<String>;
         match instruction {
             MachineInstruction::Start(client, messager) => {
-                id = messager.id.clone();
-                let id_clone = id.clone();
-                // self.state = State::Starting;
+                self.agent_id = messager.id.clone();
+                let id_clone = self.agent_id.clone();
                 let mut behavior = self.behavior.take().unwrap();
                 let behavior_task: JoinHandle<Result<(<B as Behavior<E>>::Processor, B)>> =
                     tokio::spawn(async move {
@@ -233,20 +235,26 @@ where
                             Ok(processor) => processor,
                             Err(e) => {
                                 error!(
-                                    "Startup failed for behavior {:?}: \n reason: {:?}",
+                                    "Startup failed for behavior {:#?}: \n reason: {:#?}",
                                     id_clone, e
                                 );
                                 // Throw a panic as we cannot recover from this for now.
                                 panic!();
                             }
                         };
-                        debug!("Startup complete for behavior {:?}", id_clone);
+                        debug!(
+                            "Startup complete for behavior of agent: {:#?}.",
+                            id_clone.unwrap_or("No ID".to_string())
+                        );
                         Ok((processor, behavior))
                     });
                 let (mut processor, behavior) = behavior_task.await??;
                 match processor.get_stream().await? {
                     None => {
-                        warn!("No stream found for behavior {:?} \nBreaking!", id);
+                        warn!(
+                            "No stream found for behavior of agent: {:#?} \nBreaking!",
+                            self.agent_id.clone().unwrap_or("No ID".to_string())
+                        );
                         return Ok(());
                     }
                     Some(stream) => {
@@ -259,21 +267,28 @@ where
                 match self.execute(MachineInstruction::Process).await {
                     Ok(_) => {}
                     Err(e) => {
-                        error!("Process failed for behavior {:?}: \n reason: {:?}", id, e);
+                        error!(
+                            "Process failed for behavior of agent: {:#?}: \n reason: {:#?}",
+                            self.agent_id.clone(),
+                            e
+                        );
                     }
                 }
 
                 Ok(())
             }
             MachineInstruction::Process => {
-                debug!("Behavior is starting up.");
+                debug!(
+                    "A behavior is now processing for agent: {:#?}.",
+                    self.agent_id.clone().unwrap_or("No ID".to_string())
+                );
                 let mut processor = self.processor.take().unwrap();
                 let mut stream = self.event_stream.take().unwrap();
                 let processor_task: JoinHandle<Result<<B as Behavior<E>>::Processor>> =
                     tokio::spawn(async move {
                         // debug!("About to start watching events in the task.");
                         while let Some(event) = stream.next().await {
-                            debug!("Received event: {:?}", event);
+                            debug!("Received event: {:#?}", event);
                             match processor.process(event).await? {
                                 ControlFlow::Halt => {
                                     break;
