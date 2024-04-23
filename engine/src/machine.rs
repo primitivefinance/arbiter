@@ -46,7 +46,10 @@ pub enum ControlFlow {
     Continue,
 }
 
+/// The [`State`] trait can be used on a [`Behavior`] to allow for the same
+/// underlying struct to exist in both a `startup` and `processing` state.
 pub trait State {
+    /// The type of data that the state will hold.
     type Data;
 }
 
@@ -60,22 +63,34 @@ pub trait Behavior<E>
 where
     E: Send + 'static,
 {
+    /// The processor that will be used to process events.
     type Processor: Processor<E> + Send;
 
+    /// Starts up the behavior and returns a processor optionally.
     async fn startup(
         &mut self,
         client: Arc<ArbiterMiddleware>,
         messager: Messager,
-    ) -> Result<Option<(Self::Processor, EventStream<E>)>>;
+    ) -> Result<Self::Processor>;
 }
 
+/// A [`Processor`] is a type that a [`Behavior`] can spawn upon completion of
+/// their startup in order to continuously process events.
 #[async_trait::async_trait]
 pub trait Processor<E: Send + 'static> {
+    /// Returns a stream of events that the processor will process.
+    async fn get_stream(&mut self) -> Result<Option<EventStream<E>>>;
+
+    /// Processes an event and returns a [`ControlFlow`] to determine if the
+    /// processor should continue or halt.
     async fn process(&mut self, event: E) -> Result<ControlFlow>;
 }
 
 #[async_trait::async_trait]
 impl Processor<()> for () {
+    async fn get_stream(&mut self) -> Result<Option<EventStream<()>>> {
+        Ok(None)
+    }
     async fn process(&mut self, _event: ()) -> Result<ControlFlow> {
         Ok(ControlFlow::Halt)
     }
@@ -212,48 +227,43 @@ where
                 let id_clone = id.clone();
                 // self.state = State::Starting;
                 let mut behavior = self.behavior.take().unwrap();
-                let behavior_task: JoinHandle<
-                    Result<(
-                        Option<(
-                            <B as Behavior<E>>::Processor,
-                            Pin<Box<dyn Stream<Item = E> + Send + Sync>>,
-                        )>,
-                        B,
-                    )>,
-                > = tokio::spawn(async move {
-                    let processor_and_stream = match behavior.startup(client, messager).await {
-                        Ok(processor_and_stream) => processor_and_stream,
-                        Err(e) => {
-                            error!(
-                                "startup failed for behavior {:?}: \n reason: {:?}",
-                                id_clone, e
-                            );
-                            // Throw a panic as we cannot recover from this for now.
-                            panic!();
-                        }
-                    };
-                    debug!("startup complete for behavior {:?}", id_clone);
-                    Ok((processor_and_stream, behavior))
-                });
-                let (option_processor_and_stream, behavior) = behavior_task.await??;
-                match option_processor_and_stream {
-                    Some(processor_and_stream) => {
-                        self.processor = Some(processor_and_stream.0);
-                        self.event_stream = Some(processor_and_stream.1);
-                        self.behavior = Some(behavior);
-                        match self.execute(MachineInstruction::Process).await {
-                            Ok(_) => {}
+                let behavior_task: JoinHandle<Result<(<B as Behavior<E>>::Processor, B)>> =
+                    tokio::spawn(async move {
+                        let processor = match behavior.startup(client, messager).await {
+                            Ok(processor) => processor,
                             Err(e) => {
-                                error!("process failed for behavior {:?}: \n reason: {:?}", id, e);
+                                error!(
+                                    "Startup failed for behavior {:?}: \n reason: {:?}",
+                                    id_clone, e
+                                );
+                                // Throw a panic as we cannot recover from this for now.
+                                panic!();
                             }
-                        }
-                        Ok(())
-                    }
+                        };
+                        debug!("Startup complete for behavior {:?}", id_clone);
+                        Ok((processor, behavior))
+                    });
+                let (mut processor, behavior) = behavior_task.await??;
+                match processor.get_stream().await? {
                     None => {
+                        warn!("No stream found for behavior {:?} \nBreaking!", id);
+                        return Ok(());
+                    }
+                    Some(stream) => {
+                        self.processor = Some(processor);
+                        self.event_stream = Some(stream);
                         self.behavior = Some(behavior);
-                        Ok(())
                     }
                 }
+
+                match self.execute(MachineInstruction::Process).await {
+                    Ok(_) => {}
+                    Err(e) => {
+                        error!("Process failed for behavior {:?}: \n reason: {:?}", id, e);
+                    }
+                }
+
+                Ok(())
             }
             MachineInstruction::Process => {
                 debug!("Behavior is starting up.");
