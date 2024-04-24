@@ -57,7 +57,7 @@ impl Behavior<Message> for TokenAdmin<Config> {
 
     #[tracing::instrument(skip(self), fields(id = messager.id.as_deref()))]
     async fn startup(
-        &mut self,
+        mut self,
         client: Arc<ArbiterMiddleware>,
         messager: Messager,
     ) -> Result<Self::Processor> {

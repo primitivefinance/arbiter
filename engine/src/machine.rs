@@ -68,7 +68,7 @@ where
 
     /// Starts up the behavior and returns a processor optionally.
     async fn startup(
-        &mut self,
+        self,
         client: Arc<ArbiterMiddleware>,
         messager: Messager,
     ) -> Result<Self::Processor>;
@@ -228,8 +228,8 @@ where
             MachineInstruction::Start(client, messager) => {
                 self.agent_id = messager.id.clone();
                 let id_clone = self.agent_id.clone();
-                let mut behavior = self.behavior.take().unwrap();
-                let behavior_task: JoinHandle<Result<(<B as Behavior<E>>::Processor, B)>> =
+                let behavior = self.behavior.take().unwrap();
+                let behavior_task: JoinHandle<Result<<B as Behavior<E>>::Processor>> =
                     tokio::spawn(async move {
                         let processor = match behavior.startup(client, messager).await {
                             Ok(processor) => processor,
@@ -246,9 +246,9 @@ where
                             "Startup complete for behavior of agent: {:#?}.",
                             id_clone.unwrap_or("No ID".to_string())
                         );
-                        Ok((processor, behavior))
+                        Ok(processor)
                     });
-                let (mut processor, behavior) = behavior_task.await??;
+                let mut processor = behavior_task.await??;
                 match processor.get_stream().await? {
                     None => {
                         warn!(
@@ -260,7 +260,6 @@ where
                     Some(stream) => {
                         self.processor = Some(processor);
                         self.event_stream = Some(stream);
-                        self.behavior = Some(behavior);
                     }
                 }
 
@@ -298,8 +297,6 @@ where
                         }
                         Ok(processor)
                     });
-                // TODO: We don't have to store the behavior again here, we could just discard
-                // it.
                 self.processor = Some(processor_task.await??);
                 Ok(())
             }

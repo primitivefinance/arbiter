@@ -35,7 +35,7 @@ impl Behavior<TransferFilter> for TokenRequester<Config> {
     type Processor = TokenRequester<Processing>;
 
     async fn startup(
-        &mut self,
+        mut self,
         client: Arc<ArbiterMiddleware>,
         mut messager: Messager,
     ) -> Result<Self::Processor> {
