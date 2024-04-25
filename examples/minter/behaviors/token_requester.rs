@@ -60,15 +60,15 @@ impl Behavior<TransferFilter> for TokenRequester<Config> {
             .await?;
 
         let data = Processing {
-            messager: messager.clone(),
+            messager,
             token,
             client,
             count: 0,
             max_count: self.data.max_count,
         };
         Ok(TokenRequester::<Processing> {
-            token_data: self.token_data.clone(),
-            request_to: self.request_to.clone(),
+            token_data: self.token_data,
+            request_to: self.request_to,
             data,
         })
     }

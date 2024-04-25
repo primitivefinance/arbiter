@@ -79,7 +79,9 @@ where
 #[async_trait::async_trait]
 pub trait Processor<E: Send + 'static> {
     /// Returns a stream of events that the processor will process.
-    async fn get_stream(&mut self) -> Result<Option<EventStream<E>>>;
+    async fn get_stream(&mut self) -> Result<Option<EventStream<E>>> {
+        Ok(None)
+    }
 
     /// Processes an event and returns a [`ControlFlow`] to determine if the
     /// processor should continue or halt.
