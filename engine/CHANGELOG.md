@@ -6,6 +6,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.0](https://github.com/primitivefinance/arbiter/compare/arbiter-engine-v0.3.2...arbiter-engine-v0.4.0) - 2024-04-26
+
+### Other
+- Some repository Tender Loving Care. Should fix release please once merged.  ([#959](https://github.com/primitivefinance/arbiter/pull/959))
+- db management ([#922](https://github.com/primitivefinance/arbiter/pull/922))
+- *(deps)* bump tokio-stream from 0.1.14 to 0.1.15 ([#939](https://github.com/primitivefinance/arbiter/pull/939))
+
 ## [0.3.2](https://github.com/primitivefinance/arbiter/compare/arbiter-engine-v0.3.1...arbiter-engine-v0.3.2) - 2024-02-26
 
 ### Added

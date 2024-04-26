@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.4](https://github.com/primitivefinance/arbiter/compare/arbiter-macros-v0.1.3...arbiter-macros-v0.1.4) - 2024-04-26
+
+### Other
+- *(deps)* bump quote from 1.0.35 to 1.0.36 ([#947](https://github.com/primitivefinance/arbiter/pull/947))
+
 ## [0.1.3](https://github.com/primitivefinance/arbiter/compare/arbiter-macros-v0.1.2...arbiter-macros-v0.1.3) - 2024-02-20
 
 ### Other
