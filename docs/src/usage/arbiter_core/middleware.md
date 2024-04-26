@@ -16,7 +16,7 @@ Fortunately, for almost every usecase of `ArbiterMiddleware`, you will not need 
 ## Usage
 
 To create a `ArbiterMiddleware` that is associated with an account in the `Environment`'s world state, we can do the following:
-```rust
+```rust, ignore
 use arbiter_core::{middleware::ArbiterMiddleware, environment::Environment};
 
 fn main() {
@@ -31,7 +31,7 @@ fn main() {
 }
 ```
 These created clients can then get access to making calls and transactions to contracts deployed into the `Environment`'s world state. We can do the following:
-```rust
+```rust, ignore
 use arbiter_core::{middleware::ArbiterMiddleware, environment::Environment};
 use arbiter_bindings::bindings::arbiter_token::ArbiterToken;
 
