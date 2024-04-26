@@ -26,7 +26,7 @@ serde.workspace = true
 serde_json.workspace = true
 
 # Types
-bytes = { version = "=1.5.0" }
+bytes = { version = "1.6.0" }
 hex = { version = "=0.4.3", default-features = false }
 hashbrown = "0.14.3"
 uint = "0.9.5"
@@ -37,7 +37,7 @@ futures-util.workspace = true
 async-trait.workspace = true
 async-stream.workspace = true
 crossbeam-channel.workspace = true
-futures-timer = { version = "=3.0.2" }
+futures-timer = { version = "3.0.3" }
 futures-locks = { version = "=0.7.1" }
 
 # Randomness
@@ -50,7 +50,7 @@ thiserror.workspace = true
 tracing.workspace = true
 
 # File types
-polars = { version = "0.37.0", features = ["parquet", "csv", "json"] }
+polars = { version = "0.38.3", features = ["parquet", "csv", "json"] }
 
 # Dependencies for the test build and development
 [dev-dependencies]

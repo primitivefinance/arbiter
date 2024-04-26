@@ -159,7 +159,7 @@ impl DatabaseRef for ArbiterDB {
 impl DatabaseCommit for ArbiterDB {
     fn commit(
         &mut self,
-        changes: hashbrown::HashMap<revm::primitives::Address, revm::primitives::Account>,
+        changes: revm_primitives::HashMap<revm::primitives::Address, revm::primitives::Account>,
     ) {
         self.state.write().unwrap().commit(changes)
     }

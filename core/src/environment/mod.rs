@@ -480,7 +480,7 @@ impl Environment {
                         match logs.get_mut(&evm.block().number) {
                             Some(log_vec) => {
                                 log_vec.extend(revm_logs_to_ethers_logs(
-                                    execution_result.logs(),
+                                    execution_result.logs().to_vec(),
                                     &receipt_data,
                                 ));
                             }
@@ -488,7 +488,7 @@ impl Environment {
                                 logs.insert(
                                     evm.block().number,
                                     revm_logs_to_ethers_logs(
-                                        execution_result.logs(),
+                                        execution_result.logs().to_vec(),
                                         &receipt_data,
                                     ),
                                 );
@@ -496,7 +496,7 @@ impl Environment {
                         }
 
                         match event_broadcaster.send(Broadcast::Event(
-                            execution_result.logs(),
+                            execution_result.logs().to_vec(),
                             receipt_data.clone(),
                         )) {
                             Ok(_) => {}

@@ -10,6 +10,3 @@
 [submodule "bindings/lib/ds-test"]
 	path = bindings/lib/ds-test
 	url = https://github.com/dapphub/ds-test
-[submodule "examples/template"]
-	path = examples/template
-	url = https://github.com/primitivefinance/arbiter-template

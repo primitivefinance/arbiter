@@ -80,7 +80,7 @@ impl AgentBuilder {
     /// when the agent builder is added to the [`crate::world::World`]
     pub fn with_behavior<E: DeserializeOwned + Serialize + Send + Sync + Debug + 'static>(
         mut self,
-        behavior: impl Behavior<E> + Serialize + DeserializeOwned + 'static,
+        behavior: impl Behavior<E> + 'static,
     ) -> Self {
         let engine = Engine::new(behavior);
         if let Some(engines) = &mut self.behavior_engines {

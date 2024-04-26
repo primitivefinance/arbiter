@@ -6,7 +6,7 @@ The `Socket` is a struct owned by the `Environment` that manages all inward and 
 ## Usage
 To create an `Environment`, we use a builder pattern that allows you to pre-load an `Environment` with your own database.
 We can do the following to create a default `Environment`:
-```rust
+```rust, ignore
 use arbiter_core::environment::Environment;
 
 fn main() {
@@ -18,7 +18,7 @@ Note that the call to `.build()` will start the `Environment`'s thread and begin
 ### Inspector Configuration
 The `Environment` also supports the ability to inspect the `revm` instance's state at any point in time which can be useful for debugging and managing gas.
 By default, the `Environment` will not inspect the `revm` instance's state at all (which should provide the highest speed), but you can enable these features by doing the following:
-```rust
+```rust, ignore
 use arbiter_core::environment::Environment;
 
 fn main() {
@@ -48,7 +48,7 @@ This will create an `Environment` that has been forked from the database at the 
 
 `Environment` supports more customization for the `gas_limit` and `contract_size_limit` of the `revm` instance. 
 You can do the following:
-```rust
+```rust, ignore
 use arbiter_core::environment::Environment;
 
 fn main() {

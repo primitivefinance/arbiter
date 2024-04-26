@@ -22,7 +22,6 @@ impl<DB: Database> Inspector<DB> for ConsoleLogs {
         &mut self,
         _context: &mut EvmContext<DB>,
         call: &mut CallInputs,
-        _return_memory_offset: Range<usize>,
     ) -> Option<CallOutcome> {
         if call.contract == CONSOLE_ADDRESS {
             self.0.push(call.input.clone());
