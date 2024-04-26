@@ -10,6 +10,6 @@ tokio = "1.36.0"
 
 [dev-dependencies]
 skeptic = "0.13.7"
-arbiter-core = "0.10.2"
-arbiter-bindings = "0.1.4"
-revm-primitives = "2.0.0"
+arbiter-core.workspace = true
+arbiter-bindings.workspace = true
+revm-primitives.workspace = true

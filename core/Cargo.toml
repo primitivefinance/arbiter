@@ -26,10 +26,10 @@ serde.workspace = true
 serde_json.workspace = true
 
 # Types
-bytes = { version = "1.6.0" }
-hex = { version = "=0.4.3", default-features = false }
-hashbrown = "0.14.3"
-uint = "0.9.5"
+bytes = { version = "^1.5.0" }
+hex = { version = "^0.4.3", default-features = false }
+hashbrown = "^0.14.3"
+uint = "^0.9.5"
 
 # Concurrency/async
 tokio.workspace = true
@@ -37,7 +37,7 @@ futures-util.workspace = true
 async-trait.workspace = true
 async-stream.workspace = true
 crossbeam-channel.workspace = true
-futures-timer = { version = "3.0.3" }
+futures-timer = { version = ">=3.0.2, <4.0.0" }
 futures-locks = { version = "=0.7.1" }
 
 # Randomness

@@ -30,16 +30,16 @@ path = "examples/minter/main.rs"
 
 [workspace.dependencies]
 # Arbiter local for development
-arbiter-bindings = { path = "bindings" }
-arbiter-core = { path = "core" }
-arbiter-engine = { path = "engine" }
-arbiter-macros = { path = "macros" }
+# arbiter-bindings = { path = "bindings" }
+# arbiter-core = { path = "core" }
+# arbiter-engine = { path = "engine" }
+# arbiter-macros = { path = "macros" }
 
 # Arbiter crates.io for release, these need to be used to do crate releases!
-# arbiter-bindings = "0.1.4"
-# arbiter-core = "0.10.2"
-# arbiter-engine = "0.3.0"
-# arbiter-macros = "0.1.1"
+arbiter-bindings = "0.1.7"
+arbiter-core = "0.11.0"
+arbiter-engine = "0.4.0"
+arbiter-macros = "0.1.4"
 
 revm = { version = "8.0.0", features = ["ethersdb", "std", "serde"] }
 revm-primitives = "3.1.1"
