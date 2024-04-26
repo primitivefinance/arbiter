@@ -62,10 +62,9 @@ impl Inspector<ArbiterDB> for ArbiterInspector {
         &mut self,
         context: &mut EvmContext<ArbiterDB>,
         inputs: &mut CallInputs,
-        return_memory_offset: Range<usize>,
     ) -> Option<CallOutcome> {
         if let Some(console_log) = &mut self.console_log {
-            console_log.call(context, inputs, return_memory_offset)
+            console_log.call(context, inputs)
         } else {
             None
         }

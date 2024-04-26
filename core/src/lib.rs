@@ -41,7 +41,6 @@ use std::{
     collections::{BTreeMap, HashMap},
     convert::Infallible,
     fmt::Debug,
-    ops::Range,
     sync::{Arc, RwLock},
 };
 

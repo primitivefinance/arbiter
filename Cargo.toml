@@ -24,29 +24,25 @@ name = "arbiter"
 path = "bin/main.rs"
 
 [[example]]
-name = "template"
-path = "examples/template/src/main.rs"
-
-[[example]]
 name = "minter"
 path = "examples/minter/main.rs"
 
 
 [workspace.dependencies]
 # Arbiter local for development
-# arbiter-bindings = { path = "arbiter-bindings" }
-# arbiter-core = { path = "arbiter-core" }
-# arbiter-engine = { path = "arbiter-engine" }
-# arbiter-macros = { path = "arbiter-macros" }
+arbiter-bindings = { path = "bindings" }
+arbiter-core = { path = "core" }
+arbiter-engine = { path = "engine" }
+arbiter-macros = { path = "macros" }
 
 # Arbiter crates.io for release, these need to be used to do crate releases!
-arbiter-bindings = "0.1.4"
-arbiter-core = "0.10.2"
-arbiter-engine = "0.3.0"
-arbiter-macros = "0.1.1"
+# arbiter-bindings = "0.1.4"
+# arbiter-core = "0.10.2"
+# arbiter-engine = "0.3.0"
+# arbiter-macros = "0.1.1"
 
-revm = { version = "5.0.0", features = ["ethersdb", "std", "serde"] }
-revm-primitives = "=2.0.0"
+revm = { version = "8.0.0", features = ["ethersdb", "std", "serde"] }
+revm-primitives = "3.1.1"
 ethers = { version = "2.0.14" }
 
 serde = { version = "1.0.198", features = ["derive"] }
@@ -64,7 +60,7 @@ syn = { version = "2.0.60", features = ["full"] }
 proc-macro2 = { version = "1.0.79" }
 
 tracing = "0.1.40"
-thiserror = { version = "1.0.58" }
+thiserror = { version = "1.0.59" }
 anyhow = "1.0.82"
 
 # Dependencies for the release build of Arbiter bin
