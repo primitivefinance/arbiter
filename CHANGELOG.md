@@ -6,6 +6,46 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.20](https://github.com/primitivefinance/arbiter/compare/arbiter-v0.4.19...arbiter-v0.4.20) - 2024-04-26
+
+### Added
+- environment logs ([#911](https://github.com/primitivefinance/arbiter/pull/911))
+
+### Other
+- Some repository Tender Loving Care. Should fix release please once merged.  ([#959](https://github.com/primitivefinance/arbiter/pull/959))
+- *(deps)* bump rustls from 0.21.10 to 0.21.11 in /docs in the cargo group across 1 directory ([#957](https://github.com/primitivefinance/arbiter/pull/957))
+- *(deps)* bump rustls from 0.21.10 to 0.21.11 in the cargo group ([#956](https://github.com/primitivefinance/arbiter/pull/956))
+- *(deps)* bump serde_json from 1.0.115 to 1.0.116 ([#955](https://github.com/primitivefinance/arbiter/pull/955))
+- *(deps)* bump chrono from 0.4.37 to 0.4.38 ([#954](https://github.com/primitivefinance/arbiter/pull/954))
+- *(deps)* bump serde from 1.0.197 to 1.0.198 ([#953](https://github.com/primitivefinance/arbiter/pull/953))
+- *(deps)* bump quote from 1.0.35 to 1.0.36 ([#947](https://github.com/primitivefinance/arbiter/pull/947))
+- *(deps)* bump anyhow from 1.0.81 to 1.0.82 ([#946](https://github.com/primitivefinance/arbiter/pull/946))
+- *(deps)* bump async-trait from 0.1.79 to 0.1.80 ([#948](https://github.com/primitivefinance/arbiter/pull/948))
+- *(deps)* bump syn from 2.0.58 to 2.0.60 ([#952](https://github.com/primitivefinance/arbiter/pull/952))
+- *(deps)* bump h2 from 0.3.24 to 0.3.26 in /docs ([#945](https://github.com/primitivefinance/arbiter/pull/945))
+- *(deps)* bump h2 from 0.3.25 to 0.3.26 ([#944](https://github.com/primitivefinance/arbiter/pull/944))
+- *(deps)* bump syn from 2.0.57 to 2.0.58 ([#943](https://github.com/primitivefinance/arbiter/pull/943))
+- db management ([#922](https://github.com/primitivefinance/arbiter/pull/922))
+- *(deps)* bump async-trait from 0.1.77 to 0.1.79 ([#940](https://github.com/primitivefinance/arbiter/pull/940))
+- *(deps)* bump thiserror from 1.0.57 to 1.0.58 ([#941](https://github.com/primitivefinance/arbiter/pull/941))
+- *(deps)* bump tokio-stream from 0.1.14 to 0.1.15 ([#939](https://github.com/primitivefinance/arbiter/pull/939))
+- *(deps)* bump serde_json from 1.0.114 to 1.0.115 ([#938](https://github.com/primitivefinance/arbiter/pull/938))
+- *(deps)* bump mio from 0.8.10 to 0.8.11 in /docs ([#927](https://github.com/primitivefinance/arbiter/pull/927))
+- *(deps)* bump anyhow from 1.0.80 to 1.0.81 ([#933](https://github.com/primitivefinance/arbiter/pull/933))
+- *(deps)* bump proc-macro2 from 1.0.78 to 1.0.79 ([#934](https://github.com/primitivefinance/arbiter/pull/934))
+- *(deps)* bump toml from 0.8.10 to 0.8.12 ([#935](https://github.com/primitivefinance/arbiter/pull/935))
+- *(deps)* bump rayon from 1.8.1 to 1.10.0 ([#937](https://github.com/primitivefinance/arbiter/pull/937))
+- update submodule ([#928](https://github.com/primitivefinance/arbiter/pull/928))
+- Update README.md ([#936](https://github.com/primitivefinance/arbiter/pull/936))
+- *(deps)* bump ethers from 2.0.13 to 2.0.14 ([#931](https://github.com/primitivefinance/arbiter/pull/931))
+- *(deps)* bump clap from 4.5.1 to 4.5.2 ([#929](https://github.com/primitivefinance/arbiter/pull/929))
+- *(deps)* bump chrono from 0.4.34 to 0.4.35 ([#930](https://github.com/primitivefinance/arbiter/pull/930))
+- *(deps)* bump mio from 0.8.10 to 0.8.11 ([#926](https://github.com/primitivefinance/arbiter/pull/926))
+- *(deps)* bump crossbeam-channel from 0.5.11 to 0.5.12 ([#919](https://github.com/primitivefinance/arbiter/pull/919))
+- *(deps)* bump syn from 2.0.51 to 2.0.52 ([#920](https://github.com/primitivefinance/arbiter/pull/920))
+- *(deps)* bump tempfile from 3.10.0 to 3.10.1 ([#917](https://github.com/primitivefinance/arbiter/pull/917))
+- *(deps)* bump syn from 2.0.50 to 2.0.51 ([#915](https://github.com/primitivefinance/arbiter/pull/915))
+
 ## [0.4.19](https://github.com/primitivefinance/arbiter/compare/arbiter-v0.4.18...arbiter-v0.4.19) - 2024-02-26
 
 ### Added

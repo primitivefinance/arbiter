@@ -6,6 +6,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.11.0](https://github.com/primitivefinance/arbiter/compare/arbiter-core-v0.10.3...arbiter-core-v0.11.0) - 2024-04-26
+
+### Added
+- environment logs ([#911](https://github.com/primitivefinance/arbiter/pull/911))
+
+### Other
+- Some repository Tender Loving Care. Should fix release please once merged.  ([#959](https://github.com/primitivefinance/arbiter/pull/959))
+- *(deps)* bump chrono from 0.4.37 to 0.4.38 ([#954](https://github.com/primitivefinance/arbiter/pull/954))
+- *(deps)* bump chrono from 0.4.34 to 0.4.35 ([#930](https://github.com/primitivefinance/arbiter/pull/930))
+
 ## [0.10.3](https://github.com/primitivefinance/arbiter/compare/arbiter-core-v0.10.2...arbiter-core-v0.10.3) - 2024-02-20
 
 ### Other
