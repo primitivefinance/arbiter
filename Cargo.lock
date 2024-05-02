@@ -277,7 +277,7 @@ dependencies = [
  "futures-locks",
  "futures-timer",
  "futures-util",
- "hashbrown 0.14.3",
+ "hashbrown 0.14.5",
  "hex",
  "polars",
  "rand",
@@ -307,7 +307,7 @@ dependencies = [
  "futures-locks",
  "futures-timer",
  "futures-util",
- "hashbrown 0.14.3",
+ "hashbrown 0.14.5",
  "hex",
  "polars",
  "rand",
@@ -2291,7 +2291,7 @@ version = "0.2.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "8588661a8607108a5ca69cab034063441a0413a0b041c13618a7dd348021ef6f"
 dependencies = [
- "hashbrown 0.14.3",
+ "hashbrown 0.14.5",
  "serde",
 ]
 
@@ -2303,9 +2303,9 @@ checksum = "43a3c133739dddd0d2990f9a4bdf8eb4b21ef50e4851ca85ab661199821d510e"
 
 [[package]]
 name = "hashbrown"
-version = "0.14.3"
+version = "0.14.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "290f1a1d9242c78d09ce40a5e87e7554ee637af1351968159f4952f028f75604"
+checksum = "e5274423e17b7c9fc20b6e7e208532f9b19825d82dfd615708b70edd83df41f1"
 dependencies = [
  "ahash",
  "allocator-api2",
@@ -2529,7 +2529,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "168fb715dda47215e360912c096649d23d58bf392ac62f73919e831745e40f26"
 dependencies = [
  "equivalent",
- "hashbrown 0.14.3",
+ "hashbrown 0.14.5",
 ]
 
 [[package]]
@@ -3544,7 +3544,7 @@ dependencies = [
  "foreign_vec",
  "futures",
  "getrandom",
- "hashbrown 0.14.3",
+ "hashbrown 0.14.5",
  "itoa",
  "itoap",
  "lz4",
@@ -3600,7 +3600,7 @@ dependencies = [
  "chrono-tz",
  "comfy-table",
  "either",
- "hashbrown 0.14.3",
+ "hashbrown 0.14.5",
  "indexmap",
  "num-traits",
  "once_cell",
@@ -3678,7 +3678,7 @@ dependencies = [
  "ahash",
  "chrono",
  "fallible-streaming-iterator",
- "hashbrown 0.14.3",
+ "hashbrown 0.14.5",
  "indexmap",
  "itoa",
  "num-traits",
@@ -3727,7 +3727,7 @@ dependencies = [
  "chrono",
  "chrono-tz",
  "either",
- "hashbrown 0.14.3",
+ "hashbrown 0.14.5",
  "hex",
  "indexmap",
  "jsonpath_lib_polars_vendor",
@@ -3782,7 +3782,7 @@ dependencies = [
  "crossbeam-channel",
  "crossbeam-queue",
  "enum_dispatch",
- "hashbrown 0.14.3",
+ "hashbrown 0.14.5",
  "num-traits",
  "polars-arrow",
  "polars-compute",
@@ -3882,7 +3882,7 @@ checksum = "694656a7d2b0cd8f07660dbc8d0fb7a81066ff57a452264907531d805c1e58c4"
 dependencies = [
  "ahash",
  "bytemuck",
- "hashbrown 0.14.3",
+ "hashbrown 0.14.5",
  "indexmap",
  "num-traits",
  "once_cell",
@@ -4314,7 +4314,7 @@ dependencies = [
  "bitflags 2.5.0",
  "bitvec",
  "enumn",
- "hashbrown 0.14.3",
+ "hashbrown 0.14.5",
  "hex",
 ]
 
@@ -4333,7 +4333,7 @@ dependencies = [
  "derive_more",
  "dyn-clone",
  "enumn",
- "hashbrown 0.14.3",
+ "hashbrown 0.14.5",
  "hex",
  "once_cell",
  "serde",

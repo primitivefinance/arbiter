@@ -28,7 +28,7 @@ serde_json.workspace = true
 # Types
 bytes = { version = "^1.5.0" }
 hex = { version = "^0.4.3", default-features = false }
-hashbrown = "^0.14.3"
+hashbrown = "^0.14.5"
 uint = "^0.9.5"
 
 # Concurrency/async
