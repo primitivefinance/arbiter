@@ -6,6 +6,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.21](https://github.com/primitivefinance/arbiter/compare/arbiter-v0.4.20...arbiter-v0.4.21) - 2024-05-16
+
+### Other
+- *(deps)* bump anyhow from 1.0.82 to 1.0.83 ([#965](https://github.com/primitivefinance/arbiter/pull/965))
+- *(deps)* bump serde from 1.0.198 to 1.0.200 ([#964](https://github.com/primitivefinance/arbiter/pull/964))
+- *(deps)* bump hashbrown from 0.14.3 to 0.14.5 ([#963](https://github.com/primitivefinance/arbiter/pull/963))
+
 ## [0.4.20](https://github.com/primitivefinance/arbiter/compare/arbiter-v0.4.19...arbiter-v0.4.20) - 2024-04-26
 
 ### Added
