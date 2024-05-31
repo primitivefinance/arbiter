@@ -366,6 +366,7 @@ impl Environment {
                         }
                         Cheatcodes::Deal { address, amount } => {
                             let recast_address = Address::from(address.as_fixed_bytes());
+
                             match db.state.write()?.accounts.get_mut(&recast_address) {
                                 Some(account) => {
                                     account.info.balance += U256::from_limbs(amount.0);
@@ -407,6 +408,23 @@ impl Environment {
                                         .send(Err(ArbiterCoreError::AccountDoesNotExistError))?;
                                 }
                             }
+                        }
+                        Cheatcodes::AddAccount { address } => {
+                            let recast_address = Address::from(address.as_fixed_bytes());
+
+                            let account = revm::db::DbAccount {
+                                info: AccountInfo::default(),
+                                account_state: AccountState::None,
+                                storage: HashMap::new(),
+                            };
+                            db.state
+                                .write()?
+                                .accounts
+                                .insert(recast_address, account.clone());
+
+                            outcome_sender.send(Ok(Outcome::CheatcodeReturn(
+                                CheatcodesReturn::AddAccount { info: account.info },
+                            )))?;
                         }
                     },
                     // A `Call` is not state changing and will not create events but will create
